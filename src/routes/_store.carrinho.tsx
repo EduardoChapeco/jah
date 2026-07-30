@@ -1,0 +1,332 @@
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { useState } from "react";
+import { formatMoney } from "@/lib/money";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  getCart,
+  removeFromCart,
+  updateCartItemQty,
+  applyCouponToCart,
+  updateCartShipping,
+} from "@/services/cart.functions";
+import { calculateShipping } from "@/services/shipping.functions";
+import { Trash2, Plus, Minus, ArrowRight, Ticket, Truck } from "lucide-react";
+import { EmptyState } from "@/components/state/states";
+import { toast } from "sonner";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
+
+export const Route = createFileRoute("/_store/carrinho")({
+  head: () => ({ meta: [{ title: "Meu Carrinho — Jah" }] }),
+  loader: async () => {
+    const cart = await getCart();
+    return (
+      cart || {
+        items: [],
+        totalCents: 0,
+        subtotalCents: 0,
+        discountCents: 0,
+        shippingCents: 0,
+        itemCount: 0,
+        couponCode: null,
+      }
+    );
+  },
+  component: StoreCartPage,
+});
+
+function StoreCartPage() {
+  const cart = Route.useLoaderData();
+  const router = useRouter();
+
+  const [coupon, setCoupon] = useState("");
+  const [isApplying, setIsApplying] = useState(false);
+
+  const [zipcode, setZipcode] = useState("");
+  const [isCalculatingZip, setIsCalculatingZip] = useState(false);
+  const [shippingRates, setShippingRates] = useState<any[]>([]);
+  const [selectedRateId, setSelectedRateId] = useState<string | null>(null);
+
+  const handleCalculateShipping = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!zipcode || zipcode.length < 8) return toast.error("CEP inválido.");
+
+    setIsCalculatingZip(true);
+    try {
+      const res = await calculateShipping({ data: { zipcode } });
+      setShippingRates(res);
+      if (res.length === 0) {
+        toast.info("Nenhum frete disponível para este CEP.");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao calcular frete.");
+    } finally {
+      setIsCalculatingZip(false);
+    }
+  };
+
+  const handleSelectRate = async (rateId: string) => {
+    const rate = shippingRates.find((r) => r.id === rateId);
+    if (!rate) return;
+
+    setSelectedRateId(rateId);
+    try {
+      const res = await updateCartShipping({
+        data: { zipcode, method: rate.name, cents: rate.price_cents },
+      });
+      if (res) {
+        toast.success("Frete adicionado ao carrinho!");
+        router.invalidate();
+      }
+    } catch {
+      toast.error("Erro ao salvar frete no carrinho.");
+    }
+  };
+
+  const handleRemove = async (itemId: string) => {
+    try {
+      await removeFromCart({ data: { itemId } });
+      router.invalidate();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao remover do carrinho.");
+    }
+  };
+
+  const handleUpdateQty = async (variantId: string, delta: number) => {
+    try {
+      await updateCartItemQty({ data: { variantId, delta } });
+      router.invalidate();
+    } catch (e: any) {
+      toast.error(e.message || "Estoque insuficiente ou erro de validação.");
+    }
+  };
+
+  const handleApplyCoupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!coupon) return;
+    setIsApplying(true);
+    try {
+      const res = await applyCouponToCart({ data: { code: coupon } });
+      toast.success(res.message);
+      setCoupon("");
+      router.invalidate();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao aplicar cupom.");
+    } finally {
+      setIsApplying(false);
+    }
+  };
+
+  return (
+    <div className="container max-w-4xl py-12 mx-auto px-4">
+      <h1 className="text-3xl font-serif font-bold tracking-tight mb-8">Meu Carrinho</h1>
+
+      {!cart || cart.items.length === 0 ? (
+        <EmptyState
+          title="Seu carrinho está vazio"
+          description="Explore nossa coleção e encontre o seu próximo par de calçados favorito."
+          action={
+            <Button onClick={() => router.navigate({ to: "/catalogo" })}>
+              Continuar Comprando
+            </Button>
+          }
+        />
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          <div className="lg:col-span-2 space-y-6">
+            {cart.items.map((item: any) => (
+              <div key={item.id} className="flex gap-6 py-6 border-b">
+                <div className="h-32 w-24 flex-shrink-0 overflow-hidden rounded-md border border-muted bg-muted">
+                  {item.coverUrl ? (
+                    <img
+                      src={item.coverUrl}
+                      alt={item.productTitle}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-full w-full bg-secondary" />
+                  )}
+                </div>
+                <div className="flex flex-1 flex-col justify-between">
+                  <div className="flex justify-between">
+                    <div>
+                      <h3
+                        className={cn(
+                          "font-semibold text-base",
+                          item.isOutOfStock && "text-destructive line-through",
+                        )}
+                      >
+                        {item.productTitle}
+                      </h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {Object.entries(item.variantAttributes || {}).length > 0
+                          ? Object.entries(item.variantAttributes || {})
+                              .map(([k, v]) => `${k}: ${v}`)
+                              .join(" | ")
+                          : "Padrão"}
+                      </p>
+                      {item.isOutOfStock && (
+                        <p className="text-xs font-bold text-destructive mt-1 bg-destructive/10 inline-block px-2 py-0.5 rounded-full">
+                          Sem estoque disponível
+                        </p>
+                      )}
+                    </div>
+                    <p
+                      className={cn(
+                        "font-medium text-base",
+                        item.isOutOfStock && "opacity-50 line-through",
+                      )}
+                    >
+                      {formatMoney(item.priceCents)}
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between mt-4">
+                    <div className="flex items-center border rounded-md">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-r-none"
+                        onClick={() => handleUpdateQty(item.variantId, -1)}
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <span className="text-sm font-medium w-8 text-center">{item.qty}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-l-none"
+                        onClick={() => handleUpdateQty(item.variantId, 1)}
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-muted-foreground hover:text-destructive"
+                      onClick={() => handleRemove(item.id)}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Remover
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-muted/50 rounded-xl p-6 h-fit sticky top-24">
+            <h2 className="text-xl font-semibold mb-4">Resumo do Pedido</h2>
+
+            <form onSubmit={handleApplyCoupon} className="flex gap-2 mb-6">
+              <Input
+                placeholder="Cupom de desconto"
+                value={coupon}
+                onChange={(e) => setCoupon(e.target.value)}
+              />
+              <Button type="submit" variant="secondary" disabled={isApplying || !coupon}>
+                Aplicar
+              </Button>
+            </form>
+
+            <div className="space-y-4 text-sm mb-6 border-b pb-6">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Subtotal ({cart.itemCount} itens)</span>
+                <span className="font-medium">{formatMoney(cart.subtotalCents)}</span>
+              </div>
+
+              {cart.couponCode && (
+                <div className="flex justify-between text-green-600">
+                  <span className="flex items-center gap-1">
+                    <Ticket className="h-4 w-4" /> Cupom ({cart.couponCode})
+                  </span>
+                  <span className="font-medium">-{formatMoney(cart.discountCents)}</span>
+                </div>
+              )}
+
+              <div className="flex flex-col gap-3 py-2">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground flex items-center gap-1">
+                    <Truck className="h-4 w-4" /> Frete
+                  </span>
+                  <span className="font-medium">
+                    {cart.shippingCents > 0 ? formatMoney(cart.shippingCents) : "--"}
+                  </span>
+                </div>
+
+                <form onSubmit={handleCalculateShipping} className="flex gap-2 mt-2">
+                  <Input
+                    placeholder="Calcular CEP"
+                    value={zipcode}
+                    onChange={(e) => setZipcode(e.target.value.replace(/\D/g, "").slice(0, 8))}
+                    maxLength={8}
+                  />
+                  <Button
+                    type="submit"
+                    variant="outline"
+                    disabled={isCalculatingZip || zipcode.length < 8}
+                  >
+                    {isCalculatingZip ? "..." : "OK"}
+                  </Button>
+                </form>
+
+                {shippingRates.length > 0 && (
+                  <div className="mt-3 p-3 bg-background rounded-md border text-sm">
+                    <RadioGroup value={selectedRateId || ""} onValueChange={handleSelectRate}>
+                      {shippingRates.map((rate) => (
+                        <div key={rate.id} className="flex items-center space-x-2 py-1">
+                          <RadioGroupItem value={rate.id} id={`rate-${rate.id}`} />
+                          <Label htmlFor={`rate-${rate.id}`} className="flex-1 cursor-pointer">
+                            <span className="font-medium">{rate.name}</span>
+                            {rate.estimated_days && (
+                              <span className="text-muted-foreground ml-1">
+                                ({rate.estimated_days} dias)
+                              </span>
+                            )}
+                          </Label>
+                          <span className="font-semibold">
+                            {rate.price_cents === 0 ? "Grátis" : formatMoney(rate.price_cents)}
+                          </span>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-between items-end mb-8">
+              <span className="font-semibold text-lg">Total estimado</span>
+              <span className="font-bold text-2xl tracking-tight">
+                {formatMoney(cart.totalCents)}
+              </span>
+            </div>
+
+            {cart.items.some((i: any) => i.isOutOfStock) ? (
+              <Button size="lg" className="w-full font-semibold rounded-full" disabled>
+                Remova itens sem estoque
+              </Button>
+            ) : (
+              <Link to="/checkout" className="w-full">
+                <Button size="lg" className="w-full font-semibold rounded-full shadow-md">
+                  Finalizar Compra
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+            )}
+            <div className="mt-4 text-center">
+              <Link
+                to="/catalogo"
+                className="text-sm text-muted-foreground underline hover:text-foreground"
+              >
+                Continuar comprando
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
