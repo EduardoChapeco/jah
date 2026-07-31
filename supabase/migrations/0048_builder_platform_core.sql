@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0048: Builder Platform Core
+-- Jah Commerce — Migration 0048: Builder Platform Core
 -- ============================================================================
 -- Creates the foundational tables for the hierarchical node-based builder engine.
 -- This replaces the flat `page_sections` approach with a robust DOM tree.

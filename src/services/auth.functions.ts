@@ -83,17 +83,13 @@ export const getUserSession = createServerFn({ method: "GET" }).handler(async ()
     } = await supabase.auth.getUser();
     if (error || !user) return null;
 
-    // Also fetch their profile to get their role
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
+    const { getServerIdentity } = await import("@/lib/identity.server");
+    const identity = await getServerIdentity();
 
     return {
       id: user.id,
       email: user.email!,
-      role: profile?.role ?? "customer",
+      role: identity.role,
     };
   } catch {
     return null;
@@ -118,7 +114,7 @@ export const signInWithPassword = createServerFn({ method: "POST" })
       }
 
       // Extract guest session manually before async context drops
-      const guestSessionToken = readCookieFromRequest(request, "hr_shoes_guest_session");
+      const guestSessionToken = readCookieFromRequest(request, "jah_guest_session");
 
       // Use global getResponseHeaders implicitly to ensure Set-Cookie is persisted on the RPC response
       const supabase = await getSSRClient();
@@ -203,7 +199,7 @@ export const signUpWithPassword = createServerFn({ method: "POST" })
     try {
       const request = getRequest();
       // Extract guest session manually before async context drops
-      const guestSessionToken = readCookieFromRequest(request, "hr_shoes_guest_session");
+      const guestSessionToken = readCookieFromRequest(request, "jah_guest_session");
 
       const supabase = await getSSRClient();
 
@@ -282,7 +278,7 @@ export const signOut = createServerFn({ method: "POST" }).handler(async () => {
     // Clear guest session manually using H3-compatible util
     setResponseHeader(
       "Set-Cookie",
-      `hr_shoes_guest_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax${
+      `jah_guest_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax${
         getEnvVar("VITE_SITE_URL")?.includes("localhost") ? "" : "; Secure"
       }`,
     );

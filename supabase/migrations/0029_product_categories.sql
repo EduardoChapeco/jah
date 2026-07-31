@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0029: Product Categories Mapping
+-- Jah Commerce — Migration 0029: Product Categories Mapping
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.product_categories (

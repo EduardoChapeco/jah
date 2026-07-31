@@ -59,7 +59,7 @@ describe("Onboarding Services", () => {
       id: "user-123",
       role: "owner",
       store_id: "store-123",
-      organization_id: null,
+      memberships: [{ store_id: "store-123", role: "admin" }],
     });
   });
 

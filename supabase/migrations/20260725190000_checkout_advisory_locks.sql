@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 20260725190000: Checkout Advisory Locks
+-- Jah Commerce — Migration 20260725190000: Checkout Advisory Locks
 -- ============================================================================
 -- Introduces Transaction-Level Advisory Locks to prevent concurrent race conditions
 -- and eliminate 500 Server Errors due to Unique Constraint Violations 

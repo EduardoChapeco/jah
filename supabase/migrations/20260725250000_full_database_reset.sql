@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 20260725250000: Full Database Reset
+-- Jah Commerce — Migration 20260725250000: Full Database Reset
 -- ============================================================================
 -- Completely wipes all operational data, products, orders, stores, 
 -- organizations and auth users, resetting the database to zero.

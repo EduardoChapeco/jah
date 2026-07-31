@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 20260730100000: Advanced Backorders, POS & ACL
+-- Jah Commerce — Migration 20260730100000: Advanced Backorders, POS & ACL
 -- ============================================================================
 -- 1. Backorder Support (product_variants)
 -- 2. POS Settings (manager override config)

@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0054: Match Time Checkout Engine (Microfase 5)
+-- Jah Commerce — Migration 0054: Match Time Checkout Engine (Microfase 5)
 -- ============================================================================
 -- Modifica a RPC v2 do checkout para aceitar, validar e aplicar descontos
 -- de Match Time (Ofertas relâmpago) no lado do servidor, de forma atômica.

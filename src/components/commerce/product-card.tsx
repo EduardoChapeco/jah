@@ -29,10 +29,10 @@ export function ProductCard({
       to="/produto/$slug"
       params={{ slug: product.slug }}
       search={product.variantId ? { v: product.variantId } : undefined}
-      className={cn("group flex flex-col gap-3 rounded-xl focus-visible:outline-none", className)}
+      className={cn("group flex flex-col gap-3 rounded-sm focus-visible:outline-none", className)}
     >
       {/* Image Container */}
-      <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-secondary">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-sm bg-secondary">
         {product.coverUrl ? (
           <>
             <img
@@ -64,7 +64,7 @@ export function ProductCard({
         {/* Quick Add Overlay (Desktop only) */}
         {!product.isOutOfStock && (
           <div className="absolute inset-x-2 bottom-2 translate-y-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 hidden @md:block">
-            <div className="w-full rounded-lg bg-background/90 text-foreground shadow-sm backdrop-blur py-2 text-center text-xs font-semibold hover:bg-primary hover:text-primary-foreground transition-colors">
+            <div className="w-full rounded-sm bg-white text-black border border-black/10 py-2.5 text-center text-xs font-medium uppercase tracking-wider hover:bg-black hover:text-white transition-colors">
               Ver Opções
             </div>
           </div>
@@ -72,8 +72,8 @@ export function ProductCard({
 
         {/* Mobile quick-add bag icon */}
         {!product.isOutOfStock && (
-          <div className="absolute bottom-2 right-2 rounded-full bg-background/90 p-2 shadow-sm backdrop-blur @md:hidden">
-            <ShoppingBag className="size-4 text-foreground" aria-hidden />
+          <div className="absolute bottom-2 right-2 rounded-sm bg-white p-2 border border-black/10 hover:bg-black hover:text-white transition-colors group @md:hidden">
+            <ShoppingBag className="size-4 text-black group-hover:text-white" aria-hidden />
           </div>
         )}
 
@@ -89,7 +89,7 @@ export function ProductCard({
         {/* Badges container */}
         <div className="absolute left-2 top-2 flex flex-col gap-1.5 items-start">
           {product.compareAtCents && product.compareAtCents > product.priceCents && (
-            <div className="rounded-full bg-destructive px-2 py-0.5 text-[0.65rem] font-bold tracking-wide text-destructive-foreground">
+            <div className="rounded-sm bg-destructive px-2 py-0.5 text-[0.65rem] font-bold tracking-wide text-destructive-foreground">
               {Math.round(
                 ((product.compareAtCents - product.priceCents) / product.compareAtCents) * 100,
               )}
@@ -97,7 +97,7 @@ export function ProductCard({
             </div>
           )}
           {isNew && (
-            <div className="rounded-full bg-primary px-2 py-0.5 text-[0.65rem] font-bold tracking-wide text-primary-foreground">
+            <div className="rounded-sm bg-primary px-2 py-0.5 text-[0.65rem] font-bold tracking-wide text-primary-foreground">
               NOVO
             </div>
           )}

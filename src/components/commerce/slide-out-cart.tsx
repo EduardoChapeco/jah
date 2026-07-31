@@ -6,11 +6,32 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { useCartContext } from "@/lib/cart-context";
 import { cn } from "@/lib/utils";
 import { PriceDisplay } from "./price-display";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import { calculateShipping } from "@/services/shipping.functions";
 
 export function SlideOutCart() {
   const { cart, isCartOpen, setIsCartOpen, updateQty, removeItem, isCartUpdating } =
     useCartContext();
   const router = useRouter();
+  
+  const [zipcode, setZipcode] = useState("");
+  const [shippingLoading, setShippingLoading] = useState(false);
+  const [shippingOptions, setShippingOptions] = useState<any[]>([]);
+
+  const handleCalculateShipping = async () => {
+    if (zipcode.length < 8) return;
+    setShippingLoading(true);
+    try {
+      const options = await calculateShipping({ data: { cartId: cart?.id, zipcode, weightGrams: 500 } });
+      setShippingOptions(options);
+    } catch (e: any) {
+      toast.error("Erro ao calcular frete");
+    } finally {
+      setShippingLoading(false);
+    }
+  };
 
   const handleNavigateToCheckout = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -136,13 +157,41 @@ export function SlideOutCart() {
               </div>
             )}
             <div className="flex items-center justify-between text-lg font-bold">
-              <span>Total</span>
+              <span>Total Estimado</span>
               <span>{formatMoney(cart.totalCents - cart.shippingCents)}</span>
             </div>
 
-            <p className="text-xs text-muted-foreground text-center">
-              Frete calculado no próximo passo.
-            </p>
+            {/* Calculadora de Frete Dinâmica */}
+            <div className="bg-background rounded-md p-3 border space-y-3">
+               <div className="flex items-center justify-between">
+                 <span className="text-sm font-medium">Calcular Frete</span>
+               </div>
+               <div className="flex gap-2">
+                 <Input 
+                   placeholder="Ex: 01001-000" 
+                   value={zipcode} 
+                   onChange={e => setZipcode(e.target.value)}
+                   className="h-8 text-sm"
+                 />
+                 <Button size="sm" onClick={handleCalculateShipping} disabled={shippingLoading}>
+                   {shippingLoading ? "..." : "OK"}
+                 </Button>
+               </div>
+               
+               {shippingOptions.length > 0 && (
+                 <div className="pt-2 border-t mt-2 space-y-2">
+                   {shippingOptions.map((opt, idx) => (
+                      <div key={idx} className="flex justify-between items-center text-xs">
+                        <div>
+                          <span className="font-semibold">{opt.provider} {opt.service_name}</span>
+                          <span className="text-muted-foreground block">Entrega em até {opt.estimated_days} dias</span>
+                        </div>
+                        <span className="font-medium text-success">{formatMoney(opt.price_cents)}</span>
+                      </div>
+                   ))}
+                 </div>
+               )}
+            </div>
 
             <Button
               className="w-full text-base font-semibold py-6 h-auto"

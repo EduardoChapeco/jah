@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0058: Upsell Rules (Microfase 7)
+-- Jah Commerce — Migration 0058: Upsell Rules (Microfase 7)
 -- ============================================================================
 -- Cria a tabela de regras de upsell no checkout.
 -- Define RLS permitindo escrita apenas por staff e leitura pública de regras ativas.

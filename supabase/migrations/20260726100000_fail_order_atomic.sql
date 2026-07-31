@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 20260726100000: Fail Order Atomic RPC
+-- Jah Commerce — Migration 20260726100000: Fail Order Atomic RPC
 -- ============================================================================
 -- RPC para atomicidade em falha de pagamentos (Cartão recusado, Pix expirado,
 -- Rejeição Manual). Garante a devolução do estoque preso e estorno de comissões,

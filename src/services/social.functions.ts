@@ -77,13 +77,27 @@ export const submitProductReview = createServerFn({ method: "POST" })
       throw new Error("Você precisa estar logado para avaliar um produto.");
     }
 
+    // Security check: Must have purchased the product
+    const { data: purchaseVerify } = await supabase
+      .from("orders")
+      .select("id, order_items!inner(product_id)")
+      .eq("customer_snapshot->>id", identity.customer_id)
+      .in("status", ["paid", "shipped", "delivered", "completed"])
+      .eq("order_items.product_id", productId)
+      .limit(1)
+      .maybeSingle();
+
+    if (!purchaseVerify) {
+      throw new Error("Apenas clientes que compraram este produto podem avaliá-lo.");
+    }
+
     const { error } = await supabase.from("reviews").insert({
       store_id: storeId,
       product_id: productId,
       user_id: identity.customer_id,
       rating,
       comment,
-      status: "approved",
+      status: "pending", // Now requires moderation or we can leave as approved if we trust verified buyers
     });
 
     if (error) {

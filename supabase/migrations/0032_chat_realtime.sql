@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0030: Chat Realtime
+-- Jah Commerce — Migration 0030: Chat Realtime
 -- ============================================================================
 
 -- Ensure the supabase_realtime publication exists (created by default, but just in case)

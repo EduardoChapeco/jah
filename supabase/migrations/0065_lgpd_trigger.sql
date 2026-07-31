@@ -1,4 +1,4 @@
--- Hr Shoes Commerce — Migration 0065: LGPD trigger support
+-- Jah Commerce — Migration 0065: LGPD trigger support
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
@@ -20,16 +20,16 @@ BEGIN
 
     -- Ensure default organization exists
     INSERT INTO public.organizations (name, slug)
-    VALUES ('Hr Shoes Organization', 'hr-shoes-org')
+    VALUES ('Jah Organization', 'jah-org')
     ON CONFLICT (slug) DO NOTHING;
-    SELECT id INTO v_default_org_id FROM public.organizations WHERE slug = 'hr-shoes-org' LIMIT 1;
+    SELECT id INTO v_default_org_id FROM public.organizations WHERE slug = 'jah-org' LIMIT 1;
 
     -- Ensure default store exists
     INSERT INTO public.stores (organization_id, name, slug)
-    VALUES (v_default_org_id, 'Hr Shoes', 'hr-shoes')
+    VALUES (v_default_org_id, 'Jah', 'jah')
     ON CONFLICT (organization_id, slug) DO NOTHING;
     SELECT id INTO v_default_store_id FROM public.stores
-      WHERE slug = 'hr-shoes' AND organization_id = v_default_org_id LIMIT 1;
+      WHERE slug = 'jah' AND organization_id = v_default_org_id LIMIT 1;
 
     -- Mark setup as complete (idempotent)
     INSERT INTO public.system_flags (key, value)

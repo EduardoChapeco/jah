@@ -8,6 +8,7 @@ export interface DashboardMetrics {
   salesMonthCents: number;
   ordersTodayCount: number;
   ordersMonthCount: number;
+  ordersBreakdown: {
     awaitingPayment: number;
     needsSeparation: number;
     shippedOrReady: number;

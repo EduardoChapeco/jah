@@ -313,8 +313,11 @@ function ProductContent({
     new Set(product.variants.flatMap((v: VariantDTO) => Object.keys(v.attributes))),
   );
 
+  // allOutOfStock: product is truly unavailable only when ALL variants have no stock AND no backorder allowed
   const allOutOfStock =
-    product.variants.length > 0 && product.variants.every((v: VariantDTO) => v.availableQty <= 0);
+    product.variants.length > 0 &&
+    product.variants.every((v: VariantDTO) => v.availableQty <= 0 && !v.allowBackorder);
+
 
   const router = useRouter();
 
@@ -326,8 +329,17 @@ function ProductContent({
       const match = product.variants.find((v: VariantDTO) => v.id === search.v);
       if (match) return match;
     }
+    // Prefer variant with stock, then backorder-enabled, then first
     const hasStock = product.variants.filter((v: VariantDTO) => v.availableQty > 0);
-    return hasStock.length > 0 ? hasStock[0] : product.variants[0];
+    const hasBackorder = product.variants.filter(
+      (v: VariantDTO) => v.availableQty <= 0 && v.allowBackorder
+    );
+    return hasStock.length > 0
+      ? hasStock[0]
+      : hasBackorder.length > 0
+        ? hasBackorder[0]
+        : product.variants[0];
+
   }, [product.variants, search.v]);
 
   // Initialize selected attributes with the first variant's attributes
@@ -665,12 +677,13 @@ function ProductContent({
               </div>
             </div>
 
-            {/* Out of stock */}
-            {allOutOfStock && !product.allowsPreorder && (
+            {/* Out of stock — only shown when all variants are truly unavailable (no backorder) */}
+            {allOutOfStock && (
               <Badge variant="destructive" className="w-fit text-xs font-bold py-1 px-3">
                 Sem estoque disponível
               </Badge>
             )}
+
 
             {/* Selectores de Atributos Customizados */}
             {attributeKeys.length > 0 && (
@@ -761,14 +774,14 @@ function ProductContent({
                               <button
                                 key={val}
                                 type="button"
-                                disabled={isOptionOutOfStock && !product.allowsPreorder}
+                                disabled={isOptionOutOfStock && !hypotheticVariant?.allowBackorder}
                                 onClick={() =>
                                   setSelectedAttributes((prev) => ({ ...prev, [key]: val }))
                                 }
                                 className={`min-h-10 rounded-xl border px-4 py-2.5 text-xs font-semibold tracking-wide transition-all duration-150 ${
                                   isSelected
                                     ? "border-primary bg-primary text-primary-foreground font-bold shadow-xs scale-[1.02]"
-                                    : isOptionOutOfStock && !product.allowsPreorder
+                                    : isOptionOutOfStock && !hypotheticVariant?.allowBackorder
                                       ? "border-dashed border-border/40 text-muted-foreground/40 bg-muted/20 cursor-not-allowed line-through opacity-50"
                                       : "border-border bg-card text-foreground hover:border-primary hover:text-primary"
                                 }`}
@@ -799,8 +812,8 @@ function ProductContent({
               </div>
 
               {shippingOrigin === "international" && (
-                <div className="p-3 border border-amber-500/20 bg-amber-500/5 rounded-xl text-[11px] text-amber-800 leading-normal flex items-start gap-2">
-                  <Info className="size-4 text-amber-600 shrink-0 mt-0.5" />
+                <div className="p-3 border border-warning/20 bg-warning/5 rounded-xl text-[11px] text-warning-foreground leading-normal flex items-start gap-2">
+                  <Info className="size-4 text-warning shrink-0 mt-0.5" />
                   <span>
                     Produto Internacional sujeito à declaração de importação e eventuais tributos
                     alfandegários estaduais e federais.
@@ -883,44 +896,78 @@ function ProductContent({
               {/* Selos de Confiança */}
               <div className="flex flex-wrap gap-x-4 gap-y-1.5 pt-3 border-t border-border/40 text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">
                 <span className="flex items-center gap-1.5">
-                  <ShieldCheck className="size-3.5 text-emerald-600 fill-emerald-600/10" />
+                  <ShieldCheck className="size-3.5 text-success fill-success/10" />
                   Pagamento Seguro
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <ShieldCheck className="size-3.5 text-emerald-600 fill-emerald-600/10" />
+                  <ShieldCheck className="size-3.5 text-success fill-success/10" />
                   Proteção de Privacidade
                 </span>
               </div>
             </div>
 
-            {/* Add to cart */}
+            {/* Add to cart / Encomendar */}
             <div className="space-y-3">
-              <Button
-                size="lg"
-                className="w-full font-bold text-sm h-12 uppercase tracking-wider bg-primary hover:bg-primary/95 transition-transform duration-100 hover:scale-[1.01]"
-                onClick={handleAddToCart}
-                disabled={
-                  Boolean(isAdding) ||
-                  Boolean(allOutOfStock) ||
-                  Boolean(selectedVariant && selectedVariant.availableQty <= 0)
-                }
-              >
-                <ShoppingBag className="size-5 mr-2" aria-hidden />
-                {isAdding ? "Adicionando..." : "Adicionar ao carrinho"}
-              </Button>
+              {(() => {
+                const isBackorder =
+                  selectedVariant &&
+                  selectedVariant.availableQty <= 0 &&
+                  selectedVariant.allowBackorder;
+                const variantHardBlocked =
+                  selectedVariant &&
+                  selectedVariant.availableQty <= 0 &&
+                  !selectedVariant.allowBackorder;
 
-              {product.allowsPreorder && (
-                <p className="text-[11px] text-muted-foreground bg-muted/40 p-2.5 rounded-xl border border-dashed text-center">
-                  🚚 Este produto está em pré-venda. Ele será produzido e enviado sob encomenda.
-                </p>
-              )}
+                return (
+                  <>
+                    <Button
+                      size="lg"
+                      className={`w-full font-bold text-sm h-12 uppercase tracking-wider transition-transform duration-100 hover:scale-[1.01] ${
+                        isBackorder
+                          ? "bg-foreground text-background hover:bg-foreground/90"
+                          : "bg-primary hover:bg-primary/95"
+                      }`}
+                      onClick={handleAddToCart}
+                      disabled={
+                        Boolean(isAdding) ||
+                        Boolean(allOutOfStock) ||
+                        Boolean(variantHardBlocked)
+                      }
+                    >
+                      <ShoppingBag className="size-5 mr-2" aria-hidden />
+                      {isAdding
+                        ? "Adicionando..."
+                        : isBackorder
+                          ? "Encomendar"
+                          : "Adicionar ao carrinho"}
+                    </Button>
+
+                    {isBackorder &&
+                      selectedVariant.backorderLeadTimeDays != null &&
+                      selectedVariant.backorderLeadTimeDays > 0 && (
+                        <p className="text-[11px] text-muted-foreground bg-muted/40 p-2.5 rounded border border-dashed text-center">
+                          🚚 Produto sob encomenda. Prazo adicional estimado:{" "}
+                          <strong>{selectedVariant.backorderLeadTimeDays} dias úteis</strong> além do frete normal.
+                        </p>
+                      )}
+
+                    {isBackorder &&
+                      !selectedVariant?.backorderLeadTimeDays && (
+                        <p className="text-[11px] text-muted-foreground bg-muted/40 p-2.5 rounded border border-dashed text-center">
+                          🚚 Produto sob encomenda. Consulte-nos para confirmar o prazo.
+                        </p>
+                      )}
+                  </>
+                );
+              })()}
             </div>
+
 
             {/* Card "Sobre a Loja" */}
             <div className="p-4 border rounded-2xl bg-card flex items-center justify-between shadow-xs">
               <div className="flex items-center gap-3">
-                <div className="size-11 rounded-xl bg-primary/10 flex items-center justify-center font-bold text-primary text-lg overflow-hidden border border-primary/20 shadow-xs">
-                  {product.brand ? product.brand.substring(0, 2).toUpperCase() : "HR"}
+                <div className="size-11 rounded bg-primary/10 flex items-center justify-center font-bold text-primary text-lg overflow-hidden border border-primary/20">
+                  {product.brand ? product.brand.substring(0, 2).toUpperCase() : "J"}
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
@@ -932,9 +979,11 @@ function ProductContent({
                     </Badge>
                   </div>
                   <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-medium mt-1">
-                    <span>999K+ Vendidos</span>
-                    <span className="w-1 h-1 rounded-full bg-muted-foreground/60" />
-                    <span className="text-emerald-600">★ 4.9 (1.2K+ Seguintes)</span>
+                    {reviewStats.total_reviews > 0 ? (
+                      <span>★ {reviewStats.average_rating.toFixed(1)} ({reviewStats.total_reviews} avaliações)</span>
+                    ) : (
+                      <span>Sem avaliações ainda</span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1102,7 +1151,7 @@ function ProductContent({
                         <div>
                           <p className="text-sm font-bold text-foreground flex items-center gap-1.5">
                             {review.userName}
-                            <Badge className="bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 text-[9px] uppercase tracking-wider px-1.5 py-0 border-emerald-500/20">
+                            <Badge className="bg-success/10 text-success hover:bg-success/20 text-[9px] uppercase tracking-wider px-1.5 py-0 border-success/20">
                               Verificado
                             </Badge>
                           </p>

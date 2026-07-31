@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0040: CMS Media and Theme enhancements
+-- Jah Commerce — Migration 0040: CMS Media and Theme enhancements
 -- ============================================================================
 
 -- 1. Add logo and favicon to theme_settings

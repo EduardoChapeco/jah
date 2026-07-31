@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0059: PIX Discount in Checkout Transaction
+-- Jah Commerce — Migration 0059: PIX Discount in Checkout Transaction
 -- ============================================================================
 
 BEGIN;

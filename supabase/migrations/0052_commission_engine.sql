@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0052: Commission Engine (Microfase 4)
+-- Jah Commerce — Migration 0052: Commission Engine (Microfase 4)
 -- ============================================================================
 -- 1. Adds commission_rate to profiles.
 -- 2. Modifies POS and Checkout RPCs to automatically calculate and record

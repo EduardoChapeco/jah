@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/commerce/page-header";
 import { ReviewModal } from "@/components/commerce/review-modal";
-import { ReturnModal } from "@/components/commerce/return-modal";
+import { RmaWizard } from "@/components/commerce/rma-wizard";
 import { ErrorState, EmptyState } from "@/components/state/states";
 import { formatMoney } from "@/lib/money";
 import { getCustomerOrder, getOrderPaymentInstructions } from "@/services/order.functions";
@@ -74,6 +74,7 @@ function CustomerOrderDetailPage() {
   };
   const router = useRouter();
   const [uploading, setUploading] = useState(false);
+  const [rmaWizardOpen, setRmaWizardOpen] = useState(false);
 
   if (!order) {
     return (
@@ -355,9 +356,26 @@ function CustomerOrderDetailPage() {
             </div>
           )}
 
-          {order.status === "delivered" && <ReturnModal orderId={order.id} />}
-        </div>
+          {order.status === "delivered" && (
+            <>
+              <Button
+                variant="outline"
+                className="w-full mt-4 text-destructive border-destructive hover:bg-destructive/10"
+                onClick={() => setRmaWizardOpen(true)}
+              >
+                Solicitar Devolução / Troca
+              </Button>
+              <RmaWizard 
+                orderId={order.id} 
+                items={items} 
+                isOpen={rmaWizardOpen} 
+                onClose={() => setRmaWizardOpen(false)} 
+                onSuccess={() => router.invalidate()}
+              />
+            </>
+          )}
       </div>
+    </div>
     </div>
   );
 }

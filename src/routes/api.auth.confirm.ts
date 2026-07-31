@@ -26,7 +26,7 @@ export const Route = createFileRoute("/api/auth/confirm")({
         const next = normalizeInternalReturnPath(url.searchParams.get("next"), "/conta");
 
         // Extract guest session token from headers BEFORE async bounds
-        const guestSessionToken = readCookieFromRequest(request, "hr_shoes_guest_session");
+        const guestSessionToken = readCookieFromRequest(request, "jah_guest_session");
 
         if (!token_hash || !type) {
           return new Response(null, {

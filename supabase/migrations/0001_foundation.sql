@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0001: Foundation
+-- Jah Commerce — Migration 0001: Foundation
 -- ============================================================================
 -- Schema: multi-tenant foundation with organizations, stores, profiles and
 -- an append-only audit log.

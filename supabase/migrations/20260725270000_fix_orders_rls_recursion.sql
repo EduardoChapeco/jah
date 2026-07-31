@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 20260725270000: Fix Orders RLS Recursion
+-- Jah Commerce — Migration 20260725270000: Fix Orders RLS Recursion
 -- ============================================================================
 -- The previous RLS policies for `orders` and `profiles` created an infinite loop.
 -- `orders` queried `profiles` to check if the user is staff.

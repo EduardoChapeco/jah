@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0070: CMS Home Template Seed
+-- Jah Commerce — Migration 0070: CMS Home Template Seed
 -- ============================================================================
 -- Resolve duplicatas do slug 'home' e injeta um template perfeito da vitrine.
 
@@ -11,7 +11,7 @@ DECLARE
   v_page_id UUID;
 BEGIN
   -- Usar a loja padrão
-  SELECT id INTO v_store_id FROM public.stores WHERE slug = 'hr-shoes' LIMIT 1;
+  SELECT id INTO v_store_id FROM public.stores WHERE slug = 'jah' LIMIT 1;
   
   IF v_store_id IS NULL THEN
     RAISE NOTICE 'Loja padrão não encontrada. Pulando seeds do CMS.';
@@ -37,7 +37,7 @@ BEGIN
     'Vitrine Principal', 
     'home', 
     'published', 
-    'Hr Shoes — A sua loja de calçados online', 
+    'Jah — A sua loja de calçados online', 
     'Encontre os melhores tênis e sapatos com os melhores preços.'
   ) RETURNING id INTO v_page_id;
 

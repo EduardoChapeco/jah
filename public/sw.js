@@ -1,4 +1,4 @@
-const CACHE_NAME = "hr-shoes-v2";
+const CACHE_NAME = "jah-commerce-v1";
 const STATIC_ASSETS = ["/", "/manifest.json", "/favicon.ico"];
 
 self.addEventListener("install", (event) => {

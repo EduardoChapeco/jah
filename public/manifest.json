@@ -1,11 +1,11 @@
 {
-  "name": "Hr Shoes Commerce",
-  "short_name": "Hr Shoes",
-  "description": "Loja Oficial Hr Shoes - Calçados Femininos e Moda",
+  "name": "Jah Commerce",
+  "short_name": "Jah",
+  "description": "Loja Oficial Jah - Moda e Calçados Femininos Contemporâneos",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F3F1EC",
-  "theme_color": "#FF4FB8",
+  "theme_color": "#292729",
   "orientation": "portrait-primary",
   "icons": [
     {

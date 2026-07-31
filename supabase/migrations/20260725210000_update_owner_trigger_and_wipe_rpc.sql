@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 20260725210000
+-- Jah Commerce — Migration 20260725210000
 -- 1. Updates handle_new_user to make the first 2 users 'owner'.
 -- 2. Creates system_wipe_logs table.
 -- 3. Creates execute_hard_refresh RPC for store data wipe.
@@ -20,28 +20,28 @@ BEGIN
     user_role := 'owner';
     
     -- Check if default organization already exists
-    SELECT id INTO default_org_id FROM public.organizations WHERE slug = 'hr-shoes-org' LIMIT 1;
+    SELECT id INTO default_org_id FROM public.organizations WHERE slug = 'jah-org' LIMIT 1;
     
     IF default_org_id IS NULL THEN
       -- Create default organization
       INSERT INTO public.organizations (name, slug)
-      VALUES ('Hr Shoes Organization', 'hr-shoes-org')
+      VALUES ('Jah Organization', 'jah-org')
       RETURNING id INTO default_org_id;
     END IF;
     
     -- Check if default store already exists
-    SELECT id INTO default_store_id FROM public.stores WHERE slug = 'hr-shoes' AND organization_id = default_org_id LIMIT 1;
+    SELECT id INTO default_store_id FROM public.stores WHERE slug = 'jah' AND organization_id = default_org_id LIMIT 1;
     
     IF default_store_id IS NULL THEN
       -- Create default store
       INSERT INTO public.stores (organization_id, name, slug)
-      VALUES (default_org_id, 'Hr Shoes', 'hr-shoes')
+      VALUES (default_org_id, 'Jah', 'jah')
       RETURNING id INTO default_store_id;
     END IF;
   ELSE
     -- If there are already 2 owners, fallback to the default org/store anyway so they can buy
-    SELECT id INTO default_org_id FROM public.organizations WHERE slug = 'hr-shoes-org' LIMIT 1;
-    SELECT id INTO default_store_id FROM public.stores WHERE slug = 'hr-shoes' AND organization_id = default_org_id LIMIT 1;
+    SELECT id INTO default_org_id FROM public.organizations WHERE slug = 'jah-org' LIMIT 1;
+    SELECT id INTO default_store_id FROM public.stores WHERE slug = 'jah' AND organization_id = default_org_id LIMIT 1;
     user_role := 'customer';
   END IF;
 

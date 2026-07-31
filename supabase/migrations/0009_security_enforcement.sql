@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0009: Security Enforcement
+-- Jah Commerce — Migration 0009: Security Enforcement
 -- ============================================================================
 -- Fixes missing RLS policies that forced the application to use service_role
 -- to bypass security.

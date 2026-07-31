@@ -9,21 +9,21 @@
 ## 1. Direção criativa
 
 ```yaml
-brand: Hr Shoes
-tagline: Conforto e Estilo
-voice: contemporâneo, feminino, editorial, acolhedor, direto (pt-BR)
-mood: minimalista, leve, arejado; foto grande quando existir; muito branco
+brand: Jah
+tagline: Identidade, Comunidade e Autenticidade
+voice: moderno, direto, universal, focado na comunidade
+mood: minimalista, premium, monocromático, alto contraste, focado na imagem
 principles:
-  - "Rosa é acento, não tema. Nunca pintar tudo de rosa."
-  - "Off-white quente como base; grafite para texto; rosa vivo para ação/destaque."
-  - "Hierarquia por tipografia e espaço, não por caixas aninhadas."
-  - "A logo é imagem (marca real). Não recriar a palavra como texto."
-  - "Evitar aparência genérica de template, gradientes decorativos, glassmorphism,
-    cards aninhados e animações gratuitas."
+  - "Espaço em branco é o maior aliado. Deixe o conteúdo respirar."
+  - "Monocromático de alto contraste: brancos puros, pretos profundos, cinzas precisos (estilo tech/premium)."
+  - "Bordas com raio menor (0.25rem a 0.5rem) transmitem mais firmeza e modernidade."
+  - "Sombras ultra-suaves ou uso apenas de bordas de 1px para delimitar conteúdo."
+  - "A tipografia deve ser limpa e sem serifa (sans-serif moderno) em todos os níveis, garantindo máxima legibilidade."
 anti_patterns:
-  - purple/indigo default gradients
-  - fake data, placeholders de produto, imagens externas aleatórias
-  - botões sem destino, sucesso simulado de integração
+  - cores berrantes não-intencionais
+  - gradientes decorativos ou glassmorphism excessivo
+  - caixas fortemente arredondadas (estilo lúdico/infantil)
+  - fake data, placeholders visíveis em produção
 ```
 
 ## 2. Tokens de cor (semânticos)
@@ -35,43 +35,41 @@ Mapeados a utilitários Tailwind via `@theme inline`.
 color_tokens:
   background:
     {
-      value: "#F3F1EC (oklch 0.965 0.006 85)",
-      role: "canvas quente off-white",
-      why: "base calma, editorial, valoriza a foto e o rosa",
+      value: "#FFFFFF (oklch 1 0 0)",
+      role: "canvas branco puro",
+      why: "base ultra-minimalista, maximiza foco nas imagens e conteúdo",
     }
   foreground:
     {
-      value: "#292729 (oklch 0.27 0.006 20)",
-      role: "grafite / ink",
-      why: "texto de alto contraste sem preto puro duro",
+      value: "#171717 (oklch 0.2 0 0)",
+      role: "preto fosco profundo",
+      why: "contraste extremo, legibilidade imediata",
     }
   primary / brand:
     {
-      value: "#FF4FB8 (oklch 0.685 0.222 349)",
-      role: "acento de marca, CTA principal",
-      why: "rosa vivo da logo; usar com parcimônia",
+      value: "#171717 (oklch 0.2 0 0)",
+      role: "acento principal (monocromático)",
+      why: "mantém a sobriedade; a marca é o conteúdo",
     }
-  primary-foreground: { value: "near-white", role: "texto sobre rosa" }
+  primary-foreground: { value: "branco puro", role: "texto sobre primary" }
   brand-soft / accent:
     {
-      value: "rosa 8% (oklch 0.93 0.05 349)",
+      value: "cinza 5% (oklch 0.95 0 0)",
       role: "realce suave, tags, hovers",
-      why: "presença da marca sem saturar",
+      why: "destaque sem introduzir novas cores",
     }
-  secondary: { value: "warm gray 0.93", role: "superfícies neutras, chips" }
-  muted / muted-foreground: { value: "gray", role: "texto secundário, metadados" }
-  card: { value: "quase branco 0.995", role: "elevação sutil sobre o canvas" }
-  border / input: { value: "warm gray 0.9", role: "divisórias discretas" }
-  ring: { value: "= brand", role: "foco visível de teclado" }
-  destructive: { value: "vermelho", role: "erro/exclusão" }
-  success: { value: "verde", role: "confirmações, status pago/aprovado" }
-  warning: { value: "âmbar", role: "atenção, estoque baixo, pendências" }
-  info: { value: "azul", role: "informativo, cotação, em análise" }
+  secondary: { value: "cinza claro (oklch 0.96 0 0)", role: "superfícies neutras, chips" }
+  muted / muted-foreground: { value: "cinza médio (oklch 0.55 0 0)", role: "texto secundário, metadados" }
+  card: { value: "branco puro", role: "sem elevação visível, delimitado por borda leve" }
+  border / input: { value: "cinza 10% (oklch 0.9 0 0)", role: "divisórias discretas e elegantes" }
+  ring: { value: "= foreground", role: "foco visível de teclado alto contraste" }
+  destructive: { value: "vermelho puro (oklch 0.6 0.2 25)", role: "erro/exclusão" }
+  success: { value: "verde musgo (oklch 0.6 0.12 150)", role: "confirmações" }
+  warning: { value: "âmbar suave", role: "atenção, estoque baixo" }
+  info: { value: "azul acinzentado", role: "informativo" }
 rationale: >
-  Uma única cor de marca (rosa) reservada a ação e destaque garante que a
-  interface pareça premium e não infantil. O canvas quente diferencia de
-  templates brancos genéricos. Status usa cores próprias (não o rosa) para
-  não competir com o CTA.
+  A interface opera como uma galeria de arte. Cores de marca são removidas da UI estrutural
+  para permitir que as imagens dos produtos, lojas e coletivos sejam o único foco de cor e vida.
 contrast:
   rule: "WCAG 2.2 AA — texto normal >= 4.5:1, texto grande/ícones >= 3:1."
   check: "Validar contraste no editor de tema antes de publicar (Fase 3)."
@@ -83,21 +81,21 @@ contrast:
 fonts:
   ui_sans:
     {
-      family: "Manrope",
-      weights: [400, 500, 600, 700, 800],
-      use: "toda a UI, corpo, labels, dados",
+      family: "Inter",
+      weights: [400, 500, 600, 700],
+      use: "toda a UI primária, corpo, labels, dados",
     }
   editorial_serif:
     {
-      family: "Fraunces",
+      family: "Inter",
       weights: [400, 500, 600],
-      italic: true,
-      use: "títulos, campanhas, eyebrow editorial",
+      italic: false,
+      use: "unificado com ui_sans para consistência total",
     }
-loading: "Carregadas via <link> no __root.tsx head (nunca @import remoto no CSS)."
+loading: "Carregadas via <link> no __root.tsx head."
 scale:
   display:
-    { size: "clamp(2rem, 6vw, 4rem)", family: serif, weight: 500, tracking: "-0.02em", line: 1.05 }
+    { size: "clamp(2rem, 6vw, 4rem)", family: sans, weight: 600, tracking: "-0.03em", line: 1.1 }
   h1: { size: "clamp(1.75rem, 4vw, 2.75rem)", family: serif }
   h2: { size: "clamp(1.4rem, 3vw, 2rem)", family: serif }
   h3: { size: "1.25rem", family: serif }

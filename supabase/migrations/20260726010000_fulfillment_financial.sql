@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 20260726001: Fulfillment Shipments + Financial Transactions
+-- Jah Commerce — Migration 20260726001: Fulfillment Shipments + Financial Transactions
 -- ============================================================================
 -- Purpose:
 --   1. Create a dedidated `shipments` table to track logistics records per order.

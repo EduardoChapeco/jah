@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 20260726080000: Enhance Home Seed Experience
+-- Jah Commerce — Migration 20260726080000: Enhance Home Seed Experience
 -- ============================================================================
 -- Populates the default storefront home page with a robust set of blocks:
 -- Hero Carousel, Info Cards, Mosaic Banners, Product Carousel, Split Banner, Testimonials.

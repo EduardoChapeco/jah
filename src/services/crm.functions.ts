@@ -8,11 +8,13 @@ export const listCustomers = createServerFn({ method: "GET" }).handler(async () 
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin", "manager", "seller", "support"]);
 
-  const { data: profiles, error: profilesError } = await supabase
-    .from("profiles")
-    .select("id, full_name, created_at, tax_id, is_consent_lgpd")
+  const { data: members, error: profilesError } = await supabase
+    .from("workspace_members")
+    .select("profile_id, profiles(id, full_name, created_at, tax_id, is_consent_lgpd)")
     .eq("role", "customer")
     .eq("store_id", identity.store_id);
+    
+  const profiles = members?.map((m: any) => m.profiles) || [];
 
   if (profilesError) throw new Error("Erro ao buscar clientes");
 
@@ -68,14 +70,16 @@ export const getCustomer360 = createServerFn({ method: "GET" })
     const identity = await getServerIdentity();
     assertStoreAccess(identity, ["owner", "admin", "manager", "seller", "support"]);
 
-    const { data: profile, error } = await supabase
-      .from("profiles")
-      .select("id, full_name, created_at, tax_id, is_consent_lgpd")
-      .eq("id", customerId)
+    const { data: member, error } = await supabase
+      .from("workspace_members")
+      .select("profiles(id, full_name, created_at, tax_id, is_consent_lgpd)")
+      .eq("profile_id", customerId)
       .eq("store_id", identity.store_id)
       .single();
+      
+    const profile = member?.profiles as any;
 
-    if (error || !profile) throw new Error("Cliente não encontrado");
+    if (error || !member) throw new Error("Cliente não encontrado");
 
     const { data: crm } = await supabase
       .from("customers_crm")
@@ -193,14 +197,19 @@ export const createCustomer = createServerFn({ method: "POST" })
       const { error: profileError } = await supabase
         .from("profiles")
         .update({
-          store_id: identity.store_id,
-          organization_id: identity.organization_id,
-          role: "customer",
           full_name: input.fullName,
           tax_id: input.taxId || null,
           is_consent_lgpd: input.isConsentLgpd,
         })
         .eq("id", userId);
+
+      if (!profileError) {
+        await supabase.from("workspace_members").upsert({
+          profile_id: userId,
+          store_id: identity.store_id,
+          role: "customer"
+        });
+      }
 
       if (profileError) {
         console.error("[crm] error updating profile:", profileError);

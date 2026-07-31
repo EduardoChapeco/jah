@@ -49,7 +49,7 @@ export function HeroCarousel({
         ? "aspect-square"
         : heightMode === "natural"
           ? ""
-          : "aspect-[4/5] @md:aspect-[21/9]"; // Mobile 4:5, Desktop 21:9 to ensure it scales proportionally down
+          : "aspect-[1/1] @md:aspect-[21/9] lg:aspect-[3/1] w-full h-auto"; // Força escala proporcional verdadeira baseada na largura
 
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
   const [selectedIndex, setSelectedIndex] = useState(0);

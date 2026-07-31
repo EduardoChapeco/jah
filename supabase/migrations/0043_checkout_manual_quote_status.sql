@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0043: Checkout Manual Quote Status Update
+-- Jah Commerce — Migration 0043: Checkout Manual Quote Status Update
 -- ============================================================================
 -- Updates process_checkout_atomic function to set the order status to
 -- 'awaiting_shipping_quote' if the shipping method is 'manual_quote'.

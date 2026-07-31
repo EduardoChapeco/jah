@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { getAnonServerClient } from "@/lib/supabase";
+import { getAnonServerClient, getServerClient } from "@/lib/supabase";
 import { setSellerRefCookie } from "@/lib/session";
 
 export const getSellerShowcase = createServerFn({ method: "GET" })
@@ -13,24 +13,35 @@ export const getSellerShowcase = createServerFn({ method: "GET" })
 
       const supabase = getAnonServerClient();
 
+      // Resolve the showcase by slug (identity pivot fix: removed profiles.store_id)
       const { data: showcase, error } = await supabase
         .from("seller_showcases")
-        .select(
-          `
+        .select(`
           seller_id,
           slug,
           title,
           description,
           banner_url,
-          profiles!inner(full_name, store_id)
-        `,
-        )
+          profiles!inner(full_name)
+        `)
         .eq("slug", slug)
-        .eq("profiles.store_id", storeId)
         .eq("is_active", true)
         .single();
 
       if (error || !showcase) {
+        return { status: "not_found" as const };
+      }
+
+      // Verify the seller belongs to this store via workspace_members
+      const adminClient = getServerClient();
+      const { data: membership } = await adminClient
+        .from("workspace_members")
+        .select("profile_id")
+        .eq("store_id", storeId)
+        .eq("profile_id", showcase.seller_id)
+        .maybeSingle();
+
+      if (!membership) {
         return { status: "not_found" as const };
       }
 

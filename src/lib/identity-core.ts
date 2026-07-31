@@ -9,12 +9,12 @@
 export interface ServerIdentity {
   /** auth.users.id — null se não autenticado */
   id: string | null;
-  /** role do perfil — 'customer' como fallback */
+  /** role do perfil no contexto ativo — 'customer' como fallback */
   role: string;
-  /** store_id do perfil — null se não vinculado à loja */
+  /** store_id do contexto ativo (loja sendo acessada) — null se puramente pessoal */
   store_id: string | null;
-  /** organization_id — null se não vinculado */
-  organization_id: string | null;
+  /** Lista de lojas/workspaces que o usuário faz parte e seus respectivos papéis */
+  memberships: { store_id: string; role: string }[];
 }
 
 export const STAFF_ROLES = [

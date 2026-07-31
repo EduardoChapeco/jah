@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 20260725170000: Cleanup Dead Reservations
+-- Jah Commerce — Migration 20260725170000: Cleanup Dead Reservations
 -- ============================================================================
 -- Removes orphaned stock_reservations logic and cleans up product_variants.
 -- The e-commerce operates on a "first to checkout wins" model.

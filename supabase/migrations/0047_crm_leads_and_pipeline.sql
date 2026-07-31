@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0047: CRM Leads and Kanban Pipeline
+-- Jah Commerce — Migration 0047: CRM Leads and Kanban Pipeline
 -- ============================================================================
 -- Creates the leads_crm table for contact forms and pipeline segmentation.
 -- Hables Row Level Security (RLS) with public insertions allowed.

@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0057: Storefront Seeds
+-- Jah Commerce — Migration 0057: Storefront Seeds
 -- ============================================================================
 -- Injeta dados reais na vitrine (caso esteja limpa) para testes de usabilidade.
 
@@ -15,7 +15,7 @@ DECLARE
   v_product3_id UUID;
 BEGIN
   -- Usar a loja padrão já injetada pela migration 0022
-  SELECT id INTO v_store_id FROM public.stores WHERE slug = 'hr-shoes' LIMIT 1;
+  SELECT id INTO v_store_id FROM public.stores WHERE slug = 'jah' LIMIT 1;
   
   IF v_store_id IS NULL THEN
     RAISE NOTICE 'Loja padrão não encontrada. Pulando seeds.';

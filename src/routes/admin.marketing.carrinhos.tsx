@@ -1,167 +1,139 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { useState } from "react";
 import { toast } from "sonner";
-import { ShoppingCart, Send, UserX } from "lucide-react";
-
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import {
-  listAbandonedCarts,
-  updateAbandonedCartStatus,
-} from "@/services/marketing-engagement.functions";
-import { formatMoney } from "@/lib/money";
 import { EmptyState } from "@/components/state/states";
+import { listAbandonedCarts, scanAbandonedCarts, markRecoveryAttempt } from "@/services/marketing.functions";
+import { Search, MessageCircle, Mail, RotateCcw, ShoppingCart } from "lucide-react";
+import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/admin/marketing/carrinhos")({
-  head: () => ({ meta: [{ title: "Carrinhos Abandonados — Jah" }] }),
+  head: () => ({ meta: [{ title: "Recuperação de Vendas — Jah" }] }),
   loader: async () => {
-    const res = await listAbandonedCarts();
-    return res;
+    return await listAbandonedCarts();
   },
   component: AbandonedCartsPage,
 });
 
 function AbandonedCartsPage() {
-  const carts = Route.useLoaderData() || [];
+  const carts = Route.useLoaderData();
   const router = useRouter();
+  const [scanning, setScanning] = useState(false);
 
-  const handleUpdateStatus = async (id: string, newStatus: "recovered" | "lost" | "contacted") => {
+  const handleScan = async () => {
+    setScanning(true);
     try {
-      const res = await updateAbandonedCartStatus({
-        data: { id, status: newStatus },
-      });
-      if (res) {
-        toast.success("Status atualizado!");
-        router.invalidate();
-      } else {
-        toast.error(res.message || "Erro ao atualizar");
-      }
-    } catch {
-      toast.error("Erro inesperado");
+      const result = await scanAbandonedCarts();
+      toast.success(`Varredura concluída! ${result.newAbandons} novos abandonos detectados.`);
+      router.invalidate();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao varrer carrinhos.");
+    } finally {
+      setScanning(false);
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "pending":
-        return <Badge variant="secondary">Pendente</Badge>;
-      case "contacted":
-        return (
-          <Badge variant="default" className="bg-blue-600">
-            Contatado
-          </Badge>
-        );
-      case "recovered":
-        return (
-          <Badge variant="default" className="bg-green-600">
-            Recuperado
-          </Badge>
-        );
-      case "lost":
-        return <Badge variant="destructive">Perdido</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
+  const handleContactWhatsApp = async (cart: any) => {
+    if (!cart.customerPhone) {
+      toast.error("O cliente não informou o telefone.");
+      return;
+    }
+    try {
+      await markRecoveryAttempt({ data: { id: cart.id } });
+      router.invalidate();
+      
+      const firstName = cart.customerName.split(" ")[0];
+      const message = `Olá ${firstName}, percebemos que você deixou alguns itens incríveis no seu carrinho do Jah! Posso ajudar com alguma dúvida sobre o tamanho ou envio?`;
+      window.open(`https://wa.me/55${cart.customerPhone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`, '_blank');
+    } catch (e: any) {
+      toast.error("Erro ao registrar tentativa.");
     }
   };
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Carrinhos Abandonados"
-        description="Recupere vendas de clientes que não finalizaram a compra no checkout."
-      />
+      <div className="flex justify-between items-start">
+         <PageHeader
+           title="Recuperação de Vendas"
+           description="Carrinhos abandonados nas últimas horas. Entre em contato para resgatar a venda."
+         />
+         <Button onClick={handleScan} disabled={scanning} variant="outline" className="bg-background">
+           <Search className={`w-4 h-4 mr-2 ${scanning ? 'animate-spin' : ''}`} />
+           {scanning ? "Buscando..." : "Varrer Sistema"}
+         </Button>
+      </div>
 
       {carts.length === 0 ? (
-        <EmptyState
-          title="Nenhum carrinho abandonado"
-          description="Ainda não existem registros de desistência no checkout."
-        />
+         <EmptyState
+           title="Nenhum carrinho abandonado"
+           description="Excelente! Todos os seus clientes estão finalizando as compras com sucesso."
+           icon={ShoppingCart}
+         />
       ) : (
-        <div className="rounded-md border bg-card">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Cliente / Contato</TableHead>
-                <TableHead>Valor Total</TableHead>
-                <TableHead>Data</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {carts.map((c: any) => (
-                <TableRow key={c.id}>
-                  <TableCell className="font-medium">
-                    <div className="flex flex-col">
-                      <span>{c.guest_email || "Cliente anônimo"}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {c.guest_phone || "Sem telefone"}
-                      </span>
+         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {carts.map((cart: any) => {
+               
+               // Calculate Cart Total dynamically from snapshot
+               const total = cart.snapshot.items.reduce((acc: number, item: any) => acc + (item.price_cents * item.qty), 0);
+
+               return (
+                 <div key={cart.id} className="bg-card border rounded-lg overflow-hidden flex flex-col justify-between">
+                    <div className="p-4 border-b bg-muted/20">
+                       <div className="flex justify-between items-start">
+                         <div>
+                            <h3 className="font-semibold">{cart.customerName}</h3>
+                            <p className="text-xs text-muted-foreground mt-1">
+                               Há {Math.floor((Date.now() - new Date(cart.createdAt).getTime()) / (1000 * 60 * 60))} horas
+                            </p>
+                         </div>
+                         <div className="text-right">
+                           <span className="font-bold text-lg text-primary">{formatMoney(total)}</span>
+                         </div>
+                       </div>
                     </div>
-                  </TableCell>
-                  <TableCell className="font-semibold">{formatMoney(c.total_cents)}</TableCell>
-                  <TableCell>{new Date(c.updated_at).toLocaleDateString("pt-BR")}</TableCell>
-                  <TableCell>{getStatusBadge(c.status)}</TableCell>
-                  <TableCell className="text-right space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        handleUpdateStatus(c.id, "contacted");
-                        if (c.guest_phone) {
-                          const phone = c.guest_phone.replace(/\D/g, "");
-                          const msg = `Olá${c.guest_name ? ` ${c.guest_name}` : ""}! Sou da equipe da Jah. Vi que você deixou alguns itens no carrinho, no valor de ${formatMoney(c.total_cents)}. Conseguiu finalizar a compra ou precisa de alguma ajuda?`;
-                          window.open(
-                            `https://wa.me/55${phone}?text=${encodeURIComponent(msg)}`,
-                            "_blank",
-                          );
-                        } else if (c.guest_email) {
-                          const msg = `Olá${c.guest_name ? ` ${c.guest_name}` : ""}! Sou da equipe da Jah. Vi que você deixou itens no valor de ${formatMoney(c.total_cents)} no seu carrinho. Posso ajudar em algo?`;
-                          window.open(
-                            `mailto:${c.guest_email}?subject=Seu carrinho na Jah&body=${encodeURIComponent(msg)}`,
-                            "_blank",
-                          );
-                        }
-                      }}
-                      disabled={
-                        c.status === "recovered" ||
-                        c.status === "lost" ||
-                        (!c.guest_phone && !c.guest_email)
-                      }
-                      title={
-                        c.guest_phone
-                          ? "Contatar via WhatsApp"
-                          : c.guest_email
-                            ? "Contatar via Email"
-                            : "Sem contato"
-                      }
-                    >
-                      <Send className="mr-2 h-3 w-3" /> Contatar
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive"
-                      onClick={() => handleUpdateStatus(c.id, "lost")}
-                      disabled={c.status === "recovered" || c.status === "lost"}
-                      title="Marcar como Perdido"
-                    >
-                      <UserX className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+
+                    <div className="p-4 flex-1">
+                       <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Itens Abandonados:</p>
+                       <ul className="space-y-2 mb-4">
+                         {cart.snapshot.items.slice(0, 3).map((item: any, idx: number) => (
+                            <li key={idx} className="flex gap-2 text-sm items-start">
+                               <span className="font-medium">{item.qty}x</span>
+                               <span className="text-muted-foreground line-clamp-2 leading-tight">
+                                  {item.product_variants?.products?.title}
+                               </span>
+                            </li>
+                         ))}
+                         {cart.snapshot.items.length > 3 && (
+                            <li className="text-xs text-muted-foreground italic">
+                              + {cart.snapshot.items.length - 3} outros itens
+                            </li>
+                         )}
+                       </ul>
+
+                       {cart.recoveryAttempts > 0 && (
+                          <div className="inline-flex items-center text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-md mb-2">
+                             <RotateCcw className="w-3 h-3 mr-1" />
+                             {cart.recoveryAttempts} tentativas feitas
+                          </div>
+                       )}
+                    </div>
+
+                    <div className="p-4 border-t bg-card grid grid-cols-2 gap-2">
+                       <Button variant="outline" size="sm" className="w-full text-xs" onClick={() => handleContactWhatsApp(cart)}>
+                         <MessageCircle className="w-4 h-4 mr-2" />
+                         WhatsApp
+                       </Button>
+                       <Button variant="secondary" size="sm" className="w-full text-xs" disabled>
+                         <Mail className="w-4 h-4 mr-2" />
+                         E-mail
+                       </Button>
+                    </div>
+                 </div>
+               );
+            })}
+         </div>
       )}
     </div>
   );

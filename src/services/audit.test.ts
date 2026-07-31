@@ -46,7 +46,7 @@ describe("Audit Server Functions", () => {
         id: "user-123",
         store_id: "store-456",
         role: "owner",
-        organization_id: "org-789",
+        memberships: [{ store_id: "store-123", role: "admin" }],
       };
       vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
 

@@ -10,7 +10,7 @@ import { z } from "zod";
 import crypto from "crypto";
 
 import { getServerClient } from "@/lib/supabase";
-import { getSSRClient } from "@/lib/server-access";
+import { getServerIdentity, assertStoreAccess, getSSRClient } from "@/lib/server-access";
 import { getEnvVar } from "@/lib/env";
 import { requireAdmin } from "@/lib/server-access";
 

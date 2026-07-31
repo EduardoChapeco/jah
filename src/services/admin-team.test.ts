@@ -89,7 +89,7 @@ describe("Admin Team Functions", () => {
         id: "user-123",
         role: "seller",
         store_id: "store-456",
-        organization_id: "org-789",
+        memberships: [{ store_id: "store-123", role: "admin" }],
       });
 
       await expect(listTeamMembersHandler()).rejects.toThrow("Não autorizado");
@@ -100,7 +100,7 @@ describe("Admin Team Functions", () => {
         id: "user-123",
         role: "owner",
         store_id: "store-456",
-        organization_id: "org-789",
+        memberships: [{ store_id: "store-123", role: "admin" }],
       });
 
       const mockData = [{ id: "user-123", full_name: "Owner", role: "owner" }];
@@ -118,7 +118,7 @@ describe("Admin Team Functions", () => {
         id: "user-123",
         role: "owner",
         store_id: "store-456",
-        organization_id: "org-789",
+        memberships: [{ store_id: "store-123", role: "admin" }],
       });
 
       const mockData = [{ id: "user-123", full_name: "Owner", role: "owner" }];
@@ -145,7 +145,7 @@ describe("Admin Team Functions", () => {
         id: "user-123",
         role: "admin",
         store_id: "store-456",
-        organization_id: "org-789",
+        memberships: [{ store_id: "store-123", role: "admin" }],
       });
 
       mockOrder.mockResolvedValueOnce({ data: null, error: { message: "Database select error" } });
@@ -160,7 +160,7 @@ describe("Admin Team Functions", () => {
         id: "user-123",
         role: "manager",
         store_id: "store-456",
-        organization_id: "org-789",
+        memberships: [{ store_id: "store-123", role: "admin" }],
       });
 
       await expect(
@@ -173,7 +173,7 @@ describe("Admin Team Functions", () => {
         id: "user-123",
         role: "owner",
         store_id: "store-456",
-        organization_id: "org-789",
+        memberships: [{ store_id: "store-123", role: "admin" }],
       });
 
       await expect(updateTeamMemberRoleHandler({ id: "user-123", role: "seller" })).rejects.toThrow(
@@ -186,7 +186,7 @@ describe("Admin Team Functions", () => {
         id: "user-123",
         role: "owner",
         store_id: "store-456",
-        organization_id: "org-789",
+        memberships: [{ store_id: "store-123", role: "admin" }],
       });
 
       mockSingle.mockResolvedValueOnce({ data: null, error: { message: "Not found" } });
@@ -201,7 +201,7 @@ describe("Admin Team Functions", () => {
         id: "user-123",
         role: "admin",
         store_id: "store-456",
-        organization_id: "org-789",
+        memberships: [{ store_id: "store-123", role: "admin" }],
       });
 
       // Target user is owner
@@ -217,7 +217,7 @@ describe("Admin Team Functions", () => {
         id: "user-123",
         role: "admin",
         store_id: "store-456",
-        organization_id: "org-789",
+        memberships: [{ store_id: "store-123", role: "admin" }],
       });
 
       // Target user is seller
@@ -233,7 +233,7 @@ describe("Admin Team Functions", () => {
         id: "user-123",
         role: "owner",
         store_id: "store-456",
-        organization_id: "org-789",
+        memberships: [{ store_id: "store-123", role: "admin" }],
       });
 
       const mockUpdated = { id: "user-456", role: "manager" };
@@ -255,7 +255,7 @@ describe("Admin Team Functions", () => {
         id: "user-123",
         role: "seller",
         store_id: "store-456",
-        organization_id: "org-789",
+        memberships: [{ store_id: "store-123", role: "admin" }],
       });
 
       await expect(
@@ -272,7 +272,7 @@ describe("Admin Team Functions", () => {
         id: "user-123",
         role: "manager",
         store_id: "store-456",
-        organization_id: "org-789",
+        memberships: [{ store_id: "store-123", role: "admin" }],
       });
 
       await expect(
@@ -289,7 +289,7 @@ describe("Admin Team Functions", () => {
         id: "user-123",
         role: "admin",
         store_id: "store-456",
-        organization_id: "org-789",
+        memberships: [{ store_id: "store-123", role: "admin" }],
       });
 
       mockCreateUser.mockResolvedValueOnce({ data: null, error: { message: "Auth failed" } });
@@ -308,7 +308,7 @@ describe("Admin Team Functions", () => {
         id: "user-123",
         role: "admin",
         store_id: "store-456",
-        organization_id: "org-789",
+        memberships: [{ store_id: "store-123", role: "admin" }],
       });
 
       mockCreateUser.mockResolvedValueOnce({ data: { user: { id: "new-user-123" } }, error: null });
@@ -328,7 +328,7 @@ describe("Admin Team Functions", () => {
         id: "user-123",
         role: "admin",
         store_id: "store-456",
-        organization_id: "org-789",
+        memberships: [{ store_id: "store-123", role: "admin" }],
       });
 
       mockCreateUser.mockResolvedValueOnce({ data: { user: { id: "new-user-123" } }, error: null });

@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 20260725180000: Security Hardening & BOLA Fix
+-- Jah Commerce — Migration 20260725180000: Security Hardening & BOLA Fix
 -- ============================================================================
 -- Fixes critical vulnerabilities:
 -- 1. Mass Assignment / Privilege Escalation in profiles.

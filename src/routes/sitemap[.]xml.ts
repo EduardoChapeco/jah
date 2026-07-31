@@ -3,8 +3,7 @@ import type {} from "@tanstack/react-start";
 
 import { PUBLIC_ROUTES } from "@/lib/routes";
 
-// TODO: replace with the project URL once a project name or custom domain is set.
-const BASE_URL = "";
+const BASE_URL = "https://jah.pages.dev";
 
 export const Route = createFileRoute("/sitemap.xml")({
   server: {

@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0020: Abandoned Carts Engine
+-- Jah Commerce — Migration 0020: Abandoned Carts Engine
 -- ============================================================================
 
 -- 1. Capturar contato no carrinho de guests

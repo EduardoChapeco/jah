@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0037: Auth RLS Rewrite
+-- Jah Commerce — Migration 0037: Auth RLS Rewrite
 -- ============================================================================
 -- Purges all potentially recursive policies on profiles, organizations, and stores
 -- and establishes simple, non-recursive, index-backed policies to prevent 42P17.

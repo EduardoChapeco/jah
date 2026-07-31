@@ -13,12 +13,20 @@ export async function listTeamMembersHandler() {
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin", "manager"]);
 
-  const { data: profiles, error } = await db
-    .from("profiles")
-    .select("id, full_name, avatar_url, role, created_at")
+  const { data: members, error } = await db
+    .from("workspace_members")
+    .select("profile_id, role, created_at, profiles(id, full_name, avatar_url)")
     .eq("store_id", identity.store_id)
     .in("role", ["owner", "admin", "manager", "seller", "finance", "content"])
     .order("created_at", { ascending: true });
+
+  const profiles = members?.map(m => ({
+    id: m.profile_id,
+    role: m.role,
+    created_at: m.created_at,
+    full_name: (m.profiles as any)?.full_name || "",
+    avatar_url: (m.profiles as any)?.avatar_url || null,
+  })) || [];
 
   if (error) throw error;
 
@@ -72,9 +80,9 @@ export async function updateTeamMemberRoleHandler(input: {
 
   // Fetch target user's current profile first to apply business rules
   const { data: targetProfile, error: fetchError } = await db
-    .from("profiles")
+    .from("workspace_members")
     .select("role")
-    .eq("id", input.id)
+    .eq("profile_id", input.id)
     .eq("store_id", identity.store_id)
     .single();
 
@@ -93,9 +101,9 @@ export async function updateTeamMemberRoleHandler(input: {
   }
 
   const { data, error } = await db
-    .from("profiles")
+    .from("workspace_members")
     .update({ role: input.role })
-    .eq("id", input.id)
+    .eq("profile_id", input.id)
     .eq("store_id", identity.store_id)
     .select()
     .single();
@@ -148,10 +156,16 @@ export async function inviteTeamMemberHandler(input: {
   if (authError) throw new Error(`Erro ao criar conta Auth: ${authError.message}`);
 
   // 2. Upsert the profile to mitigate latency and ensure store mapping is linked correctly
+  const { error: memberError } = await db.from("workspace_members").upsert({
+    profile_id: authData.user.id,
+    store_id: identity.store_id,
+    role: input.role,
+  });
+
+  if (memberError) throw new Error("Erro ao promover usuário a membro da equipe.");
+
   const { error: profileError } = await db.from("profiles").upsert({
     id: authData.user.id,
-    role: input.role,
-    store_id: identity.store_id,
     full_name: input.fullName,
   });
 

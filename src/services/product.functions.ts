@@ -150,7 +150,6 @@ export async function getProductBySlugHandler(slug: string) {
       compareAtCents: (product.compare_at_cents as number | null) ?? null,
       media: sortedMedia,
       variants,
-      allowsPreorder: Boolean(product.allows_preorder),
       seoTitle: canonicalSeoTitle,
       seoDescription: canonicalSeoDescription,
       weightKg: (product.weight_kg as number | null) ?? null,

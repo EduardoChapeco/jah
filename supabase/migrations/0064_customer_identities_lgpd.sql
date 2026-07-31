@@ -1,4 +1,4 @@
--- Hr Shoes Commerce — Migration 0064: Customer Identities and LGPD Consent
+-- Jah Commerce — Migration 0064: Customer Identities and LGPD Consent
 
 ALTER TABLE public.profiles 
   ADD COLUMN IF NOT EXISTS tax_id VARCHAR(20) UNIQUE,

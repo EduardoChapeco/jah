@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0050: Builder Analytics
+-- Jah Commerce — Migration 0050: Builder Analytics
 -- ============================================================================
 -- Tracking table for views, clicks, and conversions of builder components.
 -- Optimized for high write throughput (append-only) with RPC ingestion.

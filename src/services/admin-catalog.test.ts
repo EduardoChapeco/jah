@@ -117,7 +117,7 @@ describe("Admin Catalog Functions", () => {
       id: "test-user-id",
       role: "admin",
       store_id: "test-store-id",
-      organization_id: "test-org-id",
+      memberships: [{ store_id: "store-123", role: "admin" }],
     });
   });
 
@@ -249,7 +249,7 @@ describe("Admin Catalog Functions", () => {
   describe("createProductTypeHandler", () => {
     it("should successfully insert a product type linked to store and organization", async () => {
       mockSingle
-        .mockResolvedValueOnce({ data: { id: "store-123", organization_id: "org-456" } })
+        .mockResolvedValueOnce({ data: { id: "store-123", memberships: [{ store_id: "store-123", role: "admin" }], } })
         .mockResolvedValueOnce({
           data: { id: "type-1", name: "Tênis", slug: "tenis" },
           error: null,
@@ -267,7 +267,7 @@ describe("Admin Catalog Functions", () => {
       expect(mockFrom).toHaveBeenCalledWith("product_types");
       expect(mockInsert).toHaveBeenCalledWith({
         store_id: "store-123",
-        organization_id: "org-456",
+        memberships: [{ store_id: "store-123", role: "admin" }],
         ...input,
       });
     });
@@ -282,7 +282,7 @@ describe("Admin Catalog Functions", () => {
 
     it("should propagate database insert error", async () => {
       mockSingle
-        .mockResolvedValueOnce({ data: { id: "store-123", organization_id: "org-456" } })
+        .mockResolvedValueOnce({ data: { id: "store-123", memberships: [{ store_id: "store-123", role: "admin" }], } })
         .mockResolvedValueOnce({ data: null, error: { message: "DB insert fail" } });
 
       await expect(

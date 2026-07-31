@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0040: CMS Section Types Realignment
+-- Jah Commerce — Migration 0040: CMS Section Types Realignment
 -- ============================================================================
 -- The original migration 0004 defined page_sections.section_type as:
 --   ('hero', 'text', 'product_grid', 'image', 'spacer')

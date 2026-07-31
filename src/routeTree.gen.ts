@@ -73,6 +73,7 @@ import { Route as AdminMarketingCuponsRouteImport } from './routes/admin.marketi
 import { Route as AdminMarketingCarrinhosRouteImport } from './routes/admin.marketing.carrinhos'
 import { Route as AdminFretesTabelasRouteImport } from './routes/admin.fretes.tabelas'
 import { Route as AdminFretesCotacoesRouteImport } from './routes/admin.fretes.cotacoes'
+import { Route as AdminFinanceiroFuncionariosRouteImport } from './routes/admin.financeiro.funcionarios'
 import { Route as AdminEstoqueMovimentosRouteImport } from './routes/admin.estoque.movimentos'
 import { Route as AdminEstoqueAlertasRouteImport } from './routes/admin.estoque.alertas'
 import { Route as AdminConfiguracoesSeoRouteImport } from './routes/admin.configuracoes.seo'
@@ -80,6 +81,7 @@ import { Route as AdminConfiguracoesPoliticasRouteImport } from './routes/admin.
 import { Route as AdminConfiguracoesPagamentosRouteImport } from './routes/admin.configuracoes.pagamentos'
 import { Route as AdminConfiguracoesLojaRouteImport } from './routes/admin.configuracoes.loja'
 import { Route as AdminConfiguracoesLgpdRouteImport } from './routes/admin.configuracoes.lgpd'
+import { Route as AdminConfiguracoesIntegracoesRouteImport } from './routes/admin.configuracoes.integracoes'
 import { Route as AdminConfiguracoesEtapasRouteImport } from './routes/admin.configuracoes.etapas'
 import { Route as AdminConfiguracoesAuditoriaRouteImport } from './routes/admin.configuracoes.auditoria'
 import { Route as AdminCmsTemaRouteImport } from './routes/admin.cms.tema'
@@ -97,6 +99,7 @@ import { Route as StorePaginasSlugRouteImport } from './routes/_store.paginas.$s
 import { Route as StoreGiftCardClaimTokenRouteImport } from './routes/_store.gift-card.$claimToken'
 import { Route as StoreDestaquesSlugRouteImport } from './routes/_store.destaques.$slug'
 import { Route as StoreContaTrocasRouteImport } from './routes/_store.conta.trocas'
+import { Route as StoreContaSuporteRouteImport } from './routes/_store.conta.suporte'
 import { Route as StoreContaPerfilRouteImport } from './routes/_store.conta.perfil'
 import { Route as StoreContaPagamentosRouteImport } from './routes/_store.conta.pagamentos'
 import { Route as StoreContaGiftCardsRouteImport } from './routes/_store.conta.gift-cards'
@@ -444,6 +447,12 @@ const AdminFretesCotacoesRoute = AdminFretesCotacoesRouteImport.update({
   path: '/fretes/cotacoes',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminFinanceiroFuncionariosRoute =
+  AdminFinanceiroFuncionariosRouteImport.update({
+    id: '/financeiro/funcionarios',
+    path: '/financeiro/funcionarios',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AdminEstoqueMovimentosRoute = AdminEstoqueMovimentosRouteImport.update({
   id: '/estoque/movimentos',
   path: '/estoque/movimentos',
@@ -481,6 +490,12 @@ const AdminConfiguracoesLgpdRoute = AdminConfiguracoesLgpdRouteImport.update({
   path: '/configuracoes/lgpd',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminConfiguracoesIntegracoesRoute =
+  AdminConfiguracoesIntegracoesRouteImport.update({
+    id: '/configuracoes/integracoes',
+    path: '/configuracoes/integracoes',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AdminConfiguracoesEtapasRoute =
   AdminConfiguracoesEtapasRouteImport.update({
     id: '/configuracoes/etapas',
@@ -566,6 +581,11 @@ const StoreDestaquesSlugRoute = StoreDestaquesSlugRouteImport.update({
 const StoreContaTrocasRoute = StoreContaTrocasRouteImport.update({
   id: '/trocas',
   path: '/trocas',
+  getParentRoute: () => StoreContaRoute,
+} as any)
+const StoreContaSuporteRoute = StoreContaSuporteRouteImport.update({
+  id: '/suporte',
+  path: '/suporte',
   getParentRoute: () => StoreContaRoute,
 } as any)
 const StoreContaPerfilRoute = StoreContaPerfilRouteImport.update({
@@ -748,6 +768,7 @@ export interface FileRoutesByFullPath {
   '/conta/gift-cards': typeof StoreContaGiftCardsRoute
   '/conta/pagamentos': typeof StoreContaPagamentosRoute
   '/conta/perfil': typeof StoreContaPerfilRoute
+  '/conta/suporte': typeof StoreContaSuporteRoute
   '/conta/trocas': typeof StoreContaTrocasRoute
   '/destaques/$slug': typeof StoreDestaquesSlugRoute
   '/gift-card/$claimToken': typeof StoreGiftCardClaimTokenRoute
@@ -765,6 +786,7 @@ export interface FileRoutesByFullPath {
   '/admin/cms/tema': typeof AdminCmsTemaRoute
   '/admin/configuracoes/auditoria': typeof AdminConfiguracoesAuditoriaRoute
   '/admin/configuracoes/etapas': typeof AdminConfiguracoesEtapasRoute
+  '/admin/configuracoes/integracoes': typeof AdminConfiguracoesIntegracoesRoute
   '/admin/configuracoes/lgpd': typeof AdminConfiguracoesLgpdRoute
   '/admin/configuracoes/loja': typeof AdminConfiguracoesLojaRoute
   '/admin/configuracoes/pagamentos': typeof AdminConfiguracoesPagamentosRoute
@@ -772,6 +794,7 @@ export interface FileRoutesByFullPath {
   '/admin/configuracoes/seo': typeof AdminConfiguracoesSeoRoute
   '/admin/estoque/alertas': typeof AdminEstoqueAlertasRoute
   '/admin/estoque/movimentos': typeof AdminEstoqueMovimentosRoute
+  '/admin/financeiro/funcionarios': typeof AdminFinanceiroFuncionariosRoute
   '/admin/fretes/cotacoes': typeof AdminFretesCotacoesRoute
   '/admin/fretes/tabelas': typeof AdminFretesTabelasRoute
   '/admin/marketing/carrinhos': typeof AdminMarketingCarrinhosRoute
@@ -859,6 +882,7 @@ export interface FileRoutesByTo {
   '/conta/gift-cards': typeof StoreContaGiftCardsRoute
   '/conta/pagamentos': typeof StoreContaPagamentosRoute
   '/conta/perfil': typeof StoreContaPerfilRoute
+  '/conta/suporte': typeof StoreContaSuporteRoute
   '/conta/trocas': typeof StoreContaTrocasRoute
   '/destaques/$slug': typeof StoreDestaquesSlugRoute
   '/gift-card/$claimToken': typeof StoreGiftCardClaimTokenRoute
@@ -876,6 +900,7 @@ export interface FileRoutesByTo {
   '/admin/cms/tema': typeof AdminCmsTemaRoute
   '/admin/configuracoes/auditoria': typeof AdminConfiguracoesAuditoriaRoute
   '/admin/configuracoes/etapas': typeof AdminConfiguracoesEtapasRoute
+  '/admin/configuracoes/integracoes': typeof AdminConfiguracoesIntegracoesRoute
   '/admin/configuracoes/lgpd': typeof AdminConfiguracoesLgpdRoute
   '/admin/configuracoes/loja': typeof AdminConfiguracoesLojaRoute
   '/admin/configuracoes/pagamentos': typeof AdminConfiguracoesPagamentosRoute
@@ -883,6 +908,7 @@ export interface FileRoutesByTo {
   '/admin/configuracoes/seo': typeof AdminConfiguracoesSeoRoute
   '/admin/estoque/alertas': typeof AdminEstoqueAlertasRoute
   '/admin/estoque/movimentos': typeof AdminEstoqueMovimentosRoute
+  '/admin/financeiro/funcionarios': typeof AdminFinanceiroFuncionariosRoute
   '/admin/fretes/cotacoes': typeof AdminFretesCotacoesRoute
   '/admin/fretes/tabelas': typeof AdminFretesTabelasRoute
   '/admin/marketing/carrinhos': typeof AdminMarketingCarrinhosRoute
@@ -974,6 +1000,7 @@ export interface FileRoutesById {
   '/_store/conta/gift-cards': typeof StoreContaGiftCardsRoute
   '/_store/conta/pagamentos': typeof StoreContaPagamentosRoute
   '/_store/conta/perfil': typeof StoreContaPerfilRoute
+  '/_store/conta/suporte': typeof StoreContaSuporteRoute
   '/_store/conta/trocas': typeof StoreContaTrocasRoute
   '/_store/destaques/$slug': typeof StoreDestaquesSlugRoute
   '/_store/gift-card/$claimToken': typeof StoreGiftCardClaimTokenRoute
@@ -991,6 +1018,7 @@ export interface FileRoutesById {
   '/admin/cms/tema': typeof AdminCmsTemaRoute
   '/admin/configuracoes/auditoria': typeof AdminConfiguracoesAuditoriaRoute
   '/admin/configuracoes/etapas': typeof AdminConfiguracoesEtapasRoute
+  '/admin/configuracoes/integracoes': typeof AdminConfiguracoesIntegracoesRoute
   '/admin/configuracoes/lgpd': typeof AdminConfiguracoesLgpdRoute
   '/admin/configuracoes/loja': typeof AdminConfiguracoesLojaRoute
   '/admin/configuracoes/pagamentos': typeof AdminConfiguracoesPagamentosRoute
@@ -998,6 +1026,7 @@ export interface FileRoutesById {
   '/admin/configuracoes/seo': typeof AdminConfiguracoesSeoRoute
   '/admin/estoque/alertas': typeof AdminEstoqueAlertasRoute
   '/admin/estoque/movimentos': typeof AdminEstoqueMovimentosRoute
+  '/admin/financeiro/funcionarios': typeof AdminFinanceiroFuncionariosRoute
   '/admin/fretes/cotacoes': typeof AdminFretesCotacoesRoute
   '/admin/fretes/tabelas': typeof AdminFretesTabelasRoute
   '/admin/marketing/carrinhos': typeof AdminMarketingCarrinhosRoute
@@ -1089,6 +1118,7 @@ export interface FileRouteTypes {
     | '/conta/gift-cards'
     | '/conta/pagamentos'
     | '/conta/perfil'
+    | '/conta/suporte'
     | '/conta/trocas'
     | '/destaques/$slug'
     | '/gift-card/$claimToken'
@@ -1106,6 +1136,7 @@ export interface FileRouteTypes {
     | '/admin/cms/tema'
     | '/admin/configuracoes/auditoria'
     | '/admin/configuracoes/etapas'
+    | '/admin/configuracoes/integracoes'
     | '/admin/configuracoes/lgpd'
     | '/admin/configuracoes/loja'
     | '/admin/configuracoes/pagamentos'
@@ -1113,6 +1144,7 @@ export interface FileRouteTypes {
     | '/admin/configuracoes/seo'
     | '/admin/estoque/alertas'
     | '/admin/estoque/movimentos'
+    | '/admin/financeiro/funcionarios'
     | '/admin/fretes/cotacoes'
     | '/admin/fretes/tabelas'
     | '/admin/marketing/carrinhos'
@@ -1200,6 +1232,7 @@ export interface FileRouteTypes {
     | '/conta/gift-cards'
     | '/conta/pagamentos'
     | '/conta/perfil'
+    | '/conta/suporte'
     | '/conta/trocas'
     | '/destaques/$slug'
     | '/gift-card/$claimToken'
@@ -1217,6 +1250,7 @@ export interface FileRouteTypes {
     | '/admin/cms/tema'
     | '/admin/configuracoes/auditoria'
     | '/admin/configuracoes/etapas'
+    | '/admin/configuracoes/integracoes'
     | '/admin/configuracoes/lgpd'
     | '/admin/configuracoes/loja'
     | '/admin/configuracoes/pagamentos'
@@ -1224,6 +1258,7 @@ export interface FileRouteTypes {
     | '/admin/configuracoes/seo'
     | '/admin/estoque/alertas'
     | '/admin/estoque/movimentos'
+    | '/admin/financeiro/funcionarios'
     | '/admin/fretes/cotacoes'
     | '/admin/fretes/tabelas'
     | '/admin/marketing/carrinhos'
@@ -1314,6 +1349,7 @@ export interface FileRouteTypes {
     | '/_store/conta/gift-cards'
     | '/_store/conta/pagamentos'
     | '/_store/conta/perfil'
+    | '/_store/conta/suporte'
     | '/_store/conta/trocas'
     | '/_store/destaques/$slug'
     | '/_store/gift-card/$claimToken'
@@ -1331,6 +1367,7 @@ export interface FileRouteTypes {
     | '/admin/cms/tema'
     | '/admin/configuracoes/auditoria'
     | '/admin/configuracoes/etapas'
+    | '/admin/configuracoes/integracoes'
     | '/admin/configuracoes/lgpd'
     | '/admin/configuracoes/loja'
     | '/admin/configuracoes/pagamentos'
@@ -1338,6 +1375,7 @@ export interface FileRouteTypes {
     | '/admin/configuracoes/seo'
     | '/admin/estoque/alertas'
     | '/admin/estoque/movimentos'
+    | '/admin/financeiro/funcionarios'
     | '/admin/fretes/cotacoes'
     | '/admin/fretes/tabelas'
     | '/admin/marketing/carrinhos'
@@ -1840,6 +1878,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminFretesCotacoesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/financeiro/funcionarios': {
+      id: '/admin/financeiro/funcionarios'
+      path: '/financeiro/funcionarios'
+      fullPath: '/admin/financeiro/funcionarios'
+      preLoaderRoute: typeof AdminFinanceiroFuncionariosRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/estoque/movimentos': {
       id: '/admin/estoque/movimentos'
       path: '/estoque/movimentos'
@@ -1887,6 +1932,13 @@ declare module '@tanstack/react-router' {
       path: '/configuracoes/lgpd'
       fullPath: '/admin/configuracoes/lgpd'
       preLoaderRoute: typeof AdminConfiguracoesLgpdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/configuracoes/integracoes': {
+      id: '/admin/configuracoes/integracoes'
+      path: '/configuracoes/integracoes'
+      fullPath: '/admin/configuracoes/integracoes'
+      preLoaderRoute: typeof AdminConfiguracoesIntegracoesRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/configuracoes/etapas': {
@@ -2006,6 +2058,13 @@ declare module '@tanstack/react-router' {
       path: '/trocas'
       fullPath: '/conta/trocas'
       preLoaderRoute: typeof StoreContaTrocasRouteImport
+      parentRoute: typeof StoreContaRoute
+    }
+    '/_store/conta/suporte': {
+      id: '/_store/conta/suporte'
+      path: '/suporte'
+      fullPath: '/conta/suporte'
+      preLoaderRoute: typeof StoreContaSuporteRouteImport
       parentRoute: typeof StoreContaRoute
     }
     '/_store/conta/perfil': {
@@ -2186,6 +2245,7 @@ interface StoreContaRouteChildren {
   StoreContaGiftCardsRoute: typeof StoreContaGiftCardsRoute
   StoreContaPagamentosRoute: typeof StoreContaPagamentosRoute
   StoreContaPerfilRoute: typeof StoreContaPerfilRoute
+  StoreContaSuporteRoute: typeof StoreContaSuporteRoute
   StoreContaTrocasRoute: typeof StoreContaTrocasRoute
   StoreContaIndexRoute: typeof StoreContaIndexRoute
   StoreContaConversasIdRoute: typeof StoreContaConversasIdRoute
@@ -2200,6 +2260,7 @@ const StoreContaRouteChildren: StoreContaRouteChildren = {
   StoreContaGiftCardsRoute: StoreContaGiftCardsRoute,
   StoreContaPagamentosRoute: StoreContaPagamentosRoute,
   StoreContaPerfilRoute: StoreContaPerfilRoute,
+  StoreContaSuporteRoute: StoreContaSuporteRoute,
   StoreContaTrocasRoute: StoreContaTrocasRoute,
   StoreContaIndexRoute: StoreContaIndexRoute,
   StoreContaConversasIdRoute: StoreContaConversasIdRoute,
@@ -2308,6 +2369,7 @@ interface AdminRouteChildren {
   AdminCmsTemaRoute: typeof AdminCmsTemaRoute
   AdminConfiguracoesAuditoriaRoute: typeof AdminConfiguracoesAuditoriaRoute
   AdminConfiguracoesEtapasRoute: typeof AdminConfiguracoesEtapasRoute
+  AdminConfiguracoesIntegracoesRoute: typeof AdminConfiguracoesIntegracoesRoute
   AdminConfiguracoesLgpdRoute: typeof AdminConfiguracoesLgpdRoute
   AdminConfiguracoesLojaRoute: typeof AdminConfiguracoesLojaRoute
   AdminConfiguracoesPagamentosRoute: typeof AdminConfiguracoesPagamentosRoute
@@ -2315,6 +2377,7 @@ interface AdminRouteChildren {
   AdminConfiguracoesSeoRoute: typeof AdminConfiguracoesSeoRoute
   AdminEstoqueAlertasRoute: typeof AdminEstoqueAlertasRoute
   AdminEstoqueMovimentosRoute: typeof AdminEstoqueMovimentosRoute
+  AdminFinanceiroFuncionariosRoute: typeof AdminFinanceiroFuncionariosRoute
   AdminFretesCotacoesRoute: typeof AdminFretesCotacoesRoute
   AdminFretesTabelasRoute: typeof AdminFretesTabelasRoute
   AdminMarketingCarrinhosRoute: typeof AdminMarketingCarrinhosRoute
@@ -2374,6 +2437,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCmsTemaRoute: AdminCmsTemaRoute,
   AdminConfiguracoesAuditoriaRoute: AdminConfiguracoesAuditoriaRoute,
   AdminConfiguracoesEtapasRoute: AdminConfiguracoesEtapasRoute,
+  AdminConfiguracoesIntegracoesRoute: AdminConfiguracoesIntegracoesRoute,
   AdminConfiguracoesLgpdRoute: AdminConfiguracoesLgpdRoute,
   AdminConfiguracoesLojaRoute: AdminConfiguracoesLojaRoute,
   AdminConfiguracoesPagamentosRoute: AdminConfiguracoesPagamentosRoute,
@@ -2381,6 +2445,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminConfiguracoesSeoRoute: AdminConfiguracoesSeoRoute,
   AdminEstoqueAlertasRoute: AdminEstoqueAlertasRoute,
   AdminEstoqueMovimentosRoute: AdminEstoqueMovimentosRoute,
+  AdminFinanceiroFuncionariosRoute: AdminFinanceiroFuncionariosRoute,
   AdminFretesCotacoesRoute: AdminFretesCotacoesRoute,
   AdminFretesTabelasRoute: AdminFretesTabelasRoute,
   AdminMarketingCarrinhosRoute: AdminMarketingCarrinhosRoute,

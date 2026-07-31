@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 20260725110000: Systemic Checkout & POS Remediation
+-- Jah Commerce — Migration 20260725110000: Systemic Checkout & POS Remediation
 -- ============================================================================
 -- Saneamento definitivo do ecossistema de checkout (E-commerce e POS/Balcão).
 -- Correção da falha sistêmica "operator does not exist: record ->> unknown" ao

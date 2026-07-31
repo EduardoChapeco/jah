@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0074: Checkout Atomic v3
+-- Jah Commerce — Migration 0074: Checkout Atomic v3
 -- ============================================================================
 -- Fixes the process_checkout_atomic RPC to:
 --   1. Use COALESCE(pv.weight_kg, p.weight_kg) for logistics snapshot

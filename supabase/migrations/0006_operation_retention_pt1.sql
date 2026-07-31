@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0006: Operation & Retention (Part 1)
+-- Jah Commerce — Migration 0006: Operation & Retention (Part 1)
 -- ============================================================================
 -- Schema: customers_crm, exchanges
 --

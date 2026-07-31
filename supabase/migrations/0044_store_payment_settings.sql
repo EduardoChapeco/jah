@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0044: Store Payment Settings
+-- Jah Commerce — Migration 0044: Store Payment Settings
 -- ============================================================================
 -- Adds pix_key and payment_instructions columns to stores table.
 -- Creates a private 'receipts' bucket for customer payment proof uploads.

@@ -703,7 +703,6 @@ export const getProductDetail = createServerFn({ method: "GET" })
           compareAtCents: data.compare_at_cents,
           media,
           variants,
-          allowsPreorder: false,
           seoTitle: data.seo_title,
           seoDescription: data.seo_description,
         },

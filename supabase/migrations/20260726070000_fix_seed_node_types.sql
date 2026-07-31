@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 20260726070000: Fix Seed Node Types
+-- Jah Commerce — Migration 20260726070000: Fix Seed Node Types
 -- ============================================================================
 -- Fixes node_type from 'section' to 'composition' for non-structural blocks
 -- ============================================================================

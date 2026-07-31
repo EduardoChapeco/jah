@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0026: Schema Corrections
+-- Jah Commerce — Migration 0026: Schema Corrections
 -- ============================================================================
 -- Adds missing columns that were referenced in application code but never
 -- defined in the database schema. All columns use IF NOT EXISTS for idempotency.

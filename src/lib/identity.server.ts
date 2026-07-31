@@ -26,30 +26,39 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
   } = await ssrClient.auth.getUser();
 
   if (!user) {
-    return { id: null, role: "customer", store_id: null, organization_id: null };
+    return { id: null, role: "customer", store_id: null, memberships: [] };
   }
 
   const serverClient = getServerClient();
-  const { data: profile } = await serverClient
-    .from("profiles")
-    .select("role, store_id, organization_id")
-    .eq("id", user.id)
-    .maybeSingle();
+  const { data: membershipsData } = await serverClient
+    .from("workspace_members")
+    .select("store_id, role")
+    .eq("profile_id", user.id);
 
-  let storeId = profile?.store_id ?? null;
-  if (!storeId) {
-    try {
-      const { resolveTenantStoreId } = await import("@/lib/tenant");
-      storeId = (await resolveTenantStoreId()) ?? null;
-    } catch {
-      /* ignored */
+  const memberships = membershipsData ?? [];
+
+  // Resolve active tenant/store context
+  let activeStoreId: string | null = null;
+  try {
+    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    activeStoreId = (await resolveTenantStoreId()) ?? null;
+  } catch {
+    /* ignored */
+  }
+
+  // Determine role in the active context
+  let activeRole = "customer";
+  if (activeStoreId) {
+    const membership = memberships.find((m) => m.store_id === activeStoreId);
+    if (membership) {
+      activeRole = membership.role;
     }
   }
 
   return {
     id: user.id,
-    role: profile?.role ?? "customer",
-    store_id: storeId,
-    organization_id: profile?.organization_id ?? null,
+    role: activeRole,
+    store_id: activeStoreId,
+    memberships,
   };
 }

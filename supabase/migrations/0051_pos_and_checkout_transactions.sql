@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0051: POS Sale Atomic RPC
+-- Jah Commerce — Migration 0051: POS Sale Atomic RPC
 -- ============================================================================
 -- 1. Creates process_pos_sale_transaction RPC for the physical POS/Caixa.
 -- This ensures stock deduction, order creation, payment, and cash register

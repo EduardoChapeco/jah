@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0068: Store Followers & Reviews
+-- Jah Commerce — Migration 0068: Store Followers & Reviews
 -- ============================================================================
 
 -- 1. Create store_followers table

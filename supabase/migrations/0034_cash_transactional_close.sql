@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0031: Cash Transactional Close
+-- Jah Commerce — Migration 0031: Cash Transactional Close
 -- ============================================================================
 -- Creates an atomic RPC function to close a cash register.
 -- This ensures that no concurrent transactions can sneak in after we read the

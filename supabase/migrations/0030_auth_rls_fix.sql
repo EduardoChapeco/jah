@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0030: Auth RLS Fix
+-- Jah Commerce — Migration 0030: Auth RLS Fix
 -- ============================================================================
 -- Fixes the 42P17 infinite recursion error on public.profiles.
 -- The policies `profiles_org_staff_read` and `profiles_store_read` queried

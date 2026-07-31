@@ -64,12 +64,18 @@ export const listSellers = createServerFn({ method: "GET" }).handler(async () =>
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin", "manager"]);
 
-  const { data: sellers, error } = await supabase
-    .from("profiles")
-    .select("id, full_name, role, commission_rate")
+  const { data: members, error } = await supabase
+    .from("workspace_members")
+    .select("profile_id, role, profiles(id, full_name, commission_rate)")
     .eq("store_id", identity.store_id)
-    .in("role", ["seller", "manager"])
-    .order("full_name");
+    .in("role", ["seller", "manager"]);
+
+  const sellers = members?.map(m => ({
+    id: m.profile_id,
+    role: m.role,
+    full_name: (m.profiles as any)?.full_name || "",
+    commission_rate: (m.profiles as any)?.commission_rate || 0,
+  })).sort((a, b) => a.full_name.localeCompare(b.full_name)) || [];
 
   if (error) throw new Error("Erro ao buscar equipe de vendas");
   return sellers;
@@ -89,9 +95,10 @@ export const updateSellerCommissionRate = createServerFn({ method: "POST" })
 
     // Ensure the target seller belongs to the same store
     const { data: target, error: checkError } = await supabase
-      .from("profiles")
+      .from("workspace_members")
       .select("store_id")
-      .eq("id", sellerId)
+      .eq("profile_id", sellerId)
+      .eq("store_id", identity.store_id)
       .single();
 
     if (checkError || target.store_id !== identity.store_id) {

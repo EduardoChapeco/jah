@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0002: Catalog
+-- Jah Commerce — Migration 0002: Catalog
 -- ============================================================================
 -- Schema: product types (adaptive forms), categories (tree), products,
 -- variants, media and stock movements.

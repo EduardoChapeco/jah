@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0055: Inventory Audit RPC (Microfase 6)
+-- Jah Commerce — Migration 0055: Inventory Audit RPC (Microfase 6)
 -- ============================================================================
 -- Cria a RPC oficial para realizar "Contagem de Balanço" (Auditoria),
 -- garantindo que discrepâncias entre prateleira e sistema sejam imutavelmente

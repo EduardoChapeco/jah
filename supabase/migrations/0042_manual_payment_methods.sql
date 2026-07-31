@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0042: Manual Payment Methods Table
+-- Jah Commerce — Migration 0042: Manual Payment Methods Table
 -- ============================================================================
 -- Adds the public.manual_payment_methods table to support custom manual Pix
 -- and Ficha/Carnê payment options with custom surcharges and discounts.

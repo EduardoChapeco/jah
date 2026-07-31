@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0076: Cleanup Atomic Checkout Overloads
+-- Jah Commerce — Migration 0076: Cleanup Atomic Checkout Overloads
 -- ============================================================================
 -- Resolve o erro de PostgreSQL: "function is not unique".
 -- Remove assinaturas antigas residuais de `process_checkout_atomic` geradas 

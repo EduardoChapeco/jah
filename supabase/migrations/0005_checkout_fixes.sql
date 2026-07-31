@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0005: Checkout Fixes
+-- Jah Commerce — Migration 0005: Checkout Fixes
 -- ============================================================================
 -- Schema: shipping_options
 --

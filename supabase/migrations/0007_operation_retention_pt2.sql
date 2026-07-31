@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0007: Operation & Retention (Part 2)
+-- Jah Commerce — Migration 0007: Operation & Retention (Part 2)
 -- ============================================================================
 -- Schema: cash_registers, cash_register_entries, commissions
 -- ============================================================================

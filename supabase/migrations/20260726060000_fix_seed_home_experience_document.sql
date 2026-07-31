@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 20260726060000: Fix Seed Home Experience Document
+-- Jah Commerce — Migration 20260726060000: Fix Seed Home Experience Document
 -- ============================================================================
 -- Fixes block types and schemas for the default storefront home page
 -- (e.g. mapping "hero" to "hero_carousel" and "category_grid" to "mosaic_banners")

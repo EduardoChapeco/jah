@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0023: Seller Showcases
+-- Jah Commerce — Migration 0023: Seller Showcases
 -- ============================================================================
 
 -- Tabela que gerencia a vitrine pública de uma vendedora/afiliada.

@@ -3,7 +3,7 @@ import crypto from "node:crypto";
 
 import { appendResponseCookie, readCookieFromRequest } from "./http-cookies";
 
-export const GUEST_SESSION_COOKIE = "hr_shoes_guest_session";
+export const GUEST_SESSION_COOKIE = "jah_guest_session";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
 /**
@@ -48,7 +48,7 @@ export function clearGuestSession(): void {
   });
 }
 
-const SELLER_REF_COOKIE = "hr_shoes_seller_ref";
+const SELLER_REF_COOKIE = "jah_seller_ref";
 
 export function setSellerRefCookie(sellerId: string): void {
   appendResponseCookie(getResponseHeaders(), SELLER_REF_COOKIE, sellerId, {

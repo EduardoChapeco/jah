@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0008: Operation & Retention (Part 3)
+-- Jah Commerce — Migration 0008: Operation & Retention (Part 3)
 -- ============================================================================
 -- Schema: gift_cards, installment_plans, installments
 -- ============================================================================

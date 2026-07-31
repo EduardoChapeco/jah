@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0053: Match Time Offers (Microfase 5)
+-- Jah Commerce — Migration 0053: Match Time Offers (Microfase 5)
 -- ============================================================================
 -- Cria a tabela de ofertas geradas pelo algoritmo do Match Time.
 -- Essas ofertas possuem vida curta (ex: 15 minutos) e aplicam desconto a um produto.

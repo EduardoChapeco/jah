@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0039: Checkout Security Hardening
+-- Jah Commerce — Migration 0039: Checkout Security Hardening
 -- ============================================================================
 -- 1. Adds customer_id and session_token validation to prevent Cart Hijacking.
 -- 2. Prevents Negative Stock explicitly.

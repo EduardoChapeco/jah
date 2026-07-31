@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0055: Checkout Revalidation Engine
+-- Jah Commerce — Migration 0055: Checkout Revalidation Engine
 -- ============================================================================
 -- Resolve o problema de "Preço Congelado" e "Venda sem Estoque (Overselling)".
 

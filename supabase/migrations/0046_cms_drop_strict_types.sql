@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 0046: Drop strict page_sections types check
+-- Jah Commerce — Migration 0046: Drop strict page_sections types check
 -- ============================================================================
 -- Removes check constraints on page_sections.section_type to allow modular 
 -- frontend-defined custom blocks without database migrations.

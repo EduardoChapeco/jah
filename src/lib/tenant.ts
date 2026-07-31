@@ -34,7 +34,9 @@ export async function resolveTenantStoreId(): Promise<string | null> {
     }
   }
 
-  // Fallback genérico para manter a compatibilidade se o tenant não for resolvido via subdomínio
+  // Fallback controlado: tentar resolver para a loja principal "jah". Se não encontrar, pega a primeira.
+  // Em produção, isso deve emitir um aviso.
+  console.warn(`[TENANT WARNING] Resolving tenant via fallback for host: ${host}`);
   const { data, error } = await db
     .from("stores")
     .select("id")

@@ -14,7 +14,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
-import { getSSRClient } from "@/lib/server-access";
+import { getServerIdentity, assertStoreAccess, getSSRClient } from "@/lib/server-access";
 
 // ---------------------------------------------------------------------------
 // Shipment status enum

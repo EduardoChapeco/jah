@@ -133,7 +133,6 @@ export interface ProductDetailDTO {
   /** All product-level media (general gallery + per-variant if variant_id set). */
   media: ProductMediaDTO[];
   variants: VariantDTO[];
-  allowsPreorder: boolean;
   /** Canonical SEO title (server resolves: meta_title → seo_title → title). */
   seoTitle?: string | null;
   /** Canonical SEO description. */

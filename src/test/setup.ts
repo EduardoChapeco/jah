@@ -17,7 +17,7 @@ const mockIdentity = {
   id: "test-user-id",
   role: "admin",
   store_id: "test-store-id",
-  organization_id: "test-org-id",
+  memberships: [{ store_id: "store-123", role: "admin" }],
 };
 
 // These hoists will register the mock modules

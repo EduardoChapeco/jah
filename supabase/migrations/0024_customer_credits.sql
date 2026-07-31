@@ -1,4 +1,4 @@
--- Hr Shoes Commerce — Migration 0021: Customer Credits
+-- Jah Commerce — Migration 0021: Customer Credits
 
 CREATE TABLE IF NOT EXISTS public.customer_credits (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

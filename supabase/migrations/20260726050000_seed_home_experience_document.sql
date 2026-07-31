@@ -1,5 +1,5 @@
 -- ============================================================================
--- Hr Shoes Commerce — Migration 20260726050000: Seed Home Experience Document
+-- Jah Commerce — Migration 20260726050000: Seed Home Experience Document
 -- ============================================================================
 -- Seeds a default published experience_document for the storefront home page
 -- so every store instance has a luxury storefront layout out of the box.

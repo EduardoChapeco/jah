@@ -18,7 +18,7 @@ export type RawVariant = {
   cost_cents?: number | null;
   weight_kg?: number | null;
   image_url?: string | null;
-  status?: string;
+  status?: "active" | "archived" | "inactive";
   allow_backorder?: boolean;
   backorder_lead_time_days?: number;
   requires_payment_for_backorder?: boolean;
