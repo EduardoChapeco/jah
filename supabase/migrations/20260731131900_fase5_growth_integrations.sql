@@ -2,7 +2,7 @@
 -- Author: Antigravity
 
 -- 1. Tabelas de Credenciais de Integração (Cofre Seguro)
-CREATE TABLE public.integration_credentials (
+CREATE TABLE IF NOT EXISTS public.integration_credentials (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     store_id UUID NOT NULL REFERENCES public.stores(id) ON DELETE CASCADE,
     provider VARCHAR(100) NOT NULL, -- e.g., 'melhorenvio', 'frenet', 'meta_pixel', 'google_merchant'
@@ -19,18 +19,12 @@ CREATE POLICY "Store owners can manage credentials"
     ON public.integration_credentials
     FOR ALL
     TO authenticated
-    USING (store_id IN (
-        SELECT store_id FROM public.store_users 
-        WHERE user_id = auth.uid() AND role IN ('owner', 'admin')
-    ))
-    WITH CHECK (store_id IN (
-        SELECT store_id FROM public.store_users 
-        WHERE user_id = auth.uid() AND role IN ('owner', 'admin')
-    ));
+    USING (public.has_workspace_role(store_id, ARRAY['owner', 'admin']))
+    WITH CHECK (public.has_workspace_role(store_id, ARRAY['owner', 'admin']));
 
 
 -- 2. Tabela de Cotações de Frete (Rastreabilidade e prevenção a fraude de alteração de preço)
-CREATE TABLE public.shipping_quotes (
+CREATE TABLE IF NOT EXISTS public.shipping_quotes (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     store_id UUID NOT NULL REFERENCES public.stores(id) ON DELETE CASCADE,
     cart_id UUID REFERENCES public.carts(id) ON DELETE SET NULL, -- Se o carrinho for deletado, mantemos o rastro
@@ -55,13 +49,10 @@ CREATE POLICY "Store staff can read quotes"
     ON public.shipping_quotes
     FOR SELECT
     TO authenticated
-    USING (store_id IN (
-        SELECT store_id FROM public.store_users 
-        WHERE user_id = auth.uid()
-    ));
+    USING (public.is_store_staff(store_id));
 
 -- 3. Tabela de Carrinhos Abandonados (Marketing e Conversão)
-CREATE TABLE public.abandoned_carts (
+CREATE TABLE IF NOT EXISTS public.abandoned_carts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     store_id UUID NOT NULL REFERENCES public.stores(id) ON DELETE CASCADE,
     cart_id UUID NOT NULL REFERENCES public.carts(id) ON DELETE CASCADE,
@@ -80,16 +71,10 @@ CREATE POLICY "Store staff can manage abandoned carts"
     ON public.abandoned_carts
     FOR ALL
     TO authenticated
-    USING (store_id IN (
-        SELECT store_id FROM public.store_users 
-        WHERE user_id = auth.uid()
-    ))
-    WITH CHECK (store_id IN (
-        SELECT store_id FROM public.store_users 
-        WHERE user_id = auth.uid()
-    ));
+    USING (public.is_store_staff(store_id))
+    WITH CHECK (public.is_store_staff(store_id));
 
 -- Indexes for performance
-CREATE INDEX idx_credentials_store ON public.integration_credentials(store_id);
-CREATE INDEX idx_shipping_quotes_store ON public.shipping_quotes(store_id);
-CREATE INDEX idx_abandoned_carts_store ON public.abandoned_carts(store_id);
+CREATE INDEX IF NOT EXISTS idx_credentials_store ON public.integration_credentials(store_id);
+CREATE INDEX IF NOT EXISTS idx_shipping_quotes_store ON public.shipping_quotes(store_id);
+CREATE INDEX IF NOT EXISTS idx_abandoned_carts_store ON public.abandoned_carts(store_id);

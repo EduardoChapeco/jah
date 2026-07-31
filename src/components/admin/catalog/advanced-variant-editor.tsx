@@ -1,12 +1,12 @@
 import React from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetFooter,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,17 +45,16 @@ export function AdvancedVariantEditor({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Edição Avançada da Variação</DialogTitle>
-          <DialogDescription>
-            Atributos:{" "}
-            {Object.entries(formData.attributes)
-              .map(([k, v]) => `${k}: ${v}`)
-              .join(" | ")}
-          </DialogDescription>
-        </DialogHeader>
+    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent className="sm:max-w-2xl w-full sm:w-3/4 overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>Edição Avançada da Variação</SheetTitle>
+          <SheetDescription>
+            Aqui você pode ajustar as dimensões, adicionar código de barras e
+            sobrescrever o preço. Os campos de envio só serão utilizados se o
+            modo de entrega escolhido pelos clientes exigir cálculo volumétrico.
+          </SheetDescription>
+        </SheetHeader>
 
         <div className="grid grid-cols-2 gap-4 py-4">
           <div className="space-y-2">
@@ -188,13 +187,13 @@ export function AdvancedVariantEditor({
           </div>
         </div>
 
-        <DialogFooter>
+        <SheetFooter>
           <Button variant="outline" onClick={onClose}>
             Cancelar
           </Button>
-          <Button onClick={handleSave}>Salvar Alterações Locais</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <Button onClick={handleSave}>Salvar Variação</Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

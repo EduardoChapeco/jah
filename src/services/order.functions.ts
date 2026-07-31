@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
-import { getSSRClient } from "@/lib/server-access";
+import { getSSRClient, getServerIdentity, assertStoreAccess } from "@/lib/server-access";
 import { requireAdmin } from "@/lib/server-access";
 
 // ---------------------------------------------------------------------------
@@ -30,7 +30,7 @@ export const ORDER_STATUS_VALUES = [
 // Handlers (decoupled for unit testing)
 // ---------------------------------------------------------------------------
 
-export async function listOrdersHandler() {
+export async function listOrdersHandler(store_id: string) {
   const db = getServerClient();
 
   const { data, error } = await db
@@ -41,13 +41,14 @@ export async function listOrdersHandler() {
         order_items ( id, product_title, variant_sku, qty, unit_price_cents, total_cents )
       `,
     )
+    .eq("store_id", store_id)
     .order("created_at", { ascending: false });
 
   if (error) throw error;
   return data || [];
 }
 
-export async function getOrderByIdHandler(orderId: string) {
+export async function getOrderByIdHandler(orderId: string, store_id: string) {
   const db = getServerClient();
 
   const { data, error } = await db
@@ -61,6 +62,7 @@ export async function getOrderByIdHandler(orderId: string) {
     `,
     )
     .eq("id", orderId)
+    .eq("store_id", store_id)
     .single();
 
   if (error) throw new Error("Pedido não encontrado");
@@ -70,8 +72,12 @@ export async function getOrderByIdHandler(orderId: string) {
 export async function updateOrderStatusHandler(
   orderId: string,
   status: (typeof ORDER_STATUS_VALUES)[number],
+  store_id: string,
 ) {
   const db = getServerClient();
+
+  const { data: order, error: orderError } = await db.from("orders").select("id").eq("id", orderId).eq("store_id", store_id).single();
+  if (orderError || !order) throw new Error("Pedido não encontrado ou acesso negado.");
 
   if (status === "cancelled") {
     // Phase 4: Atomic cancellation with stock and commission reversals
@@ -105,8 +111,10 @@ export const listOrders = createServerFn({ method: "GET" }).handler(async () => 
   try {
     // SECURITY FIX: Enforce administrative authorization
     await requireAdmin();
+    const identity = await getServerIdentity();
+    if (!identity.store_id) throw new Error("Contexto de loja inválido");
 
-    const data = await listOrdersHandler();
+    const data = await listOrdersHandler(identity.store_id);
     return data;
   } catch (e: any) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
@@ -121,8 +129,10 @@ export const getOrderById = createServerFn({ method: "GET" })
     try {
       // SECURITY FIX: Enforce administrative authorization
       await requireAdmin();
+      const identity = await getServerIdentity();
+      if (!identity.store_id) throw new Error("Contexto de loja inválido");
 
-      const data = await getOrderByIdHandler(orderId);
+      const data = await getOrderByIdHandler(orderId, identity.store_id);
       return data;
     } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
@@ -142,8 +152,10 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
     try {
       // SECURITY FIX: Enforce administrative authorization
       await requireAdmin();
+      const identity = await getServerIdentity();
+      if (!identity.store_id) throw new Error("Contexto de loja inválido");
 
-      return await updateOrderStatusHandler(params.orderId, params.status);
+      return await updateOrderStatusHandler(params.orderId, params.status, identity.store_id);
     } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[order.functions] updateOrderStatus:", e.message);
@@ -155,6 +167,8 @@ export const listPayments = createServerFn({ method: "GET" }).handler(async () =
   try {
     // SECURITY FIX: Enforce administrative authorization
     await requireAdmin();
+    const identity = await getServerIdentity();
+    if (!identity.store_id) throw new Error("Contexto de loja inválido");
 
     const db = getServerClient();
 
@@ -165,6 +179,7 @@ export const listPayments = createServerFn({ method: "GET" }).handler(async () =
           id, public_token, status, total_cents, customer_snapshot, created_at
         `,
       )
+      .eq("store_id", identity.store_id)
       .in("status", ["awaiting_payment", "payment_processing", "paid"])
       .order("created_at", { ascending: false });
 
@@ -268,6 +283,10 @@ export const getCustomerOrder = createServerFn({ method: "GET" })
 export const listOrdersAwaitingShippingQuote = createServerFn({ method: "GET" }).handler(
   async () => {
     try {
+      await requireAdmin();
+      const identity = await getServerIdentity();
+      if (!identity.store_id) throw new Error("Contexto de loja inválido");
+
       const db = getServerClient();
       const { data, error } = await db
         .from("orders")
@@ -277,6 +296,7 @@ export const listOrdersAwaitingShippingQuote = createServerFn({ method: "GET" })
             customer_snapshot, shipping_address, created_at, shipping_method
           `,
         )
+        .eq("store_id", identity.store_id)
         .eq("status", "awaiting_shipping_quote")
         .order("created_at", { ascending: true });
 
@@ -298,6 +318,10 @@ export const updateOrderShippingQuote = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: { orderId, shippingCents } }) => {
     try {
+      await requireAdmin();
+      const identity = await getServerIdentity();
+      if (!identity.store_id) throw new Error("Contexto de loja inválido");
+
       const db = getServerClient();
 
       // Load current order
@@ -305,6 +329,7 @@ export const updateOrderShippingQuote = createServerFn({ method: "POST" })
         .from("orders")
         .select("id, subtotal_cents, discount_cents")
         .eq("id", orderId)
+        .eq("store_id", identity.store_id)
         .single();
 
       if (orderError || !order) throw new Error("Pedido não encontrado");
@@ -452,16 +477,13 @@ export const updateOrderShipment = createServerFn({ method: "POST" })
       } = await ssrClient.auth.getUser();
       if (!user) throw new Error("Não autorizado");
 
+      const { getServerIdentity } = await import("@/lib/server-access");
+      const identity = await getServerIdentity();
       const db = getServerClient();
-      const { data: profile } = await db
-        .from("profiles")
-        .select("role, store_id")
-        .eq("id", user.id)
-        .single();
 
       if (
-        !profile?.store_id ||
-        !["owner", "admin", "manager", "logistics"].includes(profile.role)
+        !identity.store_id ||
+        !["owner", "admin", "manager", "logistics"].includes(identity.role)
       ) {
         throw new Error("Acesso negado");
       }
@@ -488,7 +510,7 @@ export const updateOrderShipment = createServerFn({ method: "POST" })
         .from("orders")
         .update(updateData)
         .eq("id", orderId)
-        .eq("store_id", profile.store_id)
+        .eq("store_id", identity.store_id)
         .select()
         .single();
 

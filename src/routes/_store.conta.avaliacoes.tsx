@@ -6,41 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Star } from "lucide-react";
 
-// ---------------------------------------------------------------------------
-// Server function
-// ---------------------------------------------------------------------------
-
-const listCustomerReviews = createServerFn({ method: "GET" }).handler(async () => {
-  try {
-    const ssrClient = await getSSRClient();
-    const {
-      data: { user },
-    } = await ssrClient.auth.getUser();
-    if (!user) throw new Error("Não autorizado");
-
-    const { data, error } = await ssrClient
-      .from("reviews")
-      .select(
-        "id, rating, comment, status, created_at, products!reviews_product_id_fkey(name, slug)",
-      )
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
-
-    if (error) throw new Error(error.message);
-
-    return (data || []).map((r: any) => ({
-      id: r.id as string,
-      rating: r.rating as number,
-      comment: r.comment as string | null,
-      status: r.status as string,
-      createdAt: r.created_at as string,
-      productName: r.products?.name as string | null,
-      productSlug: r.products?.slug as string | null,
-    }));
-  } catch (e: any) {
-    throw new Error(e.message || "Erro ao buscar avaliações.");
-  }
-});
+import { listCustomerReviews } from "@/services/cms.functions";
 
 // ---------------------------------------------------------------------------
 // Route

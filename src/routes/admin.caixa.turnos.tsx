@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { formatDateTime } from "@/lib/datetime";
 import { History, ArrowLeft, ArrowDownLeft, ArrowUpRight } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
@@ -76,10 +77,7 @@ function ShiftsPage() {
               return (
                 <TableRow key={s.id}>
                   <TableCell className="text-xs font-mono">
-                    {new Date(s.opened_at).toLocaleString("pt-BR", {
-                      dateStyle: "short",
-                      timeStyle: "short",
-                    })}
+                    {formatDateTime(s.opened_at)}
                   </TableCell>
                   <TableCell
                     className="font-medium max-w-[120px] truncate"
@@ -89,10 +87,7 @@ function ShiftsPage() {
                   </TableCell>
                   <TableCell className="text-xs font-mono">
                     {s.closed_at
-                      ? new Date(s.closed_at).toLocaleString("pt-BR", {
-                          dateStyle: "short",
-                          timeStyle: "short",
-                        })
+                      ? formatDateTime(s.closed_at)
                       : "Aberto"}
                   </TableCell>
                   <TableCell className="text-right">

@@ -20,13 +20,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/state/states";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Surface } from "@/components/ui/surface";
 import {
   Form,
   FormControl,
@@ -105,20 +106,20 @@ function GiftCardsPage() {
         title="Cartões-Presente (Gift Cards)"
         description="Emita códigos promocionais ou saldo de presente para clientes."
         actions={
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger asChild>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
                 Emitir Cartão
               </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Novo Cartão-Presente</DialogTitle>
-                <DialogDescription>
+            </SheetTrigger>
+            <SheetContent side="right" className="overflow-y-auto">
+              <SheetHeader>
+                <SheetTitle>Novo Cartão-Presente</SheetTitle>
+                <SheetDescription>
                   Gere um código de saldo que pode ser usado como método de pagamento no checkout.
-                </DialogDescription>
-              </DialogHeader>
+                </SheetDescription>
+              </SheetHeader>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(handleCreate)} className="space-y-4">
                   <FormField
@@ -147,13 +148,13 @@ function GiftCardsPage() {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full" disabled={isCreating}>
+                  <Button type="submit" className="w-full mt-4" disabled={isCreating}>
                     Gerar Código
                   </Button>
                 </form>
               </Form>
-            </DialogContent>
-          </Dialog>
+            </SheetContent>
+          </Sheet>
         }
       />
 
@@ -163,10 +164,10 @@ function GiftCardsPage() {
           description="Você ainda não emitiu nenhum cartão-presente."
         />
       ) : (
-        <div className="rounded-md border bg-card">
+        <Surface variant="zine" elevation="sm" padding="none">
           <Table>
             <TableHeader>
-              <TableRow>
+              <TableRow className="bg-muted/40 border-b border-ink/20">
                 <TableHead>Código</TableHead>
                 <TableHead>Emitido por</TableHead>
                 <TableHead>Criado em</TableHead>
@@ -213,7 +214,7 @@ function GiftCardsPage() {
               ))}
             </TableBody>
           </Table>
-        </div>
+        </Surface>
       )}
     </div>
   );

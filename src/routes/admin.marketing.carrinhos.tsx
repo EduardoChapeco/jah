@@ -69,7 +69,6 @@ function AbandonedCartsPage() {
          <EmptyState
            title="Nenhum carrinho abandonado"
            description="Excelente! Todos os seus clientes estão finalizando as compras com sucesso."
-           icon={ShoppingCart}
          />
       ) : (
          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

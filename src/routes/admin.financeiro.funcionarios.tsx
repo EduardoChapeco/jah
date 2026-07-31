@@ -13,13 +13,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@/components/ui/sheet";
+import { Surface } from "@/components/ui/surface";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -101,22 +102,22 @@ function HrFinancePage() {
       ) : (
         <div className="grid grid-cols-1 gap-4">
           {staffBalances.map((emp: any) => (
-            <div key={emp.id} className="bg-card border rounded-lg p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <Surface key={emp.id} variant="zine" elevation="sm" padding="md" className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               
               <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg shrink-0">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-display font-bold text-lg shrink-0 border border-primary/20">
                   {emp.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg">{emp.name}</h3>
-                  <Badge variant="outline" className="mt-1">{emp.role}</Badge>
+                  <h3 className="font-display font-bold text-lg">{emp.name}</h3>
+                  <Badge variant="outline" className="mt-1 border-ink/30">{emp.role}</Badge>
                 </div>
               </div>
 
               <div className="flex items-center gap-6">
                 <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Saldo a Receber</p>
-                  <p className={`text-2xl font-bold ${emp.balanceCents < 0 ? 'text-destructive' : 'text-success'}`}>
+                  <p className="text-sm text-muted-foreground font-semibold">Saldo a Receber</p>
+                  <p className={`text-2xl font-bold font-display ${emp.balanceCents < 0 ? 'text-destructive' : 'text-emerald-600'}`}>
                     {formatMoney(emp.balanceCents)}
                   </p>
                 </div>
@@ -125,20 +126,20 @@ function HrFinancePage() {
                 </Button>
               </div>
 
-            </div>
+            </Surface>
           ))}
         </div>
       )}
 
       {/* Transaction Modal */}
-      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Lançamento Financeiro</DialogTitle>
-            <DialogDescription>
+      <Sheet open={modalOpen} onOpenChange={setModalOpen}>
+        <SheetContent side="right">
+          <SheetHeader>
+            <SheetTitle>Lançamento Financeiro</SheetTitle>
+            <SheetDescription>
               Registrando lançamento para <strong>{selectedEmp?.name}</strong>
-            </DialogDescription>
-          </DialogHeader>
+            </SheetDescription>
+          </SheetHeader>
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
@@ -154,7 +155,7 @@ function HrFinancePage() {
                     </div>
                   </SelectItem>
                   <SelectItem value="adjustment">
-                    <div className="flex items-center text-success">
+                    <div className="flex items-center text-emerald-600">
                       <ArrowUpRight className="w-4 h-4 mr-2" /> Bônus / Ajuste (Crédito)
                     </div>
                   </SelectItem>
@@ -183,16 +184,16 @@ function HrFinancePage() {
             </div>
           </div>
 
-          <DialogFooter>
+          <SheetFooter className="pt-4">
             <Button variant="outline" onClick={() => setModalOpen(false)} disabled={loading}>
               Cancelar
             </Button>
             <Button onClick={handleSubmit} disabled={loading}>
               {loading ? "Registrando..." : "Confirmar Lançamento"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
     </div>
   );

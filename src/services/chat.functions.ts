@@ -61,6 +61,15 @@ export const getChatMessages = createServerFn({ method: "GET" })
 
       assertStoreAccess(identity);
 
+      const { data: thread } = await db
+        .from("chat_threads")
+        .select("id")
+        .eq("id", threadId)
+        .eq("store_id", identity.store_id)
+        .single();
+      
+      if (!thread) throw new Error("Conversa não encontrada ou acesso negado.");
+
       const { data, error } = await db
         .from("chat_messages")
         .select("id, message, is_staff_reply, created_at, sender_id")
@@ -91,6 +100,15 @@ export const sendChatMessage = createServerFn({ method: "POST" })
       if (!identity.store_id || identity.role === "customer") {
         throw new Error("Não autorizado");
       }
+
+      const { data: threadVal } = await db
+        .from("chat_threads")
+        .select("id")
+        .eq("id", input.threadId)
+        .eq("store_id", identity.store_id)
+        .single();
+        
+      if (!threadVal) throw new Error("Conversa não encontrada ou acesso negado.");
 
       const { data, error } = await db
         .from("chat_messages")
@@ -134,12 +152,17 @@ export const getCustomerChatThread = createServerFn({ method: "GET" })
 
       const db = getServerClient();
 
+      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const storeId = await resolveTenantStoreId();
+      if (!storeId) throw new Error("Loja não identificada.");
+
       // Fetch the thread (only if owned by this customer)
       const { data: thread, error: threadErr } = await db
         .from("chat_threads")
         .select("id, subject, status, created_at")
         .eq("id", threadId)
         .eq("customer_id", user.id)
+        .eq("store_id", storeId)
         .single();
 
       if (threadErr || !thread) throw new Error("Conversa não encontrada.");
@@ -183,12 +206,17 @@ export const sendCustomerChatMessage = createServerFn({ method: "POST" })
 
       const db = getServerClient();
 
+      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const storeId = await resolveTenantStoreId();
+      if (!storeId) throw new Error("Loja não identificada.");
+
       // Validate ownership
       const { data: thread } = await db
         .from("chat_threads")
         .select("id")
         .eq("id", threadId)
         .eq("customer_id", user.id)
+        .eq("store_id", storeId)
         .single();
 
       if (!thread) throw new Error("Conversa não encontrada.");
@@ -221,11 +249,16 @@ export const listCustomerChatThreads = createServerFn({ method: "GET" }).handler
     } = await ssrClient.auth.getUser();
     if (!user) throw new Error("Não autorizado");
 
+    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const storeId = await resolveTenantStoreId();
+    if (!storeId) throw new Error("Loja não identificada.");
+
     const db = getServerClient();
     const { data, error } = await db
       .from("chat_threads")
       .select("id, subject, status, created_at, updated_at")
       .eq("customer_id", user.id)
+      .eq("store_id", storeId)
       .order("updated_at", { ascending: false });
 
     if (error) throw error;

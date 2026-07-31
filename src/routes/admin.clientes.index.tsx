@@ -22,6 +22,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 
 import { PageHeader } from "@/components/commerce/page-header";
+import { formatDateTime } from "@/lib/datetime";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,13 +36,14 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Surface } from "@/components/ui/surface";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/state/states";
@@ -180,18 +182,18 @@ function CustomersPage() {
         }
       />
 
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-2xl p-0 overflow-hidden">
-          <DialogHeader className="px-6 py-4 border-b bg-muted/30">
-            <DialogTitle className="flex items-center gap-2 text-xl">
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetContent side="right" className="sm:max-w-2xl p-0 overflow-y-auto">
+          <SheetHeader className="px-6 py-4 border-b border-ink/10 bg-muted/30">
+            <SheetTitle className="flex items-center gap-2 text-xl font-display font-bold">
               <UserCheck className="size-5 text-primary" />
               Cadastrar Novo Cliente
-            </DialogTitle>
-            <DialogDescription>
+            </SheetTitle>
+            <SheetDescription>
               Preencha os dados abaixo para adicionar um contato ao seu CRM e habilitar o histórico
               de compras.
-            </DialogDescription>
-          </DialogHeader>
+            </SheetDescription>
+          </SheetHeader>
           <form onSubmit={handleCreate} className="px-6 py-4">
             <div className="grid md:grid-cols-2 gap-6">
               {/* Coluna 1: Dados Pessoais e Contato */}
@@ -326,7 +328,7 @@ function CustomersPage() {
               </div>
             </div>
 
-            <DialogFooter className="pt-6 mt-4 border-t border-border/50">
+            <SheetFooter className="pt-6 mt-4 border-t border-border/50 px-6 pb-6">
               <Button
                 type="button"
                 variant="ghost"
@@ -348,10 +350,10 @@ function CustomersPage() {
                   </>
                 )}
               </Button>
-            </DialogFooter>
+            </SheetFooter>
           </form>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
@@ -396,11 +398,11 @@ function CustomersPage() {
               }
             />
           ) : (
-            <div className="rounded-xl border border-border bg-card shadow-xs">
+            <Surface variant="zine" elevation="sm" padding="none">
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-muted/40">
+                    <TableRow className="bg-muted/40 border-b border-ink/20">
                       <TableHead>Cliente</TableHead>
                       <TableHead>Desde</TableHead>
                       <TableHead className="text-center">Pedidos</TableHead>
@@ -446,7 +448,7 @@ function CustomersPage() {
                           <div className="flex flex-wrap gap-1">
                             {c.tags.length > 0 ? (
                               c.tags.slice(0, 2).map((tag: string) => (
-                                <Badge key={tag} variant="secondary" className="text-[10px] h-5">
+                                <Badge key={tag} variant="secondary" className="text-[10px] h-5 border-ink/30">
                                   {tag}
                                 </Badge>
                               ))
@@ -454,7 +456,7 @@ function CustomersPage() {
                               <span className="text-xs text-muted-foreground">-</span>
                             )}
                             {c.tags.length > 2 && (
-                              <Badge variant="outline" className="text-[10px] h-5">
+                              <Badge variant="outline" className="text-[10px] h-5 border-ink/30">
                                 +{c.tags.length - 2}
                               </Badge>
                             )}
@@ -473,7 +475,7 @@ function CustomersPage() {
                   </TableBody>
                 </Table>
               </div>
-            </div>
+            </Surface>
           )}
         </TabsContent>
 
@@ -606,11 +608,11 @@ function CustomersPage() {
               description="Mensagens enviadas através de formulários de contato aparecerão aqui."
             />
           ) : (
-            <div className="rounded-xl border border-border bg-card shadow-xs">
+            <Surface variant="zine" elevation="sm" padding="none">
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-muted/40">
+                    <TableRow className="bg-muted/40 border-b border-ink/20">
                       <TableHead>Remetente</TableHead>
                       <TableHead>Mensagem</TableHead>
                       <TableHead>Data</TableHead>
@@ -635,12 +637,9 @@ function CustomersPage() {
                           {l.message || <span className="italic">Sem mensagem</span>}
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground">
-                          {new Date(l.created_at).toLocaleString("pt-BR", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                          <span className="font-semibold text-xs whitespace-nowrap text-muted-foreground block text-right">
+                            {formatDateTime(l.created_at)}
+                          </span>
                         </TableCell>
                         <TableCell>
                           <Badge
@@ -669,7 +668,7 @@ function CustomersPage() {
                   </TableBody>
                 </Table>
               </div>
-            </div>
+            </Surface>
           )}
         </TabsContent>
       </Tabs>

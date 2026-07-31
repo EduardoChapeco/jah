@@ -12,6 +12,7 @@ import { getServerClient } from "@/lib/supabase";
 import { getGuestSession, getSellerRefCookie } from "@/lib/session";
 import { getCurrentIdentity, mergeGuestCartLogic } from "./cart-helpers";
 import type { CartDTO } from "@/types/orders";
+import { formatMoney } from "@/lib/money";
 
 // Helpers (getCurrentIdentity, mergeGuestCartLogic) live in ./cart-helpers
 // because tss-serverfn-split strips sibling declarations from this file.
@@ -434,7 +435,7 @@ export const applyCouponToCart = createServerFn({ method: "POST" })
 
     if (coupon.min_order_cents && cartDetails.subtotalCents < coupon.min_order_cents) {
       throw new Error(
-        `Valor mínimo para este cupom é ${(coupon.min_order_cents / 100).toFixed(2)}`,
+        `Valor mínimo para este cupom é ${formatMoney(coupon.min_order_cents)}`,
       );
     }
 

@@ -80,12 +80,17 @@ export const checkGiftCardBalance = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data: { code } }) => {
+    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const storeId = await resolveTenantStoreId();
+    if (!storeId) throw new Error("Loja não identificada.");
+
     const supabase = getServerClient();
 
     const { data: card, error } = await supabase
       .from("gift_cards")
       .select("id, current_balance_cents, status, expires_at")
       .eq("code", code)
+      .eq("store_id", storeId)
       .limit(1)
       .maybeSingle();
 
@@ -139,10 +144,15 @@ export const claimGiftCard = createServerFn({ method: "POST" })
 
     if (!user) throw new Error("Você precisa estar logado para resgatar um vale-presente.");
 
+    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const storeId = await resolveTenantStoreId();
+    if (!storeId) throw new Error("Loja não identificada.");
+
     const { data: card, error: findError } = await supabase
       .from("gift_cards")
       .select("id, purchaser_id, status, current_balance_cents")
       .eq("code", code)
+      .eq("store_id", storeId)
       .limit(1)
       .maybeSingle();
 
@@ -168,6 +178,10 @@ export const listCustomerGiftCards = createServerFn({ method: "GET" }).handler(a
   } = await ssrClient.auth.getUser();
   if (!user) throw new Error("Não autorizado");
 
+  const { resolveTenantStoreId } = await import("@/lib/tenant");
+  const storeId = await resolveTenantStoreId();
+  if (!storeId) throw new Error("Loja não identificada.");
+
   const supabase = getServerClient();
   const { data: cards, error } = await supabase
     .from("gift_cards")
@@ -175,6 +189,7 @@ export const listCustomerGiftCards = createServerFn({ method: "GET" }).handler(a
       "id, code, initial_balance_cents, current_balance_cents, status, expires_at, created_at",
     )
     .eq("purchaser_id", user.id)
+    .eq("store_id", storeId)
     .order("created_at", { ascending: false });
 
   if (error) {

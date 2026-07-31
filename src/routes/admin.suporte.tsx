@@ -125,7 +125,6 @@ function SupportInboxPage() {
               <EmptyState
                 title="Selecione um Ticket"
                 description="Escolha uma conversa na lateral para iniciar o atendimento."
-                icon={MessagesSquare}
               />
             </div>
           ) : (

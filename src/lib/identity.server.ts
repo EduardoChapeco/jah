@@ -32,10 +32,16 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
   const serverClient = getServerClient();
   const { data: membershipsData } = await serverClient
     .from("workspace_members")
-    .select("store_id, role")
+    .select("store_id, role, stores(name, slug, logo_url)")
     .eq("profile_id", user.id);
 
-  const memberships = membershipsData ?? [];
+  const memberships = (membershipsData ?? []).map((m: any) => ({
+    store_id: m.store_id,
+    role: m.role,
+    name: m.stores?.name,
+    slug: m.stores?.slug,
+    logo_url: m.stores?.logo_url,
+  }));
 
   // Resolve active tenant/store context
   let activeStoreId: string | null = null;

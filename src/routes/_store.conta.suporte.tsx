@@ -123,7 +123,6 @@ function CustomerSupportPage() {
               <EmptyState
                 title="Selecione um Chamado"
                 description="Escolha um atendimento na lista para ver as mensagens."
-                icon={MessagesSquare}
               />
             </div>
           ) : (

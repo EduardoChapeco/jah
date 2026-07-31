@@ -13,33 +13,20 @@ import type { Role } from "@/types/domain";
  * Throws an Error if unauthorized, which TanStack Start translates to a failure.
  */
 export async function requireRole(allowedRoles: Role[]): Promise<{ id: string; role: Role }> {
-  const supabase = getSSRClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
+  const { getServerIdentity } = await import("./identity.server");
+  const identity = await getServerIdentity();
 
-  if (authError || !user) {
+  if (!identity.id) {
     throw new Error("Não autorizado. Sessão expirada ou ausente.");
   }
 
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if (profileError || !profile) {
-    throw new Error("Perfil de acesso não encontrado.");
-  }
-
-  const userRole = profile.role as Role;
+  const userRole = identity.role as Role;
 
   if (!allowedRoles.includes(userRole)) {
     throw new Error(`Acesso negado. Requer um dos seguintes perfis: ${allowedRoles.join(", ")}`);
   }
 
-  return { id: user.id, role: userRole };
+  return { id: identity.id, role: userRole };
 }
 
 /**

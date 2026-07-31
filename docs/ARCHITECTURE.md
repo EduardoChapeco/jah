@@ -1,6 +1,6 @@
-# Arquitetura — Hr Shoes Commerce
+# Arquitetura — Jah Community Platform
 
-Documento canônico de arquitetura. Fase 0. Organização: Hr Shoes (moda/calçados femininos contemporâneos).
+Documento canônico de arquitetura. Fase 1. A Jah atua como Plataforma Comunitária e CMS Universal, possuindo um modelo de *Context Switching* para Lojas, Artistas e Pessoas Físicas.
 
 ## 1. Visão geral em camadas
 

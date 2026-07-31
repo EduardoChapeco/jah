@@ -29,14 +29,15 @@ import {
 } from "@/components/ui/card";
 import { EmptyState } from "@/components/state/states";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Surface } from "@/components/ui/surface";
 import {
   listProductTypes,
   createProductType,
@@ -205,20 +206,20 @@ function AtributosPage() {
         title="Grupos de Opções Reutilizáveis"
         description="Defina conjuntos padrão de tamanhos, cores e características para reutilizar em diferentes produtos com 1 clique."
         actions={
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger asChild>
               <Button size="sm">
                 <Plus className="mr-1.5 size-4" aria-hidden />
                 Novo Grupo de Opções
               </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>Criar Grupo de Opções Customizado</DialogTitle>
-                <DialogDescription>
+            </SheetTrigger>
+            <SheetContent side="right" className="max-w-md overflow-y-auto">
+              <SheetHeader>
+                <SheetTitle>Criar Grupo de Opções Customizado</SheetTitle>
+                <SheetDescription>
                   Defina o nome do grupo (ex: Tamanhos Salto Alto) e adicione as opções.
-                </DialogDescription>
-              </DialogHeader>
+                </SheetDescription>
+              </SheetHeader>
               <form onSubmit={handleSubmitCustom} className="space-y-4 pt-2">
                 <div className="space-y-2">
                   <Label htmlFor="g-name">Nome do Grupo *</Label>
@@ -296,32 +297,32 @@ function AtributosPage() {
                   </div>
                 </div>
 
-                <DialogFooter className="pt-4">
+                <SheetFooter className="pt-4">
                   <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={isSaving}>
                     {isSaving ? "Salvando..." : "Salvar Grupo"}
                   </Button>
-                </DialogFooter>
+                </SheetFooter>
               </form>
-            </DialogContent>
-          </Dialog>
+            </SheetContent>
+          </Sheet>
         }
       />
 
       {/* Seção 1: Presets Prontos (1-Click Import) */}
-      <Card className="border-primary/20 bg-primary/5 dark:bg-primary/10">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
+      <Surface variant="zine" elevation="sm" padding="md" className="border-primary/20 bg-primary/5 dark:bg-primary/10">
+        <div className="pb-3 border-b border-ink/10 mb-4">
+          <h3 className="font-display font-bold text-lg flex items-center gap-2">
             <Sparkles className="size-5 text-primary" aria-hidden />
             Biblioteca de Presets de Variação (1-Clique)
-          </CardTitle>
-          <CardDescription>
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1">
             Importe conjuntos canônicos prontos para acelerar o cadastro dos seus produtos.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
           {PRESET_OPTION_GROUPS.map((preset) => {
             const Icon = preset.icon;
             const isImported = types.some((t: any) => t.name === preset.title);
@@ -329,7 +330,7 @@ function AtributosPage() {
             return (
               <div
                 key={preset.id}
-                className="p-4 rounded-xl border border-border bg-card hover:border-primary/40 transition-all flex flex-col justify-between gap-3"
+                className="p-4 rounded-xl border border-ink/20 bg-card hover:border-primary/40 transition-all flex flex-col justify-between gap-3"
               >
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -341,7 +342,7 @@ function AtributosPage() {
                   <h4 className="text-sm font-bold text-foreground">{preset.title}</h4>
                   <div className="flex flex-wrap gap-1">
                     {preset.options.map((opt) => (
-                      <Badge key={opt} variant="outline" className="text-[11px] py-0">
+                      <Badge key={opt} variant="outline" className="text-[11px] py-0 border-ink/30">
                         {opt}
                       </Badge>
                     ))}
@@ -367,18 +368,18 @@ function AtributosPage() {
               </div>
             );
           })}
-        </CardContent>
-      </Card>
+        </div>
+      </Surface>
 
       {/* Seção 2: Grupos de Opções Ativos */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Grupos de Opções Ativos no Sistema</CardTitle>
-          <CardDescription>
+      <Surface variant="zine" elevation="sm" padding="md">
+        <div className="pb-4 border-b border-ink/10 mb-4">
+          <h3 className="font-display font-bold text-lg">Grupos de Opções Ativos no Sistema</h3>
+          <p className="text-sm text-muted-foreground mt-1">
             Estes esquemas estão disponíveis para seleção dinâmica nos Tipos de Produto e no Editor.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+          </p>
+        </div>
+        <div>
           {types.length === 0 ? (
             <EmptyState
               title="Nenhum grupo ativo"
@@ -395,14 +396,14 @@ function AtributosPage() {
                 return (
                   <div
                     key={type.id}
-                    className="p-4 rounded-xl border border-border bg-card space-y-3"
+                    className="p-4 rounded-xl border border-ink/20 bg-card space-y-3"
                   >
                     <div className="flex items-center justify-between">
                       <div>
                         <h4 className="text-sm font-bold text-foreground">{type.name}</h4>
                         <p className="text-xs text-muted-foreground font-mono">/{type.slug}</p>
                       </div>
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="text-xs border-ink/30">
                         {optionFields.length > 0
                           ? `${optionFields.length} grupo(s)`
                           : "Campos livres"}
@@ -416,7 +417,7 @@ function AtributosPage() {
                         </span>
                         <div className="flex flex-wrap gap-1">
                           {f.options.map((opt: string) => (
-                            <Badge key={opt} variant="outline" className="text-xs bg-muted/40">
+                            <Badge key={opt} variant="outline" className="text-xs bg-muted/40 border-ink/30">
                               {opt}
                             </Badge>
                           ))}
@@ -428,8 +429,8 @@ function AtributosPage() {
               })}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </Surface>
     </div>
   );
 }

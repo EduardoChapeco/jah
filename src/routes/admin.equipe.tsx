@@ -35,14 +35,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   listTeamMembers,
   updateTeamMemberRole,
@@ -142,21 +142,21 @@ function TeamPage() {
         title="Gestão de Equipe & Permissões"
         description="Gerencie acessos ao painel, atribua funções a vendedoras e mantenha o controle de segurança da loja."
         actions={
-          <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
-            <DialogTrigger asChild>
+          <Sheet open={isInviteOpen} onOpenChange={setIsInviteOpen}>
+            <SheetTrigger asChild>
               <Button size="sm">
                 <UserPlus className="w-4 h-4 mr-1.5" /> Cadastrar Vendedora / Membro
               </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>Cadastrar Novo Colaborador</DialogTitle>
-                <DialogDescription>
+            </SheetTrigger>
+            <SheetContent className="sm:max-w-md">
+              <SheetHeader>
+                <SheetTitle>Cadastrar Novo Colaborador</SheetTitle>
+                <SheetDescription>
                   Crie uma conta de acesso para um membro da equipe com função e permissões
                   específicas.
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleInvite} className="space-y-4 pt-2">
+                </SheetDescription>
+              </SheetHeader>
+              <form onSubmit={handleInvite} className="space-y-4 pt-4">
                 <div className="space-y-2">
                   <Label htmlFor="mem-name">Nome Completo *</Label>
                   <Input
@@ -197,17 +197,17 @@ function TeamPage() {
                   </Select>
                 </div>
 
-                <DialogFooter className="pt-4">
+                <SheetFooter className="pt-4">
                   <Button type="button" variant="ghost" onClick={() => setIsInviteOpen(false)}>
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={isInviting} className="font-bold">
                     {isInviting ? "Cadastrando..." : "Confirmar Acesso"}
                   </Button>
-                </DialogFooter>
+                </SheetFooter>
               </form>
-            </DialogContent>
-          </Dialog>
+            </SheetContent>
+          </Sheet>
         }
       />
 

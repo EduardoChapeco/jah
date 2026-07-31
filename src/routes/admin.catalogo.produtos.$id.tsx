@@ -63,14 +63,14 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Checkbox } from "@/components/ui/checkbox";
 
 import {
@@ -496,19 +496,22 @@ function GeneralForm({
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <Label>Categoria Principal</Label>
-                <Dialog open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
-                  <DialogTrigger asChild>
+                <Sheet open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
+                  <SheetTrigger asChild>
                     <button
                       type="button"
                       className="text-xs text-primary hover:underline font-medium"
                     >
                       + Nova Categoria
                     </button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Criar Nova Categoria</DialogTitle>
-                    </DialogHeader>
+                  </SheetTrigger>
+                  <SheetContent side="right">
+                    <SheetHeader>
+                      <SheetTitle>Criar Nova Categoria</SheetTitle>
+                      <SheetDescription>
+                        Crie uma nova categoria para agrupar produtos na vitrine.
+                      </SheetDescription>
+                    </SheetHeader>
                     <div className="space-y-4 py-4">
                       <div className="space-y-2">
                         <Label>Nome da Categoria</Label>
@@ -520,7 +523,7 @@ function GeneralForm({
                         />
                       </div>
                     </div>
-                    <DialogFooter>
+                    <SheetFooter>
                       <Button variant="outline" onClick={() => setIsCategoryModalOpen(false)}>
                         Cancelar
                       </Button>
@@ -531,9 +534,9 @@ function GeneralForm({
                       >
                         {isCreatingCategory ? "Criando..." : "Criar Categoria"}
                       </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
+                    </SheetFooter>
+                  </SheetContent>
+                </Sheet>
               </div>
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                 <SelectTrigger>
@@ -1111,16 +1114,16 @@ function MediaManager({ product }: { product: any }) {
         </div>
       </CardContent>
 
-      <Dialog open={!!editingMedia} onOpenChange={(open) => !open && setEditingMedia(null)}>
+      <Sheet open={!!editingMedia} onOpenChange={(open) => !open && setEditingMedia(null)}>
         {editingMedia && (
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Editar Detalhes da Mídia</DialogTitle>
-              <DialogDescription>
+          <SheetContent side="right">
+            <SheetHeader>
+              <SheetTitle>Editar Detalhes da Mídia</SheetTitle>
+              <SheetDescription>
                 Adicione legendas de acessibilidade ou vincule esta imagem a uma variante
                 específica.
-              </DialogDescription>
-            </DialogHeader>
+              </SheetDescription>
+            </SheetHeader>
             <form onSubmit={handleSaveMetadata} className="space-y-4 pt-2">
               <div className="space-y-2">
                 <Label>Legenda / Texto Alternativo (Acessibilidade)</Label>
@@ -1166,18 +1169,18 @@ function MediaManager({ product }: { product: any }) {
                 </Select>
               </div>
 
-              <DialogFooter className="pt-4">
+              <SheetFooter className="pt-4">
                 <Button type="button" variant="outline" onClick={() => setEditingMedia(null)}>
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={isSavingMetadata}>
                   {isSavingMetadata ? "Salvando..." : "Salvar Alterações"}
                 </Button>
-              </DialogFooter>
+              </SheetFooter>
             </form>
-          </DialogContent>
+          </SheetContent>
         )}
-      </Dialog>
+      </Sheet>
     </Card>
   );
 }

@@ -2,11 +2,13 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
 
+import { getServerIdentity, requireAdmin } from "@/lib/server-access";
+
 // ---------------------------------------------------------------------------
 // Handlers (decoupled for unit testing)
 // ---------------------------------------------------------------------------
 
-export async function getStockLevelsHandler(params: { search?: string }) {
+export async function getStockLevelsHandler(params: { search?: string }, store_id: string) {
   const db = getServerClient();
 
   let query = db
@@ -14,9 +16,10 @@ export async function getStockLevelsHandler(params: { search?: string }) {
     .select(
       `
       id, sku, stock_on_hand,
-      products ( id, title, status, store_id )
+      products!inner ( id, title, status, store_id )
     `,
     )
+    .eq("products.store_id", store_id)
     .order("sku");
 
   if (params.search) {
@@ -39,7 +42,11 @@ export const getStockLevels = createServerFn({ method: "GET" })
   )
   .handler(async ({ data: params }) => {
     try {
-      const data = await getStockLevelsHandler(params);
+      await requireAdmin();
+      const identity = await getServerIdentity();
+      if (!identity.store_id) throw new Error("Contexto de loja inválido");
+
+      const data = await getStockLevelsHandler(params, identity.store_id);
       return data;
     } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
@@ -55,8 +62,18 @@ export async function adjustStockHandler(params: {
   qty: number;
   movementType: "purchase" | "adjustment" | "damage" | "transfer" | "return";
   note?: string;
-}) {
+}, store_id: string) {
   const db = getServerClient();
+
+  // Verify ownership
+  const { data: variant, error: vError } = await db
+    .from("product_variants")
+    .select("id, products!inner(store_id)")
+    .eq("id", params.variantId)
+    .eq("products.store_id", store_id)
+    .single();
+
+  if (vError || !variant) throw new Error("Variante não encontrada ou acesso negado");
 
   const { error } = await db.rpc("adjust_stock", {
     p_variant_id: params.variantId,
@@ -80,7 +97,11 @@ export const adjustStock = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: params }) => {
     try {
-      return await adjustStockHandler(params);
+      await requireAdmin();
+      const identity = await getServerIdentity();
+      if (!identity.store_id) throw new Error("Contexto de loja inválido");
+
+      return await adjustStockHandler(params, identity.store_id);
     } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[stock.functions] adjustStock:", e.message);
@@ -90,7 +111,7 @@ export const adjustStock = createServerFn({ method: "POST" })
 
 // ---------------------------------------------------------------------------
 
-export async function getStockMovementsHandler(limit: number) {
+export async function getStockMovementsHandler(limit: number, store_id: string) {
   const db = getServerClient();
 
   const { data, error } = await db
@@ -104,12 +125,13 @@ export async function getStockMovementsHandler(limit: number) {
       note,
       created_at,
       actor_id,
-      variant:product_variants(
+      variant:product_variants!inner(
         sku,
-        product:products(title)
+        product:products!inner(title, store_id)
       )
     `,
     )
+    .eq("variant.product.store_id", store_id)
     .order("created_at", { ascending: false })
     .limit(limit);
 
@@ -127,7 +149,11 @@ export const getStockMovements = createServerFn({ method: "GET" })
   )
   .handler(async ({ data: { limit } }) => {
     try {
-      const data = await getStockMovementsHandler(limit);
+      await requireAdmin();
+      const identity = await getServerIdentity();
+      if (!identity.store_id) throw new Error("Contexto de loja inválido");
+
+      const data = await getStockMovementsHandler(limit, identity.store_id);
       return data;
     } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
@@ -151,7 +177,22 @@ export const performStockAudit = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: { variantId, countedQty, reason, notes } }) => {
     try {
+      await requireAdmin();
+      const identity = await getServerIdentity();
+      if (!identity.store_id) throw new Error("Contexto de loja inválido");
+
       const db = getServerClient();
+
+      // Verify ownership
+      const { data: variant, error: vError } = await db
+        .from("product_variants")
+        .select("id, products!inner(store_id)")
+        .eq("id", variantId)
+        .eq("products.store_id", identity.store_id)
+        .single();
+
+      if (vError || !variant) throw new Error("Acesso negado");
+
       const { data, error } = await db.rpc("perform_stock_audit", {
         p_variant_id: variantId,
         p_counted_qty: countedQty,

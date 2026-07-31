@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { EmptyState } from "@/components/state/states";
 import { getAuditLog } from "@/services/audit.functions";
+import { formatDateTime } from "@/lib/datetime";
 
 export const Route = createFileRoute("/admin/configuracoes/auditoria")({
   head: () => ({ meta: [{ title: "Auditoria — Jah" }] }),
@@ -52,30 +53,26 @@ function AuditoriaPage() {
               <TableRow>
                 <TableHead>Data/Hora</TableHead>
                 <TableHead>Ação</TableHead>
-                <TableHead>Tabela</TableHead>
-                <TableHead>Registro</TableHead>
+                <TableHead>Usuário</TableHead>
+                <TableHead>Entidade</TableHead>
+                <TableHead>Registro (ID)</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {entries.map((entry: any) => (
                 <TableRow key={entry.id}>
                   <TableCell className="whitespace-nowrap text-sm">
-                    {new Date(entry.created_at).toLocaleString("pt-BR", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "2-digit",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+                    {formatDateTime(entry.created_at)}
                   </TableCell>
                   <TableCell>
                     <Badge variant={actionVariant[entry.action] || "secondary"}>
                       {entry.action}
                     </Badge>
                   </TableCell>
-                  <TableCell className="font-mono text-xs">{entry.table_name}</TableCell>
+                  <TableCell className="font-mono text-xs text-muted-foreground">{entry.profiles?.full_name || "Sistema"}</TableCell>
+                  <TableCell className="font-mono text-xs">{entry.entity_type || "N/A"}</TableCell>
                   <TableCell className="font-mono text-xs text-muted-foreground">
-                    {entry.record_id?.slice(0, 8)}…
+                    {entry.entity_id?.slice(0, 8)}…
                   </TableCell>
                 </TableRow>
               ))}

@@ -32,13 +32,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import {
   Form,
   FormControl,
@@ -499,17 +499,17 @@ function CustomerDetailPage() {
       </Tabs>
 
       {/* Address Form Dialog Modal */}
-      <Dialog open={isAddressOpen} onOpenChange={setIsAddressOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+      <Sheet open={isAddressOpen} onOpenChange={setIsAddressOpen}>
+        <SheetContent side="right" className="sm:max-w-lg overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
               <MapPin className="size-5 text-primary" />
               {editingAddress ? "Editar Endereço" : "Cadastrar Novo Endereço"}
-            </DialogTitle>
-            <DialogDescription>
+            </SheetTitle>
+            <SheetDescription>
               Preencha os detalhes logísticos para entrega de pedidos.
-            </DialogDescription>
-          </DialogHeader>
+            </SheetDescription>
+          </SheetHeader>
 
           <form onSubmit={handleSaveAddress} className="space-y-4 pt-2">
             <div className="grid grid-cols-2 gap-4">
@@ -625,17 +625,17 @@ function CustomerDetailPage() {
               </Label>
             </div>
 
-            <DialogFooter className="pt-4 mt-2">
+            <SheetFooter className="pt-4 mt-2">
               <Button type="button" variant="outline" onClick={() => setIsAddressOpen(false)}>
                 Cancelar
               </Button>
               <Button type="submit" disabled={isSavingAddress} className="font-bold">
                 {isSavingAddress ? "Salvando..." : "Salvar Endereço"}
               </Button>
-            </DialogFooter>
+            </SheetFooter>
           </form>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

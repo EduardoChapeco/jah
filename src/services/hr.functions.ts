@@ -48,7 +48,7 @@ export const listEmployeesBalance = createServerFn({ method: "GET" }).handler(as
 
     return {
       id: staff.user_id,
-      name: staff.profiles?.full_name || staff.profiles?.email || "Funcionário",
+      name: (staff.profiles as any)?.full_name || (staff.profiles as any)?.email || "Funcionário",
       role: staff.role,
       balanceCents: totalCredits - totalDebits,
       recentRecords: employeeRecords.slice(0, 5) // Send the last 5 records for the ledger preview

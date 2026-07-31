@@ -5,24 +5,14 @@ import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
 import { getServerIdentity, assertStoreAccess, getSSRClient } from "@/lib/server-access";
 
 async function getAdminIdentity() {
-  const ssrClient = await getSSRClient();
-  const {
-    data: { user },
-  } = await ssrClient.auth.getUser();
-  if (!user) throw new Error("Não autorizado");
+  const { getServerIdentity } = await import("@/lib/server-access");
+  const identity = await getServerIdentity();
 
-  const db = getServerClient();
-  const { data: profile } = await db
-    .from("profiles")
-    .select("role, store_id")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile?.store_id || !["owner", "admin", "manager", "content"].includes(profile.role)) {
+  if (!identity.store_id || !["owner", "admin", "manager", "content"].includes(identity.role)) {
     throw new Error("Acesso negado");
   }
 
-  return profile;
+  return identity;
 }
 
 // ---------------------------------------------------------------------------
@@ -132,6 +122,7 @@ export const upsertMatchTimeCampaign = createServerFn({ method: "POST" })
           .from("match_time_campaigns")
           .update(payload)
           .eq("id", input.id)
+          .eq("store_id", identity.store_id)
           .select()
           .single();
       } else {

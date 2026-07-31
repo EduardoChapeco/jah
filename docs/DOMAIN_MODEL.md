@@ -1,25 +1,23 @@
-# Modelo de Domínio — Hr Shoes Commerce
+# Modelo de Domínio — Jah Community Platform
 
-Documento canônico de entidades, relações, invariantes e máquinas de estado. Fase 0.
+Documento canônico de entidades, relações, invariantes e máquinas de estado da Jah.
 
 Convenções gerais: identificadores internos são UUID; dinheiro é inteiro em centavos + `currency`; datas são ISO UTC persistidas, exibidas em `America/Sao_Paulo`; toda tabela carrega `organization_id` (e `store_id` quando aplicável) para isolamento multi-tenant; toda tabela sensível possui RLS deny-by-default.
 
-## 1. Organização, lojas, locais e usuários
+## 1. Organização, Perfis e Contextos (Social vs Business)
+
+A plataforma Jah suporta múltiplos perfis para um mesmo usuário.
 
 ```text
-Organization (1) ──< Store (N) ──< Location (N)
-Organization (1) ──< Membership (N) >── User (N)
-Store (1) ──< Membership (N)   [membership pode ser escopada por store]
+User (1) ──< UserProfile (N) (Contextos Sociais/Administrativos)
+UserProfile ──< OrganizationRole (N) >── Organization (1)
+Organization (1) ──< BusinessProfile (Loja/Banda/Organizador)
 ```
 
-- **Organization**: entidade raiz de tenant. `id (uuid)`, `name`, `document (CNPJ, opcional)`, timestamps.
-- **Store**: canal de venda dentro da organização (pode haver mais de uma loja/marca). `organization_id`, `slug` único por organização.
-- **Location**: ponto físico/logístico (loja física, CD, ponto de retirada). Usada por inventário e por frete "retirada".
-- **User**: identidade de autenticação (Supabase Auth). Não guarda papel diretamente.
-- **Membership**: vínculo `user_id` + `organization_id` (+ opcional `store_id`) + `role`.
-  - Roles: `owner`, `admin`, `manager`, `seller`, `stock`, `finance`, `content`, `support`, `customer`.
-  - Invariante: um usuário pode ter múltiplos memberships (uma por organização/loja), mas nunca dois memberships ativos duplicados para o mesmo escopo.
-  - `customer` é o papel padrão de um usuário final comprador e não concede acesso administrativo.
+- **User**: identidade de autenticação (Supabase Auth).
+- **UserProfile**: O perfil social do usuário ("Pessoa Física"). 
+- **Organization / BusinessProfile**: Entidade jurídica/coletiva. O usuário pode alternar a interface para operar sob este contexto. Todas as query keys e sessões mudam ao fazer o *Context Switch*.
+- **Role**: `owner`, `admin`, `manager`, `seller`, `content`, `customer`.
 
 ## 2. Catálogo
 

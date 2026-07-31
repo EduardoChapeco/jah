@@ -130,9 +130,9 @@ export const listAdminRmas = createServerFn({ method: "GET" }).handler(async () 
       status: rma.status,
       resolution: rma.resolution,
       requestedAt: rma.requested_at,
-      orderToken: rma.orders?.public_token,
-      orderTotal: rma.orders?.total_cents,
-      customerName: rma.profiles?.full_name || "Cliente Desconhecido",
+      orderToken: (rma.orders as any)?.public_token,
+      orderTotal: (rma.orders as any)?.total_cents,
+      customerName: (rma.profiles as any)?.full_name || "Cliente Desconhecido",
   }));
 });
 

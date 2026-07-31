@@ -18,12 +18,13 @@ import { EmptyState } from "@/components/state/states";
 import { listReviews, updateReviewStatus, createManualReview } from "@/services/cms.functions";
 import { listAdminProducts } from "@/services/admin-catalog.functions";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Surface } from "@/components/ui/surface";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -104,17 +105,17 @@ function ReviewsPage() {
         title="Avaliações de Clientes"
         description="Aprove e gerencie depoimentos sobre seus produtos"
         actions={
-          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-            <DialogTrigger asChild>
+          <Sheet open={isModalOpen} onOpenChange={setIsModalOpen}>
+            <SheetTrigger asChild>
               <Button size="sm">
                 <Plus className="mr-2 h-4 w-4" />
                 Nova Avaliação
               </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Adicionar Avaliação Manual</DialogTitle>
-              </DialogHeader>
+            </SheetTrigger>
+            <SheetContent side="right" className="overflow-y-auto">
+              <SheetHeader>
+                <SheetTitle>Adicionar Avaliação Manual</SheetTitle>
+              </SheetHeader>
               <form onSubmit={handleCreateReview} className="space-y-4 pt-4">
                 <div className="space-y-2">
                   <Label>Produto *</Label>
@@ -183,8 +184,8 @@ function ReviewsPage() {
                   </Button>
                 </div>
               </form>
-            </DialogContent>
-          </Dialog>
+            </SheetContent>
+          </Sheet>
         }
       />
 
@@ -194,7 +195,7 @@ function ReviewsPage() {
           description="Os clientes ainda não avaliaram nenhum produto."
         />
       ) : (
-        <div className="rounded-md border">
+        <Surface variant="zine" elevation="sm" padding="none">
           <Table>
             <TableHeader>
               <TableRow>
@@ -277,7 +278,7 @@ function ReviewsPage() {
               ))}
             </TableBody>
           </Table>
-        </div>
+        </Surface>
       )}
     </div>
   );

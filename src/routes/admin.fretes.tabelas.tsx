@@ -17,13 +17,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Surface } from "@/components/ui/surface";
 import { EmptyState } from "@/components/state/states";
 import {
   listShippingZones,
@@ -160,8 +161,8 @@ function FretesTabelasPage() {
           price_cents: Math.round(parseFloat(rateForm.price.replace(",", ".")) * 100),
           min_order_cents: rateForm.minOrderCents
             ? Math.round(parseFloat(rateForm.minOrderCents.replace(",", ".")) * 100)
-            : null,
-          estimated_days: rateForm.estimatedDays ? parseInt(rateForm.estimatedDays) : null,
+            : undefined,
+          estimated_days: rateForm.estimatedDays ? parseInt(rateForm.estimatedDays) : undefined,
           is_active: true,
         },
       });
@@ -204,17 +205,17 @@ function FretesTabelasPage() {
           title="Tabelas de Frete"
           description="Configure zonas de frete e taxas por região."
         />
-        <Dialog open={addZoneOpen} onOpenChange={setAddZoneOpen}>
-          <DialogTrigger asChild>
+        <Sheet open={addZoneOpen} onOpenChange={setAddZoneOpen}>
+          <SheetTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
               Nova Zona
             </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Criar Zona de Frete</DialogTitle>
-            </DialogHeader>
+          </SheetTrigger>
+          <SheetContent side="right" className="overflow-y-auto">
+            <SheetHeader>
+              <SheetTitle>Criar Zona de Frete</SheetTitle>
+            </SheetHeader>
             <form onSubmit={handleAddZone} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="zone-name">Nome da Zona</Label>
@@ -239,14 +240,14 @@ function FretesTabelasPage() {
                   Use * para cobrir todos os CEPs do Brasil.
                 </p>
               </div>
-              <DialogFooter>
+              <SheetFooter className="pt-4">
                 <Button type="submit" disabled={isSaving}>
                   {isSaving ? "Salvando..." : "Criar Zona"}
                 </Button>
-              </DialogFooter>
+              </SheetFooter>
             </form>
-          </DialogContent>
-        </Dialog>
+          </SheetContent>
+        </Sheet>
       </div>
 
       {zones.length === 0 ? (
@@ -257,8 +258,8 @@ function FretesTabelasPage() {
       ) : (
         <div className="space-y-6">
           {zones.map((zone: any) => (
-            <div key={zone.id} className="rounded-lg border bg-card overflow-hidden">
-              <div className="flex items-center justify-between bg-muted/30 px-5 py-3 border-b">
+            <Surface key={zone.id} variant="zine" elevation="sm" padding="none" className="overflow-hidden">
+              <div className="flex items-center justify-between bg-muted/30 px-5 py-3 border-b border-ink/20">
                 <div className="flex items-center gap-3">
                   <h3 className="font-semibold">{zone.name}</h3>
                   <div className="flex flex-wrap gap-1">
@@ -270,17 +271,17 @@ function FretesTabelasPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Dialog open={editZoneOpen} onOpenChange={setEditZoneOpen}>
-                    <DialogTrigger asChild>
+                  <Sheet open={editZoneOpen} onOpenChange={setEditZoneOpen}>
+                    <SheetTrigger asChild>
                       <Button size="sm" variant="outline" onClick={() => handleEditZoneStart(zone)}>
                         <Edit className="mr-1 h-3.5 w-3.5" />
                         Editar
                       </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Editar Zona de Frete</DialogTitle>
-                      </DialogHeader>
+                    </SheetTrigger>
+                    <SheetContent side="right" className="overflow-y-auto">
+                      <SheetHeader>
+                        <SheetTitle>Editar Zona de Frete</SheetTitle>
+                      </SheetHeader>
                       <form onSubmit={handleEditZoneSubmit} className="space-y-4">
                         <div className="space-y-2">
                           <Label htmlFor="edit-zone-name">Nome da Zona</Label>
@@ -309,14 +310,14 @@ function FretesTabelasPage() {
                             Use * para cobrir todos os CEPs do Brasil.
                           </p>
                         </div>
-                        <DialogFooter>
+                        <SheetFooter className="pt-4">
                           <Button type="submit" disabled={isSaving}>
                             {isSaving ? "Salvando..." : "Salvar Alterações"}
                           </Button>
-                        </DialogFooter>
+                        </SheetFooter>
                       </form>
-                    </DialogContent>
-                  </Dialog>
+                    </SheetContent>
+                  </Sheet>
 
                   <Button
                     size="sm"
@@ -328,20 +329,20 @@ function FretesTabelasPage() {
                     Excluir
                   </Button>
 
-                  <Dialog
+                  <Sheet
                     open={addRateOpen === zone.id}
                     onOpenChange={(v) => setAddRateOpen(v ? zone.id : null)}
                   >
-                    <DialogTrigger asChild>
+                    <SheetTrigger asChild>
                       <Button size="sm" variant="outline">
                         <Plus className="mr-1 h-3.5 w-3.5" />
                         Adicionar Taxa
                       </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Nova Taxa — {zone.name}</DialogTitle>
-                      </DialogHeader>
+                    </SheetTrigger>
+                    <SheetContent side="right" className="overflow-y-auto">
+                      <SheetHeader>
+                        <SheetTitle>Nova Taxa — {zone.name}</SheetTitle>
+                      </SheetHeader>
                       <form onSubmit={(e) => handleAddRate(e, zone.id)} className="space-y-4">
                         <div className="space-y-2">
                           <Label htmlFor="rate-name">Nome</Label>
@@ -399,14 +400,14 @@ function FretesTabelasPage() {
                             }
                           />
                         </div>
-                        <DialogFooter>
+                        <SheetFooter className="pt-4">
                           <Button type="submit" disabled={isSaving}>
                             {isSaving ? "Salvando..." : "Adicionar Taxa"}
                           </Button>
-                        </DialogFooter>
+                        </SheetFooter>
                       </form>
-                    </DialogContent>
-                  </Dialog>
+                    </SheetContent>
+                  </Sheet>
                 </div>
               </div>
 
@@ -457,7 +458,7 @@ function FretesTabelasPage() {
                   Nenhuma taxa adicionada a esta zona.
                 </div>
               )}
-            </div>
+            </Surface>
           ))}
         </div>
       )}

@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS public.audit_logs (
 );
 
 -- 6. Ticketing System (Omnichannel Helpdesk)
-CREATE TABLE IF NOT EXISTS public.tickets (
+CREATE TABLE IF NOT EXISTS public.support_tickets (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     store_id UUID NOT NULL REFERENCES public.stores(id) ON DELETE CASCADE,
     customer_id UUID NOT NULL REFERENCES auth.users(id),
@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS public.tickets (
 
 CREATE TABLE IF NOT EXISTS public.ticket_messages (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    ticket_id UUID NOT NULL REFERENCES public.tickets(id) ON DELETE CASCADE,
+    ticket_id UUID NOT NULL REFERENCES public.support_tickets(id) ON DELETE CASCADE,
     sender_id UUID NOT NULL REFERENCES auth.users(id), -- Can be customer or employee
     
     content TEXT NOT NULL,
@@ -122,7 +122,7 @@ ALTER TABLE public.rma_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.inventory_adjustments_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.employee_financial_records ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.tickets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.support_tickets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ticket_messages ENABLE ROW LEVEL SECURITY;
 
 -- Customers can view their own RMA requests
@@ -138,13 +138,13 @@ CREATE POLICY "Customers can view own RMA items" ON public.rma_items
     );
 
 -- Customers can view their own Tickets and send messages
-CREATE POLICY "Customers can view own tickets" ON public.tickets
+CREATE POLICY "Customers can view own tickets" ON public.support_tickets
     FOR SELECT USING (auth.uid() = customer_id);
 
 CREATE POLICY "Customers can view ticket messages" ON public.ticket_messages
     FOR SELECT USING (
         EXISTS (
-            SELECT 1 FROM public.tickets t
+            SELECT 1 FROM public.support_tickets t
             WHERE t.id = ticket_messages.ticket_id AND t.customer_id = auth.uid()
         ) AND is_internal_note = false
     );

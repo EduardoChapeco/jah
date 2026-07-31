@@ -14,14 +14,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Surface } from "@/components/ui/surface";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -134,20 +135,20 @@ function CouponsPage() {
         title="Cupons de Desconto"
         description="Crie códigos promocionais (% de desconto, valor fixo ou frete grátis) para impulsionar suas vendas."
         actions={
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger asChild>
               <Button size="sm">
                 <Plus className="mr-1.5 size-4" />
                 Criar Novo Cupom
               </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>Novo Cupom de Desconto</DialogTitle>
-                <DialogDescription>
+            </SheetTrigger>
+            <SheetContent side="right" className="overflow-y-auto">
+              <SheetHeader>
+                <SheetTitle>Novo Cupom de Desconto</SheetTitle>
+                <SheetDescription>
                   Cadastre o código e as regras de aplicação do cupom.
-                </DialogDescription>
-              </DialogHeader>
+                </SheetDescription>
+              </SheetHeader>
               <form onSubmit={handleSave} className="space-y-4 pt-2">
                 <div className="space-y-2">
                   <Label htmlFor="c-code">Código do Cupom *</Label>
@@ -199,17 +200,17 @@ function CouponsPage() {
                   />
                 </div>
 
-                <DialogFooter className="pt-4">
+                <SheetFooter className="pt-4">
                   <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={isSaving} className="font-bold">
                     {isSaving ? "Salvando..." : "Salvar Cupom"}
                   </Button>
-                </DialogFooter>
+                </SheetFooter>
               </form>
-            </DialogContent>
-          </Dialog>
+            </SheetContent>
+          </Sheet>
         }
       />
 
@@ -219,10 +220,10 @@ function CouponsPage() {
           description="Você ainda não criou cupons de desconto. Clique no botão acima para cadastrar seu primeiro código promocional."
         />
       ) : (
-        <div className="rounded-xl border border-border bg-card overflow-hidden shadow-xs">
+        <Surface variant="zine" elevation="sm" padding="none">
           <Table>
             <TableHeader>
-              <TableRow className="bg-muted/40">
+              <TableRow className="bg-muted/40 border-b border-ink/20">
                 <TableHead>Código do Cupom</TableHead>
                 <TableHead>Tipo & Valor</TableHead>
                 <TableHead>Valor Mínimo</TableHead>
@@ -235,7 +236,7 @@ function CouponsPage() {
               {coupons.map((c: any) => (
                 <TableRow key={c.id} className="hover:bg-muted/30 transition-colors">
                   <TableCell className="font-mono font-bold text-sm text-foreground">
-                    <Badge variant="outline" className="font-mono text-xs">
+                    <Badge variant="outline" className="font-mono text-xs border-ink/30">
                       {c.code}
                     </Badge>
                   </TableCell>
@@ -273,7 +274,7 @@ function CouponsPage() {
               ))}
             </TableBody>
           </Table>
-        </div>
+        </Surface>
       )}
     </div>
   );

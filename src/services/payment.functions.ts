@@ -194,6 +194,8 @@ export const confirmPayment = createServerFn({ method: "POST" })
   .handler(async ({ data: { orderId, receivedMethod } }) => {
     // SECURITY FIX: Enforce administrative authorization
     await requireAdmin();
+    const identity = await getServerIdentity();
+    if (!identity.store_id) throw new Error("Contexto de loja inválido");
 
     const supabase = getServerClient();
 
@@ -202,6 +204,7 @@ export const confirmPayment = createServerFn({ method: "POST" })
       .from("orders")
       .select("id, status, store_id, total_cents")
       .eq("id", orderId)
+      .eq("store_id", identity.store_id)
       .single();
 
     if (orderError || !order) throw new Error("Pedido não encontrado");
@@ -309,8 +312,21 @@ export const rejectPayment = createServerFn({ method: "POST" })
     try {
       // SECURITY FIX: Enforce administrative authorization
       await requireAdmin();
+      const identity = await getServerIdentity();
+      if (!identity.store_id) throw new Error("Contexto de loja inválido");
 
       const db = getServerClient();
+
+      // Verify order belongs to tenant
+      const { data: order, error: orderError } = await db
+        .from("orders")
+        .select("id")
+        .eq("id", orderId)
+        .eq("store_id", identity.store_id)
+        .single();
+        
+      if (orderError || !order) throw new Error("Acesso negado");
+
       await db
         .from("payments")
         .update({ status: "failed", failure_reason: reason, failed_at: new Date().toISOString() })
@@ -333,13 +349,18 @@ export const rejectPayment = createServerFn({ method: "POST" })
 
 export const listPendingManualPayments = createServerFn({ method: "GET" }).handler(async () => {
   try {
+    await requireAdmin();
+    const identity = await getServerIdentity();
+    if (!identity.store_id) throw new Error("Contexto de loja inválido");
+
     const db = getServerClient();
     const { data, error } = await db
       .from("payments")
       .select(
         `id, order_id, method, status, amount_cents, receipt_url, receipt_status, created_at,
-           orders ( id, public_token, customer_snapshot, status )`,
+           orders!inner ( id, public_token, customer_snapshot, status )`,
       )
+      .eq("orders.store_id", identity.store_id)
       .eq("receipt_status", "pending_review")
       .order("created_at", { ascending: true });
 
@@ -473,24 +494,14 @@ export const uploadPaymentReceipt = createServerFn({ method: "POST" })
 // ---------------------------------------------------------------------------
 
 async function getAdminIdentity() {
-  const ssrClient = await getSSRClient();
-  const {
-    data: { user },
-  } = await ssrClient.auth.getUser();
-  if (!user) throw new Error("Não autorizado");
+  const { getServerIdentity } = await import("@/lib/server-access");
+  const identity = await getServerIdentity();
 
-  const db = getServerClient();
-  const { data: profile } = await db
-    .from("profiles")
-    .select("role, store_id")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile?.store_id || !["owner", "admin", "manager"].includes(profile.role)) {
+  if (!identity.store_id || !["owner", "admin", "manager"].includes(identity.role)) {
     throw new Error("Acesso negado");
   }
 
-  return profile;
+  return identity;
 }
 
 const SaveManualPaymentMethodSchema = z.object({

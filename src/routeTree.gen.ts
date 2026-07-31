@@ -35,7 +35,6 @@ import { Route as AdminAvaliacoesRouteImport } from './routes/admin.avaliacoes'
 import { Route as StoreTrocasEDevolucoesRouteImport } from './routes/_store.trocas-e-devolucoes'
 import { Route as StoreTermosRouteImport } from './routes/_store.termos'
 import { Route as StoreStoriesRouteImport } from './routes/_store.stories'
-import { Route as StoreRedefinirSenhaRouteImport } from './routes/_store.redefinir-senha'
 import { Route as StoreRecuperarSenhaRouteImport } from './routes/_store.recuperar-senha'
 import { Route as StorePromocoesRouteImport } from './routes/_store.promocoes'
 import { Route as StorePrivacidadeRouteImport } from './routes/_store.privacidade'
@@ -52,6 +51,7 @@ import { Route as StoreCadastroRouteImport } from './routes/_store.cadastro'
 import { Route as StoreBuscarRouteImport } from './routes/_store.buscar'
 import { Route as AdminPedidosIndexRouteImport } from './routes/admin.pedidos.index'
 import { Route as AdminFretesIndexRouteImport } from './routes/admin.fretes.index'
+import { Route as AdminEventsIndexRouteImport } from './routes/admin.events.index'
 import { Route as AdminEstoqueIndexRouteImport } from './routes/admin.estoque.index'
 import { Route as AdminClientesIndexRouteImport } from './routes/admin.clientes.index'
 import { Route as AdminCaixaIndexRouteImport } from './routes/admin.caixa.index'
@@ -74,6 +74,7 @@ import { Route as AdminMarketingCarrinhosRouteImport } from './routes/admin.mark
 import { Route as AdminFretesTabelasRouteImport } from './routes/admin.fretes.tabelas'
 import { Route as AdminFretesCotacoesRouteImport } from './routes/admin.fretes.cotacoes'
 import { Route as AdminFinanceiroFuncionariosRouteImport } from './routes/admin.financeiro.funcionarios'
+import { Route as AdminEventsEventIdRouteImport } from './routes/admin.events.$eventId'
 import { Route as AdminEstoqueMovimentosRouteImport } from './routes/admin.estoque.movimentos'
 import { Route as AdminEstoqueAlertasRouteImport } from './routes/admin.estoque.alertas'
 import { Route as AdminConfiguracoesSeoRouteImport } from './routes/admin.configuracoes.seo'
@@ -114,6 +115,7 @@ import { Route as AdminCatalogoColecoesIndexRouteImport } from './routes/admin.c
 import { Route as AdminCatalogoCategoriasIndexRouteImport } from './routes/admin.catalogo.categorias.index'
 import { Route as StoreContaPedidosIndexRouteImport } from './routes/_store.conta.pedidos.index'
 import { Route as AdminPedidosIdReciboRouteImport } from './routes/admin_.pedidos.$id.recibo'
+import { Route as AdminEventsEventIdCheckinRouteImport } from './routes/admin.events.$eventId.checkin'
 import { Route as AdminCatalogoProdutosNovoRouteImport } from './routes/admin.catalogo.produtos.novo'
 import { Route as AdminCatalogoProdutosIdRouteImport } from './routes/admin.catalogo.produtos.$id'
 import { Route as AdminCatalogoColecoesNovoRouteImport } from './routes/admin.catalogo.colecoes.novo'
@@ -254,11 +256,6 @@ const StoreStoriesRoute = StoreStoriesRouteImport.update({
   path: '/stories',
   getParentRoute: () => StoreRoute,
 } as any)
-const StoreRedefinirSenhaRoute = StoreRedefinirSenhaRouteImport.update({
-  id: '/redefinir-senha',
-  path: '/redefinir-senha',
-  getParentRoute: () => StoreRoute,
-} as any)
 const StoreRecuperarSenhaRoute = StoreRecuperarSenhaRouteImport.update({
   id: '/recuperar-senha',
   path: '/recuperar-senha',
@@ -337,6 +334,11 @@ const AdminPedidosIndexRoute = AdminPedidosIndexRouteImport.update({
 const AdminFretesIndexRoute = AdminFretesIndexRouteImport.update({
   id: '/fretes/',
   path: '/fretes/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminEventsIndexRoute = AdminEventsIndexRouteImport.update({
+  id: '/events/',
+  path: '/events/',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminEstoqueIndexRoute = AdminEstoqueIndexRouteImport.update({
@@ -453,6 +455,11 @@ const AdminFinanceiroFuncionariosRoute =
     path: '/financeiro/funcionarios',
     getParentRoute: () => AdminRoute,
   } as any)
+const AdminEventsEventIdRoute = AdminEventsEventIdRouteImport.update({
+  id: '/events/$eventId',
+  path: '/events/$eventId',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminEstoqueMovimentosRoute = AdminEstoqueMovimentosRouteImport.update({
   id: '/estoque/movimentos',
   path: '/estoque/movimentos',
@@ -661,6 +668,12 @@ const AdminPedidosIdReciboRoute = AdminPedidosIdReciboRouteImport.update({
   path: '/admin/pedidos/$id/recibo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminEventsEventIdCheckinRoute =
+  AdminEventsEventIdCheckinRouteImport.update({
+    id: '/checkin',
+    path: '/checkin',
+    getParentRoute: () => AdminEventsEventIdRoute,
+  } as any)
 const AdminCatalogoProdutosNovoRoute =
   AdminCatalogoProdutosNovoRouteImport.update({
     id: '/catalogo/produtos/novo',
@@ -736,7 +749,6 @@ export interface FileRoutesByFullPath {
   '/privacidade': typeof StorePrivacidadeRoute
   '/promocoes': typeof StorePromocoesRoute
   '/recuperar-senha': typeof StoreRecuperarSenhaRoute
-  '/redefinir-senha': typeof StoreRedefinirSenhaRoute
   '/stories': typeof StoreStoriesRoute
   '/termos': typeof StoreTermosRoute
   '/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
@@ -794,6 +806,7 @@ export interface FileRoutesByFullPath {
   '/admin/configuracoes/seo': typeof AdminConfiguracoesSeoRoute
   '/admin/estoque/alertas': typeof AdminEstoqueAlertasRoute
   '/admin/estoque/movimentos': typeof AdminEstoqueMovimentosRoute
+  '/admin/events/$eventId': typeof AdminEventsEventIdRouteWithChildren
   '/admin/financeiro/funcionarios': typeof AdminFinanceiroFuncionariosRoute
   '/admin/fretes/cotacoes': typeof AdminFretesCotacoesRoute
   '/admin/fretes/tabelas': typeof AdminFretesTabelasRoute
@@ -816,6 +829,7 @@ export interface FileRoutesByFullPath {
   '/admin/caixa/': typeof AdminCaixaIndexRoute
   '/admin/clientes/': typeof AdminClientesIndexRoute
   '/admin/estoque/': typeof AdminEstoqueIndexRoute
+  '/admin/events/': typeof AdminEventsIndexRoute
   '/admin/fretes/': typeof AdminFretesIndexRoute
   '/admin/pedidos/': typeof AdminPedidosIndexRoute
   '/conta/conversas/$id': typeof StoreContaConversasIdRoute
@@ -828,6 +842,7 @@ export interface FileRoutesByFullPath {
   '/admin/catalogo/colecoes/novo': typeof AdminCatalogoColecoesNovoRoute
   '/admin/catalogo/produtos/$id': typeof AdminCatalogoProdutosIdRoute
   '/admin/catalogo/produtos/novo': typeof AdminCatalogoProdutosNovoRoute
+  '/admin/events/$eventId/checkin': typeof AdminEventsEventIdCheckinRoute
   '/admin/pedidos/$id/recibo': typeof AdminPedidosIdReciboRoute
   '/conta/pedidos/': typeof StoreContaPedidosIndexRoute
   '/admin/catalogo/categorias/': typeof AdminCatalogoCategoriasIndexRoute
@@ -849,7 +864,6 @@ export interface FileRoutesByTo {
   '/privacidade': typeof StorePrivacidadeRoute
   '/promocoes': typeof StorePromocoesRoute
   '/recuperar-senha': typeof StoreRecuperarSenhaRoute
-  '/redefinir-senha': typeof StoreRedefinirSenhaRoute
   '/stories': typeof StoreStoriesRoute
   '/termos': typeof StoreTermosRoute
   '/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
@@ -908,6 +922,7 @@ export interface FileRoutesByTo {
   '/admin/configuracoes/seo': typeof AdminConfiguracoesSeoRoute
   '/admin/estoque/alertas': typeof AdminEstoqueAlertasRoute
   '/admin/estoque/movimentos': typeof AdminEstoqueMovimentosRoute
+  '/admin/events/$eventId': typeof AdminEventsEventIdRouteWithChildren
   '/admin/financeiro/funcionarios': typeof AdminFinanceiroFuncionariosRoute
   '/admin/fretes/cotacoes': typeof AdminFretesCotacoesRoute
   '/admin/fretes/tabelas': typeof AdminFretesTabelasRoute
@@ -930,6 +945,7 @@ export interface FileRoutesByTo {
   '/admin/caixa': typeof AdminCaixaIndexRoute
   '/admin/clientes': typeof AdminClientesIndexRoute
   '/admin/estoque': typeof AdminEstoqueIndexRoute
+  '/admin/events': typeof AdminEventsIndexRoute
   '/admin/fretes': typeof AdminFretesIndexRoute
   '/admin/pedidos': typeof AdminPedidosIndexRoute
   '/conta/conversas/$id': typeof StoreContaConversasIdRoute
@@ -942,6 +958,7 @@ export interface FileRoutesByTo {
   '/admin/catalogo/colecoes/novo': typeof AdminCatalogoColecoesNovoRoute
   '/admin/catalogo/produtos/$id': typeof AdminCatalogoProdutosIdRoute
   '/admin/catalogo/produtos/novo': typeof AdminCatalogoProdutosNovoRoute
+  '/admin/events/$eventId/checkin': typeof AdminEventsEventIdCheckinRoute
   '/admin/pedidos/$id/recibo': typeof AdminPedidosIdReciboRoute
   '/conta/pedidos': typeof StoreContaPedidosIndexRoute
   '/admin/catalogo/categorias': typeof AdminCatalogoCategoriasIndexRoute
@@ -967,7 +984,6 @@ export interface FileRoutesById {
   '/_store/privacidade': typeof StorePrivacidadeRoute
   '/_store/promocoes': typeof StorePromocoesRoute
   '/_store/recuperar-senha': typeof StoreRecuperarSenhaRoute
-  '/_store/redefinir-senha': typeof StoreRedefinirSenhaRoute
   '/_store/stories': typeof StoreStoriesRoute
   '/_store/termos': typeof StoreTermosRoute
   '/_store/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
@@ -1026,6 +1042,7 @@ export interface FileRoutesById {
   '/admin/configuracoes/seo': typeof AdminConfiguracoesSeoRoute
   '/admin/estoque/alertas': typeof AdminEstoqueAlertasRoute
   '/admin/estoque/movimentos': typeof AdminEstoqueMovimentosRoute
+  '/admin/events/$eventId': typeof AdminEventsEventIdRouteWithChildren
   '/admin/financeiro/funcionarios': typeof AdminFinanceiroFuncionariosRoute
   '/admin/fretes/cotacoes': typeof AdminFretesCotacoesRoute
   '/admin/fretes/tabelas': typeof AdminFretesTabelasRoute
@@ -1048,6 +1065,7 @@ export interface FileRoutesById {
   '/admin/caixa/': typeof AdminCaixaIndexRoute
   '/admin/clientes/': typeof AdminClientesIndexRoute
   '/admin/estoque/': typeof AdminEstoqueIndexRoute
+  '/admin/events/': typeof AdminEventsIndexRoute
   '/admin/fretes/': typeof AdminFretesIndexRoute
   '/admin/pedidos/': typeof AdminPedidosIndexRoute
   '/_store/conta/conversas/$id': typeof StoreContaConversasIdRoute
@@ -1060,6 +1078,7 @@ export interface FileRoutesById {
   '/admin/catalogo/colecoes/novo': typeof AdminCatalogoColecoesNovoRoute
   '/admin/catalogo/produtos/$id': typeof AdminCatalogoProdutosIdRoute
   '/admin/catalogo/produtos/novo': typeof AdminCatalogoProdutosNovoRoute
+  '/admin/events/$eventId/checkin': typeof AdminEventsEventIdCheckinRoute
   '/admin_/pedidos/$id/recibo': typeof AdminPedidosIdReciboRoute
   '/_store/conta/pedidos/': typeof StoreContaPedidosIndexRoute
   '/admin/catalogo/categorias/': typeof AdminCatalogoCategoriasIndexRoute
@@ -1086,7 +1105,6 @@ export interface FileRouteTypes {
     | '/privacidade'
     | '/promocoes'
     | '/recuperar-senha'
-    | '/redefinir-senha'
     | '/stories'
     | '/termos'
     | '/trocas-e-devolucoes'
@@ -1144,6 +1162,7 @@ export interface FileRouteTypes {
     | '/admin/configuracoes/seo'
     | '/admin/estoque/alertas'
     | '/admin/estoque/movimentos'
+    | '/admin/events/$eventId'
     | '/admin/financeiro/funcionarios'
     | '/admin/fretes/cotacoes'
     | '/admin/fretes/tabelas'
@@ -1166,6 +1185,7 @@ export interface FileRouteTypes {
     | '/admin/caixa/'
     | '/admin/clientes/'
     | '/admin/estoque/'
+    | '/admin/events/'
     | '/admin/fretes/'
     | '/admin/pedidos/'
     | '/conta/conversas/$id'
@@ -1178,6 +1198,7 @@ export interface FileRouteTypes {
     | '/admin/catalogo/colecoes/novo'
     | '/admin/catalogo/produtos/$id'
     | '/admin/catalogo/produtos/novo'
+    | '/admin/events/$eventId/checkin'
     | '/admin/pedidos/$id/recibo'
     | '/conta/pedidos/'
     | '/admin/catalogo/categorias/'
@@ -1199,7 +1220,6 @@ export interface FileRouteTypes {
     | '/privacidade'
     | '/promocoes'
     | '/recuperar-senha'
-    | '/redefinir-senha'
     | '/stories'
     | '/termos'
     | '/trocas-e-devolucoes'
@@ -1258,6 +1278,7 @@ export interface FileRouteTypes {
     | '/admin/configuracoes/seo'
     | '/admin/estoque/alertas'
     | '/admin/estoque/movimentos'
+    | '/admin/events/$eventId'
     | '/admin/financeiro/funcionarios'
     | '/admin/fretes/cotacoes'
     | '/admin/fretes/tabelas'
@@ -1280,6 +1301,7 @@ export interface FileRouteTypes {
     | '/admin/caixa'
     | '/admin/clientes'
     | '/admin/estoque'
+    | '/admin/events'
     | '/admin/fretes'
     | '/admin/pedidos'
     | '/conta/conversas/$id'
@@ -1292,6 +1314,7 @@ export interface FileRouteTypes {
     | '/admin/catalogo/colecoes/novo'
     | '/admin/catalogo/produtos/$id'
     | '/admin/catalogo/produtos/novo'
+    | '/admin/events/$eventId/checkin'
     | '/admin/pedidos/$id/recibo'
     | '/conta/pedidos'
     | '/admin/catalogo/categorias'
@@ -1316,7 +1339,6 @@ export interface FileRouteTypes {
     | '/_store/privacidade'
     | '/_store/promocoes'
     | '/_store/recuperar-senha'
-    | '/_store/redefinir-senha'
     | '/_store/stories'
     | '/_store/termos'
     | '/_store/trocas-e-devolucoes'
@@ -1375,6 +1397,7 @@ export interface FileRouteTypes {
     | '/admin/configuracoes/seo'
     | '/admin/estoque/alertas'
     | '/admin/estoque/movimentos'
+    | '/admin/events/$eventId'
     | '/admin/financeiro/funcionarios'
     | '/admin/fretes/cotacoes'
     | '/admin/fretes/tabelas'
@@ -1397,6 +1420,7 @@ export interface FileRouteTypes {
     | '/admin/caixa/'
     | '/admin/clientes/'
     | '/admin/estoque/'
+    | '/admin/events/'
     | '/admin/fretes/'
     | '/admin/pedidos/'
     | '/_store/conta/conversas/$id'
@@ -1409,6 +1433,7 @@ export interface FileRouteTypes {
     | '/admin/catalogo/colecoes/novo'
     | '/admin/catalogo/produtos/$id'
     | '/admin/catalogo/produtos/novo'
+    | '/admin/events/$eventId/checkin'
     | '/admin_/pedidos/$id/recibo'
     | '/_store/conta/pedidos/'
     | '/admin/catalogo/categorias/'
@@ -1612,13 +1637,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreStoriesRouteImport
       parentRoute: typeof StoreRoute
     }
-    '/_store/redefinir-senha': {
-      id: '/_store/redefinir-senha'
-      path: '/redefinir-senha'
-      fullPath: '/redefinir-senha'
-      preLoaderRoute: typeof StoreRedefinirSenhaRouteImport
-      parentRoute: typeof StoreRoute
-    }
     '/_store/recuperar-senha': {
       id: '/_store/recuperar-senha'
       path: '/recuperar-senha'
@@ -1729,6 +1747,13 @@ declare module '@tanstack/react-router' {
       path: '/fretes'
       fullPath: '/admin/fretes/'
       preLoaderRoute: typeof AdminFretesIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/events/': {
+      id: '/admin/events/'
+      path: '/events'
+      fullPath: '/admin/events/'
+      preLoaderRoute: typeof AdminEventsIndexRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/estoque/': {
@@ -1883,6 +1908,13 @@ declare module '@tanstack/react-router' {
       path: '/financeiro/funcionarios'
       fullPath: '/admin/financeiro/funcionarios'
       preLoaderRoute: typeof AdminFinanceiroFuncionariosRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/events/$eventId': {
+      id: '/admin/events/$eventId'
+      path: '/events/$eventId'
+      fullPath: '/admin/events/$eventId'
+      preLoaderRoute: typeof AdminEventsEventIdRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/estoque/movimentos': {
@@ -2165,6 +2197,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPedidosIdReciboRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/events/$eventId/checkin': {
+      id: '/admin/events/$eventId/checkin'
+      path: '/checkin'
+      fullPath: '/admin/events/$eventId/checkin'
+      preLoaderRoute: typeof AdminEventsEventIdCheckinRouteImport
+      parentRoute: typeof AdminEventsEventIdRoute
+    }
     '/admin/catalogo/produtos/novo': {
       id: '/admin/catalogo/produtos/novo'
       path: '/catalogo/produtos/novo'
@@ -2287,7 +2326,6 @@ interface StoreRouteChildren {
   StorePrivacidadeRoute: typeof StorePrivacidadeRoute
   StorePromocoesRoute: typeof StorePromocoesRoute
   StoreRecuperarSenhaRoute: typeof StoreRecuperarSenhaRoute
-  StoreRedefinirSenhaRoute: typeof StoreRedefinirSenhaRoute
   StoreStoriesRoute: typeof StoreStoriesRoute
   StoreTermosRoute: typeof StoreTermosRoute
   StoreTrocasEDevolucoesRoute: typeof StoreTrocasEDevolucoesRoute
@@ -2319,7 +2357,6 @@ const StoreRouteChildren: StoreRouteChildren = {
   StorePrivacidadeRoute: StorePrivacidadeRoute,
   StorePromocoesRoute: StorePromocoesRoute,
   StoreRecuperarSenhaRoute: StoreRecuperarSenhaRoute,
-  StoreRedefinirSenhaRoute: StoreRedefinirSenhaRoute,
   StoreStoriesRoute: StoreStoriesRoute,
   StoreTermosRoute: StoreTermosRoute,
   StoreTrocasEDevolucoesRoute: StoreTrocasEDevolucoesRoute,
@@ -2338,6 +2375,17 @@ const StoreRouteChildren: StoreRouteChildren = {
 }
 
 const StoreRouteWithChildren = StoreRoute._addFileChildren(StoreRouteChildren)
+
+interface AdminEventsEventIdRouteChildren {
+  AdminEventsEventIdCheckinRoute: typeof AdminEventsEventIdCheckinRoute
+}
+
+const AdminEventsEventIdRouteChildren: AdminEventsEventIdRouteChildren = {
+  AdminEventsEventIdCheckinRoute: AdminEventsEventIdCheckinRoute,
+}
+
+const AdminEventsEventIdRouteWithChildren =
+  AdminEventsEventIdRoute._addFileChildren(AdminEventsEventIdRouteChildren)
 
 interface AdminRouteChildren {
   AdminAvaliacoesRoute: typeof AdminAvaliacoesRoute
@@ -2377,6 +2425,7 @@ interface AdminRouteChildren {
   AdminConfiguracoesSeoRoute: typeof AdminConfiguracoesSeoRoute
   AdminEstoqueAlertasRoute: typeof AdminEstoqueAlertasRoute
   AdminEstoqueMovimentosRoute: typeof AdminEstoqueMovimentosRoute
+  AdminEventsEventIdRoute: typeof AdminEventsEventIdRouteWithChildren
   AdminFinanceiroFuncionariosRoute: typeof AdminFinanceiroFuncionariosRoute
   AdminFretesCotacoesRoute: typeof AdminFretesCotacoesRoute
   AdminFretesTabelasRoute: typeof AdminFretesTabelasRoute
@@ -2393,6 +2442,7 @@ interface AdminRouteChildren {
   AdminCaixaIndexRoute: typeof AdminCaixaIndexRoute
   AdminClientesIndexRoute: typeof AdminClientesIndexRoute
   AdminEstoqueIndexRoute: typeof AdminEstoqueIndexRoute
+  AdminEventsIndexRoute: typeof AdminEventsIndexRoute
   AdminFretesIndexRoute: typeof AdminFretesIndexRoute
   AdminPedidosIndexRoute: typeof AdminPedidosIndexRoute
   AdminBuilderDocumentIdEditorRoute: typeof AdminBuilderDocumentIdEditorRoute
@@ -2445,6 +2495,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminConfiguracoesSeoRoute: AdminConfiguracoesSeoRoute,
   AdminEstoqueAlertasRoute: AdminEstoqueAlertasRoute,
   AdminEstoqueMovimentosRoute: AdminEstoqueMovimentosRoute,
+  AdminEventsEventIdRoute: AdminEventsEventIdRouteWithChildren,
   AdminFinanceiroFuncionariosRoute: AdminFinanceiroFuncionariosRoute,
   AdminFretesCotacoesRoute: AdminFretesCotacoesRoute,
   AdminFretesTabelasRoute: AdminFretesTabelasRoute,
@@ -2461,6 +2512,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCaixaIndexRoute: AdminCaixaIndexRoute,
   AdminClientesIndexRoute: AdminClientesIndexRoute,
   AdminEstoqueIndexRoute: AdminEstoqueIndexRoute,
+  AdminEventsIndexRoute: AdminEventsIndexRoute,
   AdminFretesIndexRoute: AdminFretesIndexRoute,
   AdminPedidosIndexRoute: AdminPedidosIndexRoute,
   AdminBuilderDocumentIdEditorRoute: AdminBuilderDocumentIdEditorRoute,

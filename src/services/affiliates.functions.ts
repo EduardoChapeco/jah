@@ -169,20 +169,21 @@ export async function getMyCommissionProfileHandler() {
   } = await ssrClient.auth.getUser();
   if (!user) throw new Error("Não autenticado.");
 
-  const db = getServerClient();
+  const identity = await getServerIdentity();
+  if (!identity.store_id) throw new Error("Perfil de vendedor não configurado.");
 
+  const db = getServerClient();
   const { data: profile } = await db
     .from("profiles")
-    .select("id, full_name, commission_rate, store_id")
+    .select("full_name, commission_rate")
     .eq("id", user.id)
     .single();
-
-  if (!profile?.store_id) throw new Error("Perfil de vendedor não configurado.");
 
   const { data: commissions } = await db
     .from("commissions")
     .select("amount_cents, status, created_at, orders(public_token)")
     .eq("seller_id", user.id)
+    .eq("store_id", identity.store_id)
     .order("created_at", { ascending: false })
     .limit(50);
 
@@ -197,8 +198,8 @@ export async function getMyCommissionProfileHandler() {
 
   return {
     sellerId: user.id,
-    sellerName: profile.full_name || "Vendedor",
-    commissionRate: profile.commission_rate || 0,
+    sellerName: profile?.full_name || "Vendedor",
+    commissionRate: profile?.commission_rate || 0,
     totalEarnedCents,
     pendingCents,
     paidCents,
@@ -222,15 +223,10 @@ export async function getAffiliateLinkHandler(baseUrl: string): Promise<{ link: 
   } = await ssrClient.auth.getUser();
   if (!user) throw new Error("Não autenticado.");
 
-  const db = getServerClient();
-  const { data: profile } = await db
-    .from("profiles")
-    .select("id, store_id, role")
-    .eq("id", user.id)
-    .single();
+  const identity = await getServerIdentity();
 
-  if (!profile?.store_id) throw new Error("Vendedor não associado a uma loja.");
-  if (!["seller", "manager", "owner", "admin"].includes(profile.role)) {
+  if (!identity.store_id) throw new Error("Vendedor não associado a uma loja.");
+  if (!["seller", "manager", "owner", "admin"].includes(identity.role)) {
     throw new Error("Apenas vendedores podem obter links de afiliação.");
   }
 
@@ -248,11 +244,15 @@ export async function listMyAttributedOrdersHandler() {
   } = await ssrClient.auth.getUser();
   if (!user) throw new Error("Não autenticado.");
 
+  const identity = await getServerIdentity();
+  if (!identity.store_id) throw new Error("Vendedor não associado a uma loja.");
+
   const db = getServerClient();
   const { data, error } = await db
     .from("orders")
     .select("id, public_token, status, total_cents, created_at, customer_snapshot")
     .eq("seller_id", user.id)
+    .eq("store_id", identity.store_id)
     .order("created_at", { ascending: false })
     .limit(100);
 

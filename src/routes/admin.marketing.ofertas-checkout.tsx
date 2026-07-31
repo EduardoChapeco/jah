@@ -14,13 +14,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Surface } from "@/components/ui/surface";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -195,10 +196,10 @@ function CheckoutOffersPage() {
           description="Você ainda não configurou ofertas de compre junto. Clique em 'Criar Nova Regra' para configurar."
         />
       ) : (
-        <div className="rounded-xl border border-border bg-card overflow-hidden shadow-xs">
+        <Surface variant="zine" elevation="sm" padding="none">
           <Table>
             <TableHeader>
-              <TableRow className="bg-muted/40">
+              <TableRow className="bg-muted/40 border-b border-ink/20">
                 <TableHead>Produto Gatilho (Trigger)</TableHead>
                 <TableHead>Produto Ofertado (Upsell)</TableHead>
                 <TableHead>Desconto (%)</TableHead>
@@ -216,7 +217,7 @@ function CheckoutOffersPage() {
                     {rule.offer_product?.title || "Produto desconhecido"}
                   </TableCell>
                   <TableCell className="text-xs font-bold text-foreground">
-                    <Badge variant="outline" className="font-mono text-xs">
+                    <Badge variant="outline" className="font-mono text-xs border-ink/30">
                       {rule.discount_percentage}% OFF
                     </Badge>
                   </TableCell>
@@ -253,21 +254,21 @@ function CheckoutOffersPage() {
               ))}
             </TableBody>
           </Table>
-        </div>
+        </Surface>
       )}
 
-      {/* dialog de cadastro/edição */}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>
+      {/* sheet de cadastro/edição */}
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent side="right" className="overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>
               {editingRuleId ? "Editar Regra de Upsell" : "Nova Regra de Upsell"}
-            </DialogTitle>
-            <DialogDescription>
+            </SheetTitle>
+            <SheetDescription>
               Defina o produto gatilho que ativará a oferta no carrinho e o produto adicional
               oferecido com desconto.
-            </DialogDescription>
-          </DialogHeader>
+            </SheetDescription>
+          </SheetHeader>
           <form onSubmit={handleSave} className="space-y-4 pt-2">
             <div className="space-y-2">
               <Label htmlFor="trigger-product">Produto Gatilho *</Label>
@@ -324,17 +325,17 @@ function CheckoutOffersPage() {
               </div>
             </div>
 
-            <DialogFooter className="pt-4">
+            <SheetFooter className="pt-4">
               <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
                 Cancelar
               </Button>
               <Button type="submit" disabled={isSaving} className="font-bold">
                 {isSaving ? "Salvando..." : "Salvar Regra"}
               </Button>
-            </DialogFooter>
+            </SheetFooter>
           </form>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
 
       {/* alert dialog de confirmação de exclusão */}
       <AlertDialog

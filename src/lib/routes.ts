@@ -383,7 +383,6 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 1,
     navGroup: "Catálogo",
     navIcon: "Package",
-    navPlanned: true,
   },
   {
     path: "/admin/catalogo/produtos/novo",
@@ -642,6 +641,42 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "content"],
     phase: 3,
+  },
+  {
+    path: "/admin/events",
+    label: "Eventos",
+    description: "Gestão de eventos e lotes",
+    audience: "admin",
+    roles: ["owner", "admin", "manager", "content", "seller"],
+    phase: 4,
+    navGroup: "Eventos",
+    navIcon: "Calendar",
+  },
+  {
+    path: "/admin/events/new",
+    label: "Novo Evento",
+    description: "Criar evento",
+    audience: "admin",
+    roles: ["owner", "admin", "manager", "content"],
+    phase: 4,
+  },
+  {
+    path: "/admin/events/:eventId",
+    label: "Editar Evento",
+    description: "Edição de evento e lotes",
+    audience: "admin",
+    roles: ["owner", "admin", "manager", "content"],
+    phase: 4,
+    dynamic: true,
+  },
+  {
+    path: "/admin/events/:eventId/checkin",
+    label: "Check-in na Portaria",
+    description: "Validação de Ingressos via QR Code",
+    audience: "admin",
+    roles: STAFF_ALL,
+    phase: 4,
+    dynamic: true,
   },
 
   {
@@ -955,6 +990,12 @@ export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
       { path: "/admin/midias", label: "Mídias & Fotos", icon: "Images" },
       { path: "/admin/catalogo/atributos", label: "Atributos", icon: "Settings2" },
       { path: "/admin/catalogo/tipos", label: "Tipos de Produto", icon: "Settings" },
+    ],
+  },
+  {
+    title: "🎟️ Eventos & Cultura",
+    items: [
+      { path: "/admin/events", label: "Eventos", icon: "Calendar" },
     ],
   },
   {

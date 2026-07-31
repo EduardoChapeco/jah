@@ -1,192 +1,139 @@
-# DESIGN.md — Hr Shoes Commerce
+# DESIGN.md — Plataforma Jah (Design System Canônico)
 
-> Fonte única de verdade do design system. Segue a especificação aberta
+> Fonte única de verdade do design system da plataforma comunitária Jah. Segue a especificação aberta
 > Google Labs `DESIGN.md`: tokens semânticos em YAML + justificativa humana,
 > estados, componentes e regras responsivas. Os valores canônicos vivem em
 > `src/styles.css`; este documento explica o "porquê". Componentes consomem
 > tokens semânticos — nunca hex/radius/shadow soltos.
 
-## 1. Direção criativa
+## 1. Direção Criativa
 
 ```yaml
 brand: Jah
-tagline: Identidade, Comunidade e Autenticidade
-voice: moderno, direto, universal, focado na comunidade
-mood: minimalista, premium, monocromático, alto contraste, focado na imagem
+tagline: Identidade, Comunidade, Eventos, Classificados e Lojas
+voice: urbano, direto, comunitário, orgânico, autêntico
+mood: cultura de rua, cartazes, zines, papel jornal, colagens, fotografia analógica, brutalismo leve
 principles:
-  - "Espaço em branco é o maior aliado. Deixe o conteúdo respirar."
-  - "Monocromático de alto contraste: brancos puros, pretos profundos, cinzas precisos (estilo tech/premium)."
-  - "Bordas com raio menor (0.25rem a 0.5rem) transmitem mais firmeza e modernidade."
-  - "Sombras ultra-suaves ou uso apenas de bordas de 1px para delimitar conteúdo."
-  - "A tipografia deve ser limpa e sem serifa (sans-serif moderno) em todos os níveis, garantindo máxima legibilidade."
+  - "O conteúdo deve parecer impresso, carimbado, colado ou datilografado."
+  - "Texturas (ruído, papel amarelado, papel de lista telefônica) devem guiar o fundo, sem atrapalhar a acessibilidade."
+  - "Contraste forte entre o fundo claro amarelado e a tinta de impressão preta profunda."
+  - "Sinalizações e acentos usam cores fortes de gráfica: vermelho cartaz, laranja neon, ciano elétrico."
+  - "Tipografia limpa para leitura (sans-serif), mas tipografia editorial/condensada pesada para cartazes, títulos e tickets."
 anti_patterns:
-  - cores berrantes não-intencionais
-  - gradientes decorativos ou glassmorphism excessivo
-  - caixas fortemente arredondadas (estilo lúdico/infantil)
-  - fake data, placeholders visíveis em produção
+  - designs de e-commerce "SaaS genérico" com branco puro e azul tecnológico
+  - sombras suaves arredondadas (glassmorphism/lúdico)
+  - placeholders falsos e mockups perfeitos corporativos
 ```
 
-## 2. Tokens de cor (semânticos)
+## 2. Tokens de Cor (Semânticos)
 
-Valores reais em `src/styles.css` (`:root` / `.dark`), formato **oklch**.
-Mapeados a utilitários Tailwind via `@theme inline`.
+Valores reais mapeados para variáveis Oklch no `src/styles.css`. O Tailwind v4 as consumirá via `@theme`.
 
 ```yaml
 color_tokens:
-  background:
+  background / paper:
     {
-      value: "#FFFFFF (oklch 1 0 0)",
-      role: "canvas branco puro",
-      why: "base ultra-minimalista, maximiza foco nas imagens e conteúdo",
+      value: "#F4F1EA (oklch 0.96 0.01 90)",
+      role: "fundo global, textura de papel natural",
+      why: "foge do branco absoluto, aquece a interface simulando impressão",
     }
-  foreground:
+  foreground / ink:
     {
-      value: "#171717 (oklch 0.2 0 0)",
-      role: "preto fosco profundo",
-      why: "contraste extremo, legibilidade imediata",
+      value: "#121212 (oklch 0.15 0 0)",
+      role: "tinta preta densa para texto",
+      why: "contraste extremo (ink on paper)",
     }
-  primary / brand:
+  primary / vinyl-black:
     {
-      value: "#171717 (oklch 0.2 0 0)",
-      role: "acento principal (monocromático)",
-      why: "mantém a sobriedade; a marca é o conteúdo",
+      value: "#121212 (oklch 0.15 0 0)",
+      role: "acento principal e fundos de botões sólidos",
+      why: "cores fortes se aplicam nos detalhes, a base é preto no papel",
     }
-  primary-foreground: { value: "branco puro", role: "texto sobre primary" }
-  brand-soft / accent:
+  primary-foreground / receipt-white: { value: "branco puro amarelado claro", role: "texto sobre primary" }
+  secondary / newsprint:
     {
-      value: "cinza 5% (oklch 0.95 0 0)",
-      role: "realce suave, tags, hovers",
-      why: "destaque sem introduzir novas cores",
+      value: "#E8E6DF (oklch 0.92 0.01 90)",
+      role: "fundos de cards secundários, chips, inputs desativados",
+      why: "cinza quente, simulando papel jornal",
     }
-  secondary: { value: "cinza claro (oklch 0.96 0 0)", role: "superfícies neutras, chips" }
-  muted / muted-foreground: { value: "cinza médio (oklch 0.55 0 0)", role: "texto secundário, metadados" }
-  card: { value: "branco puro", role: "sem elevação visível, delimitado por borda leve" }
-  border / input: { value: "cinza 10% (oklch 0.9 0 0)", role: "divisórias discretas e elegantes" }
-  ring: { value: "= foreground", role: "foco visível de teclado alto contraste" }
-  destructive: { value: "vermelho puro (oklch 0.6 0.2 25)", role: "erro/exclusão" }
-  success: { value: "verde musgo (oklch 0.6 0.12 150)", role: "confirmações" }
-  warning: { value: "âmbar suave", role: "atenção, estoque baixo" }
-  info: { value: "azul acinzentado", role: "informativo" }
+  muted / muted-ink: { value: "cinza chumbo (oklch 0.5 0.01 90)", role: "texto secundário, labels" }
+  accent / signal-orange: { value: "#FF5E00 (oklch 0.65 0.2 45)", role: "realce, hover audacioso, botões de ação" }
+  destructive / poster-red: { value: "#E60000 (oklch 0.55 0.2 25)", role: "erro, exclusão, carimbo de 'esgotado'" }
+  directory-yellow: { value: "#FADB5F (oklch 0.88 0.12 100)", role: "fundo de listas/diretórios, selos chamativos" }
+  success: { value: "#008A2E (oklch 0.6 0.12 150)", role: "confirmações" }
+  border / input: { value: "#D1CDC1 (oklch 0.82 0.01 90)", role: "divisórias fortes, bordas marcadas" }
+  ring: { value: "= signal-orange ou ink", role: "foco visível brutalista" }
+
 rationale: >
-  A interface opera como uma galeria de arte. Cores de marca são removidas da UI estrutural
-  para permitir que as imagens dos produtos, lojas e coletivos sejam o único foco de cor e vida.
-contrast:
-  rule: "WCAG 2.2 AA — texto normal >= 4.5:1, texto grande/ícones >= 3:1."
-  check: "Validar contraste no editor de tema antes de publicar (Fase 3)."
+  A base é analógica e impressa. Trocamos o design estéril por uma paleta orgânica (paper e ink)
+  e injetamos cores sólidas (poster-red, signal-orange, directory-yellow) como adesivos e selos.
 ```
 
-## 3. Tipografia
+## 3. Tipografia (A Gramática Visual)
 
 ```yaml
 fonts:
   ui_sans:
     {
       family: "Inter",
-      weights: [400, 500, 600, 700],
-      use: "toda a UI primária, corpo, labels, dados",
-    }
-  editorial_serif:
-    {
-      family: "Inter",
       weights: [400, 500, 600],
-      italic: false,
-      use: "unificado com ui_sans para consistência total",
+      use: "Leitura rápida, dashboards, inputs, dados tabulares",
     }
-loading: "Carregadas via <link> no __root.tsx head."
+  display_cultural:
+    {
+      family: "Bebas Neue, Anton ou equivalente pesada/condensada",
+      weights: [400, 700],
+      use: "Títulos de eventos, cartazes, tickets, ingressos, claims audaciosos",
+    }
+  mono_ticket:
+    {
+      family: "JetBrains Mono ou Courier",
+      weights: [400],
+      use: "Códigos de ingresso, metadados impressos, recibos (receipt-white)",
+    }
+
 scale:
-  display:
-    { size: "clamp(2rem, 6vw, 4rem)", family: sans, weight: 600, tracking: "-0.03em", line: 1.1 }
-  h1: { size: "clamp(1.75rem, 4vw, 2.75rem)", family: serif }
-  h2: { size: "clamp(1.4rem, 3vw, 2rem)", family: serif }
-  h3: { size: "1.25rem", family: serif }
-  body: { size: "1rem", family: sans, line: 1.6 }
-  small: { size: "0.875rem", family: sans }
-  eyebrow: { transform: uppercase, tracking: "0.16em", weight: 600, size: "0.72rem", family: sans }
-rationale: >
-  Manrope é uma sans altamente legível e distinta (não Inter/Poppins genéricos).
-  Fraunces traz o tom editorial de moda apenas em títulos/campanhas, mantendo a
-  leitura de dados e formulários 100% na sans.
+  display: { size: "clamp(3rem, 8vw, 6rem)", family: display_cultural, transform: uppercase, line: 0.9 }
+  h1: { size: "clamp(2rem, 5vw, 4rem)", family: display_cultural, transform: uppercase }
+  h2: { size: "clamp(1.5rem, 4vw, 2.5rem)", family: display_cultural }
+  h3: { size: "1.25rem", family: ui_sans, weight: 600 }
+  body: { size: "1rem", family: ui_sans, line: 1.5 }
+  ticket_code: { size: "0.875rem", family: mono_ticket, tracking: "0.1em" }
 ```
 
-## 4. Espaço, raio, elevação
+## 4. Textura, Raio, Espaço e Elevação
 
 ```yaml
+texture:
+  noise: "Um grain levíssimo misturado ao background (paper) pode existir como overlay, com prefers-reduced-motion respeitado."
 radius:
-  { base: "0.75rem", scale: "sm..4xl derivado", why: "cantos macios, contemporâneos, sem exageros" }
-spacing: { unit: "4px base (Tailwind)", rhythm: "seções generosas; respiro > densidade na vitrine" }
+  { base: "0rem", scale: "0 a 0.25rem", why: "Cantos afiados (0px) ou levíssimos (4px) evocam impressão em papel cortado. Nada redondo." }
 elevation:
-  philosophy: "sombras suaves e curtas; luz difusa; nunca sombra dura de template"
-  tokens: [shadow-xs, shadow-sm, shadow-md, shadow-lg, shadow-brand]
-grid:
-  container: "fluido, max-w-screen-xl; gutters responsivos"
-  product_grid: "2 col mobile, 3 col md, 4 col lg"
+  philosophy: "brutalismo leve, sombras duras e deslocadas (ex: 4px 4px 0px ink) em vez de blurs. Ou zero sombra e border 1px preta (ink) forte."
+  tokens: [shadow-none, shadow-hard, shadow-stamp]
 ```
 
-## 5. Estados obrigatórios (todo componente de dado/ação)
+## 5. Superfícies Semânticas (Surfaces)
+
+```yaml
+surfaces:
+  PaperSurface: "Fundo base limpo (paper), com borda fina preta. Para textos longos e cartões comuns."
+  NewsprintSurface: "Fundo ligeiramente mais escuro (newsprint), sem borda ou com separação tracejada."
+  DirectorySurface: "Fundo amarelo (directory-yellow), fonte densa, usado em guias locais/classificados."
+  PosterSurface: "Alto impacto. Pode ter cores invertidas (vinyl-black base, letras claras)."
+  TicketSurface: "Bordas simulando picote/serrilhado (via CSS radial-gradient), usa mono_ticket."
+```
+
+## 6. Estados e Navegação
 
 ```yaml
 required_states:
-  loading: "skeleton sem layout shift; nunca spinner solto em bloco grande"
-  empty: "estado vazio honesto (sem produtos falsos); texto + ação quando fizer sentido"
-  error: "mensagem clara + ação de retry; nunca tela branca"
-  permission: "bloqueio de acesso claro (sem vazar dados)"
-  disabled: "affordance visível e acessível"
-  unconfigured: "integração sem credencial -> 'configuração ausente', nunca sucesso simulado"
-  coming_soon: "somente no painel: 'Planejado para a Fase X'; nunca na vitrine pública"
-success: "confirmações discretas via toast/inline"
-```
+  loading: "Skeletons quadrados ou loaders tipo 'imprimindo' (linhas monocromáticas)."
+  empty: "Honesto, com visual de um espaço de papel em branco ou 'página arrancada'."
+  unconfigured: "Visível apenas para admins, como um carimbo 'FALTA CONFIGURAR'."
 
-## 6. Acessibilidade (WCAG 2.2 AA)
-
-```yaml
-a11y:
-  touch_target: ">= 44x44px em todos os alvos interativos"
-  focus: "foco visível (ring = brand) em todo elemento focável"
-  keyboard: "navegação e ativação completas por teclado"
-  reduced_motion: "respeitar prefers-reduced-motion (global no CSS)"
-  labels: "todo input com label; ícones com aria-label"
-  errors: "mensagens de erro associadas ao campo, texto claro em pt-BR"
-  landmarks: "header/nav/main/footer semânticos; um único h1 por página"
-  safe_area: "respeitar env(safe-area-inset-*) em barras fixas"
-```
-
-## 7. Layout responsivo
-
-```yaml
 responsive:
-  approach: "mobile-first; excelente também em desktop"
-  public_nav:
-    mobile: "header enxuto + sticky bottom nav (>=44px alvos, pb-safe)"
-    desktop: "header com navegação horizontal; sem bottom nav"
-  admin_shell:
-    mobile: "topbar + sticky bottom nav com ações principais"
-    desktop: "sidebar recolhível + conteúdo arejado"
-  invariants:
-    - "sem sobreposição, corte de texto ou scroll horizontal involuntário"
-    - "conteúdo nunca escondido atrás de barras fixas (usar padding/safe-area)"
-    - "linhas com texto + widget usam grid + min-w-0 + shrink-0 (ver responsive rules)"
+  mobile: "App Shell híbrido. Bottom bar contendo ações (Feed, Buscar, [+], Perfil). Ações vitais na área do polegar."
+  desktop: "Sidebar ou grids divididos. Sem duplicação."
+  modals: "Full-screen no mobile para edição, sheets laterais no desktop."
 ```
-
-## 8. Componentes canônicos
-
-Ver `docs/COMPONENT_CATALOG.md` para o catálogo completo com estados.
-Resumo de camadas:
-
-```yaml
-component_layers:
-  ui: "primitivos shadcn adaptados por variantes (src/components/ui)"
-  commerce: "vitrine: ProductCard, PriceDisplay, SectionRenderer, ... (src/components/commerce)"
-  admin: "painel: AdminShell, DataTable, PhaseGate, ... (src/components/admin)"
-  state: "EmptyState, ErrorState, LoadingState, PermissionGate, UnconfiguredState, ComingSoon"
-rules:
-  - "Nenhum componente faz cálculo comercial (preço/desconto/frete/estoque) no cliente."
-  - "PriceDisplay apenas formata cents+BRL vindos do servidor."
-  - "Cores/raio/sombra sempre via token; nunca className com hex/bg-white/text-black."
-```
-
-## 9. Regras de consumo dos tokens
-
-- Novas cores: adicionar em `:root` **e** `.dark`, registrar em `@theme inline`.
-- Preferir tokens semânticos (`bg-primary`, `text-muted-foreground`) a tokens
-  brutos (`bg-brand`) — brutos só quando o semântico não expressa a intenção.
-- Variantes de componente (cva) para estilos recorrentes, nunca overrides ad hoc.

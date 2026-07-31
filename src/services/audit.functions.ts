@@ -30,22 +30,27 @@ export async function logAuditAction(
 }
 
 /**
- * Gets audit logs for admins
+ * Gets audit logs for admins - testable handler
+ */
+export async function getAuditLogHandler() {
+  const supabase = getServerClient();
+  const identity = await getServerIdentity();
+  assertStoreAccess(identity, ["owner", "admin", "manager"]);
+
+  const { data: logs, error } = await supabase
+    .from("audit_logs")
+    .select("*, profiles!audit_logs_user_id_fkey(full_name)")
+    .eq("store_id", identity.store_id)
+    .order("created_at", { ascending: false })
+    .limit(100);
+
+  if (error || !logs) return [];
+
+  return logs;
+}
+
+/**
+ * Gets audit logs for admins - server function wrapper
  */
 export const getAuditLog = createServerFn({ method: "GET" })
-  .handler(async () => {
-    const supabase = getServerClient();
-    const identity = await getServerIdentity();
-    assertStoreAccess(identity, ["owner", "admin", "manager"]);
-
-    const { data: logs, error } = await supabase
-      .from("audit_logs")
-      .select("*, profiles!audit_logs_user_id_fkey(full_name)")
-      .eq("store_id", identity.store_id)
-      .order("created_at", { ascending: false })
-      .limit(100);
-
-    if (error || !logs) return [];
-
-    return logs;
-  });
+  .handler(() => getAuditLogHandler());

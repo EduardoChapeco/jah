@@ -9,16 +9,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/state/states";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetFooter,
+} from "@/components/ui/sheet";
+import { Surface } from "@/components/ui/surface";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { listAdminStories, upsertStory, deleteStory } from "@/services/cms.functions";
 
@@ -98,17 +98,17 @@ function StoriesPage() {
         title="Stories"
         description="Publique imagens ou vídeos curtos no topo da loja para destacar novidades e promoções."
         actions={
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger asChild>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
                 Novo Story
               </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Publicar Story</DialogTitle>
-              </DialogHeader>
+            </SheetTrigger>
+            <SheetContent side="right" className="overflow-y-auto">
+              <SheetHeader>
+                <SheetTitle>Publicar Story</SheetTitle>
+              </SheetHeader>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div className="space-y-2">
                   <Label>Mídia do Story (Imagem ou Vídeo)</Label>
@@ -123,17 +123,17 @@ function StoriesPage() {
                   <Label>Link de Destino (Opcional)</Label>
                   <Input {...register("link_url")} placeholder="https://..." />
                 </div>
-                <DialogFooter>
+                <SheetFooter className="pt-4">
                   <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={isSubmitting}>
                     Publicar
                   </Button>
-                </DialogFooter>
+                </SheetFooter>
               </form>
-            </DialogContent>
-          </Dialog>
+            </SheetContent>
+          </Sheet>
         }
       />
 
@@ -145,7 +145,7 @@ function StoriesPage() {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {stories.map((story: any) => (
-            <Card key={story.id} className="overflow-hidden relative group">
+            <Surface key={story.id} variant="zine" elevation="sm" padding="none" className="overflow-hidden relative group">
               <div className="aspect-[9/16] bg-muted relative">
                 {story.media_url.endsWith(".mp4") ? (
                   <video src={story.media_url} className="w-full h-full object-cover" muted loop />
@@ -181,7 +181,7 @@ function StoriesPage() {
                   </Button>
                 </div>
               </div>
-            </Card>
+            </Surface>
           ))}
         </div>
       )}

@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { getServerClient } from "@/lib/supabase";
 import { formatMoney } from "@/lib/money";
+import { formatDateTime } from "@/lib/datetime";
 
 export const Route = createFileRoute("/admin_/pedidos/$id/recibo")({
   head: () => ({ meta: [{ title: "Recibo — Jah" }] }),
@@ -35,7 +36,7 @@ function ReceiptPrintPage() {
     return () => clearTimeout(timer);
   }, []);
 
-  const date = new Date(order.created_at).toLocaleString("pt-BR");
+  const date = formatDateTime(order.created_at);
   const customer = order.customer_snapshot as any;
 
   return (

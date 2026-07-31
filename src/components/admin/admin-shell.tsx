@@ -166,6 +166,11 @@ function getActiveGroup(pathname: string): string {
   }
   // 3. Prefix fallbacks for deep screens not directly listed
   if (
+    pathname.startsWith("/admin/events")
+  ) {
+    return "🎟️ Eventos & Cultura";
+  }
+  if (
     pathname.startsWith("/admin/catalogo") ||
     pathname.startsWith("/admin/estoque") ||
     pathname.startsWith("/admin/midias")
@@ -259,10 +264,12 @@ const MODULES = [
   },
 ];
 
+import { TenantSwitcher } from "@/components/admin/tenant-switcher";
+
 // ---------------------------------------------------------------------------
 // HeaderRightIsland Component
 // ---------------------------------------------------------------------------
-function HeaderRightIsland() {
+function HeaderRightIsland({ session }: { session: any }) {
   const [timeStr, setTimeStr] = useState("");
   const [dateStr, setDateStr] = useState("");
 
@@ -280,24 +287,31 @@ function HeaderRightIsland() {
   }, []);
 
   return (
-    <div className="flex h-10 items-center gap-3 rounded-full border border-border/80 bg-card px-4 py-1.5 shadow-xs text-xs font-medium text-foreground">
-      {dateStr && (
-        <span className="flex items-center gap-1.5 text-muted-foreground capitalize">
-          <Calendar className="size-3.5 text-primary" />
-          {dateStr}
-        </span>
+    <div className="flex h-10 items-center gap-3">
+      {session?.memberships && session.memberships.length > 0 && (
+        <div className="hidden sm:block">
+          <TenantSwitcher identity={session} />
+        </div>
       )}
-      <span className="h-3 w-px bg-border" />
-      {timeStr && <span className="font-bold">{timeStr}</span>}
-      <span className="h-3 w-px bg-border" />
-      <Button
-        variant="ghost"
-        size="icon"
-        className="size-6 text-muted-foreground hover:text-primary rounded-full"
-        aria-label="Notificações"
-      >
-        <Bell className="size-4" />
-      </Button>
+      <div className="flex h-full items-center gap-3 rounded-full border border-border/80 bg-card px-4 py-1.5 shadow-xs text-xs font-medium text-foreground">
+        {dateStr && (
+          <span className="flex items-center gap-1.5 text-muted-foreground capitalize">
+            <Calendar className="size-3.5 text-primary" />
+            {dateStr}
+          </span>
+        )}
+        <span className="h-3 w-px bg-border" />
+        {timeStr && <span className="font-bold">{timeStr}</span>}
+        <span className="h-3 w-px bg-border" />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-6 text-muted-foreground hover:text-primary rounded-full"
+          aria-label="Notificações"
+        >
+          <Bell className="size-4" />
+        </Button>
+      </div>
     </div>
   );
 }
@@ -661,7 +675,7 @@ export function AdminShell({
 
           {/* Premium Right Island showing Date/Time/Notifications */}
           <div className="ml-auto">
-            <HeaderRightIsland />
+            <HeaderRightIsland session={session} />
           </div>
         </header>
 

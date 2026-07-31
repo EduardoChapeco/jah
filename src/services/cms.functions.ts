@@ -415,6 +415,10 @@ export const listReviews = createServerFn({ method: "GET" }).handler(async () =>
   try {
     const db = getServerClient();
 
+    const { getServerIdentity } = await import("@/lib/server-access");
+    const identity = await getServerIdentity();
+    if (!identity.store_id) throw new Error("Loja não identificada.");
+
     // Join with products and users to get display names
     const { data, error } = await db
       .from("reviews")
@@ -425,6 +429,7 @@ export const listReviews = createServerFn({ method: "GET" }).handler(async () =>
         users:user_id (id)
       `,
       )
+      .eq("store_id", identity.store_id)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
@@ -447,10 +452,15 @@ export const updateReviewStatus = createServerFn({ method: "POST" })
     try {
       const db = getServerClient();
 
+      const { getServerIdentity } = await import("@/lib/server-access");
+      const identity = await getServerIdentity();
+      if (!identity.store_id) throw new Error("Loja não identificada.");
+
       const { data, error } = await db
         .from("reviews")
         .update({ status: input.status })
         .eq("id", input.id)
+        .eq("store_id", identity.store_id)
         .select()
         .single();
 
@@ -645,7 +655,12 @@ export const upsertStory = createServerFn({ method: "POST" })
       let result;
 
       if (input.id) {
-        result = await query.update(payload).eq("id", input.id).select().single();
+        result = await query
+          .update(payload)
+          .eq("id", input.id)
+          .eq("store_id", storeData.id)
+          .select()
+          .single();
       } else {
         result = await query.insert(payload).select().single();
       }
@@ -664,7 +679,17 @@ export const deleteStory = createServerFn({ method: "POST" })
     try {
       const db = getServerClient();
 
-      const { error } = await db.from("stories").delete().eq("id", id);
+      const { getServerIdentity } = await import("@/lib/server-access");
+      const { store_id } = await getServerIdentity();
+      if (!store_id) throw new Error("No store found");
+      const storeData = { id: store_id };
+
+      const { error } = await db
+        .from("stories")
+        .delete()
+        .eq("id", id)
+        .eq("store_id", storeData.id);
+        
       if (error) throw error;
 
       return { status: "success" as const };
@@ -795,18 +820,15 @@ export const createManualReview = createServerFn({ method: "POST" })
       if (!user) throw new Error("Não autenticado");
 
       // Verify user is store admin/owner
-      const { data: profile } = await ssrClient
-        .from("profiles")
-        .select("role, store_id")
-        .eq("id", user.id)
-        .single();
+      const { getServerIdentity } = await import("@/lib/server-access");
+      const identity = await getServerIdentity();
 
-      if (!profile || !["owner", "admin", "manager"].includes(profile.role)) {
+      if (!identity.store_id || !["owner", "admin", "manager"].includes(identity.role)) {
         throw new Error("Sem permissão para adicionar avaliações manuais.");
       }
 
       const { error } = await ssrClient.from("reviews").insert({
-        store_id: profile.store_id,
+        store_id: identity.store_id,
         product_id: productId,
         user_id: user.id, // we tie it to the admin who created it
         rating,
@@ -822,3 +844,40 @@ export const createManualReview = createServerFn({ method: "POST" })
       throw new Error(e.message || "Erro ao inserir avaliação manual.");
     }
   });
+
+export const listCustomerReviews = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const ssrClient = await getSSRClient();
+    const {
+      data: { user },
+    } = await ssrClient.auth.getUser();
+    if (!user) throw new Error("Não autorizado");
+
+    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const storeId = await resolveTenantStoreId();
+    if (!storeId) throw new Error("Loja não encontrada");
+
+    const { data, error } = await ssrClient
+      .from("reviews")
+      .select(
+        "id, rating, comment, status, created_at, products!reviews_product_id_fkey(title, slug)",
+      )
+      .eq("user_id", user.id)
+      .eq("store_id", storeId)
+      .order("created_at", { ascending: false });
+
+    if (error) throw new Error(error.message);
+
+    return (data || []).map((r: any) => ({
+      id: r.id as string,
+      rating: r.rating as number,
+      comment: r.comment as string | null,
+      status: r.status as string,
+      createdAt: r.created_at as string,
+      productName: r.products?.title as string | null,
+      productSlug: r.products?.slug as string | null,
+    }));
+  } catch (e: any) {
+    throw new Error(e.message || "Erro ao buscar avaliações.");
+  }
+});

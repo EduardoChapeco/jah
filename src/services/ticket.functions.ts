@@ -19,7 +19,7 @@ export const listAdminTickets = createServerFn({ method: "GET" }).handler(async 
 
   return tickets.map(t => ({
     ...t,
-    customerName: t.profiles?.full_name || "Cliente",
+    customerName: (t.profiles as any)?.full_name || "Cliente",
   }));
 });
 
@@ -80,7 +80,7 @@ export const getTicketThread = createServerFn({ method: "GET" })
          isInternal: m.is_internal_note,
          createdAt: m.created_at,
          isMe: m.sender_id === identity.id,
-         senderName: m.profiles?.full_name || "Desconhecido"
+         senderName: (m.profiles as any)?.full_name || "Desconhecido"
        }))
     };
   });

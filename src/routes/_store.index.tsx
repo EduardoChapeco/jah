@@ -1,91 +1,133 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { PlugZap } from "lucide-react";
-
+import { Search, MapPin, PlusCircle, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ErrorState } from "@/components/state/states";
-import { getStoreConfig } from "@/services/catalog.functions";
-import type { StoreConfigDTO } from "@/types/catalog";
-import { getPublicExperienceDocumentBySlug } from "@/services/builder.functions";
-import { ExperienceRenderer } from "@/components/commerce/experience-renderer";
+import { Surface } from "@/components/ui/surface";
+import { getTimelineFeed } from "@/services/timeline.functions";
+import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/_store/")({
-  head: () => ({
-    meta: [
-      { title: "Jah — Conforto e Estilo" },
-      {
-        name: "description",
-        content:
-          "Loja online da Jah: moda feminina contemporânea com conforto e estilo. Calçados, roupas e acessórios.",
-      },
-      { property: "og:type", content: "website" },
-      { property: "og:title", content: "Jah — Conforto e Estilo" },
-    ],
-  }),
   loader: async () => {
-    const [storeConfig, experienceRes] = await Promise.all([
-      getStoreConfig(),
-      getPublicExperienceDocumentBySlug({ data: { slug: "home", document_type: "storefront" } }),
-    ]);
-
-    return {
-      storeConfig,
-      experienceRes,
-    };
+    // In a real app we might pass the storeId if we are on a specific store subdomain,
+    // but for the global community feed we fetch across all stores.
+    const feed = await getTimelineFeed({ data: { limit: 30 } });
+    return { feed };
   },
   component: Home,
 });
 
-function UnconfiguredStorefront() {
+function Home() {
+  const { feed } = Route.useLoaderData();
+
   return (
-    <div className="mx-auto max-w-screen-xl px-4 py-20 text-center md:px-6">
-      <div className="mx-auto max-w-md">
-        <div className="mb-6 inline-flex size-16 items-center justify-center rounded-full bg-accent">
-          <PlugZap className="size-8 text-accent-foreground" aria-hidden />
+    <div className="flex flex-col min-h-screen bg-background pb-20">
+      {/* Search / Top Bar */}
+      <div className="sticky top-0 z-10 bg-secondary px-4 py-3 border-b-2 border-border shadow-sm flex items-center gap-3">
+        <div className="flex-1 flex items-center bg-background border-2 border-border px-3 py-2">
+          <Search className="size-5 text-muted-foreground mr-2" />
+          <input 
+            type="text" 
+            placeholder="Buscar eventos, classificados, mercadorias..." 
+            className="bg-transparent border-none outline-none w-full text-foreground placeholder:text-muted-foreground font-mono text-sm"
+          />
         </div>
-        <h1 className="text-editorial text-3xl text-foreground">Loja em configuração</h1>
-        <p className="mt-4 text-sm text-muted-foreground">
-          A loja está sendo configurada. Acesse o painel de administração para criar sua loja,
-          adicionar produtos e publicar conteúdo.
-        </p>
-        <Button className="mt-8" asChild>
-          <Link to="/admin">Ir para o painel</Link>
+        <Button variant="default" size="icon" className="shrink-0 border-2">
+          <MapPin className="size-5" />
         </Button>
       </div>
-    </div>
-  );
-}
 
-function Home() {
-  const { storeConfig, experienceRes } = Route.useLoaderData();
-
-  if ("status" in storeConfig && storeConfig.status === "unconfigured")
-    return <UnconfiguredStorefront />;
-
-  // Fallback se não houver experience document "home" publicado
-  if (
-    experienceRes.status !== "ok" ||
-    !experienceRes.data.tree ||
-    experienceRes.data.tree.length === 0
-  ) {
-    return (
-      <div className="flex flex-col min-h-screen">
-        <div className="mx-auto max-w-xl text-center py-20 flex-1">
-          <h2 className="text-xl font-bold">Nenhum layout publicado</h2>
-          <p className="text-muted-foreground mt-2">
-            Acesse o Builder no Admin para construir e publicar a página inicial.
-          </p>
-          <Button className="mt-6" asChild>
-            <Link to="/admin/vitrine">Acessar Vitrine</Link>
+      <div className="p-4 space-y-6 max-w-2xl mx-auto w-full mt-4">
+        
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-editorial text-2xl">Mural da Comunidade</h2>
+          <Button variant="outline" size="sm" className="bg-transparent border-2">
+            <PlusCircle className="size-4 mr-2" />
+            Publicar
           </Button>
         </div>
-      </div>
-    );
-  }
 
-  // Renderização Dinâmica 100% via Builder (Experience Renderer)
-  return (
-    <div className="flex flex-col min-h-[50vh]">
-      <ExperienceRenderer nodes={experienceRes.data.tree} />
+        {feed.length === 0 ? (
+          <Surface variant="zine" padding="lg" className="text-center">
+            <h3 className="font-bold text-xl mb-2">Mural Vazio</h3>
+            <p className="font-serif">O silêncio das ruas. Nenhuma publicação encontrada.</p>
+          </Surface>
+        ) : (
+          feed.map((item) => (
+            <div key={`${item.type}-${item.id}`}>
+              {item.type === "event" && (
+                <Surface variant="flyer" padding="none">
+                  {item.image ? (
+                    <div className="bg-ink aspect-video relative overflow-hidden flex flex-col justify-end p-6">
+                      <img src={item.image} alt={item.title} className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-screen grayscale" />
+                      <div className="relative z-10">
+                         <span className="bg-secondary text-secondary-foreground text-badge px-2 py-1 border border-border inline-block mb-2 font-bold">
+                          {new Date(item.date).toLocaleDateString('pt-BR')}
+                        </span>
+                        <h3 className="text-editorial text-4xl text-primary-foreground leading-none mb-1">
+                          {item.title}
+                        </h3>
+                      </div>
+                    </div>
+                  ) : (
+                     <div className="bg-primary aspect-video p-6 flex flex-col justify-end relative overflow-hidden">
+                       <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/black-paper.png')] mix-blend-multiply" />
+                       <div className="relative z-10">
+                        <span className="bg-secondary text-secondary-foreground text-badge px-2 py-1 border border-border inline-block mb-2 font-bold">
+                          {new Date(item.date).toLocaleDateString('pt-BR')}
+                        </span>
+                        <h3 className="text-editorial text-4xl text-primary-foreground leading-none mb-1">
+                          {item.title}
+                        </h3>
+                      </div>
+                     </div>
+                  )}
+                  <div className="p-4 bg-paper text-ink border-t-4 border-ink flex justify-between items-center">
+                    <div>
+                      <p className="font-bold uppercase tracking-tight">Evento Confirmado</p>
+                    </div>
+                    <Button variant="default" className="border-2 border-ink shadow-sm">
+                      Ver Ingressos
+                    </Button>
+                  </div>
+                </Surface>
+              )}
+
+              {item.type === "classified" && (
+                <Surface variant="zine" padding="md" className="relative">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-6 bg-white/50 backdrop-blur-sm border border-border/20 rotate-2 z-10"></div>
+                  <p className="font-mono text-xs text-muted-foreground mb-3 uppercase tracking-wider">
+                    {new Date(item.date).toLocaleDateString('pt-BR')}
+                  </p>
+                  <h3 className="font-bold text-xl mb-2 leading-tight">
+                    {item.title}
+                  </h3>
+                  <p className="text-foreground/90 font-serif leading-relaxed mb-4">
+                    {item.content}
+                  </p>
+                  {item.price_cents !== undefined && item.price_cents !== null && (
+                    <div className="text-xs text-muted-foreground mt-2 border-t pt-2">
+                      Valor: {formatMoney(item.price_cents)}
+                    </div>
+                  )}
+                  <Button variant="default" className="w-full bg-ink text-paper hover:bg-ink/90">
+                    Responder
+                  </Button>
+                </Surface>
+              )}
+
+              {item.type === "product" && (
+                <Surface variant="polaroid" padding="md">
+                  <h3 className="font-bold text-lg uppercase tracking-tight text-ink mb-1">{item.title}</h3>
+                  <p className="font-mono text-sm text-ink/70 mb-2">{item.content}</p>
+                  <div className="flex justify-between items-center mt-4">
+                    <span className="text-xs font-mono uppercase bg-black text-white px-2 py-1">Mercadoria</span>
+                    <Button variant="outline" size="sm" className="border-ink text-ink">Comprar</Button>
+                  </div>
+                </Surface>
+              )}
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }

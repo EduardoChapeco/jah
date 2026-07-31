@@ -19,14 +19,13 @@ mockOrder.mockReturnValue(mockQueryChain);
 const mockSupabase = { from: mockFrom };
 
 vi.mock("@/lib/server-access", () => ({
-  getServerIdentity: () => Promise.resolve({ store_id: "store_123" }),
-}));
-
-vi.mock("@/lib/server-access", () => ({
+  getServerIdentity: vi.fn().mockResolvedValue({ store_id: "store_123", id: "user-123", role: "owner" }),
   getSSRClient: () => mockSupabase,
+  assertStoreAccess: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase", () => ({
+  getServerClient: () => mockSupabase,
   SupabaseUnconfiguredError: class extends Error {},
 }));
 

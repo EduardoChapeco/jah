@@ -31,14 +31,14 @@ import {
 } from "@/components/ui/table";
 import { EmptyState } from "@/components/state/states";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   listShippingZones,
   upsertShippingZone,
@@ -287,19 +287,19 @@ function ShippingHubPage() {
             <CardTitle className="text-base">Zonas de Entrega Ativas</CardTitle>
             <CardDescription>Regiões geográficas e suas taxas de envio associadas.</CardDescription>
           </div>
-          <Dialog open={openZone} onOpenChange={setOpenZone}>
-            <DialogTrigger asChild>
+          <Sheet open={openZone} onOpenChange={setOpenZone}>
+            <SheetTrigger asChild>
               <Button size="sm">
                 <Plus className="mr-1.5 size-4" /> Nova Zona
               </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>Criar Zona de Entrega</DialogTitle>
-                <DialogDescription>
+            </SheetTrigger>
+            <SheetContent side="right" className="sm:max-w-md overflow-y-auto">
+              <SheetHeader>
+                <SheetTitle>Criar Zona de Entrega</SheetTitle>
+                <SheetDescription>
                   Defina um nome e prefixos de CEP para a região.
-                </DialogDescription>
-              </DialogHeader>
+                </SheetDescription>
+              </SheetHeader>
               <form onSubmit={handleCreateZone} className="space-y-4 pt-2">
                 <div className="space-y-2">
                   <Label htmlFor="z-name">Nome da Zona *</Label>
@@ -324,17 +324,17 @@ function ShippingHubPage() {
                   </p>
                 </div>
 
-                <DialogFooter className="pt-4">
+                <SheetFooter className="pt-4">
                   <Button type="button" variant="ghost" onClick={() => setOpenZone(false)}>
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={isSaving}>
                     {isSaving ? "Criando..." : "Criar Zona"}
                   </Button>
-                </DialogFooter>
+                </SheetFooter>
               </form>
-            </DialogContent>
-          </Dialog>
+            </SheetContent>
+          </Sheet>
         </CardHeader>
         <CardContent>
           {zones.length === 0 ? (

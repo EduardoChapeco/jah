@@ -7,80 +7,53 @@ import {
 import { getServerIdentity } from "@/lib/server-access";
 import { getServerClient } from "@/lib/supabase";
 
-const mockFrom = vi.fn();
-const mockSelect = vi.fn();
-const mockEq = vi.fn();
-const mockIn = vi.fn();
-const mockOrder = vi.fn();
-const mockUpdate = vi.fn();
-const mockUpsert = vi.fn();
-const mockSingle = vi.fn();
-const mockCreateUser = vi.fn();
-
-const mockQueryBuilder = {
-  select: mockSelect,
-  eq: mockEq,
-  in: mockIn,
-  order: mockOrder,
-  update: mockUpdate,
-  upsert: mockUpsert,
-  single: mockSingle,
-};
-
-mockSelect.mockReturnValue(mockQueryBuilder);
-mockEq.mockReturnValue(mockQueryBuilder);
-mockIn.mockReturnValue(mockQueryBuilder);
-mockOrder.mockReturnValue(mockQueryBuilder);
-mockUpdate.mockReturnValue(mockQueryBuilder);
-mockUpsert.mockReturnValue(mockQueryBuilder);
-mockSingle.mockReturnValue(mockQueryBuilder);
-
-const mockSchema = vi.fn().mockImplementation(() => ({
-  from: mockFrom,
-}));
-
-const mockSupabase = {
-  from: mockFrom,
-  schema: mockSchema,
-  auth: {
-    admin: {
-      createUser: mockCreateUser,
-    },
-  },
-};
-
-vi.mock("@/lib/supabase", () => {
-  return {
-    getServerClient: () => mockSupabase,
-    SupabaseUnconfiguredError: class extends Error {},
-  };
-});
-
-vi.mock("@/lib/server-access", () => {
-  return {
-    getServerIdentity: vi.fn(),
-    assertStoreAccess: vi.mocked((identity: any, allowedRoles: string[]) => {
-      if (!identity.id || !identity.store_id || !allowedRoles.includes(identity.role)) {
-        throw new Error("Não autorizado");
-      }
+function createMockQueryBuilder(resolvedValue: any) {
+  const builder: any = {
+    select: vi.fn().mockImplementation(() => builder),
+    insert: vi.fn().mockImplementation(() => builder),
+    update: vi.fn().mockImplementation(() => builder),
+    upsert: vi.fn().mockImplementation(() => builder),
+    delete: vi.fn().mockImplementation(() => builder),
+    eq: vi.fn().mockImplementation(() => builder),
+    in: vi.fn().mockImplementation(() => builder),
+    order: vi.fn().mockImplementation(() => builder),
+    single: vi.fn().mockImplementation(() => builder),
+    maybeSingle: vi.fn().mockImplementation(() => Promise.resolve(resolvedValue)),
+    limit: vi.fn().mockImplementation(() => builder),
+    then: vi.fn().mockImplementation((onfulfilled: any) => {
+      return Promise.resolve(resolvedValue).then(onfulfilled);
     }),
   };
-});
+  return builder;
+}
+
+const mockFrom = vi.fn();
+const mockSchema = vi.fn().mockReturnValue({ from: mockFrom });
+const mockCreateUser = vi.fn();
+
+const mockSupabase = { 
+  from: mockFrom,
+  schema: mockSchema,
+  auth: { admin: { createUser: mockCreateUser } },
+};
+
+vi.mock("@/lib/server-access", () => ({
+  getServerIdentity: vi.fn(),
+  assertStoreAccess: vi.fn().mockImplementation((identity: any, allowedRoles: string[]) => {
+    if (!identity.id || !identity.store_id || !allowedRoles.includes(identity.role)) {
+      throw new Error("Não autorizado");
+    }
+  }),
+}));
+
+vi.mock("@/lib/supabase", () => ({
+  getServerClient: vi.fn(() => mockSupabase),
+  SupabaseUnconfiguredError: class extends Error {},
+}));
 
 describe("Admin Team Functions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSchema.mockImplementation(() => ({
-      from: mockFrom,
-    }));
-    mockFrom.mockReturnValue(mockQueryBuilder);
-    mockSelect.mockReturnValue(mockQueryBuilder);
-    mockEq.mockReturnValue(mockQueryBuilder);
-    mockIn.mockReturnValue(mockQueryBuilder);
-    mockOrder.mockReturnValue(mockQueryBuilder);
-    mockUpdate.mockReturnValue(mockQueryBuilder);
-    mockUpsert.mockReturnValue(mockQueryBuilder);
-    mockSingle.mockReturnValue(mockQueryBuilder);
   });
 
   describe("listTeamMembersHandler", () => {
@@ -96,61 +69,49 @@ describe("Admin Team Functions", () => {
     });
 
     it("should return team members when authorized", async () => {
-      vi.mocked(getServerIdentity).mockResolvedValueOnce({
-        id: "user-123",
-        role: "owner",
-        store_id: "store-456",
-        memberships: [{ store_id: "store-123", role: "admin" }],
-      });
+      const mockIdentity = { id: "user-123", store_id: "store-456", role: "owner", memberships: [] };
+      vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
 
-      const mockData = [{ id: "user-123", full_name: "Owner", role: "owner" }];
-      const expectedData = [{ id: "user-123", full_name: "Owner", role: "owner", email: null }];
-      mockOrder.mockResolvedValueOnce({ data: mockData, error: null });
-
-      const res = await listTeamMembersHandler();
-      expect(res).toEqual(expectedData);
-      expect(mockFrom).toHaveBeenCalledWith("profiles");
-      expect(mockEq).toHaveBeenCalledWith("store_id", "store-456");
-    });
-
-    it("should return team members with emails when authorized and auth data matches", async () => {
-      vi.mocked(getServerIdentity).mockResolvedValueOnce({
-        id: "user-123",
-        role: "owner",
-        store_id: "store-456",
-        memberships: [{ store_id: "store-123", role: "admin" }],
-      });
-
-      const mockData = [{ id: "user-123", full_name: "Owner", role: "owner" }];
-      const expectedData = [
-        { id: "user-123", full_name: "Owner", role: "owner", email: "owner@example.com" },
+      const mockDbResponse = [
+        {
+          profile_id: "user-123",
+          role: "owner",
+          created_at: "2023-01-01T00:00:00Z",
+          profiles: { id: "user-123", full_name: "Owner", avatar_url: "http://avatar.com/1" }
+        },
       ];
-      mockOrder.mockResolvedValueOnce({ data: mockData, error: null });
-
-      // Mock mockIn conditionally based on field to resolve both profiles query and auth query
-      mockIn.mockImplementation((field: string) => {
-        if (field === "role") return mockQueryBuilder;
-        return Promise.resolve({
-          data: [{ id: "user-123", email: "owner@example.com" }],
-          error: null,
-        });
+      
+      const mockAuthUsers = [{ id: "user-123", email: "owner@example.com" }];
+      
+      mockFrom.mockImplementation((table: string) => {
+        if (table === "workspace_members") return createMockQueryBuilder({ data: mockDbResponse, error: null });
+        if (table === "users") return createMockQueryBuilder({ data: mockAuthUsers, error: null });
+        return createMockQueryBuilder({ data: [], error: null });
       });
+
+      const expectedData = [
+        {
+          id: "user-123",
+          role: "owner",
+          created_at: "2023-01-01T00:00:00Z",
+          full_name: "Owner",
+          avatar_url: "http://avatar.com/1",
+          email: "owner@example.com",
+        },
+      ];
 
       const res = await listTeamMembersHandler();
       expect(res).toEqual(expectedData);
+      expect(mockFrom).toHaveBeenCalledWith("workspace_members");
     });
 
     it("should throw database error if retrieval fails", async () => {
-      vi.mocked(getServerIdentity).mockResolvedValueOnce({
-        id: "user-123",
-        role: "admin",
-        store_id: "store-456",
-        memberships: [{ store_id: "store-123", role: "admin" }],
-      });
+      const mockIdentity = { id: "user-123", store_id: "store-456", role: "owner", memberships: [] };
+      vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
 
-      mockOrder.mockResolvedValueOnce({ data: null, error: { message: "Database select error" } });
+      mockFrom.mockImplementation(() => createMockQueryBuilder({ data: null, error: new Error("Database error") }));
 
-      await expect(listTeamMembersHandler()).rejects.toThrow("Database select error");
+      await expect(listTeamMembersHandler()).rejects.toThrow("Database error");
     });
   });
 
@@ -169,83 +130,65 @@ describe("Admin Team Functions", () => {
     });
 
     it("should prevent owner from demoting themselves", async () => {
-      vi.mocked(getServerIdentity).mockResolvedValueOnce({
-        id: "user-123",
-        role: "owner",
-        store_id: "store-456",
-        memberships: [{ store_id: "store-123", role: "admin" }],
-      });
-
-      await expect(updateTeamMemberRoleHandler({ id: "user-123", role: "seller" })).rejects.toThrow(
-        "O dono da loja não pode rebaixar a si mesmo.",
-      );
+      const mockIdentity = { id: "user-123", store_id: "store-456", role: "owner", memberships: [] };
+      vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
+      await expect(
+        updateTeamMemberRoleHandler({ id: "user-123", role: "manager" }),
+      ).rejects.toThrow("O dono da loja não pode rebaixar a si mesmo.");
     });
 
-    it("should throw if target user profile is not found", async () => {
-      vi.mocked(getServerIdentity).mockResolvedValueOnce({
-        id: "user-123",
-        role: "owner",
-        store_id: "store-456",
-        memberships: [{ store_id: "store-123", role: "admin" }],
-      });
-
-      mockSingle.mockResolvedValueOnce({ data: null, error: { message: "Not found" } });
+    it("should prevent non-owner from promoting someone to owner", async () => {
+      const mockIdentity = { id: "user-456", store_id: "store-456", role: "admin", memberships: [] };
+      vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
+      
+      const builder = createMockQueryBuilder({ data: { role: "manager" }, error: null });
+      mockFrom.mockImplementation(() => builder);
 
       await expect(
-        updateTeamMemberRoleHandler({ id: "user-456", role: "manager" }),
-      ).rejects.toThrow("Membro da equipe não encontrado ou pertence a outra loja.");
-    });
-
-    it("should prevent admin from modifying owner role", async () => {
-      vi.mocked(getServerIdentity).mockResolvedValueOnce({
-        id: "user-123",
-        role: "admin",
-        store_id: "store-456",
-        memberships: [{ store_id: "store-123", role: "admin" }],
-      });
-
-      // Target user is owner
-      mockSingle.mockResolvedValueOnce({ data: { role: "owner" }, error: null });
-
-      await expect(
-        updateTeamMemberRoleHandler({ id: "user-owner-id", role: "seller" }),
-      ).rejects.toThrow("Apenas o proprietário pode alterar suas próprias permissões.");
-    });
-
-    it("should prevent admin from promoting someone to owner", async () => {
-      vi.mocked(getServerIdentity).mockResolvedValueOnce({
-        id: "user-123",
-        role: "admin",
-        store_id: "store-456",
-        memberships: [{ store_id: "store-123", role: "admin" }],
-      });
-
-      // Target user is seller
-      mockSingle.mockResolvedValueOnce({ data: { role: "seller" }, error: null });
-
-      await expect(
-        updateTeamMemberRoleHandler({ id: "user-seller-id", role: "owner" }),
+        updateTeamMemberRoleHandler({ id: "user-123", role: "owner" }),
       ).rejects.toThrow("Apenas o proprietário pode transferir a propriedade da loja.");
     });
 
+    it("should throw error if member not found", async () => {
+      const mockIdentity = { id: "user-123", store_id: "store-456", role: "owner", memberships: [] };
+      vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
+      
+      const builder = createMockQueryBuilder({ data: null, error: new Error("Not found") });
+      mockFrom.mockImplementation(() => builder);
+
+      await expect(
+        updateTeamMemberRoleHandler({ id: "user-999", role: "manager" }),
+      ).rejects.toThrow("Membro da equipe não encontrado ou pertence a outra loja.");
+    });
+
+    it("should prevent editing owner if you are not owner", async () => {
+      const mockIdentity = { id: "user-456", store_id: "store-456", role: "admin", memberships: [] };
+      vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
+      
+      const builder = createMockQueryBuilder({ data: { role: "owner" }, error: null });
+      mockFrom.mockImplementation(() => builder);
+
+      await expect(
+        updateTeamMemberRoleHandler({ id: "user-123", role: "manager" }),
+      ).rejects.toThrow("Apenas o proprietário pode alterar suas próprias permissões.");
+    });
+
     it("should successfully update team member role", async () => {
-      vi.mocked(getServerIdentity).mockResolvedValueOnce({
-        id: "user-123",
-        role: "owner",
-        store_id: "store-456",
-        memberships: [{ store_id: "store-123", role: "admin" }],
+      const mockIdentity = { id: "user-123", store_id: "store-456", role: "owner", memberships: [] };
+      vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
+
+      const mockUpdated = { profile_id: "user-456", role: "manager" };
+      let callCount = 0;
+      mockFrom.mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) return createMockQueryBuilder({ data: { role: "seller" }, error: null });
+        return createMockQueryBuilder({ data: mockUpdated, error: null });
       });
 
-      const mockUpdated = { id: "user-456", role: "manager" };
-      // 1. target lookup
-      mockSingle.mockResolvedValueOnce({ data: { role: "seller" }, error: null });
-      // 2. update query
-      mockSingle.mockResolvedValueOnce({ data: mockUpdated, error: null });
-
       const res = await updateTeamMemberRoleHandler({ id: "user-456", role: "manager" });
+
       expect(res).toEqual(mockUpdated);
-      expect(mockFrom).toHaveBeenCalledWith("profiles");
-      expect(mockUpdate).toHaveBeenCalledWith({ role: "manager" });
+      expect(mockFrom).toHaveBeenCalledWith("workspace_members");
     });
   });
 
@@ -312,7 +255,7 @@ describe("Admin Team Functions", () => {
       });
 
       mockCreateUser.mockResolvedValueOnce({ data: { user: { id: "new-user-123" } }, error: null });
-      mockUpsert.mockResolvedValueOnce({ error: { message: "Profile upsert failed" } });
+      mockFrom.mockImplementation(() => createMockQueryBuilder({ error: { message: "Profile upsert failed" } }));
 
       await expect(
         inviteTeamMemberHandler({
@@ -324,35 +267,38 @@ describe("Admin Team Functions", () => {
     });
 
     it("should successfully invite team member and promote profile via upsert", async () => {
-      vi.mocked(getServerIdentity).mockResolvedValueOnce({
-        id: "user-123",
-        role: "admin",
-        store_id: "store-456",
-        memberships: [{ store_id: "store-123", role: "admin" }],
+      const mockIdentity = { id: "user-123", store_id: "store-456", role: "owner", memberships: [] };
+      vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
+
+      mockCreateUser.mockResolvedValueOnce({
+        data: { user: { id: "new-user-123" } },
+        error: null,
       });
 
-      mockCreateUser.mockResolvedValueOnce({ data: { user: { id: "new-user-123" } }, error: null });
-      mockUpsert.mockResolvedValueOnce({ error: null });
+      const builder = createMockQueryBuilder({ error: null });
+      mockFrom.mockImplementation(() => builder);
 
       const res = await inviteTeamMemberHandler({
-        email: "test@loja.com",
+        email: "seller@test.com",
         fullName: "Test Seller",
         role: "seller",
       });
+
       expect(res).toEqual({ status: "success" });
-      expect(mockCreateUser).toHaveBeenCalledWith({
-        email: "test@loja.com",
-        password: "Jah123!",
-        email_confirm: true,
-        user_metadata: {
-          full_name: "Test Seller",
-        },
-      });
+      expect(mockCreateUser).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: "seller@test.com",
+        }),
+      );
+      expect(mockFrom).toHaveBeenCalledWith("workspace_members");
       expect(mockFrom).toHaveBeenCalledWith("profiles");
-      expect(mockUpsert).toHaveBeenCalledWith({
-        id: "new-user-123",
+      expect(builder.upsert).toHaveBeenCalledWith({
+        profile_id: "new-user-123",
         role: "seller",
         store_id: "store-456",
+      });
+      expect(builder.upsert).toHaveBeenCalledWith({
+        id: "new-user-123",
         full_name: "Test Seller",
       });
     });

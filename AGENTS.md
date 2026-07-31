@@ -1,4 +1,4 @@
-# AGENTS.md — Regras de implementação (Hr Shoes Commerce)
+# AGENTS.md — Regras de implementação (Jah Community Platform)
 
 > Regras vinculantes para qualquer pessoa/agente que edite este projeto.
 > Nenhuma regra crítica pode existir só no chat. As fontes únicas de verdade
@@ -28,9 +28,9 @@ programática de navegação e deve espelhar `docs/ROUTES.md`.
 - Roteamento file-based em `src/routes/`. Data fetching centralizado
   (TanStack Query) — nunca `useEffect + fetch` para carga inicial.
 - Estrutura de pastas obrigatória:
-  - `src/components/ui` — primitivos shadcn
-  - `src/components/commerce` — componentes de vitrine
-  - `src/components/admin` — componentes de painel
+  - `src/components/ui` — primitivos shadcn / Jah Primitives (`<Surface>`, etc.)
+  - `src/components/commerce` — componentes de vitrine/feed/eventos
+  - `src/components/admin` — componentes de painel (sem modais apertados)
   - `src/components/state` — estados (empty/error/loading/permission/...)
   - `src/features/*` — features por domínio
   - `src/routes/*` — rotas
@@ -45,35 +45,28 @@ programática de navegação e deve espelhar `docs/ROUTES.md`.
    de domínio passa por `src/services/*` (server functions / BFF). Supabase é
    persistência + Auth, protegido por RLS deny-by-default — nunca atalho de
    segurança.
-2. **Nenhum cálculo comercial no cliente.** Preço, desconto, frete, comissão,
-   estoque e totais são sempre calculados/validados no servidor. O cliente só
-   exibe valores retornados.
+2. **Identidade Multi-Contexto e Separação.** A Jah tem contas de Pessoa (Social) e Perfil de Negócio (Loja/Organizador). Toda mutação e leitura deve exigir validação de sessão em qual contexto o usuário está atuando.
 3. **Dinheiro = integer cents + currency `BRL`.** Nunca float. Formatação via
    `src/lib/money.ts`.
 4. **Datas** ISO UTC no armazenamento; exibição em `America/Sao_Paulo` via
    `src/lib/datetime.ts`.
-5. **Sem dados fictícios ou marcadores "Em breve".** Nada de mock APIs, produtos inventados, imagens externas aleatórias, fallbacks falsos ou botões sem destino. É estritamente proibido exibir "Em breve", "Fase X" ou "Planejado" em produção. Funcionalidades incompletas devem ser escondidas da interface e ocultadas da navegação.
-6. **Integrações** têm status `unconfigured | testing | active | error`. Sem
-   credencial => "configuração ausente"; nunca simular sucesso.
-7. **Tokens de design** só em `src/styles.css`/`DESIGN.md`. Proibido hex,
-   `bg-white`, `text-black`, radius/shadow arbitrários em componentes.
+5. **Sem dados fictícios, "Em breve" ou integrações "Mocks".** Nada de mock APIs, produtos inventados, botões sem destino. Eventos, produtos e serviços exibidos na interface (Feed/Diretório) devem consumir instâncias REAIS do banco. O motor de CMS/Builder não substitui entidades do banco de dados (ex: Não copie horários em um JSON).
+6. **Integrações (Mapas, Pagamento, Frete)** têm status `unconfigured | testing | active | error`. Sem credencial => a UI de integração desaparece (utiliza-se fluxo manual fallback).
+7. **Design System da Rua (Jah).** Uso exclusivo dos Design Tokens de `src/styles.css`. Não criar novos `Dialogs` pequenos para fluxos complexos (usar `Sheet` expansivo 75% da tela ou página inteira). Use o componente genérico `<Surface>` para variar temas (zine, ticket, lambe, journal) em vez de aplicar estilos ad-hoc.
 8. **Idempotência e transação** em toda operação financeira/estoque/pedido
-   (contratos definidos agora, implementação nas fases seguintes).
+   (contratos definidos, implementação nas fases seguintes).
 9. **Segredos** nunca no bundle/logs. Service role só no servidor.
-10. **UUID não substitui autorização.** RBAC no servidor sempre.
+10. **UUID não substitui autorização.** RBAC e verificação cruzada de tenant no servidor sempre.
 
 ## Convenções de código
 
 - `TypeScript strict`; sem `any` implícito; DTOs distintos das entidades.
 - Validação compartilhada por schema (`zod`).
-- Rotas e menus refletem estritamente o estado funcional do sistema. Funcionalidades planejadas pertencem apenas à documentação e nunca devem vazar para o registro de rotas, UI ou componentes de bloqueio como `PhaseGate`.
+- Rotas e menus refletem estritamente o estado funcional do sistema. Funcionalidades planejadas não devem vazar para o registro de rotas se a infraestrutura/persistência não estiver validada.
 - Componentes de dado/ação implementam: loading, empty, error, permission,
-  disabled, unconfigured (ver `DESIGN.md` §5).
-- Acessibilidade WCAG 2.2 AA (ver `DESIGN.md` §6). Alvos >= 44px.
+  disabled, unconfigured.
+- Acessibilidade WCAG 2.2 AA. Tipografia legível para operacional, expressiva apenas para display/decorativo.
 
 ## Fase atual
 
-**Fase 0** — fundação: docs canônicos, tokens, layout, navegação, registry de
-rotas, páginas públicas estruturais, shell do painel, componentes e estados
-vazios verdadeiros. Não avançar de fase sem critérios de aceite, migração,
-testes e revisão de segurança (ver `docs/ROADMAP.md`).
+**Fase 1 Jah** — Substituição Documental e Fundação do Design System da Rua (Zines/Flyers/Tickets/Papers). Atualização do núcleo canônico de uma loja comum para Plataforma Comunitária. Não avance para as lógicas de evento/feed sem consolidar as primitivas visuais.

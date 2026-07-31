@@ -155,7 +155,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         },
         {
           rel: "stylesheet",
-          href: `https://fonts.googleapis.com/css2?family=${(theme?.font_body || "Inter").replace(/ /g, "+")}:wght@400;500;600;700&family=${(theme?.font_heading || "Inter").replace(/ /g, "+")}:wght@400;500;600;700&display=swap`,
+          href: `https://fonts.googleapis.com/css2?family=${(theme?.font_body || "Inter").replace(/ /g, "+")}:wght@400;500;600;700&family=${(theme?.font_heading || "Oswald").replace(/ /g, "+")}:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700;800&display=swap`,
         },
       ],
     };
@@ -175,12 +175,12 @@ function RootShell({ children }: { children: ReactNode }) {
   const customStyles = theme
     ? `
     :root {
-      --primary: ${theme.primary_color || "#171717"};
-      --background: ${theme.background_color || "#FFFFFF"};
-      --foreground: ${theme.text_color || "#171717"};
-      --radius: ${theme.border_radius || "0.25rem"};
+      --primary: ${theme.primary_color || "#121212"};
+      --background: ${theme.background_color || "#F4F1EA"};
+      --foreground: ${theme.text_color || "#121212"};
+      --radius: ${theme.border_radius || "0px"};
       --font-sans: "${theme.font_body || "Inter"}", sans-serif;
-      --font-serif: "${theme.font_heading || "Inter"}", sans-serif;
+      --font-display: "${theme.font_heading || "Bebas Neue"}", sans-serif;
     }
   `
     : "";

@@ -179,7 +179,6 @@ function RmaDashboardPage() {
         <EmptyState
           title="Nenhum RMA aberto"
           description="Nenhuma solicitação de troca ou devolução no momento."
-          icon={RefreshCcw}
         />
       ) : viewMode === "table" ? (
         <div className="rounded-md border bg-card overflow-hidden">

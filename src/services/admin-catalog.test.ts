@@ -249,7 +249,7 @@ describe("Admin Catalog Functions", () => {
   describe("createProductTypeHandler", () => {
     it("should successfully insert a product type linked to store and organization", async () => {
       mockSingle
-        .mockResolvedValueOnce({ data: { id: "store-123", memberships: [{ store_id: "store-123", role: "admin" }], } })
+        .mockResolvedValueOnce({ data: { id: "store-123", organization_id: "org-1" } })
         .mockResolvedValueOnce({
           data: { id: "type-1", name: "Tênis", slug: "tenis" },
           error: null,
@@ -267,7 +267,7 @@ describe("Admin Catalog Functions", () => {
       expect(mockFrom).toHaveBeenCalledWith("product_types");
       expect(mockInsert).toHaveBeenCalledWith({
         store_id: "store-123",
-        memberships: [{ store_id: "store-123", role: "admin" }],
+        organization_id: "org-1",
         ...input,
       });
     });

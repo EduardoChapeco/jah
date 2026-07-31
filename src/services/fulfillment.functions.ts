@@ -51,27 +51,16 @@ function resolveTrackingUrl(code: string, providedUrl?: string): string {
  * Returns store_id of the authorized user.
  */
 async function requireStaffAccess(): Promise<string> {
-  const ssrClient = await getSSRClient();
-  const {
-    data: { user },
-  } = await ssrClient.auth.getUser();
-  if (!user) throw new Error("Não autenticado.");
-
-  const db = getServerClient();
-  const { data: profile } = await db
-    .from("profiles")
-    .select("role, store_id")
-    .eq("id", user.id)
-    .single();
-
+  const identity = await getServerIdentity();
+  
   if (
-    !profile?.store_id ||
-    !["owner", "admin", "manager", "logistics", "operator"].includes(profile.role)
+    !identity.store_id ||
+    !["owner", "admin", "manager", "logistics", "operator"].includes(identity.role)
   ) {
     throw new Error("Acesso negado. Permissão insuficiente.");
   }
 
-  return profile.store_id;
+  return identity.store_id;
 }
 
 // ---------------------------------------------------------------------------

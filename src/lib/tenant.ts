@@ -1,12 +1,17 @@
-﻿import { getRequestHeader } from "@tanstack/react-start/server";
+import { getRequestHeader, getCookie } from "@tanstack/react-start/server";
 import { getAnonServerClient } from "@/lib/supabase";
 
 /**
- * Resolve the current store_id based on the HTTP Host header.
+ * Resolve the current store_id based on the HTTP Host header or active cookie.
  * For now, if the host is missing or it doesn`t match any slug,
  * it gracefully falls back to the first available store (preserving compatibility during migration).
  */
 export async function resolveTenantStoreId(): Promise<string | null> {
+  const activeTenantCookie = getCookie("jah_active_tenant");
+  if (activeTenantCookie) {
+    return activeTenantCookie;
+  }
+
   const host = getRequestHeader("host");
 
   // Extract subdomain or matching slug from host if possible

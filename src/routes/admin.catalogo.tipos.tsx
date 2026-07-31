@@ -17,14 +17,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Surface } from "@/components/ui/surface";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -190,27 +191,29 @@ function ProductTypesPage() {
         title="Tipos de produto"
         description="Defina os esquemas de atributos dinâmicos para diferentes categorias de produtos."
         actions={
-          <Dialog
+          <Sheet
             open={open}
             onOpenChange={(val) => {
               setOpen(val);
               if (!val) setEditingType(null);
             }}
           >
-            <Button onClick={handleOpenNew} size="sm">
-              <Plus className="mr-1.5 size-4" aria-hidden />
-              Novo Tipo
-            </Button>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>
+            <SheetTrigger asChild>
+              <Button onClick={handleOpenNew} size="sm">
+                <Plus className="mr-1.5 size-4" aria-hidden />
+                Novo Tipo
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="max-w-2xl overflow-y-auto">
+              <SheetHeader>
+                <SheetTitle>
                   {editingType ? "Editar tipo de produto" : "Criar tipo de produto"}
-                </DialogTitle>
-                <DialogDescription>
+                </SheetTitle>
+                <SheetDescription>
                   Um tipo de produto define quais atributos um produto deve ter (ex: Tamanho, Cor,
                   Material).
-                </DialogDescription>
-              </DialogHeader>
+                </SheetDescription>
+              </SheetHeader>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -356,17 +359,17 @@ function ProductTypesPage() {
                   )}
                 </div>
 
-                <DialogFooter>
+                <SheetFooter className="pt-4">
                   <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={isSubmitting}>
                     {isSubmitting ? "Salvando..." : "Salvar Tipo"}
                   </Button>
-                </DialogFooter>
+                </SheetFooter>
               </form>
-            </DialogContent>
-          </Dialog>
+            </SheetContent>
+          </Sheet>
         }
       />
 
@@ -393,11 +396,11 @@ function ProductTypesPage() {
           }
         />
       ) : (
-        <div className="rounded-xl border border-border bg-card shadow-xs">
+        <Surface variant="zine" elevation="sm" padding="none">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-muted/40">
+                <TableRow className="bg-muted/40 border-b border-ink/20">
                   <TableHead>Nome</TableHead>
                   <TableHead>Slug</TableHead>
                   <TableHead>Campos Dinâmicos</TableHead>
@@ -422,7 +425,7 @@ function ProductTypesPage() {
                         {type.slug}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge variant="secondary" className="text-xs border-ink/30">
                           {Array.isArray(type.field_schema) ? type.field_schema.length : 0} campos
                         </Badge>
                       </TableCell>
@@ -457,7 +460,7 @@ function ProductTypesPage() {
               </TableBody>
             </Table>
           </div>
-        </div>
+        </Surface>
       )}
     </div>
   );

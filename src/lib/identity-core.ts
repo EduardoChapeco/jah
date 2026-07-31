@@ -14,7 +14,7 @@ export interface ServerIdentity {
   /** store_id do contexto ativo (loja sendo acessada) — null se puramente pessoal */
   store_id: string | null;
   /** Lista de lojas/workspaces que o usuário faz parte e seus respectivos papéis */
-  memberships: { store_id: string; role: string }[];
+  memberships: { store_id: string; role: string; name?: string; slug?: string; logo_url?: string }[];
 }
 
 export const STAFF_ROLES = [

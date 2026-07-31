@@ -24,9 +24,6 @@ const mockIdentity = {
 vi.mock("@/lib/server-access", () => ({
   getServerIdentity: vi.fn(),
   assertStoreAccess: vi.fn(),
-}));
-
-vi.mock("@/lib/server-access", () => ({
   getSSRClient: vi.fn(),
 }));
 

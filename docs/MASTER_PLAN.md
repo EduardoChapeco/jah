@@ -1,25 +1,33 @@
-# Master Plan — Hr Shoes Commerce
+# Master Plan — Jah Community Platform
 
-Este documento normaliza o briefing completo do projeto Hr Shoes Commerce em um plano mestre. Ele é a porta de entrada para qualquer pessoa (humana ou agente) que for trabalhar no produto. Os detalhes técnicos aprofundados vivem em documentos irmãos, que são fontes únicas de verdade (single source of truth) para seus respectivos temas:
+Este documento normaliza o briefing completo do projeto Jah Community Platform em um plano mestre. Ele é a porta de entrada para qualquer pessoa (humana ou agente) que for trabalhar no produto. Os detalhes técnicos aprofundados vivem em documentos irmãos, que são fontes únicas de verdade (single source of truth) para seus respectivos temas:
 
-- `DESIGN.md` — design system, tokens visuais, tipografia, cores, espaçamentos, componentes visuais.
+- `DESIGN.md` — design system, tokens visuais, tipografia (Inter, Space Grotesk, Oswald, JetBrains Mono), cores, espaçamentos, primitivas de superfície (Surface).
 - `AGENTS.md` — regras de comportamento para agentes/IA que editam este repositório.
-- `docs/ARCHITECTURE.md` — arquitetura de software, camadas, fluxo de dados, integração com Lovable Cloud/Supabase.
-- `DOMAIN_MODEL.md` — entidades de domínio, relacionamentos, invariantes de negócio.
-- `ROUTES.md` — registro de rotas públicas, de cliente e de admin, com metadados de fase/permissão.
+- `docs/ARCHITECTURE.md` — arquitetura de software, camadas, fluxo de dados, integração com Supabase.
+- `DOMAIN_MODEL.md` — entidades de domínio (Feeds, Events, Tickets, Classifieds, Products).
+- `ROUTES.md` — registro de rotas públicas, de cliente e de admin.
 - `SECURITY.md` — modelo de autenticação, autorização, RLS, segredos, superfícies de ataque.
-- `API_CONTRACTS.md` — contratos de funções de servidor/BFF, formatos de entrada/saída, erros.
-- `COMPONENT_CATALOG.md` — catálogo de componentes reutilizáveis e seus estados obrigatórios.
+- `API_CONTRACTS.md` — contratos de funções de servidor/BFF.
+- `COMPONENT_CATALOG.md` — catálogo de componentes reutilizáveis.
 
-Este `MASTER_PLAN.md` não substitui nenhum desses documentos: ele apenas situa o leitor e aponta para onde ir. Em caso de dúvida sobre um tema específico, o documento especializado prevalece; este arquivo deve permanecer consistente com todos eles.
+**Dossiês de Domínio (Arquitetura Nova):**
+- `DOMAINS/01_IDENTITY_ACCESS.md` — Identidade Global, Organizações, Perfis, Acessos e Isolamento.
+- `DOMAINS/02_CATALOG_COMMERCE.md` — Catálogo unificado, Classificados, Marketplace e Checkout.
+- `DOMAINS/03_CULTURE_EVENTS.md` — Produtores, Eventos, Ingressos, Lotes e Check-in.
+- `DOMAINS/04_COMMUNITY_SOCIAL.md` — Feed de Atividades, Posts, Conexões e Diretório.
+- `DOMAINS/05_OPERATIONS_FINANCE.md` — Frente de Caixa (PDV), Fulfillment, Repasses e Comissões.
+- `DOMAINS/06_BUILDER_CMS.md` — Motor visual canônico, Storefront, Páginas e Geração de Documentos.
+
+Este `MASTER_PLAN.md` não substitui nenhum desses documentos: ele apenas situa o leitor e aponta para onde ir. 
 
 ## 1. Visão e objetivo
 
-Hr Shoes Commerce é uma plataforma de ecommerce/CMS/PWA mobile-first para a Hr Shoes, marca de moda/calçados femininos contemporâneos, operando no mercado brasileiro. O objetivo é oferecer uma loja pública rápida e bonita para clientes, e um painel administrativo simples o bastante para uma lojista leiga operar sozinha, sem depender de suporte técnico constante.
+A **Jah** é uma plataforma comunitária, social, cultural e comercial conectando artistas, bandas, criadores, entregadores, pequenos negócios e o público. Não somos apenas um e-commerce genérico; a Jah possui múltiplos contextos (Social, Operacional, Administrativo).
 
-O produto é construído como "produto de verdade": nada de protótipos descartáveis, dados fictícios permanentes ou atalhos que quebrem a arquitetura no futuro. Cada tela e cada componente entregues na Fase 0 devem poder evoluir diretamente para as fases seguintes sem retrabalho estrutural.
+A entrada principal é um feed comunitário mobile-first, onde aparecem eventos reais (com ingressos estruturados), serviços e produtos. O usuário pode trocar de perfil (Pessoa Física para Pessoa Jurídica) e gerir seus negócios.
 
-A plataforma roda sobre TanStack Start + React + TypeScript estrito + Tailwind v4 + shadcn/ui, com persistência e autenticação em Lovable Cloud (Supabase), protegida por Row Level Security (RLS) e acessada exclusivamente por meio de uma camada de serviços/BFF/funções de servidor — nunca diretamente pelos componentes React.
+O produto é construído sobre TanStack Start + React 19 + Tailwind v4 + shadcn/ui. O backend é Supabase protegido por RLS (Row Level Security). Nunca acessamos o banco diretamente do frontend; tudo é mediado por server functions.
 
 ## 2. Usuários-alvo
 

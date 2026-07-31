@@ -91,7 +91,12 @@ export const markRecoveryAttempt = createServerFn({ method: "POST" })
      assertStoreAccess(identity, ["owner", "admin", "manager", "seller"]);
 
      // Fetch current to increment
-     const { data: cart } = await supabase.from("abandoned_carts").select("recovery_attempts").eq("id", id).single();
+     const { data: cart } = await supabase
+       .from("abandoned_carts")
+       .select("recovery_attempts")
+       .eq("id", id)
+       .eq("store_id", identity.store_id)
+       .single();
      
      if (cart) {
         await supabase
@@ -100,7 +105,8 @@ export const markRecoveryAttempt = createServerFn({ method: "POST" })
              recovery_attempts: cart.recovery_attempts + 1,
              last_attempt_at: new Date().toISOString()
           })
-          .eq("id", id);
+          .eq("id", id)
+          .eq("store_id", identity.store_id);
      }
 
      return { success: true };
@@ -135,8 +141,8 @@ export const generateMatchTimeOffers = createServerFn({ method: "GET" }).handler
 
        return {
           variantId: v.id,
-          productId: v.products?.id,
-          title: v.products?.title,
+          productId: (v.products as any)?.id,
+          title: (v.products as any)?.title,
           variantName: v.canonical_name,
           image: v.product_media?.[0]?.url || null,
           originalPrice,

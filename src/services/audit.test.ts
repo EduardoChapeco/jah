@@ -58,7 +58,7 @@ describe("Audit Server Functions", () => {
 
       const result = await getAuditLogHandler();
 
-      expect(supabaseMock.from).toHaveBeenCalledWith("audit_log");
+      expect(supabaseMock.from).toHaveBeenCalledWith("audit_logs");
       expect(supabaseMock.from().eq).toHaveBeenCalledWith("store_id", "store-456");
       expect(result).toEqual(mockLogs);
     });

@@ -7,6 +7,8 @@ import { Heart, X, Sparkles, ShoppingBag, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { formatMoney } from "@/lib/money";
 
+import { addToCart } from "@/services/cart.functions";
+
 export const Route = createFileRoute("/_store/match-time")({
   head: () => ({ meta: [{ title: "Match Time! Ofertas Surpresa — Jah" }] }),
   loader: async () => {
@@ -17,7 +19,7 @@ export const Route = createFileRoute("/_store/match-time")({
 
 function MatchTimePage() {
   const initialOffers = Route.useLoaderData();
-  const { addItem, isCartUpdating, setIsCartOpen } = useCartContext();
+  const { refreshCart, isCartUpdating, setIsCartOpen } = useCartContext();
   const router = useRouter();
 
   const [offers, setOffers] = useState<any[]>(initialOffers);
@@ -34,7 +36,8 @@ function MatchTimePage() {
     if (swipeDirection === "right") {
        // Match! Add to cart with the flash price
        try {
-          await addItem(currentOffer.variantId, 1);
+          await addToCart({ data: { variantId: currentOffer.variantId, quantity: 1 } });
+          await refreshCart();
           toast.success("Deu Match! Adicionado ao carrinho com desconto oculto.");
        } catch (e: any) {
           toast.error("Erro ao adicionar oferta.");

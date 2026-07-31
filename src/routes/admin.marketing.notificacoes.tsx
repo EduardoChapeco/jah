@@ -10,14 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/state/states";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Surface } from "@/components/ui/surface";
 import {
   listAbandonedCarts,
   updateAbandonedCartStatus,
@@ -76,7 +69,7 @@ function NotificacoesPage() {
           description="Quando clientes abandonarem carrinhos, eles aparecerão aqui para acompanhamento."
         />
       ) : (
-        <div className="rounded-md border bg-card overflow-hidden">
+        <Surface variant="zine" elevation="sm" padding="none">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-muted/30">
@@ -135,7 +128,7 @@ function NotificacoesPage() {
               ))}
             </tbody>
           </table>
-        </div>
+        </Surface>
       )}
     </div>
   );

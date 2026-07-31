@@ -34,6 +34,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/state/states";
 import { getActiveRegister, addRegisterEntry } from "@/services/cash.functions";
+import { formatDateTime } from "@/lib/datetime";
 import { parseCurrencyInputToCents } from "@/lib/cash";
 import { formatMoney } from "@/lib/money";
 
@@ -249,8 +250,8 @@ function CaixaLancamentosPage() {
           <TableBody>
             {register.recentEntries.map((entry: any) => (
               <TableRow key={entry.id}>
-                <TableCell className="text-muted-foreground text-xs font-mono">
-                  {new Date(entry.created_at).toLocaleString("pt-BR")}
+                <TableCell className="text-sm">
+                  {formatDateTime(entry.created_at)}
                 </TableCell>
                 <TableCell className="font-medium text-foreground">{entry.description}</TableCell>
                 <TableCell>

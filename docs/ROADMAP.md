@@ -1,6 +1,6 @@
-# Roadmap — Hr Shoes Commerce
+# Roadmap — Jah Community Platform
 
-Este roadmap detalha as seis fases de construção do Hr Shoes Commerce. Cada fase tem escopo, critérios de aceite explícitos, exigências de migração de banco, exigências de teste e um gate de revisão de segurança. Consulte `MASTER_PLAN.md` para a visão geral e `ARCHITECTURE.md`, `DOMAIN_MODEL.md`, `SECURITY.md` para os detalhes técnicos referenciados aqui.
+Este roadmap detalha as fases de construção da Jah Community Platform (Plataforma Comunitária). Consulte `MASTER_PLAN.md` para a visão geral e `ARCHITECTURE.md`, `DOMAIN_MODEL.md`, `SECURITY.md` para os detalhes técnicos.
 
 ## Regra de ouro
 
@@ -8,19 +8,16 @@ Este roadmap detalha as seis fases de construção do Hr Shoes Commerce. Cada fa
 
 1. Critérios de aceite (aceite) cumpridos e verificados;
 2. Migrações de banco de dados aplicadas e revisadas;
-3. Testes automatizados escritos e passando (unitários, integração, RLS e/ou E2E conforme aplicável à fase);
-4. Revisão de segurança concluída (RLS, segredos, superfícies de exposição de dados).
-
-Essa regra é absoluta e não é flexibilizada por prazo ou pressão comercial.
+3. Testes automatizados escritos e passando;
+4. Revisão de segurança concluída.
 
 ---
 
-## Fase 0 — Fundação (agora)
+## Fase 0 & 1 — Fundação e Primitivas da Rua (Concluída/Atual)
 
 ### Escopo
-
-- Documentação canônica: `MASTER_PLAN.md`, `ROADMAP.md`, `TEST_STRATEGY.md`, `DESIGN.md`, `AGENTS.md`, `docs/ARCHITECTURE.md`, `DOMAIN_MODEL.md`, `ROUTES.md`, `SECURITY.md`, `API_CONTRACTS.md`, `COMPONENT_CATALOG.md`.
-- Tokens de design: cores (rosa marca #FF4FB8, canvas quente #F3F1EC, tinta #292729), tipografia (Manrope/Fraunces), espaçamento, elevação, raio.
+- Documentação canônica atualizada (Transição Hr Shoes -> Jah).
+- Design system aplicado: tokens de cor, tipografia da rua (Inter, Space Grotesk, Oswald, JetBrains Mono) e primitivas genéricas `<Surface>` (zine, flyer, yellow-pages, ticket, polaroid).
 - Layout e navegação: shell público, shell de cliente, shell de admin.
 - Registro de rotas tipado, com metadados de fase, permissão e status ("disponível" / "em breve").
 - Páginas públicas estruturais: home com seções reais conectáveis, páginas institucionais mínimas.

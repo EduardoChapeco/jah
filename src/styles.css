@@ -6,30 +6,22 @@
 
 /*
  * ============================================================================
- * Jah Commerce — Design System (single source of truth for tokens)
+ * Jah Community Platform — Design System
  * ============================================================================
- * Human rationale and full spec live in /DESIGN.md.
- * Direction: contemporary women's fashion, minimal, light, editorial.
- * Warm off-white canvas, vivid brand pink as accent, graphite ink for text,
- * generous whitespace. Never paint everything pink — pink is an accent.
- *
- * RULES:
- * - All color / radius / shadow / typography values are defined HERE only.
- * - Components MUST consume semantic tokens (bg-background, text-primary...).
- * - Never hardcode hex / rgb / arbitrary radius / shadow in components.
- * - All colors use oklch.
+ * Estética de rua, zines, papel jornal, listas amarelas e cartazes.
+ * Cores fortes, contraste alto, bordas duras, sombras sólidas (brutalismo).
  * ============================================================================
  */
 
 @theme inline {
-  /* Radius scale */
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 16px);
-  --radius-4xl: calc(var(--radius) + 24px);
+  /* Radius scale - brutalist/sharp by default */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-4xl: 0px;
 
   /* Semantic colors */
   --color-background: var(--background);
@@ -59,157 +51,111 @@
   --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
 
-  /* Brand raw accents (use sparingly, via semantic tokens where possible) */
-  --color-brand: var(--brand);
-  --color-brand-foreground: var(--brand-foreground);
-  --color-brand-soft: var(--brand-soft);
+  /* Jah Specific Core Colors */
   --color-ink: var(--ink);
-  --color-canvas: var(--canvas);
-
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+  --color-paper: var(--paper);
+  --color-newsprint: var(--newsprint);
+  --color-directory-yellow: var(--directory-yellow);
+  --color-poster-red: var(--poster-red);
+  --color-signal-orange: var(--signal-orange);
+  --color-electric-cyan: var(--electric-cyan);
+  --color-faded-blue: var(--faded-blue);
 
   /* Typography */
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-serif: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Oswald", "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Roboto Mono", ui-monospace, monospace;
 
-  /* Elevation (soft, editorial — not heavy) */
-  --shadow-xs: 0 1px 2px 0 oklch(0.27 0.004 20 / 0.05);
-  --shadow-sm: 0 1px 3px 0 oklch(0.27 0.004 20 / 0.08);
-  --shadow-md: 0 6px 20px -6px oklch(0.27 0.004 20 / 0.12);
-  --shadow-lg: 0 18px 45px -18px oklch(0.27 0.004 20 / 0.18);
-  --shadow-brand: 0 12px 30px -12px oklch(0.68 0.24 350 / 0.35);
+  /* Elevation (Brutalist Solid Shadows) */
+  --shadow-sm: 2px 2px 0px 0px var(--ink);
+  --shadow-md: 4px 4px 0px 0px var(--ink);
+  --shadow-lg: 8px 8px 0px 0px var(--ink);
+  --shadow-brand: 6px 6px 0px 0px var(--poster-red);
 }
 
 :root {
-  --radius: 0.75rem;
+  --radius: 0px;
 
-  /* Canvas & ink */
-  --canvas: oklch(0.965 0.006 85);
-  --ink: oklch(0.27 0.006 20);
+  /* Jah Core Palette */
+  --ink: oklch(0.2 0 0); /* #1a1a1a */
+  --paper: oklch(0.97 0.01 90); /* #f4f4f0 */
+  --newsprint: oklch(0.92 0.01 90); /* #e8e8e3 */
+  --directory-yellow: oklch(0.9 0.15 95); /* #fde047 approx */
+  --poster-red: oklch(0.55 0.22 25); /* #dc2626 approx */
+  --signal-orange: oklch(0.65 0.2 45); /* #ea580c approx */
+  --electric-cyan: oklch(0.7 0.15 230); /* #06b6d4 approx */
+  --faded-blue: oklch(0.6 0.1 260); 
 
-  --background: oklch(0.965 0.006 85); /* warm off-white ~#F3F1EC */
-  --foreground: oklch(0.27 0.006 20); /* graphite ink ~#292729 */
+  /* Shadcn Mapping */
+  --background: var(--paper);
+  --foreground: var(--ink);
 
-  --card: oklch(0.995 0.003 85);
-  --card-foreground: oklch(0.27 0.006 20);
-  --popover: oklch(0.995 0.003 85);
-  --popover-foreground: oklch(0.27 0.006 20);
+  --card: var(--newsprint);
+  --card-foreground: var(--ink);
+  --popover: var(--paper);
+  --popover-foreground: var(--ink);
 
-  /* Brand pink ~#FF4FB8 */
-  --brand: oklch(0.685 0.222 349);
-  --brand-foreground: oklch(0.99 0.005 350);
-  --brand-soft: oklch(0.93 0.05 349);
+  --primary: var(--ink);
+  --primary-foreground: var(--paper);
 
-  --primary: oklch(0.685 0.222 349);
-  --primary-foreground: oklch(0.99 0.005 350);
+  --secondary: var(--directory-yellow);
+  --secondary-foreground: var(--ink);
 
-  --secondary: oklch(0.93 0.008 85);
-  --secondary-foreground: oklch(0.3 0.006 20);
+  --muted: var(--newsprint);
+  --muted-foreground: oklch(0.4 0 0);
 
-  --muted: oklch(0.93 0.007 85);
-  --muted-foreground: oklch(0.52 0.008 40);
+  --accent: var(--poster-red);
+  --accent-foreground: var(--paper);
 
-  --accent: oklch(0.93 0.05 349);
-  --accent-foreground: oklch(0.4 0.15 349);
-
-  --destructive: oklch(0.585 0.212 25);
-  --destructive-foreground: oklch(0.99 0.005 350);
+  --destructive: var(--poster-red);
+  --destructive-foreground: var(--paper);
+  
   --success: oklch(0.62 0.13 150);
-  --success-foreground: oklch(0.99 0.005 150);
-  --warning: oklch(0.75 0.15 75);
-  --warning-foreground: oklch(0.28 0.05 75);
-  --info: oklch(0.6 0.11 240);
-  --info-foreground: oklch(0.99 0.005 240);
+  --success-foreground: var(--paper);
+  
+  --warning: var(--directory-yellow);
+  --warning-foreground: var(--ink);
+  
+  --info: var(--electric-cyan);
+  --info-foreground: var(--ink);
 
-  --border: oklch(0.9 0.006 80);
-  --input: oklch(0.9 0.006 80);
-  --ring: oklch(0.685 0.222 349);
-
-  --chart-1: oklch(0.685 0.222 349);
-  --chart-2: oklch(0.6 0.11 240);
-  --chart-3: oklch(0.62 0.13 150);
-  --chart-4: oklch(0.75 0.15 75);
-  --chart-5: oklch(0.55 0.1 300);
-
-  --sidebar: oklch(0.99 0.004 85);
-  --sidebar-foreground: oklch(0.27 0.006 20);
-  --sidebar-primary: oklch(0.685 0.222 349);
-  --sidebar-primary-foreground: oklch(0.99 0.005 350);
-  --sidebar-accent: oklch(0.94 0.008 85);
-  --sidebar-accent-foreground: oklch(0.27 0.006 20);
-  --sidebar-border: oklch(0.9 0.006 80);
-  --sidebar-ring: oklch(0.685 0.222 349);
+  --border: var(--ink);
+  --input: var(--ink);
+  --ring: var(--poster-red);
 }
 
 .dark {
-  --canvas: oklch(0.2 0.006 30);
-  --ink: oklch(0.96 0.005 85);
+  /* No dark mode for printed paper aesthetic by default, or inverted */
+  --ink: oklch(0.97 0.01 90); /* paper becomes ink */
+  --paper: oklch(0.2 0 0); /* ink becomes paper */
+  --newsprint: oklch(0.25 0 0);
+  
+  --background: var(--paper);
+  --foreground: var(--ink);
 
-  --background: oklch(0.185 0.006 30);
-  --foreground: oklch(0.96 0.005 85);
+  --card: var(--newsprint);
+  --card-foreground: var(--ink);
+  --popover: var(--paper);
+  --popover-foreground: var(--ink);
 
-  --card: oklch(0.23 0.006 30);
-  --card-foreground: oklch(0.96 0.005 85);
-  --popover: oklch(0.23 0.006 30);
-  --popover-foreground: oklch(0.96 0.005 85);
+  --primary: var(--ink);
+  --primary-foreground: var(--paper);
 
-  --brand: oklch(0.72 0.2 349);
-  --brand-foreground: oklch(0.15 0.02 349);
-  --brand-soft: oklch(0.35 0.09 349);
+  --secondary: var(--directory-yellow);
+  --secondary-foreground: oklch(0.2 0 0);
 
-  --primary: oklch(0.72 0.2 349);
-  --primary-foreground: oklch(0.15 0.02 349);
+  --muted: var(--newsprint);
+  --muted-foreground: oklch(0.7 0 0);
 
-  --secondary: oklch(0.28 0.006 30);
-  --secondary-foreground: oklch(0.96 0.005 85);
+  --accent: var(--poster-red);
+  --accent-foreground: var(--paper);
 
-  --muted: oklch(0.28 0.006 30);
-  --muted-foreground: oklch(0.7 0.008 60);
+  --destructive: var(--poster-red);
+  --destructive-foreground: var(--paper);
 
-  --accent: oklch(0.33 0.06 349);
-  --accent-foreground: oklch(0.92 0.04 349);
-
-  --destructive: oklch(0.65 0.19 25);
-  --destructive-foreground: oklch(0.99 0.005 350);
-  --success: oklch(0.68 0.13 150);
-  --success-foreground: oklch(0.15 0.02 150);
-  --warning: oklch(0.8 0.14 75);
-  --warning-foreground: oklch(0.2 0.03 75);
-  --info: oklch(0.68 0.11 240);
-  --info-foreground: oklch(0.15 0.02 240);
-
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 16%);
-  --ring: oklch(0.72 0.2 349);
-
-  --chart-1: oklch(0.72 0.2 349);
-  --chart-2: oklch(0.68 0.11 240);
-  --chart-3: oklch(0.68 0.13 150);
-  --chart-4: oklch(0.8 0.14 75);
-  --chart-5: oklch(0.65 0.12 300);
-
-  --sidebar: oklch(0.21 0.006 30);
-  --sidebar-foreground: oklch(0.96 0.005 85);
-  --sidebar-primary: oklch(0.72 0.2 349);
-  --sidebar-primary-foreground: oklch(0.15 0.02 349);
-  --sidebar-accent: oklch(0.28 0.006 30);
-  --sidebar-accent-foreground: oklch(0.96 0.005 85);
-  --sidebar-border: oklch(1 0 0 / 12%);
-  --sidebar-ring: oklch(0.72 0.2 349);
+  --border: var(--ink);
+  --input: var(--ink);
+  --ring: var(--poster-red);
 }
 
 @layer base {
@@ -226,39 +172,24 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
 
-  h1,
-  h2,
-  h3,
-  h4 {
+  h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
-    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    font-weight: 800;
+    letter-spacing: -0.02em;
   }
 
-  /* Respect reduced motion globally */
-  @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-      animation-duration: 0.001ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.001ms !important;
-      scroll-behavior: auto !important;
-    }
-  }
-
-  /* Visible focus for keyboard users (WCAG 2.2 AA) */
   :focus-visible {
-    outline: 2px solid var(--color-ring);
+    outline: 3px solid var(--color-ring);
     outline-offset: 2px;
   }
 }
 
-/* Safe-area helpers for mobile sticky bars / notches */
+/* Jah Textures & Utilities */
 @utility pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
 }
@@ -266,42 +197,70 @@
   padding-top: env(safe-area-inset-top);
 }
 
-/* Editorial display heading */
 @utility text-editorial {
   font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: 800;
+  text-transform: uppercase;
   letter-spacing: -0.02em;
   line-height: 1.05;
 }
 
-/* Uppercase eyebrow / label */
 @utility eyebrow {
-  font-family: var(--font-sans);
+  font-family: var(--font-mono);
   text-transform: uppercase;
-  letter-spacing: 0.16em;
-  font-weight: 600;
-  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  font-size: 0.75rem;
 }
 
-/*
- * Semantic text-size utilities for small UI elements.
- * Use these instead of arbitrary text-[…] values.
- *
- * text-badge  — pill/badge labels, "Em breve" chips      (0.6rem / 9.6px)
- * text-meta   — dense metadata, slugs, auxiliary labels  (0.72rem / 11.5px)
- * text-nav    — bottom nav item labels on mobile         (0.68rem / 10.9px)
- */
 @utility text-badge {
-  font-size: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
   line-height: 1rem;
+  text-transform: uppercase;
 }
 
 @utility text-meta {
-  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
   line-height: 1rem;
 }
 
 @utility text-nav {
-  font-size: 0.68rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
   line-height: 1rem;
+}
+
+@utility surface-paper {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  border: 1px solid var(--color-ink);
+}
+
+@utility surface-newsprint {
+  background-color: var(--color-newsprint);
+  color: var(--color-ink);
+}
+
+@utility surface-directory {
+  background-color: var(--color-directory-yellow);
+  color: var(--color-ink);
+  border: 1px solid var(--color-ink);
+}
+
+@utility surface-poster {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+@utility stamp-badge {
+  background-color: var(--color-poster-red);
+  color: var(--color-paper);
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid var(--color-ink);
+  transform: rotate(-2deg);
 }
