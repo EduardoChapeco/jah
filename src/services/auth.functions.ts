@@ -1,5 +1,5 @@
 /**
- * Auth server functions — Jah Commerce
+ * Auth server functions Commerce
  *
  * Handles login, signup, oauth, logout, and session retrieval using the SSR client.
  * Never stores credentials in the client; delegates all auth to Supabase.

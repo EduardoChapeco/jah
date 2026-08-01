@@ -1,5 +1,5 @@
 /**
- * Typed route registry — Jah Commerce.
+ * Typed route registry Commerce.
  * Programmatic single source of truth for navigation, permissions and phase
  * gating. MUST stay in sync with docs/ROUTES.md.
  *

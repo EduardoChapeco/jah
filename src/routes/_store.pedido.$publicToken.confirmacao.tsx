@@ -9,7 +9,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/pedido/$publicToken/confirmacao")({
   head: () => ({
-    meta: [{ title: "Pedido Confirmado — Jah" }],
+    meta: [{ title: "Pedido Confirmado" }],
   }),
   loader: ({ params }) => getOrderByToken({ data: { token: params.publicToken } }),
   component: ConfirmationPage,

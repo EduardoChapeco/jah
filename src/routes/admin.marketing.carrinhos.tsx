@@ -10,7 +10,7 @@ import { Search, MessageCircle, Mail, RotateCcw, ShoppingCart } from "lucide-rea
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/admin/marketing/carrinhos")({
-  head: () => ({ meta: [{ title: "Recuperação de Vendas — Jah" }] }),
+  head: () => ({ meta: [{ title: "Recuperação de Vendas" }] }),
   loader: async () => {
     return await listAbandonedCarts();
   },

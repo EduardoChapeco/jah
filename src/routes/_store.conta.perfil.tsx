@@ -39,7 +39,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/_store/conta/perfil")({
-  head: () => ({ meta: [{ title: "Meu Perfil — Jah" }] }),
+  head: () => ({ meta: [{ title: "Meu Perfil" }] }),
   loader: () => getProfile(),
   component: ProfilePage,
 });

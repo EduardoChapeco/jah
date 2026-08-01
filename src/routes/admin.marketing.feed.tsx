@@ -28,7 +28,7 @@ import {
 import { listSocialPosts, createSocialPost } from "@/services/marketing-engagement.functions";
 
 export const Route = createFileRoute("/admin/marketing/feed")({
-  head: () => ({ meta: [{ title: "Feed Social — Jah" }] }),
+  head: () => ({ meta: [{ title: "Feed Social" }] }),
   loader: async () => (await listSocialPosts()) || [],
   component: FeedPage,
 });

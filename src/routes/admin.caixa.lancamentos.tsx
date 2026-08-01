@@ -39,7 +39,7 @@ import { parseCurrencyInputToCents } from "@/lib/cash";
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/admin/caixa/lancamentos")({
-  head: () => ({ meta: [{ title: "Lançamentos do Caixa — Jah" }] }),
+  head: () => ({ meta: [{ title: "Lançamentos do Caixa" }] }),
   loader: async () => {
     return await getActiveRegister();
   },

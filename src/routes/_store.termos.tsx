@@ -9,8 +9,8 @@ export const Route = createFileRoute("/_store/termos")({
       {
         title:
           loaderData && !("status" in loaderData) && loaderData.title
-            ? `${loaderData.title} — Jah`
-            : "Termos de serviço — Jah",
+            ? `${loaderData.title}`
+            : "Termos de serviço",
       },
     ],
   }),

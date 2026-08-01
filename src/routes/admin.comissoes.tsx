@@ -26,7 +26,7 @@ import {
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/admin/comissoes")({
-  head: () => ({ meta: [{ title: "Comissões — Jah" }] }),
+  head: () => ({ meta: [{ title: "Comissões" }] }),
   loader: async () => {
     const [commissions, sellers] = await Promise.all([listCommissions(), listSellers()]);
     return { commissions, sellers };

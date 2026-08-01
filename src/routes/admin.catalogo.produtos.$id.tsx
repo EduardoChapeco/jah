@@ -89,7 +89,7 @@ import { formatMoney } from "@/lib/money";
 import { adjustStock } from "@/services/stock.functions";
 
 export const Route = createFileRoute("/admin/catalogo/produtos/$id")({
-  head: () => ({ meta: [{ title: "Editor Avançado de Produto — Jah" }] }),
+  head: () => ({ meta: [{ title: "Editor Avançado de Produto" }] }),
   loader: async ({ params }) => {
     const [product, catsRes, typesRes] = await Promise.all([
       getProductById({ data: { id: params.id } }),

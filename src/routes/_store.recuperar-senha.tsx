@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { resetPasswordForEmail } from "@/services/auth.functions";
 
 export const Route = createFileRoute("/_store/recuperar-senha")({
-  head: () => ({ meta: [{ title: "Recuperar senha — Jah" }] }),
+  head: () => ({ meta: [{ title: "Recuperar senha" }] }),
   component: Page,
 });
 

@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { getTicketThread, sendTicketMessage, listCustomerTickets } from "@/services/ticket.functions";
 
 export const Route = createFileRoute("/_store/conta/suporte")({
-  head: () => ({ meta: [{ title: "Meus Atendimentos — Jah" }] }),
+  head: () => ({ meta: [{ title: "Meus Atendimentos" }] }),
   loader: async () => {
     return await listCustomerTickets();
   },

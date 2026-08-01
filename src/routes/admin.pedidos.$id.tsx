@@ -26,7 +26,7 @@ import { getOrderById, updateOrderStatus, updateOrderShipment } from "@/services
 import { approvePayment, rejectPayment } from "@/services/payment.functions";
 
 export const Route = createFileRoute("/admin/pedidos/$id")({
-  head: () => ({ meta: [{ title: "Detalhes do Pedido — Jah" }] }),
+  head: () => ({ meta: [{ title: "Detalhes do Pedido" }] }),
   loader: async ({ params }: { params: { id: string } }) => {
     return await getOrderById({ data: { orderId: params.id } });
   },

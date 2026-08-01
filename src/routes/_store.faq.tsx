@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/accordion";
 
 export const Route = createFileRoute("/_store/faq")({
-  head: () => ({ meta: [{ title: "Perguntas frequentes — Jah" }] }),
+  head: () => ({ meta: [{ title: "Perguntas frequentes" }] }),
   loader: () => getPublicFaqs(),
   component: Page,
 });

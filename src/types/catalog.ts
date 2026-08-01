@@ -1,5 +1,5 @@
 /**
- * Catalog DTOs — Jah Commerce
+ * Catalog DTOs Commerce
  *
  * These are transport contracts returned by the BFF (server functions) to
  * the storefront. The client never:

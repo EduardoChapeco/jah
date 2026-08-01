@@ -1,5 +1,5 @@
 /**
- * Identidade canônica do usuário autenticado — Jah Commerce
+ * Identidade canônica do usuário autenticado Commerce
  *
  * Fonte única de verdade para resolver identity + role + store_id em server functions.
  * Nunca duplicar esta lógica nos arquivos de service.

@@ -1,5 +1,5 @@
 /**
- * rate-limiter.ts — Jah Commerce
+ * rate-limiter.ts Commerce
  *
  * In-process token-bucket rate limiter keyed by IP address.
  * Used to protect auth endpoints against brute-force attacks.

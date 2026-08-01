@@ -10,7 +10,7 @@ import { formatMoney } from "@/lib/money";
 import { addToCart } from "@/services/cart.functions";
 
 export const Route = createFileRoute("/_store/match-time")({
-  head: () => ({ meta: [{ title: "Match Time! Ofertas Surpresa — Jah" }] }),
+  head: () => ({ meta: [{ title: "Match Time! Ofertas Surpresa" }] }),
   loader: async () => {
     return await generateMatchTimeOffers();
   },

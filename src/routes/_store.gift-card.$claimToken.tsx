@@ -9,7 +9,7 @@ import { Gift, Lock, Loader2, Sparkles, ArrowRight, UserCheck } from "lucide-rea
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/gift-card/$claimToken")({
-  head: () => ({ meta: [{ title: "Resgatar Vale-Presente — Jah" }] }),
+  head: () => ({ meta: [{ title: "Resgatar Vale-Presente" }] }),
   loader: async ({ params: { claimToken } }) => {
     // Check if user is logged in using isomorphic server function
     const user = await getUserSession();

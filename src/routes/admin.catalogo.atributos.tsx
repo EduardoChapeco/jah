@@ -45,7 +45,7 @@ import {
 } from "@/services/admin-catalog.functions";
 
 export const Route = createFileRoute("/admin/catalogo/atributos")({
-  head: () => ({ meta: [{ title: "Grupos de Opções & Atributos — Jah" }] }),
+  head: () => ({ meta: [{ title: "Grupos de Opções & Atributos" }] }),
   loader: async () => {
     return await listProductTypes();
   },

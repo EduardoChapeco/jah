@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table";
 
 export const Route = createFileRoute("/admin/match-time")({
-  head: () => ({ meta: [{ title: "Match Time Reports — Jah" }] }),
+  head: () => ({ meta: [{ title: "Match Time Reports" }] }),
   loader: async () => {
     const res = await getMatchTimeReport();
     return res;

@@ -19,7 +19,7 @@ import { listIntegrationSettings, saveIntegrationCredential, deleteIntegrationCr
 import { Truck, Facebook, BarChart, Settings, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/configuracoes/integracoes")({
-  head: () => ({ meta: [{ title: "Integrações — Jah" }] }),
+  head: () => ({ meta: [{ title: "Integrações" }] }),
   loader: async () => {
     return await listIntegrationSettings();
   },

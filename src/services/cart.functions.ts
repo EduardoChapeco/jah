@@ -1,5 +1,5 @@
 /**
- * Cart server functions — Jah Commerce
+ * Cart server functions Commerce
  *
  * All cart and stock calculations happen here.
  * Never trust the client for prices or availability.

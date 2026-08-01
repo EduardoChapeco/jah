@@ -13,7 +13,7 @@ import { getBrowserClient } from "@/lib/supabase";
 import { EmptyState } from "@/components/state/states";
 
 export const Route = createFileRoute("/admin/conversas")({
-  head: () => ({ meta: [{ title: "Conversas — Jah" }] }),
+  head: () => ({ meta: [{ title: "Conversas" }] }),
   loader: async () => {
     const res = await listChatThreads();
     return res;

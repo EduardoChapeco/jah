@@ -1,5 +1,5 @@
 /**
- * Supabase SSR Client — Jah Commerce
+ * Supabase SSR Client Commerce
  *
  * This client is strictly for server-side auth and user session management.
  * It uses the @supabase/ssr package to manage Auth cookies via vinxi/http.

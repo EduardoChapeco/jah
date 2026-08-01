@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 /**
- * Canonical UI states — Jah Commerce (see DESIGN.md §5).
+ * Canonical UI states Commerce (see DESIGN.md §5).
  * Every data/action surface must be able to render these honestly.
  * None of these perform commercial calculation or fabricate data.
  */

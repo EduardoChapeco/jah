@@ -6,7 +6,7 @@ import { EmptyState, ErrorState } from "@/components/state/states";
 import { listCustomerOrders } from "@/services/order.functions";
 
 export const Route = createFileRoute("/_store/conta/pedidos/")({
-  head: () => ({ meta: [{ title: "Meus Pedidos — Jah" }] }),
+  head: () => ({ meta: [{ title: "Meus Pedidos" }] }),
   loader: async () => {
     const res = await listCustomerOrders();
     return res;

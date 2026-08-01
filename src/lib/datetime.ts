@@ -1,5 +1,5 @@
 /**
- * Date/time helpers — Jah Commerce.
+ * Date/time helpers Commerce.
  * RULE (AGENTS.md): store ISO UTC; display in America/Sao_Paulo.
  */
 

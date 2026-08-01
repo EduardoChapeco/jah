@@ -1,5 +1,5 @@
 /**
- * Supabase clients — Jah Commerce
+ * Supabase clients Commerce
  *
  * SERVER CLIENT (server-side only):
  *   Uses service_role key — NEVER import this in browser/component code.

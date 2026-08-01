@@ -33,7 +33,7 @@ import { formatMoney } from "@/lib/money";
 import { EmptyState } from "@/components/state/states";
 
 export const Route = createFileRoute("/admin/comprovantes")({
-  head: () => ({ meta: [{ title: "Comprovantes — Jah" }] }),
+  head: () => ({ meta: [{ title: "Comprovantes" }] }),
   loader: async () => {
     const res = await listPendingManualPayments();
     return res;

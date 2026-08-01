@@ -22,7 +22,7 @@ export const Route = createFileRoute("/_store/categoria/$slug")({
       data?.categoriesResult?.find((c: CategoryDTO) => c.slug === data?.slug)?.name ??
       data?.slug ??
       "Categoria";
-    const title = `${categoryName} — Jah`;
+    const title = `${categoryName}`;
     const description = `Confira os produtos da categoria ${categoryName} na Jah. Qualidade, estilo e conforto para o seu dia a dia.`;
     const canonical =
       typeof window !== "undefined" ? `${window.location.origin}/categoria/${data?.slug}` : "";

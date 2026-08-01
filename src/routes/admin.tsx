@@ -10,10 +10,16 @@ import { useEffect } from "react";
 export const Route = createFileRoute("/admin")({
   beforeLoad: async ({ location }) => {
     const session = await getUserSession();
-    if (!session || session.role === "customer") {
+    if (!session) {
       throw redirect({
         to: "/entrar",
         search: { returnUrl: location.pathname },
+      });
+    }
+
+    if (session.role === "customer") {
+      throw redirect({
+        to: "/conta",
       });
     }
 

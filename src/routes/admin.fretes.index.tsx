@@ -48,7 +48,7 @@ import {
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/admin/fretes/")({
-  head: () => ({ meta: [{ title: "Gestão de Fretes & Entregas — Jah" }] }),
+  head: () => ({ meta: [{ title: "Gestão de Fretes & Entregas" }] }),
   loader: async () => (await listShippingZones()) || [],
   component: ShippingHubPage,
 });

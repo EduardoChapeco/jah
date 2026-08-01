@@ -22,7 +22,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/cadastro")({
   head: () => ({
-    meta: [{ title: "Cadastro — Jah" }],
+    meta: [{ title: "Cadastro" }],
   }),
   validateSearch: (search: Record<string, unknown>): { returnUrl?: string; error?: string } => {
     return {

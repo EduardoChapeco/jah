@@ -10,7 +10,7 @@ import { ChevronLeft, Send } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/conta/conversas/$id")({
-  head: () => ({ meta: [{ title: "Suporte — Jah" }] }),
+  head: () => ({ meta: [{ title: "Suporte" }] }),
   loader: async ({ params }) => {
     const res = await getCustomerChatThread({ data: { threadId: params.id } });
     return res;

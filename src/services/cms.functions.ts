@@ -1,5 +1,5 @@
 /**
- * CMS server functions — Jah Commerce
+ * CMS server functions Commerce
  *
  * BFF boundary for Pages and Sections management.
  */

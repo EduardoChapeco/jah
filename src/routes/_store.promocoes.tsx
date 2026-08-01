@@ -6,7 +6,7 @@ import { ProductGrid } from "@/components/commerce/product-grid";
 import { getPromotionalProducts } from "@/services/catalog.functions";
 
 export const Route = createFileRoute("/_store/promocoes")({
-  head: () => ({ meta: [{ title: "Promoções — Jah" }] }),
+  head: () => ({ meta: [{ title: "Promoções" }] }),
   loader: async () => {
     return await getPromotionalProducts();
   },

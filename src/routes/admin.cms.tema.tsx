@@ -20,7 +20,7 @@ import { getThemeSettings, updateThemeSettings } from "@/services/cms.functions"
 import { ErrorState, UnconfiguredState } from "@/components/state/states";
 
 export const Route = createFileRoute("/admin/cms/tema")({
-  head: () => ({ meta: [{ title: "Tema — Jah" }] }),
+  head: () => ({ meta: [{ title: "Tema" }] }),
   loader: async () => {
     return await getThemeSettings();
   },

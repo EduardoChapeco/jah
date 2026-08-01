@@ -18,7 +18,7 @@ import { EmptyState } from "@/components/state/states";
 import { getStockLevels, adjustStock } from "@/services/stock.functions";
 
 export const Route = createFileRoute("/admin/estoque/alertas")({
-  head: () => ({ meta: [{ title: "Alertas de Estoque — Jah" }] }),
+  head: () => ({ meta: [{ title: "Alertas de Estoque" }] }),
   loader: async () => {
     const res = await getStockLevels({ data: {} });
     // Filter for low stock (on_hand <= 5) or out of stock

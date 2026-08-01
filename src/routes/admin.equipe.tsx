@@ -52,7 +52,7 @@ import { EmptyState } from "@/components/state/states";
 import { formatDateTime } from "@/lib/datetime";
 
 export const Route = createFileRoute("/admin/equipe")({
-  head: () => ({ meta: [{ title: "Gestão de Equipe — Jah" }] }),
+  head: () => ({ meta: [{ title: "Gestão de Equipe" }] }),
   loader: async () => {
     return (await listTeamMembers()) || [];
   },

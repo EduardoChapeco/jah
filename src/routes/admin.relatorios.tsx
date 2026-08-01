@@ -43,7 +43,7 @@ const getDashboardStats = createServerFn({ method: "GET" }).handler(async () => 
 });
 
 export const Route = createFileRoute("/admin/relatorios")({
-  head: () => ({ meta: [{ title: "Relatórios — Jah" }] }),
+  head: () => ({ meta: [{ title: "Relatórios" }] }),
   loader: async () => {
     return await getDashboardStats();
   },

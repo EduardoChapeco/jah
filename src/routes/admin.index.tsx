@@ -35,7 +35,7 @@ import { formatMoney } from "@/lib/money";
 import { getDashboardData, type DashboardMetrics } from "@/services/dashboard.functions";
 
 export const Route = createFileRoute("/admin/")({
-  head: () => ({ meta: [{ title: "Centro de Comando — Jah" }] }),
+  head: () => ({ meta: [{ title: "Centro de Comando" }] }),
   loader: async () => {
     return await getDashboardData();
   },

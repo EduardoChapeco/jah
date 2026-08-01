@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { getStoreSeo, saveStoreSeo } from "@/services/store.functions";
 
 export const Route = createFileRoute("/admin/configuracoes/seo")({
-  head: () => ({ meta: [{ title: "SEO — Jah" }] }),
+  head: () => ({ meta: [{ title: "SEO" }] }),
   loader: async () => {
     return await getStoreSeo();
   },

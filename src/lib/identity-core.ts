@@ -1,5 +1,5 @@
 /**
- * Identity core — Jah Commerce
+ * Identity core Commerce
  *
  * Tipos e validações puras de identidade. Este módulo NÃO importa nada de
  * servidor, portanto pode ser importado com segurança de qualquer lugar

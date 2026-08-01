@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/commerce/page-header";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/admin/configuracoes/lgpd")({
-  head: () => ({ meta: [{ title: "LGPD — Jah" }] }),
+  head: () => ({ meta: [{ title: "LGPD" }] }),
   component: LgpdPage,
 });
 

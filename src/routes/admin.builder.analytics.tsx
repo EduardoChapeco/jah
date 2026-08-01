@@ -17,7 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { getBuilderAnalyticsSummary } from "@/services/telemetry.functions";
 
 export const Route = createFileRoute("/admin/builder/analytics")({
-  head: () => ({ meta: [{ title: "Métricas do Builder — Jah" }] }),
+  head: () => ({ meta: [{ title: "Métricas do Builder" }] }),
   loader: async () => {
     const res = await getBuilderAnalyticsSummary();
     return {

@@ -21,7 +21,7 @@ import { createProduct, listCategories } from "@/services/admin-catalog.function
 import { VariantMatrixGrid, type RawVariant } from "@/components/admin/catalog/variant-matrix-grid";
 
 export const Route = createFileRoute("/admin/catalogo/produtos/novo")({
-  head: () => ({ meta: [{ title: "Criação Rápida — Jah" }] }),
+  head: () => ({ meta: [{ title: "Criação Rápida" }] }),
   loader: async () => {
     const [catsRes, typesRes] = await Promise.all([
       listCategories(),

@@ -1,5 +1,5 @@
 /**
- * Email Confirmation Handler — Jah Commerce
+ * Email Confirmation Handler Commerce
  *
  * Supabase sends users a confirmation email with a link like:
  *   https://jah.pages.dev/api/auth/confirm?token_hash=XXX&type=signup&next=/conta

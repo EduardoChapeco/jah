@@ -21,13 +21,19 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/entrar")({
   head: () => ({
-    meta: [{ title: "Entrar — Jah" }],
+    meta: [{ title: "Entrar" }],
   }),
   validateSearch: (search: Record<string, unknown>): { returnUrl?: string; error?: string } => {
     return {
       returnUrl: typeof search.returnUrl === "string" ? search.returnUrl : undefined,
       error: typeof search.error === "string" ? search.error : undefined,
     };
+  },
+  beforeLoad: async () => {
+    const session = await getUserSession();
+    if (session) {
+      throw redirect({ to: "/conta" });
+    }
   },
   component: LoginPage,
 });

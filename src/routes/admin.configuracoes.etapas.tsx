@@ -24,7 +24,7 @@ import {
 } from "@/services/onboarding.functions";
 
 export const Route = createFileRoute("/admin/configuracoes/etapas")({
-  head: () => ({ meta: [{ title: "Etapas para uma Loja de Sucesso — Jah" }] }),
+  head: () => ({ meta: [{ title: "Etapas para uma Loja de Sucesso" }] }),
   loader: async () => {
     return await getOnboardingStatus();
   },

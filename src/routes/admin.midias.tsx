@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/state/states";
 import { format } from "date-fns";
 
 export const Route = createFileRoute("/admin/midias")({
-  head: () => ({ meta: [{ title: "Mídias — Jah" }] }),
+  head: () => ({ meta: [{ title: "Mídias" }] }),
   loader: async () => {
     return await listMediaAssets();
   },

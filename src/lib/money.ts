@@ -1,5 +1,5 @@
 /**
- * Money helpers — Jah Commerce.
+ * Money helpers Commerce.
  * RULE (AGENTS.md): money is always integer cents + currency BRL, never float.
  * This module only FORMATS server-provided values. It performs no commercial
  * calculation (price/discount/shipping/tax) — that happens server-side only.

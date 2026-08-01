@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { listPublicStories } from "@/services/cms.functions";
 
 export const Route = createFileRoute("/_store/stories")({
-  head: () => ({ meta: [{ title: "Stories — Jah" }] }),
+  head: () => ({ meta: [{ title: "Stories" }] }),
   loader: async () => {
     const res = await listPublicStories();
     return {

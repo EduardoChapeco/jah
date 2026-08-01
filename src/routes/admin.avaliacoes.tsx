@@ -37,7 +37,7 @@ import {
 } from "@/components/ui/select";
 
 export const Route = createFileRoute("/admin/avaliacoes")({
-  head: () => ({ meta: [{ title: "Avaliações — Jah" }] }),
+  head: () => ({ meta: [{ title: "Avaliações" }] }),
   loader: async () => {
     const [reviewsRes, productsRes] = await Promise.all([listReviews(), listAdminProducts()]);
     return {

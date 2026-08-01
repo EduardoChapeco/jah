@@ -47,7 +47,7 @@ const PRICE_RANGES = [
 export const Route = createFileRoute("/_store/catalogo")({
   head: () => ({
     meta: [
-      { title: "Catálogo — Jah" },
+      { title: "Catálogo" },
       {
         name: "description",
         content: "Explore todos os produtos da Jah: calçados, roupas e acessórios femininos.",

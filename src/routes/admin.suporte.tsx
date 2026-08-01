@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { listAdminTickets, getTicketThread, sendTicketMessage } from "@/services/ticket.functions";
 
 export const Route = createFileRoute("/admin/suporte")({
-  head: () => ({ meta: [{ title: "Central de Suporte — Jah" }] }),
+  head: () => ({ meta: [{ title: "Central de Suporte" }] }),
   loader: async () => {
     return await listAdminTickets();
   },

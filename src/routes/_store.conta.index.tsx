@@ -7,7 +7,7 @@ import { listCustomerOrders } from "@/services/order.functions";
 import { getProfile } from "@/services/auth.functions";
 
 export const Route = createFileRoute("/_store/conta/")({
-  head: () => ({ meta: [{ title: "Minha Conta — Jah" }] }),
+  head: () => ({ meta: [{ title: "Minha Conta" }] }),
   loader: async () => {
     const [ordersRes, profile] = await Promise.all([listCustomerOrders(), getProfile()]);
     const orders = ordersRes || [];

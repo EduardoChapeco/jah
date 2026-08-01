@@ -53,7 +53,7 @@ import {
 import { EmptyState } from "@/components/state/states";
 
 export const Route = createFileRoute("/admin/marketing/ofertas-checkout")({
-  head: () => ({ meta: [{ title: "Ofertas de Checkout (Upsell) — Jah" }] }),
+  head: () => ({ meta: [{ title: "Ofertas de Checkout (Upsell)" }] }),
   loader: async () => {
     const [rules, products] = await Promise.all([listUpsellRules(), listAdminProducts()]);
     return {

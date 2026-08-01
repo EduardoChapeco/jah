@@ -23,7 +23,7 @@ import {
 } from "@/services/admin-catalog.functions";
 
 export const Route = createFileRoute("/admin/catalogo/categorias/$id")({
-  head: () => ({ meta: [{ title: "Editar Categoria — Jah" }] }),
+  head: () => ({ meta: [{ title: "Editar Categoria" }] }),
   loader: async ({ params }) => {
     const [resCategory, resAll] = await Promise.all([
       getCategoryById({ data: { id: params.id } }),

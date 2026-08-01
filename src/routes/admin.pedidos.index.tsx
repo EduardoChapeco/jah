@@ -43,7 +43,7 @@ import { formatMoney } from "@/lib/money";
 import { formatDateTime } from "@/lib/datetime";
 
 export const Route = createFileRoute("/admin/pedidos/")({
-  head: () => ({ meta: [{ title: "Gestão de Pedidos — Jah" }] }),
+  head: () => ({ meta: [{ title: "Gestão de Pedidos" }] }),
   loader: async () => {
     const res = await listOrders();
     return res || [];

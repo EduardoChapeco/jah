@@ -20,7 +20,7 @@ import { listSocialPosts, createSocialPost } from "@/services/marketing-engageme
 import { EmptyState } from "@/components/state/states";
 
 export const Route = createFileRoute("/admin/criador")({
-  head: () => ({ meta: [{ title: "Criador de Posts — Jah" }] }),
+  head: () => ({ meta: [{ title: "Criador de Posts" }] }),
   loader: async () => {
     const res = await listSocialPosts();
     return res;

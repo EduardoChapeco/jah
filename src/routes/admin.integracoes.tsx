@@ -18,7 +18,7 @@ import { Switch } from "@/components/ui/switch";
 import { listIntegrations, upsertIntegration } from "@/services/growth.functions";
 
 export const Route = createFileRoute("/admin/integracoes")({
-  head: () => ({ meta: [{ title: "Integrações — Jah" }] }),
+  head: () => ({ meta: [{ title: "Integrações" }] }),
   loader: async () => {
     return await listIntegrations();
   },

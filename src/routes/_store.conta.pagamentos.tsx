@@ -27,7 +27,7 @@ import { formatMoney } from "@/lib/money";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 export const Route = createFileRoute("/_store/conta/pagamentos")({
-  head: () => ({ meta: [{ title: "Central de Pagamentos — Jah" }] }),
+  head: () => ({ meta: [{ title: "Central de Pagamentos" }] }),
   loader: async () => {
     const [plans, orders] = await Promise.all([
       getCustomerInstallments().catch(() => []),

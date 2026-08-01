@@ -35,7 +35,7 @@ import {
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/_store/conta/gift-cards")({
-  head: () => ({ meta: [{ title: "Meus Cartões-Presente — Jah" }] }),
+  head: () => ({ meta: [{ title: "Meus Cartões-Presente" }] }),
   loader: async () => {
     const res = await listCustomerGiftCards();
     return {

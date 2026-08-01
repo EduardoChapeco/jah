@@ -7,7 +7,7 @@ import { listCustomerExchanges } from "@/services/exchanges.functions";
 import { RefreshCw } from "lucide-react";
 
 export const Route = createFileRoute("/_store/conta/trocas")({
-  head: () => ({ meta: [{ title: "Trocas e Devoluções — Jah" }] }),
+  head: () => ({ meta: [{ title: "Trocas e Devoluções" }] }),
   loader: async () => {
     const res = await listCustomerExchanges();
     return res;

@@ -40,7 +40,7 @@ import { listGiftCards, createGiftCard, cancelGiftCard } from "@/services/giftca
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/admin/marketing/gift-cards")({
-  head: () => ({ meta: [{ title: "Gift Cards — Jah" }] }),
+  head: () => ({ meta: [{ title: "Gift Cards" }] }),
   loader: async () => {
     return await listGiftCards();
   },

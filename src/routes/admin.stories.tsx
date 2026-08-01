@@ -23,7 +23,7 @@ import { ImageUpload } from "@/components/ui/image-upload";
 import { listAdminStories, upsertStory, deleteStory } from "@/services/cms.functions";
 
 export const Route = createFileRoute("/admin/stories")({
-  head: () => ({ meta: [{ title: "Stories — Jah" }] }),
+  head: () => ({ meta: [{ title: "Stories" }] }),
   loader: async () => {
     const res = await listAdminStories();
     return res;

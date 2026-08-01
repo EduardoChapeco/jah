@@ -19,7 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createCollection } from "@/services/admin-catalog.functions";
 
 export const Route = createFileRoute("/admin/catalogo/colecoes/novo")({
-  head: () => ({ meta: [{ title: "Nova Coleção — Jah" }] }),
+  head: () => ({ meta: [{ title: "Nova Coleção" }] }),
   component: NewCollectionPage,
 });
 

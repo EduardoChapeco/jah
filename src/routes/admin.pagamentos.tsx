@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import { useRouter } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/admin/pagamentos")({
-  head: () => ({ meta: [{ title: "Pagamentos — Jah" }] }),
+  head: () => ({ meta: [{ title: "Pagamentos" }] }),
   loader: async () => {
     const res = await listPayments();
     return res || [];

@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 
 export const Route = createFileRoute("/_store/conta/enderecos")({
-  head: () => ({ meta: [{ title: "Meus Endereços — Jah" }] }),
+  head: () => ({ meta: [{ title: "Meus Endereços" }] }),
   loader: () => getCustomerAddresses(),
   component: AddressesPage,
 });

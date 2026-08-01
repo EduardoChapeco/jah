@@ -24,7 +24,7 @@ import {
 } from "@/services/onboarding.functions";
 
 export const Route = createFileRoute("/admin/onboarding")({
-  head: () => ({ meta: [{ title: "Onboarding e Prontidão da Loja — Jah" }] }),
+  head: () => ({ meta: [{ title: "Onboarding e Prontidão da Loja" }] }),
   loader: async () => {
     return await getOnboardingStatus();
   },

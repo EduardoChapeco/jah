@@ -186,9 +186,9 @@ export const Route = createFileRoute("/_store/produto/$slug")({
   head: ({ loaderData }) => {
     const product = (loaderData as any)?.productResult as ProductDetailDTO;
     if (!product || !product.id) {
-      return { meta: [{ title: "Produto — Jah" }] };
+      return { meta: [{ title: "Produto" }] };
     }
-    const title = product.seoTitle || `${product.title} — Jah`;
+    const title = product.seoTitle || `${product.title}`;
     const description =
       product.seoDescription ||
       (product.description

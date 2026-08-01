@@ -16,7 +16,7 @@ const SearchSchema = z.object({
 });
 
 export const Route = createFileRoute("/_store/buscar")({
-  head: () => ({ meta: [{ title: "Buscar produtos — Jah" }] }),
+  head: () => ({ meta: [{ title: "Buscar produtos" }] }),
   validateSearch: SearchSchema,
   loader: async ({ location }) => {
     const q = (location.search as { q?: string }).q;

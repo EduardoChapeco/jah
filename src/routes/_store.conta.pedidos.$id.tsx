@@ -24,7 +24,7 @@ import { getCustomerOrder, getOrderPaymentInstructions } from "@/services/order.
 import { uploadPaymentReceipt } from "@/services/payment.functions";
 
 export const Route = createFileRoute("/_store/conta/pedidos/$id")({
-  head: () => ({ meta: [{ title: "Detalhes do Pedido — Jah" }] }),
+  head: () => ({ meta: [{ title: "Detalhes do Pedido" }] }),
   loader: async ({ params }) => {
     const [orderRes, instrRes] = await Promise.all([
       getCustomerOrder({ data: { orderId: params.id } }),

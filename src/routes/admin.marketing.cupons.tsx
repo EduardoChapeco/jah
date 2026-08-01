@@ -40,7 +40,7 @@ import { formatMoney } from "@/lib/money";
 import { EmptyState } from "@/components/state/states";
 
 export const Route = createFileRoute("/admin/marketing/cupons")({
-  head: () => ({ meta: [{ title: "Cupons de Desconto — Jah" }] }),
+  head: () => ({ meta: [{ title: "Cupons de Desconto" }] }),
   loader: async () => {
     return (await listCoupons()) || [];
   },

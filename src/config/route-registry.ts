@@ -1,5 +1,5 @@
 /**
- * Canonical route registry — Jah Commerce.
+ * Canonical route registry Commerce.
  *
  * Single programmatic source of truth for route path, label, audience,
  * permission (roles), phase and render status. All navigation UI (public

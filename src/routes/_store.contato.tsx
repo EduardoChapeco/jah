@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/commerce/page-header";
 import { EmptyState } from "@/components/state/states";
 
 export const Route = createFileRoute("/_store/contato")({
-  head: () => ({ meta: [{ title: "Contato — Jah" }] }),
+  head: () => ({ meta: [{ title: "Contato" }] }),
   component: Page,
 });
 

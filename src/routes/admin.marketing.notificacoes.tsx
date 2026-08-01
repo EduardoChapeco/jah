@@ -18,7 +18,7 @@ import {
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/admin/marketing/notificacoes")({
-  head: () => ({ meta: [{ title: "Notificações — Jah" }] }),
+  head: () => ({ meta: [{ title: "Notificações" }] }),
   loader: async () => (await listAbandonedCarts()) || [],
   component: NotificacoesPage,
 });

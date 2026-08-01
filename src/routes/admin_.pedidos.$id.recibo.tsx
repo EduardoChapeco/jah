@@ -5,7 +5,7 @@ import { formatMoney } from "@/lib/money";
 import { formatDateTime } from "@/lib/datetime";
 
 export const Route = createFileRoute("/admin_/pedidos/$id/recibo")({
-  head: () => ({ meta: [{ title: "Recibo — Jah" }] }),
+  head: () => ({ meta: [{ title: "Recibo" }] }),
   loader: async ({ params }: { params: { id: string } }) => {
     const db = await getServerClient();
     const { data, error } = await db

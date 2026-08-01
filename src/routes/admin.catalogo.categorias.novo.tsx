@@ -19,7 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createCategory, listCategories } from "@/services/admin-catalog.functions";
 
 export const Route = createFileRoute("/admin/catalogo/categorias/novo")({
-  head: () => ({ meta: [{ title: "Nova Categoria — Jah" }] }),
+  head: () => ({ meta: [{ title: "Nova Categoria" }] }),
   loader: async () => {
     const res = await listCategories();
     return res || [];

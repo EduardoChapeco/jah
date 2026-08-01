@@ -1,5 +1,5 @@
 /**
- * Domain-level shared types — Jah Commerce.
+ * Domain-level shared types Commerce.
  * These are lightweight contracts used across the route registry, navigation
  * and UI states. Full domain model lives in docs/DOMAIN_MODEL.md.
  */

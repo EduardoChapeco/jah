@@ -1,5 +1,5 @@
 /**
- * Finance server functions — Jah Commerce
+ * Finance server functions Commerce
  *
  * BFF boundary for the financial module (DRE simplificado).
  * Provides read access to `financial_transactions` and ability to

@@ -1,5 +1,5 @@
 /**
- * Order domain types — Jah Commerce
+ * Order domain types Commerce
  *
  * State machine, DTOs and schemas for the order lifecycle.
  * Transitions are validated server-side; client only reads status.

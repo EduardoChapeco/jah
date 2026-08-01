@@ -19,7 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCollectionById, updateCollection } from "@/services/admin-catalog.functions";
 
 export const Route = createFileRoute("/admin/catalogo/colecoes/$id")({
-  head: () => ({ meta: [{ title: "Editar Coleção — Jah" }] }),
+  head: () => ({ meta: [{ title: "Editar Coleção" }] }),
   loader: async ({ params }) => {
     const res = await getCollectionById({ data: { id: params.id } });
     return res;

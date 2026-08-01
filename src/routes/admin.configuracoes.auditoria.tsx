@@ -16,7 +16,7 @@ import { getAuditLog } from "@/services/audit.functions";
 import { formatDateTime } from "@/lib/datetime";
 
 export const Route = createFileRoute("/admin/configuracoes/auditoria")({
-  head: () => ({ meta: [{ title: "Auditoria — Jah" }] }),
+  head: () => ({ meta: [{ title: "Auditoria" }] }),
   loader: async () => {
     return await getAuditLog();
   },

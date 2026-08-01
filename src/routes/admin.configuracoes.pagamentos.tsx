@@ -35,7 +35,7 @@ import {
 import { getPaymentSettings, savePaymentSettings } from "@/services/store.functions";
 
 export const Route = createFileRoute("/admin/configuracoes/pagamentos")({
-  head: () => ({ meta: [{ title: "Métodos de Pagamento — Jah" }] }),
+  head: () => ({ meta: [{ title: "Métodos de Pagamento" }] }),
   loader: async () => {
     const [methods, pixRes] = await Promise.all([
       listManualPaymentMethods(),

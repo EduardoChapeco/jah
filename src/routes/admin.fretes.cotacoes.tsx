@@ -24,7 +24,7 @@ import { formatMoney } from "@/lib/money";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/fretes/cotacoes")({
-  head: () => ({ meta: [{ title: "Cotações de Frete — Jah" }] }),
+  head: () => ({ meta: [{ title: "Cotações de Frete" }] }),
   loader: async () => {
     const [zonesRes, pendingRes] = await Promise.all([
       listShippingZones(),

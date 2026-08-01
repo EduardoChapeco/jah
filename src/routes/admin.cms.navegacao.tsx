@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { getNavigationMenus, upsertNavigationMenu } from "@/services/cms.functions";
 
 export const Route = createFileRoute("/admin/cms/navegacao")({
-  head: () => ({ meta: [{ title: "Navegação — Jah" }] }),
+  head: () => ({ meta: [{ title: "Navegação" }] }),
   loader: async () => {
     const res = await getNavigationMenus();
     return res;

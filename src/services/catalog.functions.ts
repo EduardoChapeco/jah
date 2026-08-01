@@ -1,5 +1,5 @@
 /**
- * Catalog server functions — Jah Commerce (BFF boundary)
+ * Catalog server functions Commerce (BFF boundary)
  *
  * ALL data access to Supabase happens here, inside createServerFn().
  * Components receive DTOs, never raw Supabase rows.

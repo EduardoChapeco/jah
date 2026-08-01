@@ -1,5 +1,5 @@
 /**
- * Affiliates & Attribution server functions — Jah Commerce
+ * Affiliates & Attribution server functions Commerce
  *
  * Controla o ciclo de vida dos afiliados/vendedoras:
  * - Registro e aprovação de afiliados

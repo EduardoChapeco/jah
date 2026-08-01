@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const Route = createFileRoute("/admin/perfil-publico")({
-  head: () => ({ meta: [{ title: "Perfil Público — Jah" }] }),
+  head: () => ({ meta: [{ title: "Perfil Público" }] }),
   loader: async () => {
     const res = await checkExperienceDocumentExists({
       data: { slug: "institucional", document_type: "storefront" },

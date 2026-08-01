@@ -1,5 +1,5 @@
 /**
- * Ponte cliente-segura para helpers de servidor — Jah Commerce
+ * Ponte cliente-segura para helpers de servidor Commerce
  *
  * O TanStack Start bloqueia qualquer aresta ESTÁTICA para módulos `*.server.ts`
  * (ou para `@tanstack/react-start/server`) a partir de módulos alcançáveis pelo

@@ -19,7 +19,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_store/carrinho")({
-  head: () => ({ meta: [{ title: "Meu Carrinho — Jah" }] }),
+  head: () => ({ meta: [{ title: "Meu Carrinho" }] }),
   loader: async () => {
     const cart = await getCart();
     return (

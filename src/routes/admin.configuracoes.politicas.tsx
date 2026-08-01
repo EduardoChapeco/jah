@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { getPolicies, savePolicies } from "@/services/store.functions";
 
 export const Route = createFileRoute("/admin/configuracoes/politicas")({
-  head: () => ({ meta: [{ title: "Políticas da Loja — Jah" }] }),
+  head: () => ({ meta: [{ title: "Políticas da Loja" }] }),
   loader: async () => {
     return await getPolicies();
   },

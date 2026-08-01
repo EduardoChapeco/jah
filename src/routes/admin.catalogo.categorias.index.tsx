@@ -35,7 +35,7 @@ import {
 import { listCategories, updateCategory } from "@/services/admin-catalog.functions";
 
 export const Route = createFileRoute("/admin/catalogo/categorias/")({
-  head: () => ({ meta: [{ title: "Categorias — Jah" }] }),
+  head: () => ({ meta: [{ title: "Categorias" }] }),
   loader: async () => {
     const res = await listCategories();
     return res || [];

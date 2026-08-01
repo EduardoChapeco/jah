@@ -1,5 +1,5 @@
 /**
- * Checkout server functions — Jah Commerce
+ * Checkout server functions Commerce
  *
  * processCheckout usa o RPC atômico `process_checkout_atomic` (migration 0025).
  * - Idempotência garantida pelo idempotency_key.

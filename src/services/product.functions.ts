@@ -1,5 +1,5 @@
 /**
- * Product detail server function — Jah Commerce (BFF boundary)
+ * Product detail server function Commerce (BFF boundary)
  *
  * Single product lookup by slug. Returns full detail DTO including
  * variants with server-computed effective prices, available quantities,

@@ -10,7 +10,7 @@ import { getOpenStatus } from "@/lib/datetime";
 export const Route = createFileRoute("/_store/perfil-da-loja")({
   head: () => ({
     meta: [
-      { title: "Perfil da Loja — Jah" },
+      { title: "Perfil da Loja" },
       {
         name: "description",
         content:

@@ -17,7 +17,7 @@ import type { CashRegisterHistoryItem, CashRegisterStatus } from "@/lib/cash";
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/admin/caixa/turnos")({
-  head: () => ({ meta: [{ title: "Turnos de Caixa — Jah" }] }),
+  head: () => ({ meta: [{ title: "Turnos de Caixa" }] }),
   loader: async () => {
     return await listRegisterHistory();
   },

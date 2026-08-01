@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_store/paginas/$slug")({
       meta: [
         {
           title:
-            loaderData.document.seo_metadata?.title || `${loaderData.document.title} — Jah`,
+            loaderData.document.seo_metadata?.title || `${loaderData.document.title}`,
         },
         { name: "description", content: loaderData.document.seo_metadata?.description || "" },
       ],

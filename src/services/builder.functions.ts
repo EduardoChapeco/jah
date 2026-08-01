@@ -1,5 +1,5 @@
 /**
- * Builder Platform server functions — Jah Commerce
+ * Builder Platform server functions Commerce
  *
  * BFF boundary for Experience Documents, Versions, and Nodes management.
  */

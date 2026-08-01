@@ -17,7 +17,7 @@ import {
 import { MediaUploader } from "@/components/admin/builder/MediaUploader";
 
 export const Route = createFileRoute("/admin/configuracoes/loja")({
-  head: () => ({ meta: [{ title: "Dados da Loja — Jah" }] }),
+  head: () => ({ meta: [{ title: "Dados da Loja" }] }),
   loader: async () => {
     return await getStoreSettings();
   },

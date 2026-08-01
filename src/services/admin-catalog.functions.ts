@@ -1,5 +1,5 @@
 /**
- * Admin Catalog server functions — Jah Commerce
+ * Admin Catalog server functions Commerce
  *
  * BFF boundary for the Admin Panel. Handles CRUD operations for ProductTypes,
  * Categories, Products, and Variants.

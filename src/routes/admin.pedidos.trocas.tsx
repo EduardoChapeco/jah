@@ -19,7 +19,7 @@ import { Search, Filter, Box, RefreshCcw, KanbanSquare, Table as TableIcon } fro
 import { Input } from "@/components/ui/input";
 
 export const Route = createFileRoute("/admin/pedidos/trocas")({
-  head: () => ({ meta: [{ title: "RMA: Trocas e Devoluções — Jah" }] }),
+  head: () => ({ meta: [{ title: "RMA: Trocas e Devoluções" }] }),
   loader: async () => {
     return await listAdminRmas();
   },

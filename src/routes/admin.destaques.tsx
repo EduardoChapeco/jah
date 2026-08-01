@@ -43,7 +43,7 @@ const getDestaques = createServerFn({ method: "GET" }).handler(async () => {
 });
 
 export const Route = createFileRoute("/admin/destaques")({
-  head: () => ({ meta: [{ title: "Destaques — Jah" }] }),
+  head: () => ({ meta: [{ title: "Destaques" }] }),
   loader: async () => {
     return await getDestaques();
   },

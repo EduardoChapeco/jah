@@ -4,7 +4,7 @@ import { formatMoney } from "@/lib/money";
 import { EmptyState, ErrorState } from "@/components/state/states";
 
 export const Route = createFileRoute("/_store/conta/creditos")({
-  head: () => ({ meta: [{ title: "Meus Créditos — Jah" }] }),
+  head: () => ({ meta: [{ title: "Meus Créditos" }] }),
   loader: async () => {
     const res = await getCustomerCredits();
     return res;

@@ -50,7 +50,7 @@ import {
 import type { ExperienceDocument } from "@/lib/builder-types";
 
 export const Route = createFileRoute("/admin/builder/")({
-  head: () => ({ meta: [{ title: "Páginas & Bio Links — Jah" }] }),
+  head: () => ({ meta: [{ title: "Páginas & Bio Links" }] }),
   validateSearch: (s: Record<string, unknown>) => ({ type: (s.type as string) || undefined }),
   loader: async () => {
     const res = await listExperienceDocuments();

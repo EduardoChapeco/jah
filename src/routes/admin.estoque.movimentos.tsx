@@ -16,7 +16,7 @@ import { EmptyState } from "@/components/state/states";
 import { getStockMovements } from "@/services/stock.functions";
 
 export const Route = createFileRoute("/admin/estoque/movimentos")({
-  head: () => ({ meta: [{ title: "Movimentos de estoque — Jah" }] }),
+  head: () => ({ meta: [{ title: "Movimentos de estoque" }] }),
   loader: async () => {
     return (await getStockMovements({ data: { limit: 100 } })) || [];
   },

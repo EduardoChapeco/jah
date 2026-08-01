@@ -45,7 +45,7 @@ import {
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/checkout")({
-  head: () => ({ meta: [{ title: "Checkout — Jah" }] }),
+  head: () => ({ meta: [{ title: "Checkout" }] }),
   loader: async () => {
     const [cart, profileRes, paymentMethodsRes, gatewayStatus, userProfile, userAddresses] =
       await Promise.all([

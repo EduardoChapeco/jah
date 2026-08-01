@@ -56,7 +56,7 @@ import {
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/admin/clientes/$id")({
-  head: () => ({ meta: [{ title: "Detalhes do Cliente — Jah" }] }),
+  head: () => ({ meta: [{ title: "Detalhes do Cliente" }] }),
   loader: async ({ params }) => {
     return await getCustomer360({ data: { customerId: params.id } });
   },

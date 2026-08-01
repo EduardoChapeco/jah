@@ -1,5 +1,5 @@
 /**
- * Fulfillment server functions — Jah Commerce
+ * Fulfillment server functions Commerce
  *
  * BFF boundary for the Admin Panel logistics operations.
  * Handles shipment lifecycle: create, update tracking, mark delivered.

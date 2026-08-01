@@ -17,7 +17,7 @@ import { listStoreFollowers } from "@/services/social.functions";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/admin/marketing/seguidores")({
-  head: () => ({ meta: [{ title: "Seguidores da Loja — Jah" }] }),
+  head: () => ({ meta: [{ title: "Seguidores da Loja" }] }),
   loader: async () => {
     const res = await listStoreFollowers();
     return res || [];
