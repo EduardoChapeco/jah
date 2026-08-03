@@ -1,13 +1,13 @@
-# Identidade do Projeto - Hr Shoes Commerce
+# Identidade do Projeto - Jah Commerce
 
-Este documento registra os identificadores não secretos do projeto para garantir que o código, os deploys e as configurações permaneçam perfeitamente alinhados à identidade correta da loja, evitando confusões com outros repositórios antigos (como TravelOS/Turis).
+Este documento registra os identificadores não secretos do projeto para garantir que o código, os deploys e as configurações permaneçam perfeitamente alinhados à identidade correta da loja, evitando confusões com outros repositórios antigos (como Jah/Turis).
 
-- **Caminho Atual:** `/c/Users/Excelência Tour SMO/Documents/hr-shoes-opus`
-- **Nome do Projeto / Package:** `tanstack_start_ts` (hr-shoes-opus)
-- **URL do Git Remote:** `https://github.com/EduardoChapeco/hr-shoes-opus.git`
+- **Caminho Atual:** `/c/Users/Excelência Tour SMO/Documents/jah`
+- **Nome do Projeto / Package:** `tanstack_start_ts` (jah)
+- **URL do Git Remote:** `https://github.com/EduardoChapeco/jah.git`
 - **Branch Principal:** `main`
-- **Nome do Cloudflare Worker:** `eduardochapeco-hr-shoes-opus`
-- **Link do Worker (Deploy Público):** `https://eduardochapeco-hr-shoes-opus.eusoueduoficial.workers.dev`
+- **Nome do Cloudflare Worker:** `eduardochapeco-jah`
+- **Link do Worker (Deploy Público):** `https://eduardochapeco-jah.eusoueduoficial.workers.dev`
 - **Supabase Project Reference:** `hfgnageqkeryxsnwobjc`
 - **Regras do Agente / AGENTS.md:** Presente em `.agents/config/AGENTS.md` (e `docs/AGENTS.md`)
 

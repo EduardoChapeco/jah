@@ -1,6 +1,6 @@
 # G5: Data Lineage (Linhagem Ponta-a-Ponta dos Dados)
 
-Este documento constrói o rastreamento completo da cadeia de dados da plataforma HR Shoes Commerce, desde o campo da UI até a persistência no banco e propagação para os consumidores dependentes.
+Este documento constrói o rastreamento completo da cadeia de dados da plataforma Jah Commerce, desde o campo da UI até a persistência no banco e propagação para os consumidores dependentes.
 
 ---
 

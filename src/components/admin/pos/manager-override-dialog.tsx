@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -50,17 +50,17 @@ export function ManagerOverrideDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent className="sm:max-w-md">
+        <SheetHeader>
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 mb-4">
             <Lock className="h-6 w-6 text-orange-600" />
           </div>
-          <DialogTitle className="text-center">{title}</DialogTitle>
-          <DialogDescription className="text-center">
+          <SheetTitle className="text-center">{title}</SheetTitle>
+          <SheetDescription className="text-center">
             {description}
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -88,16 +88,16 @@ export function ManagerOverrideDialog({
             </div>
           )}
 
-          <DialogFooter className="sm:justify-between">
+          <SheetFooter className="sm:justify-between mt-8">
             <Button type="button" variant="ghost" onClick={onClose}>
               Cancelar
             </Button>
             <Button type="submit" disabled={isLoading || pin.length < 4} className="bg-orange-600 hover:bg-orange-700">
               {isLoading ? "Validando..." : "Autorizar"}
             </Button>
-          </DialogFooter>
+          </SheetFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

@@ -7,13 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { listIntegrationSettings, saveIntegrationCredential, deleteIntegrationCredential } from "@/services/integrations.functions";
 import { Truck, Facebook, BarChart, Settings, Trash2 } from "lucide-react";
@@ -184,14 +184,14 @@ function IntegrationsSettingsPage() {
         })}
       </div>
 
-      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Configurar {selectedCatalogItem?.name}</DialogTitle>
-            <DialogDescription>
+      <Sheet open={modalOpen} onOpenChange={setModalOpen}>
+        <SheetContent>
+          <SheetHeader>
+            <SheetTitle>Configurar {selectedCatalogItem?.name}</SheetTitle>
+            <SheetDescription>
               Insira as chaves de acesso fornecidas pela plataforma. Elas serão salvas em nosso cofre de segurança criptografado.
-            </DialogDescription>
-          </DialogHeader>
+            </SheetDescription>
+          </SheetHeader>
 
           {selectedCatalogItem && (
              <div className="space-y-4 py-4">
@@ -221,7 +221,7 @@ function IntegrationsSettingsPage() {
              </div>
           )}
 
-          <DialogFooter className="flex justify-between items-center sm:justify-between">
+          <SheetFooter className="flex justify-between items-center sm:justify-between mt-8">
             {activeIntegrations.find((a: any) => a.provider === selectedCatalogItem?.id) ? (
                <Button variant="destructive" size="icon" onClick={() => handleDelete(selectedCatalogItem.id)}>
                  <Trash2 className="w-4 h-4" />
@@ -238,9 +238,9 @@ function IntegrationsSettingsPage() {
                 {loading ? "Salvando..." : "Salvar Configuração"}
               </Button>
             </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

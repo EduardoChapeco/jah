@@ -15,7 +15,7 @@ Hopp é um serviço criado pela Wix especificamente voltado para a criação de 
 - Relatórios centralizados nas taxas de clique (CTR) por cada widget, permitindo que a atribuição de vendas e geração de tráfego seja mensurada precisamente por "Bento Box" (cada célula).
 - Suporte a retargeting transparente (Pixels globais do tenant importados silenciosamente).
 
-## O que fazer melhor na HR Shoes
+## O que fazer melhor na Jah
 
-- **Unificar Fontes de Dados:** No Hopp, integrações externas (produtos ou posts) dependem de APIs públicas ou scrape; no caso da HR Shoes, o catálogo (tabela `products`) rodará na mesma base de dados. As buscas nos Biolinks das Vendedoras poderão sugerir resultados da tabela sem dependência externa, mostrando estoque e preços atualizados no mesmo segundo.
-- O Bio Link da HR Shoes compartilhará componentes do Storefront, mantendo assim uma unidade visual da marca, algo que o Hopp tem dificuldade por ter design agnóstico.
+- **Unificar Fontes de Dados:** No Hopp, integrações externas (produtos ou posts) dependem de APIs públicas ou scrape; no caso da Jah, o catálogo (tabela `products`) rodará na mesma base de dados. As buscas nos Biolinks das Vendedoras poderão sugerir resultados da tabela sem dependência externa, mostrando estoque e preços atualizados no mesmo segundo.
+- O Bio Link da Jah compartilhará componentes do Storefront, mantendo assim uma unidade visual da marca, algo que o Hopp tem dificuldade por ter design agnóstico.

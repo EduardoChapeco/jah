@@ -14,8 +14,8 @@
 
 ### AMBIENTE
 
-- **Local**: `c:\Users\Excelência Tour SMO\Documents\hr-shoes-opus`
-- **Preview / Produção**: `https://eduardochapeco-hr-shoes-opus.pages.dev`
+- **Local**: `c:\Users\Excelência Tour SMO\Documents\jah`
+- **Preview / Produção**: `https://eduardochapeco-jah.pages.dev`
 - **Project Ref Supabase**: `hfgnageqkeryxsnwobjc`
 - **Projeto Cloudflare**: `hrshoes` (Pages build output dir: `dist`)
 - **Migrations Locais/Remotas**: Pushed até `0058_upsell_rules.sql` via Supabase CLI.

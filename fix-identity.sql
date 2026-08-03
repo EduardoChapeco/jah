@@ -13,7 +13,7 @@ BEGIN
     -- If no store exists, create one
     IF new_store_id IS NULL THEN
       INSERT INTO public.stores (name, slug) 
-      VALUES ('Hr Shoes Oficial', 'hr-shoes') 
+      VALUES ('Jah Oficial', 'jah') 
       RETURNING id INTO new_store_id;
     END IF;
     

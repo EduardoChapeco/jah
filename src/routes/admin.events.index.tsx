@@ -38,7 +38,7 @@ function AdminEventsIndex() {
         </div>
 
         <Button asChild>
-          <Link to="/admin/events/new">
+          <Link to="/admin/events/$eventId" params={{ eventId: 'new' }}>
             <Plus className="mr-2 h-4 w-4" />
             Novo Evento
           </Link>

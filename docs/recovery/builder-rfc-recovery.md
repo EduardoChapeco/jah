@@ -40,7 +40,7 @@ graph TD
 
 ### 2.1. Reconstrução do Properties Inspector (Recuperado & Adaptado)
 
-- **Ação**: Resgatar a lógica do `renderDynamicField` do antigo editor e portá-la para a aba "Conteúdo" do novo painel em [admin.builder.$documentId.editor.tsx](file:///c:/Users/Excelência Tour SMO/Documents/hr-shoes-opus/src/routes/admin.builder.$documentId.editor.tsx).
+- **Ação**: Resgatar a lógica do `renderDynamicField` do antigo editor e portá-la para a aba "Conteúdo" do novo painel em [admin.builder.$documentId.editor.tsx](file:///c:/Users/Excelência Tour SMO/Documents/jah/src/routes/admin.builder.$documentId.editor.tsx).
 - **Mapeamento**: O painel lerá os campos definidos na propriedade `inspector.content` de cada bloco do `builderRegistry` e renderizará inputs apropriados:
   - `text` / `textarea` -> Componente `<Input />` / `<Textarea />`
   - `boolean` -> Componente `<Switch />`

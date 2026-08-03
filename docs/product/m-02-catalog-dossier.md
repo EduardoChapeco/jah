@@ -97,7 +97,7 @@ catálogo, busca, filtros, categorias, coleções, variantes, mídia e cross-sel
 
 ### Lacuna #3 — SEO Dinâmico por Produto Ausente (M-02-C19)
 
-**Causa raiz:** O `head()` da rota `_store.produto.$slug.tsx` retorna um título fixo `"Hr Shoes — Produto"` em vez de usar o nome real do produto. Sem `og:image`, `og:description`, ou `canonical`.
+**Causa raiz:** O `head()` da rota `_store.produto.$slug.tsx` retorna um título fixo `"Jah — Produto"` em vez de usar o nome real do produto. Sem `og:image`, `og:description`, ou `canonical`.
 
 **Impacto:** Todos os produtos compartilham o mesmo title no Google/redes sociais. Zero diferenciação para SEO.
 

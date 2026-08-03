@@ -1,7 +1,7 @@
 # Matriz de Lacunas e Expansão do Builder (Feature Gap Matrix)
 
 > Data: 2026-07-24  
-> Projeto: Hr Shoes Commerce
+> Projeto: Jah Commerce
 
 ---
 

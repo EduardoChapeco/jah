@@ -24,13 +24,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/state/states";
 import { getActiveRegister, addRegisterEntry } from "@/services/cash.functions";
@@ -129,17 +129,17 @@ function CaixaLancamentosPage() {
             description={`Caixa aberto em ${new Date(register.opened_at).toLocaleDateString("pt-BR")} — Saldo atual: ${formatMoney(register.currentBalanceCents)}`}
           />
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
+        <Sheet open={open} onOpenChange={setOpen}>
+          <SheetTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
               Novo Lançamento
             </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Registrar Lançamento Manual</DialogTitle>
-            </DialogHeader>
+          </SheetTrigger>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>Registrar Lançamento Manual</SheetTitle>
+            </SheetHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -199,14 +199,14 @@ function CaixaLancamentosPage() {
                   minLength={3}
                 />
               </div>
-              <DialogFooter>
-                <Button type="submit" disabled={isSaving}>
+              <SheetFooter className="mt-8">
+                <Button type="submit" disabled={isSaving} className="w-full sm:w-auto">
                   {isSaving ? "Salvando..." : "Registrar"}
                 </Button>
-              </DialogFooter>
+              </SheetFooter>
             </form>
-          </DialogContent>
-        </Dialog>
+          </SheetContent>
+        </Sheet>
       </div>
 
       <div className="grid grid-cols-3 gap-4">

@@ -1,9 +1,9 @@
-# LojaPiloto
+# Jah
 
-Crie um novo projeto chamado “Hr Shoes Commerce”. Leia integralmente este briefing antes de editar. As imagens anexadas são referências visuais; “hr-shoes-logo.jpg” é a marca real a ser usada. Não copie conteúdo, fotos de produtos ou identidade de terceiros.
+Crie um novo projeto chamado “Jah Commerce”. Leia integralmente este briefing antes de editar. As imagens anexadas são referências visuais; “Jah-logo.jpg” é a marca real a ser usada. Não copie conteúdo, fotos de produtos ou identidade de terceiros.
 
 OBJETIVO
-Construir a fundação de uma plataforma de ecommerce/CMS/PWA brasileira, mobile-first, para a Hr Shoes. Ela deve ser simples para lojistas leigas e bonita para clientes, mas arquitetada como produto real: vitrine pública, painel administrativo, área da cliente, catálogo flexível, estoque por variação, checkout, pedidos, CRM, conteúdo e integrações futuras. O sistema começa com uma organização/loja, mas o domínio deve ser multi-tenant-ready por organization_id e store_id, sem criar uma tela de SaaS agora.
+Construir a fundação de uma plataforma de ecommerce/CMS/PWA brasileira, mobile-first, para a Jah. Ela deve ser simples para lojistas leigas e bonita para clientes, mas arquitetada como produto real: vitrine pública, painel administrativo, área da cliente, catálogo flexível, estoque por variação, checkout, pedidos, CRM, conteúdo e integrações futuras. O sistema começa com uma organização/loja, mas o domínio deve ser multi-tenant-ready por organization_id e store_id, sem criar uma tela de SaaS agora.
 
 REGRA DE ENTREGA DESTA PRIMEIRA ITERAÇÃO
 Não tente implementar todos os módulos de uma vez. Nesta primeira execução:
@@ -157,7 +157,7 @@ Fase 5: integrações Meta/Google/logística, recuperação, Match Time e criado
 Não avance de fase sem critérios de aceite, migração, testes e revisão de segurança.
 
 CRITÉRIOS DA FASE 0
-- A logo Hr Shoes aparece corretamente e as referências não viram conteúdo da loja.
+- A logo Jah aparece corretamente e as referências não viram conteúdo da loja.
 - Home mobile e desktop refinada, usando seções reais conectáveis e estados vazios sem produtos falsos.
 - Navegação pública, cliente e admin sem links quebrados.
 - Painel mobile-first e desktop com sidebar/bottom navigation responsivos.

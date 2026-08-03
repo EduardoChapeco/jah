@@ -1,14 +1,14 @@
 # 00 — Executive Summary: Master Audit of E-Commerce Builder Platform
 
 > Data: 2026-07-24  
-> Projeto: Hr Shoes Commerce  
+> Projeto: Jah Commerce  
 > Status: Audit Phase — Fully Validated Architecture
 
 ---
 
 ## 1. Visão Geral da Auditoria Mestre
 
-A auditoria mestre avaliou exaustivamente a conformidade do Builder / CMS Visual do **Hr Shoes Commerce** contra todos os requisitos estabelecidos no **Prompt Foundation** e no **Prompt Incremental Delta 01**.
+A auditoria mestre avaliou exaustivamente a conformidade do Builder / CMS Visual do **Jah Commerce** contra todos os requisitos estabelecidos no **Prompt Foundation** e no **Prompt Incremental Delta 01**.
 
 ### Principais Constatações da Auditoria
 

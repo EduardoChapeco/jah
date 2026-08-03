@@ -1,4 +1,4 @@
-# G7: E2E Flow Map (Mapeamento dos 8 Fluxos Verticais HR Shoes)
+# G7: E2E Flow Map (Mapeamento dos 8 Fluxos Verticais Jah)
 
 > **Mapeamento de Fluxos Ponta a Ponta Rastreando do Cadastro à Entrega**
 

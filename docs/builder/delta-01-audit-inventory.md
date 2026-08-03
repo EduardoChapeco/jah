@@ -1,7 +1,7 @@
 # Auditoria Delta 01 — Inventário de Evolução do Builder / CMS
 
 > Data: 2026-07-24  
-> Projeto: Hr Shoes Commerce  
+> Projeto: Jah Commerce  
 > Diretriz Inviolável: **Proibido duplicar qualquer implementação existente.**
 
 ---

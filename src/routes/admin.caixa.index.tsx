@@ -42,13 +42,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import {
   Form,
   FormControl,
@@ -886,15 +886,15 @@ function CashRegisterPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Dialog do Comprovante da Venda */}
-      <Dialog open={Boolean(lastReceipt)} onOpenChange={(open) => !open && setLastReceipt(null)}>
-        <DialogContent className="max-w-sm text-center print:shadow-none print:border-none print:m-0 print:p-0">
-          <DialogHeader className="print:hidden">
-            <DialogTitle className="flex items-center justify-center gap-2 text-success">
+      {/* Sheet do Comprovante da Venda */}
+      <Sheet open={Boolean(lastReceipt)} onOpenChange={(open) => !open && setLastReceipt(null)}>
+        <SheetContent className="sm:max-w-md print:shadow-none print:border-none print:m-0 print:p-0">
+          <SheetHeader className="print:hidden">
+            <SheetTitle className="flex items-center gap-2 text-success">
               <CheckCircle2 className="size-6" /> Venda Concluída!
-            </DialogTitle>
-            <DialogDescription>Comprovante de Venda do Balcão</DialogDescription>
-          </DialogHeader>
+            </SheetTitle>
+            <SheetDescription>Comprovante de Venda do Balcão</SheetDescription>
+          </SheetHeader>
 
           {lastReceipt && (
             <div
@@ -960,26 +960,26 @@ function CashRegisterPage() {
             </div>
           )}
 
-          <DialogFooter className="flex-col sm:flex-row gap-2 print:hidden mt-4">
+          <SheetFooter className="flex-col sm:flex-row gap-2 print:hidden mt-8">
             <Button variant="outline" onClick={() => window.print()} className="w-full text-xs">
               <Printer className="size-3.5 mr-1" /> Imprimir Comprovante
             </Button>
             <Button onClick={() => setLastReceipt(null)} className="w-full text-xs font-bold">
               Nova Venda
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
-      {/* Dialog do Cadastro Rápido de Cliente no PDV */}
-      <Dialog open={isNewCustomerOpen} onOpenChange={setIsNewCustomerOpen}>
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle>Cadastro Rápido de Cliente</DialogTitle>
-            <DialogDescription>
+      {/* Sheet do Cadastro Rápido de Cliente no PDV */}
+      <Sheet open={isNewCustomerOpen} onOpenChange={setIsNewCustomerOpen}>
+        <SheetContent className="sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle>Cadastro Rápido de Cliente</SheetTitle>
+            <SheetDescription>
               Insira as informações do cliente para registrá-lo no caixa e vinculá-lo a esta venda.
-            </DialogDescription>
-          </DialogHeader>
+            </SheetDescription>
+          </SheetHeader>
           <form onSubmit={handleCreateCustomer} className="space-y-4 pt-2">
             <div className="space-y-2">
               <Label htmlFor="pdv-cli-name">Nome Completo *</Label>
@@ -1017,17 +1017,17 @@ function CashRegisterPage() {
                 className="h-9"
               />
             </div>
-            <DialogFooter className="pt-4">
+            <SheetFooter className="pt-8">
               <Button type="button" variant="ghost" onClick={() => setIsNewCustomerOpen(false)}>
                 Cancelar
               </Button>
               <Button type="submit" disabled={isSavingCustomer} className="font-bold">
                 {isSavingCustomer ? "Salvando..." : "Confirmar e Vincular"}
               </Button>
-            </DialogFooter>
+            </SheetFooter>
           </form>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

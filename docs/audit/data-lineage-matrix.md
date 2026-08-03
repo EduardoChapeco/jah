@@ -1,4 +1,4 @@
-# G6: Data Lineage Matrix (Linhagem de Dados Ponta-a-Ponta HR Shoes)
+# G6: Data Lineage Matrix (Linhagem de Dados Ponta-a-Ponta Jah)
 
 > **Matriz de Linhagem da Cadeia UI ↔ Form ↔ Schema Zod ↔ BFF ↔ Postgres SQL ↔ Consumers**
 

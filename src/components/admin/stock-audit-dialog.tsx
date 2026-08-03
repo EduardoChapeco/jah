@@ -4,13 +4,13 @@ import { toast } from "sonner";
 import { Loader2, ClipboardCheck } from "lucide-react";
 
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -74,18 +74,18 @@ export function StockAuditDialog({ variant }: { variant: any }) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={setOpen}>
       <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
         <ClipboardCheck className="mr-1.5 size-4" /> Balanço
       </Button>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Auditoria de Balanço (SKU: {variant.sku})</DialogTitle>
-          <DialogDescription>
+      <SheetContent className="max-w-md">
+        <SheetHeader>
+          <SheetTitle>Auditoria de Balanço (SKU: {variant.sku})</SheetTitle>
+          <SheetDescription>
             Corrija o estoque físico. A diferença será registrada de forma imutável no log de
             auditoria.
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
         <div className="space-y-4 py-4">
           <div className="flex gap-4">
             <div className="flex-1 space-y-1">
@@ -128,7 +128,7 @@ export function StockAuditDialog({ variant }: { variant: any }) {
             />
           </div>
         </div>
-        <DialogFooter>
+        <SheetFooter className="mt-8">
           <Button variant="ghost" onClick={() => setOpen(false)}>
             Cancelar
           </Button>
@@ -139,8 +139,8 @@ export function StockAuditDialog({ variant }: { variant: any }) {
             {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Registrar Balanço
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

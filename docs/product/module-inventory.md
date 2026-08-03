@@ -1,4 +1,4 @@
-# Module Inventory — Hr Shoes Commerce
+# Module Inventory — Jah Commerce
 
 > Inventário canônico de todos os módulos da plataforma, com status atual e próxima ação de revisão.
 > Gerado em: 2026-07-19 | Atualizado a cada microfase concluída.

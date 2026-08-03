@@ -1,6 +1,6 @@
-# G7: Use-Case Catalog (Catálogo de Casos de Uso HR Shoes)
+# G7: Use-Case Catalog (Catálogo de Casos de Uso Jah)
 
-> **Catálogo Canônico dos Casos de Uso Ponta a Ponta da HR Shoes Commerce**
+> **Catálogo Canônico dos Casos de Uso Ponta a Ponta da Jah Commerce**
 
 ---
 

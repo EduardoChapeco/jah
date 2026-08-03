@@ -6,13 +6,22 @@ import { PageHeader } from "@/components/commerce/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+  AlertDialogFooter,
+} from "@/components/ui/alert-dialog";
 import {
   Printer,
   Banknote,
@@ -226,20 +235,20 @@ function AdminOrderDetailPage() {
             {order.status === "awaiting_payment" && (
               <div className="space-y-3">
                 {/* Approve payment — choose method */}
-                <Dialog>
-                  <DialogTrigger asChild>
+                <Sheet>
+                  <SheetTrigger asChild>
                     <Button className="w-full font-bold" disabled={isConfirming || isRejecting}>
                       {isConfirming ? "Confirmando..." : "Marcar como Pago"}
                     </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Como o pagamento foi recebido?</DialogTitle>
-                      <DialogDescription>
+                  </SheetTrigger>
+                  <SheetContent>
+                    <SheetHeader>
+                      <SheetTitle>Como o pagamento foi recebido?</SheetTitle>
+                      <SheetDescription>
                         Selecione a forma real que o dinheiro entrou. Se foi em dinheiro físico, o
                         valor será somado ao Frente de Caixa atual.
-                      </DialogDescription>
-                    </DialogHeader>
+                      </SheetDescription>
+                    </SheetHeader>
                     <div className="grid grid-cols-2 gap-4 py-4">
                       <Button
                         variant="outline"
@@ -258,12 +267,12 @@ function AdminOrderDetailPage() {
                         <span>Pix / Transferência / Cartão</span>
                       </Button>
                     </div>
-                  </DialogContent>
-                </Dialog>
+                  </SheetContent>
+                </Sheet>
 
                 {/* Cancel — confirmation dialog (replaces window.confirm) */}
-                <Dialog open={showCancelConfirm} onOpenChange={setShowCancelConfirm}>
-                  <DialogTrigger asChild>
+                <AlertDialog open={showCancelConfirm} onOpenChange={setShowCancelConfirm}>
+                  <AlertDialogTrigger asChild>
                     <Button
                       variant="outline"
                       className="w-full text-destructive"
@@ -271,36 +280,34 @@ function AdminOrderDetailPage() {
                     >
                       {isRejecting ? "Cancelando..." : "Cancelar Venda"}
                     </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle className="flex items-center gap-2">
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="flex items-center gap-2">
                         <AlertTriangle className="h-5 w-5 text-destructive" />
                         Cancelar esta venda?
-                      </DialogTitle>
-                      <DialogDescription>
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
                         O pedido será marcado como cancelado. Esta ação não pode ser desfeita.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="flex gap-3 pt-2">
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="gap-2 mt-4">
                       <Button
                         variant="outline"
-                        className="flex-1"
                         onClick={() => setShowCancelConfirm(false)}
                       >
                         Voltar
                       </Button>
                       <Button
                         variant="destructive"
-                        className="flex-1"
                         onClick={handleReject}
                         disabled={isRejecting}
                       >
                         Confirmar Cancelamento
                       </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
 
                 <p className="text-xs text-muted-foreground text-center mt-2">
                   Você enviou o link ou chave PIX para o cliente? Assim que ele pagar, clique em
@@ -348,16 +355,16 @@ function AdminOrderDetailPage() {
                 <span className="font-semibold text-sm flex items-center gap-1.5">
                   <Truck className="h-4 w-4 text-primary" /> Logística e Rastreio
                 </span>
-                <Dialog open={trackingModalOpen} onOpenChange={setTrackingModalOpen}>
-                  <DialogTrigger asChild>
+                <Sheet open={trackingModalOpen} onOpenChange={setTrackingModalOpen}>
+                  <SheetTrigger asChild>
                     <Button variant="outline" size="sm">
                       {order.tracking_code ? "Editar Rastreio" : "Cadastrar Rastreio"}
                     </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Informações de Envio / Rastreio</DialogTitle>
-                    </DialogHeader>
+                  </SheetTrigger>
+                  <SheetContent>
+                    <SheetHeader>
+                      <SheetTitle>Informações de Envio / Rastreio</SheetTitle>
+                    </SheetHeader>
                     <form onSubmit={handleSaveTracking} className="space-y-4 pt-2">
                       <div className="space-y-1.5">
                         <label className="text-sm font-medium">Transportadora</label>
@@ -396,7 +403,7 @@ function AdminOrderDetailPage() {
                           }
                         />
                       </div>
-                      <div className="flex justify-end gap-2 pt-2">
+                      <div className="flex justify-end gap-2 pt-4 mt-8 border-t">
                         <Button
                           type="button"
                           variant="outline"
@@ -409,8 +416,8 @@ function AdminOrderDetailPage() {
                         </Button>
                       </div>
                     </form>
-                  </DialogContent>
-                </Dialog>
+                  </SheetContent>
+                </Sheet>
               </div>
 
               {order.tracking_code ? (

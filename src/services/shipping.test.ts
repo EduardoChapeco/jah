@@ -142,13 +142,19 @@ describe("Shipping Functions", () => {
 
   describe("calculateShippingHandler", () => {
     it("should return manual shipping options from database", async () => {
-      const mockOptions = [
-        { name: "PAC Sul", price_cents: 1000, estimated_days: 5, is_active: true },
-        { name: "SEDEX Sul", price_cents: 2500, estimated_days: 2, is_active: true },
-      ];
+      const mockZones = [{
+        name: "Transportadora X",
+        regions: ["80", "81"],
+        is_active: true,
+        shipping_rates: [
+          { name: "PAC Sul", price_cents: 1000, estimated_days: 5, is_active: true },
+          { name: "SEDEX Sul", price_cents: 2500, estimated_days: 2, is_active: true },
+        ]
+      }];
       mockFrom.mockImplementation((table: string) => {
-        if (table === "shipping_options") return createMockQueryBuilder({ data: mockOptions, error: null });
+        if (table === "shipping_zones") return createMockQueryBuilder({ data: mockZones, error: null });
         if (table === "integration_credentials") return createMockQueryBuilder({ data: null, error: null });
+        if (table === "shipping_quotes") return createMockQueryBuilder({ data: null, error: null });
         return createMockQueryBuilder({ data: [], error: null });
       });
 

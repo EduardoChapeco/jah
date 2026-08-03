@@ -4,5 +4,8 @@ export default defineConfig({
   server: {
     preset: "cloudflare-pages",
     entry: "server",
+    experimental: {
+      asyncContext: true,
+    },
   },
 });

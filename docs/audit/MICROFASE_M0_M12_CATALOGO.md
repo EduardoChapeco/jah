@@ -6,7 +6,7 @@
 
 ## M0 — Objetivo de Negócio
 
-Garantir o funcionamento impecável da gestão de catálogo e grade de produtos da **HR Shoes Commerce**, incluindo:
+Garantir o funcionamento impecável da gestão de catálogo e grade de produtos da **Jah Commerce**, incluindo:
 
 1. Cadastro rápido com gerador de matriz (tamanhos 33-40 e cores) com alocação de estoque inicial.
 2. Edição avançada WYSIWYG com sincronização de preços em centavos BRL (`price_cents`).

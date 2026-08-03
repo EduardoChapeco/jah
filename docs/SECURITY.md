@@ -1,6 +1,6 @@
-# Segurança — Hr Shoes Commerce
+# Segurança — Jah Commerce
 
-Status: Fase 0 (fundação). Este documento é a referência canônica de modelo de ameaças e controles de segurança para a plataforma Hr Shoes (ecommerce/CMS/PWA mobile-first, multi-tenant).
+Status: Fase 0 (fundação). Este documento é a referência canônica de modelo de ameaças e controles de segurança para a plataforma Jah (ecommerce/CMS/PWA mobile-first, multi-tenant).
 
 ## 1. Princípios gerais
 

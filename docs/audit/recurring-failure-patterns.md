@@ -1,6 +1,6 @@
 # G4: Recurring Failure Patterns
 
-Durante a evolução do sistema Hr Shoes, alguns comportamentos nocivos se repetiram silenciosamente.
+Durante a evolução do sistema Jah, alguns comportamentos nocivos se repetiram silenciosamente.
 
 ## Padrão 1: Correção Míope no Client-Side via Casts ou Types
 

@@ -1,4 +1,4 @@
-# G4: Route Inventory (Inventário Canônico de Rotas e Páginas HR Shoes)
+# G4: Route Inventory (Inventário Canônico de Rotas e Páginas Jah)
 
 > **Inventário Oficial de Rotas, Carregadores (Loaders) e Permissões**
 > Este documento cataloga as rotas do repositório em `src/routes/`, o registro no `src/lib/routes.ts` e seus respectivos status de runtime.

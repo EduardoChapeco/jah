@@ -73,7 +73,7 @@ Nenhum desses itens deve ganhar UI até estar 100% implementado no backend.
 ## 6. Decisões-chave e tradeoffs
 
 - **Camada de serviços obrigatória**: adiciona uma indireção extra em troca de segurança, testabilidade e possibilidade de trocar de provedor de dados sem reescrever a UI.
-- **Multi-tenant-ready desde o dia um**: custo inicial de modelagem um pouco maior, mas evita migração de esquema arriscada quando a Hr Shoes decidir operar mais de uma loja/organização.
+- **Multi-tenant-ready desde o dia um**: custo inicial de modelagem um pouco maior, mas evita migração de esquema arriscada quando a Jah decidir operar mais de uma loja/organização.
 - **Dinheiro sempre em centavos inteiros (BRL)**: elimina erros de ponto flutuante; toda formatação para exibição acontece na borda de apresentação, nunca no armazenamento ou no cálculo.
 - **Datas em ISO UTC no armazenamento, exibidas em America/Sao_Paulo**: evita ambiguidade de fuso horário; a conversão de exibição é responsabilidade da camada de apresentação.
 - **Proibição de 'Em breve'**: prioriza a entrega contínua. Módulos só entram em produção quando estiverem utilizáveis de ponta a ponta.
@@ -95,7 +95,7 @@ Nenhum desses itens deve ganhar UI até estar 100% implementado no backend.
 
 A Fase 0 é considerada concluída somente quando todos os itens abaixo forem verdadeiros:
 
-1. O logo da Hr Shoes aparece corretamente em todos os contextos de shell (público, cliente, admin), em tamanhos e fundos variados, sem distorção.
+1. O logo da Jah aparece corretamente em todos os contextos de shell (público, cliente, admin), em tamanhos e fundos variados, sem distorção.
 2. Nenhuma referência de projeto, mockup ou material de briefing foi transformada em conteúdo real da loja (nenhum produto, preço ou texto fictício vazou para a vitrine).
 3. A home pública está refinada em mobile e desktop, com seções reais e conectáveis (estrutura pronta para receber dados reais nas fases seguintes) e estados vazios honestos onde ainda não há conteúdo.
 4. A navegação pública, de cliente e de admin não contém links quebrados; toda rota do registro resolve para uma página existente.

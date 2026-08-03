@@ -19,13 +19,21 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { EmptyState } from "@/components/state/states";
 import {
   listManualPaymentMethods,
@@ -416,17 +424,17 @@ function ManualPaymentsPage() {
         )}
       </div>
 
-      {/* Dialog Create/Edit */}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>
+      {/* Sheet Create/Edit */}
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent className="sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle>
               {editingMethod ? "Editar Método" : "Novo Método de Pagamento"}
-            </DialogTitle>
-            <DialogDescription>
+            </SheetTitle>
+            <SheetDescription>
               Preencha os dados e taxas para exibição no checkout dos clientes.
-            </DialogDescription>
-          </DialogHeader>
+            </SheetDescription>
+          </SheetHeader>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <Label>Nome do Método *</Label>
@@ -470,7 +478,7 @@ function ManualPaymentsPage() {
               </div>
               <Switch checked={isActiveValue} onCheckedChange={(c) => setValue("is_active", c)} />
             </div>
-            <DialogFooter className="border-t pt-4">
+            <SheetFooter className="border-t pt-4 mt-8">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 Cancelar
               </Button>
@@ -478,34 +486,34 @@ function ManualPaymentsPage() {
                 <Save className="mr-2 size-4" />
                 {isSubmitting ? "Salvando..." : "Salvar Método"}
               </Button>
-            </DialogFooter>
+            </SheetFooter>
           </form>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={!!deleteTarget} onOpenChange={(v) => !v && setDeleteTarget(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+      {/* Delete Confirmation AlertDialog */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(v) => !v && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
               <AlertTriangle className="size-5 text-destructive" />
               Excluir método de pagamento?
-            </DialogTitle>
-            <DialogDescription>
+            </AlertDialogTitle>
+            <AlertDialogDescription>
               O método <strong>"{deleteTarget?.name}"</strong> não aparecerá mais como opção no
               checkout. Esta ação não pode ser desfeita.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2">
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 mt-4">
             <Button variant="outline" onClick={() => setDeleteTarget(null)}>
               Cancelar
             </Button>
             <Button variant="destructive" onClick={handleDeleteConfirm}>
               Confirmar Exclusão
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-# Mapa de Capacidades (Gap Analysis): HR Shoes Builder Legacy vs Motor Canônico
+# Mapa de Capacidades (Gap Analysis): Jah Builder Legacy vs Motor Canônico
 
 Este documento traduz todas as pesquisas em uma auditoria visual da evolução da capacidade.
 
@@ -26,4 +26,4 @@ Este documento traduz todas as pesquisas em uma auditoria visual da evolução d
 
 ## Ação
 
-A reengenharia necessita mover a HR Shoes do estado estático "Array 1D" para o modelo de Editor Baseado em Árvore DOM (Hierarchy Tree Engine), que suporta nativamente o TanStack Router Server Side Rendering.
+A reengenharia necessita mover a Jah do estado estático "Array 1D" para o modelo de Editor Baseado em Árvore DOM (Hierarchy Tree Engine), que suporta nativamente o TanStack Router Server Side Rendering.

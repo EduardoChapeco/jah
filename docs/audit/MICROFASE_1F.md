@@ -195,7 +195,7 @@ RLS:
 
 PROJETO:
 
-- `hr-shoes`
+- `Jah`
 
 AMBIENTE:
 

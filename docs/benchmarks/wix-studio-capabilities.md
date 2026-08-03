@@ -15,7 +15,7 @@ O Wix Studio é o novo flagship da Wix voltado para agências, operando como um 
 - Alterações estruturais (mudança da cor ou do texto) na versão Desktop cascateiam para Tablet e Mobile.
 - Modificações específicas de tamanho ou layout no Mobile criam um "override", mas não duplicam o conteúdo na árvore, mantendo um único nó de dados.
 
-## O que fazer melhor na HR Shoes
+## O que fazer melhor na Jah
 
-- Para a HR Shoes, não necessitaremos da total complexidade de Web Design para o lojista médio (como controle granular de Viewport Units `vw`/`vh` e animações de scroll avançadas em cada pixel). Em vez disso, focaremos em **Padrões de Layout Rígidos (Presets de Sections e Grids)** que aceitam customização semântica.
-- **Separação de Conteúdo e Responsividade:** A HR Shoes registrará configurações exclusivas de mobile e desktop num mesmo schema (`responsiveOverrides`), de forma tipada, ao invés de classes CSS injetadas (dificultando a leitura no frontend e quebrando em caso de mudança de tema).
+- Para a Jah, não necessitaremos da total complexidade de Web Design para o lojista médio (como controle granular de Viewport Units `vw`/`vh` e animações de scroll avançadas em cada pixel). Em vez disso, focaremos em **Padrões de Layout Rígidos (Presets de Sections e Grids)** que aceitam customização semântica.
+- **Separação de Conteúdo e Responsividade:** A Jah registrará configurações exclusivas de mobile e desktop num mesmo schema (`responsiveOverrides`), de forma tipada, ao invés de classes CSS injetadas (dificultando a leitura no frontend e quebrando em caso de mudança de tema).

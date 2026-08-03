@@ -1,4 +1,4 @@
-# G11: Recovery Queue (Fila Canônica de Recuperação Priorizada HR Shoes)
+# G11: Recovery Queue (Fila Canônica de Recuperação Priorizada Jah)
 
 > **Fila Priorizada de Manutenção e Refatoração Estrutural por Risco Operacional**
 

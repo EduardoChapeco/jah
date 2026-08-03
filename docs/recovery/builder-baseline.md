@@ -12,13 +12,13 @@
 
 Encontramos os seguintes componentes e módulos do builder e renderização:
 
-- [experience-renderer.tsx](file:///c:/Users/Excelência Tour SMO/Documents/hr-shoes-opus/src/components/commerce/experience-renderer.tsx): Renderizador principal da árvore DOM.
-- [builder-registry.ts](file:///c:/Users/Excelência Tour SMO/Documents/hr-shoes-opus/src/lib/builder-registry.ts): Registro de manifestos de blocos (versão, ícone, content/style schemas, etc.).
-- [builder-resolvers.ts](file:///c:/Users/Excelência Tour SMO/Documents/hr-shoes-opus/src/lib/builder-resolvers.ts): Mecanismo de resolução dinâmico de bindings.
-- [builder-types.ts](file:///c:/Users/Excelência Tour SMO/Documents/hr-shoes-opus/src/lib/builder-types.ts): Tipagens do builder.
-- [cms-registry.ts](file:///c:/Users/Excelência Tour SMO/Documents/hr-shoes-opus/src/lib/cms-registry.ts): Registro de blocos CMS legado (desconectado do editor principal do builder).
-- [admin.builder.$documentId.editor.tsx](file:///c:/Users/Excelência Tour SMO/Documents/hr-shoes-opus/src/routes/admin.builder.$documentId.editor.tsx): Interface administrativa de arrastar/soltar e inspetor.
-- [builder.functions.ts](file:///c:/Users/Excelência Tour SMO/Documents/hr-shoes-opus/src/services/builder.functions.ts): BFF com ações de CRUD de documentos, versões e nós.
+- [experience-renderer.tsx](file:///c:/Users/Excelência Tour SMO/Documents/jah/src/components/commerce/experience-renderer.tsx): Renderizador principal da árvore DOM.
+- [builder-registry.ts](file:///c:/Users/Excelência Tour SMO/Documents/jah/src/lib/builder-registry.ts): Registro de manifestos de blocos (versão, ícone, content/style schemas, etc.).
+- [builder-resolvers.ts](file:///c:/Users/Excelência Tour SMO/Documents/jah/src/lib/builder-resolvers.ts): Mecanismo de resolução dinâmico de bindings.
+- [builder-types.ts](file:///c:/Users/Excelência Tour SMO/Documents/jah/src/lib/builder-types.ts): Tipagens do builder.
+- [cms-registry.ts](file:///c:/Users/Excelência Tour SMO/Documents/jah/src/lib/cms-registry.ts): Registro de blocos CMS legado (desconectado do editor principal do builder).
+- [admin.builder.$documentId.editor.tsx](file:///c:/Users/Excelência Tour SMO/Documents/jah/src/routes/admin.builder.$documentId.editor.tsx): Interface administrativa de arrastar/soltar e inspetor.
+- [builder.functions.ts](file:///c:/Users/Excelência Tour SMO/Documents/jah/src/services/builder.functions.ts): BFF com ações de CRUD de documentos, versões e nós.
 
 ## 3. Estado de Migrações do Banco de Dados Relacionadas
 

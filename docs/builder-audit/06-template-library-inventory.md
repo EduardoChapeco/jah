@@ -1,7 +1,7 @@
 # 06 — Template Library Inventory
 
 > Data: 2026-07-24  
-> Projeto: Hr Shoes Commerce
+> Projeto: Jah Commerce
 
 ---
 

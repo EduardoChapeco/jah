@@ -11,8 +11,8 @@ Builders como Bubble, FlutterFlow ou AppGyver focam em criar APPs com lógica pr
 - **Service Workers Inteligentes:** Diferenciação entre assets vitais da interface (cacheados em Cache-First) e conteúdo comercial (Preços, Estoque — validados Network-First).
 - **Instalação Sem Atritos:** Prompts visuais customizados para instruir o usuário iOS a realizar a ação de "Adicionar à Tela de Início".
 
-## O que fazer melhor na HR Shoes
+## O que fazer melhor na Jah
 
-- A HR Shoes deve renderizar exatamente a mesma árvore de `experience_nodes` do Storefront ou Vitrine, mas envelopada num `AppShell` nativo com roteamento do TanStack Router interceptado.
+- A Jah deve renderizar exatamente a mesma árvore de `experience_nodes` do Storefront ou Vitrine, mas envelopada num `AppShell` nativo com roteamento do TanStack Router interceptado.
 - Os templates PWA focarão estritamente no Commerce: Visualização de Catálogo Off-line (em um limite seguro de 50 produtos vitrine em IndexedDB), Sincronização de Carrinho e Status de Pedidos via Push Notifications e WebSockets (Realtime Supabase).
 - Operações de Check-out e Pagamento falharão de forma graciosa sem internet (desabilitando Botão "Comprar" se a conexão `navigator.onLine` cair).

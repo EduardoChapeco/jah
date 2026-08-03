@@ -1,9 +1,9 @@
 -- ============================================================================
--- Hr Shoes Commerce — Seed Data (Template Loja de Calçados)
+-- Jah Commerce — Seed Data (Template Loja de Calçados)
 -- ============================================================================
 -- Este seed popula a vitrine inicial com dados estruturais (Tipos, Categorias,
 -- Atributos) e alguns produtos de demonstração para que a loja não inicie vazia.
--- Depende da Migration 0022 que cria a store 'hr-shoes'.
+-- Depende da Migration 0022 que cria a store 'jah'.
 
 DO $$
 DECLARE
@@ -14,11 +14,11 @@ DECLARE
   v_prod_1 UUID;
   v_prod_2 UUID;
 BEGIN
-  -- Obter a store padrão (Hr Shoes)
-  SELECT id INTO v_store_id FROM public.stores WHERE slug = 'hr-shoes' LIMIT 1;
+  -- Obter a store padrão (Jah)
+  SELECT id INTO v_store_id FROM public.stores WHERE slug = 'jah' LIMIT 1;
 
   IF v_store_id IS NULL THEN
-    RAISE EXCEPTION 'Store hr-shoes não encontrada. Execute as migrations primeiro.';
+    RAISE EXCEPTION 'Store jah não encontrada. Execute as migrations primeiro.';
   END IF;
 
   -- ==========================================

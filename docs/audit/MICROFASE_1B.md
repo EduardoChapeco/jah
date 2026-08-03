@@ -182,7 +182,7 @@ MIGRATIONS:
 
 PROJETO:
 
-- `hr-shoes`
+- `Jah`
 
 AMBIENTE:
 

@@ -1,6 +1,6 @@
-# G1: Requirements Ledger (Livro-Razão Canônico de Requisitos HR Shoes)
+# G1: Requirements Ledger (Livro-Razão Canônico de Requisitos Jah)
 
-> **Documento Canônico de Rastreabilidade Sistêmica da HR Shoes Commerce**
+> **Documento Canônico de Rastreabilidade Sistêmica da Jah Commerce**
 > Este livro-razão consolida 100% dos requisitos solicitados nos Prompts Foundation, Incremental, Delta 01 e Auditorias Mestre.
 
 ## Status Permitidos

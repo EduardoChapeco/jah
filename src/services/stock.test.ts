@@ -58,7 +58,7 @@ describe("Stock Functions", () => {
       ];
       mockOrder.mockResolvedValueOnce({ data: mockVariants, error: null });
 
-      const res = await getStockLevelsHandler({});
+      const res = await getStockLevelsHandler({}, "store-1");
       expect(res).toEqual(mockVariants);
       expect(mockFrom).toHaveBeenCalledWith("product_variants");
       expect(mockOrder).toHaveBeenCalledWith("sku");
@@ -68,7 +68,7 @@ describe("Stock Functions", () => {
       const mockVariants = [{ id: "v-1", sku: "TENIS-39" }];
       mockIlike.mockResolvedValueOnce({ data: mockVariants, error: null });
 
-      const res = await getStockLevelsHandler({ search: "TENIS" });
+      const res = await getStockLevelsHandler({ search: "TENIS" }, "store-1");
       expect(res).toEqual(mockVariants);
       expect(mockIlike).toHaveBeenCalledWith("sku", "%TENIS%");
     });
@@ -76,13 +76,13 @@ describe("Stock Functions", () => {
     it("should propagate database error", async () => {
       mockOrder.mockResolvedValueOnce({ data: null, error: { message: "DB select fail" } });
 
-      await expect(getStockLevelsHandler({})).rejects.toThrow("DB select fail");
+      await expect(getStockLevelsHandler({}, "store-1")).rejects.toThrow("DB select fail");
     });
 
     it("should return empty array when data is null with no error", async () => {
       mockOrder.mockResolvedValueOnce({ data: null, error: null });
 
-      const res = await getStockLevelsHandler({});
+      const res = await getStockLevelsHandler({}, "store-1");
       expect(res).toEqual([]);
     });
   });
@@ -96,7 +96,7 @@ describe("Stock Functions", () => {
         qty: 10,
         movementType: "purchase",
         note: "Compra de fornecedor",
-      });
+      }, "store-1");
 
       expect(res).toEqual({ status: "ok", message: "Estoque ajustado com sucesso." });
       expect(mockRpc).toHaveBeenCalledWith("adjust_stock", {
@@ -110,7 +110,7 @@ describe("Stock Functions", () => {
     it("should use null note when not provided", async () => {
       mockRpc.mockResolvedValueOnce({ error: null });
 
-      await adjustStockHandler({ variantId: "var-uuid-1", qty: -1, movementType: "damage" });
+      await adjustStockHandler({ variantId: "var-uuid-1", qty: -1, movementType: "damage" }, "store-1");
       expect(mockRpc).toHaveBeenCalledWith("adjust_stock", {
         p_variant_id: "var-uuid-1",
         p_qty: -1,
@@ -123,7 +123,7 @@ describe("Stock Functions", () => {
       mockRpc.mockResolvedValueOnce({ error: { message: "Variant not found" } });
 
       await expect(
-        adjustStockHandler({ variantId: "bad-uuid", qty: 1, movementType: "adjustment" }),
+        adjustStockHandler({ variantId: "bad-uuid", qty: 1, movementType: "adjustment" }, "store-1"),
       ).rejects.toThrow("Variant not found");
     });
   });
@@ -135,7 +135,7 @@ describe("Stock Functions", () => {
       ];
       mockLimit.mockResolvedValueOnce({ data: mockMovements, error: null });
 
-      const res = await getStockMovementsHandler(50);
+      const res = await getStockMovementsHandler(50, "store-1");
       expect(res).toEqual(mockMovements);
       expect(mockFrom).toHaveBeenCalledWith("stock_movements");
       expect(mockOrder).toHaveBeenCalledWith("created_at", { ascending: false });
@@ -145,13 +145,13 @@ describe("Stock Functions", () => {
     it("should propagate database error", async () => {
       mockLimit.mockResolvedValueOnce({ data: null, error: { message: "DB movements fail" } });
 
-      await expect(getStockMovementsHandler(50)).rejects.toThrow("DB movements fail");
+      await expect(getStockMovementsHandler(50, "store-1")).rejects.toThrow("DB movements fail");
     });
 
     it("should return empty array when data is null", async () => {
       mockLimit.mockResolvedValueOnce({ data: null, error: null });
 
-      const res = await getStockMovementsHandler(10);
+      const res = await getStockMovementsHandler(10, "store-1");
       expect(res).toEqual([]);
     });
   });

@@ -22,6 +22,46 @@ export async function calculateShippingHandler({
   const finalQuotes: any[] = [];
   const cleanZipcode = zipcode.replace(/\D/g, "");
 
+  let totalWeightKg = 0;
+  let maxW = 0;
+  let maxH = 0;
+  let maxL = 0;
+  let itemsCount = 0;
+  let hasMissingDimensions = false;
+
+  if (cartId) {
+    const { data: cartItems } = await supabase
+      .from("cart_items")
+      .select("quantity, product_id, variant_id, products(weight_kg, width_cm, height_cm, length_cm), product_variants(weight_kg, width_cm, height_cm, length_cm)")
+      .eq("cart_id", cartId);
+
+    if (cartItems) {
+      type LogisticsRow = { weight_kg: number | null; width_cm: number | null; height_cm: number | null; length_cm: number | null } | null;
+      for (const item of cartItems) {
+        const prod = item.products as unknown as LogisticsRow;
+        const vari = item.product_variants as unknown as LogisticsRow;
+        const wKg = vari?.weight_kg ?? prod?.weight_kg;
+        const width = vari?.width_cm ?? prod?.width_cm;
+        const height = vari?.height_cm ?? prod?.height_cm;
+        const length = vari?.length_cm ?? prod?.length_cm;
+
+        if (wKg == null || width == null || height == null || length == null) {
+          hasMissingDimensions = true;
+        } else {
+          totalWeightKg += Number(wKg) * item.quantity;
+          if (Number(width) > maxW) maxW = Number(width);
+          if (Number(height) > maxH) maxH = Number(height);
+          if (Number(length) > maxL) maxL = Number(length);
+        }
+        itemsCount += item.quantity;
+      }
+    }
+  }
+
+  if (itemsCount === 0) {
+    hasMissingDimensions = true;
+  }
+
   // 1. Fetch Manual Shipping Rates (Fallback/Local rules from Zones)
   const { data: zones } = await supabase
     .from("shipping_zones")
@@ -64,7 +104,7 @@ export async function calculateShippingHandler({
     .maybeSingle();
 
   // 3. Real External API Call if configured
-  if (creds && creds.token_payload?.api_token) {
+  if (creds && creds.token_payload?.api_token && cleanZipcode.length === 8 && !hasMissingDimensions) {
     try {
       const apiToken = creds.token_payload.api_token;
       const response = await fetch(
@@ -82,10 +122,10 @@ export async function calculateShippingHandler({
             products: [
               {
                 id: cartId || "cart",
-                width: 15,
-                height: 10,
-                length: 20,
-                weight: weightGrams / 1000,
+                width: maxW || 15,
+                height: maxH || 10,
+                length: maxL || 20,
+                weight: totalWeightKg,
                 insurance_value: 0,
                 quantity: 1,
               },
@@ -125,7 +165,7 @@ export async function calculateShippingHandler({
       service_name: q.service_name,
       price_cents: q.price_cents,
       estimated_days: q.estimated_days,
-      payload_snapshot: { weightGrams },
+      payload_snapshot: { totalWeightKg, maxW, maxH, maxL },
     }));
     await supabase.from("shipping_quotes").insert(quotesToInsert);
   }
@@ -138,7 +178,6 @@ export const calculateShipping = createServerFn({ method: "POST" })
     z.object({
       cartId: z.string().uuid().optional(),
       zipcode: z.string().min(8),
-      weightGrams: z.number().default(500),
     }),
   )
   .handler(async ({ data }) => calculateShippingHandler(data));

@@ -1,10 +1,10 @@
+import { getEvent } from "vinxi/http";
+
 // ─── Runtime-level env resolver ──────────────────────────────────────────────
 // Resolves environment variables securely and reliably across all target environments:
 //
-// 1. TanStack Start Event AsyncLocalStorage:
-//    TanStack Start registers its request store on globalThis under a specific Symbol.
-//    Under Cloudflare Workers / Pages, Vinxi's `getEvent()` is broken because globalThis.app
-//    is undefined, causing runtime crashes. Accessing the store directly works flawlessly.
+// 1. Vinxi HTTP Event (requires server.experimental.asyncContext: true)
+//    Accesses Cloudflare Pages runtime variables securely.
 //
 // 2. process.env:
 //    Fallback for Local Dev (Node.js/Vite) & Nitro Cloudflare polyfills.
@@ -12,22 +12,62 @@
 // 3. import.meta.env:
 //    Vite build-time injections (for public VITE_* variables).
 // ─────────────────────────────────────────────────────────────────────────────
+// Polyfill for Vinxi on Edge runtimes (Cloudflare Pages)
+// Vinxi expects globalThis.app to exist to check for asyncContext.
+// Without this, getEvent() throws "Cannot read properties of undefined (reading 'config')"
+// ---------------------------------------------------------------------------
+if (typeof globalThis !== "undefined") {
+  if (!(globalThis as any).app) {
+    (globalThis as any).app = {
+      config: {
+        server: {
+          experimental: {
+            asyncContext: true,
+          },
+        },
+      },
+    };
+  }
+}
 
 export function getEnvVar(key: string): string | undefined {
-  // 1. Resolve via TanStack Start's event storage
-  try {
-    const sym = Symbol.for("tanstack-start:event-storage");
-    const storage = (globalThis as any)[sym];
-    if (storage) {
-      const store = storage.getStore();
-      const req = store?.h3Event?.req;
-      const env = req?.runtime?.cloudflare?.env;
-      if (env && typeof env[key] === "string" && env[key]) {
-        return env[key];
-      }
+  let debug = "";
+  // 1. Resolve via Cloudflare global scope (injected by src/server.ts)
+  if (typeof globalThis !== "undefined" && (globalThis as any).__env__) {
+    const env = (globalThis as any).__env__;
+    if (env && typeof env[key] === "string" && env[key]) {
+      return env[key];
     }
-  } catch {
-    // Ignore context access errors
+  } else {
+    debug += "gEnv=no;";
+  }
+
+  // 2. Resolve via Vinxi's getEvent (works in local dev TanStack Start with asyncContext)
+  try {
+    const event = getEvent();
+    if (event) {
+      debug += "evt=yes;";
+      const env = event.context?.cloudflare?.env || (event.node?.req as any)?.runtime?.cloudflare?.env;
+      if (env) {
+        debug += "cEnv=yes;";
+        if (typeof env[key] === "string" && env[key]) {
+          return env[key];
+        } else {
+          debug += "keyNotFound;";
+        }
+      } else {
+        debug += "cEnv=no;";
+        debug += `ctxKeys=${Object.keys(event.context || {}).join(",")};`;
+      }
+    } else {
+      debug += "evt=null;";
+    }
+  } catch (err: any) {
+    debug += `evtThrow=${err.message};`;
+  }
+
+  if (key === "SUPABASE_SERVICE_ROLE_KEY") {
+    throw new Error(`ENV_TRACE: ${debug}`);
   }
 
   // 2. Fallback to process.env (Node.js runtime / local dev)
@@ -35,7 +75,11 @@ export function getEnvVar(key: string): string | undefined {
     return process.env[key];
   }
 
-  // 3. Fallback to Vite build-time env injection (VITE_* public variables only)
+  // 3. Fallback to Vite build-time env injection (Explicitly for known public vars)
+  if (key === "VITE_SUPABASE_URL") return import.meta.env.VITE_SUPABASE_URL;
+  if (key === "VITE_SUPABASE_ANON_KEY") return import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+  // Fallback for dynamic public vars
   if (typeof import.meta !== "undefined" && (import.meta as any).env?.[key]) {
     return (import.meta as any).env[key];
   }

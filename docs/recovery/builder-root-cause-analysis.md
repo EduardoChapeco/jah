@@ -36,7 +36,7 @@ Este documento identifica de forma transparente e rigorosa os fatores técnicos 
 
 ### Quais dados deixaram de ser lidos e qual rota usa template fixo?
 
-- A rota da página principal `/` ([_store.index.tsx](file:///c:/Users/Excelência Tour SMO/Documents/hr-shoes-opus/src/routes/_store.index.tsx)) continuou lendo as tabelas do banco antigo (`pages` e `page_sections`) e, caso estas estivessem vazias, cai em um template fixo em JSX que lê propriedades estáticas do `storeConfig`. Ela ignora completamente a nova tabela `experience_nodes` do builder.
+- A rota da página principal `/` ([_store.index.tsx](file:///c:/Users/Excelência Tour SMO/Documents/jah/src/routes/_store.index.tsx)) continuou lendo as tabelas do banco antigo (`pages` e `page_sections`) e, caso estas estivessem vazias, cai em um template fixo em JSX que lê propriedades estáticas do `storeConfig`. Ela ignora completamente a nova tabela `experience_nodes` do builder.
 
 ### Por que o editor atual não mostra todos os blocos?
 

@@ -1,6 +1,6 @@
 # G6: Dependency Graph & Event Flow (Grafo de Dependências e Eventos)
 
-Este documento mapeia o acoplamento entre os serviços do BFF, as rotas do TanStack Router, os eventos do banco PostgreSQL e a invalidação de cache na plataforma HR Shoes Commerce.
+Este documento mapeia o acoplamento entre os serviços do BFF, as rotas do TanStack Router, os eventos do banco PostgreSQL e a invalidação de cache na plataforma Jah Commerce.
 
 ---
 

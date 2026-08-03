@@ -1,4 +1,4 @@
-# G8: Change Propagation Matrix (Matriz de Propagação HR Shoes)
+# G8: Change Propagation Matrix (Matriz de Propagação Jah)
 
 > **Matriz de Sincronização, Invalidação de Cache e Propagação de Mutações**
 

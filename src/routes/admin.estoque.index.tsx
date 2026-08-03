@@ -32,13 +32,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import {
   Select,
   SelectContent,
@@ -384,19 +384,19 @@ function AdminStockPage() {
         </div>
       )}
 
-      {/* Modal / Dialog de Movimentação por Linha */}
-      <Dialog
+      {/* Sheet / Dialog de Movimentação por Linha */}
+      <Sheet
         open={Boolean(selectedVariant)}
         onOpenChange={(open) => !open && setSelectedVariant(null)}
       >
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Movimentação de Estoque</DialogTitle>
-            <DialogDescription>
+        <SheetContent className="max-w-md">
+          <SheetHeader>
+            <SheetTitle>Movimentação de Estoque</SheetTitle>
+            <SheetDescription>
               SKU: <strong className="font-mono text-foreground">{selectedVariant?.sku}</strong> (
               {selectedVariant?.products?.title})
-            </DialogDescription>
-          </DialogHeader>
+            </SheetDescription>
+          </SheetHeader>
 
           <form onSubmit={handleExecuteMovement} className="space-y-4 pt-2">
             <div className="space-y-2">
@@ -444,17 +444,17 @@ function AdminStockPage() {
               />
             </div>
 
-            <DialogFooter className="pt-4">
+            <SheetFooter className="pt-4 mt-8">
               <Button type="button" variant="outline" onClick={() => setSelectedVariant(null)}>
                 Cancelar
               </Button>
               <Button type="submit" disabled={isUpdating}>
                 {isUpdating ? "Gravando..." : "Confirmar Movimentação"}
               </Button>
-            </DialogFooter>
+            </SheetFooter>
           </form>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

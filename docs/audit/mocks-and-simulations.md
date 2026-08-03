@@ -1,6 +1,6 @@
 # Auditoria Forense — Mocks e Simulações (`docs/audit/mocks-and-simulations.md`)
 
-Este documento lista todas as simulações, dados fictícios (fixtures) e comportamentos cenográficos remanescentes nas telas e lógica da Hr Shoes.
+Este documento lista todas as simulações, dados fictícios (fixtures) e comportamentos cenográficos remanescentes nas telas e lógica da Jah.
 
 ## 1. Dados e Fixtures Estáticos no Frontend
 

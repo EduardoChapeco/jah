@@ -1,4 +1,4 @@
-# G6: Contract Audit (Auditoria Canônica de Contratos Zod & DTOs HR Shoes)
+# G6: Contract Audit (Auditoria Canônica de Contratos Zod & DTOs Jah)
 
 > **Auditoria Completa de Contratos, Schemas Zod, Entradas e Saídas do BFF**
 

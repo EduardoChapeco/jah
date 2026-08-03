@@ -1,6 +1,6 @@
-# Hr Shoes Commerce — Auditoria Forense e Estabilização
+# Jah Commerce — Auditoria Forense e Estabilização
 
-Este documento resume as investigações, refatorações e os procedimentos de deploy completo executados no projeto **hr-shoes-opus**.
+Este documento resume as investigações, refatorações e os procedimentos de deploy completo executados no projeto **jah**.
 
 ---
 
@@ -30,7 +30,7 @@ Este documento resume as investigações, refatorações e os procedimentos de d
 
 - **Migration 0010**: Criado o arquivo de migração `supabase/migrations/0010_auto_profile_trigger.sql`.
 - **Trigger de Autocadastro**: Desenvolvido um trigger de PostgreSQL (`handle_new_user`) ativado após a inserção em `auth.users`. Ele cria automaticamente a entrada em `public.profiles`.
-- **Primeiro Usuário Administrador**: A função verifica se é o primeiro usuário a se registrar na plataforma. Em caso afirmativo, atribui o papel de `owner` (administrador geral) e cria a organização e a loja padrão (`Hr Shoes`) de forma automatizada para evitar erros de inicialização de persistência.
+- **Primeiro Usuário Administrador**: A função verifica se é o primeiro usuário a se registrar na plataforma. Em caso afirmativo, atribui o papel de `owner` (administrador geral) e cria a organização e a loja padrão (`Jah`) de forma automatizada para evitar erros de inicialização de persistência.
 - **Supabase Deploy**: Sincronizadas as 10 migrações locais com o banco de dados remoto da Supabase (`hfgnageqkeryxsnwobjc`) de forma bem-sucedida via Supabase CLI.
 
 ---
@@ -38,9 +38,9 @@ Este documento resume as investigações, refatorações e os procedimentos de d
 ## 5. Deploy de Produção (Cloudflare Pages)
 
 - **Vite/Nitro Build**: Compilado com a variável de ambiente `NITRO_PRESET=cloudflare-pages`, gerando os ativos e o arquivo `_worker.js` dentro de `dist/`.
-- **Pages Project**: Criado o projeto Pages `eduardochapeco-hr-shoes-opus` na Cloudflare.
+- **Pages Project**: Criado o projeto Pages `eduardochapeco-jah` na Cloudflare.
 - **Deploy Wrangler**: Efetuado o deploy completo na infraestrutura da Cloudflare Pages:
-  👉 **https://eduardochapeco-hr-shoes-opus.pages.dev**
+  👉 **https://eduardochapeco-jah.pages.dev**
 
 ---
 

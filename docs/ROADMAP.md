@@ -16,7 +16,7 @@ Este roadmap detalha as fases de construção da Jah Community Platform (Platafo
 ## Fase 0 & 1 — Fundação e Primitivas da Rua (Concluída/Atual)
 
 ### Escopo
-- Documentação canônica atualizada (Transição Hr Shoes -> Jah).
+- Documentação canônica atualizada (Transição Jah -> Jah).
 - Design system aplicado: tokens de cor, tipografia da rua (Inter, Space Grotesk, Oswald, JetBrains Mono) e primitivas genéricas `<Surface>` (zine, flyer, yellow-pages, ticket, polaroid).
 - Layout e navegação: shell público, shell de cliente, shell de admin.
 - Registro de rotas tipado, com metadados de fase, permissão e status ("disponível" / "em breve").

@@ -46,12 +46,12 @@ import {
   submitProductReview,
 } from "@/services/social.functions";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 const getColorHex = (name: string): string => {
   const colors: Record<string, string> = {
@@ -104,7 +104,7 @@ const getColorHex = (name: string): string => {
   return "#" + "00000".substring(0, 6 - c.length) + c;
 };
 
-function SizeGuideDialog({
+function SizeGuideSheet({
   open,
   onOpenChange,
 }: {
@@ -112,14 +112,14 @@ function SizeGuideDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Guia de Tamanhos (Padrão BR)</DialogTitle>
-          <DialogDescription>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="max-w-md">
+        <SheetHeader>
+          <SheetTitle>Guia de Tamanhos (Padrão BR)</SheetTitle>
+          <SheetDescription>
             Use a tabela abaixo para selecionar o tamanho ideal com base na medida do seu pé.
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
         <div className="mt-4 overflow-hidden rounded-lg border">
           <table className="w-full border-collapse text-left text-xs">
             <thead>
@@ -172,8 +172,8 @@ function SizeGuideDialog({
           * Dica: Se ficar entre dois tamanhos, recomendamos escolher a numeração maior para maior
           conforto.
         </p>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -1182,7 +1182,7 @@ function ProductContent({
         </div>
       </div>
 
-      <SizeGuideDialog open={sizeGuideOpen} onOpenChange={setSizeGuideOpen} />
+      <SizeGuideSheet open={sizeGuideOpen} onOpenChange={setSizeGuideOpen} />
 
       {/* ZONA DO BUILDER: Template Híbrido da Página de Produto */}
       {templateTree && templateTree.length > 0 && (

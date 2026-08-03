@@ -1,4 +1,4 @@
-# G8: Integration Matrix (Matriz Canônica de Integrações HR Shoes)
+# G8: Integration Matrix (Matriz Canônica de Integrações Jah)
 
 > **Matriz de Integrações com Serviços Terceiros, Gateways e Invalidações**
 

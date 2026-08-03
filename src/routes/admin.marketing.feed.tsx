@@ -18,13 +18,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { listSocialPosts, createSocialPost } from "@/services/marketing-engagement.functions";
 
 export const Route = createFileRoute("/admin/marketing/feed")({
@@ -71,17 +71,17 @@ function FeedPage() {
           title="Feed Social"
           description="Crie e organize conteúdos de redes sociais a partir dos seus produtos."
         />
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
+        <Sheet open={open} onOpenChange={setOpen}>
+          <SheetTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
               Novo Post
             </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Criar Post para Rede Social</DialogTitle>
-            </DialogHeader>
+          </SheetTrigger>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>Criar Post para Rede Social</SheetTitle>
+            </SheetHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="post-platform">Plataforma</Label>
@@ -111,14 +111,14 @@ function FeedPage() {
                   rows={5}
                 />
               </div>
-              <DialogFooter>
-                <Button type="submit" disabled={isSaving}>
+              <SheetFooter className="mt-8">
+                <Button type="submit" disabled={isSaving} className="w-full sm:w-auto">
                   {isSaving ? "Salvando..." : "Salvar Post"}
                 </Button>
-              </DialogFooter>
+              </SheetFooter>
             </form>
-          </DialogContent>
-        </Dialog>
+          </SheetContent>
+        </Sheet>
       </div>
 
       {posts.length === 0 ? (

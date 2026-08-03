@@ -351,7 +351,7 @@ async function runSeed() {
           position: 0,
           settings: {
             title: "Bem-vindo à Loja Modelo",
-            subtitle: "Esta é a vitrine demonstrativa rodando 100% sobre o motor canônico da plataforma Hr Shoes.",
+            subtitle: "Esta é a vitrine demonstrativa rodando 100% sobre o motor canônico da plataforma Jah.",
             image_url: mediaUrls.geral,
             cta_text: "Ver Novidades"
           }

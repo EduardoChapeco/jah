@@ -1,6 +1,6 @@
-# G2: Claims Ledger (Auditoria Sistêmica de Alegações HR Shoes)
+# G2: Claims Ledger (Auditoria Sistêmica de Alegações Jah)
 
-> Este documento audita de forma adversarial todas as alegações de conclusão da plataforma HR Shoes Commerce, revalidando-as em runtime real (browser + SSR + banco Supabase + Cloudflare Pages).
+> Este documento audita de forma adversarial todas as alegações de conclusão da plataforma Jah Commerce, revalidando-as em runtime real (browser + SSR + banco Supabase + Cloudflare Pages).
 
 ## Classificações Oficiais
 

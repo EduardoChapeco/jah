@@ -21,7 +21,7 @@ Auditoria confirmou: **Banco está "limpo"**. Todas as tabelas existem (0001 a 0
 ### 1. Divergência de Multi-tenant vs Single-tenant
 
 O schema foi desenhado fortemente como multi-tenant (`organization_id` e `store_id` em quase todas as tabelas).
-**Porém**, o negócio é **single-tenant** (loja única da Hr Shoes com vendedores/afiliados).
+**Porém**, o negócio é **single-tenant** (loja única da Jah com vendedores/afiliados).
 **Consequência**: Complexidade inútil de RLS. Toda query precisa filtrar por `store_id` desnecessariamente. A migration 0022 fez um seed de "loja única", mas a dívida técnica na estrutura continua.
 
 ### 2. Trigger `handle_new_user` Falhando

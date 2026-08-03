@@ -17,13 +17,13 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import {
   listPendingManualPayments,
   approvePayment,
@@ -181,18 +181,18 @@ function ReceiptsPage() {
       )}
 
       {/* Reject Dialog */}
-      <Dialog open={!!rejectTarget} onOpenChange={(v) => !v && setRejectTarget(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+      <Sheet open={!!rejectTarget} onOpenChange={(v) => !v && setRejectTarget(null)}>
+        <SheetContent>
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
               <AlertTriangle className="size-5 text-destructive" />
               Rejeitar Comprovante
-            </DialogTitle>
-            <DialogDescription>
+            </SheetTitle>
+            <SheetDescription>
               Informe o motivo da rejeição. O pedido voltará para "Aguardando Pagamento" e o cliente
               poderá enviar um novo comprovante.
-            </DialogDescription>
-          </DialogHeader>
+            </SheetDescription>
+          </SheetHeader>
           <div className="space-y-2 py-2">
             <Label htmlFor="reject-reason">Motivo da Rejeição</Label>
             <Input
@@ -202,16 +202,16 @@ function ReceiptsPage() {
               onChange={(e) => setRejectReason(e.target.value)}
             />
           </div>
-          <DialogFooter className="gap-2">
+          <SheetFooter className="gap-2 mt-8">
             <Button variant="outline" onClick={() => setRejectTarget(null)}>
               Cancelar
             </Button>
             <Button variant="destructive" disabled={isRejecting} onClick={handleRejectConfirm}>
               {isRejecting ? "Rejeitando..." : "Confirmar Rejeição"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

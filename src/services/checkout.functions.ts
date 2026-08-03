@@ -97,6 +97,19 @@ export const processCheckout = createServerFn({ method: "POST" })
       const affiliateId = req ? readCookieFromRequest(req, "jah_affiliate_id") : null;
 
       // Call the atomic RPC v2 — all logic (coupon, stock, order creation, gift cards, surcharges) happens inside a single PostgreSQL transaction
+      // BUT first, revalidate the shipping rate to ensure it hasn't expired or changed.
+      const { data: cartValidation } = await db.from("carts").select("shipping_zipcode, shipping_method, shipping_cents").eq("id", params.cartId).single();
+      
+      if (cartValidation && cartValidation.shipping_method) {
+        const { calculateShippingHandler } = await import("@/services/shipping.functions");
+        const currentRates = await calculateShippingHandler({ zipcode: cartValidation.shipping_zipcode || "", cartId: params.cartId });
+        const matchedRate = currentRates.find((r) => r.service_name === cartValidation.shipping_method || r.provider === cartValidation.shipping_method);
+        
+        if (!matchedRate || matchedRate.price_cents !== cartValidation.shipping_cents) {
+          throw new Error("O valor ou disponibilidade do frete mudou desde a última cotação. Por favor, recalcule o frete no carrinho.");
+        }
+      }
+
       const { data, error } = await db.rpc("process_checkout_transaction_v2", {
         p_cart_id: params.cartId,
         p_idempotency_key: idempotencyKey,

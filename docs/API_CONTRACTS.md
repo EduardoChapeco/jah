@@ -1,4 +1,4 @@
-# Contratos de API — Hr Shoes Commerce (v1)
+# Contratos de API — Jah Commerce (v1)
 
 Contratos versionados da camada BFF/server-function (`createServerFn` e rotas sob `src/routes/api`). Consumidos exclusivamente pela camada de serviços de domínio (`/services`), nunca diretamente por componentes React.
 

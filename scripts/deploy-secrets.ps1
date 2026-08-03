@@ -32,10 +32,10 @@ foreach ($line in $lines) {
             $value = $value.Substring(1, $value.Length - 2)
         }
 
-        Write-Host "-> Enviando secret: $key ..." -NoNewline
+        Write-Host "Injetando $key..." -ForegroundColor Cyan
         
         try {
-            $value | npx wrangler pages secret put $key --project-name lojapiloto 2>$null
+            $value | npx wrangler pages secret put $key --project-name jah 2>$null
             Write-Host " OK" -ForegroundColor Green
         } catch {
             Write-Host " ERRO" -ForegroundColor Red

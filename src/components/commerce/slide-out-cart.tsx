@@ -24,7 +24,7 @@ export function SlideOutCart() {
     if (zipcode.length < 8) return;
     setShippingLoading(true);
     try {
-      const options = await calculateShipping({ data: { cartId: cart?.id, zipcode, weightGrams: 500 } });
+      const options = await calculateShipping({ data: { cartId: cart?.id, zipcode } });
       setShippingOptions(options);
     } catch (e: any) {
       toast.error("Erro ao calcular frete");

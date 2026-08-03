@@ -1,4 +1,4 @@
-# Module Review Queue — Hr Shoes Commerce
+# Module Review Queue — Jah Commerce
 
 > Fila de execução sequencial de revisão de módulos. Atualizado a cada gate concluído.
 > Gerado em: 2026-07-19

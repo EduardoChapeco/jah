@@ -1,4 +1,4 @@
-# COMPONENT_CATALOG.md — Hr Shoes Commerce
+# COMPONENT_CATALOG.md — Jah Commerce
 
 > Componentes canônicos e seus estados obrigatórios. Fonte de verdade de UI
 > junto de `DESIGN.md`. Todo componente de dado/ação implementa: **loading,
@@ -31,7 +31,7 @@
 
 | Componente                      | Descrição                          | Notas de estado                                |
 | ------------------------------- | ---------------------------------- | ---------------------------------------------- |
-| `BrandLogo` / `Logo`            | Marca real Hr Shoes (imagem)       | —                                              |
+| `BrandLogo` / `Logo`            | Marca real Jah (imagem)       | —                                              |
 | `PublicHeader`                  | Cabeçalho + menu mobile (Sheet)    | navegação sempre válida (derivada do registry) |
 | `MobileBottomNav` / `BottomNav` | Navegação inferior sticky (mobile) | alvos >= 44px, `pb-safe`                       |
 | `PublicFooter`                  | Rodapé com colunas                 | links reais                                    |

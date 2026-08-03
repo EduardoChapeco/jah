@@ -1,4 +1,4 @@
-# Requirements Ledger — Hr Shoes Commerce
+# Requirements Ledger — Jah Commerce
 
 > Fonte única de verdade de requisitos por capacidade. Atualizado a cada microfase executada.
 > Gerado em: 2026-07-19 | Módulo atual: Identidade & Autenticação (M-01)

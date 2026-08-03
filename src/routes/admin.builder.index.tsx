@@ -35,12 +35,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 import {
   listExperienceDocuments,
@@ -329,15 +329,15 @@ function BuilderIndex() {
         )}
       </div>
 
-      <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Configurações da Página</DialogTitle>
-            <DialogDescription>
+      <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+        <SheetContent className="max-w-md">
+          <SheetHeader>
+            <SheetTitle>Configurações da Página</SheetTitle>
+            <SheetDescription>
               Atualize o título, o endereço (slug) e a visibilidade desta página extra ou bio link.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleUpdateSettings} className="space-y-4 py-2">
+            </SheetDescription>
+          </SheetHeader>
+          <form onSubmit={handleUpdateSettings} className="space-y-4 py-2 mt-4">
             <div className="space-y-1">
               <label className="text-xs font-semibold text-muted-foreground uppercase">
                 Título da Página
@@ -384,7 +384,7 @@ function BuilderIndex() {
                 className="h-5 w-5 accent-primary cursor-pointer"
               />
             </div>
-            <div className="flex justify-end gap-2 pt-4">
+            <div className="flex justify-end gap-2 pt-4 mt-8">
               <Button type="button" variant="outline" onClick={() => setIsSettingsOpen(false)}>
                 Cancelar
               </Button>
@@ -393,18 +393,18 @@ function BuilderIndex() {
               </Button>
             </div>
           </form>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
 
-      <Dialog open={isTemplateModalOpen} onOpenChange={setIsTemplateModalOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Escolha um Template</DialogTitle>
-            <DialogDescription>
+      <Sheet open={isTemplateModalOpen} onOpenChange={setIsTemplateModalOpen}>
+        <SheetContent className="max-w-3xl sm:max-w-md overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Escolha um Template</SheetTitle>
+            <SheetDescription>
               Selecione um ponto de partida estrutural para sua nova página ou crie do zero.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 py-4">
+            </SheetDescription>
+          </SheetHeader>
+          <div className="flex flex-col gap-4 py-4 mt-4">
             <Card
               className="cursor-pointer hover:border-primary transition-all overflow-hidden flex flex-col"
               onClick={() => handleCreateDocument(selectedDocType || "storefront", "blank")}
@@ -466,8 +466,8 @@ function BuilderIndex() {
               </div>
             </Card>
           </div>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

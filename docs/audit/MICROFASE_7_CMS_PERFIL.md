@@ -11,8 +11,8 @@
 
 ### AMBIENTE
 
-- **Local**: `c:\Users\Excelência Tour SMO\Documents\hr-shoes-opus`
-- **Preview / Produção**: `https://eduardochapeco-hr-shoes-opus.pages.dev`
+- **Local**: `c:\Users\Excelência Tour SMO\Documents\jah`
+- **Preview / Produção**: `https://eduardochapeco-jah.pages.dev`
 - **Project Ref Supabase**: `hfgnageqkeryxsnwobjc`
 - **Projeto Cloudflare**: `hrshoes` (Pages build output dir: `dist`)
 
@@ -74,12 +74,12 @@ Até o momento, as seções do perfil da loja suportavam apenas texto livre e n�
 
 ### Correções a executar
 
-1. **[admin.perfil-publico.tsx](file:///c:/Users/Excelência Tour SMO/Documents/hr-shoes-opus/src/routes/admin.perfil-publico.tsx)**:
+1. **[admin.perfil-publico.tsx](file:///c:/Users/Excelência Tour SMO/Documents/jah/src/routes/admin.perfil-publico.tsx)**:
    - Importar ícones extras (`Mail`, `Play`, `CreditCard`, `HelpCircle`, `Activity`).
    - Adicionar o switch `virtual_only` na aba Geral e vincular à persistência e ao preview de celular.
    - Refatorar a criação de seções: adicionar campo `Select` de tipo de seção. Roteá-lo para exibir inputs apropriados de mídia, pagamentos, galeria de fotos ou suporte comercial.
    - Atualizar a função `renderSectionContent` do Preview do celular para desenhar as seções ricas dinamicamente.
-2. **[\_store.perfil-da-loja.tsx](file:///c:/Users/Excelência Tour SMO/Documents/hr-shoes-opus/src/routes/\_store.perfil-da-loja.tsx)**:
+2. **[\_store.perfil-da-loja.tsx](file:///c:/Users/Excelência Tour SMO/Documents/jah/src/routes/\_store.perfil-da-loja.tsx)**:
    - Importar ícones necessários.
    - Implementar a detecção de `settings.virtual_only` para renderizar `OnlineSupportCard` ao invés de `AddressCard`.
    - Adicionar a renderização rica de seções no storefront através do parser JSON interno da coluna `content` de acordo com o `type` da seção.

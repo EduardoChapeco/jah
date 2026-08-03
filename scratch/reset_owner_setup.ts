@@ -1,5 +1,5 @@
 /**
- * Reset Owner Setup — Hr Shoes Commerce
+ * Reset Owner Setup — Jah Commerce
  *
  * This script:
  * 1. Lists all current users and profiles

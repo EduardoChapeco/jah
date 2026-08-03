@@ -51,7 +51,7 @@ describe("listOrdersHandler", () => {
     const orders = [{ id: "ord-1", status: "paid", total_cents: 15000 }];
     mockOrder.mockResolvedValueOnce({ data: orders, error: null });
 
-    const res = await listOrdersHandler();
+    const res = await listOrdersHandler("store-1");
     expect(res).toEqual(orders);
     expect(mockFrom).toHaveBeenCalledWith("orders");
     expect(mockOrder).toHaveBeenCalledWith("created_at", { ascending: false });
@@ -59,13 +59,13 @@ describe("listOrdersHandler", () => {
 
   it("should return empty array when data is null", async () => {
     mockOrder.mockResolvedValueOnce({ data: null, error: null });
-    const res = await listOrdersHandler();
+    const res = await listOrdersHandler("store-1");
     expect(res).toEqual([]);
   });
 
   it("should propagate database error", async () => {
     mockOrder.mockResolvedValueOnce({ data: null, error: { message: "DB error" } });
-    await expect(listOrdersHandler()).rejects.toThrow("DB error");
+    await expect(listOrdersHandler("store-1")).rejects.toThrow("DB error");
   });
 });
 
@@ -95,14 +95,14 @@ describe("getOrderByIdHandler", () => {
     };
     mockSingle.mockResolvedValueOnce({ data: order, error: null });
 
-    const res = await getOrderByIdHandler("ord-1");
+    const res = await getOrderByIdHandler("ord-1", "store-1");
     expect(res).toEqual(order);
     expect(mockEq).toHaveBeenCalledWith("id", "ord-1");
   });
 
   it("should throw error when order not found", async () => {
     mockSingle.mockResolvedValueOnce({ data: null, error: { message: "No rows" } });
-    await expect(getOrderByIdHandler("bad-id")).rejects.toThrow("Pedido não encontrado");
+    await expect(getOrderByIdHandler("bad-id", "store-1")).rejects.toThrow("Pedido não encontrado");
   });
 });
 
@@ -117,7 +117,7 @@ describe("updateOrderStatusHandler", () => {
   it("should update order status and return ok", async () => {
     mockEq.mockResolvedValueOnce({ error: null });
 
-    const res = await updateOrderStatusHandler("ord-1", "shipped");
+    const res = await updateOrderStatusHandler("ord-1", "shipped", "store-1");
     expect(res).toEqual({ status: "ok", message: "Status do pedido atualizado." });
     expect(mockFrom).toHaveBeenCalledWith("orders");
     expect(mockUpdate).toHaveBeenCalledWith(
@@ -128,6 +128,6 @@ describe("updateOrderStatusHandler", () => {
 
   it("should propagate error when update fails", async () => {
     mockEq.mockResolvedValueOnce({ error: { message: "RLS violation" } });
-    await expect(updateOrderStatusHandler("ord-1", "delivered")).rejects.toThrow("RLS violation");
+    await expect(updateOrderStatusHandler("ord-1", "delivered", "store-1")).rejects.toThrow("RLS violation");
   });
 });
