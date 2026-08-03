@@ -267,6 +267,8 @@ const MODULES = [
 import { TenantSwitcher } from "@/components/admin/tenant-switcher";
 
 // ---------------------------------------------------------------------------
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+
 // HeaderRightIsland Component
 // ---------------------------------------------------------------------------
 function HeaderRightIsland({ session }: { session: any }) {
@@ -293,7 +295,7 @@ function HeaderRightIsland({ session }: { session: any }) {
           <TenantSwitcher identity={session} />
         </div>
       )}
-      <div className="flex h-full items-center gap-3 rounded-full border border-border/80 bg-card px-4 py-1.5 shadow-xs text-xs font-medium text-foreground">
+      <div className="flex h-full items-center gap-2 rounded-full border border-border/80 bg-card px-3 py-1 shadow-xs text-xs font-medium text-foreground">
         {dateStr && (
           <span className="flex items-center gap-1.5 text-muted-foreground capitalize">
             <Calendar className="size-3.5 text-primary" />
@@ -302,6 +304,8 @@ function HeaderRightIsland({ session }: { session: any }) {
         )}
         <span className="h-3 w-px bg-border" />
         {timeStr && <span className="font-bold">{timeStr}</span>}
+        <span className="h-3 w-px bg-border" />
+        <ThemeToggle className="size-7 rounded-full text-muted-foreground hover:text-primary" />
         <span className="h-3 w-px bg-border" />
         <Button
           variant="ghost"
@@ -315,6 +319,7 @@ function HeaderRightIsland({ session }: { session: any }) {
     </div>
   );
 }
+
 
 // ---------------------------------------------------------------------------
 // AdminShell

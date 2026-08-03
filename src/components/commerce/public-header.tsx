@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { useCartContext } from "@/lib/cart-context";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+
 
 const FALLBACK_NAV = [
   { url: "/catalogo", label: "Catálogo" },
@@ -154,11 +156,14 @@ export function PublicHeader({
             </Button>
           )}
 
+          <ThemeToggle className="shrink-0" />
+
           <Button variant="ghost" size="icon" asChild aria-label="Minha conta" className="shrink-0">
             <Link to="/conta">
               <User className="size-5" aria-hidden />
             </Link>
           </Button>
+
 
           <Button
             variant="ghost"
