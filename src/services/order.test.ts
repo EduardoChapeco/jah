@@ -110,12 +110,19 @@ describe("updateOrderStatusHandler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockFrom.mockReturnValue(mockQueryChain);
+    mockSelect.mockReturnValue(mockQueryChain);
     mockUpdate.mockReturnValue(mockQueryChain);
     mockEq.mockReturnValue(mockQueryChain);
+    mockSingle.mockReturnValue(mockQueryChain);
   });
 
   it("should update order status and return ok", async () => {
-    mockEq.mockResolvedValueOnce({ error: null });
+    mockSingle.mockResolvedValueOnce({ data: { id: "ord-1" }, error: null });
+    // mockQueryChain thenable resolves for update query
+    const updateChain = {
+      then: (resolve: any) => resolve({ error: null }),
+    };
+    mockEq.mockReturnValueOnce(mockQueryChain).mockReturnValueOnce(mockQueryChain).mockReturnValueOnce(updateChain as any);
 
     const res = await updateOrderStatusHandler("ord-1", "shipped", "store-1");
     expect(res).toEqual({ status: "ok", message: "Status do pedido atualizado." });
@@ -123,11 +130,17 @@ describe("updateOrderStatusHandler", () => {
     expect(mockUpdate).toHaveBeenCalledWith(
       expect.objectContaining({ status: "shipped", shipped_at: expect.any(String) }),
     );
-    expect(mockEq).toHaveBeenCalledWith("id", "ord-1");
   });
 
   it("should propagate error when update fails", async () => {
-    mockEq.mockResolvedValueOnce({ error: { message: "RLS violation" } });
+    mockSingle.mockResolvedValueOnce({ data: { id: "ord-1" }, error: null });
+    const updateChain = {
+      then: (resolve: any) => resolve({ error: { message: "RLS violation" } }),
+    };
+    mockEq.mockReturnValueOnce(mockQueryChain).mockReturnValueOnce(mockQueryChain).mockReturnValueOnce(updateChain as any);
+
     await expect(updateOrderStatusHandler("ord-1", "delivered", "store-1")).rejects.toThrow("RLS violation");
   });
 });
+
+

@@ -13,6 +13,8 @@ import { CookieBanner } from "@/components/commerce/cookie-banner";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { getThemeSettings, getPublicStoreSettings } from "@/services/cms.functions";
+import { themeInitScript } from "@/lib/theme";
+
 
 function NotFoundComponent() {
   return (
@@ -115,7 +117,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content: seoDesc,
       },
       { name: "author", content: storeName },
-      { name: "theme-color", content: theme?.background_color || "#FF4FB8" },
+      { name: "theme-color", content: theme?.background_color || "#f4f4f0" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
@@ -175,20 +177,23 @@ function RootShell({ children }: { children: ReactNode }) {
   const customStyles = theme
     ? `
     :root {
-      --primary: ${theme.primary_color || "#121212"};
-      --background: ${theme.background_color || "#F4F1EA"};
-      --foreground: ${theme.text_color || "#121212"};
+      --primary: ${theme.primary_color || "#1a1a14"};
+      --background: ${theme.background_color || "#f4f4f0"};
+      --foreground: ${theme.text_color || "#1a1a14"};
       --radius: ${theme.border_radius || "0px"};
       --font-sans: "${theme.font_body || "Inter"}", sans-serif;
-      --font-display: "${theme.font_heading || "Bebas Neue"}", sans-serif;
+      --font-display: "${theme.font_heading || "Oswald"}", sans-serif;
     }
   `
     : "";
+
 
   return (
     <html lang="pt-BR">
       <head>
         <HeadContent />
+        {/* Script anti-FOUC: aplica classe .dark/.light antes do primeiro paint */}
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         {theme && <style dangerouslySetInnerHTML={{ __html: customStyles }} />}
       </head>
       <body>

@@ -7,22 +7,28 @@ import {
 
 const mockFrom = vi.fn();
 const mockSelect = vi.fn();
+const mockEq = vi.fn();
 const mockOrder = vi.fn();
 const mockIlike = vi.fn();
 const mockLimit = vi.fn();
+const mockSingle = vi.fn();
 const mockRpc = vi.fn();
 
 const mockQueryBuilder = {
   select: mockSelect,
+  eq: mockEq,
   order: mockOrder,
   ilike: mockIlike,
   limit: mockLimit,
+  single: mockSingle,
 };
 
 mockSelect.mockReturnValue(mockQueryBuilder);
+mockEq.mockReturnValue(mockQueryBuilder);
 mockOrder.mockReturnValue(mockQueryBuilder);
 mockIlike.mockReturnValue(mockQueryBuilder);
 mockLimit.mockReturnValue(mockQueryBuilder);
+mockSingle.mockReturnValue(mockQueryBuilder);
 
 const mockSupabase = {
   from: mockFrom,
@@ -41,10 +47,13 @@ describe("Stock Functions", () => {
     vi.clearAllMocks();
     mockFrom.mockReturnValue(mockQueryBuilder);
     mockSelect.mockReturnValue(mockQueryBuilder);
+    mockEq.mockReturnValue(mockQueryBuilder);
     mockOrder.mockReturnValue(mockQueryBuilder);
     mockIlike.mockReturnValue(mockQueryBuilder);
     mockLimit.mockReturnValue(mockQueryBuilder);
+    mockSingle.mockReturnValue(mockQueryBuilder);
   });
+
 
   describe("getStockLevelsHandler", () => {
     it("should retrieve all stock variants ordered by sku", async () => {
@@ -89,6 +98,7 @@ describe("Stock Functions", () => {
 
   describe("adjustStockHandler", () => {
     it("should call adjust_stock RPC with correct parameters and return ok status", async () => {
+      mockSingle.mockResolvedValueOnce({ data: { id: "var-uuid-1" }, error: null });
       mockRpc.mockResolvedValueOnce({ error: null });
 
       const res = await adjustStockHandler({
@@ -108,6 +118,7 @@ describe("Stock Functions", () => {
     });
 
     it("should use null note when not provided", async () => {
+      mockSingle.mockResolvedValueOnce({ data: { id: "var-uuid-1" }, error: null });
       mockRpc.mockResolvedValueOnce({ error: null });
 
       await adjustStockHandler({ variantId: "var-uuid-1", qty: -1, movementType: "damage" }, "store-1");
@@ -120,13 +131,14 @@ describe("Stock Functions", () => {
     });
 
     it("should propagate RPC error", async () => {
-      mockRpc.mockResolvedValueOnce({ error: { message: "Variant not found" } });
+      mockSingle.mockResolvedValueOnce({ data: null, error: { message: "Variant not found" } });
 
       await expect(
         adjustStockHandler({ variantId: "bad-uuid", qty: 1, movementType: "adjustment" }, "store-1"),
-      ).rejects.toThrow("Variant not found");
+      ).rejects.toThrow("Variante não encontrada ou acesso negado");
     });
   });
+
 
   describe("getStockMovementsHandler", () => {
     it("should retrieve stock movements ordered by created_at desc limited by limit param", async () => {

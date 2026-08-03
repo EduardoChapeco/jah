@@ -10,12 +10,13 @@ describe("PWA Manifest & Configuration", () => {
     const content = fs.readFileSync(manifestPath, "utf-8");
     const manifest = JSON.parse(content);
 
-    expect(manifest.name).toBe("Jah Commerce");
+    expect(manifest.name).toBe("Jah — Plataforma Comunitária");
     expect(manifest.short_name).toBe("Jah");
     expect(manifest.display).toBe("standalone");
     expect(manifest.start_url).toBe("/");
-    expect(manifest.theme_color).toBe("#FF4FB8");
-    expect(manifest.background_color).toBe("#F3F1EC");
+    expect(manifest.theme_color).toBe("#1a1a14");
+    expect(manifest.background_color).toBe("#f4f4f0");
+
     expect(Array.isArray(manifest.icons)).toBe(true);
     expect(manifest.icons.length).toBeGreaterThan(0);
   });

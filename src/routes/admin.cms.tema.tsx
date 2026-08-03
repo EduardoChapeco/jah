@@ -36,16 +36,17 @@ function ThemeSettingsPage() {
 
   const { register, handleSubmit, setValue, watch } = useForm({
     defaultValues: {
-      primary_color: theme.primary_color || "#FF4FB8",
-      background_color: theme.background_color || "#F3F1EC",
-      text_color: theme.text_color || "#292729",
-      font_heading: theme.font_heading || "Fraunces",
-      font_body: theme.font_body || "Manrope",
-      border_radius: theme.border_radius || "0.5rem",
+      primary_color: theme.primary_color || "#1a1a14",
+      background_color: theme.background_color || "#f4f4f0",
+      text_color: theme.text_color || "#1a1a14",
+      font_heading: theme.font_heading || "Oswald",
+      font_body: theme.font_body || "Inter",
+      border_radius: theme.border_radius || "0rem",
       logo_url: theme.logo_url || null,
       favicon_url: theme.favicon_url || null,
     },
   });
+
 
   if (res?.status === "unconfigured") {
     return (

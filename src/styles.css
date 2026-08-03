@@ -2,162 +2,329 @@
 @source "../src";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
-
 /*
  * ============================================================================
- * Jah Community Platform — Design System
+ * Jah Community Platform — Design System v2
  * ============================================================================
- * Estética de rua, zines, papel jornal, listas amarelas e cartazes.
- * Cores fortes, contraste alto, bordas duras, sombras sólidas (brutalismo).
+ * Dual theme: Light (papel/zine/rua diurna) + Dark (carvão/show/rua noturna).
+ * Segue prefers-color-scheme do dispositivo. Classe .dark força tema escuro.
+ * Classe .light força tema claro.
+ *
+ * REGRA: Nunca use hex ou oklch() hardcoded fora deste arquivo.
+ *        Sempre use var(--color-*) ou var(--*) nos componentes.
  * ============================================================================
  */
 
+/* ---------------------------------------------------------------------------
+ * Tailwind dark variant: responds to both system preference AND .dark class
+ * ---------------------------------------------------------------------------*/
+@custom-variant dark (&:is(.dark *));
+
 @theme inline {
-  /* Radius scale - brutalist/sharp by default */
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --radius-xl: 0px;
+  /* ── Radius scale — brutalist/sharp ──────────────────────────────────── */
+  --radius-sm:  0px;
+  --radius-md:  0px;
+  --radius-lg:  0px;
+  --radius-xl:  0px;
   --radius-2xl: 0px;
   --radius-3xl: 0px;
   --radius-4xl: 0px;
 
-  /* Semantic colors */
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-success: var(--success);
-  --color-success-foreground: var(--success-foreground);
-  --color-warning: var(--warning);
-  --color-warning-foreground: var(--warning-foreground);
-  --color-info: var(--info);
-  --color-info-foreground: var(--info-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
+  /* ── Semantic color bridge (consumed by Tailwind utilities) ───────────── */
+  --color-background:          var(--background);
+  --color-foreground:          var(--foreground);
+  --color-card:                var(--card);
+  --color-card-foreground:     var(--card-foreground);
+  --color-popover:             var(--popover);
+  --color-popover-foreground:  var(--popover-foreground);
+  --color-primary:             var(--primary);
+  --color-primary-foreground:  var(--primary-foreground);
+  --color-secondary:           var(--secondary);
+  --color-secondary-foreground:var(--secondary-foreground);
+  --color-muted:               var(--muted);
+  --color-muted-foreground:    var(--muted-foreground);
+  --color-accent:              var(--accent);
+  --color-accent-foreground:   var(--accent-foreground);
+  --color-destructive:         var(--destructive);
+  --color-destructive-foreground:var(--destructive-foreground);
+  --color-success:             var(--success);
+  --color-success-foreground:  var(--success-foreground);
+  --color-warning:             var(--warning);
+  --color-warning-foreground:  var(--warning-foreground);
+  --color-info:                var(--info);
+  --color-info-foreground:     var(--info-foreground);
+  --color-border:              var(--border);
+  --color-input:               var(--input);
+  --color-ring:                var(--ring);
   --color-ring-offset-background: var(--background);
 
-  /* Jah Specific Core Colors */
-  --color-ink: var(--ink);
-  --color-paper: var(--paper);
-  --color-newsprint: var(--newsprint);
+  /* ── Jah Primitive Tokens (theme-neutral, always available) ───────────── */
+  --color-ink:              var(--ink);
+  --color-paper:            var(--paper);
+  --color-newsprint:        var(--newsprint);
   --color-directory-yellow: var(--directory-yellow);
-  --color-poster-red: var(--poster-red);
-  --color-signal-orange: var(--signal-orange);
-  --color-electric-cyan: var(--electric-cyan);
-  --color-faded-blue: var(--faded-blue);
+  --color-poster-red:       var(--poster-red);
+  --color-signal-orange:    var(--signal-orange);
+  --color-electric-cyan:    var(--electric-cyan);
+  --color-faded-blue:       var(--faded-blue);
+  --color-ocre:             var(--ocre);
+  --color-charcoal:         var(--charcoal);
+  --color-charcoal-surface: var(--charcoal-surface);
+  --color-ivory:            var(--ivory);
 
-  /* Typography */
-  --font-sans: "Inter", "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  /* ── Typography ──────────────────────────────────────────────────────── */
+  --font-sans:    "Inter", "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Oswald", "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", "Roboto Mono", ui-monospace, monospace;
+  --font-mono:    "JetBrains Mono", "Roboto Mono", ui-monospace, monospace;
 
-  /* Elevation (Brutalist Solid Shadows) */
-  --shadow-sm: 2px 2px 0px 0px var(--ink);
-  --shadow-md: 4px 4px 0px 0px var(--ink);
-  --shadow-lg: 8px 8px 0px 0px var(--ink);
-  --shadow-brand: 6px 6px 0px 0px var(--poster-red);
+  /* ── Elevation — Brutalist Solid Shadows ─────────────────────────────── */
+  --shadow-sm:   2px 2px 0px 0px var(--ink);
+  --shadow-md:   4px 4px 0px 0px var(--ink);
+  --shadow-lg:   8px 8px 0px 0px var(--ink);
+  --shadow-hard: 6px 6px 0px 0px var(--ink);
+  --shadow-brand:6px 6px 0px 0px var(--poster-red);
+
+  /* ── Motion ──────────────────────────────────────────────────────────── */
+  --duration-fast:   100ms;
+  --duration-base:   200ms;
+  --duration-slow:   350ms;
+  --ease-out-expo:   cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out:     cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── Z-index scale ───────────────────────────────────────────────────── */
+  --z-base:     0;
+  --z-raised:   10;
+  --z-dropdown: 100;
+  --z-sticky:   200;
+  --z-overlay:  300;
+  --z-modal:    400;
+  --z-toast:    500;
 }
 
+/* ===========================================================================
+ * LIGHT THEME — Papel/Zine/Rua Diurna
+ * Metáfora: jornal de bairro, listão telefônico, panfleto xerocado, zine punk
+ * ===========================================================================*/
 :root {
+  color-scheme: light dark;
   --radius: 0px;
 
-  /* Jah Core Palette */
-  --ink: oklch(0.2 0 0); /* #1a1a1a */
-  --paper: oklch(0.97 0.01 90); /* #f4f4f0 */
-  --newsprint: oklch(0.92 0.01 90); /* #e8e8e3 */
-  --directory-yellow: oklch(0.9 0.15 95); /* #fde047 approx */
-  --poster-red: oklch(0.55 0.22 25); /* #dc2626 approx */
-  --signal-orange: oklch(0.65 0.2 45); /* #ea580c approx */
-  --electric-cyan: oklch(0.7 0.15 230); /* #06b6d4 approx */
-  --faded-blue: oklch(0.6 0.1 260); 
+  /* ── Primitivos globais (valores fixos, independem do tema) ───────────── */
+  --poster-red:       oklch(0.55 0.22 25);  /* #dc2626 — vermelho vivo pôster   */
+  --directory-yellow: oklch(0.90 0.15 95);  /* #fde047 — amarelo listas         */
+  --signal-orange:    oklch(0.65 0.20 45);  /* #ea580c — laranja sinal          */
+  --electric-cyan:    oklch(0.70 0.15 230); /* #06b6d4 — ciano elétrico         */
+  --faded-blue:       oklch(0.60 0.10 260); /* #4f7aad — azul desbotado         */
+  --ocre:             oklch(0.72 0.13 75);  /* #d4a017 — ocre/dourado envelhecido*/
 
-  /* Shadcn Mapping */
-  --background: var(--paper);
-  --foreground: var(--ink);
+  /* ── Primitivos específicos Light ────────────────────────────────────── */
+  --ink:              oklch(0.18 0.005 60); /* #1a1a14 — preto-carvão quente    */
+  --paper:            oklch(0.97 0.010 90); /* #f4f4f0 — papel creme            */
+  --newsprint:        oklch(0.92 0.010 90); /* #e8e8e3 — papel jornal           */
+  --charcoal:         oklch(0.18 0.005 60); /* = ink (alias semântico escuro)   */
+  --charcoal-surface: oklch(0.22 0.005 60); /* superfície elevada escura        */
+  --ivory:            oklch(0.97 0.010 90); /* = paper (alias semântico claro)  */
 
-  --card: var(--newsprint);
-  --card-foreground: var(--ink);
-  --popover: var(--paper);
-  --popover-foreground: var(--ink);
+  /* ── Semânticos Light ────────────────────────────────────────────────── */
+  --background:             var(--paper);
+  --foreground:             var(--ink);
+  --card:                   var(--newsprint);
+  --card-foreground:        var(--ink);
+  --popover:                var(--paper);
+  --popover-foreground:     var(--ink);
 
-  --primary: var(--ink);
-  --primary-foreground: var(--paper);
+  --primary:                var(--ink);
+  --primary-foreground:     var(--paper);
 
-  --secondary: var(--directory-yellow);
-  --secondary-foreground: var(--ink);
+  --secondary:              var(--directory-yellow);
+  --secondary-foreground:   var(--ink);
 
-  --muted: var(--newsprint);
-  --muted-foreground: oklch(0.4 0 0);
+  --muted:                  var(--newsprint);
+  --muted-foreground:       oklch(0.40 0.005 60);
 
-  --accent: var(--poster-red);
-  --accent-foreground: var(--paper);
+  --accent:                 var(--poster-red);
+  --accent-foreground:      var(--paper);
 
-  --destructive: var(--poster-red);
+  --destructive:            var(--poster-red);
   --destructive-foreground: var(--paper);
-  
-  --success: oklch(0.62 0.13 150);
-  --success-foreground: var(--paper);
-  
-  --warning: var(--directory-yellow);
-  --warning-foreground: var(--ink);
-  
-  --info: var(--electric-cyan);
-  --info-foreground: var(--ink);
 
-  --border: var(--ink);
-  --input: var(--ink);
-  --ring: var(--poster-red);
+  --success:                oklch(0.62 0.13 150); /* verde seguro                */
+  --success-foreground:     var(--paper);
+
+  --warning:                var(--directory-yellow);
+  --warning-foreground:     var(--ink);
+
+  --info:                   var(--electric-cyan);
+  --info-foreground:        var(--ink);
+
+  --border:                 var(--ink);
+  --input:                  var(--newsprint);
+  --ring:                   var(--poster-red);
 }
 
+/* ===========================================================================
+ * DARK THEME — Carvão/Rua Noturna/Show
+ * Metáfora: cartaz de show noturno, vinil de disco, pôster serigráfico escuro
+ * Ativado via: (1) prefers-color-scheme: dark  (2) classe .dark no <html>
+ * ===========================================================================*/
+
+/* Sistema: segue preferência do dispositivo (sem intervenção do JS) */
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    color-scheme: dark;
+
+    /* ── Primitivos específicos Dark ──────────────────────────────────── */
+    --ink:              oklch(0.95 0.012 80);  /* #f5f0e6 — marfim envelhecido  */
+    --paper:            oklch(0.10 0.006 60);  /* #131210 — carvão quente       */
+    --newsprint:        oklch(0.14 0.006 60);  /* #1c1b18 — carvão superfície   */
+    --charcoal:         oklch(0.10 0.006 60);  /* = paper dark (fundo base)     */
+    --charcoal-surface: oklch(0.18 0.006 60);  /* card/popover elevados         */
+    --ivory:            oklch(0.95 0.012 80);  /* = ink dark (texto)            */
+
+    /* poster-red mais queimado/oxidado no dark */
+    --poster-red:       oklch(0.50 0.20 25);   /* #b83a2d — vermelho óxido      */
+    /* directory-yellow mais escuro para não ofuscar */
+    --directory-yellow: oklch(0.78 0.14 82);   /* ocre/mustarda seco            */
+    /* signal-orange levemente mais escuro */
+    --signal-orange:    oklch(0.60 0.19 45);   /* laranja queimado              */
+    /* electric-cyan mais tênue */
+    --electric-cyan:    oklch(0.65 0.13 230);  /* ciano levemente mais escuro   */
+
+    /* ── Semânticos Dark ────────────────────────────────────────────── */
+    --background:             var(--paper);
+    --foreground:             var(--ink);
+    --card:                   var(--newsprint);
+    --card-foreground:        var(--ink);
+    --popover:                var(--newsprint);
+    --popover-foreground:     var(--ink);
+
+    --primary:                var(--ink);
+    --primary-foreground:     var(--paper);
+
+    --secondary:              var(--directory-yellow);
+    --secondary-foreground:   oklch(0.10 0.006 60);
+
+    --muted:                  var(--charcoal-surface);
+    --muted-foreground:       oklch(0.65 0.008 70);
+
+    --accent:                 var(--poster-red);
+    --accent-foreground:      var(--ivory);
+
+    --destructive:            var(--poster-red);
+    --destructive-foreground: var(--ivory);
+
+    --success:                oklch(0.55 0.13 150); /* verde mais escuro no dark  */
+    --success-foreground:     var(--ivory);
+
+    --warning:                var(--directory-yellow);
+    --warning-foreground:     oklch(0.10 0.006 60);
+
+    --info:                   var(--electric-cyan);
+    --info-foreground:        oklch(0.10 0.006 60);
+
+    --border:                 oklch(0.30 0.006 60); /* borda sutil no dark       */
+    --input:                  var(--charcoal-surface);
+    --ring:                   var(--poster-red);
+  }
+}
+
+/* Classe .dark — override manual (JS, toggle, admin preview) */
 .dark {
-  /* No dark mode for printed paper aesthetic by default, or inverted */
-  --ink: oklch(0.97 0.01 90); /* paper becomes ink */
-  --paper: oklch(0.2 0 0); /* ink becomes paper */
-  --newsprint: oklch(0.25 0 0);
-  
-  --background: var(--paper);
-  --foreground: var(--ink);
+  color-scheme: dark;
 
-  --card: var(--newsprint);
-  --card-foreground: var(--ink);
-  --popover: var(--paper);
-  --popover-foreground: var(--ink);
+  --ink:              oklch(0.95 0.012 80);
+  --paper:            oklch(0.10 0.006 60);
+  --newsprint:        oklch(0.14 0.006 60);
+  --charcoal:         oklch(0.10 0.006 60);
+  --charcoal-surface: oklch(0.18 0.006 60);
+  --ivory:            oklch(0.95 0.012 80);
 
-  --primary: var(--ink);
-  --primary-foreground: var(--paper);
+  --poster-red:       oklch(0.50 0.20 25);
+  --directory-yellow: oklch(0.78 0.14 82);
+  --signal-orange:    oklch(0.60 0.19 45);
+  --electric-cyan:    oklch(0.65 0.13 230);
 
-  --secondary: var(--directory-yellow);
-  --secondary-foreground: oklch(0.2 0 0);
+  --background:             var(--paper);
+  --foreground:             var(--ink);
+  --card:                   var(--newsprint);
+  --card-foreground:        var(--ink);
+  --popover:                var(--newsprint);
+  --popover-foreground:     var(--ink);
 
-  --muted: var(--newsprint);
-  --muted-foreground: oklch(0.7 0 0);
+  --primary:                var(--ink);
+  --primary-foreground:     var(--paper);
 
-  --accent: var(--poster-red);
-  --accent-foreground: var(--paper);
+  --secondary:              var(--directory-yellow);
+  --secondary-foreground:   oklch(0.10 0.006 60);
 
-  --destructive: var(--poster-red);
-  --destructive-foreground: var(--paper);
+  --muted:                  var(--charcoal-surface);
+  --muted-foreground:       oklch(0.65 0.008 70);
 
-  --border: var(--ink);
-  --input: var(--ink);
-  --ring: var(--poster-red);
+  --accent:                 var(--poster-red);
+  --accent-foreground:      var(--ivory);
+
+  --destructive:            var(--poster-red);
+  --destructive-foreground: var(--ivory);
+
+  --success:                oklch(0.55 0.13 150);
+  --success-foreground:     var(--ivory);
+
+  --warning:                var(--directory-yellow);
+  --warning-foreground:     oklch(0.10 0.006 60);
+
+  --info:                   var(--electric-cyan);
+  --info-foreground:        oklch(0.10 0.006 60);
+
+  --border:                 oklch(0.30 0.006 60);
+  --input:                  var(--charcoal-surface);
+  --ring:                   var(--poster-red);
 }
 
+/* Classe .light — override manual para forçar tema claro */
+.light {
+  color-scheme: light;
+
+  --ink:              oklch(0.18 0.005 60);
+  --paper:            oklch(0.97 0.010 90);
+  --newsprint:        oklch(0.92 0.010 90);
+  --charcoal:         oklch(0.18 0.005 60);
+  --charcoal-surface: oklch(0.22 0.005 60);
+  --ivory:            oklch(0.97 0.010 90);
+  --poster-red:       oklch(0.55 0.22 25);
+  --directory-yellow: oklch(0.90 0.15 95);
+  --signal-orange:    oklch(0.65 0.20 45);
+  --electric-cyan:    oklch(0.70 0.15 230);
+
+  --background:             var(--paper);
+  --foreground:             var(--ink);
+  --card:                   var(--newsprint);
+  --card-foreground:        var(--ink);
+  --popover:                var(--paper);
+  --popover-foreground:     var(--ink);
+  --primary:                var(--ink);
+  --primary-foreground:     var(--paper);
+  --secondary:              var(--directory-yellow);
+  --secondary-foreground:   var(--ink);
+  --muted:                  var(--newsprint);
+  --muted-foreground:       oklch(0.40 0.005 60);
+  --accent:                 var(--poster-red);
+  --accent-foreground:      var(--paper);
+  --destructive:            var(--poster-red);
+  --destructive-foreground: var(--paper);
+  --success:                oklch(0.62 0.13 150);
+  --success-foreground:     var(--paper);
+  --warning:                var(--directory-yellow);
+  --warning-foreground:     var(--ink);
+  --info:                   var(--electric-cyan);
+  --info-foreground:        var(--ink);
+  --border:                 var(--ink);
+  --input:                  var(--newsprint);
+  --ring:                   var(--poster-red);
+}
+
+/* ===========================================================================
+ * BASE STYLES
+ * ===========================================================================*/
 @layer base {
   * {
     border-color: var(--color-border);
@@ -174,6 +341,10 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    /* Transição suave entre temas */
+    transition:
+      background-color var(--duration-base) var(--ease-in-out),
+      color var(--duration-base) var(--ease-in-out);
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -187,16 +358,43 @@
     outline: 3px solid var(--color-ring);
     outline-offset: 2px;
   }
+
+  /* Touch targets mínimos (44px iOS) */
+  button,
+  [role="button"],
+  input[type="checkbox"],
+  input[type="radio"],
+  select {
+    min-height: 44px;
+  }
+
+  /* Seleção de texto com cor de marca */
+  ::selection {
+    background-color: var(--color-poster-red);
+    color: var(--color-paper);
+  }
 }
 
-/* Jah Textures & Utilities */
+/* ===========================================================================
+ * UTILITIES CANÔNICAS JAH
+ * Não use classes Tailwind ad-hoc para esses padrões — use estas utilities.
+ * ===========================================================================*/
+
+/* ── Safe area (mobile notch/home indicator) ─────────────────────────────── */
 @utility pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
 }
 @utility pt-safe {
   padding-top: env(safe-area-inset-top);
 }
+@utility pl-safe {
+  padding-left: env(safe-area-inset-left);
+}
+@utility pr-safe {
+  padding-right: env(safe-area-inset-right);
+}
 
+/* ── Tipografia canônica ─────────────────────────────────────────────────── */
 @utility text-editorial {
   font-family: var(--font-display);
   font-weight: 800;
@@ -211,6 +409,7 @@
   letter-spacing: 0.1em;
   font-weight: 700;
   font-size: 0.75rem;
+  line-height: 1rem;
 }
 
 @utility text-badge {
@@ -231,12 +430,14 @@
   font-weight: 700;
   text-transform: uppercase;
   line-height: 1rem;
+  letter-spacing: 0.05em;
 }
 
+/* ── Superfícies canônicas (respondem ao tema) ───────────────────────────── */
 @utility surface-paper {
   background-color: var(--color-paper);
   color: var(--color-ink);
-  border: 1px solid var(--color-ink);
+  border: 1px solid var(--color-border);
 }
 
 @utility surface-newsprint {
@@ -255,6 +456,12 @@
   color: var(--color-paper);
 }
 
+@utility surface-charcoal {
+  background-color: var(--color-charcoal);
+  color: var(--color-ivory);
+}
+
+/* ── Carimbo / Stamp ─────────────────────────────────────────────────────── */
 @utility stamp-badge {
   background-color: var(--color-poster-red);
   color: var(--color-paper);
@@ -264,3 +471,36 @@
   border: 1px solid var(--color-ink);
   transform: rotate(-2deg);
 }
+
+/* ── Scrollbar canônica ──────────────────────────────────────────────────── */
+@utility scrollbar-jah {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+/* ── Animação de entrada padrão ──────────────────────────────────────────── */
+@utility animate-in-up {
+  animation: jah-slide-up var(--duration-base) var(--ease-out-expo) both;
+}
+
+@keyframes jah-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility animate-in-fade {
+  animation: jah-fade-in var(--duration-base) var(--ease-in-out) both;
+}
+
+@keyframes jah-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+

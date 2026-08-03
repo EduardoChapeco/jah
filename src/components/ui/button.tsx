@@ -18,10 +18,10 @@ const buttonVariants = cva(
         link: "border-transparent shadow-none hover:-translate-y-0 hover:-translate-x-0 active:translate-x-0 active:translate-y-0 text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-10 px-5 py-2",
-        sm: "h-8 px-3 text-xs",
-        lg: "h-12 px-8 text-base",
-        icon: "h-10 w-10",
+        default: "h-11 px-5 py-2",   /* 44px — mínimo iOS */
+        sm: "h-9 px-3 text-xs",      /* 36px — apenas conteúdo compacto */
+        lg: "h-12 px-8 text-base",   /* 48px */
+        icon: "h-11 w-11",           /* 44px quadrado */
       },
     },
     defaultVariants: {
@@ -34,13 +34,57 @@ const buttonVariants = cva(
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  /** Coloca o botão em estado de carregamento: desabilita interação, exibe spinner */
+  isLoading?: boolean;
+  /** Texto alternativo exibido enquanto carregando (padrão: conteúdo original com spinner) */
+  loadingText?: string;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, isLoading = false, loadingText, children, disabled, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
+    const isDisabled = disabled || isLoading;
+
     return (
-      <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        disabled={isDisabled}
+        aria-busy={isLoading}
+        aria-disabled={isDisabled}
+        {...props}
+      >
+        {isLoading ? (
+          <>
+            {/* Spinner canônico Jah */}
+            <svg
+              className="size-4 animate-spin shrink-0"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+            >
+              <circle
+                cx="12" cy="12" r="10"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeDasharray="31.416"
+                strokeDashoffset="10"
+                opacity="0.35"
+              />
+              <path
+                d="M12 2a10 10 0 0 1 10 10"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+              />
+            </svg>
+            <span>{loadingText ?? children}</span>
+          </>
+        ) : (
+          children
+        )}
+      </Comp>
     );
   },
 );

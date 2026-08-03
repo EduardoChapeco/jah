@@ -1,12 +1,22 @@
 {
-  "name": "Jah Commerce",
+  "name": "Jah — Plataforma Comunitária",
   "short_name": "Jah",
-  "description": "Loja Oficial Jah - Moda e Calçados Femininos Contemporâneos",
+  "description": "Jah Community Platform — Moda, Eventos e Cultura de Rua",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#F3F1EC",
-  "theme_color": "#FF4FB8",
+  "background_color": "#f4f4f0",
+  "theme_color": "#1a1a14",
   "orientation": "portrait-primary",
+  "theme_color_adaptive": [
+    {
+      "color": "#f4f4f0",
+      "media": "(prefers-color-scheme: light)"
+    },
+    {
+      "color": "#131210",
+      "media": "(prefers-color-scheme: dark)"
+    }
+  ],
   "icons": [
     {
       "src": "/favicon.ico",
