@@ -41,7 +41,7 @@ export function GalleryGrid({ content }: GalleryGridProps) {
       )}
 
       {images.length === 0 ? (
-        <div className="p-8 text-center text-xs text-muted-foreground border border-dashed rounded-xl">
+        <div className="p-8 text-center text-xs text-muted-foreground border border-dashed">
           Nenhuma imagem cadastrada na galeria.
         </div>
       ) : (
@@ -54,7 +54,7 @@ export function GalleryGrid({ content }: GalleryGridProps) {
               <Wrapper
                 key={idx}
                 {...wrapperProps}
-                className="relative group aspect-square rounded-xl overflow-hidden border border-border bg-muted flex items-center justify-center cursor-pointer shadow-xs hover:shadow-md transition-all duration-300"
+                className="relative group aspect-square overflow-hidden border border-border bg-muted flex items-center justify-center cursor-pointer shadow-xs hover:shadow-md transition-all duration-300"
               >
                 <img
                   src={img.url || img.image_url}

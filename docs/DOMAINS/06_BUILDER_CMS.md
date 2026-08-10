@@ -1,11 +1,12 @@
 # Dossiê 06: Motor Visual Único (Jah Studio & CMS)
 
 **Status**: Especificação Final  
-**Domínio**: CMS, Builder & Visual Renderer  
+**Domínio**: CMS, Builder & Visual Renderer
 
 ---
 
 ## 1. Necessidade Humana
+
 **Quem utiliza?** Criadores de Conteúdo, Donos de Loja, Bandas e o próprio Sistema (para gerar Ingressos e Recibos).
 **Por que utiliza?** Para personalizar a aparência de suas Lojas (Storefronts), montar Landing Pages (Biolinks, Portfólios) e customizar os templates de Impressão (Recibo de PDV, Ingresso Físico) sem precisar de desenvolvedores.
 **Problema que resolve:** Em e-commerces antigos, a "Home da Loja" é fixa e travada em código. Se a pessoa quer um Biolink, precisa do Linktree. Se quer um site, precisa do Wix. O Builder da Jah unifica isso: um único motor JSON-to-React que desenha Lojas, Perfis e Documentos Visuais sob os padrões rígidos de estética da Rua (Zines, Lambe-lambe, Flyers).
@@ -35,7 +36,7 @@
 
 - **Componente Descontinuado no Frontend:**
   - **Problema:** Um documento salvo na Fase 1 usa o bloco `HeroCarousel`, mas na Fase 3 nós removemos esse componente do código-fonte.
-  - **Solução:** O Renderer (motor React que lê o JSON) deve possuir um *Fallback Boundary*. Ao ler `HeroCarousel` e não encontrar no registro, ele renderiza um "Componente Não Suportado" estilizadamente no modo Admin, e ignora silenciosamente em Produção (ou renderiza um genérico `<Surface>`). O App nunca quebra por causa de JSON legado.
+  - **Solução:** O Renderer (motor React que lê o JSON) deve possuir um _Fallback Boundary_. Ao ler `HeroCarousel` e não encontrar no registro, ele renderiza um "Componente Não Suportado" estilizadamente no modo Admin, e ignora silenciosamente em Produção (ou renderiza um genérico `<Surface>`). O App nunca quebra por causa de JSON legado.
 - **Sobrescrita Acidental (Concorrência):**
   - Duas pessoas com acesso `content` salvam a Home da Loja ao mesmo tempo.
   - O banco checa a versão (`updated_at` ou `version`). O segundo save avisa "O documento foi alterado por João. Recarregue a página".
@@ -45,6 +46,7 @@
 ## 4. Máquina de Estados e Transições
 
 **`builder_documents`**
+
 - `draft`: Apenas salvo em cache ou rascunho de banco.
 - `published`: Rodando ao vivo na URL de destino.
 - `archived`: Documento guardado como histórico.
@@ -57,7 +59,7 @@
    - O Builder não é um editor de código livre. É restrito a uma paleta pré-curada (`@/components/ui`, `Surface`, etc). Isso garante que um usuário nunca crie algo esteticamente feio ou fora dos Tokens do Design System da Jah.
 2. **Separação de Dados e UI:**
    - Um bloco de "Produto" deve salvar no JSON `productId: "uuid"`.
-   - No runtime (SSR via TanStack Start), a página lê o JSON, identifica todos os `productId` e faz *UMA ÚNICA QUERY* agregada ao banco para buscar os preços reais atuais, hidratando os blocos no servidor.
+   - No runtime (SSR via TanStack Start), a página lê o JSON, identifica todos os `productId` e faz _UMA ÚNICA QUERY_ agregada ao banco para buscar os preços reais atuais, hidratando os blocos no servidor.
 
 ---
 
@@ -104,6 +106,7 @@
 ## 12. Critério de Conclusão
 
 Este domínio estará pronto quando:
+
 1. Conseguirmos trocar o layout da Vitrine de uma loja via Studio.
 2. Conseguirmos criar a Página Pública de um Evento usando blocos do Builder.
 3. Conseguirmos gerar a impressão de um PDF de ingresso com QR Code dinamicamente usando exatamente a mesma mecânica de nós visuais, mas num PDF Renderer via Puppeteer ou Server Function.

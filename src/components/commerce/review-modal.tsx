@@ -57,7 +57,7 @@ export function ReviewModal({
             {[1, 2, 3, 4, 5].map((star) => (
               <Star
                 key={star}
-                className={`w-8 h-8 cursor-pointer ${star <= rating ? "fill-yellow-500 text-yellow-500" : "text-gray-300"}`}
+                className={`w-8 h-8 cursor-pointer ${star <= rating ? "fill-yellow-500 text-warning" : "text-gray-300"}`}
                 onClick={() => setRating(star)}
               />
             ))}

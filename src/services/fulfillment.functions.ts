@@ -34,16 +34,11 @@ export const SHIPMENT_STATUS_VALUES = [
 // ---------------------------------------------------------------------------
 
 /**
- * Resolve the tracking URL from a Brazilian tracking code.
- * Detects Correios format and falls back to a universal tracker.
+ * Resolve the tracking URL from a tracking code.
+ * Replaced automatic external brand resolution (Correios/MelhorRastreio) with generic fallback.
  */
 function resolveTrackingUrl(code: string, providedUrl?: string): string {
-  if (providedUrl) return providedUrl;
-  const correiosPattern = /^[A-Z]{2}\d{9}[A-Z]{2}$/i;
-  if (correiosPattern.test(code)) {
-    return `https://rastreamento.correios.com.br/app/index.php?codigo=${code}`;
-  }
-  return `https://melhorrastreio.com.br/rastreio/${code}`;
+  return providedUrl || "";
 }
 
 /**
@@ -52,7 +47,7 @@ function resolveTrackingUrl(code: string, providedUrl?: string): string {
  */
 async function requireStaffAccess(): Promise<string> {
   const identity = await getServerIdentity();
-  
+
   if (
     !identity.store_id ||
     !["owner", "admin", "manager", "logistics", "operator"].includes(identity.role)

@@ -162,7 +162,7 @@ export function ArrayBuilder({ value = [], onChange, label, arrayFields = [] }: 
                             {field.label}
                           </label>
                           <select
-                            className="w-full text-sm p-2 rounded-lg border bg-background"
+                            className="w-full text-sm p-2 border bg-background"
                             value={item[field.name] || ""}
                             onChange={(e) => handleUpdateItem(index, field.name, e.target.value)}
                           >

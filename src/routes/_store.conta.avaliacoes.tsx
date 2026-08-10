@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Star } from "lucide-react";
 
 import { listCustomerReviews } from "@/services/cms.functions";
+import { formatDate } from "../lib/datetime";
 
 // ---------------------------------------------------------------------------
 // Route
@@ -60,14 +61,14 @@ function Page() {
           description="Você ainda não avaliou nenhum produto. Após receber um pedido, você poderá deixar sua opinião."
           action={
             <Button asChild>
-              <Link to="/catalogo">Explorar produtos</Link>
+              <Link to="/mercado">Explorar produtos</Link>
             </Button>
           }
         />
       ) : (
         <div className="space-y-4">
           {reviews.map((review: any) => (
-            <div key={review.id} className="rounded-xl border border-border bg-card p-5">
+            <div key={review.id} className="border border-border bg-card p-5">
               <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
                 <div>
                   {review.productSlug ? (
@@ -82,11 +83,7 @@ function Page() {
                     <p className="text-sm font-medium text-foreground">{review.productName}</p>
                   )}
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {new Date(review.createdAt).toLocaleDateString("pt-BR", {
-                      day: "2-digit",
-                      month: "long",
-                      year: "numeric",
-                    })}
+                    {formatDate(review.createdAt)}
                   </p>
                 </div>
                 <Badge variant={STATUS_VARIANTS[review.status] ?? "secondary"}>

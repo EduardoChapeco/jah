@@ -29,3 +29,8 @@ export function formatMoney(amountCents: number, currency: CurrencyCode = "BRL")
 export function formatMoneyObject(money: Money): string {
   return formatMoney(money.amountCents, money.currency);
 }
+
+export function parseMoney(formatted: string, currency: CurrencyCode = "BRL"): number {
+  const numericString = formatted.replace(/[^0-9-]/g, "");
+  return numericString ? parseInt(numericString, 10) : 0;
+}

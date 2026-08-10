@@ -13,7 +13,7 @@ export const listCustomers = createServerFn({ method: "GET" }).handler(async () 
     .select("profile_id, profiles(id, full_name, created_at, tax_id, is_consent_lgpd)")
     .eq("role", "customer")
     .eq("store_id", identity.store_id);
-    
+
   const profiles = members?.map((m: any) => m.profiles) || [];
 
   if (profilesError) throw new Error("Erro ao buscar clientes");
@@ -76,7 +76,7 @@ export const getCustomer360 = createServerFn({ method: "GET" })
       .eq("profile_id", customerId)
       .eq("store_id", identity.store_id)
       .single();
-      
+
     const profile = member?.profiles as any;
 
     if (error || !member) throw new Error("Cliente não encontrado");
@@ -207,7 +207,7 @@ export const createCustomer = createServerFn({ method: "POST" })
         await supabase.from("workspace_members").upsert({
           profile_id: userId,
           store_id: identity.store_id,
-          role: "customer"
+          role: "customer",
         });
       }
 

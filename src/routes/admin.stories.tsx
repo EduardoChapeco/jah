@@ -145,7 +145,13 @@ function StoriesPage() {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {stories.map((story: any) => (
-            <Surface key={story.id} variant="zine" elevation="sm" padding="none" className="overflow-hidden relative group">
+            <Surface
+              key={story.id}
+              variant="zine"
+              elevation="sm"
+              padding="none"
+              className="overflow-hidden relative group"
+            >
               <div className="aspect-[9/16] bg-muted relative">
                 {story.media_url.endsWith(".mp4") ? (
                   <video src={story.media_url} className="w-full h-full object-cover" muted loop />

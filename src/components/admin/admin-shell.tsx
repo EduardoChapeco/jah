@@ -165,9 +165,7 @@ function getActiveGroup(pathname: string): string {
     }
   }
   // 3. Prefix fallbacks for deep screens not directly listed
-  if (
-    pathname.startsWith("/admin/events")
-  ) {
+  if (pathname.startsWith("/admin/events")) {
     return "🎟️ Eventos & Cultura";
   }
   if (
@@ -223,44 +221,49 @@ function getActiveGroup(pathname: string): string {
   return "🏠 Início";
 }
 
-// Top-level modules list synced with ADMIN_SIDEBAR_NAV
 const MODULES = [
-  { label: "Visão Geral", path: "/admin", icon: "LayoutDashboard", group: "🏠 Início" },
+  { label: "Visão Geral", path: "/admin", icon: "LayoutDashboard", group: "🏠 Meu Estúdio" },
   {
-    label: "Vendas & Pedidos",
-    path: "/admin/pedidos",
-    icon: "ShoppingCart",
-    group: "🛍️ Pedidos & Vendas",
+    label: "Eventos & Cultura",
+    path: "/admin/events",
+    icon: "Calendar",
+    group: "🎟️ Eventos & Cultura",
   },
   {
-    label: "Catálogo & Estoque",
+    label: "Mercado & Estoque",
     path: "/admin/catalogo/produtos",
     icon: "Package",
-    group: "📦 Produtos & Estoque",
+    group: "📦 Mercado & Estoque",
   },
   {
-    label: "Clientes & Atende",
+    label: "Vendas & Caixa",
+    path: "/admin/pedidos",
+    icon: "ShoppingBag",
+    group: "🛍️ Vendas & Caixa",
+  },
+  {
+    label: "Comunidade",
     path: "/admin/clientes",
     icon: "Users",
-    group: "💬 Clientes & Atendimento",
+    group: "💬 Comunidade",
   },
   {
-    label: "Vitrine & Design",
+    label: "Design",
     path: "/admin/builder",
     icon: "Store",
-    group: "✨ Vitrine & Design",
+    group: "✨ Design & Presença",
   },
   {
-    label: "Marketing",
+    label: "Crescimento",
     path: "/admin/marketing/cupons",
     icon: "Megaphone",
-    group: "🚀 Marketing & Crescimento",
+    group: "🚀 Crescimento",
   },
   {
-    label: "Ajustes & Operação",
+    label: "Ajustes",
     path: "/admin/configuracoes/loja",
     icon: "Settings",
-    group: "⚙️ Ajustes da Loja",
+    group: "⚙️ Ajustes do Coletivo",
   },
 ];
 
@@ -319,7 +322,6 @@ function HeaderRightIsland({ session }: { session: any }) {
     </div>
   );
 }
-
 
 // ---------------------------------------------------------------------------
 // AdminShell
@@ -395,13 +397,13 @@ export function AdminShell({
   });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div data-shell="admin" className="min-h-screen bg-background text-foreground">
       {/* Desktop sidebar - Vertical Island Pill Layout */}
       <aside
         onMouseEnter={() => setCollapsed(false)}
         onMouseLeave={() => setCollapsed(true)}
         className={cn(
-          "fixed left-[8px] top-[8px] bottom-[8px] z-40 hidden flex-col border border-border bg-sidebar rounded-2xl shadow-md transition-all duration-300 md:flex",
+          "fixed left-0 top-0 bottom-0 z-40 hidden flex-col border-r border-border bg-card shadow-op-md transition-all duration-300 md:flex",
           collapsed ? "w-[68px]" : "w-64",
         )}
       >
@@ -412,7 +414,7 @@ export function AdminShell({
             <Link
               to={contextualAction.path}
               className={cn(
-                "flex h-11 items-center gap-3 rounded-full bg-primary text-primary-foreground hover:bg-primary/95 transition-all shadow-brand",
+                "flex h-11 items-center gap-3 rounded-full bg-primary text-primary-foreground hover:bg-primary/95 transition-all shadow-op-sm",
                 collapsed ? "w-11 justify-center" : "w-full px-4",
               )}
               title={contextualAction.label}
@@ -584,7 +586,7 @@ export function AdminShell({
         )}
       >
         {/* Topbar */}
-        <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-background/90 px-4 backdrop-blur pt-safe md:px-6">
+        <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-background/95 px-4 backdrop-blur pt-safe md:px-6 shadow-op-sm">
           {/* Mobile menu */}
           <Sheet>
             <SheetTrigger asChild>
@@ -624,7 +626,7 @@ export function AdminShell({
                               <Link
                                 to={item.path}
                                 activeOptions={{ exact: item.path === "/admin" }}
-                                className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium text-sidebar-foreground/85 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                                className="flex min-h-11 items-center gap-3 px-3 text-sm font-medium text-sidebar-foreground/85 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
                                 activeProps={{
                                   className: "bg-sidebar-accent text-sidebar-foreground",
                                 }}

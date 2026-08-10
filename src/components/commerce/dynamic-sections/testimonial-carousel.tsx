@@ -133,7 +133,7 @@ export function TestimonialCarousel({
             </div>
           </Carousel>
         ) : (
-          <div className="text-center py-12 text-muted-foreground border border-dashed rounded-lg">
+          <div className="text-center py-12 text-muted-foreground border border-dashed">
             Nenhuma avaliação disponível no momento.
           </div>
         )}

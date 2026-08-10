@@ -103,12 +103,12 @@ function SeoPage() {
           </p>
         </div>
 
-        <div className="rounded-lg border bg-muted/30 p-4 space-y-1">
+        <div className="border bg-muted/30 p-4 space-y-1">
           <div className="flex items-center gap-2 text-sm font-medium">
             <Globe className="h-4 w-4 text-muted-foreground" />
             Preview no Google
           </div>
-          <p className="text-sm text-blue-600 font-medium truncate">
+          <p className="text-sm text-primary font-medium truncate">
             {form.seo_title || "Jah — Moda Feminina"}
           </p>
           <p className="text-xs text-muted-foreground line-clamp-2">

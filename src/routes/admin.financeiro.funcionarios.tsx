@@ -23,7 +23,13 @@ import {
 import { Surface } from "@/components/ui/surface";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { formatMoney } from "@/lib/money";
 import { EmptyState } from "@/components/state/states";
 import { listEmployeesBalance, registerFinancialEvent } from "@/services/hr.functions";
@@ -46,7 +52,7 @@ function HrFinancePage() {
   const [formData, setFormData] = useState({
     amount: "",
     type: "advance" as any,
-    description: ""
+    description: "",
   });
   const [loading, setLoading] = useState(false);
 
@@ -74,8 +80,8 @@ function HrFinancePage() {
           employeeId: selectedEmp.id,
           amountCents,
           type: formData.type,
-          description: formData.description
-        }
+          description: formData.description,
+        },
       });
       toast.success("Lançamento efetuado com sucesso!");
       setModalOpen(false);
@@ -102,30 +108,36 @@ function HrFinancePage() {
       ) : (
         <div className="grid grid-cols-1 gap-4">
           {staffBalances.map((emp: any) => (
-            <Surface key={emp.id} variant="zine" elevation="sm" padding="md" className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              
+            <Surface
+              key={emp.id}
+              variant="zine"
+              elevation="sm"
+              padding="md"
+              className="flex flex-col md:flex-row md:items-center justify-between gap-4"
+            >
               <div className="flex items-center gap-4">
                 <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-display font-bold text-lg shrink-0 border border-primary/20">
                   {emp.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
                   <h3 className="font-display font-bold text-lg">{emp.name}</h3>
-                  <Badge variant="outline" className="mt-1 border-ink/30">{emp.role}</Badge>
+                  <Badge variant="outline" className="mt-1 border-ink/30">
+                    {emp.role}
+                  </Badge>
                 </div>
               </div>
 
               <div className="flex items-center gap-6">
                 <div className="text-right">
                   <p className="text-sm text-muted-foreground font-semibold">Saldo a Receber</p>
-                  <p className={`text-2xl font-bold font-display ${emp.balanceCents < 0 ? 'text-destructive' : 'text-emerald-600'}`}>
+                  <p
+                    className={`text-2xl font-bold font-display ${emp.balanceCents < 0 ? "text-destructive" : "text-emerald-600"}`}
+                  >
                     {formatMoney(emp.balanceCents)}
                   </p>
                 </div>
-                <Button onClick={() => handleOpenModal(emp)}>
-                  Lançar Evento / Vale
-                </Button>
+                <Button onClick={() => handleOpenModal(emp)}>Lançar Evento / Vale</Button>
               </div>
-
             </Surface>
           ))}
         </div>
@@ -144,7 +156,10 @@ function HrFinancePage() {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Tipo de Lançamento</Label>
-              <Select value={formData.type} onValueChange={(v: any) => setFormData(prev => ({...prev, type: v}))}>
+              <Select
+                value={formData.type}
+                onValueChange={(v: any) => setFormData((prev) => ({ ...prev, type: v }))}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o tipo..." />
                 </SelectTrigger>
@@ -165,21 +180,21 @@ function HrFinancePage() {
 
             <div className="space-y-2">
               <Label>Valor (R$)</Label>
-              <Input 
-                type="number" 
-                step="0.01" 
+              <Input
+                type="number"
+                step="0.01"
                 placeholder="Ex: 150.00"
                 value={formData.amount}
-                onChange={e => setFormData(prev => ({...prev, amount: e.target.value}))}
+                onChange={(e) => setFormData((prev) => ({ ...prev, amount: e.target.value }))}
               />
             </div>
 
             <div className="space-y-2">
               <Label>Descrição / Motivo</Label>
-              <Input 
+              <Input
                 placeholder="Ex: Adiantamento para transporte"
                 value={formData.description}
-                onChange={e => setFormData(prev => ({...prev, description: e.target.value}))}
+                onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
               />
             </div>
           </div>
@@ -194,7 +209,6 @@ function HrFinancePage() {
           </SheetFooter>
         </SheetContent>
       </Sheet>
-
     </div>
   );
 }

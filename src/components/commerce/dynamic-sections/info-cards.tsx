@@ -25,7 +25,7 @@ export function InfoCards({ content }: InfoCardsProps) {
   return (
     <section className="w-full max-w-7xl mx-auto px-4 py-8">
       {cards.length === 0 ? (
-        <div className="p-8 text-center text-xs text-muted-foreground border border-dashed rounded-xl">
+        <div className="p-8 text-center text-xs text-muted-foreground border border-dashed">
           Nenhum cartão de informação cadastrado.
         </div>
       ) : (
@@ -36,9 +36,9 @@ export function InfoCards({ content }: InfoCardsProps) {
             return (
               <div
                 key={idx}
-                className="flex items-start gap-4 p-5 rounded-2xl border border-border bg-card shadow-xs transition-all duration-300 hover:shadow-md hover:border-primary/20"
+                className="flex items-start gap-4 p-5 border border-border bg-card shadow-xs transition-all duration-300 hover:shadow-md hover:border-primary/20"
               >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-primary/10 text-primary">
                   {IconComponent && <IconComponent className="size-5" />}
                 </div>
                 <div className="space-y-1">

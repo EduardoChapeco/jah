@@ -70,12 +70,15 @@ export const listSellers = createServerFn({ method: "GET" }).handler(async () =>
     .eq("store_id", identity.store_id)
     .in("role", ["seller", "manager"]);
 
-  const sellers = members?.map(m => ({
-    id: m.profile_id,
-    role: m.role,
-    full_name: (m.profiles as any)?.full_name || "",
-    commission_rate: (m.profiles as any)?.commission_rate || 0,
-  })).sort((a, b) => a.full_name.localeCompare(b.full_name)) || [];
+  const sellers =
+    members
+      ?.map((m) => ({
+        id: m.profile_id,
+        role: m.role,
+        full_name: (m.profiles as any)?.full_name || "",
+        commission_rate: (m.profiles as any)?.commission_rate || 0,
+      }))
+      .sort((a, b) => a.full_name.localeCompare(b.full_name)) || [];
 
   if (error) throw new Error("Erro ao buscar equipe de vendas");
   return sellers;

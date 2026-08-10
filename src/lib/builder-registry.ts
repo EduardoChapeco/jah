@@ -15,13 +15,29 @@ export const builderRegistry: Record<string, BlockManifest> = {
 
     contentSchema: z.object({}),
     styleSchema: z.object({
-      backgroundColor: z.string().optional(),
+      surfaceVariant: z
+        .enum(["default", "zine", "ticket", "lambe", "journal", "flat", "muted", "none"])
+        .default("default"),
       backgroundImage: z.string().url().optional(),
     }),
 
     inspector: {
       design: [
-        { name: "backgroundColor", label: "Cor de Fundo", type: "color" },
+        {
+          name: "surfaceVariant",
+          label: "Estilo do Papel / Fundo",
+          type: "select",
+          options: [
+            { label: "Padrão", value: "default" },
+            { label: "Transparente", value: "none" },
+            { label: "Zine (Rasgado)", value: "zine" },
+            { label: "Ticket (Ingresso)", value: "ticket" },
+            { label: "Lambe-Lambe", value: "lambe" },
+            { label: "Journal (Papel)", value: "journal" },
+            { label: "Flat (Sólido)", value: "flat" },
+            { label: "Muted (Secundário)", value: "muted" },
+          ],
+        },
         { name: "backgroundImage", label: "Imagem de Fundo", type: "image" },
       ],
     },
@@ -460,7 +476,9 @@ export const builderRegistry: Record<string, BlockManifest> = {
     contentSchema: z.object({
       text: z.string(),
       link: z.string().optional(),
-      bg_color: z.string().optional(),
+      surfaceVariant: z
+        .enum(["default", "zine", "ticket", "lambe", "journal", "flat", "muted"])
+        .default("default"),
       text_color: z.string().optional(),
     }),
     inspector: {
@@ -469,7 +487,17 @@ export const builderRegistry: Record<string, BlockManifest> = {
         { name: "link", label: "Link (Opcional)", type: "text" },
       ],
       design: [
-        { name: "bg_color", label: "Cor de Fundo", type: "color" },
+        {
+          name: "surfaceVariant",
+          label: "Estilo da Barra",
+          type: "select",
+          options: [
+            { label: "Padrão", value: "default" },
+            { label: "Zine", value: "zine" },
+            { label: "Ticket", value: "ticket" },
+            { label: "Flat", value: "flat" },
+          ],
+        },
         { name: "text_color", label: "Cor do Texto", type: "color" },
       ],
     },
@@ -478,7 +506,7 @@ export const builderRegistry: Record<string, BlockManifest> = {
       block_type: "announcement_bar",
       content: {
         text: "Frete grátis para todo o Brasil acima de R$ 299",
-        bg_color: "#000000",
+        surfaceVariant: "default",
         text_color: "#ffffff",
       },
     },
@@ -1315,6 +1343,79 @@ export const builderRegistry: Record<string, BlockManifest> = {
         before_label: "Antes",
         after_label: "Depois de 14 Dias",
       },
+    },
+  },
+  event_rail: {
+    type: "event_rail",
+    version: "1.0.0",
+    name: "Próximos Eventos",
+    description: "Lista em carrossel ou grid dos eventos futuros",
+    category: "commerce",
+    icon: "Calendar",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+      layout: z.enum(["carousel", "grid"]).default("carousel"),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título", type: "text" },
+        { name: "subtitle", label: "Subtítulo", type: "text" },
+        {
+          name: "layout",
+          label: "Layout",
+          type: "select",
+          options: [
+            { label: "Carrossel", value: "carousel" },
+            { label: "Grid", value: "grid" },
+          ],
+        },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "event_rail",
+      content: { layout: "carousel" },
+      data_bindings: { source: "upcoming_events", limit: 6 },
+    },
+  },
+
+  community_feed: {
+    type: "community_feed",
+    version: "1.0.0",
+    name: "Zine Comunitário",
+    description: "Mural interativo de classificados e posts da comunidade",
+    category: "social",
+    icon: "Newspaper",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      layout: z.enum(["masonry", "grid"]).default("masonry"),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título do Mural", type: "text" },
+        {
+          name: "layout",
+          label: "Layout Visual",
+          type: "select",
+          options: [
+            { label: "Caótico (Masonry + Rotação)", value: "masonry" },
+            { label: "Organizado (Grid)", value: "grid" },
+          ],
+        },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "community_feed",
+      content: { layout: "masonry", title: "Mural da Comunidade" },
+      data_bindings: { source: "latest_classifieds", limit: 12 },
     },
   },
 };

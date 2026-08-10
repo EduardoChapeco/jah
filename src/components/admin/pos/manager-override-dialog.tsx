@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -53,13 +60,11 @@ export function ManagerOverrideDialog({
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent className="sm:max-w-md">
         <SheetHeader>
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 mb-4">
-            <Lock className="h-6 w-6 text-orange-600" />
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-warning mb-4">
+            <Lock className="h-6 w-6 text-warning" />
           </div>
           <SheetTitle className="text-center">{title}</SheetTitle>
-          <SheetDescription className="text-center">
-            {description}
-          </SheetDescription>
+          <SheetDescription className="text-center">{description}</SheetDescription>
         </SheetHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -92,7 +97,11 @@ export function ManagerOverrideDialog({
             <Button type="button" variant="ghost" onClick={onClose}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading || pin.length < 4} className="bg-orange-600 hover:bg-orange-700">
+            <Button
+              type="submit"
+              disabled={isLoading || pin.length < 4}
+              className="bg-warning hover:bg-warning"
+            >
               {isLoading ? "Validando..." : "Autorizar"}
             </Button>
           </SheetFooter>

@@ -151,7 +151,7 @@ function AdminCollectionsPage() {
           }
         />
       ) : (
-        <div className="rounded-xl border border-border bg-card shadow-xs">
+        <div className="border border-border bg-card shadow-xs">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>

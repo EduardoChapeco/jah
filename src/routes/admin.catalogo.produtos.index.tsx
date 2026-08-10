@@ -46,6 +46,7 @@ import {
   duplicateProduct,
   toggleProductStatus,
   bulkUpdateProductStatus,
+  updateProduct,
 } from "@/services/admin-catalog.functions";
 import { formatMoney } from "@/lib/money";
 import type { AdminProductRow } from "@/types/catalog";
@@ -58,6 +59,65 @@ export const Route = createFileRoute("/admin/catalogo/produtos/")({
   },
   component: AdminProductsPage,
 });
+
+function EditablePriceCell({
+  productId,
+  initialCents,
+  onSave,
+}: {
+  productId: string;
+  initialCents: number;
+  onSave: (val: number) => Promise<boolean>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [val, setVal] = useState((initialCents / 100).toFixed(2));
+  const [isSaving, setIsSaving] = useState(false);
+
+  const save = async () => {
+    setIsSaving(true);
+    const cents = Math.round(parseFloat(val.replace(",", ".")) * 100);
+    if (!isNaN(cents) && cents >= 0) {
+      const ok = await onSave(cents);
+      if (ok) {
+        setEditing(false);
+      } else {
+        setVal((initialCents / 100).toFixed(2));
+      }
+    } else {
+      setVal((initialCents / 100).toFixed(2));
+    }
+    setIsSaving(false);
+    setEditing(false);
+  };
+
+  if (editing) {
+    return (
+      <div className="flex items-center gap-1">
+        <Input
+          type="number"
+          step="0.01"
+          autoFocus
+          className="h-7 w-20 px-2 text-xs"
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && save()}
+          onBlur={save}
+          disabled={isSaving}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      onClick={() => setEditing(true)}
+      className="font-bold text-sm text-foreground cursor-text hover:bg-muted/50 p-1 rounded -ml-1 transition-colors border border-transparent hover:border-border"
+      title="Clique para editar"
+    >
+      {formatMoney(initialCents)}
+    </div>
+  );
+}
 
 function AdminProductsPage() {
   const initialProducts = Route.useLoaderData();
@@ -113,6 +173,18 @@ function AdminProductsPage() {
     } else {
       toast.error((res as any).message || "Erro ao duplicar produto.");
     }
+  };
+
+  // Action: Edit Price Inline
+  const handleUpdatePrice = async (productId: string, price_cents: number) => {
+    const res = await updateProduct({ data: { id: productId, price_cents } });
+    if (res?.id) {
+      setProducts((prev) => prev.map((p) => (p.id === productId ? { ...p, price_cents } : p)));
+      toast.success("Preço atualizado!");
+      return true;
+    }
+    toast.error("Erro ao atualizar preço.");
+    return false;
   };
 
   // Action: Change Single Status
@@ -235,7 +307,7 @@ function AdminProductsPage() {
 
       {/* Barra Flutuante de Ações em Lote */}
       {selectedIds.length > 0 && (
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-lg border border-primary/30 bg-primary/10 dark:bg-primary/20 animate-in fade-in-50 gap-3">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border border-primary/30 bg-primary/10 dark:bg-primary/20 animate-in fade-in-50 gap-3">
           <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
             <Badge variant="default" className="font-bold">
               {selectedIds.length}
@@ -306,7 +378,7 @@ function AdminProductsPage() {
           }
         />
       ) : (
-        <div className="rounded-xl border border-border bg-card shadow-xs">
+        <div className="border border-border bg-card shadow-xs">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -329,10 +401,7 @@ function AdminProductsPage() {
                 {filteredProducts.map((product) => {
                   const cover = product.product_media?.[0]?.url;
                   const isSelected = selectedIds.includes(product.id);
-                  const typeName =
-                    product.product_types && product.product_types.length > 0
-                      ? product.product_types[0].name
-                      : "Padrão";
+                  const typeName = product.product_types?.name || "Padrão";
 
                   return (
                     <TableRow
@@ -353,10 +422,10 @@ function AdminProductsPage() {
                             <img
                               src={cover}
                               alt=""
-                              className="size-11 rounded-lg object-cover border border-border shrink-0"
+                              className="size-11 object-cover border border-border shrink-0"
                             />
                           ) : (
-                            <div className="size-11 rounded-lg bg-muted border border-border flex items-center justify-center shrink-0">
+                            <div className="size-11 bg-muted border border-border flex items-center justify-center shrink-0">
                               <Package className="size-5 text-muted-foreground" aria-hidden />
                             </div>
                           )}
@@ -402,9 +471,11 @@ function AdminProductsPage() {
 
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="font-bold text-sm text-foreground">
-                            {formatMoney(product.price_cents)}
-                          </span>
+                          <EditablePriceCell
+                            productId={product.id}
+                            initialCents={product.price_cents}
+                            onSave={(cents) => handleUpdatePrice(product.id, cents)}
+                          />
                           {product.compare_at_cents ? (
                             <span className="text-xs text-muted-foreground line-through">
                               {formatMoney(product.compare_at_cents)}

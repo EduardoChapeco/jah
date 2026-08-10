@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getMatchTimeReport } from "@/services/match-time.functions";
 import { PageHeader } from "@/components/commerce/page-header";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Surface } from "@/components/ui/surface";
 import { EmptyState } from "@/components/state/states";
 import { Heart, Flame, HeartCrack, Sparkles, Users, Award, Tag } from "lucide-react";
 import {
@@ -53,67 +53,73 @@ function AdminMatchTimePage() {
         <div className="space-y-8">
           {/* Métricas consolidadas */}
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total de Avaliações</CardTitle>
+            <Surface variant="zine" padding="none">
+              <div className="flex flex-row items-center justify-between p-6 pb-2 space-y-0">
+                <h3 className="text-sm font-medium leading-none tracking-tight">
+                  Total de Avaliações
+                </h3>
                 <Flame className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
+              </div>
+              <div className="p-6 pt-0">
                 <div className="text-2xl font-bold">{totalSwipes}</div>
                 <p className="text-xs text-muted-foreground mt-1">Swipes computados no total</p>
-              </CardContent>
-            </Card>
+              </div>
+            </Surface>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total de Curtidas</CardTitle>
+            <Surface variant="zine" padding="none">
+              <div className="flex flex-row items-center justify-between p-6 pb-2 space-y-0">
+                <h3 className="text-sm font-medium leading-none tracking-tight">
+                  Total de Curtidas
+                </h3>
                 <Heart className="h-4 w-4 text-primary fill-primary" />
-              </CardHeader>
-              <CardContent>
+              </div>
+              <div className="p-6 pt-0">
                 <div className="text-2xl font-bold text-primary">{totalLikes}</div>
                 <p className="text-xs text-muted-foreground mt-1">Likes ou Superlikes</p>
-              </CardContent>
-            </Card>
+              </div>
+            </Surface>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Categoria Favorita</CardTitle>
+            <Surface variant="zine" padding="none">
+              <div className="flex flex-row items-center justify-between p-6 pb-2 space-y-0">
+                <h3 className="text-sm font-medium leading-none tracking-tight">
+                  Categoria Favorita
+                </h3>
                 <Tag className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
+              </div>
+              <div className="p-6 pt-0">
                 <div className="text-xl font-bold truncate">
                   {topCategories[0]?.name || "Nenhuma"}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Com {topCategories[0]?.likes || 0} curtidas recebidas
                 </p>
-              </CardContent>
-            </Card>
+              </div>
+            </Surface>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Clientes Ativos</CardTitle>
+            <Surface variant="zine" padding="none">
+              <div className="flex flex-row items-center justify-between p-6 pb-2 space-y-0">
+                <h3 className="text-sm font-medium leading-none tracking-tight">Clientes Ativos</h3>
                 <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
+              </div>
+              <div className="p-6 pt-0">
                 <div className="text-2xl font-bold">{activeCustomers.length}</div>
                 <p className="text-xs text-muted-foreground mt-1">Participaram da descoberta</p>
-              </CardContent>
-            </Card>
+              </div>
+            </Surface>
           </div>
 
           <div className="grid gap-6 md:grid-cols-2">
             {/* Categoria Afinidades */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Award className="size-5 text-yellow-500" /> Categorias Populares
-                </CardTitle>
-                <CardDescription>
+            <Surface variant="default" padding="none">
+              <div className="p-6 flex flex-col space-y-1.5 border-b border-border/20 bg-muted/10">
+                <h3 className="text-base flex items-center gap-2 font-semibold">
+                  <Award className="size-5 text-warning" /> Categorias Populares
+                </h3>
+                <p className="text-sm text-muted-foreground">
                   Mapeamento das categorias mais curtidas pelos clientes.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+                </p>
+              </div>
+              <div className="p-6">
                 {topCategories.length === 0 ? (
                   <p className="text-sm text-muted-foreground py-4 text-center">
                     Nenhuma categoria registrada.
@@ -144,20 +150,20 @@ function AdminMatchTimePage() {
                     })}
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </Surface>
 
             {/* Engajamento de Clientes */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+            <Surface variant="default" padding="none">
+              <div className="p-6 flex flex-col space-y-1.5 border-b border-border/20 bg-muted/10">
+                <h3 className="text-base flex items-center gap-2 font-semibold">
                   <Users className="size-5 text-primary" /> Clientes Mais Engajados
-                </CardTitle>
-                <CardDescription>
+                </h3>
+                <p className="text-sm text-muted-foreground">
                   Preferências individuais dos clientes que mais usaram o Match Time.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+                </p>
+              </div>
+              <div className="p-6">
                 {activeCustomers.length === 0 ? (
                   <p className="text-sm text-muted-foreground py-4 text-center">
                     Nenhum cliente registrado.
@@ -191,7 +197,7 @@ function AdminMatchTimePage() {
                               <TableCell className="text-center text-muted-foreground">
                                 {cust.dislikes}
                               </TableCell>
-                              <TableCell className="text-right font-bold text-green-600">
+                              <TableCell className="text-right font-bold text-success">
                                 {ratio}%
                               </TableCell>
                             </TableRow>
@@ -201,8 +207,8 @@ function AdminMatchTimePage() {
                     </Table>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </Surface>
           </div>
 
           {/* Ranking de Produtos */}
@@ -213,7 +219,9 @@ function AdminMatchTimePage() {
             </h3>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {topProducts.map((item: any, index: number) => (
-                <Card
+                <Surface
+                  variant="default"
+                  padding="none"
                   key={item.product.slug}
                   className="overflow-hidden bg-card border hover:shadow-md transition-shadow"
                 >
@@ -223,18 +231,18 @@ function AdminMatchTimePage() {
                       #{index + 1}
                     </div>
                   </div>
-                  <CardHeader className="pb-2">
-                    <CardTitle
-                      className="text-base leading-tight truncate"
+                  <div className="p-6 pb-2">
+                    <h3
+                      className="text-base font-semibold leading-tight truncate"
                       title={item.product.title}
                     >
                       {item.product.title}
-                    </CardTitle>
-                    <CardDescription className="text-xs font-mono">
+                    </h3>
+                    <p className="text-xs font-mono text-muted-foreground mt-1">
                       {item.product.slug}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex items-center justify-between pt-2 text-xs font-semibold border-t">
+                    </p>
+                  </div>
+                  <div className="p-6 pt-2 flex items-center justify-between text-xs font-semibold border-t">
                     <div className="flex items-center gap-1 text-primary">
                       <Heart className="w-3.5 h-3.5 fill-primary" />
                       <span>{item.likes} Likes</span>
@@ -243,8 +251,8 @@ function AdminMatchTimePage() {
                       <HeartCrack className="w-3.5 h-3.5" />
                       <span>{item.dislikes} Pulos</span>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </Surface>
               ))}
             </div>
           </div>

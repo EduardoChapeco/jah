@@ -10,11 +10,40 @@ export const Route = createFileRoute("/sitemap.xml")({
     handlers: {
       GET: async () => {
         // Only static, indexable public routes (no params, no checkout).
-        const paths = PUBLIC_ROUTES.filter(
+        const staticPaths = PUBLIC_ROUTES.filter(
           (r) => !r.dynamic && !r.path.startsWith("/checkout") && r.path !== "/carrinho",
         ).map((r) => r.path);
 
-        const urls = paths
+        const dynamicPaths: string[] = [];
+
+        try {
+          const { getServerClient } = await import("@/lib/supabase");
+          const db = getServerClient();
+
+          // 1. Fetch active pages
+          const { data: pages } = await db.from("pages").select("slug").eq("status", "published");
+          if (pages) {
+            pages.forEach((p) => dynamicPaths.push(`/p/${p.slug}`));
+          }
+
+          // 2. Fetch active products
+          const { data: products } = await db.from("products").select("slug").eq("status", "active");
+          if (products) {
+            products.forEach((p) => dynamicPaths.push(`/produto/${p.slug}`));
+          }
+
+          // 3. Fetch active classifieds
+          const { data: classifieds } = await db.from("classifieds").select("slug").eq("status", "active");
+          if (classifieds) {
+            classifieds.forEach((c) => dynamicPaths.push(`/classificados/${c.slug}`));
+          }
+        } catch (e) {
+          console.error("Error generating dynamic sitemap paths:", e);
+        }
+
+        const allPaths = [...staticPaths, ...dynamicPaths];
+
+        const urls = allPaths
           .map(
             (path) =>
               `  <url>\n    <loc>${BASE_URL}${path}</loc>\n    <changefreq>weekly</changefreq>\n  </url>`,

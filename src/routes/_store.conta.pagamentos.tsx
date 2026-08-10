@@ -24,7 +24,8 @@ import { EmptyState } from "@/components/state/states";
 import { getCustomerInstallments } from "@/services/installments.functions";
 import { getCustomerOrderPayments } from "@/services/payment.functions";
 import { formatMoney } from "@/lib/money";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Surface } from "@/components/ui/surface";
+import { formatDate } from "../lib/datetime";
 
 export const Route = createFileRoute("/_store/conta/pagamentos")({
   head: () => ({ meta: [{ title: "Central de Pagamentos" }] }),
@@ -108,7 +109,7 @@ function CustomerInstallmentsPage() {
             </p>
           </div>
 
-          <Card>
+          <Surface variant="zine" padding="none">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -132,7 +133,7 @@ function CustomerInstallmentsPage() {
                     <TableRow key={order.id}>
                       <TableCell className="font-mono font-medium">#{order.public_token}</TableCell>
                       <TableCell className="text-muted-foreground">
-                        {new Date(order.created_at).toLocaleDateString("pt-BR")}
+                        {formatDate(order.created_at)}
                       </TableCell>
                       <TableCell>
                         {translatePaymentMethod(order.payment_method || payment.method)}
@@ -167,7 +168,7 @@ function CustomerInstallmentsPage() {
                 })}
               </TableBody>
             </Table>
-          </Card>
+          </Surface>
         </section>
       )}
 
@@ -186,17 +187,16 @@ function CustomerInstallmentsPage() {
 
           <div className="space-y-6">
             {plans.map((plan: any) => (
-              <Card key={plan.id}>
-                <CardHeader className="flex flex-row items-center justify-between bg-muted/30">
+              <Surface variant="default" padding="none" key={plan.id}>
+                <div className="flex flex-row items-center justify-between p-6 bg-muted/30 border-b border-border/20">
                   <div>
-                    <CardTitle className="text-lg flex items-center">
+                    <h3 className="text-lg flex items-center font-bold">
                       <FileText className="mr-2 h-5 w-5" />
                       Pedido #{plan.orderToken}
-                    </CardTitle>
-                    <CardDescription className="mt-1">
-                      Gerado em {new Date(plan.createdAt).toLocaleDateString("pt-BR")} — Total:{" "}
-                      {formatMoney(plan.totalCents)}
-                    </CardDescription>
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Gerado em {formatDate(plan.createdAt)} — Total: {formatMoney(plan.totalCents)}
+                    </p>
                   </div>
                   <Badge
                     variant={
@@ -213,8 +213,8 @@ function CustomerInstallmentsPage() {
                         ? "Quitado"
                         : "Em Atraso"}
                   </Badge>
-                </CardHeader>
-                <CardContent className="pt-6">
+                </div>
+                <div className="p-6">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -232,16 +232,11 @@ function CustomerInstallmentsPage() {
                         return (
                           <TableRow key={inst.id}>
                             <TableCell className="font-medium">{idx + 1}ª</TableCell>
-                            <TableCell>
-                              {new Date(inst.dueDate).toLocaleDateString("pt-BR")}
-                            </TableCell>
+                            <TableCell>{formatDate(inst.dueDate)}</TableCell>
                             <TableCell>{formatMoney(inst.amountCents)}</TableCell>
                             <TableCell>
                               {inst.status === "paid" ? (
-                                <Badge
-                                  variant="default"
-                                  className="bg-green-600 hover:bg-green-700"
-                                >
+                                <Badge variant="default" className="bg-success hover:bg-success">
                                   Paga
                                 </Badge>
                               ) : isLate ? (
@@ -250,18 +245,14 @@ function CustomerInstallmentsPage() {
                                 <Badge variant="secondary">Pendente</Badge>
                               )}
                             </TableCell>
-                            <TableCell>
-                              {inst.paidAt
-                                ? new Date(inst.paidAt).toLocaleDateString("pt-BR")
-                                : "-"}
-                            </TableCell>
+                            <TableCell>{inst.paidAt ? formatDate(inst.paidAt) : "-"}</TableCell>
                           </TableRow>
                         );
                       })}
                     </TableBody>
                   </Table>
-                </CardContent>
-              </Card>
+                </div>
+              </Surface>
             ))}
           </div>
         </section>

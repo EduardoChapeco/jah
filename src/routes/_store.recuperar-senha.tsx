@@ -46,7 +46,7 @@ function Page() {
       </div>
 
       {success ? (
-        <div className="bg-primary/10 text-primary p-6 rounded-lg text-center">
+        <div className="bg-primary/10 text-primary p-6 text-center">
           <p className="font-medium mb-4">E-mail enviado!</p>
           <p className="text-sm">
             Verifique sua caixa de entrada (e a pasta de spam) para redefinir sua senha.

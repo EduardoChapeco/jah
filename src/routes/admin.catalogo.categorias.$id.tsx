@@ -15,7 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Surface } from "@/components/ui/surface";
+import { ImageUpload } from "@/components/ui/image-upload";
 import {
   getCategoryById,
   listCategories,
@@ -61,6 +62,8 @@ function EditCategoryPage() {
     },
   });
 
+  const [coverUrl, setCoverUrl] = useState<string | null>(category.cover_url || null);
+
   const onSubmit = async (values: any) => {
     setIsSubmitting(true);
     try {
@@ -104,11 +107,11 @@ function EditCategoryPage() {
       />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Dados Básicos</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <Surface variant="default" padding="md" className="space-y-6">
+          <header className="space-y-1">
+            <h2 className="font-bold text-lg">Dados Básicos</h2>
+          </header>
+          <div className="space-y-4">
             <div className="space-y-2">
               <Label>Nome da Categoria</Label>
               <Input
@@ -173,8 +176,15 @@ function EditCategoryPage() {
                 </SelectContent>
               </Select>
             </div>
-          </CardContent>
-        </Card>
+
+            <div className="space-y-2">
+              <Label>Foto de Capa (Opcional)</Label>
+              <div className="max-w-sm">
+                <ImageUpload onChange={setCoverUrl} value={coverUrl} bucket="product-media" />
+              </div>
+            </div>
+          </div>
+        </Surface>
 
         <div className="flex justify-end gap-4">
           <Button type="button" variant="ghost" asChild>

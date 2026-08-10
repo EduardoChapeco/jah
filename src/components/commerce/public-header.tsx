@@ -9,24 +9,24 @@ import { Input } from "@/components/ui/input";
 import { useCartContext } from "@/lib/cart-context";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
-
 const FALLBACK_NAV = [
-  { url: "/catalogo", label: "Catálogo" },
-  { url: "/promocoes", label: "Promoções" },
-  { url: "/perfil-da-loja", label: "A loja" },
+  { url: "/", label: "Mural" },
+  { url: "/agenda", label: "Agenda" },
+  { url: "/mercado", label: "Mercado" },
+  { url: "/diretorio", label: "Diretório" },
 ];
 
 export function PublicHeader({
   menuItems = [],
   storeName,
   logoUrl,
-  cart,
+
   hideNameWithLogo = false,
 }: {
   menuItems?: any[];
   storeName?: string;
   logoUrl?: string;
-  cart?: any;
+
   hideNameWithLogo?: boolean;
 }) {
   const navItems = menuItems.length > 0 ? menuItems : FALLBACK_NAV;
@@ -52,33 +52,35 @@ export function PublicHeader({
     }
   };
 
+  const totalItemCount = contextCart?.itemCount || 0;
+
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur pt-safe">
-      <div className="mx-auto flex h-16 max-w-screen-xl items-center gap-4 px-4 md:px-6">
+    <header className="sticky top-0 z-50 border-b-4 border-ink bg-paper pt-safe">
+      <div className="mx-auto flex h-20 max-w-screen-xl items-center gap-4 px-4 md:px-6">
         {/* Mobile menu */}
         <Sheet>
           <SheetTrigger asChild>
             <Button
-              variant="ghost"
+              variant="outline"
               size="icon"
-              className="md:hidden shrink-0"
+              className="md:hidden shrink-0 border-2 border-ink shadow-hard hover-lift"
               aria-label="Abrir menu"
             >
-              <Menu className="size-5" aria-hidden />
+              <Menu className="size-6 text-ink" aria-hidden />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-72">
-            <SheetHeader>
+          <SheetContent side="left" className="w-80 bg-paper border-r-4 border-ink p-6">
+            <SheetHeader className="border-b-4 border-ink pb-4 mb-4">
               <SheetTitle className="sr-only">Menu</SheetTitle>
-              <Logo src={logoUrl} className="h-7" />
+              <Logo src={logoUrl} className="h-10" />
             </SheetHeader>
-            <nav className="mt-6 flex flex-col">
+            <nav className="flex flex-col gap-2">
               {navItems.map((item) => (
                 <Link
                   key={item.url}
                   to={item.url}
-                  className="rounded-lg px-3 py-3 text-base font-medium text-foreground hover:bg-accent"
-                  activeProps={{ className: "text-primary bg-accent/50" }}
+                  className="px-4 py-3 text-lg font-display uppercase tracking-wider text-ink border-2 border-transparent hover:border-ink hover:shadow-hard hover-lift transition-all"
+                  activeProps={{ className: "bg-directory-yellow border-ink shadow-hard font-bold" }}
                 >
                   {item.label}
                 </Link>
@@ -89,25 +91,25 @@ export function PublicHeader({
 
         <Link
           to="/"
-          className="flex items-center gap-2 shrink-0"
+          className="flex items-center gap-3 shrink-0 hover-lift"
           aria-label={`${storeName || "Jah"} — início`}
         >
           <Logo src={logoUrl} className="max-h-12 w-auto h-auto" />
           {logoUrl && storeName && !hideNameWithLogo && (
-            <span className="font-bold text-lg tracking-tight hidden lg:inline-block">
+            <span className="font-display font-bold text-2xl tracking-tighter uppercase text-ink hidden lg:inline-block">
               {storeName}
             </span>
           )}
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="ml-6 hidden items-center gap-1 md:flex">
+        <nav className="ml-8 hidden items-center gap-3 md:flex">
           {navItems.map((item) => (
             <Link
               key={item.url}
               to={item.url}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-              activeProps={{ className: "text-primary font-semibold" }}
+              className="px-4 py-2 text-sm font-bold font-display uppercase tracking-wider text-ink border-2 border-transparent hover:border-ink hover:bg-paper hover:shadow-[2px_2px_0px_0px_#121212] transition-all -rotate-1 hover:rotate-0"
+              activeProps={{ className: "bg-directory-yellow border-ink shadow-[2px_2px_0px_0px_#121212] rotate-0" }}
             >
               {item.label}
             </Link>
@@ -117,11 +119,7 @@ export function PublicHeader({
         <div className="ml-auto flex items-center gap-1 flex-1 justify-end">
           {/* Expandable Search */}
           <div
-            className={`flex items-center overflow-hidden transition-all duration-300 ease-in-out ${
-              isSearchOpen
-                ? "w-full max-w-[280px] opacity-100 mr-2"
-                : "w-0 opacity-0 md:w-0 md:opacity-0"
-            }`}
+            className={`flex items-center overflow-hidden transition-all duration-300 ease-in-out ${isSearchOpen ? "w-full max-w-[280px] opacity-100 mr-2" : "w-0 opacity-0 md:w-0 md:opacity-0"}`}
           >
             <form onSubmit={handleSearchSubmit} className="relative w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -146,36 +144,35 @@ export function PublicHeader({
           {/* Search Trigger (hidden when search is open) */}
           {!isSearchOpen && (
             <Button
-              variant="ghost"
+              variant="outline"
               size="icon"
               onClick={() => setIsSearchOpen(true)}
               aria-label="Buscar"
-              className="shrink-0"
+              className="shrink-0 border-2 border-ink shadow-sm hover-lift"
             >
-              <Search className="size-5" aria-hidden />
+              <Search className="size-5 text-ink" aria-hidden />
             </Button>
           )}
 
-          <ThemeToggle className="shrink-0" />
+          <ThemeToggle className="shrink-0 border-2 border-ink shadow-sm hover-lift" />
 
-          <Button variant="ghost" size="icon" asChild aria-label="Minha conta" className="shrink-0">
+          <Button variant="outline" size="icon" asChild aria-label="Minha conta" className="shrink-0 border-2 border-ink shadow-sm hover-lift">
             <Link to="/conta">
-              <User className="size-5" aria-hidden />
+              <User className="size-5 text-ink" aria-hidden />
             </Link>
           </Button>
 
-
           <Button
-            variant="ghost"
+            variant="outline"
             size="icon"
             onClick={() => setIsCartOpen(true)}
             aria-label="Carrinho"
-            className="relative shrink-0"
+            className="relative shrink-0 border-2 border-ink shadow-sm hover-lift bg-directory-yellow text-ink"
           >
             <ShoppingBag className="size-5" aria-hidden />
-            {contextCart && contextCart.itemCount > 0 && (
-              <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-                {contextCart.itemCount}
+            {totalItemCount > 0 && (
+              <span className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-none border-2 border-ink bg-poster-red text-xs font-bold text-ivory shadow-[2px_2px_0px_0px_#121212] rotate-6">
+                {totalItemCount}
               </span>
             )}
           </Button>

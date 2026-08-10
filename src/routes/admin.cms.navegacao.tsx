@@ -8,7 +8,7 @@ import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Surface } from "@/components/ui/surface";
 import { getNavigationMenus, upsertNavigationMenu } from "@/services/cms.functions";
 
 export const Route = createFileRoute("/admin/cms/navegacao")({
@@ -105,12 +105,12 @@ function MenuEditor({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent>
+    <Surface variant="default" padding="none">
+      <div className="p-6 border-b border-border/20 bg-muted/10">
+        <h3 className="text-base font-bold">{title}</h3>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </div>
+      <div className="p-6">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-4">
             {fields.map((field, index) => (
@@ -154,7 +154,7 @@ function MenuEditor({
             </Button>
           </div>
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    </Surface>
   );
 }

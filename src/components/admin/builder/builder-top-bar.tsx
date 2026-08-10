@@ -76,7 +76,7 @@ export function BuilderTopBar({
       </div>
 
       {/* Center: Viewport */}
-      <div className="flex items-center bg-white/5 rounded-lg p-1 gap-1">
+      <div className="flex items-center bg-white/5 p-1 gap-1">
         <button
           type="button"
           onClick={() => setViewport("desktop")}
@@ -127,7 +127,7 @@ export function BuilderTopBar({
           <button
             type="button"
             onClick={() => setIsTemplateModalOpen(true)}
-            className="flex items-center gap-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs px-3 py-1.5 rounded-lg border border-amber-500/30 transition-colors font-medium mr-1"
+            className="flex items-center gap-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs px-3 py-1.5 border border-amber-500/30 transition-colors font-medium mr-1"
           >
             <LayoutTemplate className="h-3.5 w-3.5" />
             Trocar Template (Temas)
@@ -157,7 +157,7 @@ export function BuilderTopBar({
           type="button"
           onClick={handleSave}
           disabled={isSaving}
-          className="flex items-center gap-1.5 bg-white/10 hover:bg-white/15 text-white text-xs px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+          className="flex items-center gap-1.5 bg-white/10 hover:bg-white/15 text-white text-xs px-3 py-1.5 transition-colors disabled:opacity-50"
         >
           <Save className="h-3.5 w-3.5" />
           {isSaving ? "Salvando..." : "Salvar"}
@@ -166,7 +166,7 @@ export function BuilderTopBar({
           type="button"
           onClick={handlePublish}
           disabled={isPublishing || isSaving}
-          className="flex items-center gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground text-xs px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 font-medium"
+          className="flex items-center gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground text-xs px-3 py-1.5 transition-colors disabled:opacity-50 font-medium"
         >
           <Check className="h-3.5 w-3.5" />
           {isPublishing ? "Publicando..." : "Publicar"}

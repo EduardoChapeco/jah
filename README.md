@@ -7,6 +7,7 @@ Construir a fundação de uma plataforma de ecommerce/CMS/PWA brasileira, mobile
 
 REGRA DE ENTREGA DESTA PRIMEIRA ITERAÇÃO
 Não tente implementar todos os módulos de uma vez. Nesta primeira execução:
+
 1. Crie o design system canônico e a documentação completa da arquitetura e roadmap.
 2. Implemente o shell funcional da vitrine pública e do painel, com rotas reais, responsividade e estados vazios honestos.
 3. Implemente somente componentes reutilizáveis e fluxos de navegação da Fase 0.
@@ -16,9 +17,10 @@ Não tente implementar todos os módulos de uma vez. Nesta primeira execução:
 
 ARQUIVOS CANÔNICOS OBRIGATÓRIOS
 Crie na raiz:
+
 - DESIGN.md conforme a especificação aberta do Google Labs DESIGN.md: YAML com tokens semânticos + justificativa humana, estados, componentes e regras responsivas.
 - AGENTS.md com regras de implementação e fontes únicas de verdade.
-Crie em /docs:
+  Crie em /docs:
 - MASTER_PLAN.md: este briefing normalizado, decisões, escopo, fora de escopo e critérios.
 - ARCHITECTURE.md: limites frontend/BFF/domínio/persistência/provedores, cache, filas/outbox e observabilidade.
 - DOMAIN_MODEL.md: entidades, relações, invariantes e máquinas de estado.
@@ -28,7 +30,7 @@ Crie em /docs:
 - API_CONTRACTS.md: endpoints versionados, schemas, códigos de erro e idempotency_key.
 - COMPONENT_CATALOG.md: componentes canônicos e estados.
 - TEST_STRATEGY.md: unidade, integração, contrato, E2E, RLS e acessibilidade.
-Nenhuma regra crítica deve existir só no chat.
+  Nenhuma regra crítica deve existir só no chat.
 
 IDENTIDADE E DESIGN
 Use a logo anexada. Direção: moda feminina contemporânea, minimalista, leve e editorial; fundo off-white quente, rosa vivo da marca como acento, grafite para texto, muito espaço em branco, fotos grandes quando existirem. Não transformar tudo em rosa. Defina os valores somente em DESIGN.md/tokens e faça Tailwind/CSS consumir esses tokens; nunca espalhe hex/radius/shadows.
@@ -37,6 +39,7 @@ Mobile first; excelente também em desktop. Touch targets >=44px. Grid fluido, s
 As referências anexadas orientam: clareza da vitrine, cards limpos, produto com imagem protagonista, navegação móvel rápida e dashboard arejado. Não misture todos os estilos. Evite aparência genérica de template, gradientes decorativos, glassmorphism, cards aninhados e animações gratuitas.
 
 ARQUITETURA CANÔNICA
+
 - TypeScript strict. Stack suportada pelo Lovable, React, Tailwind e shadcn/ui; roteamento e data fetching centralizados.
 - Separar /components/ui, /components/commerce, /components/admin, /features, /routes, /lib, /services e /types. Nada de um App.tsx monolítico.
 - Domain services tipados; validação compartilhada por schema; DTOs distintos das entidades persistidas.
@@ -53,6 +56,7 @@ ARQUITETURA CANÔNICA
 
 MODELO DE CATÁLOGO FLEXÍVEL
 O cadastro deve funcionar para calçados, roupas, acessórios e tipos futuros:
+
 - Núcleo genérico Product: título, slug, status, descrição, marca, tipo, categorias, tags, SEO, canais, fornecedor, custo, preço, preço comparativo, dimensões/peso, política de encomenda.
 - ProductType define schema de atributos e opções usando JSON Schema/field definitions versionadas: texto, rich text sanitizado, número, medida, boolean, data, seleção única/múltipla, cor, tamanho, referência e arquivo. Campos podem ser obrigatórios, filtráveis, comparáveis e exibíveis.
 - ProductOption/OptionValue e ProductVariant geram combinações; cada variante tem UUID, SKU único, código de barras opcional, preço override, custo, peso/dimensões, mídia, status e estoque.
@@ -62,6 +66,7 @@ O cadastro deve funcionar para calçados, roupas, acessórios e tipos futuros:
 - Encomenda/preorder com data ou prazo, limite e regra de estoque claramente separados de “em estoque”.
 
 ESTOQUE E PEDIDOS
+
 - Estoque por variant_id + location_id.
 - inventory_movements imutáveis: purchase, sale, reserve, release, return, exchange_in/out, adjustment, transfer, damage.
 - Reserva de checkout com expiração; available = on_hand - reserved. Confirmação paga converte reserva em saída de venda; expiração libera; devolução aprovada gera entrada.
@@ -71,17 +76,19 @@ ESTOQUE E PEDIDOS
 
 CHECKOUT E FRETE
 Carrinho persistente para visitante e cliente, com merge após login. Checkout curto:
+
 1. identificação;
 2. entrega: endereço, retirada ou cotação;
 3. revisão;
 4. pagamento;
 5. confirmação.
-Frete por estratégia configurável:
+   Frete por estratégia configurável:
+
 - retirada em ponto/loja;
 - tabela manual por bairro, faixa de CEP, cidade/zona, subtotal/peso, valor e prazo;
 - cotação manual: cliente envia endereço e pedido; lojista informa valor/prazo; cliente aceita e segue para pagamento;
 - provider adapter futuro Correios/Melhor Envio.
-Mapa é ajuda visual, não fonte jurídica do endereço. Endereço estruturado com CEP, logradouro, número, complemento, bairro, cidade, UF, country, lat/lng e provider_place_id. Estado de cotação tem expiração e snapshot. Nunca prometer “valor aproximado” como final sem marcar claramente; o pedido não paga até aceitar a cotação final.
+  Mapa é ajuda visual, não fonte jurídica do endereço. Endereço estruturado com CEP, logradouro, número, complemento, bairro, cidade, UF, country, lat/lng e provider_place_id. Estado de cotação tem expiração e snapshot. Nunca prometer “valor aproximado” como final sem marcar claramente; o pedido não paga até aceitar a cotação final.
 
 PAGAMENTOS
 PaymentProvider interface para Mercado Pago, Asaas e Stripe; implementar somente quando credenciais e documentação estiverem configuradas. Cartão tokenizado pelo SDK seguro do provedor; o sistema nunca recebe/guarda PAN/CVV. Pix, cartão e pagamento manual por comprovante.
@@ -92,6 +99,7 @@ Customer credit e gift cards usam ledger. Gift card: compra, tema, mensagem, des
 
 CMS E PÁGINAS DINÂMICAS
 Inspirar-se no princípio Wix de coleções + páginas dinâmicas + datasets/blocos, sem copiar o produto:
+
 - page, page_version, section_instance, navigation_menu, theme_settings.
 - Editor básico por seções preexistentes, não editor HTML arbitrário.
 - Blocos: hero/banner, banners em slide/scroll, category rail, product carousel, product grid/gallery, promoção, stories/highlights, editorial image+text, reviews, FAQ, benefits/trust, newsletter/CTA, map/contact, custom links.
@@ -102,6 +110,7 @@ Inspirar-se no princípio Wix de coleções + páginas dinâmicas + datasets/blo
 - Editor de tema: logo, ícones PWA, favicon, cores semânticas, tipografia permitida, radius, densidade, botões, cabeçalho/rodapé, navegação. Preview por viewport e validação de contraste antes de publicar.
 
 STORIES, CONTEÚDO E PERFIL
+
 - Story sets/items gerais e por produto, foto/vídeo, duração, expiração, CTA e produtos marcados. Modo Story opcional na abertura, com limite de frequência e botão pular; nunca bloquear a compra.
 - Destaques permanentes.
 - Perfil/Portfólio público: capa, logo, bio, horário, endereço, mapa, contato, redes, formas de pagamento, políticas, produtos/coleções e avaliações aprovadas; fonte canônica também para SEO LocalBusiness e futura sincronização Google Business Profile.
@@ -157,6 +166,7 @@ Fase 5: integrações Meta/Google/logística, recuperação, Match Time e criado
 Não avance de fase sem critérios de aceite, migração, testes e revisão de segurança.
 
 CRITÉRIOS DA FASE 0
+
 - A logo Jah aparece corretamente e as referências não viram conteúdo da loja.
 - Home mobile e desktop refinada, usando seções reais conectáveis e estados vazios sem produtos falsos.
 - Navegação pública, cliente e admin sem links quebrados.
@@ -166,7 +176,7 @@ CRITÉRIOS DA FASE 0
 - Nenhum cálculo comercial no cliente; nenhuma chave secreta; nenhuma chamada direta a tabela Supabase em componente.
 - TypeScript/lint/build passam.
 - Testes mínimos do registry de rotas e dos componentes críticos.
-Ao final, relate exatamente o que foi criado, o que ficou planejado e qualquer limitação real.
+  Ao final, relate exatamente o que foi criado, o que ficou planejado e qualquer limitação real.
 
 This project was built with [Lovable](https://lovable.dev).
 

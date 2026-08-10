@@ -2,6 +2,7 @@ import * as React from "react";
 import { ExperienceNode } from "@/lib/builder-types";
 import { builderRegistry } from "@/lib/builder-registry";
 import { cn } from "@/lib/utils";
+import { Surface } from "@/components/ui/surface";
 import { HeroCarousel } from "./dynamic-sections/hero-carousel";
 import { RichText } from "./dynamic-sections/rich-text";
 
@@ -31,6 +32,8 @@ import { RoutineSteps } from "./dynamic-sections/routine-steps";
 import { IngredientSpotlight } from "./dynamic-sections/ingredient-spotlight";
 import { BeforeAfterSlider } from "./dynamic-sections/before-after-slider";
 import { BookingCalendar } from "./dynamic-sections/booking-calendar";
+import { EventRail } from "./dynamic-sections/event-rail";
+import { CommunityFeed } from "./dynamic-sections/community-feed";
 import { TrackView } from "./analytics-provider";
 
 // ---------------------------------------------------------------------------
@@ -66,6 +69,8 @@ const componentMap: Record<string, React.FC<any>> = {
   ingredient_spotlight: IngredientSpotlight,
   before_after_slider: BeforeAfterSlider,
   booking_calendar: BookingCalendar,
+  event_rail: EventRail,
+  community_feed: CommunityFeed,
 };
 
 // ---------------------------------------------------------------------------
@@ -82,6 +87,16 @@ const PRODUCT_DATA_BLOCKS = new Set(["product_rail", "product_carousel", "produc
 // Block types that receive review arrays from transient_data.reviews
 // ---------------------------------------------------------------------------
 const REVIEW_DATA_BLOCKS = new Set(["testimonial_carousel"]);
+
+// ---------------------------------------------------------------------------
+// Block types that receive event arrays from transient_data.events
+// ---------------------------------------------------------------------------
+const EVENT_DATA_BLOCKS = new Set(["event_rail"]);
+
+// ---------------------------------------------------------------------------
+// Block types that receive classifieds arrays from transient_data.classifieds
+// ---------------------------------------------------------------------------
+const CLASSIFIEDS_DATA_BLOCKS = new Set(["community_feed"]);
 
 // ---------------------------------------------------------------------------
 // ExperienceRenderer — root entry
@@ -146,7 +161,7 @@ function ExperienceNodeRenderer({
   if (!manifest) {
     if (isEditing) {
       return (
-        <div className="p-4 border border-dashed border-red-500 bg-red-50 text-red-900 text-sm">
+        <div className="p-4 border border-dashed border-red-500 bg-destructive text-destructive text-sm">
           Bloco não suportado: {node.block_type}
         </div>
       );
@@ -185,13 +200,19 @@ function ExperienceNodeRenderer({
 
   // ── Structural: section ────────────────────────────────────────────────────
   if (node.block_type === "section") {
-    const bg = (node.design_tokens as any)?.backgroundColor;
     const bgImage = (node.design_tokens as any)?.backgroundImage;
+    const variant = (node.design_tokens as any)?.surfaceVariant ?? "default";
+    const elevation = (node.design_tokens as any)?.surfaceElevation ?? "none";
+    const padding = (node.design_tokens as any)?.surfacePadding ?? "none";
+
     return wrapInteractive(
-      <section
+      <Surface
+        as="section"
+        variant={variant as any}
+        elevation={elevation as any}
+        padding={padding as any}
         className={cn("w-full relative")}
         style={{
-          backgroundColor: bg,
           backgroundImage: bgImage ? `url(${bgImage})` : undefined,
           backgroundSize: "cover",
           backgroundPosition: "center",
@@ -214,7 +235,7 @@ function ExperienceNodeRenderer({
             Seção Vazia — adicione um Container
           </div>
         ) : null}
-      </section>,
+      </Surface>,
     );
   }
 
@@ -316,7 +337,7 @@ function ExperienceNodeRenderer({
   if (!Component) {
     if (isEditing) {
       return (
-        <div className="p-4 border border-dashed border-orange-500 bg-orange-50 text-orange-900 text-sm">
+        <div className="p-4 border border-dashed border-orange-500 bg-warning text-warning text-sm">
           Falta componente React para: {node.block_type}
         </div>
       );
@@ -370,6 +391,26 @@ function ExperienceNodeRenderer({
     }
   }
 
+  // Props for event blocks
+  let resolvedEvents: any[] | null = null;
+  if (EVENT_DATA_BLOCKS.has(node.block_type)) {
+    if (nodeTransientData?.events) {
+      resolvedEvents = nodeTransientData.events;
+    } else if (transientData?.events) {
+      resolvedEvents = transientData.events;
+    }
+  }
+
+  // Props for classifieds blocks
+  let resolvedClassifieds: any[] | null = null;
+  if (CLASSIFIEDS_DATA_BLOCKS.has(node.block_type)) {
+    if (nodeTransientData?.classifieds) {
+      resolvedClassifieds = nodeTransientData.classifieds;
+    } else if (transientData?.classifieds) {
+      resolvedClassifieds = transientData.classifieds;
+    }
+  }
+
   // The canonical content object (from DB node.content JSONB)
   const content = (node.content as Record<string, any>) ?? {};
   const designTokens = (node.design_tokens as Record<string, any>) ?? {};
@@ -393,6 +434,8 @@ function ExperienceNodeRenderer({
         // ── Dynamic data ────────────────────────────────────────────────────
         resolvedProducts={resolvedProducts}
         resolvedReviews={resolvedReviews}
+        resolvedEvents={resolvedEvents}
+        resolvedClassifieds={resolvedClassifieds}
         {...storeProfileProps}
       />
     </TrackView>,

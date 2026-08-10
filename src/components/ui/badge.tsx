@@ -9,10 +9,8 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground shadow-sm",
-        secondary:
-          "bg-secondary text-secondary-foreground shadow-sm",
-        destructive:
-          "bg-destructive text-destructive-foreground shadow-sm stamp-badge",
+        secondary: "bg-secondary text-secondary-foreground shadow-sm",
+        destructive: "bg-destructive text-destructive-foreground shadow-sm stamp-badge",
         outline: "text-foreground bg-transparent",
         /** Informational status (e.g. "Approved", "Processing") — maps to --info token */
         info: "bg-info text-info-foreground shadow-sm",

@@ -15,7 +15,6 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { getThemeSettings, getPublicStoreSettings } from "@/services/cms.functions";
 import { themeInitScript } from "@/lib/theme";
 
-
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -77,18 +76,22 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   loader: async () => {
     try {
-      const [themeRes, storeRes] = await Promise.all([
+      const { getPublicPixels } = await import("@/services/integrations.functions");
+      const [themeRes, storeRes, pixelsRes] = await Promise.all([
         getThemeSettings().catch(() => null),
         getPublicStoreSettings().catch(() => null),
+        getPublicPixels().catch(() => []),
       ]);
       return {
         theme: themeRes || null,
         store: storeRes || null,
+        pixels: pixelsRes || [],
       };
     } catch {
       return {
         theme: null,
         store: null,
+        pixels: [],
       };
     }
   },
@@ -169,24 +172,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
-  const { theme } = Route.useLoaderData() as any;
+  const { theme, pixels } = Route.useLoaderData() as any;
 
-  // Converte a cor hexadecimal para variáveis CSS amigáveis se houver tema configurado
-  // (Usa uma versão simplificada ou injeta a cor bruta dependendo da implementação)
-
-  const customStyles = theme
-    ? `
-    :root {
-      --primary: ${theme.primary_color || "#1a1a14"};
-      --background: ${theme.background_color || "#f4f4f0"};
-      --foreground: ${theme.text_color || "#1a1a14"};
-      --radius: ${theme.border_radius || "0px"};
-      --font-sans: "${theme.font_body || "Inter"}", sans-serif;
-      --font-display: "${theme.font_heading || "Oswald"}", sans-serif;
-    }
-  `
-    : "";
-
+  const metaPixel = pixels?.find((p: any) => p.provider === "meta_pixel")?.pixelId;
+  const gaPixel = pixels?.find((p: any) => p.provider === "google_analytics")?.measurementId;
 
   return (
     <html lang="pt-BR">
@@ -194,7 +183,43 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
         {/* Script anti-FOUC: aplica classe .dark/.light antes do primeiro paint */}
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-        {theme && <style dangerouslySetInnerHTML={{ __html: customStyles }} />}
+        
+        {/* Inject Google Analytics if configured */}
+        {gaPixel && (
+          <>
+            <script async src={`https://www.googletagmanager.com/gtag/js?id=${gaPixel}`}></script>
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', '${gaPixel}');
+                `,
+              }}
+            />
+          </>
+        )}
+
+        {/* Inject Meta Pixel if configured */}
+        {metaPixel && (
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                !function(f,b,e,v,n,t,s)
+                {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+                n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+                if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+                n.queue=[];t=b.createElement(e);t.async=!0;
+                t.src=v;s=b.getElementsByTagName(e)[0];
+                s.parentNode.insertBefore(t,s)}(window, document,'script',
+                'https://connect.facebook.net/en_US/fbevents.js');
+                fbq('init', '${metaPixel}');
+                fbq('track', 'PageView');
+              `,
+            }}
+          />
+        )}
       </head>
       <body>
         {children}

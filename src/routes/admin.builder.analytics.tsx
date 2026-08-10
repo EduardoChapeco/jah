@@ -13,7 +13,7 @@ import {
 
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Surface } from "@/components/ui/surface";
 import { getBuilderAnalyticsSummary } from "@/services/telemetry.functions";
 
 export const Route = createFileRoute("/admin/builder/analytics")({
@@ -52,75 +52,87 @@ function BuilderAnalyticsPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="relative overflow-hidden border-border bg-gradient-to-br from-card to-card/60 shadow-xs">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <Surface
+          variant="zine"
+          padding="none"
+          className="relative overflow-hidden border-border from-card to-card/60 shadow-xs"
+        >
+          <div className="flex flex-row items-center justify-between p-6 pb-2 space-y-0">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Visualizações Totais
-            </CardTitle>
-            <div className="flex size-8 items-center justify-center rounded-full bg-blue-500/10 text-blue-500">
+            </h3>
+            <div className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary">
               <Eye className="size-4" />
             </div>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-6 pt-0">
             <div className="text-2xl font-bold tracking-tight text-foreground">
               {totalViews.toLocaleString("pt-BR")}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               Impressões de blocos nos últimos 30 dias
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
 
-        <Card className="relative overflow-hidden border-border bg-gradient-to-br from-card to-card/60 shadow-xs">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <Surface
+          variant="zine"
+          padding="none"
+          className="relative overflow-hidden border-border from-card to-card/60 shadow-xs"
+        >
+          <div className="flex flex-row items-center justify-between p-6 pb-2 space-y-0">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Cliques Totais
-            </CardTitle>
+            </h3>
             <div className="flex size-8 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500">
               <MousePointerClick className="size-4" />
             </div>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-6 pt-0">
             <div className="text-2xl font-bold tracking-tight text-foreground">
               {totalClicks.toLocaleString("pt-BR")}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               Cliques em CTAs e links nos últimos 30 dias
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
 
-        <Card className="relative overflow-hidden border-border bg-gradient-to-br from-card to-card/60 shadow-xs">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <Surface
+          variant="zine"
+          padding="none"
+          className="relative overflow-hidden border-border from-card to-card/60 shadow-xs"
+        >
+          <div className="flex flex-row items-center justify-between p-6 pb-2 space-y-0">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               CTR Médio Geral
-            </CardTitle>
-            <div className="flex size-8 items-center justify-center rounded-full bg-orange-500/10 text-orange-500">
+            </h3>
+            <div className="flex size-8 items-center justify-center rounded-full bg-warning/10 text-warning">
               <Percent className="size-4" />
             </div>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-6 pt-0">
             <div className="text-2xl font-bold tracking-tight text-foreground">{averageCtr}%</div>
             <p className="text-xs text-muted-foreground mt-1">
               Taxa de cliques em relação às visualizações
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Chart Card */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
+        <Surface variant="default" padding="none" className="lg:col-span-2">
+          <div className="p-6">
+            <h3 className="text-base font-semibold flex items-center gap-2">
               <BarChart3 className="size-5 text-primary" />
               Engajamento por Tipo de Bloco
-            </CardTitle>
-            <CardDescription>
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1">
               Comparativo de visualizações vs. cliques por bloco dinâmico nos últimos 30 dias.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="h-[300px]">
+            </p>
+          </div>
+          <div className="p-6 pt-0 h-[300px]">
             {blockStats.length === 0 ? (
               <div className="flex size-full items-center justify-center text-sm text-muted-foreground">
                 Sem dados de eventos para exibir gráficos.
@@ -154,19 +166,21 @@ function BuilderAnalyticsPage() {
                 </BarChart>
               </ResponsiveContainer>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
 
         {/* Detailed Table Card */}
-        <Card className="lg:col-span-1">
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
+        <Surface variant="default" padding="none" className="lg:col-span-1">
+          <div className="p-6">
+            <h3 className="text-base font-semibold flex items-center gap-2">
               <Activity className="size-5 text-primary" />
               Ranking de CTR
-            </CardTitle>
-            <CardDescription>Ordenado pelos tipos de blocos com mais exibições.</CardDescription>
-          </CardHeader>
-          <CardContent className="p-0">
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Ordenado pelos tipos de blocos com mais exibições.
+            </p>
+          </div>
+          <div className="p-0">
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left">
                 <thead className="text-xs uppercase bg-muted/50 text-muted-foreground border-b border-border">
@@ -191,13 +205,7 @@ function BuilderAnalyticsPage() {
                         </td>
                         <td className="px-4 py-3.5 text-right">
                           <span
-                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                              stat.ctr > 5
-                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                                : stat.ctr > 2
-                                  ? "bg-blue-500/10 text-blue-600"
-                                  : "bg-muted text-muted-foreground"
-                            }`}
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${stat.ctr > 5 ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : stat.ctr > 2 ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}
                           >
                             {stat.ctr}%
                           </span>
@@ -215,8 +223,8 @@ function BuilderAnalyticsPage() {
                 </tbody>
               </table>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
       </div>
     </div>
   );

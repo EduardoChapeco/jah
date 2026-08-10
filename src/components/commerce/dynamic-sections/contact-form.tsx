@@ -67,7 +67,7 @@ export function ContactForm({ storeId, content }: ContactFormProps) {
 
   return (
     <section className="w-full max-w-xl mx-auto px-4 py-8">
-      <div className="rounded-2xl border border-border bg-card shadow-lg p-6 @sm:p-8 space-y-6">
+      <div className="border border-border bg-card p-6 @sm:p-8 space-y-6">
         <div className="text-center space-y-2">
           <h2 className="text-xl @sm:text-2xl font-black text-foreground tracking-tight">
             {title}
@@ -76,7 +76,7 @@ export function ContactForm({ storeId, content }: ContactFormProps) {
         </div>
 
         {isSuccess ? (
-          <div className="text-center py-6 space-y-3 bg-primary/5 rounded-xl border border-primary/10">
+          <div className="text-center py-6 space-y-3 bg-primary/5 border border-primary/10">
             <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-lg">
               ✓
             </span>

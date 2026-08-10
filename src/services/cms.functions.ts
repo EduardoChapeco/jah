@@ -241,7 +241,7 @@ export const getPublicStoreSettings = createServerFn({ method: "GET" }).handler(
     const { data: store, error } = await db
       .from("stores")
       .select(
-        "id, name, slug, email, phone, cnpj, address, city, state, zip_code, description, seo_title, seo_description, seo_keywords, settings",
+        "id, name, slug, type, email, phone, cnpj, address, city, state, zip_code, description, seo_title, seo_description, seo_keywords, settings",
       )
       .eq("id", storeId)
       .single();
@@ -684,12 +684,8 @@ export const deleteStory = createServerFn({ method: "POST" })
       if (!store_id) throw new Error("No store found");
       const storeData = { id: store_id };
 
-      const { error } = await db
-        .from("stories")
-        .delete()
-        .eq("id", id)
-        .eq("store_id", storeData.id);
-        
+      const { error } = await db.from("stories").delete().eq("id", id).eq("store_id", storeData.id);
+
       if (error) throw error;
 
       return { status: "success" as const };

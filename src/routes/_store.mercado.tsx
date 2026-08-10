@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { EmptyState, UnconfiguredState, ErrorState } from "@/components/state/states";
 import { ProductGrid } from "@/components/commerce/product-grid";
 import { PageHeader } from "@/components/commerce/page-header";
+import { PageSkeleton } from "@/components/state/loading";
 import {
   listPublishedProducts,
   listPublishedCategories,
@@ -21,6 +22,7 @@ import { formatMoney } from "@/lib/money";
 // ─── Search schema ────────────────────────────────────────────────────────────
 const SearchSchema = z.object({
   sort: z.enum(["newest", "price_asc", "price_desc", "in_stock"]).default("newest").optional(),
+  niche: z.string().optional(),
   categoria: z.string().optional(),
   minCents: z.number().int().min(0).optional(),
   maxCents: z.number().int().min(0).optional(),
@@ -44,7 +46,7 @@ const PRICE_RANGES = [
 ];
 
 // ─── Route ────────────────────────────────────────────────────────────────────
-export const Route = createFileRoute("/_store/catalogo")({
+export const Route = createFileRoute("/_store/mercado")({
   head: () => ({
     meta: [
       { title: "Catálogo" },
@@ -62,6 +64,7 @@ export const Route = createFileRoute("/_store/catalogo")({
       listPublishedProducts({
         data: {
           categorySlug: search.categoria,
+          niche: search.niche,
           sort: search.sort ?? "newest",
           minCents: search.minCents,
           maxCents: search.maxCents,
@@ -78,6 +81,7 @@ export const Route = createFileRoute("/_store/catalogo")({
       availableAttributes: attributesRes || [],
     };
   },
+  pendingComponent: PageSkeleton,
   component: CatalogPage,
 });
 
@@ -195,11 +199,7 @@ function FilterPanel({
             <button
               key={value}
               onClick={() => applyFilter({ sort: value as CatalogSearch["sort"] })}
-              className={`w-full text-left text-sm px-3 py-2 rounded-lg transition-colors ${
-                (search.sort ?? "newest") === value
-                  ? "bg-primary text-primary-foreground font-medium"
-                  : "hover:bg-accent text-foreground"
-              }`}
+              className={`w-full text-left text-sm px-3 py-2 transition-colors ${(search.sort ?? "newest") === value ? "bg-primary text-primary-foreground font-medium" : "hover:bg-accent text-foreground"}`}
             >
               {label}
             </button>
@@ -218,11 +218,7 @@ function FilterPanel({
           <div className="space-y-1">
             <button
               onClick={() => applyFilter({ categoria: undefined })}
-              className={`w-full text-left text-sm px-3 py-2 rounded-lg transition-colors ${
-                !search.categoria
-                  ? "bg-primary text-primary-foreground font-medium"
-                  : "hover:bg-accent text-foreground"
-              }`}
+              className={`w-full text-left text-sm px-3 py-2 transition-colors ${!search.categoria ? "bg-primary text-primary-foreground font-medium" : "hover:bg-accent text-foreground"}`}
             >
               Todas as categorias
             </button>
@@ -230,11 +226,7 @@ function FilterPanel({
               <button
                 key={cat.slug}
                 onClick={() => applyFilter({ categoria: cat.slug })}
-                className={`w-full text-left text-sm px-3 py-2 rounded-lg transition-colors flex items-center justify-between ${
-                  search.categoria === cat.slug
-                    ? "bg-primary text-primary-foreground font-medium"
-                    : "hover:bg-accent text-foreground"
-                }`}
+                className={`w-full text-left text-sm px-3 py-2 transition-colors flex items-center justify-between ${search.categoria === cat.slug ? "bg-primary text-primary-foreground font-medium" : "hover:bg-accent text-foreground"}`}
               >
                 {cat.name}
                 <ChevronRight className="size-3.5 opacity-50" aria-hidden />
@@ -254,11 +246,7 @@ function FilterPanel({
         <div className="space-y-1">
           <button
             onClick={() => applyFilter({ minCents: undefined, maxCents: undefined })}
-            className={`w-full text-left text-sm px-3 py-2 rounded-lg transition-colors ${
-              search.minCents == null && search.maxCents == null
-                ? "bg-primary text-primary-foreground font-medium"
-                : "hover:bg-accent text-foreground"
-            }`}
+            className={`w-full text-left text-sm px-3 py-2 transition-colors ${search.minCents == null && search.maxCents == null ? "bg-primary text-primary-foreground font-medium" : "hover:bg-accent text-foreground"}`}
           >
             Qualquer preço
           </button>
@@ -266,11 +254,7 @@ function FilterPanel({
             <button
               key={range.label}
               onClick={() => applyFilter({ minCents: range.min, maxCents: range.max })}
-              className={`w-full text-left text-sm px-3 py-2 rounded-lg transition-colors ${
-                search.minCents === range.min && search.maxCents === range.max
-                  ? "bg-primary text-primary-foreground font-medium"
-                  : "hover:bg-accent text-foreground"
-              }`}
+              className={`w-full text-left text-sm px-3 py-2 transition-colors ${search.minCents === range.min && search.maxCents === range.max ? "bg-primary text-primary-foreground font-medium" : "hover:bg-accent text-foreground"}`}
             >
               {range.label}
             </button>
@@ -297,11 +281,7 @@ function FilterPanel({
                     atributos: Object.keys(newAttrs).length > 0 ? newAttrs : undefined,
                   });
                 }}
-                className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
-                  !currentValue
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-background hover:bg-muted text-foreground border-border"
-                }`}
+                className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${!currentValue ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-muted text-foreground border-border"}`}
               >
                 Qualquer
               </button>
@@ -312,11 +292,7 @@ function FilterPanel({
                     const newAttrs = { ...search.atributos, [attr.attribute_name]: val };
                     applyFilter({ atributos: newAttrs });
                   }}
-                  className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
-                    currentValue === val
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-background hover:bg-muted text-foreground border-border"
-                  }`}
+                  className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${currentValue === val ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-muted text-foreground border-border"}`}
                 >
                   {val}
                 </button>
@@ -366,14 +342,40 @@ function CatalogPage() {
       </nav>
 
       <PageHeader
-        eyebrow="Vitrine"
+        eyebrow="O Mercado"
         title={
           search.categoria
             ? (categories.find((c) => c.slug === search.categoria)?.name ?? "Catálogo")
-            : "Catálogo"
+            : "Explorar Tudo"
         }
-        description="Todos os produtos da Jah."
+        description="Eventos, Lojas, Serviços e muito mais."
       />
+
+      {/* Niche Tabs */}
+      <div className="flex overflow-x-auto pb-4 mb-6 gap-2 scrollbar-hide">
+        {[
+          { id: "", label: "Tudo" },
+          { id: "event_producer", label: "🎟️ Ingressos & Eventos" },
+          { id: "ecommerce", label: "🛍️ Lojas & Produtos" },
+          { id: "creator", label: "💼 Serviços" },
+          { id: "band", label: "🎸 Bandas" },
+        ].map((tab) => {
+          const isActive = (search.niche || "") === tab.id;
+          return (
+            <button
+              key={tab.label}
+              onClick={() => navigate({ to: Route.fullPath, search: (s: any) => ({ ...s, niche: tab.id || undefined }) })}
+              className={`px-4 py-2 rounded-full whitespace-nowrap text-sm font-semibold transition-colors border ${
+                isActive 
+                  ? "bg-ink text-white border-ink" 
+                  : "bg-surface hover:bg-muted border-border text-foreground"
+              }`}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
 
       {/* Toolbar */}
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
@@ -400,11 +402,7 @@ function CatalogPage() {
                     }),
                   })
                 }
-                className={`text-sm px-3 py-1.5 rounded-lg border transition-colors ${
-                  (search.sort ?? "newest") === value
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "border-border hover:bg-accent text-foreground"
-                }`}
+                className={`text-sm px-3 py-1.5 border transition-colors ${(search.sort ?? "newest") === value ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-accent text-foreground"}`}
               >
                 {label}
               </button>
@@ -443,7 +441,7 @@ function CatalogPage() {
       <div className="mt-8 flex gap-8">
         {/* Desktop sidebar */}
         <aside className="hidden lg:block w-64 shrink-0">
-          <div className="sticky top-24 bg-card border rounded-xl p-5 shadow-sm">
+          <div className="sticky top-24 bg-card border p-5 shadow-sm">
             <div className="flex items-center gap-2 mb-4 pb-4 border-b">
               <SlidersHorizontal className="size-4" />
               <h2 className="font-semibold">Filtros</h2>

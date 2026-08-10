@@ -49,7 +49,8 @@ color_tokens:
       role: "acento principal e fundos de botões sólidos",
       why: "cores fortes se aplicam nos detalhes, a base é preto no papel",
     }
-  primary-foreground / receipt-white: { value: "branco puro amarelado claro", role: "texto sobre primary" }
+  primary-foreground / receipt-white:
+    { value: "branco puro amarelado claro", role: "texto sobre primary" }
   secondary / newsprint:
     {
       value: "#E8E6DF (oklch 0.92 0.01 90)",
@@ -57,11 +58,15 @@ color_tokens:
       why: "cinza quente, simulando papel jornal",
     }
   muted / muted-ink: { value: "cinza chumbo (oklch 0.5 0.01 90)", role: "texto secundário, labels" }
-  accent / signal-orange: { value: "#FF5E00 (oklch 0.65 0.2 45)", role: "realce, hover audacioso, botões de ação" }
-  destructive / poster-red: { value: "#E60000 (oklch 0.55 0.2 25)", role: "erro, exclusão, carimbo de 'esgotado'" }
-  directory-yellow: { value: "#FADB5F (oklch 0.88 0.12 100)", role: "fundo de listas/diretórios, selos chamativos" }
+  accent / signal-orange:
+    { value: "#FF5E00 (oklch 0.65 0.2 45)", role: "realce, hover audacioso, botões de ação" }
+  destructive / poster-red:
+    { value: "#E60000 (oklch 0.55 0.2 25)", role: "erro, exclusão, carimbo de 'esgotado'" }
+  directory-yellow:
+    { value: "#FADB5F (oklch 0.88 0.12 100)", role: "fundo de listas/diretórios, selos chamativos" }
   success: { value: "#008A2E (oklch 0.6 0.12 150)", role: "confirmações" }
-  border / input: { value: "#D1CDC1 (oklch 0.82 0.01 90)", role: "divisórias fortes, bordas marcadas" }
+  border / input:
+    { value: "#D1CDC1 (oklch 0.82 0.01 90)", role: "divisórias fortes, bordas marcadas" }
   ring: { value: "= signal-orange ou ink", role: "foco visível brutalista" }
 
 rationale: >
@@ -93,7 +98,8 @@ fonts:
     }
 
 scale:
-  display: { size: "clamp(3rem, 8vw, 6rem)", family: display_cultural, transform: uppercase, line: 0.9 }
+  display:
+    { size: "clamp(3rem, 8vw, 6rem)", family: display_cultural, transform: uppercase, line: 0.9 }
   h1: { size: "clamp(2rem, 5vw, 4rem)", family: display_cultural, transform: uppercase }
   h2: { size: "clamp(1.5rem, 4vw, 2.5rem)", family: display_cultural }
   h3: { size: "1.25rem", family: ui_sans, weight: 600 }
@@ -107,7 +113,11 @@ scale:
 texture:
   noise: "Um grain levíssimo misturado ao background (paper) pode existir como overlay, com prefers-reduced-motion respeitado."
 radius:
-  { base: "0rem", scale: "0 a 0.25rem", why: "Cantos afiados (0px) ou levíssimos (4px) evocam impressão em papel cortado. Nada redondo." }
+  {
+    base: "0rem",
+    scale: "0 a 0.25rem",
+    why: "Cantos afiados (0px) ou levíssimos (4px) evocam impressão em papel cortado. Nada redondo.",
+  }
 elevation:
   philosophy: "brutalismo leve, sombras duras e deslocadas (ex: 4px 4px 0px ink) em vez de blurs. Ou zero sombra e border 1px preta (ink) forte."
   tokens: [shadow-none, shadow-hard, shadow-stamp]

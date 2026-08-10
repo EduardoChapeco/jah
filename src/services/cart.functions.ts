@@ -67,10 +67,10 @@ async function getOrCreateCartId(identity: {
 // Functions
 // ---------------------------------------------------------------------------
 
-export async function fetchCartDTO(identity: {
-  customer_id: string | null;
-  session_token: string | null;
-}): Promise<CartDTO | null> {
+export async function fetchCartDTO(
+  identity: { customer_id: string | null; session_token: string | null },
+  storeId?: string,
+): Promise<CartDTO | null> {
   const supabase = getServerClient();
 
   let query = supabase
@@ -83,6 +83,7 @@ export async function fetchCartDTO(identity: {
       discount_cents,
       shipping_cents,
       shipping_method,
+      store:stores(id, name, logo_url),
       cart_items (
         id,
         variant_id,
@@ -110,6 +111,10 @@ export async function fetchCartDTO(identity: {
   if (identity.customer_id) query = query.eq("customer_id", identity.customer_id);
   else query = query.eq("session_token", identity.session_token);
 
+  if (storeId) {
+    query = query.eq("store_id", storeId);
+  }
+
   const { data: cart, error } = await query
     .order("created_at", { ascending: false })
     .limit(1)
@@ -126,7 +131,11 @@ export async function fetchCartDTO(identity: {
   }
 
   if (!cart) return null;
+  return await mapCartToDTO(cart);
+}
 
+export async function mapCartToDTO(cart: any): Promise<CartDTO> {
+  const supabase = getServerClient();
   interface CartItemRaw {
     id: string;
     variant_id: string;
@@ -179,8 +188,8 @@ export async function fetchCartDTO(identity: {
         isOutOfStock,
       };
     });
+
   // Dynamic Recalculation (M-08-F2)
-  // Always recompute the discount based on the latest subtotal if a coupon is present.
   let dynamicDiscountCents = cart.discount_cents || 0;
   let currentCouponCode = cart.coupon_code;
 
@@ -197,10 +206,8 @@ export async function fetchCartDTO(identity: {
       (coupon.expires_at && new Date(coupon.expires_at) < new Date()) ||
       (coupon.min_order_cents && totalCents < coupon.min_order_cents)
     ) {
-      // Invalidated by qty change or expiration
       dynamicDiscountCents = 0;
       currentCouponCode = null;
-      // Await DB update to clear the invalid coupon to prevent phantom state
       await supabase
         .from("carts")
         .update({ coupon_code: null, discount_cents: 0 })
@@ -216,7 +223,6 @@ export async function fetchCartDTO(identity: {
         cart.shipping_cents = 0;
       }
 
-      // If the recomputed discount differs from the DB, update DB reliably
       if (dynamicDiscountCents !== cart.discount_cents) {
         await supabase
           .from("carts")
@@ -228,6 +234,9 @@ export async function fetchCartDTO(identity: {
 
   return {
     id: cart.id,
+    storeId: cart.store?.id,
+    storeName: cart.store?.name,
+    storeLogoUrl: cart.store?.logo_url,
     items,
     subtotalCents: totalCents,
     totalCents: Math.max(0, totalCents + cart.shipping_cents - dynamicDiscountCents),
@@ -242,9 +251,98 @@ export async function fetchCartDTO(identity: {
 export const getCart = createServerFn({ method: "GET" }).handler(
   async (): Promise<CartDTO | null> => {
     const identity = await getCurrentIdentity();
-    return fetchCartDTO(identity);
+    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const storeId = await resolveTenantStoreId();
+    return fetchCartDTO(identity, storeId);
   },
 );
+
+export const getGlobalCarts = createServerFn({ method: "GET" }).handler(
+  async (): Promise<CartDTO[]> => {
+    const supabase = getServerClient();
+    const identity = await getCurrentIdentity();
+
+    let query = supabase
+      .from("carts")
+      .select(
+        `
+        id,
+        status,
+        coupon_code,
+        discount_cents,
+        shipping_cents,
+        shipping_method,
+        store:stores(id, name, logo_url),
+        cart_items (
+          id,
+          variant_id,
+          qty,
+          product_variants (
+            id,
+            price_override_cents,
+            stock_on_hand,
+            sku,
+            attributes,
+            product:products (
+              id,
+              title,
+              slug,
+              price_cents,
+              compare_at_cents,
+              product_media ( url )
+            )
+          )
+        )
+      `,
+      )
+      .eq("status", "active");
+
+    if (identity.customer_id) query = query.eq("customer_id", identity.customer_id);
+    else query = query.eq("session_token", identity.session_token);
+
+    const { data: carts, error } = await query.order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("[CART] Error fetching global carts:", error);
+      return [];
+    }
+    
+    if (!carts || carts.length === 0) return [];
+
+    const mappedCarts: CartDTO[] = [];
+    for (const cart of carts) {
+      mappedCarts.push(await mapCartToDTO(cart));
+    }
+    
+    // Filter out empty carts just in case
+    return mappedCarts.filter(c => c.itemCount > 0);
+  },
+);
+
+const CancelCartSchema = z.object({
+  cartId: z.string().uuid(),
+});
+
+export const cancelCart = createServerFn({ method: "POST" })
+  .validator(CancelCartSchema)
+  .handler(async ({ data: { cartId } }) => {
+    const supabase = getServerClient();
+    const identity = await getCurrentIdentity();
+
+    // Verify ownership
+    let query = supabase.from("carts").select("id").eq("id", cartId);
+    if (identity.customer_id) query = query.eq("customer_id", identity.customer_id);
+    else query = query.eq("session_token", identity.session_token);
+
+    const { data: cart } = await query.single();
+    if (!cart) throw new Error("Carrinho não encontrado ou acesso negado.");
+
+    // Update status to cancelled instead of deleting to keep history if needed, 
+    // or just delete it. Let's delete it so it removes items and cleans up.
+    const { error } = await supabase.from("carts").delete().eq("id", cartId);
+    if (error) throw new Error("Falha ao cancelar pacote.");
+    return { success: true };
+  });
 
 const AddToCartSchema = z.object({
   variantId: z.string().uuid().optional(),

@@ -50,9 +50,9 @@ export function AdvancedVariantEditor({
         <SheetHeader>
           <SheetTitle>Edição Avançada da Variação</SheetTitle>
           <SheetDescription>
-            Aqui você pode ajustar as dimensões, adicionar código de barras e
-            sobrescrever o preço. Os campos de envio só serão utilizados se o
-            modo de entrega escolhido pelos clientes exigir cálculo volumétrico.
+            Aqui você pode ajustar as dimensões, adicionar código de barras e sobrescrever o preço.
+            Os campos de envio só serão utilizados se o modo de entrega escolhido pelos clientes
+            exigir cálculo volumétrico.
           </SheetDescription>
         </SheetHeader>
 
@@ -163,10 +163,14 @@ export function AdvancedVariantEditor({
                     <Input
                       type="number"
                       value={formData.backorder_lead_time_days || 0}
-                      onChange={(e) => handleChange("backorder_lead_time_days", parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        handleChange("backorder_lead_time_days", parseInt(e.target.value) || 0)
+                      }
                       placeholder="Ex: 15"
                     />
-                    <p className="text-[10px] text-muted-foreground">Adicionado ao prazo de frete.</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      Adicionado ao prazo de frete.
+                    </p>
                   </div>
                   <div className="space-y-2">
                     <Label>Reserva sem pagamento?</Label>

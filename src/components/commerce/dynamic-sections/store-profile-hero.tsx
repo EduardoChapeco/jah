@@ -70,9 +70,9 @@ export function StoreProfileHero({
               className="h-full w-full object-cover"
             />
           ) : (
-            <div className="h-full w-full bg-gradient-to-br from-primary/20 to-primary/5" />
+            <div className="h-full w-full from-primary/20 to-primary/5" />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+          <div className="absolute inset-0 from-background/80" />
         </div>
       )}
 
@@ -97,7 +97,7 @@ export function StoreProfileHero({
               <img
                 src={store.logo_url}
                 alt={store.name}
-                className="size-24 rounded-2xl object-contain p-1 border-2 border-border/60 shadow-md bg-card/80 backdrop-blur-xs"
+                className="size-24 object-contain p-1 border-2 border-border/60 shadow-md bg-card/80 backdrop-blur-xs"
               />
             ) : (
               <div className="size-24 rounded-full bg-background border-4 border-background shadow-md flex items-center justify-center text-primary">

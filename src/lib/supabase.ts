@@ -39,25 +39,34 @@ const ServerEnvSchema = BrowserEnvSchema.extend({
 // Typed unconfigured error
 // ---------------------------------------------------------------------------
 
+import { getEvent } from "vinxi/http";
+
 export class SupabaseUnconfiguredError extends Error {
   readonly code = "supabase_unconfigured" as const;
   constructor(reason: string) {
     let debugInfo = "";
     try {
-      // globalThis.__env__ is set by Nitro's cloudflare-pages.mjs before every request
       const gEnv = (globalThis as any).__env__;
       debugInfo += ` [__env__: ${gEnv ? Object.keys(gEnv).join(",") : "null"}]`;
-    } catch {
-      /* ignored */
-    }
-    try {
-      const keysInProcess =
-        typeof process !== "undefined" && process.env ? Object.keys(process.env) : [];
-      debugInfo += ` [process.env keys: ${keysInProcess.length}]`;
-    } catch {
-      /* ignored */
+      debugInfo += ` [process.env keys: ${typeof process !== "undefined" && process.env ? Object.keys(process.env).length : 0}]`;
+      
+      // Additional debugging
+      debugInfo += ` [globalThis keys: ${Object.keys(globalThis).filter(k => k.includes('env') || k.includes('__')).join(",")}]`;
+      try {
+        const event = getEvent();
+        debugInfo += ` [event ctx keys: ${event?.context ? Object.keys(event.context).join(",") : "none"}]`;
+        if (event?.context?.cloudflare) {
+           debugInfo += ` [cf keys: ${Object.keys(event.context.cloudflare).join(",")}]`;
+           debugInfo += ` [cf.env keys: ${event.context.cloudflare.env ? Object.keys(event.context.cloudflare.env).join(",") : "none"}]`;
+        }
+      } catch (e2) {
+        debugInfo += ` [getEvent Error: ${e2}]`;
+      }
+    } catch (e) {
+      debugInfo += ` [Error reading env debug: ${e}]`;
     }
     super(`Supabase not configured: ${reason}${debugInfo}`);
+    this.name = "SupabaseUnconfiguredError";
   }
 }
 

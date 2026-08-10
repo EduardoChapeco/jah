@@ -39,7 +39,7 @@ export function CookieBanner() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 p-4 sm:p-6 pb-20 sm:pb-6 pointer-events-none">
-      <div className="mx-auto max-w-4xl bg-background border shadow-xl rounded-xl p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pointer-events-auto">
+      <div className="mx-auto max-w-4xl bg-background border p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pointer-events-auto">
         <div className="text-sm text-muted-foreground flex-1">
           <p className="font-medium text-foreground mb-1">Valorizamos sua privacidade</p>
           Utilizamos cookies essenciais para o funcionamento do site e para melhorar sua

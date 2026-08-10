@@ -15,13 +15,13 @@
 
 ## Primitivos Canônicos Jah (`src/components/ui`)
 
-| Componente | Variantes / Recursos | Notas de Estado & Acessibilidade |
-|---|---|---|
-| `<Surface>` | `default`, `zine`, `flyer`, `yellow-pages`, `ticket`, `polaroid`, `cardboard`, `charcoal` | Elevações: `none`, `sm`, `md`, `hard`. Usa tokens Oklch semânticos que respondem ao dual theme. |
-| `<Button>` | Variantes: `default`, `destructive`, `outline`, `secondary`, `ghost`, `link`. Tamanhos: `default (44px)`, `sm`, `lg`, `icon (44px)` | Suporta `isLoading` (exibe spinner Jah + `aria-busy`), `loadingText`, `disabled`. Touch target mínimo de 44px para iOS. |
-| `<Input>` | Estilo brutalista borda dura 2px | Suporta `hasError` (`border-destructive`, `aria-invalid`), `disabled`. Touch target mínimo de 44px (`h-11`). |
-| `<Badge>` | `default`, `secondary`, `destructive`, `outline`, `info`, `success`, `warning` | 7 variantes alinhadas com os tokens de status do design system. |
-| `<ThemeToggle>` | Alternador contextual de tema (`system` → `light` → `dark`) | Acessível por teclado, `title` e `aria-label` dinâmicos. Ícone contextual (Monitor / Sol / Lua). |
+| Componente      | Variantes / Recursos                                                                                                                | Notas de Estado & Acessibilidade                                                                                        |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `<Surface>`     | `default`, `zine`, `flyer`, `yellow-pages`, `ticket`, `polaroid`, `cardboard`, `charcoal`                                           | Elevações: `none`, `sm`, `md`, `hard`. Usa tokens Oklch semânticos que respondem ao dual theme.                         |
+| `<Button>`      | Variantes: `default`, `destructive`, `outline`, `secondary`, `ghost`, `link`. Tamanhos: `default (44px)`, `sm`, `lg`, `icon (44px)` | Suporta `isLoading` (exibe spinner Jah + `aria-busy`), `loadingText`, `disabled`. Touch target mínimo de 44px para iOS. |
+| `<Input>`       | Estilo brutalista borda dura 2px                                                                                                    | Suporta `hasError` (`border-destructive`, `aria-invalid`), `disabled`. Touch target mínimo de 44px (`h-11`).            |
+| `<Badge>`       | `default`, `secondary`, `destructive`, `outline`, `info`, `success`, `warning`                                                      | 7 variantes alinhadas com os tokens de status do design system.                                                         |
+| `<ThemeToggle>` | Alternador contextual de tema (`system` → `light` → `dark`)                                                                         | Acessível por teclado, `title` e `aria-label` dinâmicos. Ícone contextual (Monitor / Sol / Lua).                        |
 
 ## Gerenciamento de Tema (`src/lib/theme.ts`)
 
@@ -31,36 +31,36 @@
 
 ## Estados (`src/components/state`)
 
-| Componente | Uso | Estados que representa |
-|---|---|---|
-| `EmptyState` | Sem dados (honesto, sem fake) | empty |
-| `ErrorState` | Falha de carga + retry | error |
-| `PermissionState` (alias de `PermissionDenied`) | Sem autorização | permission |
-| `UnconfiguredState` | Integração sem credencial | unconfigured |
-| `LoadingState` | Indicador central com `role="status"` | loading |
-| `ProductCardSkeleton` / `ProductGridSkeleton` / `LinesSkeleton` | Carregamento sem layout shift | loading |
-| `StatusBadge` | Pílula de status por token (`unconfigured/testing/active/error/planned`) | status |
-| `SectionFrame` | Wrapper de seção com eyebrow/título/ação | — |
-| `PlannedFeature` / `PhaseGate` (admin) | Funcionalidade não construída | "Planejado para a Fase X" (somente painel) |
+| Componente                                                      | Uso                                                                      | Estados que representa                     |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------ |
+| `EmptyState`                                                    | Sem dados (honesto, sem fake)                                            | empty                                      |
+| `ErrorState`                                                    | Falha de carga + retry                                                   | error                                      |
+| `PermissionState` (alias de `PermissionDenied`)                 | Sem autorização                                                          | permission                                 |
+| `UnconfiguredState`                                             | Integração sem credencial                                                | unconfigured                               |
+| `LoadingState`                                                  | Indicador central com `role="status"`                                    | loading                                    |
+| `ProductCardSkeleton` / `ProductGridSkeleton` / `LinesSkeleton` | Carregamento sem layout shift                                            | loading                                    |
+| `StatusBadge`                                                   | Pílula de status por token (`unconfigured/testing/active/error/planned`) | status                                     |
+| `SectionFrame`                                                  | Wrapper de seção com eyebrow/título/ação                                 | —                                          |
+| `PlannedFeature` / `PhaseGate` (admin)                          | Funcionalidade não construída                                            | "Planejado para a Fase X" (somente painel) |
 
 ## Vitrine (`src/components/commerce`)
 
-| Componente | Descrição | Notas de estado |
-|---|---|---|
-| `BrandLogo` / `Logo` | Marca real Jah (imagem) | — |
-| `PublicHeader` | Cabeçalho + menu mobile (Sheet) + ThemeToggle | navegação sempre válida (derivada do registry) |
-| `MobileBottomNav` / `BottomNav` | Navegação inferior sticky (mobile) | alvos >= 44px, `pb-safe` |
-| `PublicFooter` | Rodapé com colunas | links reais |
-| `PageHeader` | Título/eyebrow/ações | responsivo (grid + min-w-0) |
-| `ProductCard` | Card de produto (DTO server-side) | loading via skeleton; sem cálculo local |
-| `PriceDisplay` | Formata cents+BRL do servidor | apenas formatação, nunca cálculo |
+| Componente                      | Descrição                                     | Notas de estado                                |
+| ------------------------------- | --------------------------------------------- | ---------------------------------------------- |
+| `BrandLogo` / `Logo`            | Marca real Jah (imagem)                       | —                                              |
+| `PublicHeader`                  | Cabeçalho + menu mobile (Sheet) + ThemeToggle | navegação sempre válida (derivada do registry) |
+| `MobileBottomNav` / `BottomNav` | Navegação inferior sticky (mobile)            | alvos >= 44px, `pb-safe`                       |
+| `PublicFooter`                  | Rodapé com colunas                            | links reais                                    |
+| `PageHeader`                    | Título/eyebrow/ações                          | responsivo (grid + min-w-0)                    |
+| `ProductCard`                   | Card de produto (DTO server-side)             | loading via skeleton; sem cálculo local        |
+| `PriceDisplay`                  | Formata cents+BRL do servidor                 | apenas formatação, nunca cálculo               |
 
 ## Painel (`src/components/admin`)
 
-| Componente | Descrição | Notas |
-|---|---|---|
-| `AdminShell` | Sidebar recolhível (desktop) + topbar + ThemeToggle + bottom nav (mobile) | responsivo, safe-area, alvos >= 44px |
-| `PlannedFeature` / `PhaseGate` | Estado honesto de fase | nunca na vitrine |
+| Componente                     | Descrição                                                                 | Notas                                |
+| ------------------------------ | ------------------------------------------------------------------------- | ------------------------------------ |
+| `AdminShell`                   | Sidebar recolhível (desktop) + topbar + ThemeToggle + bottom nav (mobile) | responsivo, safe-area, alvos >= 44px |
+| `PlannedFeature` / `PhaseGate` | Estado honesto de fase                                                    | nunca na vitrine                     |
 
 ## Acessibilidade (todos)
 
@@ -71,4 +71,3 @@
 ## Regra de dados
 
 - Componentes nunca acessam Supabase diretamente nem calculam preço/desconto/frete/estoque. Consomem DTOs da camada de serviços (`src/services`).
-

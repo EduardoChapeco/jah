@@ -34,7 +34,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+
 import { listCoupons, upsertCoupon, deleteCoupon } from "@/services/growth.functions";
 import { formatMoney } from "@/lib/money";
 import { EmptyState } from "@/components/state/states";

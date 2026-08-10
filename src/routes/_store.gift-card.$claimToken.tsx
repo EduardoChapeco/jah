@@ -93,17 +93,15 @@ function ClaimGiftCardPage() {
         {/* Left Side: Premium Glowing Gift Card Reveal */}
         <div className="flex justify-center items-center">
           <div
-            className={`relative w-80 h-48 rounded-2xl bg-gradient-to-br from-pink-500 via-purple-600 to-indigo-700 shadow-2xl p-6 flex flex-col justify-between overflow-hidden transition-all duration-700 transform ${
-              showAnimation ? "scale-100 rotate-0 translate-y-0" : "scale-75 rotate-3 translate-y-8"
-            } hover:scale-105 hover:-rotate-1 cursor-pointer group`}
+            className={`relative w-80 h-48 p-6 flex flex-col justify-between overflow-hidden transition-all duration-700 transform ${showAnimation ? "scale-100 rotate-0 translate-y-0" : "scale-75 rotate-3 translate-y-8"} hover:scale-105 hover:-rotate-1 cursor-pointer group`}
           >
             {/* Sparkle effects overlay */}
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/20 via-transparent to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] pointer-events-none" />
             <div className="absolute -top-12 -right-12 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all" />
 
             <div className="flex justify-between items-start">
               <div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-pink-200">
+                <span className="text-xs font-semibold uppercase tracking-wider text-accent">
                   VALE-PRESENTE
                 </span>
                 <h3 className="font-serif font-bold text-white text-xl mt-1">Jah</h3>
@@ -114,7 +112,7 @@ function ClaimGiftCardPage() {
             </div>
 
             <div className="space-y-1">
-              <span className="text-xs text-indigo-200 uppercase tracking-widest block font-mono">
+              <span className="text-xs text-accent uppercase tracking-widest block font-mono">
                 {code}
               </span>
               <div className="flex items-baseline gap-1 text-white">
@@ -125,7 +123,7 @@ function ClaimGiftCardPage() {
               </div>
             </div>
 
-            <div className="flex justify-between items-center text-xs text-pink-200/80 border-t border-white/10 pt-3">
+            <div className="flex justify-between items-center text-xs text-accent/80 border-t border-white/10 pt-3">
               <span>Exclusivo na Vitrine</span>
               <span className="flex items-center gap-1 font-mono">
                 <Sparkles className="size-3.5 animate-spin" />
@@ -149,7 +147,7 @@ function ClaimGiftCardPage() {
             Resgate para sua conta para visualizar seu saldo durante o checkout.
           </p>
 
-          <div className="bg-muted/40 p-4 rounded-xl border border-border flex items-start gap-3">
+          <div className="bg-muted/40 p-4 border border-border flex items-start gap-3">
             <Gift className="size-5 text-primary shrink-0 mt-0.5" />
             <div className="text-xs text-muted-foreground font-normal space-y-1">
               <p className="font-semibold text-foreground">Como funciona?</p>
@@ -167,7 +165,7 @@ function ClaimGiftCardPage() {
                 size="lg"
                 onClick={handleClaim}
                 disabled={isRedeeming}
-                className="w-full sm:w-auto font-semibold gap-2 shadow-lg shadow-primary/25"
+                className="w-full sm:w-auto font-semibold gap-2 shadow-primary/25"
               >
                 {isRedeeming ? (
                   <>

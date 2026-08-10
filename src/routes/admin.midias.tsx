@@ -38,39 +38,18 @@ function MidiasPage() {
 
     setUploading(true);
     try {
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        if (event.target?.result) {
-          try {
-            const base64 = event.target.result as string;
-            // Import dynamically to avoid client bundle bloat
-            const { uploadMedia } = await import("@/services/storage.functions");
-            await uploadMedia({
-              data: {
-                fileName: file.name,
-                fileBase64: base64,
-                bucket: "product-media",
-              },
-            });
+      const { directUploadMedia } = await import("@/lib/upload-helper");
+      await directUploadMedia({
+        file: file,
+        fileName: file.name,
+        bucket: "product-media",
+      });
 
-            toast.success("Imagem enviada com sucesso!");
-            router.invalidate();
-          } catch (err: any) {
-            toast.error(err.message || "Erro ao enviar");
-          } finally {
-            setUploading(false);
-            if (fileRef.current) fileRef.current.value = "";
-          }
-        }
-      };
-      reader.onerror = () => {
-        toast.error("Erro ao ler o arquivo");
-        setUploading(false);
-        if (fileRef.current) fileRef.current.value = "";
-      };
-      reader.readAsDataURL(file);
+      toast.success("Imagem enviada com sucesso!");
+      router.invalidate();
     } catch (err: any) {
       toast.error(err.message || "Erro ao enviar");
+    } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
     }
@@ -111,7 +90,7 @@ function MidiasPage() {
           {files.map((file: any) => (
             <div
               key={file.id}
-              className="group relative rounded-lg border bg-card overflow-hidden aspect-square"
+              className="group relative border bg-card overflow-hidden aspect-square"
             >
               <img
                 src={file.public_url}

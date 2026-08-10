@@ -30,7 +30,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Surface } from "@/components/ui/surface";
 import {
   Sheet,
   SheetContent,
@@ -54,6 +54,7 @@ import {
   deleteCustomerAddress,
 } from "@/services/crm.functions";
 import { formatMoney } from "@/lib/money";
+import { formatDate } from "../lib/datetime";
 
 export const Route = createFileRoute("/admin/clientes/$id")({
   head: () => ({ meta: [{ title: "Detalhes do Cliente" }] }),
@@ -249,7 +250,7 @@ function CustomerDetailPage() {
       </nav>
 
       {/* Identidade Resumida */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 bg-card border border-border rounded-xl shadow-xs">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 bg-card border border-border shadow-xs">
         <div className="flex items-center gap-4">
           <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
             <User className="size-6" />
@@ -271,7 +272,7 @@ function CustomerDetailPage() {
                 <FileText className="size-3.5" /> {data.profile.taxId || "CPF/CNPJ não informado"}
               </span>
               <span>•</span>
-              <span>Cadastro em {new Date(data.profile.joinedAt).toLocaleDateString("pt-BR")}</span>
+              <span>Cadastro em {formatDate(data.profile.joinedAt)}</span>
             </div>
           </div>
         </div>
@@ -291,7 +292,7 @@ function CustomerDetailPage() {
         </TabsList>
 
         <TabsContent value="crm" className="space-y-4">
-          <div className="max-w-2xl rounded-xl border border-border bg-card p-6 shadow-xs">
+          <div className="max-w-2xl border border-border bg-card p-6 shadow-xs">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <FormField
@@ -365,30 +366,32 @@ function CustomerDetailPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {data.addresses.map((addr: any) => (
-              <Card
+              <Surface
                 key={addr.id}
-                className={`relative overflow-hidden border shadow-xs ${addr.is_default ? "border-primary bg-primary/5" : "bg-card border-border"}`}
+                variant={addr.is_default ? "polaroid" : "default"}
+                padding="none"
+                className={`relative overflow-hidden border-2 ${addr.is_default ? "border-primary bg-primary/5" : ""}`}
               >
                 {addr.is_default && (
                   <div className="absolute top-2 right-2 flex items-center gap-1 text-xs text-primary font-bold">
                     <Check className="size-3.5" /> Padrão
                   </div>
                 )}
-                <CardHeader className="p-4 pb-2">
+                <div className="p-4 pb-2">
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <MapPin className="size-3.5 text-primary" />
                     <span>CEP {addr.zipcode}</span>
                   </div>
-                  <CardTitle className="text-sm font-bold mt-1 text-foreground">
+                  <h4 className="text-sm font-bold mt-1 text-foreground">
                     {addr.street}, nº {addr.number}
-                  </CardTitle>
+                  </h4>
                   {addr.complement && (
-                    <CardDescription className="text-xs text-muted-foreground font-mono">
+                    <p className="text-xs text-muted-foreground font-mono mt-1">
                       {addr.complement}
-                    </CardDescription>
+                    </p>
                   )}
-                </CardHeader>
-                <CardContent className="p-4 pt-0 text-xs space-y-3">
+                </div>
+                <div className="p-4 pt-0 text-xs space-y-3">
                   <p className="text-muted-foreground">
                     {addr.neighborhood} — {addr.city}/{addr.state}
                   </p>
@@ -442,12 +445,12 @@ function CustomerDetailPage() {
                       </Button>
                     )}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </Surface>
             ))}
 
             {data.addresses.length === 0 && (
-              <div className="col-span-full border border-dashed border-border rounded-xl p-8 text-center text-xs text-muted-foreground flex flex-col items-center justify-center gap-2">
+              <div className="col-span-full border border-dashed border-border p-8 text-center text-xs text-muted-foreground flex flex-col items-center justify-center gap-2">
                 <AlertTriangle className="size-5 text-amber-500" />
                 Nenhum endereço de entrega cadastrado para este cliente.
               </div>
@@ -456,7 +459,7 @@ function CustomerDetailPage() {
         </TabsContent>
 
         <TabsContent value="pedidos">
-          <div className="rounded-xl border border-border bg-card overflow-hidden shadow-xs">
+          <div className="border border-border bg-card overflow-hidden shadow-xs">
             {data.orders.length === 0 ? (
               <div className="p-8 text-center text-muted-foreground text-xs">
                 Este cliente ainda não fez nenhum pedido no e-commerce ou balcão.
@@ -473,13 +476,7 @@ function CustomerDetailPage() {
                         Pedido #{o.public_token}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {new Date(o.created_at).toLocaleDateString("pt-BR", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        {formatDate(o.created_at)}
                       </div>
                     </div>
                     <div className="text-right">

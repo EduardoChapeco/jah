@@ -93,7 +93,7 @@ export function VideoSection({ content }: VideoSectionProps) {
           {title}
         </h2>
       )}
-      <div className="relative w-full aspect-video rounded-2xl overflow-hidden border border-border shadow-md bg-black">
+      <div className="relative w-full aspect-video overflow-hidden border border-border shadow-md bg-black">
         {renderVideoPlayer()}
       </div>
     </section>

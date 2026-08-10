@@ -21,6 +21,7 @@ Isso **não é um caso isolado**: 22 arquivos fazem `import { getSSRClient } fro
 ## Plano
 
 ### Fase 1 — Estabilizar a fronteira servidor/cliente (desbloqueia tudo)
+
 - Padronizar o acesso ao cliente SSR: remover os 22 imports estáticos de `supabase-ssr.server` e passar a resolvê-lo com `await import(...)` dentro de cada handler, seguindo o padrão que o próprio projeto já usa para `@/lib/identity` e `@/lib/tenant`.
 - `src/lib/identity.ts` e `src/lib/auth-guards.ts`: renomear para `*.server.ts` ou isolar a parte servidor, já que hoje são pontes de vazamento.
 - `src/routes/_store.conta.avaliacoes.tsx`: remover o acesso direto ao Supabase da rota e passar por um service — isso viola a regra 1 do `AGENTS.md`.
@@ -29,6 +30,7 @@ Isso **não é um caso isolado**: 22 arquivos fazem `import { getSSRClient } fro
 - Critério de aceite: `/` responde 200, o editor abre, `tsgo` limpo e a suíte de testes existente passa.
 
 ### Fase 2 — Auditoria do builder (vitrine + perfil institucional)
+
 - Percorrer o fluxo ponta a ponta: escolher template → criar documento → editar nós → salvar → publicar → renderizar no storefront (`experience-renderer.tsx`).
 - Verificar consistência entre `builder-registry.ts` (1320 linhas), `builder-types.ts` e as seções realmente renderizadas: todo tipo de bloco registrado precisa ter renderer; todo renderer precisa estar no registry. Blocos órfãos são removidos ou implementados.
 - Conferir undo/redo, estado sujo/salvo, versionamento (rascunho vs. publicado) e os estados obrigatórios do `DESIGN.md` §5 (loading/empty/error/permission/unconfigured) no editor.
@@ -36,13 +38,16 @@ Isso **não é um caso isolado**: 22 arquivos fazem `import { getSSRClient } fro
 - Reportar por escrito o que funciona, o que está quebrado e o que só dá para confirmar com banco ligado.
 
 ### Fase 3 — Placeholders e higiene
+
 - Resolver o `TODO` do sitemap.
 - Revisar cada "Em breve" encontrado (`contact-form.tsx`, `return-modal.tsx`, `_store.stories.tsx`, `_store.conta.pedidos.$id.tsx`, flag em `lib/routes.ts`): pela regra 5 do `AGENTS.md`, o que for funcionalidade inexistente sai da UI; o que for status transacional legítimo fica.
 - Mover ~30 scripts soltos da raiz (`fix-*.mjs`, `audit_variants.ts`, `scratch/`, `res.json()...`, `user_inputs*.txt`) para `scripts/legacy/`.
 - Corrigir o espaço no nome da variável em `.env.production` (arquivo de config, sem tocar em credenciais).
 
 ### Detalhes técnicos
+
 O motor da correção da Fase 1 é a regra do TanStack Start: um módulo alcançável pelo grafo do cliente não pode conter aresta estática para `@tanstack/react-start/server` nem para arquivos `*.server.ts`. Duas saídas válidas — `await import()` dentro de `.handler()`, ou o helper virar `*.server.ts` e nunca ser importado por código de UI. Vou aplicar as duas conforme o arquivo, sem trocar a arquitetura de services por RPC novo.
 
 ### Fora do escopo desta rodada
+
 Provisionar backend, rodar migrations, alterar schema ou credenciais; qualquer mudança de regra de negócio (preço, frete, estoque, comissão).

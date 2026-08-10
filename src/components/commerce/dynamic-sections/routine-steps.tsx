@@ -40,7 +40,7 @@ export function RoutineSteps({
         {steps.map((step, idx) => (
           <div
             key={step.step_number || idx}
-            className="flex flex-col bg-card border border-border rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group"
+            className="flex flex-col bg-card border border-border p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group"
           >
             {/* Step badge */}
             <div className="flex items-center justify-between mb-4">
@@ -51,7 +51,7 @@ export function RoutineSteps({
             </div>
 
             {step.image_url && (
-              <div className="w-full h-44 rounded-xl overflow-hidden mb-4 bg-muted">
+              <div className="w-full h-44 overflow-hidden mb-4 bg-muted">
                 <img
                   src={step.image_url}
                   alt={step.title}

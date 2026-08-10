@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Surface } from "@/components/ui/surface";
 import {
   Select,
   SelectContent,
@@ -47,7 +47,6 @@ function ThemeSettingsPage() {
     },
   });
 
-
   if (res?.status === "unconfigured") {
     return (
       <div className="container max-w-4xl py-12 mx-auto px-4">
@@ -84,12 +83,14 @@ function ThemeSettingsPage() {
       />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Cores da Marca</CardTitle>
-            <CardDescription>Escolha as cores principais que representam sua loja.</CardDescription>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Surface variant="default" padding="none">
+          <div className="p-6 border-b border-border/20 bg-muted/10">
+            <h3 className="text-base font-bold">Cores da Marca</h3>
+            <p className="text-sm text-muted-foreground">
+              Escolha as cores principais que representam sua loja.
+            </p>
+          </div>
+          <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
               <Label>Cor Primária</Label>
               <div className="flex gap-2">
@@ -111,15 +112,17 @@ function ThemeSettingsPage() {
                 <Input type="text" {...register("text_color")} placeholder="#292729" />
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Identidade Visual</CardTitle>
-            <CardDescription>Envie o logotipo e o favicon da sua loja.</CardDescription>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Surface variant="default" padding="none">
+          <div className="p-6 border-b border-border/20 bg-muted/10">
+            <h3 className="text-base font-bold">Identidade Visual</h3>
+            <p className="text-sm text-muted-foreground">
+              Envie o logotipo e o favicon da sua loja.
+            </p>
+          </div>
+          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label>Logotipo (Recomendado: PNG Transparente)</Label>
               <ImageUpload
@@ -138,15 +141,17 @@ function ThemeSettingsPage() {
                 bucket="cms-media"
               />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Tipografia e Estilo</CardTitle>
-            <CardDescription>Defina as fontes e o formato dos elementos.</CardDescription>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Surface variant="default" padding="none">
+          <div className="p-6 border-b border-border/20 bg-muted/10">
+            <h3 className="text-base font-bold">Tipografia e Estilo</h3>
+            <p className="text-sm text-muted-foreground">
+              Defina as fontes e o formato dos elementos.
+            </p>
+          </div>
+          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label>Fonte de Títulos</Label>
               <Select
@@ -197,8 +202,8 @@ function ThemeSettingsPage() {
                 </SelectContent>
               </Select>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
 
         <div className="flex justify-end">
           <Button type="submit" disabled={isSubmitting}>

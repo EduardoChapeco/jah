@@ -12,6 +12,7 @@ Este documento normaliza o briefing completo do projeto Jah Community Platform e
 - `COMPONENT_CATALOG.md` — catálogo de componentes reutilizáveis.
 
 **Dossiês de Domínio (Arquitetura Nova):**
+
 - `DOMAINS/01_IDENTITY_ACCESS.md` — Identidade Global, Organizações, Perfis, Acessos e Isolamento.
 - `DOMAINS/02_CATALOG_COMMERCE.md` — Catálogo unificado, Classificados, Marketplace e Checkout.
 - `DOMAINS/03_CULTURE_EVENTS.md` — Produtores, Eventos, Ingressos, Lotes e Check-in.
@@ -19,7 +20,7 @@ Este documento normaliza o briefing completo do projeto Jah Community Platform e
 - `DOMAINS/05_OPERATIONS_FINANCE.md` — Frente de Caixa (PDV), Fulfillment, Repasses e Comissões.
 - `DOMAINS/06_BUILDER_CMS.md` — Motor visual canônico, Storefront, Páginas e Geração de Documentos.
 
-Este `MASTER_PLAN.md` não substitui nenhum desses documentos: ele apenas situa o leitor e aponta para onde ir. 
+Este `MASTER_PLAN.md` não substitui nenhum desses documentos: ele apenas situa o leitor e aponta para onde ir.
 
 ## 1. Visão e objetivo
 

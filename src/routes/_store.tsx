@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { getNavigationMenus, getPublicStoreSettings } from "@/services/cms.functions";
-import { getCart } from "@/services/cart.functions";
+import { getCart, getGlobalCarts } from "@/services/cart.functions";
 import { getActiveGlobalPopups } from "@/services/builder.functions";
 import { useEffect } from "react";
 
@@ -15,32 +15,33 @@ import { ErrorState, UnconfiguredState } from "@/components/state/states";
 export const Route = createFileRoute("/_store")({
   loader: async () => {
     try {
-      const [menusRes, storeRes, cart, popupsRes] = await Promise.all([
+      const [menusRes, storeRes, carts, globalCarts, popupsRes] = await Promise.all([
         getNavigationMenus().catch(() => []),
         getPublicStoreSettings().catch(() => null),
         getCart().catch(() => null),
+        getGlobalCarts().catch(() => []),
         getActiveGlobalPopups().catch(() => []),
       ]);
       return {
         menus: menusRes || [],
         store: storeRes || null,
-        cart,
+        carts,
+        globalCarts: globalCarts || [],
         popups: popupsRes || [],
       };
     } catch {
       return {
         menus: [],
         store: null,
-        cart: null,
+        carts: null,
+        globalCarts: [],
         popups: [],
       };
     }
   },
   component: StoreLayoutWrapper,
   errorComponent: StoreRouteError,
-
 });
-
 
 function StoreRouteError({ error }: { error: Error }) {
   const message = error?.message ?? "";
@@ -76,12 +77,12 @@ function StoreLayoutWrapper() {
 }
 
 function StoreLayout() {
-  const { menus, store, cart, popups } = Route.useLoaderData() as any;
+  const { menus, store, carts, globalCarts, popups } = Route.useLoaderData() as any;
   const { initCart } = useCartContext();
 
   useEffect(() => {
-    initCart(cart);
-  }, [cart, initCart]);
+    initCart(carts, globalCarts);
+  }, [carts, globalCarts, initCart]);
 
   // Extract header and footer menus
   const headerMenu = menus.find((m: any) => m.handle === "header")?.items || [];
@@ -145,7 +146,7 @@ function StoreLayout() {
         <Outlet />
       </main>
       <PublicFooter menuItems={footerMenu} store={storeData} />
-      <BottomNav />
+      <BottomNav storeType={storeData?.type} />
       <GlobalPopupRenderer popups={popups} />
       <SlideOutCart />
     </div>

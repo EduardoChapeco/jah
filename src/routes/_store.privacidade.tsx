@@ -7,9 +7,7 @@ export const Route = createFileRoute("/_store/privacidade")({
   head: ({ loaderData }) => ({
     meta: [
       {
-        title: loaderData?.title
-          ? `${loaderData.title}`
-          : "Política de privacidade",
+        title: loaderData?.title ? `${loaderData.title}` : "Política de privacidade",
       },
     ],
   }),

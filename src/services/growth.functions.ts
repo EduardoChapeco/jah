@@ -190,3 +190,179 @@ export const upsertIntegration = createServerFn({ method: "POST" })
       throw new Error(e.message || "Erro ao salvar integração.");
     }
   });
+
+// --- CAMPAIGNS ---
+
+export const listCampaigns = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const identity = await getAdminIdentity();
+    const db = getServerClient();
+
+    const { data, error } = await db
+      .from("ad_campaigns")
+      .select(`
+        id, title, status, budget_cents, start_date, end_date, target_url, placements,
+        campaign_metrics(impressions, clicks, spend_cents)
+      `)
+      .eq("store_id", identity.store_id)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    
+    const formattedData = (data || []).map((camp: any) => {
+      let totalImpressions = 0;
+      let totalClicks = 0;
+      let totalSpend = 0;
+      
+      if (camp.campaign_metrics) {
+        camp.campaign_metrics.forEach((m: any) => {
+          totalImpressions += m.impressions;
+          totalClicks += m.clicks;
+          totalSpend += m.spend_cents;
+        });
+      }
+      
+      return {
+        ...camp,
+        metrics: { impressions: totalImpressions, clicks: totalClicks, spend_cents: totalSpend }
+      };
+    });
+
+    return formattedData;
+  } catch (e: any) {
+    console.error("[growth] listCampaigns error:", e);
+    throw new Error("Erro ao listar campanhas.");
+  }
+});
+
+export const saveCampaign = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string().uuid().optional(),
+      title: z.string().min(1),
+      body: z.string().optional(),
+      target_url: z.string().optional(),
+      budget_cents: z.number().int().min(0),
+      status: z.enum(["draft", "active", "paused", "completed", "archived"]).default("active"),
+      placements: z.array(z.string()).default(["feed"]),
+    })
+  )
+  .handler(async ({ data: input }) => {
+    try {
+      const identity = await getAdminIdentity();
+      const db = getServerClient();
+
+      if (!input.id) {
+        const { data, error } = await db
+          .from("ad_campaigns")
+          .insert({
+            store_id: identity.store_id,
+            title: input.title,
+            body: input.body,
+            target_url: input.target_url,
+            budget_cents: input.budget_cents,
+            status: input.status,
+            placements: input.placements,
+          })
+          .select("id")
+          .single();
+
+        if (error || !data) throw error || new Error("Falha ao criar campanha");
+        return { success: true, id: data.id };
+      } else {
+        const { error } = await db
+          .from("ad_campaigns")
+          .update({
+            title: input.title,
+            body: input.body,
+            target_url: input.target_url,
+            budget_cents: input.budget_cents,
+            status: input.status,
+            placements: input.placements,
+          })
+          .eq("id", input.id)
+          .eq("store_id", identity.store_id);
+        
+        if (error) throw error;
+        return { success: true, id: input.id };
+      }
+    } catch (e: any) {
+      console.error("[growth] saveCampaign error:", e);
+      throw new Error("Erro ao salvar campanha.");
+    }
+  });
+
+// --- DYNAMIC COMMISSIONS ---
+
+export const listCommissionRules = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const identity = await getAdminIdentity();
+    const db = getServerClient();
+
+    const { data, error } = await db
+      .from("dynamic_commission_rules")
+      .select(`
+        id, rate_percentage, status, valid_until, seller_id, product_id,
+        seller:profiles!dynamic_commission_rules_seller_id_fkey(name, email),
+        product:products!dynamic_commission_rules_product_id_fkey(title)
+      `)
+      .eq("store_id", identity.store_id)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (e: any) {
+    console.error("[growth] listCommissionRules error:", e);
+    throw new Error("Erro ao listar regras de comissão.");
+  }
+});
+
+export const saveCommissionRule = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string().uuid().optional(),
+      seller_id: z.string().uuid().optional().nullable(),
+      product_id: z.string().uuid().optional().nullable(),
+      rate_percentage: z.number().min(0).max(100),
+      status: z.enum(["active", "inactive"]).default("active"),
+      valid_until: z.string().optional().nullable(),
+    })
+  )
+  .handler(async ({ data: input }) => {
+    try {
+      const identity = await getAdminIdentity();
+      const db = getServerClient();
+
+      const payload = {
+        store_id: identity.store_id,
+        seller_id: input.seller_id || null,
+        product_id: input.product_id || null,
+        rate_percentage: input.rate_percentage,
+        status: input.status,
+        valid_until: input.valid_until || null,
+      };
+
+      if (!input.id) {
+        const { data, error } = await db
+          .from("dynamic_commission_rules")
+          .insert(payload)
+          .select("id")
+          .single();
+
+        if (error || !data) throw error || new Error("Falha ao criar regra");
+        return { success: true, id: data.id };
+      } else {
+        const { error } = await db
+          .from("dynamic_commission_rules")
+          .update(payload)
+          .eq("id", input.id)
+          .eq("store_id", identity.store_id);
+        
+        if (error) throw error;
+        return { success: true, id: input.id };
+      }
+    } catch (e: any) {
+      console.error("[growth] saveCommissionRule error:", e);
+      throw new Error("Erro ao salvar regra de comissão.");
+    }
+  });

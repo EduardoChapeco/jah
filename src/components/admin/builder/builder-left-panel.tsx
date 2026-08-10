@@ -100,8 +100,8 @@ export const SECTION_PRESETS = [
     label: "Carrossel de Produtos",
     description: "Produtos reais em carrossel deslizante",
     icon: ShoppingBag,
-    color: "bg-blue-50 border-blue-200",
-    iconColor: "text-blue-500",
+    color: "bg-primary border-blue-200",
+    iconColor: "text-primary",
     blocks: ["section", "container", "product_carousel"],
   },
   {
@@ -136,8 +136,8 @@ export const SECTION_PRESETS = [
     label: "Depoimentos",
     description: "Carrossel de avaliações de clientes",
     icon: MessageSquare,
-    color: "bg-pink-50 border-pink-200",
-    iconColor: "text-pink-500",
+    color: "bg-accent border-pink-200",
+    iconColor: "text-accent",
     blocks: ["section", "container", "testimonial_carousel"],
   },
   {
@@ -145,8 +145,8 @@ export const SECTION_PRESETS = [
     label: "Cronômetro Regressivo",
     description: "Timer para ofertas com prazo",
     icon: Timer,
-    color: "bg-red-50 border-red-200",
-    iconColor: "text-red-500",
+    color: "bg-destructive border-red-200",
+    iconColor: "text-destructive",
     blocks: ["section", "container", "countdown_timer"],
   },
   {
@@ -154,8 +154,8 @@ export const SECTION_PRESETS = [
     label: "Selos de Confiança",
     description: "Badges de garantia, frete, segurança",
     icon: Shield,
-    color: "bg-teal-50 border-teal-200",
-    iconColor: "text-teal-500",
+    color: "bg-accent border-teal-200",
+    iconColor: "text-accent",
     blocks: ["section", "container", "trust_badges"],
   },
   {
@@ -163,8 +163,8 @@ export const SECTION_PRESETS = [
     label: "Bento Grid",
     description: "Mosaico assimétrico de cards",
     icon: LayoutTemplate,
-    color: "bg-indigo-50 border-indigo-200",
-    iconColor: "text-indigo-500",
+    color: "bg-accent border-indigo-200",
+    iconColor: "text-accent",
     blocks: ["section", "container", "bento_grid"],
   },
   {
@@ -172,8 +172,8 @@ export const SECTION_PRESETS = [
     label: "Galeria de Imagens",
     description: "Grade editorial de fotos",
     icon: ImageIcon,
-    color: "bg-orange-50 border-orange-200",
-    iconColor: "text-orange-500",
+    color: "bg-warning border-orange-200",
+    iconColor: "text-warning",
     blocks: ["section", "container", "gallery_grid"],
   },
   {
@@ -190,8 +190,8 @@ export const SECTION_PRESETS = [
     label: "Timeline / História",
     description: "Linha do tempo da marca",
     icon: Map,
-    color: "bg-yellow-50 border-yellow-200",
-    iconColor: "text-yellow-500",
+    color: "bg-warning border-yellow-200",
+    iconColor: "text-warning",
     blocks: ["section", "container", "timeline_history"],
   },
   {
@@ -214,14 +214,13 @@ export const SECTION_PRESETS = [
   },
 ];
 
-export type LeftPanelTab = "sections" | "blocks" | "layers";
+export type LeftPanelTab = "blocks" | "layers";
 
 export interface BuilderLeftPanelProps {
   activePanel: LeftPanelTab | string;
   setActivePanel: (tab: any) => void;
   blockCategory: string;
   setBlockCategory: (cat: string) => void;
-  insertPreset: (id: string) => void;
   insertBlock: (type: string) => void;
   nodes: any[];
   treeNodes: any[];
@@ -230,6 +229,7 @@ export interface BuilderLeftPanelProps {
   moveNode: (id: string, direction: any, e: any) => void;
   deleteNode: (id: string, e: any) => void;
   reorderNodeAbsolute: (sourceId: string, targetId: string) => void;
+  onAddSection: () => void;
 }
 
 export function BuilderLeftPanel({
@@ -237,7 +237,6 @@ export function BuilderLeftPanel({
   setActivePanel,
   blockCategory,
   setBlockCategory,
-  insertPreset,
   insertBlock,
   nodes,
   treeNodes,
@@ -246,6 +245,7 @@ export function BuilderLeftPanel({
   moveNode,
   deleteNode,
   reorderNodeAbsolute,
+  onAddSection,
 }: BuilderLeftPanelProps) {
   const [draggedNodeId, setDraggedNodeId] = useState<string | null>(null);
   const [dragOverNodeId, setDragOverNodeId] = useState<string | null>(null);
@@ -342,7 +342,7 @@ export function BuilderLeftPanel({
     <aside className="w-72 bg-[#1a1a1a] border-r border-white/10 flex flex-col flex-none overflow-hidden">
       {/* Panel Tabs */}
       <div className="flex border-b border-white/10 bg-[#161616]">
-        {(["sections", "blocks", "layers"] as const).map((tab) => (
+        {(["layers", "blocks"] as const).map((tab) => (
           <button
             type="button"
             key={tab}
@@ -354,48 +354,36 @@ export function BuilderLeftPanel({
                 : "text-white/40 hover:text-white/70",
             )}
           >
-            {tab === "sections" ? "Seções" : tab === "blocks" ? "Blocos" : "Camadas"}
+            {tab === "layers" ? "Camadas" : "Blocos (Studio)"}
           </button>
         ))}
       </div>
 
       <ScrollArea className="flex-1">
-        {/* SECTIONS: Pre-built section presets */}
-        {activePanel === "sections" && (
-          <div className="p-3 space-y-2">
-            <p className="text-[11px] text-white/40 uppercase tracking-wider px-1 mb-3">
-              Clique para adicionar seção
-            </p>
-            {SECTION_PRESETS.map((preset) => {
-              const Icon = preset.icon;
-              return (
-                <button
-                  type="button"
-                  key={preset.id}
-                  onClick={() => insertPreset(preset.id)}
-                  className="w-full flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-left group border border-transparent hover:border-white/10"
-                >
-                  <div
-                    className={cn(
-                      "w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 bg-white/10",
-                    )}
-                  >
-                    <Icon className={cn("h-4 w-4", preset.iconColor)} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-white text-xs font-medium truncate">{preset.label}</div>
-                    <div className="text-white/40 text-[10px] truncate">{preset.description}</div>
-                  </div>
-                  <Plus className="h-3.5 w-3.5 text-white/30 group-hover:text-white/70 transition-colors shrink-0" />
-                </button>
-              );
-            })}
-          </div>
-        )}
-
         {/* BLOCKS: Categorized block picker */}
         {activePanel === "blocks" && (
           <div className="flex flex-col">
+            <div className="p-4 border-b border-white/10">
+              <button
+                type="button"
+                onClick={onAddSection}
+                className="w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-black font-semibold py-3 px-4 transition-all shadow-md"
+              >
+                <LayoutTemplate className="h-5 w-5" />
+                Catálogo de Seções
+              </button>
+              <p className="text-[10px] text-white/50 text-center mt-3 leading-relaxed">
+                Recomendado: Use o catálogo para adicionar seções completas prontas para edição
+                (Modo Guiado).
+              </p>
+            </div>
+
+            <div className="px-4 py-3 bg-[#111] border-b border-white/5">
+              <p className="text-[11px] font-medium text-white/40 uppercase tracking-wider">
+                Montagem Granular (Avançado)
+              </p>
+            </div>
+
             {/* Category tabs */}
             <div className="flex flex-col gap-0.5 p-2 border-b border-white/10">
               {BLOCK_CATEGORIES.map((cat) => {
@@ -429,9 +417,9 @@ export function BuilderLeftPanel({
                       type="button"
                       key={blockType}
                       onClick={() => insertBlock(blockType)}
-                      className="flex flex-col items-center gap-2 p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-transparent hover:border-white/10 transition-colors text-center"
+                      className="flex flex-col items-center gap-2 p-3 bg-white/5 hover:bg-white/10 border border-transparent hover:border-white/10 transition-colors text-center"
                     >
-                      <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center">
+                      <div className="w-10 h-10 bg-white/10 flex items-center justify-center">
                         <Plus className="h-4 w-4 text-white/50" />
                       </div>
                       <span className="text-white/70 text-[10px] font-medium leading-tight">
@@ -442,9 +430,6 @@ export function BuilderLeftPanel({
                 },
               )}
             </div>
-            <p className="text-[10px] text-white/30 text-center pb-3 px-3">
-              Selecione um container na árvore antes de inserir
-            </p>
           </div>
         )}
 
@@ -452,13 +437,13 @@ export function BuilderLeftPanel({
         {activePanel === "layers" && (
           <div className="p-3">
             <p className="text-[11px] text-white/40 uppercase tracking-wider px-1 mb-3">
-              Estrutura da Página
+              Árvore do Documento
             </p>
             {nodes.length === 0 ? (
               <div className="text-center py-8 text-white/30 text-xs space-y-2">
                 <Layers className="h-8 w-8 mx-auto opacity-30" />
-                <p>Árvore vazia.</p>
-                <p>Adicione seções no painel "Seções".</p>
+                <p>O documento está vazio.</p>
+                <p>Use o botão "Adicionar Seção" no painel principal.</p>
               </div>
             ) : (
               <div className="space-y-0.5">{treeNodes.map((node) => renderLayer(node, 0))}</div>

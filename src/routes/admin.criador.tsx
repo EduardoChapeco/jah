@@ -6,7 +6,7 @@ import { PenTool, Image as ImageIcon, Send, Copy } from "lucide-react";
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Surface } from "@/components/ui/surface";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { listSocialPosts, createSocialPost } from "@/services/marketing-engagement.functions";
 import { EmptyState } from "@/components/state/states";
+import { formatDate } from "../lib/datetime";
 
 export const Route = createFileRoute("/admin/criador")({
   head: () => ({ meta: [{ title: "Criador de Posts" }] }),
@@ -75,13 +76,14 @@ function CreatorPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Creator Form */}
-        <Card className="md:col-span-1 h-fit">
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
+        {/* Creator Form */}
+        <Surface variant="default" padding="none" className="md:col-span-1 h-fit">
+          <div className="flex flex-col space-y-1.5 p-6">
+            <h3 className="font-semibold leading-none tracking-tight flex items-center gap-2 text-base">
               <PenTool className="h-4 w-4" /> Escrever Novo Post
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+            </h3>
+          </div>
+          <div className="p-6 pt-0">
             <form onSubmit={handleCreate} className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Plataforma</label>
@@ -129,8 +131,8 @@ function CreatorPage() {
                 {isSaving ? "Salvando..." : "Arquivar Ideia"}
               </Button>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
 
         {/* Timeline */}
         <div className="md:col-span-2 space-y-4">
@@ -143,18 +145,18 @@ function CreatorPage() {
           ) : (
             <div className="grid gap-4">
               {posts.map((post: any) => (
-                <Card key={post.id}>
-                  <CardHeader className="pb-2">
+                <Surface variant="default" padding="none" key={post.id}>
+                  <div className="flex flex-col space-y-1.5 p-6 pb-2">
                     <div className="flex justify-between items-start">
                       <Badge variant="secondary" className="capitalize">
                         {post.platform}
                       </Badge>
                       <span className="text-xs text-muted-foreground">
-                        {new Date(post.created_at).toLocaleDateString("pt-BR")}
+                        {formatDate(post.created_at)}
                       </span>
                     </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
+                  </div>
+                  <div className="p-6 pt-0 space-y-4">
                     {post.image_url && (
                       <div className="w-full aspect-video rounded-md overflow-hidden bg-muted border relative">
                         <img
@@ -165,8 +167,8 @@ function CreatorPage() {
                       </div>
                     )}
                     <p className="text-sm whitespace-pre-wrap">{post.content_text}</p>
-                  </CardContent>
-                  <CardFooter className="pt-2 border-t flex justify-end gap-2">
+                  </div>
+                  <div className="flex items-center p-6 pt-2 border-t justify-end gap-2">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -174,8 +176,8 @@ function CreatorPage() {
                     >
                       <Copy className="mr-2 h-4 w-4" /> Copiar Texto
                     </Button>
-                  </CardFooter>
-                </Card>
+                  </div>
+                </Surface>
               ))}
             </div>
           )}

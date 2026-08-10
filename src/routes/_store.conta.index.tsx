@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { listCustomerOrders } from "@/services/order.functions";
 import { getProfile } from "@/services/auth.functions";
+import { formatDate } from "../lib/datetime";
 
 export const Route = createFileRoute("/_store/conta/")({
   head: () => ({ meta: [{ title: "Minha Conta" }] }),
@@ -66,7 +67,7 @@ function Page() {
   return (
     <section className="space-y-8">
       {/* Welcome banner */}
-      <div className="rounded-2xl border border-border bg-card p-6">
+      <div className="border border-border bg-card p-6">
         <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">
           Bem-vinda de volta
         </p>
@@ -84,7 +85,7 @@ function Page() {
             <Link
               key={item.to}
               to={item.to}
-              className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4 hover:bg-accent transition-colors"
+              className="flex flex-col gap-2 border border-border bg-card p-4 hover:bg-accent transition-colors"
             >
               <item.icon className="size-5 text-primary" aria-hidden />
               <div>
@@ -106,10 +107,10 @@ function Page() {
         </div>
 
         {recentOrders.length === 0 ? (
-          <div className="rounded-xl border border-border bg-card p-6 text-center">
+          <div className="border border-border bg-card p-6 text-center">
             <p className="text-sm text-muted-foreground">Você ainda não realizou nenhum pedido.</p>
             <Button size="sm" className="mt-4" asChild>
-              <Link to="/catalogo">Explorar catálogo</Link>
+              <Link to="/mercado">Explorar catálogo</Link>
             </Button>
           </div>
         ) : (
@@ -117,17 +118,11 @@ function Page() {
             {recentOrders.map((order: any) => (
               <div
                 key={order.id}
-                className="flex items-center justify-between rounded-xl border border-border bg-card p-4"
+                className="flex items-center justify-between border border-border bg-card p-4"
               >
                 <div>
                   <p className="text-sm font-medium text-foreground">#{order.public_token}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(order.created_at).toLocaleDateString("pt-BR", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </p>
+                  <p className="text-xs text-muted-foreground">{formatDate(order.created_at)}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <p className="text-sm font-medium text-foreground">

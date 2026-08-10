@@ -84,6 +84,10 @@ import {
   reorderProductMedia,
   listCategories,
   createCategory,
+  listProductOptionGroups,
+  batchSaveOptionGroups,
+  deleteOptionGroup,
+  deleteOptionValue,
 } from "@/services/admin-catalog.functions";
 import { formatMoney } from "@/lib/money";
 import { adjustStock } from "@/services/stock.functions";
@@ -164,25 +168,13 @@ function EditProductPage() {
       <ProductEditorLayout
         preview={
           <div className="space-y-4">
-            <Card className="border-primary/20 bg-gradient-to-b from-card to-muted/20 shadow-md overflow-hidden">
-              <CardHeader className="py-3 px-4 border-b border-border/60 bg-muted/40 flex flex-row items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                  <Sparkles className="size-3.5 text-primary" />
-                  Preview
-                </span>
-                <Badge
-                  variant={liveStatus === "published" ? "default" : "secondary"}
-                  className="text-[10px]"
-                >
-                  {liveStatus === "published"
-                    ? "Publicado"
-                    : liveStatus === "archived"
-                      ? "Arquivado"
-                      : "Rascunho"}
-                </Badge>
-              </CardHeader>
-              <CardContent className="p-4 space-y-4">
-                <div className="relative aspect-square rounded-xl bg-muted/60 overflow-hidden border border-border flex items-center justify-center">
+            {/* The Truthful Preview Phone Mockup */}
+            <div className="mx-auto w-full max-w-[340px] rounded-[2.5rem] border-[10px] border-zinc-900 bg-background overflow-hidden shadow-2xl relative h-[650px] flex flex-col">
+              {/* Notch */}
+              <div className="absolute top-0 inset-x-0 h-5 bg-zinc-900 rounded-b-xl w-32 mx-auto z-10" />
+              
+              <div className="flex-1 overflow-y-auto no-scrollbar pt-8 pb-12 flex flex-col">
+                <div className="relative aspect-[4/5] bg-muted/30 overflow-hidden w-full flex items-center justify-center">
                   {coverImage ? (
                     <img src={coverImage} alt={liveTitle} className="w-full h-full object-cover" />
                   ) : (
@@ -191,41 +183,70 @@ function EditProductPage() {
                       <span className="text-xs">Sem foto de capa</span>
                     </div>
                   )}
+                  {/* Floating Status Badge */}
+                  <div className="absolute top-4 left-4 z-10">
+                    <Badge
+                      variant={liveStatus === "published" ? "default" : "secondary"}
+                      className="shadow-md bg-background text-foreground"
+                    >
+                      {liveStatus === "published"
+                        ? "Publicado"
+                        : liveStatus === "archived"
+                          ? "Arquivado"
+                          : "Rascunho"}
+                    </Badge>
+                  </div>
                 </div>
-                <div className="space-y-1.5">
+                
+                <div className="p-5 flex-1 flex flex-col">
                   {liveBrand && (
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-primary">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
                       {liveBrand}
                     </span>
                   )}
-                  <h3 className="text-base font-bold text-foreground line-clamp-2">
+                  <h3 className="text-xl font-black text-foreground uppercase tracking-tight leading-none mb-3">
                     {liveTitle || "Título do produto..."}
                   </h3>
-                  <div className="pt-1">
+                  
+                  <div className="mb-6">
                     <PriceDisplay
                       amountCents={livePriceCents}
                       compareAtCents={liveCompareCents ?? undefined}
                       size="lg"
                     />
                   </div>
-                  {profitMarginPercent !== null && (
-                    <div className="pt-2">
-                      <Badge
-                        variant="outline"
-                        className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-xs gap-1"
-                      >
-                        <TrendingUp className="size-3.5" /> Margem Estimada: {profitMarginPercent}%
-                      </Badge>
+
+                  {liveDescription && (
+                    <div className="text-sm text-muted-foreground line-clamp-3 mb-6 font-mono leading-relaxed">
+                      {liveDescription}
                     </div>
                   )}
+
+                  <div className="mt-auto">
+                    <Button className="w-full h-12 text-base font-bold rounded-full uppercase shadow-brand bg-primary text-primary-foreground border-2 border-ink">
+                      Comprar Agora
+                    </Button>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
+
+            {profitMarginPercent !== null && (
+              <div className="text-center">
+                <Badge
+                  variant="outline"
+                  className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 px-3 py-1 text-xs gap-1.5 font-mono"
+                >
+                  <TrendingUp className="size-3.5" /> Margem Estimada: {profitMarginPercent}%
+                </Badge>
+              </div>
+            )}
           </div>
         }
         sections={[
           { id: "geral", label: "Informações Básicas", icon: <Box /> },
           { id: "midias", label: "Galeria de Fotos", icon: <ImagePlus /> },
+          { id: "opcoes", label: "Opções & Adicionais", icon: <Settings /> },
           { id: "variantes", label: "Estoque & Variações", icon: <LayoutList /> },
         ]}
       >
@@ -266,6 +287,18 @@ function EditProductPage() {
             </p>
           </div>
           <VariantsManager product={product} />
+        </div>
+
+        <div id="opcoes" className="scroll-mt-32 pt-12 border-t">
+          <div className="mb-6">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <Settings className="size-5 text-primary" /> Opções &amp; Adicionais
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Grupos de opções que o cliente escolhe ao adicionar ao carrinho (ex: sabor, adicional, personalização).
+            </p>
+          </div>
+          <OptionGroupsManager productId={product.id} />
         </div>
       </ProductEditorLayout>
     </div>
@@ -866,7 +899,7 @@ function VariantsManager({ product }: { product: any }) {
   return (
     <div className="space-y-6">
       <Accordion type="single" collapsible className="w-full">
-        <AccordionItem value="builder" className="border rounded-lg bg-card px-4">
+        <AccordionItem value="builder" className="border bg-card px-4">
           <AccordionTrigger className="hover:no-underline text-base font-semibold">
             <div className="flex items-center gap-2">
               <Sparkles className="size-5 text-amber-500" />
@@ -1033,7 +1066,7 @@ function MediaManager({ product }: { product: any }) {
               return (
                 <div
                   key={m.id || idx}
-                  className="relative group border rounded-xl overflow-hidden bg-card shadow-sm flex flex-col justify-between"
+                  className="relative group border overflow-hidden bg-card shadow-sm flex flex-col justify-between"
                 >
                   <div className="relative aspect-[4/3] bg-muted overflow-hidden flex items-center justify-center">
                     {m.media_type === "video" ? (
@@ -1052,7 +1085,7 @@ function MediaManager({ product }: { product: any }) {
                       </Badge>
                     )}
                     {m.media_type === "video" && (
-                      <Badge className="absolute top-2 right-12 text-[10px] bg-red-500 hover:bg-red-600 text-white border-none">
+                      <Badge className="absolute top-2 right-12 text-[10px] bg-destructive hover:bg-destructive text-white border-none">
                         Vídeo
                       </Badge>
                     )}
@@ -1182,5 +1215,338 @@ function MediaManager({ product }: { product: any }) {
         )}
       </Sheet>
     </Card>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// OptionGroupsManager — Microfase F
+// Gestor de grupos de opções/adicionais do produto.
+// Cada grupo tem um tipo de seleção, regras min/max e uma lista de valores.
+// ---------------------------------------------------------------------------
+
+type OptionValue = {
+  id?: string;
+  label: string;
+  price_modifier_cents: number;
+  is_default: boolean;
+  is_active: boolean;
+};
+
+type LocalOptionGroup = {
+  id?: string;
+  internal_name: string;
+  display_name: string;
+  selection_type: "single" | "multiple";
+  min_selections: number;
+  max_selections: number;
+  is_required: boolean;
+  values: OptionValue[];
+};
+
+function OptionGroupsManager({ productId }: { productId: string }) {
+  const [groups, setGroups] = useState<LocalOptionGroup[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Carrega grupos do servidor
+  useEffect(() => {
+    listProductOptionGroups({ data: { product_id: productId } })
+      .then((data) => {
+        if (data && data.length > 0) {
+          setGroups(
+            data.map((g: any) => {
+              const og = g.option_groups;
+              if (!og) return null;
+              return {
+                id: og.id,
+                internal_name: og.internal_name,
+                display_name: og.display_name,
+                selection_type: og.selection_type,
+                min_selections: og.min_selections,
+                max_selections: og.max_selections,
+                is_required: og.is_required,
+                values: (og.option_values || []).map((v: any) => ({
+                  id: v.id,
+                  label: v.label,
+                  price_modifier_cents: v.price_modifier_cents,
+                  is_default: v.is_default,
+                  is_active: v.is_active,
+                })),
+              };
+            }).filter(Boolean),
+          );
+        }
+      })
+      .catch((e) => toast.error("Erro ao carregar opções: " + e.message))
+      .finally(() => setIsLoading(false));
+  }, [productId]);
+
+  const addGroup = () => {
+    setGroups((prev) => [
+      ...prev,
+      {
+        internal_name: "",
+        display_name: "",
+        selection_type: "single",
+        min_selections: 0,
+        max_selections: 1,
+        is_required: false,
+        values: [{ label: "", price_modifier_cents: 0, is_default: false, is_active: true }],
+      },
+    ]);
+  };
+
+  const removeGroup = (idx: number) => {
+    setGroups((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const updateGroup = (idx: number, field: keyof LocalOptionGroup, value: any) => {
+    setGroups((prev) =>
+      prev.map((g, i) => (i === idx ? { ...g, [field]: value } : g)),
+    );
+  };
+
+  const addValue = (groupIdx: number) => {
+    setGroups((prev) =>
+      prev.map((g, i) =>
+        i === groupIdx
+          ? {
+              ...g,
+              values: [
+                ...g.values,
+                { label: "", price_modifier_cents: 0, is_default: false, is_active: true },
+              ],
+            }
+          : g,
+      ),
+    );
+  };
+
+  const removeValue = (groupIdx: number, valueIdx: number) => {
+    setGroups((prev) =>
+      prev.map((g, i) =>
+        i === groupIdx ? { ...g, values: g.values.filter((_, vi) => vi !== valueIdx) } : g,
+      ),
+    );
+  };
+
+  const updateValue = (groupIdx: number, valueIdx: number, field: keyof OptionValue, val: any) => {
+    setGroups((prev) =>
+      prev.map((g, i) =>
+        i === groupIdx
+          ? {
+              ...g,
+              values: g.values.map((v, vi) => (vi === valueIdx ? { ...v, [field]: val } : v)),
+            }
+          : g,
+      ),
+    );
+  };
+
+  const handleSave = async () => {
+    // Validação básica
+    for (const g of groups) {
+      if (!g.display_name.trim()) {
+        toast.error("Todos os grupos precisam de um nome de exibição.");
+        return;
+      }
+      for (const v of g.values) {
+        if (!v.label.trim()) {
+          toast.error(`Grupo "${g.display_name}" tem uma opção sem rótulo.`);
+          return;
+        }
+      }
+    }
+
+    setIsSaving(true);
+    try {
+      await batchSaveOptionGroups({
+        data: {
+          product_id: productId,
+          groups: groups.map((g, i) => ({
+            ...g,
+            product_id: productId,
+            sort_order: i,
+          })),
+        },
+      });
+      toast.success("Opções salvas com sucesso!");
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao salvar opções.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-8">
+        <Loader2 className="size-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {groups.length === 0 ? (
+        <Card className="border-dashed border-2 border-muted-foreground/20">
+          <CardContent className="py-10 flex flex-col items-center text-center gap-3">
+            <Settings className="size-10 text-muted-foreground/40" />
+            <div>
+              <p className="font-semibold text-foreground">Nenhum grupo de opções</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Adicione grupos para que o cliente personalize o pedido (ex: ponto da carne, adicionais, tamanho de impressão).
+              </p>
+            </div>
+            <Button variant="outline" size="sm" onClick={addGroup}>
+              <Plus className="size-4 mr-2" />
+              Adicionar Grupo
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          {groups.map((group, gIdx) => (
+            <Card key={gIdx} className="border border-border">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="grid grid-cols-2 gap-3 flex-1">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Nome de Exibição (cliente vê)</Label>
+                      <Input
+                        value={group.display_name}
+                        onChange={(e) => {
+                          updateGroup(gIdx, "display_name", e.target.value);
+                          if (!group.internal_name) updateGroup(gIdx, "internal_name", e.target.value);
+                        }}
+                        placeholder="Ex: Ponto da carne, Adicionais"
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Tipo de Seleção</Label>
+                      <Select
+                        value={group.selection_type}
+                        onValueChange={(v) => updateGroup(gIdx, "selection_type", v)}
+                      >
+                        <SelectTrigger className="h-8 text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="single">Única (radio)</SelectItem>
+                          <SelectItem value="multiple">Múltipla (checkbox)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => removeGroup(gIdx)}
+                    className="text-muted-foreground hover:text-destructive transition-colors mt-1 shrink-0"
+                    title="Remover grupo"
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-4 mt-2 flex-wrap">
+                  <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer">
+                    <Checkbox
+                      checked={group.is_required}
+                      onCheckedChange={(v) => updateGroup(gIdx, "is_required", !!v)}
+                      className="size-3.5"
+                    />
+                    Obrigatório
+                  </label>
+                  {group.selection_type === "multiple" && (
+                    <>
+                      <div className="flex items-center gap-1.5 text-xs">
+                        <span className="text-muted-foreground">Mín:</span>
+                        <Input
+                          type="number"
+                          min={0}
+                          value={group.min_selections}
+                          onChange={(e) => updateGroup(gIdx, "min_selections", Number(e.target.value))}
+                          className="h-6 w-14 text-xs px-1"
+                        />
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs">
+                        <span className="text-muted-foreground">Máx:</span>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={group.max_selections}
+                          onChange={(e) => updateGroup(gIdx, "max_selections", Number(e.target.value))}
+                          className="h-6 w-14 text-xs px-1"
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              </CardHeader>
+
+              <CardContent className="pt-0 pb-3">
+                <div className="space-y-2 mb-3">
+                  {group.values.map((val, vIdx) => (
+                    <div key={vIdx} className="flex items-center gap-2">
+                      <Input
+                        value={val.label}
+                        onChange={(e) => updateValue(gIdx, vIdx, "label", e.target.value)}
+                        placeholder="Rótulo da opção"
+                        className="h-8 text-sm flex-1"
+                      />
+                      <div className="flex items-center gap-1 shrink-0">
+                        <span className="text-xs text-muted-foreground">R$</span>
+                        <Input
+                          type="number"
+                          min={0}
+                          step={0.01}
+                          value={(val.price_modifier_cents / 100).toFixed(2)}
+                          onChange={(e) =>
+                            updateValue(
+                              gIdx,
+                              vIdx,
+                              "price_modifier_cents",
+                              Math.round(Number(e.target.value) * 100),
+                            )
+                          }
+                          className="h-8 w-20 text-sm"
+                          placeholder="0,00"
+                        />
+                      </div>
+                      <button
+                        onClick={() => removeValue(gIdx, vIdx)}
+                        className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                        disabled={group.values.length === 1}
+                        title="Remover opção"
+                      >
+                        <X className="size-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => addValue(gIdx)} className="h-7 text-xs text-muted-foreground">
+                  <Plus className="size-3.5 mr-1" />
+                  Adicionar opção
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+
+          <Button variant="outline" size="sm" onClick={addGroup} className="w-full border-dashed">
+            <Plus className="size-4 mr-2" />
+            Adicionar Grupo de Opções
+          </Button>
+        </>
+      )}
+
+      {groups.length > 0 && (
+        <div className="flex justify-end pt-2">
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
+            Salvar Opções
+          </Button>
+        </div>
+      )}
+    </div>
   );
 }

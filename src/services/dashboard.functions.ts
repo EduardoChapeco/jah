@@ -131,7 +131,11 @@ export async function getDashboardDataHandler(): Promise<DashboardMetrics> {
       ordersBreakdown.shippedOrReady++;
     } else if (order.status === "processing" || order.status === "paid" || isPaid) {
       // If it's paid but not yet shipped, check if any item is backordered
-      const items = Array.isArray(order.order_items) ? order.order_items : (order.order_items ? [order.order_items] : []);
+      const items = Array.isArray(order.order_items)
+        ? order.order_items
+        : order.order_items
+          ? [order.order_items]
+          : [];
       const hasBackorder = items.some((item: any) => {
         const variant = item.product_variants;
         if (!variant) return false;
@@ -254,3 +258,43 @@ export const getDashboardData = createServerFn({ method: "GET" }).handler(async 
     throw new Error(e?.message || "Erro ao carregar dados do painel.");
   }
 });
+
+// ---------------------------------------------------------------------------
+// Relatórios All-Time (Para a página de Relatórios)
+// ---------------------------------------------------------------------------
+
+export const getDashboardStats = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const db = getServerClient();
+    const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+    if (!storeData) return { status: "unconfigured" as const };
+
+    const storeId = storeData.id;
+
+    const [ordersRes, productsRes, customersRes] = await Promise.all([
+      db.from("orders").select("total_cents, status").eq("store_id", storeId),
+      db.from("products").select("id, status").eq("store_id", storeId),
+      db.from("profiles").select("id").eq("store_id", storeId).eq("role", "customer"),
+    ]);
+
+    const orders = ordersRes.data || [];
+    const paidOrders = orders.filter((o) =>
+      ["paid", "processing", "shipped", "delivered", "completed"].includes(o.status),
+    );
+    const revenueCents = paidOrders.reduce((sum, o) => sum + (o.total_cents || 0), 0);
+
+    return {
+      status: "ok" as const,
+      totalRevenueCents: revenueCents,
+      totalOrders: orders.length,
+      paidOrders: paidOrders.length,
+      totalProducts: productsRes.data?.length || 0,
+      publishedProducts: productsRes.data?.filter((p) => p.status === "published").length || 0,
+      totalCustomers: customersRes.data?.length || 0,
+    };
+  } catch (e: any) {
+    console.error("[dashboard.functions] getDashboardStats:", e);
+    throw new Error("Erro ao carregar estatísticas.");
+  }
+});
+

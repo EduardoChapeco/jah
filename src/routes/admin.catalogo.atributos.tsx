@@ -271,7 +271,7 @@ function AtributosPage() {
                     </Button>
                   </div>
 
-                  <div className="flex flex-wrap gap-1.5 pt-2 min-h-12 p-2 rounded-lg border bg-muted/30">
+                  <div className="flex flex-wrap gap-1.5 pt-2 min-h-12 p-2 border bg-muted/30">
                     {optionsList.length === 0 ? (
                       <span className="text-xs text-muted-foreground self-center">
                         Nenhuma opção adicionada ainda.
@@ -312,7 +312,12 @@ function AtributosPage() {
       />
 
       {/* Seção 1: Presets Prontos (1-Click Import) */}
-      <Surface variant="zine" elevation="sm" padding="md" className="border-primary/20 bg-primary/5 dark:bg-primary/10">
+      <Surface
+        variant="zine"
+        elevation="sm"
+        padding="md"
+        className="border-primary/20 bg-primary/5 dark:bg-primary/10"
+      >
         <div className="pb-3 border-b border-ink/10 mb-4">
           <h3 className="font-display font-bold text-lg flex items-center gap-2">
             <Sparkles className="size-5 text-primary" aria-hidden />
@@ -330,7 +335,7 @@ function AtributosPage() {
             return (
               <div
                 key={preset.id}
-                className="p-4 rounded-xl border border-ink/20 bg-card hover:border-primary/40 transition-all flex flex-col justify-between gap-3"
+                className="p-4 border border-ink/20 bg-card hover:border-primary/40 transition-all flex flex-col justify-between gap-3"
               >
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -394,10 +399,7 @@ function AtributosPage() {
                 );
 
                 return (
-                  <div
-                    key={type.id}
-                    className="p-4 rounded-xl border border-ink/20 bg-card space-y-3"
-                  >
+                  <div key={type.id} className="p-4 border border-ink/20 bg-card space-y-3">
                     <div className="flex items-center justify-between">
                       <div>
                         <h4 className="text-sm font-bold text-foreground">{type.name}</h4>
@@ -417,7 +419,11 @@ function AtributosPage() {
                         </span>
                         <div className="flex flex-wrap gap-1">
                           {f.options.map((opt: string) => (
-                            <Badge key={opt} variant="outline" className="text-xs bg-muted/40 border-ink/30">
+                            <Badge
+                              key={opt}
+                              variant="outline"
+                              className="text-xs bg-muted/40 border-ink/30"
+                            >
                               {opt}
                             </Badge>
                           ))}

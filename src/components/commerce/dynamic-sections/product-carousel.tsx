@@ -101,7 +101,7 @@ export function ProductCarousel({
             {subtitle && <p className="text-muted-foreground text-sm @md:text-lg">{subtitle}</p>}
           </div>
           <Button variant="ghost" className="hidden @md:flex gap-2 group" asChild>
-            <Link to="/catalogo">
+            <Link to="/mercado">
               Ver Todos
               <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </Link>
@@ -109,7 +109,7 @@ export function ProductCarousel({
         </div>
 
         {products.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center gap-4 text-muted-foreground border-2 border-dashed border-border rounded-lg">
+          <div className="flex flex-col items-center justify-center py-16 text-center gap-4 text-muted-foreground border-2 border-dashed border-border">
             <ShoppingBag className="h-10 w-10 opacity-30" />
             <div>
               <p className="font-medium">Nenhum produto disponível</p>

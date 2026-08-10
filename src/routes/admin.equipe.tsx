@@ -25,7 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Surface } from "@/components/ui/surface";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Select,
@@ -212,46 +212,46 @@ function TeamPage() {
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="rounded-xl border border-border bg-card shadow-xs">
-          <CardHeader className="py-3 px-4 flex flex-row items-center justify-between">
+        <Surface variant="polaroid" padding="none" className="border border-border bg-card">
+          <header className="py-3 px-4 flex flex-row items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Total da Equipe
             </span>
             <Users className="size-4 text-primary" />
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
+          </header>
+          <div className="p-4 pt-0">
             <div className="text-2xl font-bold">{team.length} membro(s)</div>
             <p className="text-xs text-muted-foreground mt-1">Usuários cadastrados nesta loja</p>
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
 
-        <Card className="rounded-xl border border-border bg-card shadow-xs">
-          <CardHeader className="py-3 px-4 flex flex-row items-center justify-between">
+        <Surface variant="polaroid" padding="none" className="border border-border bg-card">
+          <header className="py-3 px-4 flex flex-row items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Vendedoras de Balcão
             </span>
             <Briefcase className="size-4 text-success" />
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
+          </header>
+          <div className="p-4 pt-0">
             <div className="text-2xl font-bold">{sellersCount} vendedora(s)</div>
             <p className="text-xs text-muted-foreground mt-1">
               Perfil operacional com acesso ao PDV
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
 
-        <Card className="rounded-xl border border-border bg-card shadow-xs">
-          <CardHeader className="py-3 px-4 flex flex-row items-center justify-between">
+        <Surface variant="polaroid" padding="none" className="border border-border bg-card">
+          <header className="py-3 px-4 flex flex-row items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Gestão & Admin
             </span>
             <ShieldCheck className="size-4 text-warning" />
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
+          </header>
+          <div className="p-4 pt-0">
             <div className="text-2xl font-bold">{managersCount} gestor(es)</div>
             <p className="text-xs text-muted-foreground mt-1">Acesso administrativo completo</p>
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
       </div>
 
       {/* Barra de Busca e Tabela */}
@@ -273,78 +273,80 @@ function TeamPage() {
             description="Tente ajustar os termos da sua busca ou cadastre um novo membro no botão acima."
           />
         ) : (
-          <div className="rounded-xl border border-border bg-card overflow-hidden shadow-xs">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/40">
-                  <TableHead>Colaborador</TableHead>
-                  <TableHead>Data de Entrada</TableHead>
-                  <TableHead>Cargo / Permissão</TableHead>
-                  <TableHead className="text-right">Alterar Nível de Acesso</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredTeam.map((member) => (
-                  <TableRow key={member.id} className="hover:bg-muted/30 transition-colors">
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="size-9 border border-border">
-                          <AvatarFallback className="bg-primary/10 text-primary font-bold text-xs">
-                            {getInitials(member.full_name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col">
-                          <span className="font-bold text-sm text-foreground">
-                            {member.full_name || "Usuário Convidado"}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {member.email || "Sem e-mail registrado"}
-                          </span>
-                        </div>
-                      </div>
-                    </TableCell>
-
-                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
-                      {formatDateTime(member.created_at)}
-                    </TableCell>
-
-                    <TableCell>
-                      <Badge
-                        variant={member.role === "owner" ? "default" : "secondary"}
-                        className="text-xs font-semibold px-2.5 py-0.5"
-                      >
-                        {roleLabels[member.role] || member.role}
-                      </Badge>
-                    </TableCell>
-
-                    <TableCell className="text-right">
-                      <Select
-                        defaultValue={member.role}
-                        onValueChange={(val) => handleRoleChange(member.id, val)}
-                        disabled={
-                          member.role === "owner" ||
-                          (session?.role !== "owner" && member.role === "admin") ||
-                          member.id === session?.id
-                        }
-                      >
-                        <SelectTrigger className="w-[190px] ml-auto h-8 text-xs font-medium">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent align="end">
-                          <SelectItem value="admin">Administrador(a)</SelectItem>
-                          <SelectItem value="manager">Gerente</SelectItem>
-                          <SelectItem value="seller">Vendedor(a)</SelectItem>
-                          <SelectItem value="finance">Financeiro</SelectItem>
-                          <SelectItem value="content">Marketing</SelectItem>
-                          <SelectItem value="customer">Revogar Acesso</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
+          <Surface variant="default" padding="none">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/40">
+                    <TableHead>Colaborador</TableHead>
+                    <TableHead>Data de Entrada</TableHead>
+                    <TableHead>Cargo / Permissão</TableHead>
+                    <TableHead className="text-right">Alterar Nível de Acesso</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {filteredTeam.map((member) => (
+                    <TableRow key={member.id} className="hover:bg-muted/30 transition-colors">
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="size-9 border border-border">
+                            <AvatarFallback className="bg-primary/10 text-primary font-bold text-xs">
+                              {getInitials(member.full_name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex flex-col">
+                            <span className="font-bold text-sm text-foreground">
+                              {member.full_name || "Usuário Convidado"}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {member.email || "Sem e-mail registrado"}
+                            </span>
+                          </div>
+                        </div>
+                      </TableCell>
+
+                      <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                        {formatDateTime(member.created_at)}
+                      </TableCell>
+
+                      <TableCell>
+                        <Badge
+                          variant={member.role === "owner" ? "default" : "secondary"}
+                          className="text-xs font-semibold px-2.5 py-0.5"
+                        >
+                          {roleLabels[member.role] || member.role}
+                        </Badge>
+                      </TableCell>
+
+                      <TableCell className="text-right">
+                        <Select
+                          defaultValue={member.role}
+                          onValueChange={(val) => handleRoleChange(member.id, val)}
+                          disabled={
+                            member.role === "owner" ||
+                            (session?.role !== "owner" && member.role === "admin") ||
+                            member.id === session?.id
+                          }
+                        >
+                          <SelectTrigger className="w-[190px] ml-auto h-8 text-xs font-medium">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent align="end">
+                            <SelectItem value="admin">Administrador(a)</SelectItem>
+                            <SelectItem value="manager">Gerente</SelectItem>
+                            <SelectItem value="seller">Vendedor(a)</SelectItem>
+                            <SelectItem value="finance">Financeiro</SelectItem>
+                            <SelectItem value="content">Marketing</SelectItem>
+                            <SelectItem value="customer">Revogar Acesso</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </Surface>
         )}
       </div>
     </div>

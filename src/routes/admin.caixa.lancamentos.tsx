@@ -3,6 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Plus, Wallet, ArrowLeft } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { Surface } from "@/components/ui/surface";
 
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ import { getActiveRegister, addRegisterEntry } from "@/services/cash.functions";
 import { formatDateTime } from "@/lib/datetime";
 import { parseCurrencyInputToCents } from "@/lib/cash";
 import { formatMoney } from "@/lib/money";
+import { formatDate } from "../lib/datetime";
 
 export const Route = createFileRoute("/admin/caixa/lancamentos")({
   head: () => ({ meta: [{ title: "Lançamentos do Caixa" }] }),
@@ -126,7 +128,7 @@ function CaixaLancamentosPage() {
           </div>
           <PageHeader
             title="Lançamentos do Caixa"
-            description={`Caixa aberto em ${new Date(register.opened_at).toLocaleDateString("pt-BR")} — Saldo atual: ${formatMoney(register.currentBalanceCents)}`}
+            description={`Caixa aberto em ${formatDate(register.opened_at)} — Saldo atual: ${formatMoney(register.currentBalanceCents)}`}
           />
         </div>
         <Sheet open={open} onOpenChange={setOpen}>
@@ -210,19 +212,31 @@ function CaixaLancamentosPage() {
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        <div className="rounded-xl border border-border shadow-xs bg-card p-4">
+        <Surface
+          variant="polaroid"
+          padding="md"
+          className="border border-border shadow-xs bg-card p-4"
+        >
           <p className="text-sm text-muted-foreground">Saldo Inicial</p>
           <p className="mt-1 text-2xl font-semibold">
             {formatMoney(register.initial_balance_cents)}
           </p>
-        </div>
-        <div className="rounded-xl border border-border shadow-xs bg-card p-4">
+        </Surface>
+        <Surface
+          variant="polaroid"
+          padding="md"
+          className="border border-border shadow-xs bg-card p-4"
+        >
           <p className="text-sm text-muted-foreground">Saldo Atual</p>
           <p className="mt-1 text-2xl font-semibold text-success">
             {formatMoney(register.currentBalanceCents)}
           </p>
-        </div>
-        <div className="rounded-xl border border-border shadow-xs bg-card p-4 flex items-center gap-3">
+        </Surface>
+        <Surface
+          variant="polaroid"
+          padding="md"
+          className="border border-border shadow-xs bg-card p-4 flex items-center gap-3"
+        >
           <Wallet className="h-8 w-8 text-muted-foreground" />
           <div>
             <p className="text-sm text-muted-foreground">Status</p>
@@ -230,53 +244,53 @@ function CaixaLancamentosPage() {
               Aberto
             </Badge>
           </div>
-        </div>
+        </Surface>
       </div>
 
       {/* Lançamentos Table */}
-      <div className="rounded-xl border border-border bg-card overflow-hidden shadow-xs">
+      <Surface variant="default" padding="none">
         <div className="p-4 border-b border-border">
           <h3 className="font-semibold text-foreground">Extrato do Turno</h3>
         </div>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Data/Hora</TableHead>
-              <TableHead>Descrição</TableHead>
-              <TableHead>Método</TableHead>
-              <TableHead className="text-right">Valor</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {register.recentEntries.map((entry: any) => (
-              <TableRow key={entry.id}>
-                <TableCell className="text-sm">
-                  {formatDateTime(entry.created_at)}
-                </TableCell>
-                <TableCell className="font-medium text-foreground">{entry.description}</TableCell>
-                <TableCell>
-                  <Badge variant="outline" className="capitalize">
-                    {translateMethod(entry.method)}
-                  </Badge>
-                </TableCell>
-                <TableCell
-                  className={`text-right font-semibold ${entry.amount_cents >= 0 ? "text-success" : "text-destructive"}`}
-                >
-                  {entry.amount_cents >= 0 ? "+" : "-"}
-                  {formatMoney(Math.abs(entry.amount_cents))}
-                </TableCell>
-              </TableRow>
-            ))}
-            {register.recentEntries.length === 0 && (
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={4} className="text-center h-24 text-muted-foreground text-sm">
-                  Nenhum lançamento registrado neste turno.
-                </TableCell>
+                <TableHead>Data/Hora</TableHead>
+                <TableHead>Descrição</TableHead>
+                <TableHead>Método</TableHead>
+                <TableHead className="text-right">Valor</TableHead>
               </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {register.recentEntries.map((entry: any) => (
+                <TableRow key={entry.id}>
+                  <TableCell className="text-sm">{formatDateTime(entry.created_at)}</TableCell>
+                  <TableCell className="font-medium text-foreground">{entry.description}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="capitalize">
+                      {translateMethod(entry.method)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell
+                    className={`text-right font-semibold ${entry.amount_cents >= 0 ? "text-success" : "text-destructive"}`}
+                  >
+                    {entry.amount_cents >= 0 ? "+" : "-"}
+                    {formatMoney(Math.abs(entry.amount_cents))}
+                  </TableCell>
+                </TableRow>
+              ))}
+              {register.recentEntries.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center h-24 text-muted-foreground text-sm">
+                    Nenhum lançamento registrado neste turno.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </Surface>
     </div>
   );
 }

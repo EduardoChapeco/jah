@@ -1,11 +1,12 @@
 # Dossiê 03: Eventos Culturais, Ingressos e Check-in
 
 **Status**: Especificação Final  
-**Domínio**: Event & Ticketing Management  
+**Domínio**: Event & Ticketing Management
 
 ---
 
 ## 1. Necessidade Humana
+
 **Quem utiliza?** Produtores de Cultura, Artistas, Donos de Casas Noturnas (Lojistas) e Festeiros/Público.
 **Por que utiliza?** O Produtor quer centralizar a venda antecipada, ter previsibilidade de caixa, administrar listas VIP/cortesias e ter um check-in rápido na porta (sem internet caindo). O Público quer achar o rolê no feed, comprar o ingresso rápido (com PIX/Cartão), ter o QR Code salvo na Apple Wallet/Google Pay ou no próprio app da Jah, e não sofrer golpe na porta.
 **Problema que resolve:** Fragmentação. Hoje o produtor vende no Sympla (pagando 10%), faz a divulgação no Instagram, o financeiro em planilha e o PDV do bar na maquininha. A Jah une tudo sob a mesma Organização. O mesmo usuário que posta no feed pode virar ingresso na porta.
@@ -48,7 +49,7 @@
   - Informa o email/id do amigo.
   - A posse (`owner_profile_id`) do ticket muda. Um log de auditoria documenta isso.
 - **Cancelamento do Evento:**
-  - Status vai para `cancelled`. 
+  - Status vai para `cancelled`.
   - Todos os ingressos `valid` viram `refunded`. Um batch job agenda os estornos no Gateway.
 
 ---
@@ -56,6 +57,7 @@
 ## 4. Máquina de Estados e Transições
 
 **`events` (Evento Real)**
+
 - `draft`: Construindo.
 - `published`: Divulgado/Vendas abertas.
 - `active`: Acontecendo agora (Check-in rodando).
@@ -63,12 +65,14 @@
 - `cancelled`: Estornar tudo.
 
 **`ticket_lots` (Lotes)**
+
 - `scheduled`: Aguardando a data de início.
 - `active`: Vendendo.
 - `sold_out`: Atingiu limite `capacity`. Gatilho para ativar o próximo lote se houver.
 - `expired`: Tempo limite atingido.
 
 **`tickets` (O Documento Visual e Real)**
+
 - `reserved`: No carrinho.
 - `valid`: Pago, pronto pra porta.
 - `used`: Entrou (Check-in).
@@ -79,7 +83,7 @@
 ## 5. Regras de Negócio e Concorrência
 
 1. **Idempotência no Check-in:**
-   - Duas recepcionistas escaneiam o mesmo ingresso no mesmo milissegundo. 
+   - Duas recepcionistas escaneiam o mesmo ingresso no mesmo milissegundo.
    - Apenas UMA request pode retornar 200 OK. O banco deve fazer update com restrição: `UPDATE tickets SET status = 'used' WHERE id = X AND status = 'valid'`. A segunda falhará por não achar `valid`.
 2. **Virada de Lote:**
    - Nunca basear a virada puramente no relógio do Frontend.
@@ -136,6 +140,7 @@
 ## 12. Critério de Conclusão
 
 Este domínio estará pronto quando:
+
 1. Produtor conseguir gerar 3 lotes automáticos.
 2. Comprador esgotar o Lote 1 e o sistema mostrar o Lote 2.
 3. Check-in falhar em bilhetes falsos, duplicados ou já lidos (garantia de idempotência na API).

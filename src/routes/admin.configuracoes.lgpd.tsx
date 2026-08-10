@@ -62,19 +62,19 @@ function LgpdPage() {
   const statusConfig = {
     ok: {
       icon: CheckCircle2,
-      color: "text-green-600",
+      color: "text-success",
       badge: "default" as const,
       label: "Conforme",
     },
     partial: {
       icon: AlertCircle,
-      color: "text-yellow-600",
+      color: "text-warning",
       badge: "secondary" as const,
       label: "Parcial",
     },
     attention: {
       icon: Info,
-      color: "text-blue-600",
+      color: "text-primary",
       badge: "outline" as const,
       label: "Atenção",
     },
@@ -87,7 +87,7 @@ function LgpdPage() {
         description="Checklist de adequação da plataforma à Lei Geral de Proteção de Dados (Lei 13.709/2018)."
       />
 
-      <div className="rounded-lg border bg-card p-5 flex items-start gap-3">
+      <div className="border bg-card p-5 flex items-start gap-3">
         <Shield className="h-5 w-5 text-primary mt-0.5 shrink-0" />
         <p className="text-sm text-muted-foreground">
           Esta página apresenta o status de conformidade da plataforma com os requisitos da LGPD. Os
@@ -100,7 +100,7 @@ function LgpdPage() {
           const cfg = statusConfig[req.status as keyof typeof statusConfig];
           const Icon = cfg.icon;
           return (
-            <div key={i} className="rounded-lg border bg-card p-4 flex items-start gap-4">
+            <div key={i} className="border bg-card p-4 flex items-start gap-4">
               <Icon className={`h-5 w-5 shrink-0 mt-0.5 ${cfg.color}`} />
               <div className="flex-1">
                 <div className="flex items-center justify-between gap-3">

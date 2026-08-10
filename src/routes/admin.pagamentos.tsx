@@ -17,6 +17,7 @@ import { approvePayment } from "@/services/payment.functions";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "@tanstack/react-router";
+import { formatDate } from "../lib/datetime";
 
 export const Route = createFileRoute("/admin/pagamentos")({
   head: () => ({ meta: [{ title: "Pagamentos" }] }),
@@ -78,7 +79,7 @@ function AdminPaymentsPage() {
             </TableHeader>
             <TableBody>
               {payments.map((p: any) => {
-                const date = new Date(p.created_at).toLocaleDateString("pt-BR");
+                const date = formatDate(p.created_at);
                 // customer_snapshot is a JSONB column with { name, email, phone }
                 const customerName = p.customer_snapshot?.name || "Desconhecido";
                 return (
@@ -97,13 +98,13 @@ function AdminPaymentsPage() {
                     <TableCell>{formatMoney(p.total_cents)}</TableCell>
                     <TableCell>
                       {p.status === "awaiting_payment" ? (
-                        <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+                        <Badge variant="outline" className="text-warning border-yellow-600">
                           Aguardando
                         </Badge>
                       ) : p.status === "payment_processing" ? (
                         <Badge variant="secondary">Comprovante Enviado</Badge>
                       ) : (
-                        <Badge className="bg-green-600 hover:bg-green-700">Aprovado</Badge>
+                        <Badge className="bg-success hover:bg-success">Aprovado</Badge>
                       )}
                     </TableCell>
                     <TableCell className="text-right">

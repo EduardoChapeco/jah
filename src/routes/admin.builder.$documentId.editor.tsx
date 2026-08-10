@@ -19,13 +19,11 @@ import { ExperienceRenderer } from "@/components/commerce/experience-renderer";
 import { builderRegistry } from "@/lib/builder-registry";
 import { cn } from "@/lib/utils";
 import { BuilderTopBar } from "@/components/admin/builder/builder-top-bar";
-import {
-  BuilderLeftPanel,
-  BLOCK_CATEGORIES,
-  SECTION_PRESETS,
-} from "@/components/admin/builder/builder-left-panel";
+import { BuilderLeftPanel, BLOCK_CATEGORIES } from "@/components/admin/builder/builder-left-panel";
 import { BuilderCanvas } from "@/components/admin/builder/builder-canvas";
 import { BuilderInspector } from "@/components/admin/builder/builder-inspector";
+import { GuidedSectionPicker } from "@/components/admin/builder/guided-section-picker";
+import type { SectionTemplate } from "@/lib/builder-types";
 
 // ─── History Hook ─────────────────────────────────────────────────────────────
 
@@ -150,7 +148,8 @@ function BuilderEditorIDE() {
   const [isPublishing, setIsPublishing] = useState(false);
   const [isApplyingTemplate, setIsApplyingTemplate] = useState(false);
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
-  const [activePanel, setActivePanel] = useState<"sections" | "blocks" | "layers">("sections");
+  const [isGuidedPickerOpen, setIsGuidedPickerOpen] = useState(false);
+  const [activePanel, setActivePanel] = useState<"layers" | "blocks">("layers");
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
   const handleApplyPresetTemplate = async (templateId: string) => {
@@ -299,63 +298,49 @@ function BuilderEditorIDE() {
     [nodes],
   );
 
-  // Insert a preset section (section + container + block)
-  const insertPreset = useCallback(
-    (presetId: string) => {
+  // Insert a section template (Guided Mode)
+  const handleInsertTemplate = useCallback(
+    (template: SectionTemplate) => {
       if (!version) return;
-      const preset = SECTION_PRESETS.find((p) => p.id === presetId);
-      if (!preset) return;
 
       const rootSortOrder = nodes.filter((n) => !n.parent_id).length;
-      const sectionId = crypto.randomUUID();
-      const containerId = crypto.randomUUID();
-      const blockId = crypto.randomUUID();
 
-      const isFullWidth = preset.blocks[1] === "container_full";
-      const containerBlock = isFullWidth ? "container" : "container";
+      // Map temporary string IDs to real UUIDs
+      const idMap = new Map<string, string>();
+      template.nodes.forEach((n) => {
+        if (n.id) idMap.set(n.id, crypto.randomUUID());
+      });
 
-      const newNodes: ExperienceNode[] = [
-        makeNode("section", version.id, null, rootSortOrder, {
-          node_type: "section",
-          block_type: "section",
-          id: sectionId,
-        }),
-        makeNode(containerBlock, version.id, sectionId, 0, {
-          node_type: "container",
-          block_type: "container",
-          id: containerId,
-          layout_rules: isFullWidth
-            ? {
-                maxWidth: "full",
-                paddingX: "none",
-                paddingY: "none",
-                display: "flex",
-                flexDirection: "col",
-              }
-            : {
-                maxWidth: "2xl",
-                paddingX: "md",
-                paddingY: "lg",
-                display: "flex",
-                flexDirection: "col",
-              },
-        }),
-        makeNode(preset.blocks[2], version.id, containerId, 0, {
-          id: blockId,
-          data_bindings: ["product_carousel", "product_grid", "product_rail"].includes(
-            preset.blocks[2],
-          )
-            ? { type: "dynamic_products", limit: 12 }
-            : ["testimonial_carousel"].includes(preset.blocks[2])
-              ? { type: "dynamic_reviews" }
-              : {},
-        }),
-      ];
+      const newNodes: ExperienceNode[] = template.nodes.map((n) => {
+        const newId = n.id ? idMap.get(n.id) || crypto.randomUUID() : crypto.randomUUID();
+        const newParentId = n.parent_id ? idMap.get(n.parent_id) || n.parent_id : null;
+
+        return makeNode(
+          n.block_type || "element",
+          version.id,
+          newParentId,
+          // Se for raiz, usa o sortOrder do documento, senão 0 (o builder lida com ordenação na árvore)
+          newParentId === null ? rootSortOrder : 0,
+          {
+            ...n,
+            id: newId,
+            parent_id: newParentId,
+          },
+        );
+      });
 
       setNodes((prev) => [...prev, ...newNodes]);
-      setSelectedNodeId(blockId);
+      setIsGuidedPickerOpen(false);
+
+      // Select the first node inserted (usually the section)
+      if (newNodes.length > 0) {
+        setSelectedNodeId(newNodes[0].id);
+      }
+
       setActivePanel("layers");
-      toast.success(`Seção "${preset.label}" adicionada`);
+      toast.success(`Seção "${template.name}" adicionada`);
+
+      // O autosave será tratado separadamente ou pelo handleSave manual por enquanto
     },
     [nodes, version],
   );
@@ -448,7 +433,6 @@ function BuilderEditorIDE() {
           setActivePanel={setActivePanel}
           blockCategory={blockCategory}
           setBlockCategory={setBlockCategory}
-          insertPreset={insertPreset}
           insertBlock={insertBlock}
           nodes={nodes}
           treeNodes={treeNodes}
@@ -457,6 +441,7 @@ function BuilderEditorIDE() {
           moveNode={moveNode}
           deleteNode={deleteNode}
           reorderNodeAbsolute={reorderNodeAbsolute}
+          onAddSection={() => setIsGuidedPickerOpen(true)}
         />
         <BuilderCanvas
           viewport={viewport}
@@ -464,6 +449,7 @@ function BuilderEditorIDE() {
           treeNodes={treeNodes}
           selectedNodeId={selectedNodeId}
           setSelectedNodeId={setSelectedNodeId}
+          onAddSection={() => setIsGuidedPickerOpen(true)}
         />
         <BuilderInspector
           selectedNodeId={selectedNodeId}
@@ -474,6 +460,7 @@ function BuilderEditorIDE() {
           setSelectedNodeId={setSelectedNodeId}
           updateNode={updateNode}
           setNodes={setNodes as any}
+          treeNodes={treeNodes}
           collections={collections}
           categories={categories}
         />
@@ -482,7 +469,7 @@ function BuilderEditorIDE() {
       {/* ── Modal de Seleção de Temas/Templates para Vitrine ──────────────────────── */}
       {isTemplateModalOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 md:p-8 animate-in fade-in">
-          <div className="bg-[#18181b] border border-white/10 rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+          <div className="bg-[#18181b] border border-white/10 w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
             {/* Modal Header */}
             <div className="p-6 border-b border-white/10 flex items-center justify-between">
               <div>
@@ -497,7 +484,7 @@ function BuilderEditorIDE() {
               </div>
               <button
                 onClick={() => setIsTemplateModalOpen(false)}
-                className="p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+                className="p-2 text-white/60 hover:text-white hover:bg-white/10 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -509,7 +496,7 @@ function BuilderEditorIDE() {
                 {Object.values(HOME_TEMPLATES_LIBRARY).map((preset) => (
                   <div
                     key={preset.id}
-                    className="bg-[#242427] border border-white/10 rounded-xl overflow-hidden flex flex-col hover:border-amber-500/50 transition-all group shadow-md"
+                    className="bg-[#242427] border border-white/10 overflow-hidden flex flex-col hover:border-amber-500/50 transition-all group shadow-md"
                   >
                     <div className="relative h-44 bg-muted overflow-hidden">
                       <img
@@ -569,6 +556,13 @@ function BuilderEditorIDE() {
           </div>
         </div>
       )}
+
+      {/* ── Guided Section Picker (Adicionar Seção Visual) ─────────────────────── */}
+      <GuidedSectionPicker
+        isOpen={isGuidedPickerOpen}
+        onClose={() => setIsGuidedPickerOpen(false)}
+        onSelectTemplate={handleInsertTemplate}
+      />
     </div>
   );
 }

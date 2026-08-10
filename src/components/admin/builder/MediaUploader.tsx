@@ -62,9 +62,11 @@ export function MediaUploader({
         if (event.target?.result) {
           try {
             const base64 = event.target.result as string;
-            const { uploadMedia } = await import("@/services/storage.functions");
-            const res = await uploadMedia({
-              data: { fileName: file.name, fileBase64: base64, bucket: bucket as any },
+            const { directUploadMedia } = await import("@/lib/upload-helper");
+            const res = await directUploadMedia({
+              fileName: file.name,
+              file: file,
+              bucket: bucket as any,
             });
 
             onChange(res.url);
@@ -89,13 +91,20 @@ export function MediaUploader({
     if (!currentImageFile) return;
     setIsUploading(true);
     try {
-      const { uploadMedia } = await import("@/services/storage.functions");
-      const res = await uploadMedia({
-        data: {
-          fileName: currentImageFile.name.replace(/\.[^/.]+$/, "") + ".png",
-          fileBase64: croppedBase64.split(",")[1],
-          bucket: bucket as any,
-        },
+      const { directUploadMedia } = await import("@/lib/upload-helper");
+      
+      const byteString = atob(croppedBase64.split(",")[1]);
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+      const blob = new Blob([ab], { type: "image/png" });
+
+      const res = await directUploadMedia({
+        fileName: currentImageFile.name.replace(/\.[^/.]+$/, "") + ".png",
+        file: blob,
+        bucket: bucket as any,
       });
       onChange(res.url);
       toast.success("Imagem enviada com sucesso");

@@ -92,7 +92,7 @@ function CategoryPage() {
           Início
         </Link>
         <ChevronRight className="size-3" aria-hidden />
-        <Link to="/catalogo" className="hover:text-foreground">
+        <Link to="/mercado" className="hover:text-foreground">
           Catálogo
         </Link>
         <ChevronRight className="size-3" aria-hidden />
@@ -112,7 +112,7 @@ function CategoryPage() {
             description="Ainda não há produtos publicados nesta categoria."
             action={
               <Button asChild>
-                <Link to="/catalogo">Ver todos os produtos</Link>
+                <Link to="/mercado">Ver todos os produtos</Link>
               </Button>
             }
           />

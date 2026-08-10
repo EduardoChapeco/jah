@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/form";
 import { listGiftCards, createGiftCard, cancelGiftCard } from "@/services/giftcard.functions";
 import { formatMoney } from "@/lib/money";
+import { formatDate } from "../lib/datetime";
 
 export const Route = createFileRoute("/admin/marketing/gift-cards")({
   head: () => ({ meta: [{ title: "Gift Cards" }] }),
@@ -182,14 +183,14 @@ function GiftCardsPage() {
                 <TableRow key={c.id}>
                   <TableCell className="font-mono text-muted-foreground">{c.code}</TableCell>
                   <TableCell>{c.purchaserName}</TableCell>
-                  <TableCell>{new Date(c.createdAt).toLocaleDateString("pt-BR")}</TableCell>
+                  <TableCell>{formatDate(c.createdAt)}</TableCell>
                   <TableCell>{formatMoney(c.initialBalance)}</TableCell>
                   <TableCell className="font-medium text-primary">
                     {formatMoney(c.currentBalance)}
                   </TableCell>
                   <TableCell>
                     {c.status === "active" ? (
-                      <Badge variant="default" className="bg-green-600 hover:bg-green-700">
+                      <Badge variant="default" className="bg-success hover:bg-success">
                         Ativo
                       </Badge>
                     ) : c.status === "exhausted" ? (

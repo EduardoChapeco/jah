@@ -107,7 +107,7 @@ export function BookingCalendar({ content }: BookingCalendarProps) {
           <p className="text-muted-foreground">{subtitle}</p>
         </div>
 
-        <Card className="shadow-lg border-muted">
+        <Card className="border-muted">
           <CardHeader className="bg-muted/50 border-b">
             <div className="flex justify-between items-center text-sm font-medium">
               <span className={step >= 1 ? "text-primary" : "text-muted-foreground"}>
@@ -142,11 +142,7 @@ export function BookingCalendar({ content }: BookingCalendarProps) {
                       <div
                         key={svc.id}
                         onClick={() => setSelectedService(svc.id)}
-                        className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                          selectedService === svc.id
-                            ? "border-primary bg-primary/5"
-                            : "border-border hover:border-primary/50"
-                        }`}
+                        className={`p-4 border-2 cursor-pointer transition-all ${selectedService === svc.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}
                       >
                         <h3 className="font-semibold text-lg">{svc.title}</h3>
                         <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
@@ -196,7 +192,7 @@ export function BookingCalendar({ content }: BookingCalendarProps) {
                         <Loader2 className="animate-spin text-primary" />
                       </div>
                     ) : slots.length === 0 ? (
-                      <div className="text-center p-8 text-muted-foreground bg-muted/50 rounded-lg">
+                      <div className="text-center p-8 text-muted-foreground bg-muted/50">
                         Nenhum horário livre neste dia.
                       </div>
                     ) : (
@@ -294,7 +290,7 @@ export function BookingCalendar({ content }: BookingCalendarProps) {
             {step === 4 && (
               <div className="text-center space-y-6 py-12 animate-in fade-in zoom-in-95">
                 <div className="flex justify-center">
-                  <CheckCircle2 className="w-20 h-20 text-green-500" />
+                  <CheckCircle2 className="w-20 h-20 text-success" />
                 </div>
                 <CardTitle className="text-2xl">Agendamento Confirmado!</CardTitle>
                 <p className="text-muted-foreground text-lg max-w-md mx-auto">

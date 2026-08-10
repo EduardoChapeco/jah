@@ -88,7 +88,7 @@ function StorePerfil() {
       {settings.cover_url && (
         <div className="relative h-40 md:h-64 w-full overflow-hidden">
           <img src={settings.cover_url} alt="Capa da loja" className="h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent" />
+          <div className="absolute inset-0 from-background/70" />
         </div>
       )}
 
@@ -115,11 +115,7 @@ function StorePerfil() {
           {/* Status badge */}
           {openStatus && (
             <span
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                openStatus.status === "open"
-                  ? "bg-emerald-500/15 text-emerald-700"
-                  : "bg-destructive/15 text-destructive"
-              }`}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${openStatus.status === "open" ? "bg-emerald-500/15 text-emerald-700" : "bg-destructive/15 text-destructive"}`}
             >
               <span
                 className={`size-2 rounded-full ${openStatus.status === "open" ? "bg-emerald-500" : "bg-destructive"}`}
@@ -151,7 +147,7 @@ function StorePerfil() {
           {store.phone && (
             <a
               href={`tel:${store.phone}`}
-              className="flex items-center gap-4 p-3 rounded-xl border hover:bg-muted/50 transition-colors"
+              className="flex items-center gap-4 p-3 border hover:bg-muted/50 transition-colors"
             >
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary shrink-0">
                 <Phone className="h-4 w-4" />
@@ -167,7 +163,7 @@ function StorePerfil() {
               href={`https://wa.me/${store.phone.replace(/\D/g, "")}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-4 p-3 rounded-xl border hover:bg-muted/50 transition-colors"
+              className="flex items-center gap-4 p-3 border hover:bg-muted/50 transition-colors"
             >
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 shrink-0">
                 <MessageCircle className="h-4 w-4" />
@@ -179,7 +175,7 @@ function StorePerfil() {
             </a>
           )}
           {store.address && (
-            <div className="flex items-start gap-4 p-3 rounded-xl border">
+            <div className="flex items-start gap-4 p-3 border">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary shrink-0 mt-0.5">
                 <MapPin className="h-4 w-4" />
               </div>
@@ -194,7 +190,7 @@ function StorePerfil() {
             </div>
           )}
           {extendedHours.length > 0 && (
-            <div className="p-4 rounded-xl border">
+            <div className="p-4 border">
               <div className="flex items-center gap-2 mb-3">
                 <Clock className="h-4 w-4 text-primary" />
                 <p className="text-sm font-semibold">Horários de Funcionamento</p>

@@ -23,13 +23,16 @@ import { VariantMatrixGrid, type RawVariant } from "@/components/admin/catalog/v
 export const Route = createFileRoute("/admin/catalogo/produtos/novo")({
   head: () => ({ meta: [{ title: "Criação Rápida" }] }),
   loader: async () => {
-    const [catsRes, typesRes] = await Promise.all([
+    const { getStoreSettings } = await import("@/services/store.functions");
+    const [catsRes, typesRes, storeRes] = await Promise.all([
       listCategories(),
       import("@/services/admin-catalog.functions").then((m) => m.listProductTypes()),
+      getStoreSettings(),
     ]);
     return {
       categories: catsRes || [],
       productTypes: typesRes || [],
+      store: storeRes,
     };
   },
   component: QuickNewProductPage,
@@ -91,15 +94,34 @@ function generateVariantsMatrix(
 }
 
 function QuickNewProductPage() {
-  const { categories, productTypes } = Route.useLoaderData();
+  const { categories, productTypes, store } = Route.useLoaderData();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Imagem principal
   const [mainImageUrl, setMainImageUrl] = useState<string | null>(null);
 
+  // Atributos dinâmicos base (Root level JSONB)
+  const [baseAttributes, setBaseAttributes] = useState<Record<string, string>>({
+    tipo: store?.type || "ecommerce",
+  });
+
+  const getInitialAttributes = () => {
+    const type = store?.type;
+    if (type === "event_producer") {
+      return [{ id: crypto.randomUUID(), name: "Lote / Tipo Ingresso", values: ["Lote 1", "VIP"] }];
+    }
+    if (type === "band" || type === "ecommerce") {
+      return [{ id: crypto.randomUUID(), name: "Tamanho", values: ["P", "M", "G"] }];
+    }
+    if (type === "delivery" as any) {
+      return [{ id: crypto.randomUUID(), name: "Adicionais", values: ["Com Queijo", "Sem Cebola"] }];
+    }
+    return [];
+  };
+
   // Atributos dinâmicos
-  const [attributes, setAttributes] = useState<DynamicAttribute[]>([]);
+  const [attributes, setAttributes] = useState<DynamicAttribute[]>(getInitialAttributes());
 
   // Tabela final de variações (substitui a seleção estática)
   const [variantsMatrix, setVariantsMatrix] = useState<RawVariant[]>([]);
@@ -212,7 +234,7 @@ function QuickNewProductPage() {
           type_id: values.type_id !== "none" ? values.type_id : null,
           media_urls: mainImageUrl ? [mainImageUrl] : [],
           is_physical: true,
-          attributes: {},
+          attributes: baseAttributes,
           variants: finalVariants?.map((v) => ({
             sku: v.sku || "",
             attributes: v.attributes,
@@ -287,6 +309,59 @@ function QuickNewProductPage() {
                 <p className="text-xs text-destructive">{errors.title.message as string}</p>
               )}
             </div>
+
+            {/* Campos Dinâmicos Baseados no Nicho */}
+            {store?.type === "event_producer" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-muted/30 rounded-lg border">
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold text-poster-red">Data do Evento *</Label>
+                  <Input 
+                    type="datetime-local" 
+                    className="h-11"
+                    value={baseAttributes["data_evento"] || ""}
+                    onChange={(e) => setBaseAttributes({...baseAttributes, data_evento: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold text-poster-red">Localização</Label>
+                  <Input 
+                    placeholder="Ex: Galpão 5, SP" 
+                    className="h-11"
+                    value={baseAttributes["local"] || ""}
+                    onChange={(e) => setBaseAttributes({...baseAttributes, local: e.target.value})}
+                  />
+                </div>
+              </div>
+            )}
+            
+            {store?.type === "creator" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-muted/30 rounded-lg border">
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold">Duração (Minutos)</Label>
+                  <Input 
+                    type="number"
+                    placeholder="Ex: 60" 
+                    className="h-11"
+                    value={baseAttributes["duracao_min"] || ""}
+                    onChange={(e) => setBaseAttributes({...baseAttributes, duracao_min: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold">Formato</Label>
+                  <Select 
+                    value={baseAttributes["formato"] || ""} 
+                    onValueChange={(v) => setBaseAttributes({...baseAttributes, formato: v})}
+                  >
+                    <SelectTrigger className="h-11"><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="online">Online (Meet/Zoom)</SelectItem>
+                      <SelectItem value="presencial">Presencial</SelectItem>
+                      <SelectItem value="gravado">Conteúdo Gravado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
@@ -372,12 +447,12 @@ function QuickNewProductPage() {
         </Card>
 
         {/* Gerador de Variações Dinâmicas */}
-        <Card className="border-pink-500/30 overflow-hidden">
-          <div className="bg-pink-500/5 px-6 py-4 border-b border-pink-500/10">
-            <h3 className="text-lg font-bold text-pink-700 dark:text-pink-400">
+        <Card className="overflow-hidden">
+          <div className="bg-accent/5 px-6 py-4 border-b">
+            <h3 className="text-lg font-bold text-accent dark:text-accent">
               Construtor Dinâmico de Variações
             </h3>
-            <p className="text-sm text-pink-600/80 dark:text-pink-400/80 mt-1">
+            <p className="text-sm text-accent/80 dark:text-accent/80 mt-1">
               Crie opções customizadas (Tamanho, Cor, Material) para gerar automaticamente a matriz
               de estoque.
             </p>
@@ -387,7 +462,7 @@ function QuickNewProductPage() {
             {!isMatrixGenerated ? (
               <div className="space-y-6 animate-in fade-in">
                 {attributes.map((attr, index) => (
-                  <div key={attr.id} className="p-4 border rounded-xl bg-card relative group">
+                  <div key={attr.id} className="p-4 border bg-card relative group">
                     <button
                       type="button"
                       onClick={() => removeAttribute(attr.id)}
@@ -445,7 +520,7 @@ function QuickNewProductPage() {
                     <Button
                       type="button"
                       onClick={handleGenerateMatrix}
-                      className="bg-pink-600 hover:bg-pink-700 text-white"
+                      className="bg-accent hover:bg-accent text-white"
                     >
                       Gerar Matriz de Variações
                     </Button>
@@ -454,7 +529,7 @@ function QuickNewProductPage() {
               </div>
             ) : (
               <div className="space-y-4 animate-in fade-in">
-                <div className="flex items-center justify-between bg-muted/50 p-4 rounded-lg border">
+                <div className="flex items-center justify-between bg-muted/50 p-4 border">
                   <div>
                     <h4 className="font-bold text-base">Matriz de Variações Gerada</h4>
                     <p className="text-sm text-muted-foreground">

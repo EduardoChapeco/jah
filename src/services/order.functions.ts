@@ -76,7 +76,12 @@ export async function updateOrderStatusHandler(
 ) {
   const db = getServerClient();
 
-  const { data: order, error: orderError } = await db.from("orders").select("id").eq("id", orderId).eq("store_id", store_id).single();
+  const { data: order, error: orderError } = await db
+    .from("orders")
+    .select("id")
+    .eq("id", orderId)
+    .eq("store_id", store_id)
+    .single();
   if (orderError || !order) throw new Error("Pedido não encontrado ou acesso negado.");
 
   if (status === "cancelled") {
@@ -488,16 +493,12 @@ export const updateOrderShipment = createServerFn({ method: "POST" })
         throw new Error("Acesso negado");
       }
 
-      const generatedUrl =
-        trackingUrl ||
-        (trackingCode.length > 8 && /^[A-Z]{2}\d{9}[A-Z]{2}$/i.test(trackingCode)
-          ? `https://rastreamento.correios.com.br/app/index.php?codigo=${trackingCode}`
-          : `https://melhorrastreio.com.br/rastreio/${trackingCode}`);
+      const generatedUrl = trackingUrl || "";
 
       const statusToApply = newStatus || "shipped";
       const updateData: Record<string, any> = {
         tracking_code: trackingCode,
-        carrier_name: carrierName || "Correios",
+        carrier_name: carrierName || "Transportadora",
         tracking_url: generatedUrl,
         status: statusToApply,
         updated_at: new Date().toISOString(),
@@ -519,5 +520,38 @@ export const updateOrderShipment = createServerFn({ method: "POST" })
     } catch (e: any) {
       console.error("[order.functions] updateOrderShipment error:", e);
       throw new Error(e.message || "Erro ao atualizar rastreamento do pedido.");
+    }
+  });
+
+// ---------------------------------------------------------------------------
+// Recibos (Receipt)
+// ---------------------------------------------------------------------------
+
+export const getOrderForReceipt = createServerFn({ method: "GET" })
+  .validator(z.object({ id: z.string().uuid() }))
+  .handler(async ({ data: { id } }) => {
+    try {
+      const identity = await getServerIdentity();
+      assertStoreAccess(identity, ["owner", "admin", "manager", "seller"]);
+
+      const db = getServerClient();
+      const { data, error } = await db
+        .from("orders")
+        .select(
+          `
+          id, public_token, status, total_cents, subtotal_cents, shipping_cents, discount_cents,
+          customer_snapshot, created_at, shipping_method,
+          order_items ( id, product_title, variant_sku, qty, unit_price_cents, total_cents )
+        `,
+        )
+        .eq("id", id)
+        .eq("store_id", identity.store_id)
+        .single();
+      if (error) throw new Error("Pedido não encontrado");
+      return data;
+    } catch (e: any) {
+      if (e instanceof SupabaseUnconfiguredError) throw e;
+      console.error("[order.functions] getOrderForReceipt error:", e);
+      throw new Error(e.message || "Erro ao carregar recibo do pedido.");
     }
   });

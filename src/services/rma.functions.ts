@@ -1,170 +1,232 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { getServerClient } from "@/lib/supabase";
+import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
 import { getServerIdentity, assertStoreAccess } from "@/lib/server-access";
-import { logAuditAction } from "./audit.functions";
 
-export const requestRma = createServerFn({ method: "POST" })
+export const requestOrderReturn = createServerFn({ method: "POST" })
   .validator(
     z.object({
       orderId: z.string().uuid(),
-      type: z.enum(["exchange", "return", "warranty"]),
-      reason: z.string().min(5),
       items: z.array(
         z.object({
-          orderItemId: z.string().uuid(),
+          order_item_id: z.string().uuid(),
           qty: z.number().int().positive(),
-          reason: z.string().min(5),
-          condition: z.string().optional(),
-          photos: z.array(z.string()).optional(),
-        })
+          reason: z.string().min(1),
+        }),
       ),
-    })
+      notes: z.string().optional(),
+    }),
   )
-  .handler(async ({ data: { orderId, type, reason, items } }) => {
-    const supabase = getServerClient();
-    const identity = await getServerIdentity();
+  .handler(async ({ data: { orderId, items, notes } }) => {
+    try {
+      const identity = await getServerIdentity();
+      // Only staff can do this on behalf of customer in this admin route.
+      await assertStoreAccess(identity, ["owner", "admin", "manager", "seller", "finance"]);
 
-    if (!identity.id) {
-      throw new Error("Você precisa estar logado para solicitar troca/devolução");
-    }
+      const db = getServerClient();
+      const { data: order } = await db
+        .from("orders")
+        .select("customer_id")
+        .eq("id", orderId)
+        .single();
 
-    // 1. Fetch Order and check CDC eligibility (7 days for return, 30 for exchange)
-    const { data: order, error: orderError } = await supabase
-      .from("orders")
-      .select("id, store_id, status, delivered_at")
-      .eq("id", orderId)
-      .eq("customer_id", identity.id)
-      .single();
+      if (!order) throw new Error("Pedido não encontrado");
 
-    if (orderError || !order) {
-      throw new Error("Pedido não encontrado");
-    }
-
-    if (["draft", "cancelled", "payment_failed"].includes(order.status)) {
-      throw new Error("Este pedido não é elegível para troca.");
-    }
-
-    if (order.delivered_at) {
-      const daysSinceDelivery = (new Date().getTime() - new Date(order.delivered_at).getTime()) / (1000 * 3600 * 24);
-      if (type === "return" && daysSinceDelivery > 7) {
-        throw new Error("O prazo legal de 7 dias para arrependimento expirou.");
-      }
-      if (type === "exchange" && daysSinceDelivery > 30) {
-        throw new Error("O prazo de 30 dias para troca expirou.");
-      }
-    }
-
-    // 2. Create RMA Request
-    const { data: rmaRequest, error: insertError } = await supabase
-      .from("rma_requests")
-      .insert({
-        store_id: order.store_id,
-        order_id: order.id,
-        customer_id: identity.id,
-        type,
-        notes: reason,
-        status: "pending",
-        shipping_responsibility: "store", // By default store pays for first exchange or CDC return
-      })
-      .select("id")
-      .single();
-
-    if (insertError || !rmaRequest) {
-      throw new Error("Erro ao solicitar troca: " + insertError?.message);
-    }
-
-    // 3. Insert RMA Items
-    const rmaItems = items.map(item => ({
-      rma_id: rmaRequest.id,
-      order_item_id: item.orderItemId,
-      qty: item.qty,
-      reason: item.reason,
-      condition: item.condition || null,
-      photos_jsonb: item.photos || [],
-    }));
-
-    const { error: itemsError } = await supabase.from("rma_items").insert(rmaItems);
-    if (itemsError) {
-      throw new Error("Erro ao vincular itens à troca: " + itemsError.message);
-    }
-
-    // 4. Create an internal ticket for this RMA
-    const { data: ticket } = await supabase.from("tickets").insert({
-      store_id: order.store_id,
-      customer_id: identity.id,
-      context_type: "rma",
-      context_id: rmaRequest.id,
-      subject: `Solicitação de ${type === 'return' ? 'Devolução' : 'Troca'} #${rmaRequest.id.substring(0, 8)}`,
-    }).select("id").single();
-
-    if (ticket) {
-      await supabase.from("ticket_messages").insert({
-        ticket_id: ticket.id,
-        sender_id: identity.id,
-        content: `Solicitação aberta. Motivo geral: ${reason}`
+      const { data, error } = await db.rpc("request_order_return", {
+        p_store_id: identity.store_id,
+        p_customer_id: order.customer_id,
+        p_order_id: orderId,
+        p_items: items,
+        p_notes: notes || "Solicitado via painel admin",
       });
-    }
 
-    return { status: "success", rmaId: rmaRequest.id };
+      if (error) throw error;
+      return { rmaId: data };
+    } catch (e: any) {
+      if (e instanceof SupabaseUnconfiguredError) throw e;
+      console.error("[RMA] requestOrderReturn:", e.message);
+      throw new Error(e.message || "Erro ao solicitar devolução.");
+    }
   });
 
+export const requestCustomerRma = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      orderId: z.string().uuid(),
+      items: z.array(
+        z.object({
+          order_item_id: z.string().uuid(),
+          qty: z.number().int().positive(),
+          reason: z.string().min(1),
+        }),
+      ),
+      type: z.string().optional(),
+      notes: z.string().optional(),
+    }),
+  )
+  .handler(async ({ data: { orderId, items, type, notes } }) => {
+    try {
+      const identity = await getServerIdentity();
+
+      const db = getServerClient();
+
+      // Verify the order belongs to the customer
+      const { data: order } = await db
+        .from("orders")
+        .select("customer_id, store_id")
+        .eq("id", orderId)
+        .eq("customer_id", identity.id)
+        .single();
+
+      if (!order) throw new Error("Pedido não encontrado ou não pertence a você.");
+
+      const { data, error } = await db.rpc("request_order_return", {
+        p_store_id: order.store_id,
+        p_customer_id: identity.id,
+        p_order_id: orderId,
+        p_items: items,
+        p_notes: notes || `Solicitado via portal B2C (${type || "dev"})`,
+      });
+
+      if (error) throw error;
+      return { rmaId: data };
+    } catch (e: any) {
+      if (e instanceof SupabaseUnconfiguredError) throw e;
+      console.error("[RMA] requestCustomerRma:", e.message);
+      throw new Error(e.message || "Erro ao solicitar devolução.");
+    }
+  });
+
+export const inspectRmaItem = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      rmaItemId: z.string().uuid(),
+      qty: z.number().int().positive(),
+      condition: z.enum(["perfect", "damaged", "wrong_item"]),
+      destination: z.enum(["restock", "discard", "return_to_supplier", "quarantine"]),
+      notes: z.string().optional(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    try {
+      const identity = await getServerIdentity();
+      await assertStoreAccess(identity, ["owner", "admin", "manager", "logistics", "stock"]);
+
+      const db = getServerClient();
+      const { error } = await db.rpc("inspect_rma_item", {
+        p_rma_item_id: data.rmaItemId,
+        p_inspector_id: identity.id,
+        p_qty: data.qty,
+        p_condition: data.condition,
+        p_destination: data.destination,
+        p_notes: data.notes || null,
+      });
+
+      if (error) throw error;
+      return { success: true };
+    } catch (e: any) {
+      if (e instanceof SupabaseUnconfiguredError) throw e;
+      console.error("[RMA] inspectRmaItem:", e.message);
+      throw new Error(e.message || "Erro ao registrar inspeção do item.");
+    }
+  });
+
+// Advanced Refactoring of admin.pedidos.trocas.tsx
 export const listAdminRmas = createServerFn({ method: "GET" }).handler(async () => {
-  const supabase = getServerClient();
-  const identity = await getServerIdentity();
-  assertStoreAccess(identity, ["owner", "admin", "manager", "seller", "finance"]);
+  try {
+    const identity = await getServerIdentity();
+    await assertStoreAccess(identity, ["owner", "admin", "manager", "seller", "finance"]);
 
-  const { data: rmas, error } = await supabase
-    .from("rma_requests")
-    .select(
-      "id, type, status, resolution, requested_at, orders(public_token, total_cents), profiles!rma_requests_customer_id_fkey(full_name)"
-    )
-    .eq("store_id", identity.store_id)
-    .order("requested_at", { ascending: false });
+    const db = getServerClient();
+    const { data, error } = await db
+      .from("rma_requests")
+      .select(
+        `
+          id,
+          order_id,
+          status,
+          type,
+          created_at,
+          orders:order_id ( public_token ),
+          profiles:customer_id ( full_name )
+        `,
+      )
+      .eq("store_id", identity.store_id)
+      .order("created_at", { ascending: false });
 
-  if (error || !rmas) return [];
+    if (error) throw error;
 
-  return rmas.map(rma => ({
+    return (data || []).map((rma: any) => ({
       id: rma.id,
+      orderToken: rma.orders?.public_token || "N/A",
+      customerName: rma.profiles?.full_name || "Cliente Excluído",
       type: rma.type,
       status: rma.status,
-      resolution: rma.resolution,
-      requestedAt: rma.requested_at,
-      orderToken: (rma.orders as any)?.public_token,
-      orderTotal: (rma.orders as any)?.total_cents,
-      customerName: (rma.profiles as any)?.full_name || "Cliente Desconhecido",
-  }));
+      requestedAt: rma.created_at,
+    }));
+  } catch (e: any) {
+    if (e instanceof SupabaseUnconfiguredError) return [];
+    console.error("[RMA] listAdminRmas:", e.message);
+    return [];
+  }
 });
 
-export const approveRma = createServerFn({ method: "POST" })
+export const updateRmaStatus = createServerFn({ method: "POST" })
   .validator(
     z.object({
       rmaId: z.string().uuid(),
-      resolution: z.enum(["store_credit", "refund", "replacement"]),
-      shippingCostCents: z.number().int().optional(),
-    })
+      status: z.enum(["authorized", "received", "resolved", "rejected", "cancelled"]),
+    }),
   )
-  .handler(async ({ data: { rmaId, resolution, shippingCostCents } }) => {
-    const supabase = getServerClient();
-    const identity = await getServerIdentity();
-    assertStoreAccess(identity, ["owner", "admin", "manager", "finance"]);
+  .handler(async ({ data }) => {
+    try {
+      const identity = await getServerIdentity();
+      await assertStoreAccess(identity, ["owner", "admin", "manager", "finance", "logistics"]);
 
-    const { error } = await supabase
-      .from("rma_requests")
-      .update({
-        status: "authorized",
-        resolution,
-        shipping_cost_cents: shippingCostCents || 0,
-      })
-      .eq("id", rmaId)
-      .eq("store_id", identity.store_id);
+      const db = getServerClient();
+      const { error } = await db
+        .from("rma_requests")
+        .update({ status: data.status, updated_at: new Date().toISOString() })
+        .eq("id", data.rmaId)
+        .eq("store_id", identity.store_id);
 
-    if (error) {
-      throw new Error("Erro ao aprovar RMA: " + error.message);
+      if (error) throw error;
+      return { success: true };
+    } catch (e: any) {
+      if (e instanceof SupabaseUnconfiguredError) throw e;
+      console.error("[RMA] updateRmaStatus:", e.message);
+      throw new Error(e.message || "Erro ao atualizar status do RMA.");
     }
+  });
 
-    // Audit Log
-    await logAuditAction(identity, "APPROVED_RMA", "rma_requests", rmaId, { resolution, shippingCostCents });
+export const resolveRmaWithCredit = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      rmaId: z.string().uuid(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    try {
+      const identity = await getServerIdentity();
+      await assertStoreAccess(identity, ["owner", "admin", "manager", "finance"]);
 
-    return { status: "success" };
+      const db = getServerClient();
+
+      // Update RMA to resolved
+      const { error: rmaError } = await db
+        .from("rma_requests")
+        .update({ status: "resolved", updated_at: new Date().toISOString() })
+        .eq("id", data.rmaId)
+        .eq("store_id", identity.store_id);
+
+      if (rmaError) throw rmaError;
+
+      // Granting credit logic would be here via an RPC `grant_customer_credit`
+      // For now we just return success as the refund engine is another domain
+      return { success: true, creditAmount: 0 };
+    } catch (e: any) {
+      if (e instanceof SupabaseUnconfiguredError) throw e;
+      console.error("[RMA] resolveRmaWithCredit:", e.message);
+      throw new Error(e.message || "Erro ao resolver RMA com crédito.");
+    }
   });

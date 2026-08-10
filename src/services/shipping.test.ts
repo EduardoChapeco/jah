@@ -113,7 +113,9 @@ describe("Shipping Functions", () => {
     });
 
     it("should throw error if delete fails", async () => {
-      mockFrom.mockImplementation(() => createMockQueryBuilder({ error: new Error("Fail to delete") }));
+      mockFrom.mockImplementation(() =>
+        createMockQueryBuilder({ error: new Error("Fail to delete") }),
+      );
       await expect(deleteShippingZoneHandler("zone-2")).rejects.toThrow("Fail to delete");
     });
   });
@@ -142,31 +144,40 @@ describe("Shipping Functions", () => {
 
   describe("calculateShippingHandler", () => {
     it("should return manual shipping options from database", async () => {
-      const mockZones = [{
-        name: "Transportadora X",
-        regions: ["80", "81"],
-        is_active: true,
-        shipping_rates: [
-          { name: "PAC Sul", price_cents: 1000, estimated_days: 5, is_active: true },
-          { name: "SEDEX Sul", price_cents: 2500, estimated_days: 2, is_active: true },
-        ]
-      }];
+      const mockZones = [
+        {
+          name: "Transportadora X",
+          regions: ["80", "81"],
+          is_active: true,
+          shipping_rates: [
+            { name: "PAC Sul", price_cents: 1000, estimated_days: 5, is_active: true },
+            { name: "SEDEX Sul", price_cents: 2500, estimated_days: 2, is_active: true },
+          ],
+        },
+      ];
       mockFrom.mockImplementation((table: string) => {
-        if (table === "shipping_zones") return createMockQueryBuilder({ data: mockZones, error: null });
-        if (table === "integration_credentials") return createMockQueryBuilder({ data: null, error: null });
+        if (table === "shipping_zones")
+          return createMockQueryBuilder({ data: mockZones, error: null });
+        if (table === "integration_credentials")
+          return createMockQueryBuilder({ data: null, error: null });
         if (table === "shipping_quotes") return createMockQueryBuilder({ data: null, error: null });
         return createMockQueryBuilder({ data: [], error: null });
       });
 
       const res = await calculateShippingHandler({ zipcode: "80000000" });
       expect(res).toHaveLength(2);
-      expect(res).toContainEqual(expect.objectContaining({ service_name: "PAC Sul", price_cents: 1000 }));
-      expect(res).toContainEqual(expect.objectContaining({ service_name: "SEDEX Sul", price_cents: 2500 }));
+      expect(res).toContainEqual(
+        expect.objectContaining({ service_name: "PAC Sul", price_cents: 1000 }),
+      );
+      expect(res).toContainEqual(
+        expect.objectContaining({ service_name: "SEDEX Sul", price_cents: 2500 }),
+      );
     });
 
     it("should return empty array when no options configured", async () => {
       mockFrom.mockImplementation((table: string) => {
-        if (table === "integration_credentials") return createMockQueryBuilder({ data: null, error: null });
+        if (table === "integration_credentials")
+          return createMockQueryBuilder({ data: null, error: null });
         return createMockQueryBuilder({ data: [], error: null });
       });
       const res = await calculateShippingHandler({ zipcode: "80000000" });

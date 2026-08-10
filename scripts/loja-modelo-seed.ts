@@ -36,7 +36,9 @@ async function uploadSvgPlaceholder(filename: string, text: string, color: strin
     return null;
   }
 
-  const { data: publicData } = serviceClient.storage.from("product-media").getPublicUrl(`loja-modelo/${filename}`);
+  const { data: publicData } = serviceClient.storage
+    .from("product-media")
+    .getPublicUrl(`loja-modelo/${filename}`);
   return publicData.publicUrl;
 }
 
@@ -169,21 +171,40 @@ async function runSeed() {
     title: string,
     priceCents: number,
     options: { name: string; values: string[] }[],
-    variants: { sku: string; price_cents: number; stock: number; attributes: any; image_url?: string }[],
+    variants: {
+      sku: string;
+      price_cents: number;
+      stock: number;
+      attributes: any;
+      image_url?: string;
+    }[],
     categoryId: string,
-    collectionId?: string
+    collectionId?: string,
   ) {
     const slug = skuPrefix.toLowerCase();
-    
+
     // Deleta anterior (Idempotência total baseada no slug)
-    const { data: existing } = await serviceClient.from("products").select("id").eq("slug", slug).single();
+    const { data: existing } = await serviceClient
+      .from("products")
+      .select("id")
+      .eq("slug", slug)
+      .single();
     if (existing) {
       const pId = existing.id;
       // cascade deletes via foreign keys might not be fully configured, let's manually clean
       await serviceClient.from("product_media").delete().eq("product_id", pId);
-      const { data: vars } = await serviceClient.from("product_variants").select("id").eq("product_id", pId);
+      const { data: vars } = await serviceClient
+        .from("product_variants")
+        .select("id")
+        .eq("product_id", pId);
       if (vars && vars.length > 0) {
-        await serviceClient.from("stock_movements").delete().in("variant_id", vars.map(v => v.id));
+        await serviceClient
+          .from("stock_movements")
+          .delete()
+          .in(
+            "variant_id",
+            vars.map((v) => v.id),
+          );
       }
       await serviceClient.from("product_variants").delete().eq("product_id", pId);
       await serviceClient.from("product_categories").delete().eq("product_id", pId);
@@ -203,7 +224,10 @@ async function runSeed() {
       variants,
     };
 
-    const { data: createRes, error: createErr } = await serviceClient.rpc("create_product_transaction_v1", { payload });
+    const { data: createRes, error: createErr } = await serviceClient.rpc(
+      "create_product_transaction_v1",
+      { payload },
+    );
     if (createErr || !createRes) {
       console.error(`❌ Erro ao criar produto ${title}:`, createErr);
       return;
@@ -212,17 +236,21 @@ async function runSeed() {
 
     // Associa categoria e coleção
     if (categoryId) {
-      await serviceClient.from("product_categories").insert({ product_id: productId, category_id: categoryId });
+      await serviceClient
+        .from("product_categories")
+        .insert({ product_id: productId, category_id: categoryId });
     }
     if (collectionId) {
-      await serviceClient.from("product_collections").insert({ product_id: productId, collection_id: collectionId });
+      await serviceClient
+        .from("product_collections")
+        .insert({ product_id: productId, collection_id: collectionId });
     }
 
     // Saldo real atômico
-    const matrixUpdate = variants.map(v => ({
+    const matrixUpdate = variants.map((v) => ({
       sku: v.sku,
       attributes: v.attributes,
-      stock: v.stock
+      stock: v.stock,
     }));
 
     await serviceClient.rpc("batch_upsert_variant_matrix_v1", {
@@ -232,7 +260,7 @@ async function runSeed() {
     });
 
     // Anexa imagem padrão (primeira url)
-    const defaultImage = variants.find(v => v.image_url)?.image_url || mediaUrls.geral;
+    const defaultImage = variants.find((v) => v.image_url)?.image_url || mediaUrls.geral;
     if (defaultImage) {
       await serviceClient.from("product_media").insert({
         product_id: productId,
@@ -247,15 +275,28 @@ async function runSeed() {
 
   // P1: Simples
   await seedProduct(
-    "LM-SMP-01", "Luminária de Mesa", 15000,
+    "LM-SMP-01",
+    "Luminária de Mesa",
+    15000,
     [],
-    [{ sku: "LM-SMP-01", price_cents: 15000, stock: 10, attributes: {}, image_url: mediaUrls.luminaria }],
-    categoryIds["Casa e Decoração"], collectionIds["Novidades"]
+    [
+      {
+        sku: "LM-SMP-01",
+        price_cents: 15000,
+        stock: 10,
+        attributes: {},
+        image_url: mediaUrls.luminaria,
+      },
+    ],
+    categoryIds["Casa e Decoração"],
+    collectionIds["Novidades"],
   );
 
   // P2: 1 Opção (Tênis)
   await seedProduct(
-    "LM-TNS-02", "Tênis Runner", 35000,
+    "LM-TNS-02",
+    "Tênis Runner",
+    35000,
     [{ name: "Tamanho", values: ["38", "39", "40", "41"] }],
     [
       { sku: "LM-TNS-02-38", price_cents: 35000, stock: 5, attributes: { Tamanho: "38" } },
@@ -263,58 +304,144 @@ async function runSeed() {
       { sku: "LM-TNS-02-40", price_cents: 35000, stock: 0, attributes: { Tamanho: "40" } }, // Esgotado
       { sku: "LM-TNS-02-41", price_cents: 35000, stock: 2, attributes: { Tamanho: "41" } }, // Baixo
     ],
-    categoryIds["Moda Masculina"], collectionIds["Mais Vendidos"]
+    categoryIds["Moda Masculina"],
+    collectionIds["Mais Vendidos"],
   );
 
   // P3: 2 Opções c/ Lacuna (Camiseta)
   // Lacuna: Preto não tem P.
   await seedProduct(
-    "LM-CAM-03", "Camiseta Básica", 8900,
+    "LM-CAM-03",
+    "Camiseta Básica",
+    8900,
     [
       { name: "Cor", values: ["Branco", "Preto", "Azul"] },
-      { name: "Tamanho", values: ["P", "M", "G"] }
+      { name: "Tamanho", values: ["P", "M", "G"] },
     ],
     [
-      { sku: "LM-CAM-03-BR-P", price_cents: 8900, stock: 10, attributes: { Cor: "Branco", Tamanho: "P" }, image_url: mediaUrls.cam_branco },
-      { sku: "LM-CAM-03-BR-M", price_cents: 8900, stock: 10, attributes: { Cor: "Branco", Tamanho: "M" } },
-      { sku: "LM-CAM-03-BR-G", price_cents: 8900, stock: 10, attributes: { Cor: "Branco", Tamanho: "G" } },
-      
-      { sku: "LM-CAM-03-PR-M", price_cents: 8900, stock: 10, attributes: { Cor: "Preto", Tamanho: "M" }, image_url: mediaUrls.cam_preto },
-      { sku: "LM-CAM-03-PR-G", price_cents: 8900, stock: 10, attributes: { Cor: "Preto", Tamanho: "G" } },
-      
-      { sku: "LM-CAM-03-AZ-P", price_cents: 8900, stock: 10, attributes: { Cor: "Azul", Tamanho: "P" }, image_url: mediaUrls.cam_azul },
-      { sku: "LM-CAM-03-AZ-M", price_cents: 8900, stock: 10, attributes: { Cor: "Azul", Tamanho: "M" } },
-      { sku: "LM-CAM-03-AZ-G", price_cents: 8900, stock: 10, attributes: { Cor: "Azul", Tamanho: "G" } },
+      {
+        sku: "LM-CAM-03-BR-P",
+        price_cents: 8900,
+        stock: 10,
+        attributes: { Cor: "Branco", Tamanho: "P" },
+        image_url: mediaUrls.cam_branco,
+      },
+      {
+        sku: "LM-CAM-03-BR-M",
+        price_cents: 8900,
+        stock: 10,
+        attributes: { Cor: "Branco", Tamanho: "M" },
+      },
+      {
+        sku: "LM-CAM-03-BR-G",
+        price_cents: 8900,
+        stock: 10,
+        attributes: { Cor: "Branco", Tamanho: "G" },
+      },
+
+      {
+        sku: "LM-CAM-03-PR-M",
+        price_cents: 8900,
+        stock: 10,
+        attributes: { Cor: "Preto", Tamanho: "M" },
+        image_url: mediaUrls.cam_preto,
+      },
+      {
+        sku: "LM-CAM-03-PR-G",
+        price_cents: 8900,
+        stock: 10,
+        attributes: { Cor: "Preto", Tamanho: "G" },
+      },
+
+      {
+        sku: "LM-CAM-03-AZ-P",
+        price_cents: 8900,
+        stock: 10,
+        attributes: { Cor: "Azul", Tamanho: "P" },
+        image_url: mediaUrls.cam_azul,
+      },
+      {
+        sku: "LM-CAM-03-AZ-M",
+        price_cents: 8900,
+        stock: 10,
+        attributes: { Cor: "Azul", Tamanho: "M" },
+      },
+      {
+        sku: "LM-CAM-03-AZ-G",
+        price_cents: 8900,
+        stock: 10,
+        attributes: { Cor: "Azul", Tamanho: "G" },
+      },
     ],
-    categoryIds["Moda Masculina"], collectionIds["Ofertas"]
+    categoryIds["Moda Masculina"],
+    collectionIds["Ofertas"],
   );
 
   // P4: Preço Flexível (Smartphone)
   await seedProduct(
-    "LM-CEL-04", "Smartphone X1", 250000,
+    "LM-CEL-04",
+    "Smartphone X1",
+    250000,
     [{ name: "Armazenamento", values: ["128GB", "256GB"] }],
     [
-      { sku: "LM-CEL-04-128", price_cents: 250000, stock: 20, attributes: { Armazenamento: "128GB" }, image_url: mediaUrls.smart_128 },
-      { sku: "LM-CEL-04-256", price_cents: 290000, stock: 10, attributes: { Armazenamento: "256GB" }, image_url: mediaUrls.smart_256 },
+      {
+        sku: "LM-CEL-04-128",
+        price_cents: 250000,
+        stock: 20,
+        attributes: { Armazenamento: "128GB" },
+        image_url: mediaUrls.smart_128,
+      },
+      {
+        sku: "LM-CEL-04-256",
+        price_cents: 290000,
+        stock: 10,
+        attributes: { Armazenamento: "256GB" },
+        image_url: mediaUrls.smart_256,
+      },
     ],
-    categoryIds["Eletrônicos"], undefined
+    categoryIds["Eletrônicos"],
+    undefined,
   );
 
   // P5: 3 Opções (Calça)
   await seedProduct(
-    "LM-CAL-05", "Calça Alfaiataria", 19900,
+    "LM-CAL-05",
+    "Calça Alfaiataria",
+    19900,
     [
       { name: "Cor", values: ["Bege", "Preto"] },
       { name: "Tamanho", values: ["38", "40"] },
-      { name: "Modelagem", values: ["Reta", "Pantalona"] }
+      { name: "Modelagem", values: ["Reta", "Pantalona"] },
     ],
     [
-      { sku: "LM-CAL-05-BE-38-RT", price_cents: 19900, stock: 5, attributes: { Cor: "Bege", Tamanho: "38", Modelagem: "Reta" }, image_url: mediaUrls.calca },
-      { sku: "LM-CAL-05-BE-40-RT", price_cents: 19900, stock: 5, attributes: { Cor: "Bege", Tamanho: "40", Modelagem: "Reta" } },
-      { sku: "LM-CAL-05-PR-38-PA", price_cents: 19900, stock: 5, attributes: { Cor: "Preto", Tamanho: "38", Modelagem: "Pantalona" } },
-      { sku: "LM-CAL-05-PR-40-PA", price_cents: 19900, stock: 5, attributes: { Cor: "Preto", Tamanho: "40", Modelagem: "Pantalona" } },
+      {
+        sku: "LM-CAL-05-BE-38-RT",
+        price_cents: 19900,
+        stock: 5,
+        attributes: { Cor: "Bege", Tamanho: "38", Modelagem: "Reta" },
+        image_url: mediaUrls.calca,
+      },
+      {
+        sku: "LM-CAL-05-BE-40-RT",
+        price_cents: 19900,
+        stock: 5,
+        attributes: { Cor: "Bege", Tamanho: "40", Modelagem: "Reta" },
+      },
+      {
+        sku: "LM-CAL-05-PR-38-PA",
+        price_cents: 19900,
+        stock: 5,
+        attributes: { Cor: "Preto", Tamanho: "38", Modelagem: "Pantalona" },
+      },
+      {
+        sku: "LM-CAL-05-PR-40-PA",
+        price_cents: 19900,
+        stock: 5,
+        attributes: { Cor: "Preto", Tamanho: "40", Modelagem: "Pantalona" },
+      },
     ],
-    categoryIds["Moda Feminina"], collectionIds["Novidades"]
+    categoryIds["Moda Feminina"],
+    collectionIds["Novidades"],
   );
 
   console.log("✅ Carga de catálogo e estoque concluída atômica e deterministicamente.");
@@ -322,11 +449,15 @@ async function runSeed() {
   // 5. ATUALIZANDO HOMEPAGE (BUILDER)
   console.log("\n⏳ [5/5] Injetando DataBindings na Homepage CMS...");
   // Limpa Home existente
-  const { data: pages } = await serviceClient.from("pages").select("id").eq("store_id", store.id).eq("slug", "home");
+  const { data: pages } = await serviceClient
+    .from("pages")
+    .select("id")
+    .eq("store_id", store.id)
+    .eq("slug", "home");
   if (pages && pages.length > 0) {
     const pageId = pages[0].id;
     // O sistema de pages pode não ter CASCADE simples (mas não precisamos recriar a Page, só a Version)
-    
+
     // Despublica versoes antigas
     await serviceClient.from("page_versions").update({ published: false }).eq("page_id", pageId);
 
@@ -351,10 +482,11 @@ async function runSeed() {
           position: 0,
           settings: {
             title: "Bem-vindo à Loja Modelo",
-            subtitle: "Esta é a vitrine demonstrativa rodando 100% sobre o motor canônico da plataforma Jah.",
+            subtitle:
+              "Esta é a vitrine demonstrativa rodando 100% sobre o motor canônico da plataforma Jah.",
             image_url: mediaUrls.geral,
-            cta_text: "Ver Novidades"
-          }
+            cta_text: "Ver Novidades",
+          },
         },
         {
           version_id: newVersion.id,
@@ -362,8 +494,8 @@ async function runSeed() {
           position: 1,
           settings: {
             title: "Novidades Quentes",
-            dataSource: { type: "collection", id: collectionIds["Novidades"] }
-          }
+            dataSource: { type: "collection", id: collectionIds["Novidades"] },
+          },
         },
         {
           version_id: newVersion.id,
@@ -371,16 +503,18 @@ async function runSeed() {
           position: 2,
           settings: {
             title: "Os Mais Vendidos",
-            dataSource: { type: "collection", id: collectionIds["Mais Vendidos"] }
-          }
-        }
+            dataSource: { type: "collection", id: collectionIds["Mais Vendidos"] },
+          },
+        },
       ];
 
       await serviceClient.from("page_sections").insert(sections);
     }
     console.log("✅ Homepage estruturada com Coleções Dinâmicas.");
   } else {
-    console.warn("⚠️ Aviso: Página 'home' não encontrada. O seed da homepage foi pulado. Verifique as migrations de CMS iniciais.");
+    console.warn(
+      "⚠️ Aviso: Página 'home' não encontrada. O seed da homepage foi pulado. Verifique as migrations de CMS iniciais.",
+    );
   }
 
   console.log("\n================================================================================");

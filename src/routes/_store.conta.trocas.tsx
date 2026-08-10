@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/state/states";
 import { listCustomerExchanges } from "@/services/exchanges.functions";
 import { RefreshCw } from "lucide-react";
+import { formatDate } from "../lib/datetime";
 
 export const Route = createFileRoute("/_store/conta/trocas")({
   head: () => ({ meta: [{ title: "Trocas e Devoluções" }] }),
@@ -59,16 +60,11 @@ function Page() {
       ) : (
         <div className="space-y-4">
           {exchanges.map((ex: any) => (
-            <div key={ex.id} className="rounded-xl border border-border bg-card p-5">
+            <div key={ex.id} className="border border-border bg-card p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-xs text-muted-foreground">
-                    Solicitado em{" "}
-                    {new Date(ex.requestedAt).toLocaleDateString("pt-BR", {
-                      day: "2-digit",
-                      month: "long",
-                      year: "numeric",
-                    })}
+                    Solicitado em {formatDate(ex.requestedAt)}
                   </p>
                   {ex.orderToken && (
                     <p className="mt-0.5 text-sm font-medium text-foreground">

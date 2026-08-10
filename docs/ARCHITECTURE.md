@@ -1,6 +1,6 @@
 # Arquitetura — Jah Community Platform
 
-Documento canônico de arquitetura. Fase 1. A Jah atua como Plataforma Comunitária e CMS Universal, possuindo um modelo de *Context Switching* para Lojas, Artistas e Pessoas Físicas.
+Documento canônico de arquitetura. Fase 1. A Jah atua como Plataforma Comunitária e CMS Universal, possuindo um modelo de _Context Switching_ para Lojas, Artistas e Pessoas Físicas.
 
 ## 1. Visão geral em camadas
 

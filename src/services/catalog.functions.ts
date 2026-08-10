@@ -62,14 +62,15 @@ function explodeProductToCards(row: any): ProductCardDTO[] {
 
     if (variantsToConsider.length > 0) {
       const hasAvailable = variantsToConsider.some(
-        (v: any) => Math.max(0, v.stock_on_hand || 0) > 0 || v.allow_backorder === true
+        (v: any) => Math.max(0, v.stock_on_hand || 0) > 0 || v.allow_backorder === true,
       );
       isOutOfStock = !hasAvailable;
 
-      const variantsForPrice =
-        hasAvailable
-          ? variantsToConsider.filter((v: any) => Math.max(0, v.stock_on_hand || 0) > 0 || v.allow_backorder === true)
-          : variantsToConsider;
+      const variantsForPrice = hasAvailable
+        ? variantsToConsider.filter(
+            (v: any) => Math.max(0, v.stock_on_hand || 0) > 0 || v.allow_backorder === true,
+          )
+        : variantsToConsider;
 
       if (variantsForPrice.length > 0) {
         const minPrice = Math.min(
@@ -95,6 +96,7 @@ function explodeProductToCards(row: any): ProductCardDTO[] {
       publishedAt: row.published_at ?? null,
       variantId,
       variantName,
+      attributes: row.attributes ?? {},
     };
   };
 
@@ -137,7 +139,9 @@ function explodeProductToCards(row: any): ProductCardDTO[] {
     const groupMedia = mediaList.filter((m) => m.variant_id && variantIdsInGroup.has(m.variant_id));
     const cover = groupMedia[0] || mediaList[0] || null;
     const hover = groupMedia[1] || mediaList[1] || null;
-    const mainVariant = groupVariants.find((v) => (v.stock_on_hand || 0) > 0 || v.allow_backorder === true) || groupVariants[0];
+    const mainVariant =
+      groupVariants.find((v) => (v.stock_on_hand || 0) > 0 || v.allow_backorder === true) ||
+      groupVariants[0];
 
     cards.push(buildStandardCard(groupVariants, cover, hover, mainVariant.id, groupVal));
   }
@@ -159,6 +163,7 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
         sort: z.enum(["newest", "price_asc", "price_desc", "in_stock"]).default("newest"),
         minCents: z.number().int().min(0).optional(),
         maxCents: z.number().int().min(0).optional(),
+        niche: z.string().optional(),
         attributes: z.record(z.string()).optional(),
       })
       .default({}),
@@ -175,11 +180,11 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
       }
 
       const selectQuery = params.categorySlug
-        ? `id, slug, title, brand, price_cents, compare_at_cents, published_at,
+        ? `id, slug, title, brand, price_cents, compare_at_cents, published_at, attributes,
            product_media(url, alt, sort_order),
            product_categories!inner(categories!inner(slug)),
            product_variants!inner(status, price_override_cents, stock_on_hand, attributes, allow_backorder)`
-        : `id, slug, title, brand, price_cents, compare_at_cents, published_at,
+        : `id, slug, title, brand, price_cents, compare_at_cents, published_at, attributes,
            product_media(url, alt, sort_order),
            product_variants!inner(status, price_override_cents, stock_on_hand, attributes, allow_backorder)`;
 
@@ -202,11 +207,18 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
       // Para a lógica de variantes funcionarem com !inner, temos que garantir que estão ativas e com estoque
       query = query.eq("product_variants.status", "active");
 
-      // Applica filtro de atributos dinâmicos, se houver
+      // Applica filtro de nicho via JSONB no nível do produto
+      if (params.niche) {
+        query = query.contains("attributes", { tipo: params.niche });
+      }
+
+      // Applica filtro de atributos dinâmicos (variações), se houver
       if (params.attributes && Object.keys(params.attributes).length > 0) {
         query = query.contains("product_variants.attributes", params.attributes);
         // Só retorna se a variação Específica que deu match tiver estoque ou permitir encomenda
-        query = query.or("stock_on_hand.gt.0,allow_backorder.eq.true", { referencedTable: "product_variants" });
+        query = query.or("stock_on_hand.gt.0,allow_backorder.eq.true", {
+          referencedTable: "product_variants",
+        });
       }
 
       if (params.categorySlug) {
@@ -238,6 +250,25 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
 
       let products: ProductCardDTO[] = data.flatMap(explodeProductToCards);
 
+      // --- PHASE 9: ADS ENGINE HIGHLIGHTS ---
+      // Fetch active campaigns for the products in this page
+      const productIds = Array.from(new Set(products.map((p) => p.id)));
+      if (productIds.length > 0) {
+        const { data: adsData } = await db
+          .from("ad_campaigns")
+          .select("product_id")
+          .in("product_id", productIds)
+          .eq("status", "active");
+
+        if (adsData && adsData.length > 0) {
+          const boostedIds = new Set(adsData.map((ad) => ad.product_id));
+          products = products.map((p) => ({
+            ...p,
+            isBoosted: boostedIds.has(p.id),
+          }));
+        }
+      }
+
       // Post-map sort for price (uses effective price from variant, not DB price_cents)
       if (params.sort === "price_asc") {
         products = products.sort((a, b) => a.priceCents - b.priceCents);
@@ -245,6 +276,13 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
         products = products.sort((a, b) => b.priceCents - a.priceCents);
       } else if (params.sort === "in_stock") {
         products = products.filter((p) => !p.isOutOfStock);
+      } else if (params.sort === "newest") {
+        // Ensure boosted products appear first when sorting by newest/default
+        products = products.sort((a, b) => {
+          if (a.isBoosted && !b.isBoosted) return -1;
+          if (!a.isBoosted && b.isBoosted) return 1;
+          return 0; // fallback to DB original order
+        });
       }
 
       // Trim to requested limit after sorting
@@ -743,55 +781,58 @@ export interface PublicStoreProfileDTO {
 
 export type PublicStoreProfileResult = CatalogResult<PublicStoreProfileDTO>;
 
-export const getPublicStoreProfile = createServerFn({ method: "GET" }).handler(async () => {
-  try {
-    const { resolveTenantStoreId } = await import("@/lib/tenant");
-    const storeId = await resolveTenantStoreId();
-    if (!storeId) throw new Error("Loja não encontrada");
+export const getPublicStoreProfile = createServerFn({ method: "GET" })
+  .validator(z.object({ storeId: z.string().optional() }).optional())
+  .handler(async ({ data }) => {
+    try {
+      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const storeIdToUse = data?.storeId || (await resolveTenantStoreId());
+      if (!storeIdToUse) throw new Error("Loja não encontrada");
 
-    const db = getAnonServerClient();
+      const db = getAnonServerClient();
 
-    const { data, error } = await db
-      .from("stores")
-      .select("id, name, slug, description, phone, email, address, city, state, settings")
-      .eq("id", storeId)
-      .single();
+      const { data: store, error } = await db
+        .from("stores")
+        .select("id, name, slug, description, phone, email, address, city, state, settings")
+        .eq("id", storeIdToUse)
+        .single();
 
-    if (error || !data) {
-      throw new Error("Loja não encontrada.");
+      if (error || !store) {
+        throw new Error("Loja não encontrada.");
+      }
+
+      const settings = (store.settings ?? {}) as Record<string, any>;
+
+      const profile: PublicStoreProfileDTO = {
+        id: store.id as string,
+        name: store.name as string,
+        slug: store.slug as string,
+        description: (store.description as string | null) ?? null,
+        phone: (store.phone as string | null) ?? null,
+        email: (store.email as string | null) ?? null,
+        address: (store.address as string | null) ?? null,
+        city: (store.city as string | null) ?? null,
+        state: (store.state as string | null) ?? null,
+        logoUrl: typeof settings.logoUrl === "string" ? settings.logoUrl : null,
+        instagramHandle:
+          typeof settings.instagramHandle === "string" ? settings.instagramHandle : null,
+        businessHours: typeof settings.businessHours === "string" ? settings.businessHours : null,
+        settings,
+        pixKey: typeof settings.pixKey === "string" ? settings.pixKey : null,
+        paymentInstructions:
+          typeof settings.paymentInstructions === "string" ? settings.paymentInstructions : null,
+      };
+
+      return profile;
+    } catch (e) {
+      if (e instanceof SupabaseUnconfiguredError) {
+        throw new Error("Nossa vitrine está passando por uma rápida atualização técnica.");
+      }
+      console.error("[catalog.functions] getPublicStoreProfile:", e);
+      throw new Error("Erro inesperado ao carregar perfil da loja.");
     }
+  });
 
-    const settings = (data.settings ?? {}) as Record<string, any>;
-
-    const profile: PublicStoreProfileDTO = {
-      id: data.id as string,
-      name: data.name as string,
-      slug: data.slug as string,
-      description: (data.description as string | null) ?? null,
-      phone: (data.phone as string | null) ?? null,
-      email: (data.email as string | null) ?? null,
-      address: (data.address as string | null) ?? null,
-      city: (data.city as string | null) ?? null,
-      state: (data.state as string | null) ?? null,
-      logoUrl: typeof settings.logoUrl === "string" ? settings.logoUrl : null,
-      instagramHandle:
-        typeof settings.instagramHandle === "string" ? settings.instagramHandle : null,
-      businessHours: typeof settings.businessHours === "string" ? settings.businessHours : null,
-      settings,
-      pixKey: typeof settings.pixKey === "string" ? settings.pixKey : null,
-      paymentInstructions:
-        typeof settings.paymentInstructions === "string" ? settings.paymentInstructions : null,
-    };
-
-    return profile;
-  } catch (e) {
-    if (e instanceof SupabaseUnconfiguredError) {
-      throw new Error("Nossa vitrine está passando por uma rápida atualização técnica.");
-    }
-    console.error("[catalog.functions] getPublicStoreProfile:", e);
-    throw new Error("Erro inesperado ao carregar perfil da loja.");
-  }
-});
 
 // ---------------------------------------------------------------------------
 // getPublicFaqs

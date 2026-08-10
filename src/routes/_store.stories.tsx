@@ -130,7 +130,7 @@ function Page() {
                 }}
                 className="group flex flex-col items-center gap-2 focus:outline-none transition-transform active:scale-95"
               >
-                <div className="relative p-0.5 rounded-full bg-gradient-to-tr from-primary via-pink-500 to-amber-400 group-hover:rotate-6 transition-transform duration-300">
+                <div className="relative p-0.5 rounded-full from-primary group-hover:rotate-6 transition-transform duration-300">
                   <div className="p-1 bg-background rounded-full">
                     {isVideo(story.media_url) ? (
                       <div className="size-20 sm:size-24 rounded-full bg-muted flex items-center justify-center overflow-hidden border relative">
@@ -166,7 +166,7 @@ function Page() {
       {activeStory && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md transition-all duration-300">
           <div
-            className="relative w-full max-w-lg aspect-[9/16] max-h-screen bg-black overflow-hidden flex flex-col shadow-2xl md:rounded-2xl"
+            className="relative w-full max-w-lg aspect-[9/16] max-h-screen bg-black overflow-hidden flex flex-col md:"
             onTouchStart={() => setIsPaused(true)}
             onTouchEnd={() => setIsPaused(false)}
             onMouseDown={() => setIsPaused(true)}
@@ -256,7 +256,7 @@ function Page() {
               <div className="absolute bottom-8 left-4 right-4 z-30 text-center">
                 <Button
                   asChild
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 shadow-lg flex items-center justify-center gap-2 rounded-xl text-sm"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 flex items-center justify-center gap-2 text-sm"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <a href={activeStory.link_url} target="_blank" rel="noopener noreferrer">

@@ -69,7 +69,9 @@ function AuditoriaPage() {
                       {entry.action}
                     </Badge>
                   </TableCell>
-                  <TableCell className="font-mono text-xs text-muted-foreground">{entry.profiles?.full_name || "Sistema"}</TableCell>
+                  <TableCell className="font-mono text-xs text-muted-foreground">
+                    {entry.profiles?.full_name || "Sistema"}
+                  </TableCell>
                   <TableCell className="font-mono text-xs">{entry.entity_type || "N/A"}</TableCell>
                   <TableCell className="font-mono text-xs text-muted-foreground">
                     {entry.entity_id?.slice(0, 8)}…

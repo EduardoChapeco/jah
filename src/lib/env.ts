@@ -32,6 +32,7 @@ if (typeof globalThis !== "undefined") {
 
 export function getEnvVar(key: string): string | undefined {
   let debug = "";
+
   // 1. Resolve via Cloudflare global scope (injected by src/server.ts)
   if (typeof globalThis !== "undefined" && (globalThis as any).__env__) {
     const env = (globalThis as any).__env__;
@@ -41,13 +42,20 @@ export function getEnvVar(key: string): string | undefined {
   } else {
     debug += "gEnv=no;";
   }
+  
+  // 1b. Resolve via injected process.env from wrap-worker.js
+  const gProcess = (globalThis as any).process;
+  if (gProcess && gProcess.env && typeof gProcess.env[key] === "string" && gProcess.env[key]) {
+    return gProcess.env[key];
+  }
 
-  // 2. Resolve via Vinxi's getEvent (works in local dev TanStack Start with asyncContext)
+  // 2. Resolve via Vinxi/Nitro event context (if available) dev TanStack Start with asyncContext)
   try {
     const event = getEvent();
     if (event) {
       debug += "evt=yes;";
-      const env = event.context?.cloudflare?.env || (event.node?.req as any)?.runtime?.cloudflare?.env;
+      const env =
+        event.context?.cloudflare?.env || (event.node?.req as any)?.runtime?.cloudflare?.env;
       if (env) {
         debug += "cEnv=yes;";
         if (typeof env[key] === "string" && env[key]) {
@@ -66,9 +74,6 @@ export function getEnvVar(key: string): string | undefined {
     debug += `evtThrow=${err.message};`;
   }
 
-  if (key === "SUPABASE_SERVICE_ROLE_KEY") {
-    throw new Error(`ENV_TRACE: ${debug}`);
-  }
 
   // 2. Fallback to process.env (Node.js runtime / local dev)
   if (typeof process !== "undefined" && process.env && process.env[key]) {

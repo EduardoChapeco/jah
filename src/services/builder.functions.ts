@@ -89,6 +89,10 @@ async function hydrateBindings(
   let maxLatestLimit = 12;
   let needsReviews = false;
   const hotspotSlugs = new Set<string>();
+  let needsEvents = false;
+  let maxEventsLimit = 6;
+  let needsClassifieds = false;
+  let maxClassifiedsLimit = 6;
 
   // 1. Map requirements
   nodes.forEach((node) => {
@@ -104,6 +108,16 @@ async function hydrateBindings(
       }
     } else if (bindingSource === "dynamic_reviews") {
       needsReviews = true;
+    } else if (bindingSource === "upcoming_events") {
+      needsEvents = true;
+      if (bindings.limit && bindings.limit > maxEventsLimit) {
+        maxEventsLimit = bindings.limit;
+      }
+    } else if (bindingSource === "latest_classifieds") {
+      needsClassifieds = true;
+      if (bindings.limit && bindings.limit > maxClassifiedsLimit) {
+        maxClassifiedsLimit = bindings.limit;
+      }
     }
 
     if (node.block_type === "image_hotspots" && Array.isArray(node.content?.hotspots)) {
@@ -139,6 +153,8 @@ async function hydrateBindings(
     latest: [] as any[],
     reviews: [] as any[],
     hotspotsMap: new Map<string, any>(),
+    events: [] as any[],
+    classifieds: [] as any[],
   };
 
   // 2a. Collections
@@ -239,6 +255,63 @@ async function hydrateBindings(
     }
   }
 
+  // 2e. Events
+  if (needsEvents) {
+    const { data: events } = await db
+      .from("events")
+      .select(
+        "id, title, description, event_date, location, cover_image, ticket_lots(id, price_cents, capacity, sold_count)",
+      )
+      .eq("status", "published")
+      .eq("store_id", store_id)
+      .gte("event_date", new Date().toISOString())
+      .order("event_date", { ascending: true })
+      .limit(maxEventsLimit);
+    if (events) {
+      cache.events = events.map((e: any) => {
+        const cheapestLot = (e.ticket_lots || []).reduce((min: number | null, lot: any) => {
+          if (lot.capacity > lot.sold_count && (min === null || lot.price_cents < min)) {
+            return lot.price_cents;
+          }
+          return min;
+        }, null);
+        return {
+          id: e.id,
+          title: e.title,
+          description: e.description,
+          event_date: e.event_date,
+          location: e.location,
+          cover_image: e.cover_image,
+          price_cents: cheapestLot,
+        };
+      });
+    }
+  }
+
+  // 2f. Classifieds
+  if (needsClassifieds) {
+    const { data: classifieds } = await db
+      .from("classifieds")
+      .select(
+        "id, title, content, category, price_cents, created_at, profiles(full_name, avatar_url)",
+      )
+      .eq("status", "active")
+      .order("created_at", { ascending: false })
+      .limit(maxClassifiedsLimit);
+    if (classifieds) {
+      cache.classifieds = classifieds.map((c: any) => ({
+        id: c.id,
+        title: c.title,
+        content: c.content,
+        category: c.category,
+        price_cents: c.price_cents,
+        created_at: c.created_at,
+        author: (c.profiles as any)?.full_name || "Membro da Comunidade",
+        avatar_url: (c.profiles as any)?.avatar_url || null,
+      }));
+    }
+  }
+
   // 3. Hydrate the nodes using cached data (O(N) operation without async DB calls)
   return nodes.map((node) => {
     const bindings = node.data_bindings || {};
@@ -255,6 +328,12 @@ async function hydrateBindings(
       transient_data = { products: cache.latest.slice(0, limit) };
     } else if (bindingSource === "dynamic_reviews") {
       transient_data = { reviews: cache.reviews };
+    } else if (bindingSource === "upcoming_events") {
+      const limit = (bindings.limit as number) || 6;
+      transient_data = { events: cache.events.slice(0, limit) };
+    } else if (bindingSource === "latest_classifieds") {
+      const limit = (bindings.limit as number) || 6;
+      transient_data = { classifieds: cache.classifieds.slice(0, limit) };
     }
 
     const enrichedNode = { ...node };

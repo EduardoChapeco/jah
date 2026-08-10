@@ -54,7 +54,6 @@ describe("Stock Functions", () => {
     mockSingle.mockReturnValue(mockQueryBuilder);
   });
 
-
   describe("getStockLevelsHandler", () => {
     it("should retrieve all stock variants ordered by sku", async () => {
       const mockVariants = [
@@ -101,12 +100,15 @@ describe("Stock Functions", () => {
       mockSingle.mockResolvedValueOnce({ data: { id: "var-uuid-1" }, error: null });
       mockRpc.mockResolvedValueOnce({ error: null });
 
-      const res = await adjustStockHandler({
-        variantId: "var-uuid-1",
-        qty: 10,
-        movementType: "purchase",
-        note: "Compra de fornecedor",
-      }, "store-1");
+      const res = await adjustStockHandler(
+        {
+          variantId: "var-uuid-1",
+          qty: 10,
+          movementType: "purchase",
+          note: "Compra de fornecedor",
+        },
+        "store-1",
+      );
 
       expect(res).toEqual({ status: "ok", message: "Estoque ajustado com sucesso." });
       expect(mockRpc).toHaveBeenCalledWith("adjust_stock", {
@@ -121,7 +123,10 @@ describe("Stock Functions", () => {
       mockSingle.mockResolvedValueOnce({ data: { id: "var-uuid-1" }, error: null });
       mockRpc.mockResolvedValueOnce({ error: null });
 
-      await adjustStockHandler({ variantId: "var-uuid-1", qty: -1, movementType: "damage" }, "store-1");
+      await adjustStockHandler(
+        { variantId: "var-uuid-1", qty: -1, movementType: "damage" },
+        "store-1",
+      );
       expect(mockRpc).toHaveBeenCalledWith("adjust_stock", {
         p_variant_id: "var-uuid-1",
         p_qty: -1,
@@ -134,11 +139,13 @@ describe("Stock Functions", () => {
       mockSingle.mockResolvedValueOnce({ data: null, error: { message: "Variant not found" } });
 
       await expect(
-        adjustStockHandler({ variantId: "bad-uuid", qty: 1, movementType: "adjustment" }, "store-1"),
+        adjustStockHandler(
+          { variantId: "bad-uuid", qty: 1, movementType: "adjustment" },
+          "store-1",
+        ),
       ).rejects.toThrow("Variante não encontrada ou acesso negado");
     });
   });
-
 
   describe("getStockMovementsHandler", () => {
     it("should retrieve stock movements ordered by created_at desc limited by limit param", async () => {

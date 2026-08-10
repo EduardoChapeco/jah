@@ -42,11 +42,7 @@ function Page() {
               const question = faq.question || faq.q || "Pergunta";
               const answer = faq.answer || faq.a || "";
               return (
-                <AccordionItem
-                  key={i}
-                  value={`faq-${i}`}
-                  className="border rounded-xl px-4 bg-card shadow-sm"
-                >
+                <AccordionItem key={i} value={`faq-${i}`} className="border px-4 bg-card shadow-sm">
                   <AccordionTrigger className="text-base font-medium py-4 hover:no-underline text-left">
                     {question}
                   </AccordionTrigger>

@@ -7,9 +7,7 @@ export const Route = createFileRoute("/_store/politicas/$slug")({
   head: ({ loaderData }) => ({
     meta: [
       {
-        title: (loaderData as any)?.title
-          ? `${(loaderData as any).title}`
-          : "Política",
+        title: (loaderData as any)?.title ? `${(loaderData as any).title}` : "Política",
       },
     ],
   }),

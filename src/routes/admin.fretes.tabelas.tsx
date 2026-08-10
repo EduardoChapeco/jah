@@ -258,7 +258,13 @@ function FretesTabelasPage() {
       ) : (
         <div className="space-y-6">
           {zones.map((zone: any) => (
-            <Surface key={zone.id} variant="zine" elevation="sm" padding="none" className="overflow-hidden">
+            <Surface
+              key={zone.id}
+              variant="zine"
+              elevation="sm"
+              padding="none"
+              className="overflow-hidden"
+            >
               <div className="flex items-center justify-between bg-muted/30 px-5 py-3 border-b border-ink/20">
                 <div className="flex items-center gap-3">
                   <h3 className="font-semibold">{zone.name}</h3>

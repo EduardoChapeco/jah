@@ -31,6 +31,7 @@ import {
 } from "@/services/payment.functions";
 import { formatMoney } from "@/lib/money";
 import { EmptyState } from "@/components/state/states";
+import { formatDate } from "../lib/datetime";
 
 export const Route = createFileRoute("/admin/comprovantes")({
   head: () => ({ meta: [{ title: "Comprovantes" }] }),
@@ -103,7 +104,7 @@ function ReceiptsPage() {
           description="Quando clientes enviarem comprovantes de pagamento, eles aparecerão aqui para revisão."
         />
       ) : (
-        <div className="rounded-xl border border-border shadow-xs bg-card overflow-hidden">
+        <div className="border border-border shadow-xs bg-card overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
@@ -133,7 +134,7 @@ function ReceiptsPage() {
                       </Link>
                     </TableCell>
                     <TableCell>{customerName}</TableCell>
-                    <TableCell>{new Date(r.created_at).toLocaleDateString("pt-BR")}</TableCell>
+                    <TableCell>{formatDate(r.created_at)}</TableCell>
                     <TableCell className="font-semibold">{formatMoney(r.amount_cents)}</TableCell>
                     <TableCell>
                       {r.receipt_url ? (

@@ -1,26 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { getServerClient } from "@/lib/supabase";
 import { formatMoney } from "@/lib/money";
 import { formatDateTime } from "@/lib/datetime";
+import { getOrderForReceipt } from "@/services/order.functions";
 
 export const Route = createFileRoute("/admin_/pedidos/$id/recibo")({
   head: () => ({ meta: [{ title: "Recibo" }] }),
   loader: async ({ params }: { params: { id: string } }) => {
-    const db = await getServerClient();
-    const { data, error } = await db
-      .from("orders")
-      .select(
-        `
-        id, public_token, status, total_cents, subtotal_cents, shipping_cents, discount_cents,
-        customer_snapshot, created_at, shipping_method,
-        order_items ( id, product_title, variant_sku, qty, unit_price_cents, total_cents )
-      `,
-      )
-      .eq("id", params.id)
-      .single();
-    if (error) throw new Error("Pedido não encontrado");
-    return data;
+    return await getOrderForReceipt({ data: { id: params.id } });
   },
   component: ReceiptPrintPage,
 });
@@ -108,7 +95,7 @@ function ReceiptPrintPage() {
             <span>{formatMoney(order.shipping_cents)}</span>
           </div>
           {order.discount_cents > 0 && (
-            <div className="flex justify-between text-green-700">
+            <div className="flex justify-between text-success">
               <span>Desconto:</span>
               <span>-{formatMoney(order.discount_cents)}</span>
             </div>

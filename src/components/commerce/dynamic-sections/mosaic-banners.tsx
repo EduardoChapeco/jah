@@ -17,7 +17,7 @@ export function MosaicBanners({ content }: { content: Record<string, unknown> })
           const link = String(banner.link || "");
 
           const inner = (
-            <div className="group relative aspect-[4/5] @md:aspect-square overflow-hidden rounded-2xl bg-muted transition-transform hover:opacity-95">
+            <div className="group relative aspect-[4/5] @md:aspect-square overflow-hidden bg-muted transition-transform hover:opacity-95">
               {bg_url ? (
                 <img
                   src={bg_url}
@@ -31,7 +31,7 @@ export function MosaicBanners({ content }: { content: Record<string, unknown> })
                 </div>
               )}
               {/* Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-80" />
+              <div className="absolute inset-0 opacity-80" />
               {/* Content */}
               {title && (
                 <div className="absolute bottom-0 left-0 p-6 @md:p-8">

@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Surface } from "@/components/ui/surface";
 import {
   Table,
   TableBody,
@@ -214,9 +215,9 @@ function ManualPaymentsPage() {
       />
 
       {/* PIX / Instruções Globais & Regras de Checkout */}
-      <div className="rounded-xl border border-border bg-card p-6 space-y-5 shadow-xs">
+      <Surface variant="zine" padding="md" className="space-y-5">
         <div className="flex items-center gap-3">
-          <div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center">
+          <div className="size-9 bg-primary/10 flex items-center justify-center">
             <QrCode className="size-5 text-primary" />
           </div>
           <div>
@@ -332,7 +333,7 @@ function ManualPaymentsPage() {
             </Button>
           </div>
         </form>
-      </div>
+      </Surface>
 
       {/* Métodos Manuais */}
       <div className="space-y-4">
@@ -356,7 +357,7 @@ function ManualPaymentsPage() {
             action={<Button onClick={openCreate}>Novo Método</Button>}
           />
         ) : (
-          <div className="rounded-xl border border-border bg-card overflow-hidden shadow-xs">
+          <Surface variant="default" padding="none">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -387,11 +388,7 @@ function ManualPaymentsPage() {
                     </TableCell>
                     <TableCell>
                       <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          method.is_active
-                            ? "bg-success/15 text-success"
-                            : "bg-muted text-muted-foreground"
-                        }`}
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${method.is_active ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}`}
                       >
                         {method.is_active ? "Ativo" : "Inativo"}
                       </span>
@@ -420,7 +417,7 @@ function ManualPaymentsPage() {
                 ))}
               </TableBody>
             </Table>
-          </div>
+          </Surface>
         )}
       </div>
 
@@ -428,9 +425,7 @@ function ManualPaymentsPage() {
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent className="sm:max-w-md">
           <SheetHeader>
-            <SheetTitle>
-              {editingMethod ? "Editar Método" : "Novo Método de Pagamento"}
-            </SheetTitle>
+            <SheetTitle>{editingMethod ? "Editar Método" : "Novo Método de Pagamento"}</SheetTitle>
             <SheetDescription>
               Preencha os dados e taxas para exibição no checkout dos clientes.
             </SheetDescription>

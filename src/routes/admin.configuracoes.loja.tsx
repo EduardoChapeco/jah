@@ -8,26 +8,31 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Surface } from "@/components/ui/surface";
 import {
   getStoreSettings,
   saveStoreSettings,
   executeHardRefresh,
+  getWorkingHours,
 } from "@/services/store.functions";
 import { MediaUploader } from "@/components/admin/builder/MediaUploader";
+import { WorkingHoursEditor } from "@/components/admin/working-hours-editor";
 
 export const Route = createFileRoute("/admin/configuracoes/loja")({
   head: () => ({ meta: [{ title: "Dados da Loja" }] }),
   loader: async () => {
-    return await getStoreSettings();
+    const [settings, workingHours] = await Promise.all([
+      getStoreSettings(),
+      getWorkingHours(),
+    ]);
+    return { settings, workingHours };
   },
   component: StoreSettings,
 });
 
 function StoreSettings() {
-  const res = Route.useLoaderData();
+  const { settings: store, workingHours } = Route.useLoaderData();
   const router = useRouter();
-  const store = res || null;
   const [form, setForm] = useState({
     name: (store as any)?.name || "",
     email: (store as any)?.email || "",
@@ -97,13 +102,11 @@ function StoreSettings() {
       />
 
       <form onSubmit={handleSave} className="space-y-6 max-w-2xl">
-        <Card className="rounded-xl border border-border bg-card shadow-xs">
-          <CardHeader className="pb-3 border-b border-border">
-            <CardTitle className="text-sm font-semibold text-foreground">
-              Informações Gerais
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
+        <Surface variant="polaroid" padding="none" className="border border-border bg-card">
+          <header className="pb-3 border-b border-border p-4">
+            <h3 className="text-sm font-semibold text-foreground">Informações Gerais</h3>
+          </header>
+          <div className="p-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="store-name">Nome da Loja *</Label>
@@ -127,16 +130,14 @@ function StoreSettings() {
                 />
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
 
-        <Card className="rounded-xl border border-border bg-card shadow-xs">
-          <CardHeader className="pb-3 border-b border-border">
-            <CardTitle className="text-sm font-semibold text-foreground">
-              Identidade Visual
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
+        <Surface variant="polaroid" padding="none" className="border border-border bg-card">
+          <header className="pb-3 border-b border-border p-4">
+            <h3 className="text-sm font-semibold text-foreground">Identidade Visual</h3>
+          </header>
+          <div className="p-4">
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-2">
                 <Label>Logotipo da Loja</Label>
@@ -148,7 +149,7 @@ function StoreSettings() {
                 <p className="text-xs text-muted-foreground mt-1">
                   Imagem retangular, preferencialmente transparente (PNG/SVG).
                 </p>
-                <div className="flex flex-row items-center justify-between rounded-lg border p-4 mt-4">
+                <div className="flex flex-row items-center justify-between border p-4 mt-4">
                   <div className="space-y-0.5">
                     <Label className="text-base">Ocultar texto da marca</Label>
                     <p className="text-sm text-muted-foreground">
@@ -173,16 +174,14 @@ function StoreSettings() {
                 </p>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
 
-        <Card className="rounded-xl border border-border bg-card shadow-xs">
-          <CardHeader className="pb-3 border-b border-border">
-            <CardTitle className="text-sm font-semibold text-foreground">
-              Contato Comercial
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
+        <Surface variant="polaroid" padding="none" className="border border-border bg-card">
+          <header className="pb-3 border-b border-border p-4">
+            <h3 className="text-sm font-semibold text-foreground">Contato Comercial</h3>
+          </header>
+          <div className="p-4">
             <div className="space-y-2">
               <Label htmlFor="store-email">E-mail administrativo de contato</Label>
               <Input
@@ -193,16 +192,16 @@ function StoreSettings() {
                 placeholder="contato@jah.com.br"
               />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
 
-        <Card className="rounded-xl border border-border bg-card shadow-xs">
-          <CardHeader className="pb-3 border-b border-border">
-            <CardTitle className="text-sm font-semibold text-foreground">
+        <Surface variant="polaroid" padding="none" className="border border-border bg-card">
+          <header className="pb-3 border-b border-border p-4">
+            <h3 className="text-sm font-semibold text-foreground">
               Origem Logística (Faturamento)
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
+            </h3>
+          </header>
+          <div className="p-4">
             <div className="grid gap-4 md:grid-cols-3">
               <div className="space-y-2 md:col-span-1">
                 <Label htmlFor="store-city">Cidade</Label>
@@ -234,16 +233,20 @@ function StoreSettings() {
                 />
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
 
-        <Card className="rounded-xl border border-destructive/30 bg-destructive/5 shadow-xs mt-10">
-          <CardHeader className="pb-3 border-b border-destructive/20">
-            <CardTitle className="text-sm font-bold text-destructive flex items-center gap-2">
+        <Surface
+          variant="default"
+          padding="none"
+          className="border border-destructive/30 bg-destructive/5 mt-10"
+        >
+          <header className="pb-3 border-b border-destructive/20 p-4">
+            <h3 className="text-sm font-bold text-destructive flex items-center gap-2">
               ⚠️ Zona de Perigo: Autodestruição (Hard Refresh)
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4 space-y-4">
+            </h3>
+          </header>
+          <div className="p-4 space-y-4">
             <p className="text-sm text-foreground/80 font-medium">
               Atenção: Ao executar o Hard Refresh, todos os produtos, pedidos, carrinhos, transações
               e configurações vitais (exceto os Admins/Lojista) serão PERMANENTEMENTE excluídos.
@@ -270,13 +273,15 @@ function StoreSettings() {
                 </Button>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
 
         <Button type="submit" disabled={isSaving} size="lg" className="w-full font-bold">
           {isSaving ? "Salvando..." : "Salvar Dados da Loja"}
         </Button>
       </form>
+
+      <WorkingHoursEditor initialData={workingHours} />
     </div>
   );
 }

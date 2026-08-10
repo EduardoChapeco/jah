@@ -1,11 +1,12 @@
 # Dossiê 04: Comunidade, Feed e Diretório
 
 **Status**: Especificação Final  
-**Domínio**: Social & Community Discovery  
+**Domínio**: Social & Community Discovery
 
 ---
 
 ## 1. Necessidade Humana
+
 **Quem utiliza?** Toda a base de usuários.
 **Por que utiliza?** Para descobrir o que está acontecendo ao seu redor (Eventos, Oportunidades, Discos Novos, Bandas) e interagir com o ecossistema.
 **Problema que resolve:** Elimina o abismo entre "plataforma de compra" (e-commerce frio) e "rede social" (engajamento sem transação). A Jah junta os dois: O usuário vê um post sobre um show, e ali mesmo pode garantir o ingresso.
@@ -27,7 +28,7 @@
    - Usuário desce o feed. Dá like (tabela `post_likes`), comenta (tabela `post_comments`).
    - Clica no Card da Jaqueta e o `<Sheet>` do Produto se abre (sem trocar a rota global, ou com navegação paralela no router).
 4. **O Diretório (Busca Local):**
-   - Usuário clica na Aba "Diretório". 
+   - Usuário clica na Aba "Diretório".
    - Procura por "Estúdio de Tatuagem".
    - A query bate na tabela `organizations` / `stores` filtrada por `is_public = true` e busca vetorial/textual por categoria.
 
@@ -37,9 +38,9 @@
 
 - **Entidade Apagada (Dangling References):**
   - **Problema:** O post exibe a "Jaqueta Vintage", mas o dono apagou o produto.
-  - **Solução:** O Post não quebra. O Frontend tenta resolver o `reference_id`. Se falhar (404), o post exibe: "[Este item foi removido pelo anunciante]". 
+  - **Solução:** O Post não quebra. O Frontend tenta resolver o `reference_id`. Se falhar (404), o post exibe: "[Este item foi removido pelo anunciante]".
 - **Moderação / Denúncia:**
-  - O Post recebe 3 reports. O Status vai para `hidden`. No Feed, ele é suprimido na query SQL (`where status = 'active'`). 
+  - O Post recebe 3 reports. O Status vai para `hidden`. No Feed, ele é suprimido na query SQL (`where status = 'active'`).
   - Se for falso positivo, o Admin Master restaura e ele reaparece.
 
 ---
@@ -47,12 +48,14 @@
 ## 4. Máquina de Estados e Transições
 
 **`posts` (Feed)**
+
 - `draft`: Rascunho (útil para agendamentos).
 - `active`: Visível.
 - `hidden`: Suspenso por moderação.
 - `archived`: Ocultado pelo próprio autor.
 
 **`organizations` (Diretório)**
+
 - `active`: Listado nas Páginas Amarelas.
 - `invisible`: Operando, mas escondido do diretório público (ex: evento privado).
 
@@ -113,6 +116,7 @@
 ## 12. Critério de Conclusão
 
 Este domínio estará pronto quando:
+
 1. Puder criar post como Pessoa Física.
 2. Mudar pro contexto Loja e criar post como Loja.
 3. Rolagem infinita funcionar sem duplicar posts.

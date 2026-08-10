@@ -13,7 +13,7 @@ export async function getStoreSettingsHandler() {
   const { data: store, error } = await db
     .from("stores")
     .select(
-      "id, name, slug, email, phone, cnpj, address, city, state, zip_code, description, settings",
+      "id, name, slug, type, email, phone, cnpj, address, city, state, zip_code, description, settings",
     )
     .eq("id", identity.store_id)
     .single();
@@ -349,3 +349,155 @@ export const executeHardRefresh = createServerFn({ method: "POST" })
     }
     return data;
   });
+
+// ---------------------------------------------------------------------------
+// Horários de Funcionamento — Microfase G
+// Persistido em stores.settings.working_hours como JSONB.
+// Schema canônico: { [day]: { open: boolean, intervals: [{from, to}] } }
+// ---------------------------------------------------------------------------
+
+/** Dias da semana canônicos */
+export const WEEKDAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
+export type Weekday = (typeof WEEKDAYS)[number];
+
+export const WEEKDAY_LABELS: Record<Weekday, string> = {
+  mon: "Segunda",
+  tue: "Terça",
+  wed: "Quarta",
+  thu: "Quinta",
+  fri: "Sexta",
+  sat: "Sábado",
+  sun: "Domingo",
+};
+
+export type TimeInterval = {
+  from: string; // "09:00"
+  to: string; // "18:00"
+};
+
+export type DaySchedule = {
+  open: boolean;
+  intervals: TimeInterval[];
+};
+
+export type WorkingHours = Record<Weekday, DaySchedule>;
+
+/** Horário padrão caso não exista configuração */
+export const DEFAULT_WORKING_HOURS: WorkingHours = {
+  mon: { open: true, intervals: [{ from: "09:00", to: "18:00" }] },
+  tue: { open: true, intervals: [{ from: "09:00", to: "18:00" }] },
+  wed: { open: true, intervals: [{ from: "09:00", to: "18:00" }] },
+  thu: { open: true, intervals: [{ from: "09:00", to: "18:00" }] },
+  fri: { open: true, intervals: [{ from: "09:00", to: "18:00" }] },
+  sat: { open: false, intervals: [] },
+  sun: { open: false, intervals: [] },
+};
+
+const timeIntervalSchema = z.object({
+  from: z.string().regex(/^\d{2}:\d{2}$/, "Formato HH:MM"),
+  to: z.string().regex(/^\d{2}:\d{2}$/, "Formato HH:MM"),
+});
+
+const dayScheduleSchema = z.object({
+  open: z.boolean(),
+  intervals: z.array(timeIntervalSchema),
+});
+
+export const workingHoursSchema = z.object({
+  mon: dayScheduleSchema,
+  tue: dayScheduleSchema,
+  wed: dayScheduleSchema,
+  thu: dayScheduleSchema,
+  fri: dayScheduleSchema,
+  sat: dayScheduleSchema,
+  sun: dayScheduleSchema,
+});
+
+/** Retorna os horários de funcionamento da loja */
+export const getWorkingHours = createServerFn({ method: "GET" }).handler(async () => {
+  const identity = await getServerIdentity();
+  assertStoreAccess(identity, ["owner", "admin", "manager"]);
+
+  const db = getServerClient();
+  const { data: store } = await db
+    .from("stores")
+    .select("settings")
+    .eq("id", identity.store_id)
+    .single();
+
+  const raw = (store?.settings as any)?.working_hours;
+  if (!raw) return DEFAULT_WORKING_HOURS;
+
+  // Valida e normaliza o schema — coluna legada pode ter formato diferente
+  const parsed = workingHoursSchema.safeParse(raw);
+  return parsed.success ? parsed.data : DEFAULT_WORKING_HOURS;
+});
+
+/** Salva os horários de funcionamento */
+export const saveWorkingHours = createServerFn({ method: "POST" })
+  .validator(workingHoursSchema)
+  .handler(async ({ data: workingHours }) => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin"]);
+
+    const db = getServerClient();
+
+    // Lê settings atuais para fazer merge (não sobrescrever outros campos)
+    const { data: store } = await db
+      .from("stores")
+      .select("settings")
+      .eq("id", identity.store_id)
+      .single();
+
+    const currentSettings = (store?.settings as Record<string, any>) || {};
+
+    const { error } = await db
+      .from("stores")
+      .update({
+        settings: {
+          ...currentSettings,
+          working_hours: workingHours,
+        },
+      })
+      .eq("id", identity.store_id);
+
+    if (error) throw new Error("Erro ao salvar horários: " + error.message);
+    return { success: true };
+  });
+
+/**
+ * Retorna os intervalos disponíveis de uma data para o booking engine.
+ * Usado por getAvailableSlots para substituir o hardcode 09:00-18:00.
+ */
+export async function getWorkingIntervalsForDate(
+  storeId: string,
+  date: string, // "YYYY-MM-DD"
+): Promise<TimeInterval[]> {
+  const db = getServerClient();
+  const { data: store } = await db
+    .from("stores")
+    .select("settings")
+    .eq("id", storeId)
+    .single();
+
+  const raw = (store?.settings as any)?.working_hours as WorkingHours | undefined;
+  if (!raw) return [{ from: "09:00", to: "18:00" }]; // fallback seguro
+
+  // Mapear dia da semana
+  const dayIndex = new Date(date + "T12:00:00Z").getUTCDay(); // 0=Sun, 1=Mon...
+  const dayMap: Record<number, Weekday> = {
+    0: "sun",
+    1: "mon",
+    2: "tue",
+    3: "wed",
+    4: "thu",
+    5: "fri",
+    6: "sat",
+  };
+  const dayKey = dayMap[dayIndex];
+  const schedule = raw[dayKey];
+
+  if (!schedule?.open || !schedule.intervals?.length) return [];
+  return schedule.intervals;
+}
+

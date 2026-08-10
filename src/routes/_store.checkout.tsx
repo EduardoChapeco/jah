@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { formatMoney } from "@/lib/money";
 import {
   getCart,
+  getGlobalCarts,
+  cancelCart,
   updateCartShipping,
   applyCouponToCart,
   updateCartContact,
@@ -43,23 +45,29 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-
+import { Surface } from "@/components/ui/surface";
 export const Route = createFileRoute("/_store/checkout")({
   head: () => ({ meta: [{ title: "Checkout" }] }),
-  loader: async () => {
-    const [cart, profileRes, paymentMethodsRes, gatewayStatus, userProfile, userAddresses] =
+  validateSearch: (search: Record<string, unknown>): { store?: string } => {
+    return {
+      store: (search.store as string) || undefined,
+    };
+  },
+  loaderDeps: ({ search: { store } }) => ({ store }),
+  loader: async ({ deps: { store } }) => {
+    const [cart, globalCarts, profileRes, paymentMethodsRes, gatewayStatus, userProfile, userAddresses] =
       await Promise.all([
         getCart(),
-        getPublicStoreProfile(),
-        getPublicPaymentMethods(),
-        getGatewayStatus(),
+        getGlobalCarts().catch(() => []),
+        getPublicStoreProfile(store ? { data: { storeId: store } } : undefined),
+        getPublicPaymentMethods(store ? { data: { storeId: store } } : undefined),
+        getGatewayStatus(store ? { data: { storeId: store } } : undefined),
         getProfile().catch(() => null),
         getCustomerAddresses().catch(() => []),
       ]);
-    const storeProfile = profileRes;
 
     return {
-      cart: cart || {
+      initialCart: cart || {
         id: "",
         items: [],
         totalCents: 0,
@@ -70,9 +78,10 @@ export const Route = createFileRoute("/_store/checkout")({
         couponCode: null,
         itemCount: 0,
       },
+      globalCarts,
+      storeProfile: profileRes || null,
       paymentMethods: paymentMethodsRes || [],
       isGatewayConfigured: gatewayStatus || false,
-      storeProfile: storeProfile || null,
       userProfile: userProfile || null,
       userAddresses: userAddresses || [],
     };
@@ -90,9 +99,10 @@ interface ManualPaymentOption {
 
 function CheckoutPage() {
   const {
-    cart: initialCart,
-    paymentMethods,
+    initialCart,
+    globalCarts,
     storeProfile,
+    paymentMethods,
     userProfile,
     userAddresses,
     isGatewayConfigured,
@@ -280,11 +290,7 @@ function CheckoutPage() {
 
     try {
       await updateCartShipping({
-        data: {
-          zipcode: formData.shippingAddress.zipcode,
-          method: rate.name,
-          cents: rate.price_cents,
-        },
+        data: { method: "delivery", zipcode: formData.shippingAddress.zipcode, cents: rate.price_cents },
       });
       // Invalidate router cache to pull updated cart totals
       router.invalidate();
@@ -320,11 +326,7 @@ function CheckoutPage() {
 
     try {
       await updateCartShipping({
-        data: {
-          zipcode: "89800000",
-          method: "pickup",
-          cents: 0,
-        },
+        data: { method: "pickup", zipcode: "", cents: 0 },
       });
       router.invalidate();
     } catch (e) {
@@ -545,31 +547,15 @@ function CheckoutPage() {
 
       toast.success("Pedido realizado com sucesso!");
 
-      // Phase 5 Analytics: Trigger Purchase Event
-      if (typeof window !== "undefined") {
-        try {
-          (window as any).dataLayer = (window as any).dataLayer || [];
-          (window as any).dataLayer.push({
-            event: "purchase",
-            ecommerce: {
-              transaction_id: res.orderToken,
-              value: checkoutTotalCents / 100,
-              currency: "BRL",
-              items: cart.items.map((item: any) => ({
-                item_id: item.variantId,
-                item_name: item.productTitle,
-                price: item.priceCents / 100,
-                quantity: item.qty,
-              })),
-            },
-          });
-        } catch (e) {
-          console.error("Erro ao registrar conversão no analytics", e);
-        }
-      }
-
       // Redirecionamento canônico ao invés de view local
-      navigate({ to: "/pedido/$publicToken/confirmacao", params: { publicToken: res.orderToken } });
+      // Checa se há outros carrinhos pendentes para voltar ao hub (a esteira de checkout)
+      const remainingCarts = globalCarts.filter(c => c.id !== cart.id);
+      if (remainingCarts.length > 0) {
+        toast.info(`Você tem mais ${remainingCarts.length} pacote(s) aguardando pagamento.`);
+        navigate({ to: "/checkout-hub" });
+      } else {
+        navigate({ to: "/pedido/$publicToken/confirmacao", params: { publicToken: res.orderToken } });
+      }
     } catch (err: any) {
       if (err.message && err.message.includes("unconfigured_integration")) {
         toast.error(
@@ -583,22 +569,39 @@ function CheckoutPage() {
     }
   };
 
+  const handleCancelThisCart = async () => {
+    if (confirm("Você tem certeza que deseja desistir desta compra específica? O pacote desta loja será removido da sua sacola.")) {
+      try {
+        await cancelCart({ data: { cartId: cart.id } });
+        toast.success("Pacote removido com sucesso.");
+        navigate({ to: "/checkout-hub" });
+      } catch (err: any) {
+        toast.error(err.message || "Erro ao remover pacote.");
+      }
+    }
+  };
+
   return (
     <div className="container max-w-5xl py-12 mx-auto px-4">
-      <h1 className="text-3xl font-serif font-bold tracking-tight mb-8">Finalizar Compra</h1>
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-3xl font-serif font-bold tracking-tight">Finalizar Compra</h1>
+        <Button variant="outline" className="text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={handleCancelThisCart}>
+          Desistir desta compra
+        </Button>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Accordion Steps Layout */}
         <div className="lg:col-span-2 space-y-4">
           {/* Passo 1: Seus Dados */}
-          <div className="border rounded-xl bg-card overflow-hidden">
+          <Surface variant="default" padding="none" className="overflow-hidden">
             <button
               onClick={() => setActiveStep(1)}
               className="w-full flex items-center justify-between p-4 bg-muted/20 border-b font-medium"
             >
               <span className="flex items-center gap-2.5">
                 <span
-                  className={`size-6 rounded-full flex items-center justify-center text-xs ${activeStep > 1 ? "bg-green-600 text-white" : "bg-primary text-primary-foreground font-semibold"}`}
+                  className={`size-6 rounded-full flex items-center justify-center text-xs ${activeStep > 1 ? "bg-success text-white" : "bg-primary text-primary-foreground font-semibold"}`}
                 >
                   1
                 </span>
@@ -612,7 +615,7 @@ function CheckoutPage() {
             {activeStep === 1 && (
               <div className="p-6 space-y-4">
                 {userProfile && (
-                  <div className="flex items-center gap-2 p-3 bg-primary/5 text-primary rounded-lg text-xs font-medium border border-primary/10">
+                  <div className="flex items-center gap-2 p-3 bg-primary/5 text-primary text-xs font-medium border border-primary/10">
                     <User className="size-4 shrink-0" />
                     <span>
                       Conectado como <strong>{userProfile.email}</strong>. Seus dados foram
@@ -673,10 +676,10 @@ function CheckoutPage() {
                 </div>
               </div>
             )}
-          </div>
+          </Surface>
 
           {/* Passo 2: Entrega */}
-          <div className="border rounded-xl bg-card overflow-hidden">
+          <Surface variant="default" padding="none" className="overflow-hidden">
             <button
               onClick={() => formData.customerName && setActiveStep(2)}
               disabled={activeStep < 2 && !formData.customerName}
@@ -684,7 +687,7 @@ function CheckoutPage() {
             >
               <span className="flex items-center gap-2.5">
                 <span
-                  className={`size-6 rounded-full flex items-center justify-center text-xs ${activeStep > 2 ? "bg-green-600 text-white" : "bg-primary text-primary-foreground font-semibold"}`}
+                  className={`size-6 rounded-full flex items-center justify-center text-xs ${activeStep > 2 ? "bg-success text-white" : "bg-primary text-primary-foreground font-semibold"}`}
                 >
                   2
                 </span>
@@ -701,11 +704,7 @@ function CheckoutPage() {
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, shippingMethod: "manual_table" })}
-                    className={`flex flex-col items-center justify-center p-4 border rounded-xl gap-2 transition-all ${
-                      formData.shippingMethod !== "pickup"
-                        ? "border-primary bg-primary/5 ring-1 ring-primary"
-                        : "hover:bg-muted/50"
-                    }`}
+                    className={`flex flex-col items-center justify-center p-4 border gap-2 transition-all ${formData.shippingMethod !== "pickup" ? "border-primary bg-primary/5 ring-1 ring-primary" : "hover:bg-muted/50"}`}
                   >
                     <Truck className="size-6 text-muted-foreground" />
                     <span className="text-sm font-semibold">Entregar no Endereço</span>
@@ -713,11 +712,7 @@ function CheckoutPage() {
                   <button
                     type="button"
                     onClick={handleSelectPickup}
-                    className={`flex flex-col items-center justify-center p-4 border rounded-xl gap-2 transition-all ${
-                      formData.shippingMethod === "pickup"
-                        ? "border-primary bg-primary/5 ring-1 ring-primary"
-                        : "hover:bg-muted/50"
-                    }`}
+                    className={`flex flex-col items-center justify-center p-4 border gap-2 transition-all ${formData.shippingMethod === "pickup" ? "border-primary bg-primary/5 ring-1 ring-primary" : "hover:bg-muted/50"}`}
                   >
                     <MapPin className="size-6 text-muted-foreground" />
                     <span className="text-sm font-semibold">Retirar na Loja</span>
@@ -727,7 +722,7 @@ function CheckoutPage() {
                 {formData.shippingMethod !== "pickup" ? (
                   <div className="space-y-4">
                     {userAddresses && userAddresses.length > 0 && (
-                      <div className="space-y-3 bg-muted/20 p-4 rounded-xl border mb-4">
+                      <div className="space-y-3 bg-muted/20 p-4 border mb-4">
                         <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                           <MapPin className="size-3.5 text-primary" /> Meus Endereços Cadastrados
                         </Label>
@@ -781,11 +776,7 @@ function CheckoutPage() {
                                     }
                                   }
                                 }}
-                                className={`p-3 border rounded-xl text-left text-xs space-y-1 transition-all ${
-                                  isSelected
-                                    ? "border-primary bg-primary/5 ring-1 ring-primary font-medium"
-                                    : "hover:bg-card bg-background"
-                                }`}
+                                className={`p-3 border text-left text-xs space-y-1 transition-all ${isSelected ? "border-primary bg-primary/5 ring-1 ring-primary font-medium" : "hover:bg-card bg-background"}`}
                               >
                                 <div className="flex items-center justify-between font-semibold">
                                   <span className="truncate">
@@ -944,11 +935,7 @@ function CheckoutPage() {
                               key={rate.id}
                               type="button"
                               onClick={() => handleSelectRate(rate)}
-                              className={`flex items-center justify-between p-3 border rounded-xl text-left transition-all ${
-                                selectedRateId === rate.id
-                                  ? "border-primary bg-primary/5 ring-1 ring-primary"
-                                  : "hover:bg-muted/50"
-                              }`}
+                              className={`flex items-center justify-between p-3 border text-left transition-all ${selectedRateId === rate.id ? "border-primary bg-primary/5 ring-1 ring-primary" : "hover:bg-muted/50"}`}
                             >
                               <div>
                                 <p className="font-semibold text-sm">{rate.name}</p>
@@ -963,7 +950,7 @@ function CheckoutPage() {
                           ))}
                         </div>
                       ) : noShippingRatesFound && formData.shippingAddress.zipcode ? (
-                        <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/30 p-4 rounded-xl space-y-3">
+                        <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/30 p-4 space-y-3">
                           <div className="flex gap-2">
                             <AlertCircle className="size-5 text-amber-600 dark:text-amber-500 shrink-0" />
                             <div className="text-sm text-amber-800 dark:text-amber-300 font-normal">
@@ -993,7 +980,7 @@ function CheckoutPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="p-4 bg-muted/30 rounded-xl border space-y-1">
+                  <div className="p-4 bg-muted/30 border space-y-1">
                     <p className="font-semibold text-sm">Retirada na Jah</p>
                     <p className="text-xs text-muted-foreground font-normal">
                       Rua Principal, Chapecó - SC. Horário: Seg a Sex 09h às 18h.
@@ -1019,10 +1006,10 @@ function CheckoutPage() {
                 </div>
               </div>
             )}
-          </div>
+          </Surface>
 
           {/* Passo 3: Pagamento */}
-          <div className="border rounded-xl bg-card overflow-hidden">
+          <Surface variant="default" padding="none" className="overflow-hidden">
             <button
               onClick={() => activeStep >= 3 && setActiveStep(3)}
               disabled={activeStep < 3}
@@ -1030,7 +1017,7 @@ function CheckoutPage() {
             >
               <span className="flex items-center gap-2.5">
                 <span
-                  className={`size-6 rounded-full flex items-center justify-center text-xs ${activeStep > 3 ? "bg-green-600 text-white" : "bg-primary text-primary-foreground font-semibold"}`}
+                  className={`size-6 rounded-full flex items-center justify-center text-xs ${activeStep > 3 ? "bg-success text-white" : "bg-primary text-primary-foreground font-semibold"}`}
                 >
                   3
                 </span>
@@ -1045,12 +1032,31 @@ function CheckoutPage() {
               <div className="p-6 space-y-6">
                 <div>
                   {!isGatewayConfigured && paymentMethods.length === 0 && (
-                    <div className="bg-destructive/10 text-destructive border border-destructive/20 p-4 rounded-xl flex items-center gap-3 mb-6">
-                      <AlertCircle className="size-5 shrink-0" />
-                      <p className="text-sm font-medium">
-                        A loja ainda não configurou métodos de recebimento. Entre em contato com o
-                        suporte.
+                    <div className="bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-900/30 p-5 space-y-4 mb-6">
+                      <div className="flex items-center gap-3">
+                        <AlertCircle className="size-5 shrink-0 text-amber-600 dark:text-amber-500" />
+                        <p className="text-sm font-semibold">
+                          Esta loja ainda não aceita pagamentos automáticos pelo site.
+                        </p>
+                      </div>
+                      <p className="text-xs">
+                        Para finalizar sua compra, você deverá enviar seu pedido diretamente para a loja através do WhatsApp.
                       </p>
+                      <Button
+                        type="button"
+                        className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white flex items-center justify-center gap-2"
+                        onClick={() => {
+                          const wppNumber = storeProfile?.contactPhone?.replace(/\D/g, "");
+                          if (wppNumber) {
+                            const text = encodeURIComponent(`Olá! Gostaria de finalizar o pedido da minha sacola no valor de ${formatMoney(checkoutTotalCents)}.`);
+                            window.open(`https://wa.me/55${wppNumber}?text=${text}`, "_blank");
+                          } else {
+                            toast.error("Número de WhatsApp da loja não disponível.");
+                          }
+                        }}
+                      >
+                        <MessageCircle className="size-4" /> Finalizar pelo WhatsApp
+                      </Button>
                     </div>
                   )}
 
@@ -1063,11 +1069,7 @@ function CheckoutPage() {
                           onClick={() =>
                             setFormData({ ...formData, paymentMethod: "pix", paymentMethodId: "" })
                           }
-                          className={`flex items-center justify-center p-3 border rounded-xl gap-2 font-medium transition-all ${
-                            formData.paymentMethod === "pix"
-                              ? "border-primary bg-primary/5 ring-1 ring-primary"
-                              : "hover:bg-muted/50"
-                          }`}
+                          className={`flex items-center justify-center p-3 border gap-2 font-medium transition-all ${formData.paymentMethod === "pix" ? "border-primary bg-primary/5 ring-1 ring-primary" : "hover:bg-muted/50"}`}
                         >
                           PIX
                         </button>
@@ -1080,11 +1082,7 @@ function CheckoutPage() {
                               paymentMethodId: "",
                             })
                           }
-                          className={`flex items-center justify-center p-3 border rounded-xl gap-2 font-medium transition-all ${
-                            formData.paymentMethod === "credit_card"
-                              ? "border-primary bg-primary/5 ring-1 ring-primary"
-                              : "hover:bg-muted/50"
-                          }`}
+                          className={`flex items-center justify-center p-3 border gap-2 font-medium transition-all ${formData.paymentMethod === "credit_card" ? "border-primary bg-primary/5 ring-1 ring-primary" : "hover:bg-muted/50"}`}
                         >
                           Cartão de Crédito
                         </button>
@@ -1094,7 +1092,7 @@ function CheckoutPage() {
 
                   {/* PIX instructions card */}
                   {formData.paymentMethod === "pix" && (
-                    <div className="bg-primary/5 border border-primary/20 p-5 rounded-xl space-y-3 mb-6">
+                    <div className="bg-primary/5 border border-primary/20 p-5 space-y-3 mb-6">
                       <div className="flex items-center gap-2">
                         <QrCode className="size-5 text-primary animate-pulse" />
                         <span className="font-bold text-sm text-foreground">
@@ -1102,12 +1100,12 @@ function CheckoutPage() {
                         </span>
                       </div>
                       {pixDiscountPercent > 0 && (
-                        <p className="text-xs text-green-600 font-semibold bg-green-50 px-2.5 py-1 rounded border border-green-200 w-fit">
+                        <p className="text-xs text-success font-semibold bg-success px-2.5 py-1 rounded border border-green-200 w-fit">
                           Desconto Ativo: Economize {pixDiscountPercent}% no total da sua compra!
                         </p>
                       )}
                       {storeProfile?.pixKey && (
-                        <div className="space-y-1 bg-background p-3 rounded-lg border border-border mt-2">
+                        <div className="space-y-1 bg-background p-3 border border-border mt-2">
                           <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
                             Chave PIX da Loja
                           </span>
@@ -1126,7 +1124,7 @@ function CheckoutPage() {
 
                   {/* Credit Card inputs & dynamic installments */}
                   {formData.paymentMethod === "credit_card" && (
-                    <div className="border border-border p-5 rounded-xl space-y-4 bg-muted/10 mb-6">
+                    <div className="border border-border p-5 space-y-4 bg-muted/10 mb-6">
                       <div className="flex items-center gap-2">
                         <CreditCard className="size-5 text-primary" />
                         <span className="font-semibold text-sm">Dados do Cartão de Crédito</span>
@@ -1228,12 +1226,7 @@ function CheckoutPage() {
                                 paymentMethodId: method.id,
                               })
                             }
-                            className={`flex items-center justify-between p-4 border rounded-xl text-left transition-all ${
-                              formData.paymentMethod === "manual" &&
-                              formData.paymentMethodId === method.id
-                                ? "border-primary bg-primary/5 ring-1 ring-primary"
-                                : "hover:bg-muted/50"
-                            }`}
+                            className={`flex items-center justify-between p-4 border text-left transition-all ${formData.paymentMethod === "manual" && formData.paymentMethodId === method.id ? "border-primary bg-primary/5 ring-1 ring-primary" : "hover:bg-muted/50"}`}
                           >
                             <div>
                               <p className="font-semibold text-sm">{method.name}</p>
@@ -1244,7 +1237,7 @@ function CheckoutPage() {
                               )}
                             </div>
                             {Number(method.discount_percentage) > 0 ? (
-                              <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+                              <span className="text-xs font-semibold text-success bg-success px-2 py-0.5 rounded-full">
                                 -{method.discount_percentage}% Desconto
                               </span>
                             ) : Number(method.surcharge_percentage) > 0 ? (
@@ -1267,10 +1260,10 @@ function CheckoutPage() {
                 </div>
               </div>
             )}
-          </div>
+          </Surface>
 
           {/* Passo 4: Resumo e Confirmação */}
-          <div className="border rounded-xl bg-card overflow-hidden">
+          <Surface variant="default" padding="none" className="overflow-hidden">
             <div className="w-full flex items-center p-4 bg-muted/20 border-b font-medium">
               <span className="flex items-center gap-2.5">
                 <span className="size-6 rounded-full bg-primary text-primary-foreground font-semibold flex items-center justify-center text-xs">
@@ -1351,11 +1344,12 @@ function CheckoutPage() {
                 </div>
               </div>
             )}
-          </div>
+          </Surface>
         </div>
 
-        {/* Resumo Lateral de Valores */}
-        <div className="bg-muted/50 rounded-xl p-6 h-fit sticky top-24 border">
+        <div className="space-y-6 lg:col-span-1">
+          {/* Resumo Lateral de Valores */}
+          <Surface variant="zine" elevation="sm" className="bg-muted/50 p-6 h-fit sticky top-24">
           <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
             <ShoppingBag className="size-5 text-primary" />
             Resumo do Pedido
@@ -1390,7 +1384,7 @@ function CheckoutPage() {
             </div>
 
             {cart.couponCode && (
-              <div className="flex justify-between text-green-600">
+              <div className="flex justify-between text-success">
                 <span className="flex items-center gap-1">
                   <Ticket className="h-4 w-4" /> Cupom ({cart.couponCode})
                 </span>
@@ -1410,7 +1404,7 @@ function CheckoutPage() {
             </div>
 
             {paymentDiscountCents > 0 && (
-              <div className="flex justify-between text-green-600 font-medium">
+              <div className="flex justify-between text-success font-medium">
                 <span>
                   {formData.paymentMethod === "pix"
                     ? `Desconto PIX (-${pixDiscountPercent}%)`
@@ -1437,7 +1431,7 @@ function CheckoutPage() {
               )}
 
             {appliedGiftCard && giftCardDeductionCents > 0 && (
-              <div className="flex justify-between text-green-600 font-medium">
+              <div className="flex justify-between text-success font-medium">
                 <span className="flex items-center gap-1">
                   <Gift className="h-4 w-4" /> Vale-Presente ({appliedGiftCard.code})
                 </span>
@@ -1477,6 +1471,22 @@ function CheckoutPage() {
               {formatMoney(checkoutTotalCents)}
             </span>
           </div>
+        </Surface>
+
+        {/* Upsell / Cross-sell Placeholder */}
+        <Surface variant="default" elevation="sm" className="p-6 h-fit mt-6">
+          <h3 className="font-bold text-lg mb-2 flex items-center gap-2 text-ink">
+            <Gift className="size-5 text-primary" />
+            Aproveite também
+          </h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Clientes que compram esses itens costumam levar:
+          </p>
+          <div className="flex items-center justify-center p-6 border-2 border-dashed rounded-lg bg-muted/20 text-muted-foreground text-sm">
+            [ Área reservada para Upsell / Ofertas Especiais da Loja ]
+          </div>
+        </Surface>
+        
         </div>
       </div>
     </div>

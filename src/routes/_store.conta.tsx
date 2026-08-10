@@ -81,7 +81,7 @@ function AccountLayout() {
                 <Link
                   to={item.to}
                   activeOptions={{ exact: item.exact }}
-                  className="flex min-h-10 items-center rounded-lg px-3 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
+                  className="flex min-h-10 items-center px-3 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
                   activeProps={{ className: "bg-accent text-foreground" }}
                 >
                   {item.label}
@@ -91,7 +91,7 @@ function AccountLayout() {
             <li>
               <button
                 onClick={handleLogout}
-                className="flex w-full min-h-10 items-center rounded-lg px-3 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
+                className="flex w-full min-h-10 items-center px-3 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
               >
                 <LogOut className="mr-2 size-4" />
                 Sair da conta

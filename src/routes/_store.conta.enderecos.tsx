@@ -96,10 +96,7 @@ function AddressesPage() {
       </div>
 
       {isAdding && (
-        <form
-          onSubmit={handleSubmit}
-          className="bg-card p-6 rounded-xl border border-border mb-8 space-y-4"
-        >
+        <form onSubmit={handleSubmit} className="bg-card p-6 border border-border mb-8 space-y-4">
           <h3 className="font-semibold text-lg mb-4">Adicionar Endereço</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2 md:col-span-1">
@@ -187,7 +184,7 @@ function AddressesPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {addresses.map((addr: any) => (
-            <div key={addr.id} className="p-5 border border-border rounded-xl bg-card relative">
+            <div key={addr.id} className="p-5 border border-border bg-card relative">
               {addr.is_default && (
                 <span className="absolute top-4 right-4 bg-primary text-primary-foreground text-xs font-semibold px-2 py-1 rounded">
                   Padrão

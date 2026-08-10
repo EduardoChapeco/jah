@@ -70,3 +70,12 @@ programática de navegação e deve espelhar `docs/ROUTES.md`.
 ## Fase atual
 
 **Fase 1 Jah** — Substituição Documental e Fundação do Design System da Rua (Zines/Flyers/Tickets/Papers). Atualização do núcleo canônico de uma loja comum para Plataforma Comunitária. Não avance para as lógicas de evento/feed sem consolidar as primitivas visuais.
+
+## Protocolo de Execução e Auditoria Rigorosa (Product Owner / PM)
+
+A plataforma Jah é um ecossistema vivo onde uma alteração afeta profundamente outros domínios. Atue sempre com o rigor de um Product Owner e Engenheiro Sênior de uma big tech:
+
+- **Planejamento em Microfases (Planos de Implementação Completos):** Antes de codificar, crie um plano detalhado para cada microfase cobrindo _a raiz completa_: impacto nas tabelas, schemas, contratos, inputs, colunas, rotas, storage, RLS e componentes.
+- **Auditoria End-to-End:** Nunca faça correções locais. Reconstrua a árvore de impacto completa. Descubra quem produz, valida, persiste, transforma, consulta, exibe e protege o dado.
+- **Rigor Documental e Científico:** Faça análise holística para cada incremento, referenciando melhores metodologias. Todo novo recurso ou refatoração deve ter comentários, casos de uso mapeados (admin, cliente, logista, etc.) e aderência estrita às regras globais.
+- **Verdade no Runtime:** A prova de completude deve vir do código executado, persistência real no Supabase, reload do browser, RLS testado e experiência do usuário — e não apenas de tipagem, build ou documentação. Não simule, não use hardcode, não mantenha código morto.

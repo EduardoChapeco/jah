@@ -13,7 +13,7 @@ import {
 
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Surface } from "@/components/ui/surface";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ErrorState } from "@/components/state/states";
@@ -133,22 +133,26 @@ function OnboardingPage() {
       />
 
       {/* Card de Status Geral */}
-      <Card className="border-primary/30 bg-gradient-to-br from-card to-primary/5 shadow-sm">
-        <CardHeader>
+      <Surface
+        variant="default"
+        padding="none"
+        className="border-primary/30 from-card to-primary/5 shadow-sm"
+      >
+        <div className="flex flex-col space-y-1.5 p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="space-y-1">
-              <CardTitle className="text-xl flex items-center gap-2">
+              <h3 className="text-xl font-semibold leading-none tracking-tight flex items-center gap-2">
                 <Rocket className="size-6 text-primary" aria-hidden />
                 {progressPercentage === 100
                   ? "Sua loja está 100% configurada!"
                   : isStoreReadyToSell
                     ? "Pronta para Vender! (Refinamentos finais disponíveis)"
                     : "Setup e Onboarding em Progresso"}
-              </CardTitle>
-              <CardDescription>
+              </h3>
+              <p className="text-sm text-muted-foreground">
                 {completedSteps} de {totalSteps} etapas concluídas diretamente em suas tabelas no
                 banco de dados.
-              </CardDescription>
+              </p>
             </div>
             <div className="flex items-center gap-3">
               <Badge
@@ -160,8 +164,8 @@ function OnboardingPage() {
             </div>
           </div>
           <Progress value={progressPercentage} className="h-3 mt-4" />
-        </CardHeader>
-        <CardContent className="pt-2 text-xs text-muted-foreground flex flex-wrap items-center gap-4">
+        </div>
+        <div className="p-6 pt-2 text-xs text-muted-foreground flex flex-wrap items-center gap-4">
           <span className="flex items-center gap-1">
             <ShieldCheck className="size-4 text-emerald-600" />
             Auditoria Canônica — Sem dados simulados ou fallbacks artificiais
@@ -170,19 +174,19 @@ function OnboardingPage() {
             <Sparkles className="size-4 text-primary" />
             Atualização em tempo real conforme as alterações da sua loja
           </span>
-        </CardContent>
-      </Card>
+        </div>
+      </Surface>
 
       {/* Grupos de Etapas */}
       <div className="space-y-6">
         {(Object.keys(groupedSteps) as Array<keyof typeof groupedSteps>).map((groupKey) => (
-          <Card key={groupKey}>
-            <CardHeader className="pb-3 border-b border-border/60">
-              <CardTitle className="text-base text-foreground font-semibold">
+          <Surface variant="default" padding="none" key={groupKey}>
+            <div className="flex flex-col space-y-1.5 p-6 pb-3 border-b border-border/60">
+              <h3 className="text-base text-foreground font-semibold leading-none tracking-tight">
                 {categoryLabels[groupKey]}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="divide-y divide-border/50 p-0">
+              </h3>
+            </div>
+            <div className="p-0 divide-y divide-border/50">
               {groupedSteps[groupKey].map((step: any) => (
                 <div
                   key={step.id}
@@ -224,8 +228,8 @@ function OnboardingPage() {
                   </div>
                 </div>
               ))}
-            </CardContent>
-          </Card>
+            </div>
+          </Surface>
         ))}
       </div>
     </div>

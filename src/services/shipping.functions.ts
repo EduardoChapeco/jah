@@ -19,8 +19,24 @@ export async function calculateShippingHandler({
   const identity = await getServerIdentity();
   if (!identity.store_id) throw new Error("Loja não identificada.");
 
+  // Fetch store type to adapt shipping logic
+  const { data: storeInfo } = await supabase.from("stores").select("type").eq("id", identity.store_id).single();
+  const storeType = storeInfo?.type || "ecommerce";
+
   const finalQuotes: any[] = [];
   const cleanZipcode = zipcode.replace(/\D/g, "");
+
+  // If digital/event niche, return a fixed free quote and exit early
+  if (["event_producer", "creator", "band"].includes(storeType)) {
+    return [
+      {
+        provider: "Digital",
+        service_name: "Envio Eletrônico / Ingresso",
+        price_cents: 0,
+        estimated_days: 0,
+      }
+    ];
+  }
 
   let totalWeightKg = 0;
   let maxW = 0;
@@ -32,11 +48,18 @@ export async function calculateShippingHandler({
   if (cartId) {
     const { data: cartItems } = await supabase
       .from("cart_items")
-      .select("quantity, product_id, variant_id, products(weight_kg, width_cm, height_cm, length_cm), product_variants(weight_kg, width_cm, height_cm, length_cm)")
+      .select(
+        "quantity, product_id, variant_id, products(weight_kg, width_cm, height_cm, length_cm), product_variants(weight_kg, width_cm, height_cm, length_cm)",
+      )
       .eq("cart_id", cartId);
 
     if (cartItems) {
-      type LogisticsRow = { weight_kg: number | null; width_cm: number | null; height_cm: number | null; length_cm: number | null } | null;
+      type LogisticsRow = {
+        weight_kg: number | null;
+        width_cm: number | null;
+        height_cm: number | null;
+        length_cm: number | null;
+      } | null;
       for (const item of cartItems) {
         const prod = item.products as unknown as LogisticsRow;
         const vari = item.product_variants as unknown as LogisticsRow;
@@ -94,63 +117,65 @@ export async function calculateShippingHandler({
     });
   }
 
-  // 2. Fetch Integrations
-  const { data: creds } = await supabase
-    .from("integration_credentials")
-    .select("token_payload, is_active")
-    .eq("store_id", identity.store_id)
-    .eq("provider", "melhorenvio")
-    .eq("is_active", true)
-    .maybeSingle();
+  // 2. Integração: MelhorEnvio
+  // Somente executa se o carrinho for válido, as dimensões existirem e houver chave na integração.
+  // Ignora se for nicho de Delivery (onde a entrega é puramente motoboy local via zonas manuais)
+  if (cartId && !hasMissingDimensions && itemsCount > 0 && storeType !== "delivery") {
+    const { data: creds } = await supabase
+      .from("integration_credentials")
+      .select("token_payload, is_active")
+      .eq("store_id", identity.store_id)
+      .eq("provider", "melhor_envio")
+      .maybeSingle();
 
-  // 3. Real External API Call if configured
-  if (creds && creds.token_payload?.api_token && cleanZipcode.length === 8 && !hasMissingDimensions) {
-    try {
-      const apiToken = creds.token_payload.api_token;
-      const response = await fetch(
-        "https://sandbox.melhorenvio.com.br/api/v2/me/shipment/calculate",
-        {
+    if (creds && creds.is_active && creds.token_payload && creds.token_payload.api_token) {
+      try {
+        const payload = {
+          from: { postal_code: "01000000" }, // Origem padronizada para exemplo ou pegar da loja
+          to: { postal_code: cleanZipcode },
+          products: [
+            {
+              id: cartId,
+              width: maxW,
+              height: maxH,
+              length: maxL,
+              weight: totalWeightKg,
+              insurance_value: 0,
+              quantity: 1,
+            },
+          ],
+        };
+
+        const res = await fetch("https://www.melhorenvio.com.br/api/v2/me/shipment/calculate", {
           method: "POST",
           headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
-            Authorization: `Bearer ${apiToken}`,
+            Authorization: `Bearer ${creds.token_payload.api_token}`,
           },
-          body: JSON.stringify({
-            from: { postal_code: "01001000" },
-            to: { postal_code: cleanZipcode },
-            products: [
-              {
-                id: cartId || "cart",
-                width: maxW || 15,
-                height: maxH || 10,
-                length: maxL || 20,
-                weight: totalWeightKg,
-                insurance_value: 0,
-                quantity: 1,
-              },
-            ],
-          }),
-        },
-      );
+          body: JSON.stringify(payload),
+        });
 
-      if (response.ok) {
-        const results = await response.json();
-        if (Array.isArray(results)) {
-          results.forEach((svc: any) => {
-            if (!svc.error && svc.price) {
+        if (res.ok) {
+          const quotes = await res.json();
+          if (Array.isArray(quotes)) {
+            for (const q of quotes) {
+              if (q.error) continue;
               finalQuotes.push({
-                provider: svc.company?.name || "Transportadora",
-                service_name: svc.name,
-                price_cents: Math.round(parseFloat(svc.price) * 100),
-                estimated_days: svc.delivery_time || 5,
+                provider: "MelhorEnvio",
+                service_name: q.company?.name ? `${q.company.name} - ${q.name}` : q.name,
+                price_cents: Math.round(Number(q.price) * 100),
+                estimated_days: q.delivery_time || 5,
               });
             }
-          });
+          }
+        } else {
+          console.warn("[shipping] MelhorEnvio falhou, ignorando integração.");
         }
+      } catch (err) {
+        console.error("[shipping] Erro ao chamar MelhorEnvio:", err);
+        // Fallback silencioso para frete manual (já populado no array)
       }
-    } catch (e) {
-      console.error("MelhorEnvio Integration Error:", e);
     }
   }
 

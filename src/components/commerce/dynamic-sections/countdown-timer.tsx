@@ -58,7 +58,7 @@ export function CountdownTimer({ content }: CountdownTimerProps) {
   return (
     <div
       suppressHydrationWarning
-      className="w-full bg-primary text-primary-foreground py-6 px-4 rounded-xl flex flex-col items-center justify-center text-center shadow-md"
+      className="w-full bg-primary text-primary-foreground py-6 px-4 flex flex-col items-center justify-center text-center shadow-md"
     >
       {title && (
         <h3 className="text-lg font-bold uppercase tracking-widest mb-3 opacity-90">{title}</h3>

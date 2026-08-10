@@ -4,7 +4,7 @@ import {
   getOrCreateHomeDocument,
 } from "@/services/builder.functions";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Surface } from "@/components/ui/surface";
 import { LayoutTemplate, Sparkles, MonitorSmartphone, Palette, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -30,7 +30,7 @@ const TEMPLATES = [
     id: "fashion_editorial",
     name: "Fashion Editorial",
     description: "Design de alta moda com Hero Split, Shop The Look interativo e Bento Grid.",
-    icon: <Palette className="w-10 h-10 text-purple-500 mb-4" />,
+    icon: <Palette className="w-10 h-10 text-accent mb-4" />,
     features: ["Moda", "Editorial", "Shop The Look"],
   },
   {
@@ -44,7 +44,7 @@ const TEMPLATES = [
     id: "high_conversion_landing",
     name: "High Conversion",
     description: "Foco total em vendas diretas, ofertas com temporizador e escassez.",
-    icon: <LayoutTemplate className="w-10 h-10 text-red-500 mb-4" />,
+    icon: <LayoutTemplate className="w-10 h-10 text-destructive mb-4" />,
     features: ["Oferta", "Countdown", "Garantia"],
   },
   {
@@ -58,7 +58,7 @@ const TEMPLATES = [
     id: "classic_commerce",
     name: "Clássico E-commerce",
     description: "Layout tradicional com banner principal, destaques em carrossel e ofertas.",
-    icon: <LayoutTemplate className="w-10 h-10 text-blue-500 mb-4" />,
+    icon: <LayoutTemplate className="w-10 h-10 text-primary mb-4" />,
     features: ["Clássico", "Carrossel de Produtos", "Confiança"],
   },
   {
@@ -94,7 +94,7 @@ function VitrineTemplatePicker() {
   };
 
   return (
-    <div className="p-8 max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="p-8 max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in- duration-500">
       <div className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Criar Vitrine Principal</h1>
         <p className="text-muted-foreground text-lg max-w-2xl">
@@ -105,18 +105,20 @@ function VitrineTemplatePicker() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {TEMPLATES.map((tpl) => (
-          <Card
+          <Surface
+            variant="default"
+            padding="none"
             key={tpl.id}
             className="flex flex-col relative overflow-hidden group hover:border-primary/50 transition-colors cursor-pointer"
             onClick={() => !isCreating && handleCreate(tpl.id)}
           >
             <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-            <CardHeader>
+            <div className="flex flex-col space-y-1.5 p-6">
               {tpl.icon}
-              <CardTitle>{tpl.name}</CardTitle>
-              <CardDescription className="min-h-[60px]">{tpl.description}</CardDescription>
-            </CardHeader>
-            <CardContent className="mt-auto">
+              <h3 className="font-semibold leading-none tracking-tight">{tpl.name}</h3>
+              <p className="text-sm text-muted-foreground min-h-[60px]">{tpl.description}</p>
+            </div>
+            <div className="p-6 pt-0 mt-auto">
               <ul className="space-y-2 text-sm text-muted-foreground mb-6">
                 {tpl.features.map((feature, i) => (
                   <li key={i} className="flex items-center gap-2">
@@ -128,8 +130,8 @@ function VitrineTemplatePicker() {
               <Button className="w-full" disabled={isCreating}>
                 {isCreating ? "Criando..." : "Usar este template"}
               </Button>
-            </CardContent>
-          </Card>
+            </div>
+          </Surface>
         ))}
       </div>
     </div>

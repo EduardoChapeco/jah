@@ -50,7 +50,7 @@ export function BeforeAfterSlider({
   if (!before_image || !after_image) {
     return (
       <section className="w-full py-12 px-4 md:px-8 max-w-5xl mx-auto">
-        <div className="flex flex-col items-center justify-center py-16 text-center gap-4 text-muted-foreground border-2 border-dashed border-border rounded-2xl">
+        <div className="flex flex-col items-center justify-center py-16 text-center gap-4 text-muted-foreground border-2 border-dashed border-border">
           <span className="text-3xl opacity-40">&#8596;</span>
           <div>
             <p className="font-medium">Comparador não configurado</p>
@@ -80,7 +80,7 @@ export function BeforeAfterSlider({
 
       <div
         ref={containerRef}
-        className="relative w-full h-[350px] md:h-[500px] rounded-2xl overflow-hidden shadow-xl select-none cursor-ew-resize border border-border"
+        className="relative w-full h-[350px] md:h-[500px] overflow-hidden select-none cursor-ew-resize border border-border"
         onMouseDown={() => setIsDragging(true)}
         onMouseUp={() => setIsDragging(false)}
         onMouseLeave={() => setIsDragging(false)}
@@ -115,10 +115,10 @@ export function BeforeAfterSlider({
 
         {/* Slider Divider Line */}
         <div
-          className="absolute top-0 bottom-0 w-1 bg-white shadow-2xl cursor-ew-resize"
+          className="absolute top-0 bottom-0 w-1 bg-white cursor-ew-resize"
           style={{ left: `${sliderPosition}%` }}
         >
-          <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-9 h-9 rounded-full bg-white text-foreground shadow-lg flex items-center justify-center border-2 border-primary font-bold text-xs">
+          <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-9 h-9 rounded-full bg-white text-foreground flex items-center justify-center border-2 border-primary font-bold text-xs">
             ↔
           </div>
         </div>

@@ -1,17 +1,7 @@
-import { Skeleton } from "@/components/ui/skeleton";
+import { ProductGridSkeleton } from "@/components/state/loading";
 import { EmptyState, UnconfiguredState, ErrorState } from "@/components/state/states";
-import { ProductCard } from "@/components/commerce/product-card";
+import { DynamicProductCard } from "@/components/commerce/dynamic-product-card";
 import type { ProductListResult } from "@/types/catalog";
-
-function ProductSkeleton() {
-  return (
-    <div className="flex flex-col gap-3">
-      <Skeleton className="aspect-[4/5] rounded-xl" />
-      <Skeleton className="h-3 w-3/4 rounded" />
-      <Skeleton className="h-3 w-1/2 rounded" />
-    </div>
-  );
-}
 
 export function ProductGrid({
   isLoading,
@@ -21,13 +11,7 @@ export function ProductGrid({
   result: ProductListResult;
 }) {
   if (isLoading) {
-    return (
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <ProductSkeleton key={i} />
-        ))}
-      </div>
-    );
+    return <ProductGridSkeleton count={8} />;
   }
 
   if (result.status === "unconfigured") {
@@ -51,7 +35,7 @@ export function ProductGrid({
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
       {result.data.map((product) => (
-        <ProductCard key={product.id} product={product} />
+        <DynamicProductCard key={product.id} product={product} />
       ))}
     </div>
   );

@@ -15,8 +15,8 @@ Organization (1) ──< BusinessProfile (Loja/Banda/Organizador)
 ```
 
 - **User**: identidade de autenticação (Supabase Auth).
-- **UserProfile**: O perfil social do usuário ("Pessoa Física"). 
-- **Organization / BusinessProfile**: Entidade jurídica/coletiva. O usuário pode alternar a interface para operar sob este contexto. Todas as query keys e sessões mudam ao fazer o *Context Switch*.
+- **UserProfile**: O perfil social do usuário ("Pessoa Física").
+- **Organization / BusinessProfile**: Entidade jurídica/coletiva. O usuário pode alternar a interface para operar sob este contexto. Todas as query keys e sessões mudam ao fazer o _Context Switch_.
 - **Role**: `owner`, `admin`, `manager`, `seller`, `content`, `customer`.
 
 ## 2. Catálogo

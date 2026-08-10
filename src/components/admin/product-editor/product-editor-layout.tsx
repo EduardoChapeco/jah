@@ -64,8 +64,8 @@ export function ProductEditorLayout({ sections, children, preview }: ProductEdit
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start relative pb-24 mt-6">
-      {/* Sidebar Anchor Navigation */}
-      <div className="lg:col-span-3 lg:sticky lg:top-[100px] hidden lg:flex flex-col gap-6">
+      {/* Sidebar Anchor Navigation & Truthful Preview (40%) */}
+      <div className="lg:col-span-5 lg:sticky lg:top-[100px] hidden lg:flex flex-col gap-6">
         <nav className="flex flex-col space-y-1">
           {sections.map((section) => (
             <button
@@ -97,8 +97,8 @@ export function ProductEditorLayout({ sections, children, preview }: ProductEdit
         {preview && <div className="pt-4 border-t border-border">{preview}</div>}
       </div>
 
-      {/* Main Content Areas */}
-      <div className="lg:col-span-9 space-y-8">
+      {/* Main Content Areas (60%) */}
+      <div className="lg:col-span-7 space-y-8">
         {/* Mobile Navigation Pills */}
         <div className="flex lg:hidden overflow-x-auto pb-4 gap-2 sticky top-[72px] bg-background/95 backdrop-blur z-40 border-b">
           {sections.map((section) => (

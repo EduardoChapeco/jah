@@ -112,7 +112,7 @@ export function TimelineHistory({ content, design_tokens }: TimelineHistoryProps
             </div>
           </div>
         ) : (
-          <div className="p-8 border border-dashed text-center text-muted-foreground bg-muted/50 rounded-xl">
+          <div className="p-8 border border-dashed text-center text-muted-foreground bg-muted/50">
             Adicione os marcos históricos pelo inspetor.
           </div>
         )}

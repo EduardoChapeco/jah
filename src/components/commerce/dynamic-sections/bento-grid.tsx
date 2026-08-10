@@ -46,7 +46,7 @@ export function BentoGrid({ content, node_id, block_type }: BentoGridProps) {
       )}
 
       {items.length === 0 ? (
-        <div className="p-8 text-center text-xs text-muted-foreground border border-dashed rounded-xl">
+        <div className="p-8 text-center text-xs text-muted-foreground border border-dashed">
           Nenhum item configurado para o Bento Grid.
         </div>
       ) : (
@@ -66,7 +66,7 @@ export function BentoGrid({ content, node_id, block_type }: BentoGridProps) {
                     trackClick({ index: idx, title: item.title, link: item.link });
                   }
                 }}
-                className={`relative group rounded-2xl overflow-hidden border border-border bg-card flex flex-col justify-end ${sizeClass} transition-all duration-300 hover:shadow-lg hover:border-primary/30`}
+                className={`relative group overflow-hidden border border-border bg-card flex flex-col justify-end ${sizeClass} transition-all duration-300 hover: hover:border-primary/30`}
               >
                 {/* Background Image */}
                 <div className="absolute inset-0 z-0">
@@ -81,7 +81,7 @@ export function BentoGrid({ content, node_id, block_type }: BentoGridProps) {
                       [Sem imagem]
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent" />
+                  <div className="absolute inset-0" />
                 </div>
 
                 {/* Content Overlay */}

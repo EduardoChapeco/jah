@@ -207,7 +207,7 @@ function AdminOrdersPage() {
           }
         />
       ) : (
-        <div className="rounded-xl border border-border bg-card overflow-hidden shadow-xs">
+        <div className="border border-border bg-card overflow-hidden shadow-xs">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/40">
@@ -312,7 +312,7 @@ function AdminOrdersPage() {
                                 )
                               }
                             >
-                              <Truck className="size-3.5 mr-2 text-blue-600" />
+                              <Truck className="size-3.5 mr-2 text-primary" />
                               {order.shipping_method === "pickup"
                                 ? "Pronto p/ Retirada"
                                 : "Marcar como Enviado"}

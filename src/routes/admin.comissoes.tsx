@@ -2,8 +2,8 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { DollarSign, CheckCircle, Users, Percent, Edit2 } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
-
 import { PageHeader } from "@/components/commerce/page-header";
+import { Surface } from "@/components/ui/surface";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -93,7 +93,7 @@ function CommissionsPage() {
               description="Nenhuma comissão registrada nesta loja."
             />
           ) : (
-            <div className="rounded-md border bg-card">
+            <Surface variant="default" padding="none">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -146,12 +146,12 @@ function CommissionsPage() {
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </Surface>
           )}
         </TabsContent>
 
         <TabsContent value="equipe" className="mt-0">
-          <div className="rounded-md border bg-card">
+          <Surface variant="default" padding="none">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -234,7 +234,7 @@ function CommissionsPage() {
                 )}
               </TableBody>
             </Table>
-          </div>
+          </Surface>
         </TabsContent>
       </Tabs>
     </div>

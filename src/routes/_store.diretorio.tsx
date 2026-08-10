@@ -1,0 +1,126 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { PageHeader } from "@/components/commerce/page-header";
+import { Surface } from "@/components/ui/surface";
+import { Button } from "@/components/ui/button";
+import { BookOpen, Loader2, AlertCircle, Phone, MapPin, CheckCircle } from "lucide-react";
+import { getPublicDirectoryHandler } from "@/services/directory.functions";
+
+export const Route = createFileRoute("/_store/diretorio")({
+  head: () => ({ meta: [{ title: "Diretório" }] }),
+  component: DirectoryPage,
+});
+
+function DirectoryPage() {
+  const { data: listings, isLoading, isError } = useQuery({
+    queryKey: ["public-directory"],
+    queryFn: () => getPublicDirectoryHandler({ data: { limit: 50 } }),
+    staleTime: 60_000,
+  });
+
+  return (
+    <div className="container max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-20 space-y-10">
+      <PageHeader 
+        eyebrow="Yellow Pages"
+        title="Diretório" 
+        description="A lista telefônica da nossa comunidade. Encontre coletivos, lojas e serviços." 
+      />
+
+      {isLoading && (
+        <div className="flex justify-center py-20 mt-10">
+          <Loader2 className="size-10 animate-spin text-ink/30" />
+        </div>
+      )}
+
+      {isError && (
+        <div className="mt-12 flex justify-center">
+          <Surface variant="zine" padding="lg" className="flex items-center gap-4 text-poster-red max-w-xl w-full">
+            <AlertCircle className="size-8 shrink-0" />
+            <div>
+              <p className="font-display text-xl uppercase font-bold">Erro ao carregar o Diretório</p>
+              <p className="font-serif text-sm text-ink/70">Tente novamente em instantes.</p>
+            </div>
+          </Surface>
+        </div>
+      )}
+
+      {!isLoading && !isError && listings?.length === 0 && (
+        <div className="mt-12 flex justify-center">
+          <Surface variant="zine" padding="lg" className="text-center py-20 flex flex-col items-center justify-center max-w-2xl w-full">
+            <div className="bg-ink/10 p-6 rounded-full border-4 border-ink border-dashed mb-6">
+              <BookOpen className="size-12 text-ink/50" />
+            </div>
+            <h2 className="font-display text-3xl uppercase tracking-tight text-ink mb-2">
+              Páginas em Branco
+            </h2>
+            <p className="font-serif text-ink/70 max-w-md mx-auto mb-8">
+              O diretório comunitário ainda não possui registros. Seja o primeiro a cadastrar seu coletivo ou serviço!
+            </p>
+            <Button asChild className="bg-ink text-paper text-lg border-2 border-ink shadow-hard hover-lift">
+              <Link to="/criar-negocio">Cadastrar Negócio</Link>
+            </Button>
+          </Surface>
+        </div>
+      )}
+
+      {!isLoading && !isError && listings && listings.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {listings.map((listing) => (
+            <Surface 
+              key={listing.id} 
+              variant="yellow-pages" 
+              padding="md" 
+              className="flex flex-col hover-lift group"
+            >
+              <div className="border-b-2 border-ink/20 pb-4 mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="bg-ink text-paper text-xs font-mono uppercase px-2 py-1 font-bold">
+                    {listing.category}
+                  </span>
+                  {listing.is_verified && (
+                    <span className="flex items-center gap-1 text-xs font-mono uppercase text-green-700 font-bold">
+                      <CheckCircle className="size-3" /> Verificado
+                    </span>
+                  )}
+                </div>
+                <h3 className="font-display text-2xl uppercase tracking-tight text-ink mb-1">
+                  {(listing.stores as any)?.name || "Negócio"}
+                </h3>
+                <p className="font-serif text-ink/70 text-sm">
+                  {(listing.stores as any)?.type === "event_producer" ? "Produtor de Eventos" : 
+                   (listing.stores as any)?.type === "band" ? "Banda / Artista" :
+                   (listing.stores as any)?.type === "ecommerce" ? "Loja Virtual" :
+                   (listing.stores as any)?.type === "physical_store" ? "Loja Física" :
+                   "Coletivo"}
+                </p>
+              </div>
+
+              <div className="flex-1 space-y-3">
+                {listing.contact_phone && (
+                  <p className="flex items-center gap-2 font-mono text-sm text-ink/80">
+                    <Phone className="size-4 shrink-0" />
+                    {listing.contact_phone}
+                  </p>
+                )}
+                {listing.address && (
+                  <p className="flex items-start gap-2 font-mono text-sm text-ink/80">
+                    <MapPin className="size-4 shrink-0 mt-0.5" />
+                    <span className="line-clamp-2">{listing.address}</span>
+                  </p>
+                )}
+              </div>
+
+              <div className="mt-6 pt-4 border-t-2 border-ink/20">
+                <Button asChild variant="outline" className="w-full border-2 border-ink text-ink hover:bg-ink hover:text-paper shadow-sm">
+                  <Link to="/mercado">
+                     Ver Loja
+                  </Link>
+                </Button>
+              </div>
+            </Surface>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

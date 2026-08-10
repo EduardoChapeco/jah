@@ -30,7 +30,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Surface } from "@/components/ui/surface";
 import {
   Sheet,
   SheetContent,
@@ -204,50 +204,62 @@ function AdminStockPage() {
 
       {/* Grid de KPIs de Estoque */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="relative overflow-hidden border-border/60 bg-gradient-to-br from-card to-card/60 shadow-xs">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <Surface
+          variant="polaroid"
+          padding="none"
+          className="relative overflow-hidden border-border/60 from-card to-card/60"
+        >
+          <div className="flex flex-row items-center justify-between p-4 pb-2 space-y-0">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Total de SKUs
-            </CardTitle>
+            </h4>
             <div className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary">
               <Boxes className="size-4" aria-hidden />
             </div>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-4 pt-0">
             <div className="text-2xl font-bold text-foreground">{metrics.totalSKUs}</div>
             <p className="text-xs text-muted-foreground mt-1">Variações cadastradas</p>
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
 
-        <Card className="relative overflow-hidden border-border/60 bg-gradient-to-br from-card to-card/60 shadow-xs">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <Surface
+          variant="polaroid"
+          padding="none"
+          className="relative overflow-hidden border-border/60 from-card to-card/60"
+        >
+          <div className="flex flex-row items-center justify-between p-4 pb-2 space-y-0">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Estoque em Mãos
-            </CardTitle>
+            </h4>
             <div className="flex size-8 items-center justify-center rounded-full bg-success/15 text-success">
               <PackageCheck className="size-4" aria-hidden />
             </div>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-4 pt-0">
             <div className="text-2xl font-bold text-foreground">{metrics.totalOnHand} un.</div>
             <p className="text-xs text-muted-foreground mt-1">Físico em depósito</p>
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
 
-        <Card className="relative overflow-hidden border-border/60 bg-gradient-to-br from-card to-card/60 shadow-xs">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <Surface
+          variant="polaroid"
+          padding="none"
+          className="relative overflow-hidden border-border/60 from-card to-card/60"
+        >
+          <div className="flex flex-row items-center justify-between p-4 pb-2 space-y-0">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Estoque Crítico
-            </CardTitle>
+            </h4>
             <div className="flex size-8 items-center justify-center rounded-full bg-warning/15 text-warning-foreground">
               <ShieldAlert className="size-4" aria-hidden />
             </div>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="p-4 pt-0">
             <div className="text-2xl font-bold text-foreground">{metrics.criticalCount}</div>
             <p className="text-xs text-muted-foreground mt-1">SKUs com 5 un. ou menos</p>
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
       </div>
 
       {/* Toolbar & Filtros por Status */}
@@ -293,7 +305,7 @@ function AdminStockPage() {
           description="O estoque é gerado automaticamente a partir das variações de SKUs cadastradas nos Produtos."
         />
       ) : (
-        <div className="rounded-xl border border-border bg-card overflow-hidden shadow-xs">
+        <div className="border border-border bg-card overflow-hidden shadow-xs">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/40">

@@ -73,6 +73,10 @@ export interface ProductCardDTO {
   variantId?: string;
   /** Sub-title/variation name (e.g. "Azul") if exploded. */
   variantName?: string;
+  /** JSONB dynamic fields (e.g. tipo, data_evento, local) for unified rendering */
+  attributes?: Record<string, any>;
+  /** Indicates if the product is highlighted by an active ad campaign */
+  isBoosted?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -249,7 +253,7 @@ export interface AdminProductRow {
   price_cents: number;
   compare_at_cents?: number | null;
   cost_cents?: number | null;
-  product_types: { name: string }[] | null;
+  product_types: any;
   product_media: { url: string; alt?: string | null }[];
   options?: { name: string; values: string[] }[];
 }

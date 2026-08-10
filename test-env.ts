@@ -1,1 +1,1 @@
-import { getEvent } from 'vinxi/http'  
+import { getEvent } from "vinxi/http";

@@ -43,6 +43,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { formatDate } from "../lib/datetime";
 import { Badge } from "@/components/ui/badge";
 import {
   listProductTypes,
@@ -430,7 +431,7 @@ function ProductTypesPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground text-xs">
-                        {new Date(type.created_at).toLocaleDateString("pt-BR")}
+                        {formatDate(type.created_at)}
                       </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>

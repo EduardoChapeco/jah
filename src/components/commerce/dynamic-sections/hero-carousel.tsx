@@ -126,7 +126,7 @@ export function HeroCarousel({
                     />
                   </picture>
                 ) : (
-                  <div className="absolute inset-0 w-full h-full bg-gradient-to-tr from-[#1a1a2e] to-[#16213e] flex flex-col items-center justify-center border-2 border-dashed border-white/10 p-4">
+                  <div className="absolute inset-0 w-full h-full from-[#1a1a2e] to-[#16213e] flex flex-col items-center justify-center border-2 border-dashed border-white/10 p-4">
                     <span className="text-white/60 text-sm font-semibold tracking-wide uppercase mb-1">
                       Banner Principal
                     </span>
@@ -139,7 +139,7 @@ export function HeroCarousel({
                 {/* Overlay for text readability */}
                 {showOverlay && (
                   <div
-                    className={`absolute inset-0 bg-gradient-to-t ${overlayClass} pointer-events-none mix-blend-multiply`}
+                    className={`absolute inset-0 ${overlayClass} pointer-events-none mix-blend-multiply`}
                   />
                 )}
 
@@ -152,7 +152,11 @@ export function HeroCarousel({
                   )}
                   {button_link && button_text && (
                     <div className="mt-6 @md:mt-8 pointer-events-auto">
-                      <Button size="lg" className="bg-white/95 text-black hover:bg-white border border-transparent hover:scale-[1.02] transition-all shadow-xl font-medium rounded-full px-8" asChild>
+                      <Button
+                        size="lg"
+                        className="bg-white/95 text-black hover:bg-white border border-transparent hover:scale-[1.02] transition-all font-medium rounded-full px-8"
+                        asChild
+                      >
                         <Link
                           to={button_link as never}
                           onClick={() => trackClick({ index, title, link: button_link })}
@@ -176,9 +180,7 @@ export function HeroCarousel({
             {banners.map((_, index) => (
               <button
                 key={index}
-                className={`size-2.5 rounded-full transition-colors ${
-                  index === selectedIndex ? "bg-white" : "bg-white/40"
-                }`}
+                className={`size-2.5 rounded-full transition-colors ${index === selectedIndex ? "bg-white" : "bg-white/40"}`}
                 onClick={() => emblaApi?.scrollTo(index)}
                 aria-label={`Ir para banner ${index + 1}`}
               />

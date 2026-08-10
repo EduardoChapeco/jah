@@ -33,7 +33,7 @@ export const listEmployeesBalance = createServerFn({ method: "GET" }).handler(as
   // 3. Calculate dynamic balance per employee
   return storeStaff.map((staff) => {
     const employeeRecords = records.filter((r) => r.employee_id === staff.user_id);
-    
+
     let totalCredits = 0;
     let totalDebits = 0;
 
@@ -51,7 +51,7 @@ export const listEmployeesBalance = createServerFn({ method: "GET" }).handler(as
       name: (staff.profiles as any)?.full_name || (staff.profiles as any)?.email || "Funcionário",
       role: staff.role,
       balanceCents: totalCredits - totalDebits,
-      recentRecords: employeeRecords.slice(0, 5) // Send the last 5 records for the ledger preview
+      recentRecords: employeeRecords.slice(0, 5), // Send the last 5 records for the ledger preview
     };
   });
 });
@@ -66,7 +66,7 @@ export const registerFinancialEvent = createServerFn({ method: "POST" })
       amountCents: z.number(),
       type: z.enum(["commission", "advance", "adjustment", "salary"]),
       description: z.string().min(3),
-    })
+    }),
   )
   .handler(async ({ data: { employeeId, amountCents, type, description } }) => {
     const supabase = getServerClient();
@@ -87,7 +87,7 @@ export const registerFinancialEvent = createServerFn({ method: "POST" })
         amount_cents: finalAmount,
         type,
         description,
-        metadata: { registered_by: identity.id }
+        metadata: { registered_by: identity.id },
       })
       .select("id")
       .single();
@@ -97,12 +97,18 @@ export const registerFinancialEvent = createServerFn({ method: "POST" })
     }
 
     // Immutable audit log
-    await logAuditAction(identity, "FINANCIAL_EVENT_REGISTERED", "employee_financial_records", record.id, {
-      employeeId,
-      amountCents: finalAmount,
-      type,
-      description
-    });
+    await logAuditAction(
+      identity,
+      "FINANCIAL_EVENT_REGISTERED",
+      "employee_financial_records",
+      record.id,
+      {
+        employeeId,
+        amountCents: finalAmount,
+        type,
+        description,
+      },
+    );
 
     return { status: "success", recordId: record.id };
   });

@@ -6,11 +6,12 @@ import { MessageSquare, Send } from "lucide-react";
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
+
 import { Badge } from "@/components/ui/badge";
 import { listChatThreads, getChatMessages, sendChatMessage } from "@/services/chat.functions";
 import { getBrowserClient } from "@/lib/supabase";
 import { EmptyState } from "@/components/state/states";
+import { formatDate } from "../lib/datetime";
 
 export const Route = createFileRoute("/admin/conversas")({
   head: () => ({ meta: [{ title: "Conversas" }] }),
@@ -113,14 +114,12 @@ function ChatInboxPage() {
                 <div
                   key={t.id}
                   onClick={() => handleSelectThread(t.id)}
-                  className={`p-4 border-b cursor-pointer hover:bg-muted/50 transition-colors ${
-                    selectedThread === t.id ? "bg-muted" : ""
-                  }`}
+                  className={`p-4 border-b cursor-pointer hover:bg-muted/50 transition-colors ${selectedThread === t.id ? "bg-muted" : ""}`}
                 >
                   <div className="flex justify-between items-start mb-1">
                     <span className="font-semibold text-sm truncate">{t.customer_name}</span>
                     <span className="text-xs text-muted-foreground">
-                      {new Date(t.updated_at).toLocaleDateString()}
+                      {formatDate(t.updated_at)}
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground truncate line-clamp-2">
@@ -161,19 +160,11 @@ function ChatInboxPage() {
                       className={`flex ${m.is_staff_reply ? "justify-end" : "justify-start"}`}
                     >
                       <div
-                        className={`max-w-[70%] p-3 rounded-lg text-sm ${
-                          m.is_staff_reply
-                            ? "bg-primary text-primary-foreground rounded-tr-none"
-                            : "bg-muted rounded-tl-none"
-                        }`}
+                        className={`max-w-[70%] p-3 text-sm ${m.is_staff_reply ? "bg-primary text-primary-foreground rounded-tr-none" : "bg-muted rounded-tl-none"}`}
                       >
                         {m.message}
                         <div
-                          className={`text-[10px] mt-1 ${
-                            m.is_staff_reply
-                              ? "text-primary-foreground/70"
-                              : "text-muted-foreground"
-                          }`}
+                          className={`text-[10px] mt-1 ${m.is_staff_reply ? "text-primary-foreground/70" : "text-muted-foreground"}`}
                         >
                           {new Date(m.created_at).toLocaleTimeString([], {
                             hour: "2-digit",

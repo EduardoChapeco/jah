@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/state/states";
 import { listStoreFollowers } from "@/services/social.functions";
 import { Badge } from "@/components/ui/badge";
+import { formatDate } from "../lib/datetime";
 
 export const Route = createFileRoute("/admin/marketing/seguidores")({
   head: () => ({ meta: [{ title: "Seguidores da Loja" }] }),
@@ -83,13 +84,7 @@ function FollowersPage() {
                       {meta.full_name || "Cliente sem nome"}
                     </TableCell>
                     <TableCell className="text-muted-foreground">{meta.email || "-"}</TableCell>
-                    <TableCell>
-                      {new Date(f.created_at).toLocaleDateString("pt-BR", {
-                        day: "2-digit",
-                        month: "long",
-                        year: "numeric",
-                      })}
-                    </TableCell>
+                    <TableCell>{formatDate(f.created_at)}</TableCell>
                     <TableCell>
                       <Badge
                         variant="outline"

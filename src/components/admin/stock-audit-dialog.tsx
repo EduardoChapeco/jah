@@ -99,7 +99,7 @@ export function StockAuditDialog({ variant }: { variant: any }) {
                 min="0"
                 value={countedQty}
                 onChange={(e) => setCountedQty(e.target.value)}
-                className="font-semibold text-blue-600"
+                className="font-semibold text-primary"
               />
             </div>
           </div>

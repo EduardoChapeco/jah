@@ -67,7 +67,7 @@ export const getChatMessages = createServerFn({ method: "GET" })
         .eq("id", threadId)
         .eq("store_id", identity.store_id)
         .single();
-      
+
       if (!thread) throw new Error("Conversa não encontrada ou acesso negado.");
 
       const { data, error } = await db
@@ -107,7 +107,7 @@ export const sendChatMessage = createServerFn({ method: "POST" })
         .eq("id", input.threadId)
         .eq("store_id", identity.store_id)
         .single();
-        
+
       if (!threadVal) throw new Error("Conversa não encontrada ou acesso negado.");
 
       const { data, error } = await db

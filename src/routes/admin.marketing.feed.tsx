@@ -26,6 +26,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { listSocialPosts, createSocialPost } from "@/services/marketing-engagement.functions";
+import { formatDate } from "../lib/datetime";
 
 export const Route = createFileRoute("/admin/marketing/feed")({
   head: () => ({ meta: [{ title: "Feed Social" }] }),
@@ -129,7 +130,7 @@ function FeedPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {posts.map((post: any) => (
-            <div key={post.id} className="rounded-lg border bg-card p-5 space-y-3">
+            <div key={post.id} className="border bg-card p-5 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Share2 className="h-4 w-4 text-muted-foreground" />
@@ -142,9 +143,7 @@ function FeedPage() {
               <p className="text-sm text-foreground whitespace-pre-wrap line-clamp-4">
                 {post.content_text}
               </p>
-              <p className="text-xs text-muted-foreground">
-                {new Date(post.created_at).toLocaleDateString("pt-BR")}
-              </p>
+              <p className="text-xs text-muted-foreground">{formatDate(post.created_at)}</p>
             </div>
           ))}
         </div>

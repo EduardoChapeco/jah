@@ -177,7 +177,7 @@ function LoginPage() {
 
               {/* Rate limit banner */}
               {rateLimitedUntil && countdown > 0 && (
-                <div className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-3">
+                <div className="flex items-start gap-3 border border-destructive/30 bg-destructive/10 p-3">
                   <ShieldAlert className="size-4 shrink-0 text-destructive mt-0.5" aria-hidden />
                   <div>
                     <p className="text-sm font-medium text-destructive">

@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState, ErrorState } from "@/components/state/states";
 import { listCustomerOrders } from "@/services/order.functions";
+import { formatDate } from "../lib/datetime";
 
 export const Route = createFileRoute("/_store/conta/pedidos/")({
   head: () => ({ meta: [{ title: "Meus Pedidos" }] }),
@@ -44,24 +45,18 @@ function Page() {
           description="Você ainda não realizou nenhuma compra na nossa loja."
           action={
             <Button asChild>
-              <Link to="/catalogo">Ver produtos</Link>
+              <Link to="/mercado">Ver produtos</Link>
             </Button>
           }
         />
       ) : (
         <div className="space-y-6">
           {orders.map((order: any) => (
-            <div key={order.id} className="border rounded-lg overflow-hidden bg-card">
+            <div key={order.id} className="border overflow-hidden bg-card">
               <div className="bg-muted/40 p-4 border-b flex flex-wrap justify-between items-center gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Pedido realizado em</p>
-                  <p className="font-medium">
-                    {new Date(order.created_at).toLocaleDateString("pt-BR", {
-                      day: "2-digit",
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </p>
+                  <p className="font-medium">{formatDate(order.created_at)}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Total</p>

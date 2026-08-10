@@ -1,11 +1,12 @@
 # Dossiê 02: Catálogo, Classificados e Experiência de Marketplace
 
 **Status**: Especificação Final  
-**Domínio**: Commerce & Catalog Management  
+**Domínio**: Commerce & Catalog Management
 
 ---
 
 ## 1. Necessidade Humana
+
 **Quem utiliza?** Vendedores (Lojas, Artistas, Brechós, Pessoas Físicas) e Compradores.
 **Por que utiliza?** O Vendedor quer ofertar um produto novo, um item usado (classificado) ou um infoproduto. O Comprador quer encontrar itens por interesse, buscar e comprar.
 **Problema que resolve:** Em e-commerces tradicionais, há uma distinção rígida de catálogo que impossibilita a coexistência de um produto profissional de grade (cor e tamanho) com um anúncio pontual (um tênis usado único) e um serviço (orçamento).
@@ -42,13 +43,14 @@
   - O vendedor altera o preço de 100 para 150.
   - O usuário que já tinha o item no carrinho (mas não fechou) recebe um aviso no refresh: "O preço do item foi atualizado". (O preço canônico sempre vem do Banco no momento do checkout, e não do cache do carrinho do cliente).
 - **Classificado Denunciado:**
-  - Produto recebe 5 denúncias. Status vai para `under_review`. Some do feed e da busca. 
+  - Produto recebe 5 denúncias. Status vai para `under_review`. Some do feed e da busca.
 
 ---
 
 ## 4. Máquina de Estados e Transições
 
 **`products` (Produto/Classificado)**
+
 - `draft`: Em edição. Visível só para staff do tenant.
 - `published`: Ativo e indexado.
 - `archived`: Retirado de venda.
@@ -59,7 +61,7 @@
 
 ## 5. Regras de Negócio e Concorrência
 
-1. **Variantes e Combinações:** 
+1. **Variantes e Combinações:**
    - A base atual pode ter `product_options` (Cor) e `product_option_values` (Azul, Vermelho).
    - Uma matriz gera os `product_variants`.
    - Regra de Ouro: Variações impossíveis (ex: Tênis tamanho 50) não devem ser geradas com "estoque zero". Devem ser `is_active = false` ou não criadas.
@@ -118,6 +120,7 @@
 ## 12. Critério de Conclusão
 
 Este domínio estará pronto quando:
+
 1. Puder criar produto com e sem variante usando o `<Sheet>` gigante sem gargalos.
 2. Comprador adicionar no carrinho e simular checkout (estoque travado).
 3. Alteração de preço não quebrar pedidos passados.

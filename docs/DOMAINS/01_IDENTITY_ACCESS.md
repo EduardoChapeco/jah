@@ -1,11 +1,12 @@
 # Dossiê 01: Identidade, Acessos e Isolamento Multi-Contexto
 
 **Status**: Especificação Final  
-**Domínio**: Identity & Access Management (IAM)  
+**Domínio**: Identity & Access Management (IAM)
 
 ---
 
 ## 1. Necessidade Humana
+
 **Quem utiliza?** Qualquer indivíduo navegando na plataforma (seja público geral, artistas, empresários, entregadores ou produtores de eventos).
 **Por que utiliza?** Para ter uma única conta de login e transitar de forma fluida entre consumir (comprar ingressos, curtir posts) e produzir (vender produtos, validar tickets da sua festa), sem precisar criar múltiplos e-mails ou deslogar.
 **Problema que resolve:** O sistema legado de E-commerce travava o usuário em um viés estático de "Cliente" ou "Administrador de 1 loja". Na Jah, uma pessoa é polivalente. Ela pode ser dona de um Coletivo (Organização), colaboradora financeira em uma Loja de Discos, e usuária comum no final de semana.
@@ -40,7 +41,7 @@
 
 ## 3. Fluxos Alternativos e Resiliência
 
-- **Abas diferentes com contextos diferentes:** 
+- **Abas diferentes com contextos diferentes:**
   - **Problema:** Usuário abre a Loja A numa aba e a Loja B na outra. Faz uma venda. O dado pode vazar?
   - **Solução:** O `tenant_id` e a `role` não devem ser apenas dependentes do Cookie de "Sessão Ativa". Todo request mutável (RPC ou Server Function) DEVE receber explicitamente no corpo qual `store_id` a aba está manipulando, e o backend cruza isso com a tabela de permissões. O "Cookie de contexto ativo" serve apenas de fallback visual e default redirect para a Home, nunca como prova autoritativa.
 - **Remoção de Permissão Instantânea:**
@@ -53,16 +54,19 @@
 ## 4. Máquina de Estados e Transições
 
 **`profile` (Identidade Global)**
+
 - `active`: Conta normal.
 - `suspended`: Bloqueio por infração global da plataforma.
 - `deleted`: Exclusão soft.
 
 **`organizations` / `stores` (Tenant)**
+
 - `active`: Opera normalmente.
 - `past_due`: Assinatura/Boleto da plataforma vencido (Trava saídas, permite leitura).
 - `banned`: Fraude.
 
 **`store_members` (Convite/Acesso)**
+
 - `pending`: E-mail enviado.
 - `active`: Aceitou.
 - `revoked`: Expulso (Soft delete ou exclusão física dependendo da auditoria).
@@ -74,7 +78,7 @@
 1. **Permissões Explícitas (Não use boolean `admin`):**
    - Papéis fixos: `owner`, `admin`, `manager`, `seller`, `finance`, `content`, `support`, `stock`, `delivery`.
 2. **Isolamento de Caches (TanStack Query):**
-   - TODA Query Key do frontend DEVE incluir o `store_id` atual, ou `null` se for escopo global. 
+   - TODA Query Key do frontend DEVE incluir o `store_id` atual, ou `null` se for escopo global.
    - `['orders', 'list', storeId]` garante que trocar de loja não mostre um split-second do pedido alheio.
 3. **Escopo Global vs Tenant:**
    - Usuários (`profiles`) são globais.
@@ -119,7 +123,7 @@
 
 ## 9. Segurança e RLS (Row Level Security)
 
-- **Regra de Ouro RLS:** O RLS atua como *Defense in Depth*, mas a validação real ocorre no BFF (Server Functions) para retornar erros de negócio descritivos.
+- **Regra de Ouro RLS:** O RLS atua como _Defense in Depth_, mas a validação real ocorre no BFF (Server Functions) para retornar erros de negócio descritivos.
 - **Política RLS em `stores`**: `auth.uid() IN (SELECT profile_id FROM store_members WHERE store_id = stores.id)`.
 - **Ownership:** Nada pertence à "Jah". Tudo pertence ao `store_id`.
 
@@ -140,6 +144,7 @@
 ## 12. Critério de Conclusão
 
 Este domínio só estará concluído na Fase de Código quando:
+
 1. Um usuário puder logar, criar dois `stores` distintos.
 2. Navegar no Store A e cadastrar o "Produto X".
 3. Alternar para o Store B pelo menu.

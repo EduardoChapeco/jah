@@ -32,7 +32,7 @@ export interface RouteEntry {
    * Keep as string here to avoid coupling this module to React.
    */
   navIcon?: string;
-  /** If true, badge "Em breve" next to the nav label. */
+  /** If true, badge Em breve next to the nav label. */
   navPlanned?: boolean;
 }
 
@@ -59,9 +59,26 @@ export const PUBLIC_ROUTES: RouteEntry[] = [
     phase: 1,
   },
   {
-    path: "/catalogo",
-    label: "Catálogo",
-    description: "Todos os produtos",
+    path: "/agenda",
+    label: "Agenda",
+    description: "Eventos e festas",
+    audience: "public",
+    roles: ["visitor"],
+    phase: 1,
+  },
+
+  {
+    path: "/diretorio",
+    label: "Diretório",
+    description: "Marcas e artistas",
+    audience: "public",
+    roles: ["visitor"],
+    phase: 1,
+  },
+  {
+    path: "/mercado",
+    label: "Mercado",
+    description: "Compre de marcas e lojistas",
     audience: "public",
     roles: ["visitor"],
     phase: 1,
@@ -94,9 +111,9 @@ export const PUBLIC_ROUTES: RouteEntry[] = [
     dynamic: true,
   },
   {
-    path: "/promocoes",
-    label: "Promoções",
-    description: "Ofertas ativas",
+    path: "/mural",
+    label: "Mural",
+    description: "Classificados da comunidade",
     audience: "public",
     roles: ["visitor"],
     phase: 1,
@@ -271,6 +288,14 @@ export const CUSTOMER_ROUTES: RouteEntry[] = [
     audience: "customer",
     roles: CUSTOMER,
     phase: 2,
+  },
+  {
+    path: "/criar-negocio",
+    label: "Criar Negócio / Coletivo",
+    description: "Onboarding de Produtor Cultural",
+    audience: "customer",
+    roles: ["customer", "visitor"],
+    phase: 1,
   },
   {
     path: "/conta/pedidos",
@@ -580,6 +605,31 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "manager", "support"],
     phase: 4,
+  },
+  {
+    path: "/admin/classificados",
+    label: "Classificados",
+    description: "Mural de classificados",
+    audience: "admin",
+    roles: STAFF_ALL,
+    phase: 4,
+  },
+  {
+    path: "/admin/classificados/novo",
+    label: "Novo Classificado",
+    description: "Criar classificado",
+    audience: "admin",
+    roles: STAFF_ALL,
+    phase: 4,
+  },
+  {
+    path: "/admin/classificados/:id",
+    label: "Editar Classificado",
+    description: "Edição de classificado",
+    audience: "admin",
+    roles: STAFF_ALL,
+    phase: 4,
+    dynamic: true,
   },
   {
     path: "/admin/conversas",
@@ -963,27 +1013,25 @@ export interface AdminNavGroup {
  */
 export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
   {
-    title: "🏠 Início",
+    title: "🏠 Meu Estúdio",
     items: [
       { path: "/admin", label: "Visão Geral", icon: "LayoutDashboard" },
-      { path: "/admin/caixa", label: "PDV / Caixa", icon: "MonitorSmartphone" },
+      { path: "/admin/perfil-publico", label: "Meu Portfólio", icon: "Store" },
       { path: "/admin/avaliacoes", label: "Avaliações", icon: "Star" },
     ],
   },
   {
-    title: "🛍️ Pedidos & Vendas",
+    title: "🎟️ Eventos & Cultura",
     items: [
-      { path: "/admin/pedidos", label: "Lista de Pedidos", icon: "ShoppingBag" },
-      { path: "/admin/pagamentos", label: "Pagamentos", icon: "CreditCard" },
-      { path: "/admin/comprovantes", label: "Comprovantes Manuais", icon: "FileText" },
-      { path: "/admin/pedidos/trocas", label: "Trocas & Devoluções", icon: "ArrowLeftRight" },
-      { path: "/admin/comissoes", label: "Comissões", icon: "Percent" },
+      { path: "/admin/events", label: "Meus Eventos", icon: "Calendar" },
+      { path: "/admin/destaques", label: "Destaques (Highlights)", icon: "CircleDot" },
+      { path: "/admin/stories", label: "Stories (Mural)", icon: "PlaySquare" },
     ],
   },
   {
-    title: "📦 Produtos & Estoque",
+    title: "📦 Mercado & Estoque",
     items: [
-      { path: "/admin/catalogo/produtos", label: "Produtos", icon: "Package" },
+      { path: "/admin/catalogo/produtos", label: "Mercadorias", icon: "Package" },
       { path: "/admin/estoque", label: "Estoque", icon: "Boxes" },
       { path: "/admin/catalogo/categorias", label: "Categorias", icon: "FolderTree" },
       { path: "/admin/catalogo/colecoes", label: "Coleções", icon: "Layers" },
@@ -993,33 +1041,38 @@ export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
     ],
   },
   {
-    title: "🎟️ Eventos & Cultura",
+    title: "🛍️ Vendas & Caixa",
     items: [
-      { path: "/admin/events", label: "Eventos", icon: "Calendar" },
+      { path: "/admin/pedidos", label: "Pedidos & Compras", icon: "ShoppingBag" },
+      { path: "/admin/caixa", label: "PDV / Caixa Rápido", icon: "MonitorSmartphone" },
+      { path: "/admin/pagamentos", label: "Pagamentos", icon: "CreditCard" },
+      { path: "/admin/comprovantes", label: "Comprovantes Manuais", icon: "FileText" },
+      { path: "/admin/pedidos/trocas", label: "Trocas & Devoluções", icon: "ArrowLeftRight" },
+      { path: "/admin/comissoes", label: "Comissões da Equipe", icon: "Percent" },
     ],
   },
   {
-    title: "💬 Clientes & Atendimento",
+    title: "💬 Comunidade",
     items: [
-      { path: "/admin/clientes", label: "Lista de Clientes", icon: "Users" },
-      { path: "/admin/conversas", label: "Chat & Conversas", icon: "MessagesSquare" },
+      { path: "/admin/clientes", label: "Público & Clientes", icon: "Users" },
+      { path: "/admin/conversas", label: "Chat & Mensagens", icon: "MessagesSquare" },
       { path: "/admin/suporte", label: "Tickets de Suporte", icon: "LifeBuoy" },
+      { path: "/admin/classificados", label: "Meus Classificados", icon: "Tag" },
       { path: "/admin/marketing/seguidores", label: "Seguidores", icon: "Heart" },
     ],
   },
   {
-    title: "✨ Vitrine & Design",
+    title: "✨ Design & Presença",
     items: [
       { path: "/admin/vitrine", label: "Editor da Home", icon: "MonitorPlay" },
       { path: "/admin/cms/tema", label: "Cores & Estilo", icon: "Palette" },
       { path: "/admin/cms/navegacao", label: "Menus de Navegação", icon: "Menu" },
       { path: "/admin/builder", label: "Páginas Extras", icon: "FileText" },
       { path: "/admin/link-da-bio", label: "Link da Bio", icon: "Link2" },
-      { path: "/admin/destaques", label: "Destaques (Highlights)", icon: "CircleDot" },
     ],
   },
   {
-    title: "🚀 Marketing & Crescimento",
+    title: "🚀 Crescimento",
     items: [
       { path: "/admin/marketing/cupons", label: "Cupons de Desconto", icon: "Ticket" },
       { path: "/admin/match-time", label: "Ofertas Relâmpago", icon: "Zap" },
@@ -1027,25 +1080,23 @@ export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
       { path: "/admin/marketing/carrinhos", label: "Carrinhos Abandonados", icon: "ShoppingCart" },
       { path: "/admin/marketing/gift-cards", label: "Gift Cards", icon: "Gift" },
       { path: "/admin/marketing/notificacoes", label: "Notificações Push", icon: "BellRing" },
-      { path: "/admin/stories", label: "Stories", icon: "PlaySquare" },
       { path: "/admin/criador", label: "Studio de Criação", icon: "Video" },
       { path: "/admin/marketing/feed", label: "Feed Meta/Google", icon: "Rss" },
     ],
   },
   {
-    title: "⚙️ Ajustes da Loja",
+    title: "⚙️ Ajustes do Coletivo",
     items: [
-      { path: "/admin/configuracoes/loja", label: "Configurações Gerais", icon: "Store" },
+      { path: "/admin/configuracoes/loja", label: "Dados e Setup", icon: "Store" },
       { path: "/admin/configuracoes/pagamentos", label: "Taxas & Pix Manual", icon: "Landmark" },
-      { path: "/admin/fretes/tabelas", label: "Fretes & Logística", icon: "Truck" },
+      { path: "/admin/fretes/tabelas", label: "Entregas & Frete", icon: "Truck" },
       { path: "/admin/integracoes", label: "Integrações (Pixels)", icon: "Plug" },
-      { path: "/admin/configuracoes/politicas", label: "Políticas da Loja", icon: "ShieldCheck" },
-      { path: "/admin/configuracoes/lgpd", label: "Painel LGPD", icon: "Lock" },
+      { path: "/admin/configuracoes/politicas", label: "Termos & Políticas", icon: "ShieldCheck" },
+      { path: "/admin/configuracoes/lgpd", label: "Privacidade LGPD", icon: "Lock" },
       { path: "/admin/configuracoes/seo", label: "SEO & Busca", icon: "Search" },
-      { path: "/admin/equipe", label: "Equipe & Acessos", icon: "UserCog" },
-      { path: "/admin/relatorios", label: "Relatórios & Métricas", icon: "BarChart3" },
-      { path: "/admin/configuracoes/auditoria", label: "Log de Auditoria", icon: "ShieldAlert" },
-      { path: "/admin/configuracoes/etapas", label: "Checklist de Setup", icon: "CheckSquare" },
+      { path: "/admin/equipe", label: "Acessos da Equipe", icon: "UserCog" },
+      { path: "/admin/relatorios", label: "Métricas Financeiras", icon: "BarChart3" },
+      { path: "/admin/configuracoes/auditoria", label: "Auditoria", icon: "ShieldAlert" },
     ],
   },
 ];

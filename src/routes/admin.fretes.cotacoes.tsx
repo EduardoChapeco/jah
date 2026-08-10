@@ -22,6 +22,7 @@ import {
 } from "@/services/order.functions";
 import { formatMoney } from "@/lib/money";
 import { toast } from "sonner";
+import { formatDate } from "../lib/datetime";
 
 export const Route = createFileRoute("/admin/fretes/cotacoes")({
   head: () => ({ meta: [{ title: "Cotações de Frete" }] }),
@@ -104,7 +105,7 @@ function FretesCotacoesPage() {
       />
 
       {/* Solicitações Pendentes */}
-      <div className="rounded-lg border bg-card p-6">
+      <div className="border bg-card p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-lg flex items-center gap-2">
             Solicitações Pendentes
@@ -115,7 +116,7 @@ function FretesCotacoesPage() {
         </div>
 
         {pendingOrders.length === 0 ? (
-          <div className="py-8 text-center border border-dashed rounded-lg bg-muted/10">
+          <div className="py-8 text-center border border-dashed bg-muted/10">
             <p className="text-sm text-muted-foreground">
               Nenhum pedido aguardando cotação de frete no momento.
             </p>
@@ -145,7 +146,7 @@ function FretesCotacoesPage() {
                           <span>#{order.public_token}</span>
                           <span className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5 font-normal">
                             <Calendar className="size-3" />
-                            {new Date(order.created_at).toLocaleDateString("pt-BR")}
+                            {formatDate(order.created_at)}
                           </span>
                         </div>
                       </TableCell>
@@ -226,7 +227,7 @@ function FretesCotacoesPage() {
       </div>
 
       {/* Simulador de Cotações */}
-      <div className="rounded-lg border bg-card p-6">
+      <div className="border bg-card p-6">
         <h3 className="font-semibold mb-4 text-lg">Simular Frete por CEP</h3>
         <form onSubmit={handleSimulate} className="flex gap-3 max-w-sm">
           <Input
@@ -255,7 +256,7 @@ function FretesCotacoesPage() {
                 {results.map((r: any) => (
                   <div
                     key={r.id}
-                    className="flex items-center justify-between rounded-xl border px-4 py-3 bg-muted/10"
+                    className="flex items-center justify-between border px-4 py-3 bg-muted/10"
                   >
                     <div className="flex items-center gap-3">
                       <Package className="h-5 w-5 text-muted-foreground animate-pulse" />
@@ -289,7 +290,7 @@ function FretesCotacoesPage() {
       </div>
 
       {/* Zonas Ativas */}
-      <div className="rounded-lg border bg-card p-6">
+      <div className="border bg-card p-6">
         <h3 className="font-semibold mb-4 text-lg">Zonas Ativas ({zones.length})</h3>
         {zones.length === 0 ? (
           <EmptyState

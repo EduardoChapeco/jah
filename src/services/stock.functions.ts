@@ -57,12 +57,15 @@ export const getStockLevels = createServerFn({ method: "GET" })
 
 // ---------------------------------------------------------------------------
 
-export async function adjustStockHandler(params: {
-  variantId: string;
-  qty: number;
-  movementType: "purchase" | "adjustment" | "damage" | "transfer" | "return";
-  note?: string;
-}, store_id: string) {
+export async function adjustStockHandler(
+  params: {
+    variantId: string;
+    qty: number;
+    movementType: "purchase" | "adjustment" | "damage" | "transfer" | "return";
+    note?: string;
+  },
+  store_id: string,
+) {
   const db = getServerClient();
 
   // Verify ownership

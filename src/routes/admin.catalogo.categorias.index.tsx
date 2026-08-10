@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/state/states";
+import { Surface } from "@/components/ui/surface";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
@@ -151,7 +152,7 @@ function AdminCategoriesPage() {
           }
         />
       ) : (
-        <div className="rounded-xl border border-border bg-card shadow-xs">
+        <Surface variant="default" padding="none">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -166,7 +167,24 @@ function AdminCategoriesPage() {
                 {filteredCategories.map((cat: any) => (
                   <TableRow key={cat.id} className="hover:bg-muted/30 transition-colors">
                     <TableCell className="font-semibold text-sm text-foreground">
-                      {cat.name}
+                      <div className="flex items-center gap-2">
+                        {cat.cover_url && (
+                          <img
+                            src={cat.cover_url}
+                            alt={cat.name}
+                            className="size-8 rounded object-cover"
+                          />
+                        )}
+                        <div className="flex flex-col">
+                          <span>{cat.name}</span>
+                          {cat.parent_id && (
+                            <span className="text-[10px] text-muted-foreground font-normal">
+                              Subcategoria de{" "}
+                              {categories.find((c: any) => c.id === cat.parent_id)?.name || "outra"}
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground font-mono text-xs">
                       {cat.slug}
@@ -242,7 +260,7 @@ function AdminCategoriesPage() {
               </TableBody>
             </Table>
           </div>
-        </div>
+        </Surface>
       )}
     </div>
   );

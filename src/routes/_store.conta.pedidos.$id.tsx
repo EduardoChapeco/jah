@@ -22,6 +22,7 @@ import { ErrorState, EmptyState } from "@/components/state/states";
 import { formatMoney } from "@/lib/money";
 import { getCustomerOrder, getOrderPaymentInstructions } from "@/services/order.functions";
 import { uploadPaymentReceipt } from "@/services/payment.functions";
+import { formatDate } from "../lib/datetime";
 
 export const Route = createFileRoute("/_store/conta/pedidos/$id")({
   head: () => ({ meta: [{ title: "Detalhes do Pedido" }] }),
@@ -151,14 +152,14 @@ function CustomerOrderDetailPage() {
 
       <PageHeader
         title={`Pedido #${order.public_token}`}
-        description={`Realizado em ${new Date(order.created_at).toLocaleDateString("pt-BR")}`}
+        description={`Realizado em ${formatDate(order.created_at)}`}
       />
 
       <div className="grid gap-6 md:grid-cols-3">
         {/* Left: items + shipping */}
         <div className="md:col-span-2 space-y-6">
           {/* Order items */}
-          <div className="rounded-lg border bg-card p-5 space-y-4">
+          <div className="border bg-card p-5 space-y-4">
             <h3 className="font-semibold flex items-center gap-2 text-foreground">
               <Package className="h-5 w-5 text-muted-foreground" />
               Itens do Pedido
@@ -192,7 +193,7 @@ function CustomerOrderDetailPage() {
           </div>
 
           {/* Delivery & Shipping Address */}
-          <div className="rounded-lg border bg-card p-5 space-y-3">
+          <div className="border bg-card p-5 space-y-3">
             <h3 className="font-semibold flex items-center gap-2 text-foreground">
               <MapPin className="h-5 w-5 text-muted-foreground" />
               Entrega / Retirada
@@ -228,7 +229,7 @@ function CustomerOrderDetailPage() {
         {/* Right: totals + payment */}
         <div className="space-y-6">
           {/* Summary totals */}
-          <div className="rounded-lg border bg-card p-5 space-y-3">
+          <div className="border bg-card p-5 space-y-3">
             <h3 className="font-semibold text-foreground">Resumo de Valores</h3>
             <div className="space-y-2 text-sm text-muted-foreground">
               <div className="flex justify-between">
@@ -242,7 +243,7 @@ function CustomerOrderDetailPage() {
                 </span>
               </div>
               {order.discount_cents > 0 && (
-                <div className="flex justify-between text-green-600">
+                <div className="flex justify-between text-success">
                   <span>Desconto</span>
                   <span>-{formatMoney(order.discount_cents)}</span>
                 </div>
@@ -256,7 +257,7 @@ function CustomerOrderDetailPage() {
 
           {/* Payment instructions & Upload */}
           {order.status === "awaiting_payment" && (
-            <div className="rounded-lg border bg-card p-5 space-y-4">
+            <div className="border bg-card p-5 space-y-4">
               <h3 className="font-semibold flex items-center gap-2 text-foreground">
                 <CreditCard className="h-5 w-5 text-muted-foreground" />
                 Como Pagar
@@ -284,14 +285,14 @@ function CustomerOrderDetailPage() {
               )}
 
               {paymentInstructions.payment_instructions && (
-                <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground border">
+                <div className="bg-muted/50 p-3 text-xs text-muted-foreground border">
                   <p className="font-medium text-foreground mb-1">Instruções adicionais:</p>
                   <p className="whitespace-pre-wrap">{paymentInstructions.payment_instructions}</p>
                 </div>
               )}
 
               {/* Upload section */}
-              <div className="border-2 border-dashed border-muted rounded-lg p-4 text-center space-y-2">
+              <div className="border-2 border-dashed border-muted p-4 text-center space-y-2">
                 <Upload className="h-6 w-6 mx-auto text-muted-foreground" />
                 <p className="text-xs text-muted-foreground">
                   Envie o comprovante de pagamento para agilizar a confirmação.
@@ -321,11 +322,11 @@ function CustomerOrderDetailPage() {
 
           {/* Payment status messages */}
           {order.status === "payment_processing" && (
-            <div className="flex items-start gap-2 bg-yellow-50 text-yellow-800 text-xs p-3 rounded-lg border border-yellow-200">
-              <Info className="h-4 w-4 shrink-0 mt-0.5 text-yellow-600" />
+            <div className="flex items-start gap-2 bg-warning text-warning text-xs p-3 border border-yellow-200">
+              <Info className="h-4 w-4 shrink-0 mt-0.5 text-warning" />
               <div>
                 <p className="font-semibold">Comprovante em análise</p>
-                <p className="mt-0.5 text-yellow-700">
+                <p className="mt-0.5 text-warning">
                   A equipe está confirmando seu pagamento. Você será notificado em breve.
                 </p>
               </div>
@@ -333,11 +334,11 @@ function CustomerOrderDetailPage() {
           )}
 
           {payment?.receipt_status === "rejected" && (
-            <div className="flex items-start gap-2 bg-red-50 text-red-800 text-xs p-3 rounded-lg border border-red-200">
-              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-red-600" />
+            <div className="flex items-start gap-2 bg-destructive text-destructive text-xs p-3 border border-red-200">
+              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-destructive" />
               <div>
                 <p className="font-semibold">Comprovante Recusado</p>
-                <p className="mt-0.5 text-red-700">
+                <p className="mt-0.5 text-destructive">
                   O comprovante não pôde ser validado. Por favor, envie novamente ou contate a loja.
                 </p>
               </div>
@@ -345,11 +346,11 @@ function CustomerOrderDetailPage() {
           )}
 
           {["paid", "processing", "completed"].includes(order.status) && (
-            <div className="flex items-start gap-2 bg-green-50 text-green-800 text-xs p-3 rounded-lg border border-green-200">
-              <Info className="h-4 w-4 shrink-0 mt-0.5 text-green-600" />
+            <div className="flex items-start gap-2 bg-success text-success text-xs p-3 border border-green-200">
+              <Info className="h-4 w-4 shrink-0 mt-0.5 text-success" />
               <div>
                 <p className="font-semibold">Pagamento Confirmado</p>
-                <p className="mt-0.5 text-green-700">
+                <p className="mt-0.5 text-success">
                   Seu pagamento foi confirmado! O pedido está sendo preparado.
                 </p>
               </div>
@@ -365,17 +366,17 @@ function CustomerOrderDetailPage() {
               >
                 Solicitar Devolução / Troca
               </Button>
-              <RmaWizard 
-                orderId={order.id} 
-                items={items} 
-                isOpen={rmaWizardOpen} 
-                onClose={() => setRmaWizardOpen(false)} 
+              <RmaWizard
+                orderId={order.id}
+                items={items}
+                isOpen={rmaWizardOpen}
+                onClose={() => setRmaWizardOpen(false)}
                 onSuccess={() => router.invalidate()}
               />
             </>
           )}
+        </div>
       </div>
-    </div>
     </div>
   );
 }

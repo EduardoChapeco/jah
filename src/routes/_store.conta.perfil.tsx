@@ -193,7 +193,7 @@ function ProfilePage() {
       </div>
 
       {/* ── Avatar ── */}
-      <div className="rounded-2xl border border-border bg-card p-6">
+      <div className="border border-border bg-card p-6">
         <AvatarSection
           currentUrl={formData.avatarUrl || null}
           name={formData.fullName}
@@ -204,7 +204,7 @@ function ProfilePage() {
       {/* ── Form ── */}
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Dados básicos */}
-        <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
+        <div className="border border-border bg-card p-6 space-y-4">
           <div className="flex items-center gap-2 mb-2">
             <User className="size-4 text-primary" aria-hidden />
             <h3 className="text-sm font-semibold text-foreground">Dados pessoais</h3>
@@ -319,7 +319,7 @@ function ProfilePage() {
         </div>
 
         {/* ── Preferências ── */}
-        <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
+        <div className="border border-border bg-card p-6 space-y-4">
           <div className="flex items-center gap-2 mb-2">
             <Bell className="size-4 text-primary" aria-hidden />
             <h3 className="text-sm font-semibold text-foreground">Preferências</h3>
@@ -355,7 +355,7 @@ function ProfilePage() {
       {/* ── Privacidade & LGPD ── */}
       <Separator />
 
-      <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6 space-y-4">
+      <div className="border border-destructive/30 bg-destructive/5 p-6 space-y-4">
         <div className="flex items-start gap-3">
           <ShieldCheck className="size-5 text-destructive mt-0.5 shrink-0" aria-hidden />
           <div>

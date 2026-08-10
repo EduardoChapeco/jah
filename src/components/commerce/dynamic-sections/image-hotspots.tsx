@@ -40,7 +40,7 @@ export function ImageHotspots({
   if (!displayImage) {
     return (
       <div className="w-full py-12 px-4 md:px-8 max-w-7xl mx-auto">
-        <div className="flex flex-col items-center justify-center py-16 text-center gap-4 text-muted-foreground border-2 border-dashed border-border rounded-2xl">
+        <div className="flex flex-col items-center justify-center py-16 text-center gap-4 text-muted-foreground border-2 border-dashed border-border">
           <span className="text-3xl opacity-40">&#127919;</span>
           <div>
             <p className="font-medium">Imagem não configurada</p>
@@ -68,7 +68,7 @@ export function ImageHotspots({
         </div>
       )}
 
-      <div className="relative w-full rounded-2xl overflow-hidden shadow-xl border border-border bg-muted">
+      <div className="relative w-full overflow-hidden border border-border bg-muted">
         {/* Main Image */}
         <img
           src={displayImage}
@@ -92,14 +92,12 @@ export function ImageHotspots({
                 }
               }}
               aria-label={spot.title || `Produto ${index + 1}`}
-              className={`absolute -translate-x-1/2 -translate-y-1/2 group focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-full z-10 transition-transform ${
-                isActive ? "scale-125 z-20" : "hover:scale-110"
-              }`}
+              className={`absolute -translate-x-1/2 -translate-y-1/2 group focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-full z-10 transition-transform ${isActive ? "scale-125 z-20" : "hover:scale-110"}`}
             >
               {/* Outer pulsing ring */}
               <span className="absolute -inset-2 rounded-full bg-primary/40 animate-ping opacity-75" />
               {/* Inner pin */}
-              <span className="relative flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-primary text-primary-foreground shadow-lg font-bold text-xs md:text-sm border-2 border-background">
+              <span className="relative flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-primary text-primary-foreground font-bold text-xs md:text-sm border-2 border-background">
                 {index + 1}
               </span>
             </button>
@@ -108,7 +106,7 @@ export function ImageHotspots({
 
         {/* Floating Mini-Card / Drawer for Active Hotspot */}
         {activeHotspot && !onHotspotClickInEditor && (
-          <div className="absolute bottom-4 left-4 right-4 md:left-auto md:right-4 md:bottom-4 md:w-80 bg-background/95 backdrop-blur-md p-4 rounded-xl shadow-2xl border border-border z-30 transition-all animate-in fade-in slide-in-from-bottom-4">
+          <div className="absolute bottom-4 left-4 right-4 md:left-auto md:right-4 md:bottom-4 md:w-80 bg-background/95 backdrop-blur-md p-4 border border-border z-30 transition-all animate-in fade-in slide-in-">
             <div className="flex items-center justify-between mb-3 pb-2 border-b border-border">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Produto em Destaque
@@ -130,15 +128,15 @@ export function ImageHotspots({
                 <Link
                   to="/produto/$slug"
                   params={{ slug: activeHotspot.product_slug }}
-                  className="inline-flex items-center justify-center w-full gap-2 px-4 py-2 bg-primary text-primary-foreground font-medium rounded-lg text-sm hover:opacity-90 transition-opacity"
+                  className="inline-flex items-center justify-center w-full gap-2 px-4 py-2 bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity"
                 >
                   <Eye className="w-4 h-4" />
                   Ver Produto
                 </Link>
               ) : (
                 <Link
-                  to="/catalogo"
-                  className="inline-flex items-center justify-center w-full gap-2 px-4 py-2 bg-primary text-primary-foreground font-medium rounded-lg text-sm hover:opacity-90 transition-opacity"
+                  to="/mercado"
+                  className="inline-flex items-center justify-center w-full gap-2 px-4 py-2 bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity"
                 >
                   <ShoppingBag className="w-4 h-4" />
                   Ver Catálogo

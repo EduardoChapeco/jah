@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Surface } from "@/components/ui/surface";
 import {
   Form,
   FormControl,
@@ -33,6 +33,7 @@ import {
   checkGiftCardBalance,
 } from "@/services/giftcard.functions";
 import { formatMoney } from "@/lib/money";
+import { formatDate } from "../lib/datetime";
 
 export const Route = createFileRoute("/_store/conta/gift-cards")({
   head: () => ({ meta: [{ title: "Meus Cartões-Presente" }] }),
@@ -90,18 +91,18 @@ function CustomerGiftCardsPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Adicionar / Resgatar Card */}
         <div className="md:col-span-1 space-y-6">
-          <Card className="h-fit">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
+          <Surface variant="default" padding="none" className="h-fit">
+            <div className="p-6 border-b border-border/20">
+              <h3 className="flex items-center gap-2 text-lg font-bold">
                 <Gift className="size-5 text-primary" />
                 Resgatar Código
-              </CardTitle>
-              <CardDescription className="text-xs">
+              </h3>
+              <p className="text-xs text-muted-foreground mt-2">
                 Ganhou um presente? Digite o código de 12 dígitos abaixo para salvá-lo na sua conta
                 e usá-lo nas compras.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+              </p>
+            </div>
+            <div className="p-6">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(handleClaim)} className="space-y-4">
                   <FormField
@@ -126,8 +127,8 @@ function CustomerGiftCardsPage() {
                   </Button>
                 </form>
               </Form>
-            </CardContent>
-          </Card>
+            </div>
+          </Surface>
         </div>
 
         {/* Listagem de Cartões Vinculados */}
@@ -140,7 +141,7 @@ function CustomerGiftCardsPage() {
           </h3>
 
           {giftCards.length === 0 ? (
-            <div className="border border-dashed rounded-xl p-8 text-center bg-muted/10 space-y-3">
+            <div className="border border-dashed p-8 text-center bg-muted/10 space-y-3">
               <Gift className="size-10 text-muted-foreground/60 mx-auto" />
               <div className="space-y-1">
                 <p className="font-semibold text-sm">Nenhum vale-presente vinculado</p>
@@ -159,11 +160,7 @@ function CustomerGiftCardsPage() {
                 return (
                   <div
                     key={card.id}
-                    className={`relative p-5 border rounded-xl flex flex-col sm:flex-row justify-between sm:items-center gap-4 transition-all ${
-                      isUsed || card.status === "cancelled" || isExpired
-                        ? "bg-muted/30 border-muted opacity-75"
-                        : "bg-gradient-to-r from-card to-primary/5 hover:border-primary/30"
-                    }`}
+                    className={`relative p-5 border flex flex-col sm:flex-row justify-between sm:items-center gap-4 transition-all ${isUsed || card.status === "cancelled" || isExpired ? "bg-muted/30 border-muted opacity-75" : " from-card to-primary/5 hover:border-primary/30"}`}
                   >
                     <div className="space-y-1.5">
                       <div className="flex items-center gap-2">
@@ -183,7 +180,7 @@ function CustomerGiftCardsPage() {
                         {card.expires_at && (
                           <span className="flex items-center gap-1">
                             <Calendar className="size-3.5" />
-                            Expira: {new Date(card.expires_at).toLocaleDateString("pt-BR")}
+                            Expira: {formatDate(card.expires_at)}
                           </span>
                         )}
                       </div>
@@ -217,7 +214,7 @@ function CustomerGiftCardsPage() {
                         ) : (
                           <Badge
                             variant="default"
-                            className="bg-green-600 text-white font-normal text-xs hover:bg-green-700"
+                            className="bg-success text-white font-normal text-xs hover:bg-success"
                           >
                             Ativo
                           </Badge>

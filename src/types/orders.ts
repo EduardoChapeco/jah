@@ -94,6 +94,9 @@ export interface CartItemDTO {
 
 export interface CartDTO {
   id: string;
+  storeId?: string;
+  storeName?: string;
+  storeLogoUrl?: string | null;
   items: CartItemDTO[];
   /** Server-computed totals — never computed on client. */
   subtotalCents: number;

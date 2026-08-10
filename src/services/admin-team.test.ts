@@ -31,7 +31,7 @@ const mockFrom = vi.fn();
 const mockSchema = vi.fn().mockReturnValue({ from: mockFrom });
 const mockCreateUser = vi.fn();
 
-const mockSupabase = { 
+const mockSupabase = {
   from: mockFrom,
   schema: mockSchema,
   auth: { admin: { createUser: mockCreateUser } },
@@ -69,7 +69,12 @@ describe("Admin Team Functions", () => {
     });
 
     it("should return team members when authorized", async () => {
-      const mockIdentity = { id: "user-123", store_id: "store-456", role: "owner", memberships: [] };
+      const mockIdentity = {
+        id: "user-123",
+        store_id: "store-456",
+        role: "owner",
+        memberships: [],
+      };
       vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
 
       const mockDbResponse = [
@@ -77,14 +82,15 @@ describe("Admin Team Functions", () => {
           profile_id: "user-123",
           role: "owner",
           created_at: "2023-01-01T00:00:00Z",
-          profiles: { id: "user-123", full_name: "Owner", avatar_url: "http://avatar.com/1" }
+          profiles: { id: "user-123", full_name: "Owner", avatar_url: "http://avatar.com/1" },
         },
       ];
-      
+
       const mockAuthUsers = [{ id: "user-123", email: "owner@example.com" }];
-      
+
       mockFrom.mockImplementation((table: string) => {
-        if (table === "workspace_members") return createMockQueryBuilder({ data: mockDbResponse, error: null });
+        if (table === "workspace_members")
+          return createMockQueryBuilder({ data: mockDbResponse, error: null });
         if (table === "users") return createMockQueryBuilder({ data: mockAuthUsers, error: null });
         return createMockQueryBuilder({ data: [], error: null });
       });
@@ -106,10 +112,17 @@ describe("Admin Team Functions", () => {
     });
 
     it("should throw database error if retrieval fails", async () => {
-      const mockIdentity = { id: "user-123", store_id: "store-456", role: "owner", memberships: [] };
+      const mockIdentity = {
+        id: "user-123",
+        store_id: "store-456",
+        role: "owner",
+        memberships: [],
+      };
       vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
 
-      mockFrom.mockImplementation(() => createMockQueryBuilder({ data: null, error: new Error("Database error") }));
+      mockFrom.mockImplementation(() =>
+        createMockQueryBuilder({ data: null, error: new Error("Database error") }),
+      );
 
       await expect(listTeamMembersHandler()).rejects.toThrow("Database error");
     });
@@ -130,7 +143,12 @@ describe("Admin Team Functions", () => {
     });
 
     it("should prevent owner from demoting themselves", async () => {
-      const mockIdentity = { id: "user-123", store_id: "store-456", role: "owner", memberships: [] };
+      const mockIdentity = {
+        id: "user-123",
+        store_id: "store-456",
+        role: "owner",
+        memberships: [],
+      };
       vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
       await expect(
         updateTeamMemberRoleHandler({ id: "user-123", role: "manager" }),
@@ -138,21 +156,31 @@ describe("Admin Team Functions", () => {
     });
 
     it("should prevent non-owner from promoting someone to owner", async () => {
-      const mockIdentity = { id: "user-456", store_id: "store-456", role: "admin", memberships: [] };
+      const mockIdentity = {
+        id: "user-456",
+        store_id: "store-456",
+        role: "admin",
+        memberships: [],
+      };
       vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
-      
+
       const builder = createMockQueryBuilder({ data: { role: "manager" }, error: null });
       mockFrom.mockImplementation(() => builder);
 
-      await expect(
-        updateTeamMemberRoleHandler({ id: "user-123", role: "owner" }),
-      ).rejects.toThrow("Apenas o proprietário pode transferir a propriedade da loja.");
+      await expect(updateTeamMemberRoleHandler({ id: "user-123", role: "owner" })).rejects.toThrow(
+        "Apenas o proprietário pode transferir a propriedade da loja.",
+      );
     });
 
     it("should throw error if member not found", async () => {
-      const mockIdentity = { id: "user-123", store_id: "store-456", role: "owner", memberships: [] };
+      const mockIdentity = {
+        id: "user-123",
+        store_id: "store-456",
+        role: "owner",
+        memberships: [],
+      };
       vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
-      
+
       const builder = createMockQueryBuilder({ data: null, error: new Error("Not found") });
       mockFrom.mockImplementation(() => builder);
 
@@ -162,9 +190,14 @@ describe("Admin Team Functions", () => {
     });
 
     it("should prevent editing owner if you are not owner", async () => {
-      const mockIdentity = { id: "user-456", store_id: "store-456", role: "admin", memberships: [] };
+      const mockIdentity = {
+        id: "user-456",
+        store_id: "store-456",
+        role: "admin",
+        memberships: [],
+      };
       vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
-      
+
       const builder = createMockQueryBuilder({ data: { role: "owner" }, error: null });
       mockFrom.mockImplementation(() => builder);
 
@@ -174,14 +207,20 @@ describe("Admin Team Functions", () => {
     });
 
     it("should successfully update team member role", async () => {
-      const mockIdentity = { id: "user-123", store_id: "store-456", role: "owner", memberships: [] };
+      const mockIdentity = {
+        id: "user-123",
+        store_id: "store-456",
+        role: "owner",
+        memberships: [],
+      };
       vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
 
       const mockUpdated = { profile_id: "user-456", role: "manager" };
       let callCount = 0;
       mockFrom.mockImplementation(() => {
         callCount++;
-        if (callCount === 1) return createMockQueryBuilder({ data: { role: "seller" }, error: null });
+        if (callCount === 1)
+          return createMockQueryBuilder({ data: { role: "seller" }, error: null });
         return createMockQueryBuilder({ data: mockUpdated, error: null });
       });
 
@@ -255,7 +294,9 @@ describe("Admin Team Functions", () => {
       });
 
       mockCreateUser.mockResolvedValueOnce({ data: { user: { id: "new-user-123" } }, error: null });
-      mockFrom.mockImplementation(() => createMockQueryBuilder({ error: { message: "Profile upsert failed" } }));
+      mockFrom.mockImplementation(() =>
+        createMockQueryBuilder({ error: { message: "Profile upsert failed" } }),
+      );
 
       await expect(
         inviteTeamMemberHandler({
@@ -267,7 +308,12 @@ describe("Admin Team Functions", () => {
     });
 
     it("should successfully invite team member and promote profile via upsert", async () => {
-      const mockIdentity = { id: "user-123", store_id: "store-456", role: "owner", memberships: [] };
+      const mockIdentity = {
+        id: "user-123",
+        store_id: "store-456",
+        role: "owner",
+        memberships: [],
+      };
       vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
 
       mockCreateUser.mockResolvedValueOnce({

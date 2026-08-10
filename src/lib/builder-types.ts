@@ -111,4 +111,20 @@ export interface BlockManifest {
   };
 
   defaultProps: Partial<ExperienceNode>;
+  previewImageUrl?: string; // Used in Guided Mode
+}
+
+export interface SectionTemplate {
+  id: string;
+  name: string;
+  description: string;
+  category: BlockCategory;
+  previewImageUrl: string; // The thumbnail to show in the Section Picker
+  defaultSource?: string; // Optional default data binding source (e.g. 'latest_products')
+  /**
+   * The template structure.
+   * When injected, these are cloned and assigned new UUIDs, maintaining parent/child relationships based on array order or placeholder IDs.
+   * For simplicity in this micro-phase, we define a structured tree that will be flattened at injection.
+   */
+  nodes: Partial<ExperienceNode>[];
 }

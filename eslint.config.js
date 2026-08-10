@@ -22,6 +22,7 @@ export default tseslint.config(
       ".codex",
       ".tanstack",
       ".audit",
+      ".wrangler",
     ],
   },
   {

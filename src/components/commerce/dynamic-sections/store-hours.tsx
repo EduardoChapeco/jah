@@ -105,7 +105,7 @@ export function StoreHours({
           )}
         </div>
 
-        <div className="divide-y divide-border rounded-xl border overflow-hidden">
+        <div className="divide-y divide-border border overflow-hidden">
           {storeHours.hours.map((day) => (
             <div
               key={day.day}
@@ -136,7 +136,7 @@ export function StoreHours({
               {storeHours.holiday_exceptions.map((ex) => (
                 <div
                   key={ex.id}
-                  className="flex items-center justify-between text-sm px-4 py-2 bg-muted/50 rounded-lg"
+                  className="flex items-center justify-between text-sm px-4 py-2 bg-muted/50"
                 >
                   <span className="font-medium">{ex.label}</span>
                   <span className="text-muted-foreground font-mono text-xs">

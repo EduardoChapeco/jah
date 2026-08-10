@@ -1,11 +1,12 @@
 # Dossiê 05: Operações, Fulfillment e Arquitetura Financeira
 
 **Status**: Especificação Final  
-**Domínio**: Finance, Operations & PDV  
+**Domínio**: Finance, Operations & PDV
 
 ---
 
 ## 1. Necessidade Humana
+
 **Quem utiliza?** Vendedores de balcão (PDV), Financeiro, Estoquista, Motoboys/Entregadores e o Cliente (acompanhando pedido).
 **Por que utiliza?** Lojas físicas precisam de um PDV ágil. O financeiro precisa reconciliar vendas online com faturamento físico. Entregadores precisam do mapa e prestação de contas.
 **Problema que resolve:** O abismo entre o online e o offline. Compras feitas online entram num painel (Fulfillment). Vendas feitas no balcão entram no PDV da mesma Loja, consumindo o mesmo estoque e unificando o extrato.
@@ -52,6 +53,7 @@
 ## 4. Máquina de Estados e Transições
 
 **`orders` (O Pedido/Compromisso)**
+
 - `pending`: Aguardando pagamento.
 - `paid`: Pagamento efetuado.
 - `unfulfilled`: Pagamento ok, não separado.
@@ -60,10 +62,12 @@
 - `cancelled`: Estornado ou recusado.
 
 **`cash_shifts` (Turnos de Caixa Físico)**
+
 - `open`: Recebendo lançamentos manuais.
 - `closed`: Fechado pelo gerente. Congelado.
 
 **`deliveries` (Logística)**
+
 - `pending`: Criada, sem entregador.
 - `accepted`: Motoboy a caminho da loja.
 - `in_transit`: Pacote na moto indo pro cliente.
@@ -75,7 +79,7 @@
 ## 5. Regras de Negócio e Concorrência
 
 1. **Desconto no PDV:**
-   - O desconto num pedido não é só um número solto. Ele deve ser rateado (pro-rata) entre os itens se houver comissão por vendedor, para não penalizar o vendedor A sendo que o produto descontado era do vendedor B. 
+   - O desconto num pedido não é só um número solto. Ele deve ser rateado (pro-rata) entre os itens se houver comissão por vendedor, para não penalizar o vendedor A sendo que o produto descontado era do vendedor B.
 2. **Double-Spending de Comissões:**
    - Comissões calculadas num fechamento (`orders.completed`) ganham ID idempotente. Se tentar gerar de novo, bloqueia.
 
@@ -127,6 +131,7 @@
 ## 12. Critério de Conclusão
 
 Este domínio estará pronto quando:
+
 1. Conseguirmos abrir caixa, vender no cartão e no dinheiro no PDV, fechando a transação.
 2. Venda descontar estoque de imediato.
 3. Caixa fechar batendo os valores de Cents absolutos.

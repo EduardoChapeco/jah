@@ -35,7 +35,9 @@ async function uploadSvgPlaceholder(filename: string, text: string, color: strin
     console.warn(`⚠️ Aviso: Falha no upload de ${filename}:`, error);
   }
 
-  const { data } = serviceClient.storage.from("product-media").getPublicUrl(`loja-modelo/${filename}`);
+  const { data } = serviceClient.storage
+    .from("product-media")
+    .getPublicUrl(`loja-modelo/${filename}`);
   return data.publicUrl;
 }
 
@@ -48,7 +50,11 @@ async function runExpandedSeed() {
   console.log("👗 INICIANDO EXPANSÃO DO CATÁLOGO DE VESTUÁRIO E BUILDER HOMEPAGE");
   console.log("================================================================================\n");
 
-  const { data: store } = await serviceClient.from("stores").select("id").eq("slug", "loja-modelo").single();
+  const { data: store } = await serviceClient
+    .from("stores")
+    .select("id")
+    .eq("slug", "loja-modelo")
+    .single();
   if (!store) {
     console.error("❌ ERRO: Loja Modelo não encontrada! Execute o orquestrador base primeiro.");
     process.exit(1);
@@ -65,16 +71,24 @@ async function runExpandedSeed() {
     moletom_azul: await uploadSvgPlaceholder("lm-mol-azul.svg", "Moletom Azul", "#1D4ED8"),
     jeans_claro: await uploadSvgPlaceholder("lm-jeans-claro.svg", "Jeans Claro", "#60A5FA"),
     jeans_escuro: await uploadSvgPlaceholder("lm-jeans-escuro.svg", "Jeans Escuro", "#1E3A8A"),
-    hero_banner: await uploadSvgPlaceholder("lm-hero-banner.svg", "Coleção de Inverno", "#0F172A")
+    hero_banner: await uploadSvgPlaceholder("lm-hero-banner.svg", "Coleção de Inverno", "#0F172A"),
   };
 
   // 2. CATEGORIAS / COLEÇÕES
   console.log("⏳ [2/4] Identificando referências de taxonomia...");
-  
+
   async function getOrCreateCategory(name: string, slug: string) {
-    let { data: cat } = await serviceClient.from("categories").select("id").eq("slug", slug).single();
+    let { data: cat } = await serviceClient
+      .from("categories")
+      .select("id")
+      .eq("slug", slug)
+      .single();
     if (!cat) {
-      const { data: newCat, error } = await serviceClient.from("categories").insert({ store_id: storeId, name, slug, sort_order: 0 }).select("id").single();
+      const { data: newCat, error } = await serviceClient
+        .from("categories")
+        .insert({ store_id: storeId, name, slug, sort_order: 0 })
+        .select("id")
+        .single();
       if (error) console.error("Error creating category:", error);
       cat = newCat;
     }
@@ -82,9 +96,17 @@ async function runExpandedSeed() {
   }
 
   async function getOrCreateCollection(name: string, slug: string) {
-    let { data: col } = await serviceClient.from("collections").select("id").eq("slug", slug).single();
+    let { data: col } = await serviceClient
+      .from("collections")
+      .select("id")
+      .eq("slug", slug)
+      .single();
     if (!col) {
-      const { data: newCol, error } = await serviceClient.from("collections").insert({ store_id: storeId, name, slug }).select("id").single();
+      const { data: newCol, error } = await serviceClient
+        .from("collections")
+        .insert({ store_id: storeId, name, slug })
+        .select("id")
+        .single();
       if (error) console.error("Error creating collection:", error);
       col = newCol;
     }
@@ -109,20 +131,39 @@ async function runExpandedSeed() {
     title: string,
     priceCents: number,
     options: { name: string; values: string[] }[],
-    variants: { sku: string; price_cents: number; stock: number; attributes: any; image_url?: string }[],
+    variants: {
+      sku: string;
+      price_cents: number;
+      stock: number;
+      attributes: any;
+      image_url?: string;
+    }[],
     categoryId: string,
-    collectionId: string
+    collectionId: string,
   ) {
     const slug = skuPrefix.toLowerCase();
-    
+
     // Limpeza idempotente
-    const { data: existing } = await serviceClient.from("products").select("id").eq("slug", slug).single();
+    const { data: existing } = await serviceClient
+      .from("products")
+      .select("id")
+      .eq("slug", slug)
+      .single();
     if (existing) {
       const pId = existing.id;
       await serviceClient.from("product_media").delete().eq("product_id", pId);
-      const { data: vars } = await serviceClient.from("product_variants").select("id").eq("product_id", pId);
+      const { data: vars } = await serviceClient
+        .from("product_variants")
+        .select("id")
+        .eq("product_id", pId);
       if (vars && vars.length > 0) {
-        await serviceClient.from("stock_movements").delete().in("variant_id", vars.map(v => v.id));
+        await serviceClient
+          .from("stock_movements")
+          .delete()
+          .in(
+            "variant_id",
+            vars.map((v) => v.id),
+          );
       }
       await serviceClient.from("product_variants").delete().eq("product_id", pId);
       await serviceClient.from("product_categories").delete().eq("product_id", pId);
@@ -141,21 +182,36 @@ async function runExpandedSeed() {
       variants,
     };
 
-    const { data: createRes, error: createErr } = await serviceClient.rpc("create_product_transaction_v1", { payload });
+    const { data: createRes, error: createErr } = await serviceClient.rpc(
+      "create_product_transaction_v1",
+      { payload },
+    );
     if (createErr || !createRes) {
       console.error(`❌ Erro ao criar ${title}:`, createErr);
       return;
     }
     const productId = createRes.id;
 
-    await serviceClient.from("product_categories").insert({ product_id: productId, category_id: categoryId });
-    await serviceClient.from("product_collections").insert({ product_id: productId, collection_id: collectionId });
+    await serviceClient
+      .from("product_categories")
+      .insert({ product_id: productId, category_id: categoryId });
+    await serviceClient
+      .from("product_collections")
+      .insert({ product_id: productId, collection_id: collectionId });
 
-    const matrixUpdate = variants.map(v => ({ sku: v.sku, attributes: v.attributes, stock: v.stock }));
-    await serviceClient.rpc("batch_upsert_variant_matrix_v1", { store_id_param: storeId, product_id_param: productId, matrix: matrixUpdate });
+    const matrixUpdate = variants.map((v) => ({
+      sku: v.sku,
+      attributes: v.attributes,
+      stock: v.stock,
+    }));
+    await serviceClient.rpc("batch_upsert_variant_matrix_v1", {
+      store_id_param: storeId,
+      product_id_param: productId,
+      matrix: matrixUpdate,
+    });
 
     // Vincula a imagem (usando a primeira disponível)
-    const defaultImage = variants.find(v => v.image_url)?.image_url;
+    const defaultImage = variants.find((v) => v.image_url)?.image_url;
     if (defaultImage) {
       await serviceClient.from("product_media").insert({
         product_id: productId,
@@ -170,86 +226,250 @@ async function runExpandedSeed() {
 
   // P6: Jaqueta Puffer (3 cores x 4 tamanhos)
   await seedProduct(
-    "LM-JAQ-06", "Jaqueta Puffer Essential", 34990,
+    "LM-JAQ-06",
+    "Jaqueta Puffer Essential",
+    34990,
     [
       { name: "Cor", values: ["Preto", "Bege", "Verde"] },
-      { name: "Tamanho", values: ["P", "M", "G", "GG"] }
+      { name: "Tamanho", values: ["P", "M", "G", "GG"] },
     ],
     [
-      { sku: "LM-JAQ-06-PR-P", price_cents: 34990, stock: 5, attributes: { Cor: "Preto", Tamanho: "P" }, image_url: mediaUrls.jaqueta_preta },
-      { sku: "LM-JAQ-06-PR-M", price_cents: 34990, stock: 8, attributes: { Cor: "Preto", Tamanho: "M" } },
-      { sku: "LM-JAQ-06-PR-G", price_cents: 34990, stock: 0, attributes: { Cor: "Preto", Tamanho: "G" } }, // Esgotado
-      { sku: "LM-JAQ-06-PR-GG", price_cents: 34990, stock: 2, attributes: { Cor: "Preto", Tamanho: "GG" } },
-      
-      { sku: "LM-JAQ-06-BE-P", price_cents: 34990, stock: 4, attributes: { Cor: "Bege", Tamanho: "P" }, image_url: mediaUrls.jaqueta_bege },
-      { sku: "LM-JAQ-06-BE-M", price_cents: 34990, stock: 5, attributes: { Cor: "Bege", Tamanho: "M" } },
-      { sku: "LM-JAQ-06-BE-G", price_cents: 34990, stock: 5, attributes: { Cor: "Bege", Tamanho: "G" } },
-      { sku: "LM-JAQ-06-BE-GG", price_cents: 34990, stock: 2, attributes: { Cor: "Bege", Tamanho: "GG" } },
-      
-      { sku: "LM-JAQ-06-VD-P", price_cents: 34990, stock: 3, attributes: { Cor: "Verde", Tamanho: "P" }, image_url: mediaUrls.jaqueta_verde },
-      { sku: "LM-JAQ-06-VD-M", price_cents: 34990, stock: 0, attributes: { Cor: "Verde", Tamanho: "M" } },
-      { sku: "LM-JAQ-06-VD-G", price_cents: 34990, stock: 2, attributes: { Cor: "Verde", Tamanho: "G" } },
-      { sku: "LM-JAQ-06-VD-GG", price_cents: 34990, stock: 1, attributes: { Cor: "Verde", Tamanho: "GG" } },
+      {
+        sku: "LM-JAQ-06-PR-P",
+        price_cents: 34990,
+        stock: 5,
+        attributes: { Cor: "Preto", Tamanho: "P" },
+        image_url: mediaUrls.jaqueta_preta,
+      },
+      {
+        sku: "LM-JAQ-06-PR-M",
+        price_cents: 34990,
+        stock: 8,
+        attributes: { Cor: "Preto", Tamanho: "M" },
+      },
+      {
+        sku: "LM-JAQ-06-PR-G",
+        price_cents: 34990,
+        stock: 0,
+        attributes: { Cor: "Preto", Tamanho: "G" },
+      }, // Esgotado
+      {
+        sku: "LM-JAQ-06-PR-GG",
+        price_cents: 34990,
+        stock: 2,
+        attributes: { Cor: "Preto", Tamanho: "GG" },
+      },
+
+      {
+        sku: "LM-JAQ-06-BE-P",
+        price_cents: 34990,
+        stock: 4,
+        attributes: { Cor: "Bege", Tamanho: "P" },
+        image_url: mediaUrls.jaqueta_bege,
+      },
+      {
+        sku: "LM-JAQ-06-BE-M",
+        price_cents: 34990,
+        stock: 5,
+        attributes: { Cor: "Bege", Tamanho: "M" },
+      },
+      {
+        sku: "LM-JAQ-06-BE-G",
+        price_cents: 34990,
+        stock: 5,
+        attributes: { Cor: "Bege", Tamanho: "G" },
+      },
+      {
+        sku: "LM-JAQ-06-BE-GG",
+        price_cents: 34990,
+        stock: 2,
+        attributes: { Cor: "Bege", Tamanho: "GG" },
+      },
+
+      {
+        sku: "LM-JAQ-06-VD-P",
+        price_cents: 34990,
+        stock: 3,
+        attributes: { Cor: "Verde", Tamanho: "P" },
+        image_url: mediaUrls.jaqueta_verde,
+      },
+      {
+        sku: "LM-JAQ-06-VD-M",
+        price_cents: 34990,
+        stock: 0,
+        attributes: { Cor: "Verde", Tamanho: "M" },
+      },
+      {
+        sku: "LM-JAQ-06-VD-G",
+        price_cents: 34990,
+        stock: 2,
+        attributes: { Cor: "Verde", Tamanho: "G" },
+      },
+      {
+        sku: "LM-JAQ-06-VD-GG",
+        price_cents: 34990,
+        stock: 1,
+        attributes: { Cor: "Verde", Tamanho: "GG" },
+      },
     ],
-    catFem.id, colNovidades.id
+    catFem.id,
+    colNovidades.id,
   );
 
   // P7: Moletom Canguru (2 cores x 4 tamanhos)
   await seedProduct(
-    "LM-MOL-07", "Moletom Canguru", 19900,
+    "LM-MOL-07",
+    "Moletom Canguru",
+    19900,
     [
       { name: "Cor", values: ["Cinza", "Azul"] },
-      { name: "Tamanho", values: ["P", "M", "G", "GG"] }
+      { name: "Tamanho", values: ["P", "M", "G", "GG"] },
     ],
     [
-      { sku: "LM-MOL-07-CZ-P", price_cents: 19900, stock: 10, attributes: { Cor: "Cinza", Tamanho: "P" }, image_url: mediaUrls.moletom_cinza },
-      { sku: "LM-MOL-07-CZ-M", price_cents: 19900, stock: 10, attributes: { Cor: "Cinza", Tamanho: "M" } },
-      { sku: "LM-MOL-07-CZ-G", price_cents: 19900, stock: 5, attributes: { Cor: "Cinza", Tamanho: "G" } },
-      { sku: "LM-MOL-07-CZ-GG", price_cents: 19900, stock: 0, attributes: { Cor: "Cinza", Tamanho: "GG" } },
-      
-      { sku: "LM-MOL-07-AZ-P", price_cents: 19900, stock: 8, attributes: { Cor: "Azul", Tamanho: "P" }, image_url: mediaUrls.moletom_azul },
-      { sku: "LM-MOL-07-AZ-M", price_cents: 19900, stock: 7, attributes: { Cor: "Azul", Tamanho: "M" } },
-      { sku: "LM-MOL-07-AZ-G", price_cents: 19900, stock: 0, attributes: { Cor: "Azul", Tamanho: "G" } },
-      { sku: "LM-MOL-07-AZ-GG", price_cents: 19900, stock: 3, attributes: { Cor: "Azul", Tamanho: "GG" } },
+      {
+        sku: "LM-MOL-07-CZ-P",
+        price_cents: 19900,
+        stock: 10,
+        attributes: { Cor: "Cinza", Tamanho: "P" },
+        image_url: mediaUrls.moletom_cinza,
+      },
+      {
+        sku: "LM-MOL-07-CZ-M",
+        price_cents: 19900,
+        stock: 10,
+        attributes: { Cor: "Cinza", Tamanho: "M" },
+      },
+      {
+        sku: "LM-MOL-07-CZ-G",
+        price_cents: 19900,
+        stock: 5,
+        attributes: { Cor: "Cinza", Tamanho: "G" },
+      },
+      {
+        sku: "LM-MOL-07-CZ-GG",
+        price_cents: 19900,
+        stock: 0,
+        attributes: { Cor: "Cinza", Tamanho: "GG" },
+      },
+
+      {
+        sku: "LM-MOL-07-AZ-P",
+        price_cents: 19900,
+        stock: 8,
+        attributes: { Cor: "Azul", Tamanho: "P" },
+        image_url: mediaUrls.moletom_azul,
+      },
+      {
+        sku: "LM-MOL-07-AZ-M",
+        price_cents: 19900,
+        stock: 7,
+        attributes: { Cor: "Azul", Tamanho: "M" },
+      },
+      {
+        sku: "LM-MOL-07-AZ-G",
+        price_cents: 19900,
+        stock: 0,
+        attributes: { Cor: "Azul", Tamanho: "G" },
+      },
+      {
+        sku: "LM-MOL-07-AZ-GG",
+        price_cents: 19900,
+        stock: 3,
+        attributes: { Cor: "Azul", Tamanho: "GG" },
+      },
     ],
-    catMasc.id, colMaisVendidos.id
+    catMasc.id,
+    colMaisVendidos.id,
   );
 
   // P8: Calça Jeans Slim (2 Lavagens x 4 Tamanhos)
   await seedProduct(
-    "LM-JNS-08", "Calça Jeans Slim", 15990,
+    "LM-JNS-08",
+    "Calça Jeans Slim",
+    15990,
     [
       { name: "Lavagem", values: ["Clara", "Escura"] },
-      { name: "Tamanho", values: ["38", "40", "42", "44"] }
+      { name: "Tamanho", values: ["38", "40", "42", "44"] },
     ],
     [
-      { sku: "LM-JNS-08-CL-38", price_cents: 15990, stock: 4, attributes: { Lavagem: "Clara", Tamanho: "38" }, image_url: mediaUrls.jeans_claro },
-      { sku: "LM-JNS-08-CL-40", price_cents: 15990, stock: 6, attributes: { Lavagem: "Clara", Tamanho: "40" } },
-      { sku: "LM-JNS-08-CL-42", price_cents: 15990, stock: 3, attributes: { Lavagem: "Clara", Tamanho: "42" } },
-      { sku: "LM-JNS-08-CL-44", price_cents: 15990, stock: 2, attributes: { Lavagem: "Clara", Tamanho: "44" } },
-      
-      { sku: "LM-JNS-08-ES-38", price_cents: 15990, stock: 5, attributes: { Lavagem: "Escura", Tamanho: "38" }, image_url: mediaUrls.jeans_escuro },
-      { sku: "LM-JNS-08-ES-40", price_cents: 15990, stock: 7, attributes: { Lavagem: "Escura", Tamanho: "40" } },
-      { sku: "LM-JNS-08-ES-42", price_cents: 15990, stock: 0, attributes: { Lavagem: "Escura", Tamanho: "42" } }, // Esgotado
-      { sku: "LM-JNS-08-ES-44", price_cents: 15990, stock: 1, attributes: { Lavagem: "Escura", Tamanho: "44" } },
+      {
+        sku: "LM-JNS-08-CL-38",
+        price_cents: 15990,
+        stock: 4,
+        attributes: { Lavagem: "Clara", Tamanho: "38" },
+        image_url: mediaUrls.jeans_claro,
+      },
+      {
+        sku: "LM-JNS-08-CL-40",
+        price_cents: 15990,
+        stock: 6,
+        attributes: { Lavagem: "Clara", Tamanho: "40" },
+      },
+      {
+        sku: "LM-JNS-08-CL-42",
+        price_cents: 15990,
+        stock: 3,
+        attributes: { Lavagem: "Clara", Tamanho: "42" },
+      },
+      {
+        sku: "LM-JNS-08-CL-44",
+        price_cents: 15990,
+        stock: 2,
+        attributes: { Lavagem: "Clara", Tamanho: "44" },
+      },
+
+      {
+        sku: "LM-JNS-08-ES-38",
+        price_cents: 15990,
+        stock: 5,
+        attributes: { Lavagem: "Escura", Tamanho: "38" },
+        image_url: mediaUrls.jeans_escuro,
+      },
+      {
+        sku: "LM-JNS-08-ES-40",
+        price_cents: 15990,
+        stock: 7,
+        attributes: { Lavagem: "Escura", Tamanho: "40" },
+      },
+      {
+        sku: "LM-JNS-08-ES-42",
+        price_cents: 15990,
+        stock: 0,
+        attributes: { Lavagem: "Escura", Tamanho: "42" },
+      }, // Esgotado
+      {
+        sku: "LM-JNS-08-ES-44",
+        price_cents: 15990,
+        stock: 1,
+        attributes: { Lavagem: "Escura", Tamanho: "44" },
+      },
     ],
-    catMasc.id, colMaisVendidos.id
+    catMasc.id,
+    colMaisVendidos.id,
   );
 
   // 4. CMS BUILDER - HOMEPAGE
   console.log("\n⏳ [4/4] Construindo Árvore DOM da Homepage...");
-  
+
   // Clean up existing experience_documents with slug 'home' for idempotency
-  await serviceClient.from("experience_documents").delete().eq("store_id", storeId).eq("slug", "home");
+  await serviceClient
+    .from("experience_documents")
+    .delete()
+    .eq("store_id", storeId)
+    .eq("slug", "home");
 
   // Create Document
-  const { data: doc, error: docErr } = await serviceClient.from("experience_documents").insert({
-    store_id: storeId,
-    document_type: "storefront",
-    slug: "home",
-    title: "Página Inicial da Loja Modelo",
-    is_active: true
-  }).select("id").single();
+  const { data: doc, error: docErr } = await serviceClient
+    .from("experience_documents")
+    .insert({
+      store_id: storeId,
+      document_type: "storefront",
+      slug: "home",
+      title: "Página Inicial da Loja Modelo",
+      is_active: true,
+    })
+    .select("id")
+    .single();
 
   if (docErr || !doc) {
     console.error("❌ Erro ao criar documento CMS:", docErr);
@@ -257,12 +477,16 @@ async function runExpandedSeed() {
   }
 
   // Create Version
-  const { data: version, error: verErr } = await serviceClient.from("experience_versions").insert({
-    document_id: doc.id,
-    version_number: 1,
-    status: "published",
-    commit_message: "LojaModelo: Initial Seed"
-  }).select("id").single();
+  const { data: version, error: verErr } = await serviceClient
+    .from("experience_versions")
+    .insert({
+      document_id: doc.id,
+      version_number: 1,
+      status: "published",
+      commit_message: "LojaModelo: Initial Seed",
+    })
+    .select("id")
+    .single();
 
   if (verErr || !version) {
     console.error("❌ Erro ao criar versão do documento CMS:", verErr);
@@ -271,14 +495,18 @@ async function runExpandedSeed() {
 
   // Create Nodes
   // Root node
-  const { data: rootNode, error: rootErr } = await serviceClient.from("experience_nodes").insert({
-    version_id: version.id,
-    parent_id: null,
-    node_type: "container",
-    block_type: "root",
-    sort_order: 0,
-    content: {},
-  }).select("id").single();
+  const { data: rootNode, error: rootErr } = await serviceClient
+    .from("experience_nodes")
+    .insert({
+      version_id: version.id,
+      parent_id: null,
+      node_type: "container",
+      block_type: "root",
+      sort_order: 0,
+      content: {},
+    })
+    .select("id")
+    .single();
 
   if (rootErr || !rootNode) {
     console.error("❌ Erro ao criar root node:", rootErr);
@@ -300,10 +528,10 @@ async function runExpandedSeed() {
             title: "Coleção de Inverno 2026",
             subtitle: "Conforto e elegância para os dias mais frios.",
             cta_text: "Explorar Coleção",
-            cta_link: "/colecao/novidades"
-          }
-        ]
-      }
+            cta_link: "/colecao/novidades",
+          },
+        ],
+      },
     },
     {
       version_id: version.id,
@@ -312,12 +540,12 @@ async function runExpandedSeed() {
       block_type: "product_carousel",
       sort_order: 1,
       content: {
-        title: "Lançamentos Quentes"
+        title: "Lançamentos Quentes",
       },
       data_bindings: {
         collection_id: colNovidades.id,
-        limit: 8
-      }
+        limit: 8,
+      },
     },
     {
       version_id: version.id,
@@ -327,17 +555,17 @@ async function runExpandedSeed() {
       sort_order: 2,
       content: {
         title: "Os Mais Vendidos",
-        subtitle: "As peças favoritas dos nossos clientes."
+        subtitle: "As peças favoritas dos nossos clientes.",
       },
       data_bindings: {
         collection_id: colMaisVendidos.id,
-        limit: 12
-      }
-    }
+        limit: 12,
+      },
+    },
   ];
 
   const { error: nodesErr } = await serviceClient.from("experience_nodes").insert(nodesToInsert);
-  
+
   if (nodesErr) {
     console.error("❌ Erro ao inserir nodes filho:", nodesErr);
     process.exit(1);
@@ -350,7 +578,7 @@ async function runExpandedSeed() {
   console.log("================================================================================\n");
 }
 
-runExpandedSeed().catch(err => {
+runExpandedSeed().catch((err) => {
   console.error("Erro fatal:", err);
   process.exit(1);
 });

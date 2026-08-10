@@ -20,7 +20,7 @@ export function IngredientSpotlight({
   items = [],
 }: IngredientSpotlightProps) {
   return (
-    <section className="w-full py-12 px-4 md:px-8 max-w-7xl mx-auto bg-muted/40 rounded-3xl my-8 border border-border/60">
+    <section className="w-full py-12 px-4 md:px-8 max-w-7xl mx-auto bg-muted/40 my-8 border border-border/60">
       {(title || subtitle) && (
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider mb-3">
@@ -42,16 +42,16 @@ export function IngredientSpotlight({
         {items.map((item, idx) => (
           <div
             key={idx}
-            className="flex gap-4 p-6 bg-card rounded-2xl border border-border/80 shadow-sm items-start"
+            className="flex gap-4 p-6 bg-card border border-border/80 shadow-sm items-start"
           >
             {item.image_url ? (
               <img
                 src={item.image_url}
                 alt={item.title}
-                className="w-16 h-16 rounded-xl object-cover flex-shrink-0 bg-muted"
+                className="w-16 h-16 object-cover flex-shrink-0 bg-muted"
               />
             ) : (
-              <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+              <div className="w-12 h-12 bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
                 <ShieldCheck className="w-6 h-6" />
               </div>
             )}

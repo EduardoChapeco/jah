@@ -21,84 +21,107 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  /* ── Radius scale — brutalist/sharp ──────────────────────────────────── */
-  --radius-sm:  0px;
-  --radius-md:  0px;
-  --radius-lg:  0px;
-  --radius-xl:  0px;
+  /* ── Radius scale — brutalist/sharp (editorial) ──────────────────────── */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
   --radius-2xl: 0px;
   --radius-3xl: 0px;
   --radius-4xl: 0px;
 
+  /* ── Radius scale — operacional (admin/forms/cards funcionais) ────────── */
+  /*   Use estes em contextos administrativos, nunca no contexto editorial   */
+  --radius-op-xs: 4px;   /* badges, chips compactos                         */
+  --radius-op-sm: 6px;   /* inputs, switches, selects                        */
+  --radius-op-md: 10px;  /* cards operacionais, painéis                      */
+  --radius-op-lg: 12px;  /* sheets, modais, drawers operacionais             */
+  --radius-op-full: 9999px; /* chips arredondados, avatares                  */
+
+  /* ── Density scale — compact (tabelas, PDV, gestão) / comfortable (forms) */
+  --density-compact-px: 4px;
+  --density-compact-py: 6px;
+  --density-comfortable-px: 12px;
+  --density-comfortable-py: 10px;
+
+  /* ── Shadows operacionais — quase invisíveis (elevação discreta) ─────── */
+  --shadow-op-xs: 0 1px 2px 0 oklch(0 0 0 / 0.05);
+  --shadow-op-sm: 0 1px 3px 0 oklch(0 0 0 / 0.07), 0 1px 2px -1px oklch(0 0 0 / 0.05);
+  --shadow-op-md: 0 4px 6px -1px oklch(0 0 0 / 0.07), 0 2px 4px -2px oklch(0 0 0 / 0.04);
+  --shadow-op-lg: 0 10px 15px -3px oklch(0 0 0 / 0.07), 0 4px 6px -4px oklch(0 0 0 / 0.04);
+
   /* ── Semantic color bridge (consumed by Tailwind utilities) ───────────── */
-  --color-background:          var(--background);
-  --color-foreground:          var(--foreground);
-  --color-card:                var(--card);
-  --color-card-foreground:     var(--card-foreground);
-  --color-popover:             var(--popover);
-  --color-popover-foreground:  var(--popover-foreground);
-  --color-primary:             var(--primary);
-  --color-primary-foreground:  var(--primary-foreground);
-  --color-secondary:           var(--secondary);
-  --color-secondary-foreground:var(--secondary-foreground);
-  --color-muted:               var(--muted);
-  --color-muted-foreground:    var(--muted-foreground);
-  --color-accent:              var(--accent);
-  --color-accent-foreground:   var(--accent-foreground);
-  --color-destructive:         var(--destructive);
-  --color-destructive-foreground:var(--destructive-foreground);
-  --color-success:             var(--success);
-  --color-success-foreground:  var(--success-foreground);
-  --color-warning:             var(--warning);
-  --color-warning-foreground:  var(--warning-foreground);
-  --color-info:                var(--info);
-  --color-info-foreground:     var(--info-foreground);
-  --color-border:              var(--border);
-  --color-input:               var(--input);
-  --color-ring:                var(--ring);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
+  --color-glass-bg: var(--glass-bg);
+  --color-glass-border: var(--glass-border);
 
   /* ── Jah Primitive Tokens (theme-neutral, always available) ───────────── */
-  --color-ink:              var(--ink);
-  --color-paper:            var(--paper);
-  --color-newsprint:        var(--newsprint);
+  --color-ink: var(--ink);
+  --color-paper: var(--paper);
+  --color-newsprint: var(--newsprint);
   --color-directory-yellow: var(--directory-yellow);
-  --color-poster-red:       var(--poster-red);
-  --color-signal-orange:    var(--signal-orange);
-  --color-electric-cyan:    var(--electric-cyan);
-  --color-faded-blue:       var(--faded-blue);
-  --color-ocre:             var(--ocre);
-  --color-charcoal:         var(--charcoal);
+  --color-poster-red: var(--poster-red);
+  --color-signal-orange: var(--signal-orange);
+  --color-electric-cyan: var(--electric-cyan);
+  --color-faded-blue: var(--faded-blue);
+  --color-ocre: var(--ocre);
+  --color-charcoal: var(--charcoal);
   --color-charcoal-surface: var(--charcoal-surface);
-  --color-ivory:            var(--ivory);
+  --color-ivory: var(--ivory);
 
   /* ── Typography ──────────────────────────────────────────────────────── */
-  --font-sans:    "Inter", "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Oswald", "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-mono:    "JetBrains Mono", "Roboto Mono", ui-monospace, monospace;
+  --font-mono: "JetBrains Mono", "Roboto Mono", ui-monospace, monospace;
 
-  /* ── Elevation — Brutalist Solid Shadows ─────────────────────────────── */
-  --shadow-sm:   2px 2px 0px 0px var(--ink);
-  --shadow-md:   4px 4px 0px 0px var(--ink);
-  --shadow-lg:   8px 8px 0px 0px var(--ink);
-  --shadow-hard: 6px 6px 0px 0px var(--ink);
-  --shadow-brand:6px 6px 0px 0px var(--poster-red);
+  /* ── Elevation — Brutalist Solid Shadows & Premium Glows ──────────────── */
+  --shadow-sm: 2px 2px 0px 0px var(--ink);
+  --shadow-md: 4px 4px 0px 0px var(--ink);
+  --shadow-lg: 8px 8px 0px 0px var(--ink);
+  --shadow-hard: 8px 8px 0px 0px var(--ink);
+  --shadow-brand: 6px 6px 0px 0px var(--poster-red);
+  --shadow-glow: 0px 0px 20px 0px var(--warning);
 
   /* ── Motion ──────────────────────────────────────────────────────────── */
-  --duration-fast:   100ms;
-  --duration-base:   200ms;
-  --duration-slow:   350ms;
-  --ease-out-expo:   cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-in-out:     cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 100ms;
+  --duration-base: 200ms;
+  --duration-slow: 350ms;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
 
   /* ── Z-index scale ───────────────────────────────────────────────────── */
-  --z-base:     0;
-  --z-raised:   10;
+  --z-base: 0;
+  --z-raised: 10;
   --z-dropdown: 100;
-  --z-sticky:   200;
-  --z-overlay:  300;
-  --z-modal:    400;
-  --z-toast:    500;
+  --z-sticky: 200;
+  --z-overlay: 300;
+  --z-modal: 400;
+  --z-toast: 500;
 }
 
 /* ===========================================================================
@@ -110,56 +133,60 @@
   --radius: 0px;
 
   /* ── Primitivos globais (valores fixos, independem do tema) ───────────── */
-  --poster-red:       oklch(0.55 0.22 25);  /* #dc2626 — vermelho vivo pôster   */
-  --directory-yellow: oklch(0.90 0.15 95);  /* #fde047 — amarelo listas         */
-  --signal-orange:    oklch(0.65 0.20 45);  /* #ea580c — laranja sinal          */
-  --electric-cyan:    oklch(0.70 0.15 230); /* #06b6d4 — ciano elétrico         */
-  --faded-blue:       oklch(0.60 0.10 260); /* #4f7aad — azul desbotado         */
-  --ocre:             oklch(0.72 0.13 75);  /* #d4a017 — ocre/dourado envelhecido*/
+  --poster-red: oklch(0.55 0.22 25); /* #dc2626 — vermelho vivo pôster   */
+  --directory-yellow: oklch(0.9 0.15 95); /* #fde047 — amarelo listas         */
+  --signal-orange: oklch(0.65 0.2 45); /* #ea580c — laranja sinal          */
+  --electric-cyan: oklch(0.7 0.15 230); /* #06b6d4 — ciano elétrico         */
+  --faded-blue: oklch(0.6 0.1 260); /* #4f7aad — azul desbotado         */
+  --ocre: oklch(0.72 0.13 75); /* #d4a017 — ocre/dourado envelhecido*/
 
   /* ── Primitivos específicos Light ────────────────────────────────────── */
-  --ink:              oklch(0.18 0.005 60); /* #1a1a14 — preto-carvão quente    */
-  --paper:            oklch(0.97 0.010 90); /* #f4f4f0 — papel creme            */
-  --newsprint:        oklch(0.92 0.010 90); /* #e8e8e3 — papel jornal           */
-  --charcoal:         oklch(0.18 0.005 60); /* = ink (alias semântico escuro)   */
+  --ink: oklch(0.18 0.005 60); /* #1a1a14 — preto-carvão quente    */
+  --paper: oklch(0.97 0.01 90); /* #f4f4f0 — papel creme            */
+  --newsprint: oklch(0.92 0.01 90); /* #e8e8e3 — papel jornal           */
+  --charcoal: oklch(0.18 0.005 60); /* = ink (alias semântico escuro)   */
   --charcoal-surface: oklch(0.22 0.005 60); /* superfície elevada escura        */
-  --ivory:            oklch(0.97 0.010 90); /* = paper (alias semântico claro)  */
+  --ivory: oklch(0.97 0.01 90); /* = paper (alias semântico claro)  */
 
   /* ── Semânticos Light ────────────────────────────────────────────────── */
-  --background:             var(--paper);
-  --foreground:             var(--ink);
-  --card:                   var(--newsprint);
-  --card-foreground:        var(--ink);
-  --popover:                var(--paper);
-  --popover-foreground:     var(--ink);
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--newsprint);
+  --card-foreground: var(--ink);
+  --popover: var(--paper);
+  --popover-foreground: var(--ink);
 
-  --primary:                var(--ink);
-  --primary-foreground:     var(--paper);
+  --primary: var(--ink);
+  --primary-foreground: var(--paper);
 
-  --secondary:              var(--directory-yellow);
-  --secondary-foreground:   var(--ink);
+  --secondary: var(--directory-yellow);
+  --secondary-foreground: var(--ink);
 
-  --muted:                  var(--newsprint);
-  --muted-foreground:       oklch(0.40 0.005 60);
+  --muted: var(--newsprint);
+  --muted-foreground: oklch(0.4 0.005 60);
 
-  --accent:                 var(--poster-red);
-  --accent-foreground:      var(--paper);
+  --accent: var(--poster-red);
+  --accent-foreground: var(--paper);
 
-  --destructive:            var(--poster-red);
+  --destructive: var(--poster-red);
   --destructive-foreground: var(--paper);
 
-  --success:                oklch(0.62 0.13 150); /* verde seguro                */
-  --success-foreground:     var(--paper);
+  --success: oklch(0.62 0.13 150); /* verde seguro                */
+  --success-foreground: var(--paper);
 
-  --warning:                var(--directory-yellow);
-  --warning-foreground:     var(--ink);
+  --warning: var(--directory-yellow);
+  --warning-foreground: var(--ink);
 
-  --info:                   var(--electric-cyan);
-  --info-foreground:        var(--ink);
+  --info: var(--electric-cyan);
+  --info-foreground: var(--ink);
 
-  --border:                 var(--ink);
-  --input:                  var(--newsprint);
-  --ring:                   var(--poster-red);
+  --border: var(--ink);
+  --input: var(--newsprint);
+  --ring: var(--poster-red);
+  
+  /* ── Premium Glassmorphism (Light) ───────────────────────────────────── */
+  --glass-bg: color-mix(in srgb, var(--paper) 70%, transparent);
+  --glass-border: color-mix(in srgb, var(--ink) 10%, transparent);
 }
 
 /* ===========================================================================
@@ -174,57 +201,61 @@
     color-scheme: dark;
 
     /* ── Primitivos específicos Dark ──────────────────────────────────── */
-    --ink:              oklch(0.95 0.012 80);  /* #f5f0e6 — marfim envelhecido  */
-    --paper:            oklch(0.10 0.006 60);  /* #131210 — carvão quente       */
-    --newsprint:        oklch(0.14 0.006 60);  /* #1c1b18 — carvão superfície   */
-    --charcoal:         oklch(0.10 0.006 60);  /* = paper dark (fundo base)     */
-    --charcoal-surface: oklch(0.18 0.006 60);  /* card/popover elevados         */
-    --ivory:            oklch(0.95 0.012 80);  /* = ink dark (texto)            */
+    --ink: oklch(0.95 0.012 80); /* #f5f0e6 — marfim envelhecido  */
+    --paper: oklch(0.1 0.006 60); /* #131210 — carvão quente       */
+    --newsprint: oklch(0.14 0.006 60); /* #1c1b18 — carvão superfície   */
+    --charcoal: oklch(0.1 0.006 60); /* = paper dark (fundo base)     */
+    --charcoal-surface: oklch(0.18 0.006 60); /* card/popover elevados         */
+    --ivory: oklch(0.95 0.012 80); /* = ink dark (texto)            */
 
     /* poster-red mais queimado/oxidado no dark */
-    --poster-red:       oklch(0.50 0.20 25);   /* #b83a2d — vermelho óxido      */
+    --poster-red: oklch(0.5 0.2 25); /* #b83a2d — vermelho óxido      */
     /* directory-yellow mais escuro para não ofuscar */
-    --directory-yellow: oklch(0.78 0.14 82);   /* ocre/mustarda seco            */
+    --directory-yellow: oklch(0.78 0.14 82); /* ocre/mustarda seco            */
     /* signal-orange levemente mais escuro */
-    --signal-orange:    oklch(0.60 0.19 45);   /* laranja queimado              */
+    --signal-orange: oklch(0.6 0.19 45); /* laranja queimado              */
     /* electric-cyan mais tênue */
-    --electric-cyan:    oklch(0.65 0.13 230);  /* ciano levemente mais escuro   */
+    --electric-cyan: oklch(0.65 0.13 230); /* ciano levemente mais escuro   */
 
     /* ── Semânticos Dark ────────────────────────────────────────────── */
-    --background:             var(--paper);
-    --foreground:             var(--ink);
-    --card:                   var(--newsprint);
-    --card-foreground:        var(--ink);
-    --popover:                var(--newsprint);
-    --popover-foreground:     var(--ink);
+    --background: var(--paper);
+    --foreground: var(--ink);
+    --card: var(--newsprint);
+    --card-foreground: var(--ink);
+    --popover: var(--newsprint);
+    --popover-foreground: var(--ink);
 
-    --primary:                var(--ink);
-    --primary-foreground:     var(--paper);
+    --primary: var(--ink);
+    --primary-foreground: var(--paper);
 
-    --secondary:              var(--directory-yellow);
-    --secondary-foreground:   oklch(0.10 0.006 60);
+    --secondary: var(--directory-yellow);
+    --secondary-foreground: oklch(0.1 0.006 60);
 
-    --muted:                  var(--charcoal-surface);
-    --muted-foreground:       oklch(0.65 0.008 70);
+    --muted: var(--charcoal-surface);
+    --muted-foreground: oklch(0.65 0.008 70);
 
-    --accent:                 var(--poster-red);
-    --accent-foreground:      var(--ivory);
+    --accent: var(--poster-red);
+    --accent-foreground: var(--ivory);
 
-    --destructive:            var(--poster-red);
+    --destructive: var(--poster-red);
     --destructive-foreground: var(--ivory);
 
-    --success:                oklch(0.55 0.13 150); /* verde mais escuro no dark  */
-    --success-foreground:     var(--ivory);
+    --success: oklch(0.55 0.13 150); /* verde mais escuro no dark  */
+    --success-foreground: var(--ivory);
 
-    --warning:                var(--directory-yellow);
-    --warning-foreground:     oklch(0.10 0.006 60);
+    --warning: var(--directory-yellow);
+    --warning-foreground: oklch(0.1 0.006 60);
 
-    --info:                   var(--electric-cyan);
-    --info-foreground:        oklch(0.10 0.006 60);
+    --info: var(--electric-cyan);
+    --info-foreground: oklch(0.1 0.006 60);
 
-    --border:                 oklch(0.30 0.006 60); /* borda sutil no dark       */
-    --input:                  var(--charcoal-surface);
-    --ring:                   var(--poster-red);
+    --border: oklch(0.28 0.008 70); /* bordas sutis no dark          */
+    --input: var(--charcoal-surface);
+    --ring: var(--poster-red);
+    
+    /* ── Premium Glassmorphism (Dark) ────────────────────────────────────── */
+    --glass-bg: color-mix(in srgb, var(--paper) 70%, transparent);
+    --glass-border: color-mix(in srgb, var(--ink) 15%, transparent);
   }
 }
 
@@ -232,94 +263,156 @@
 .dark {
   color-scheme: dark;
 
-  --ink:              oklch(0.95 0.012 80);
-  --paper:            oklch(0.10 0.006 60);
-  --newsprint:        oklch(0.14 0.006 60);
-  --charcoal:         oklch(0.10 0.006 60);
+  --ink: oklch(0.95 0.012 80);
+  --paper: oklch(0.1 0.006 60);
+  --newsprint: oklch(0.14 0.006 60);
+  --charcoal: oklch(0.1 0.006 60);
   --charcoal-surface: oklch(0.18 0.006 60);
-  --ivory:            oklch(0.95 0.012 80);
+  --ivory: oklch(0.95 0.012 80);
 
-  --poster-red:       oklch(0.50 0.20 25);
+  --poster-red: oklch(0.5 0.2 25);
   --directory-yellow: oklch(0.78 0.14 82);
-  --signal-orange:    oklch(0.60 0.19 45);
-  --electric-cyan:    oklch(0.65 0.13 230);
+  --signal-orange: oklch(0.6 0.19 45);
+  --electric-cyan: oklch(0.65 0.13 230);
 
-  --background:             var(--paper);
-  --foreground:             var(--ink);
-  --card:                   var(--newsprint);
-  --card-foreground:        var(--ink);
-  --popover:                var(--newsprint);
-  --popover-foreground:     var(--ink);
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--newsprint);
+  --card-foreground: var(--ink);
+  --popover: var(--newsprint);
+  --popover-foreground: var(--ink);
 
-  --primary:                var(--ink);
-  --primary-foreground:     var(--paper);
+  --primary: var(--ink);
+  --primary-foreground: var(--paper);
 
-  --secondary:              var(--directory-yellow);
-  --secondary-foreground:   oklch(0.10 0.006 60);
+  --secondary: var(--directory-yellow);
+  --secondary-foreground: oklch(0.1 0.006 60);
 
-  --muted:                  var(--charcoal-surface);
-  --muted-foreground:       oklch(0.65 0.008 70);
+  --muted: var(--charcoal-surface);
+  --muted-foreground: oklch(0.65 0.008 70);
 
-  --accent:                 var(--poster-red);
-  --accent-foreground:      var(--ivory);
+  --accent: var(--poster-red);
+  --accent-foreground: var(--ivory);
 
-  --destructive:            var(--poster-red);
+  --destructive: var(--poster-red);
   --destructive-foreground: var(--ivory);
 
-  --success:                oklch(0.55 0.13 150);
-  --success-foreground:     var(--ivory);
+  --success: oklch(0.55 0.13 150);
+  --success-foreground: var(--ivory);
 
-  --warning:                var(--directory-yellow);
-  --warning-foreground:     oklch(0.10 0.006 60);
+  --warning: var(--directory-yellow);
+  --warning-foreground: oklch(0.1 0.006 60);
 
-  --info:                   var(--electric-cyan);
-  --info-foreground:        oklch(0.10 0.006 60);
+  --info: var(--electric-cyan);
+  --info-foreground: oklch(0.1 0.006 60);
 
-  --border:                 oklch(0.30 0.006 60);
-  --input:                  var(--charcoal-surface);
-  --ring:                   var(--poster-red);
+  --border: oklch(0.3 0.006 60);
+  --input: var(--charcoal-surface);
+  --ring: var(--poster-red);
 }
 
 /* Classe .light — override manual para forçar tema claro */
 .light {
   color-scheme: light;
 
-  --ink:              oklch(0.18 0.005 60);
-  --paper:            oklch(0.97 0.010 90);
-  --newsprint:        oklch(0.92 0.010 90);
-  --charcoal:         oklch(0.18 0.005 60);
+  --ink: oklch(0.18 0.005 60);
+  --paper: oklch(0.97 0.01 90);
+  --newsprint: oklch(0.92 0.01 90);
+  --charcoal: oklch(0.18 0.005 60);
   --charcoal-surface: oklch(0.22 0.005 60);
-  --ivory:            oklch(0.97 0.010 90);
-  --poster-red:       oklch(0.55 0.22 25);
-  --directory-yellow: oklch(0.90 0.15 95);
-  --signal-orange:    oklch(0.65 0.20 45);
-  --electric-cyan:    oklch(0.70 0.15 230);
+  --ivory: oklch(0.97 0.01 90);
+  --poster-red: oklch(0.55 0.22 25);
+  --directory-yellow: oklch(0.9 0.15 95);
+  --signal-orange: oklch(0.65 0.2 45);
+  --electric-cyan: oklch(0.7 0.15 230);
 
-  --background:             var(--paper);
-  --foreground:             var(--ink);
-  --card:                   var(--newsprint);
-  --card-foreground:        var(--ink);
-  --popover:                var(--paper);
-  --popover-foreground:     var(--ink);
-  --primary:                var(--ink);
-  --primary-foreground:     var(--paper);
-  --secondary:              var(--directory-yellow);
-  --secondary-foreground:   var(--ink);
-  --muted:                  var(--newsprint);
-  --muted-foreground:       oklch(0.40 0.005 60);
-  --accent:                 var(--poster-red);
-  --accent-foreground:      var(--paper);
-  --destructive:            var(--poster-red);
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--newsprint);
+  --card-foreground: var(--ink);
+  --popover: var(--paper);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: var(--paper);
+  --secondary: var(--directory-yellow);
+  --secondary-foreground: var(--ink);
+  --muted: var(--newsprint);
+  --muted-foreground: oklch(0.4 0.005 60);
+  --accent: var(--poster-red);
+  --accent-foreground: var(--paper);
+  --destructive: var(--poster-red);
   --destructive-foreground: var(--paper);
-  --success:                oklch(0.62 0.13 150);
-  --success-foreground:     var(--paper);
-  --warning:                var(--directory-yellow);
-  --warning-foreground:     var(--ink);
-  --info:                   var(--electric-cyan);
-  --info-foreground:        var(--ink);
-  --border:                 var(--ink);
-  --input:                  var(--newsprint);
-  --ring:                   var(--poster-red);
+  --success: oklch(0.62 0.13 150);
+  --success-foreground: var(--paper);
+  --warning: var(--directory-yellow);
+  --warning-foreground: var(--ink);
+  --info: var(--electric-cyan);
+  --info-foreground: var(--ink);
+  --border: var(--ink);
+  --input: var(--newsprint);
+  --ring: var(--poster-red);
+}
+
+/* ===========================================================================
+ * OPERATIONAL SHELL — Contexto Admin/Painel Operacional
+ * ---------------------------------------------------------------------------
+ * Aplicado via `data-shell="admin"` no elemento wrapper do AdminShell.
+ * NÃO afeta o contexto editorial (Surface, feed, builder, storefront público).
+ * Tokens brutalistas continuam disponíveis dentro deste contexto para os
+ * componentes Surface que são explicitamente chamados como editoriais.
+ * ===========================================================================*/
+[data-shell="admin"] {
+  /* Superfície de fundo mais neutra — levemente acinzentada */
+  --background: oklch(0.96 0.003 240);
+  --foreground: oklch(0.15 0.005 260);
+
+  /* Cards com raio operacional */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.15 0.005 260);
+
+  /* Borda discreta 1px (não mais 2-4px solid ink) */
+  --border: oklch(0.88 0.004 240);
+  --input: oklch(0.98 0.002 240);
+
+  /* Primary mantém ink escuro para ações */
+  --primary: oklch(0.15 0.005 260);
+  --primary-foreground: oklch(1 0 0);
+
+  /* Muted mais neutro */
+  --muted: oklch(0.94 0.003 240);
+  --muted-foreground: oklch(0.5 0.008 240);
+
+  /* Popover/dropdown com sombra operacional */
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0.005 260);
+}
+
+/* Dark mode dentro do shell operacional */
+@media (prefers-color-scheme: dark) {
+  [data-shell="admin"]:not(.light) {
+    --background: oklch(0.1 0.005 260);
+    --foreground: oklch(0.93 0.008 80);
+    --card: oklch(0.13 0.005 260);
+    --card-foreground: oklch(0.93 0.008 80);
+    --border: oklch(0.22 0.006 260);
+    --input: oklch(0.15 0.005 260);
+    --muted: oklch(0.16 0.005 260);
+    --muted-foreground: oklch(0.6 0.008 240);
+    --popover: oklch(0.13 0.005 260);
+    --popover-foreground: oklch(0.93 0.008 80);
+  }
+}
+.dark [data-shell="admin"] {
+  --background: oklch(0.1 0.005 260);
+  --foreground: oklch(0.93 0.008 80);
+  --card: oklch(0.13 0.005 260);
+  --card-foreground: oklch(0.93 0.008 80);
+  --border: oklch(0.22 0.006 260);
+  --input: oklch(0.15 0.005 260);
+  --muted: oklch(0.16 0.005 260);
+  --muted-foreground: oklch(0.6 0.008 240);
+  --popover: oklch(0.13 0.005 260);
+  --popover-foreground: oklch(0.93 0.008 80);
 }
 
 /* ===========================================================================
@@ -347,7 +440,12 @@
       color var(--duration-base) var(--ease-in-out);
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-display);
     text-transform: uppercase;
     font-weight: 800;
@@ -478,6 +576,83 @@
   scrollbar-color: var(--color-border) transparent;
 }
 
+/* ── Noise Background (Textura) ──────────────────────────────────────────── */
+@utility bg-noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 100px 100px;
+}
+
+/* ── Hover Lift Animation (Neo-Brutalism — contexto editorial) ───────────── */
+@utility hover-lift {
+  transition: transform var(--duration-fast) var(--ease-out-expo), box-shadow var(--duration-fast) var(--ease-out-expo);
+  
+  &:hover {
+    transform: translate(-4px, -4px);
+    box-shadow: 8px 8px 0px 0px var(--color-ink);
+  }
+}
+
+/* ── Hover Elevate (Operacional — contexto admin/forms) ──────────────────── */
+@utility hover-elevate {
+  transition: box-shadow var(--duration-fast) var(--ease-out-expo), border-color var(--duration-fast) var(--ease-in-out);
+  
+  &:hover {
+    box-shadow: var(--shadow-op-md);
+    border-color: oklch(0.7 0.008 240);
+  }
+}
+
+/* ── Card operacional canônico ───────────────────────────────────────────── */
+@utility card-op {
+  background-color: var(--color-card);
+  color: var(--color-card-foreground);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-op-md);
+  box-shadow: var(--shadow-op-xs);
+}
+
+/* ── Input operacional (radius funcional) ────────────────────────────────── */
+@utility input-op {
+  border-radius: var(--radius-op-sm);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-input);
+  transition: border-color var(--duration-fast) var(--ease-in-out), box-shadow var(--duration-fast) var(--ease-in-out);
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-primary) 15%, transparent);
+  }
+}
+
+/* ── Tabela compacta (PDV, estoque, gestor de pedidos) ───────────────────── */
+@utility table-compact {
+  & th, & td {
+    padding-top: var(--density-compact-py);
+    padding-bottom: var(--density-compact-py);
+    padding-left: var(--density-compact-px);
+    padding-right: var(--density-compact-px);
+    font-size: 0.8125rem;
+    line-height: 1.25;
+  }
+}
+
+/* ── Chip status (arredondado, operacional) ──────────────────────────────── */
+@utility chip-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.1875rem 0.625rem;
+  border-radius: var(--radius-op-full);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1rem;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+}
+
 /* ── Animação de entrada padrão ──────────────────────────────────────────── */
 @utility animate-in-up {
   animation: jah-slide-up var(--duration-base) var(--ease-out-expo) both;
@@ -499,8 +674,10 @@
 }
 
 @keyframes jah-fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
-
-

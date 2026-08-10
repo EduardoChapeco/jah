@@ -50,7 +50,7 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
 
   if (variants.length === 0) {
     return (
-      <div className="p-8 text-center text-muted-foreground border rounded-xl border-dashed">
+      <div className="p-8 text-center text-muted-foreground border border-dashed">
         <EyeOff className="size-8 mx-auto mb-2 opacity-50" />
         Nenhuma variação definida. Adicione grupos abaixo.
       </div>
@@ -165,7 +165,7 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
 
   return (
     <>
-      <div className="flex justify-between items-center mb-4 p-4 border rounded-xl bg-card border-dashed">
+      <div className="flex justify-between items-center mb-4 p-4 border bg-card border-dashed">
         <div className="text-sm">
           <p className="font-semibold text-foreground">Construtor Livre de Variações</p>
           <p className="text-muted-foreground text-xs">
@@ -183,7 +183,7 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
         </Button>
       </div>
 
-      <div className="border rounded-xl overflow-x-auto bg-card shadow-sm mb-4">
+      <div className="border overflow-x-auto bg-card shadow-sm mb-4">
         <table className="w-full text-sm text-left">
           <thead className="bg-muted/40 text-muted-foreground text-xs uppercase font-semibold">
             <tr>
@@ -482,11 +482,7 @@ function PriceInput({
         }
       }}
       onBlur={handleBlur}
-      className={`h-9 font-mono text-xs shadow-sm transition-colors ${
-        valueCents != null
-          ? "bg-amber-500/10 text-amber-700 font-bold border-amber-500/30"
-          : "bg-muted/20 hover:bg-muted/40 focus:bg-background"
-      }`}
+      className={`h-9 font-mono text-xs shadow-sm transition-colors ${valueCents != null ? "bg-amber-500/10 text-amber-700 font-bold border-amber-500/30" : "bg-muted/20 hover:bg-muted/40 focus:bg-background"}`}
     />
   );
 }

@@ -20,14 +20,7 @@ import {
 
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Surface } from "@/components/ui/surface";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ErrorState, EmptyState } from "@/components/state/states";
@@ -129,16 +122,16 @@ function DashboardPage() {
 
       {/* Grid de KPIs Principais */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="relative overflow-hidden border-border/60 bg-gradient-to-br from-card to-card/60 shadow-xs">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <Surface variant="ticket" padding="md"  className="relative overflow-hidden border-border/60 bg-gradient-to-br from-card to-card/60 shadow-xs">
+          <div  className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <h3  className="font-display font-bold text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Vendas Hoje
-            </CardTitle>
+            </h3>
             <div className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary">
               <TrendingUp className="size-4" aria-hidden />
             </div>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="">
             <div className="text-2xl font-bold tracking-tight text-foreground">
               {formatMoney(salesTodayCents)}
             </div>
@@ -146,19 +139,19 @@ function DashboardPage() {
               <span className="font-medium text-foreground">{ordersTodayCount}</span> pedidos
               realizados hoje
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
 
-        <Card className="relative overflow-hidden border-border/60 bg-gradient-to-br from-card to-card/60 shadow-xs">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <Surface variant="ticket" padding="md"  className="relative overflow-hidden border-border/60 bg-gradient-to-br from-card to-card/60 shadow-xs">
+          <div  className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <h3  className="font-display font-bold text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Vendas no Mês
-            </CardTitle>
+            </h3>
             <div className="flex size-8 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
               <CreditCard className="size-4" aria-hidden />
             </div>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="">
             <div className="text-2xl font-bold tracking-tight text-foreground">
               {formatMoney(salesMonthCents)}
             </div>
@@ -166,38 +159,38 @@ function DashboardPage() {
               <span className="font-medium text-foreground">{ordersMonthCount}</span> pedidos no mês
               atual
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
 
-        <Card className="relative overflow-hidden border-border/60 bg-gradient-to-br from-card to-card/60 shadow-xs">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <Surface variant="ticket" padding="md"  className="relative overflow-hidden border-border/60 bg-gradient-to-br from-card to-card/60 shadow-xs">
+          <div  className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <h3  className="font-display font-bold text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Estoque Crítico
-            </CardTitle>
+            </h3>
             <div className="flex size-8 items-center justify-center rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400">
               <AlertTriangle className="size-4" aria-hidden />
             </div>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="">
             <div className="text-2xl font-bold tracking-tight text-foreground">
               {criticalStockCount}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               {criticalStockCount > 0 ? "Itens com 5 unidades ou menos" : "Estoque regularizado"}
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
 
-        <Card className="relative overflow-hidden border-border/60 bg-gradient-to-br from-card to-card/60 shadow-xs">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <Surface variant="ticket" padding="md"  className="relative overflow-hidden border-border/60 bg-gradient-to-br from-card to-card/60 shadow-xs">
+          <div  className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <h3  className="font-display font-bold text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Caixa em Turno
-            </CardTitle>
+            </h3>
             <div className="flex size-8 items-center justify-center rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
               <Wallet className="size-4" aria-hidden />
             </div>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="">
             {activeCashRegister?.isOpen ? (
               <>
                 <div className="text-2xl font-bold tracking-tight text-foreground">
@@ -221,31 +214,31 @@ function DashboardPage() {
                 <p className="text-xs text-muted-foreground mt-1">Nenhum turno ativo no momento</p>
               </>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
       </div>
 
       {/* Checklist de Progresso da Loja (Se ainda não estiver 100%) */}
       {setupProgressPercentage < 100 && (
-        <Card className="border-primary/20 bg-primary/5 dark:bg-primary/10">
-          <CardHeader className="pb-3">
+        <Surface variant="ticket" padding="md"  className="border-primary/20 bg-primary/5 dark:bg-primary/10">
+          <div  className="pb-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="space-y-1">
-                <CardTitle className="text-base flex items-center gap-2">
+                <h3  className="font-display font-bold text-base flex items-center gap-2">
                   <Store className="size-5 text-primary" aria-hidden />
                   Etapas para uma Loja de Sucesso
-                </CardTitle>
-                <CardDescription>
+                </h3>
+                <p className="font-serif text-ink/70 text-sm">
                   Conclua as configurações fundamentais para vender com segurança e agilidade.
-                </CardDescription>
+                </p>
               </div>
               <Badge variant="secondary" className="text-xs font-semibold">
                 {setupProgressPercentage}% Concluído
               </Badge>
             </div>
             <Progress value={setupProgressPercentage} className="h-2 mt-3" />
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+          </div>
+          <div  className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
             {setupChecklist.map((item: any) => (
               <div
                 key={item.id}
@@ -274,30 +267,30 @@ function DashboardPage() {
                 )}
               </div>
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
       )}
 
       {/* Seção Operacional 1: Filas de Atendimento e Pedidos */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
-          <CardHeader>
+        <Surface variant="ticket" padding="md"  className="lg:col-span-2">
+          <div className="flex flex-col mb-4">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-base flex items-center gap-2">
+                <h3  className="font-display font-bold text-base flex items-center gap-2">
                   <ShoppingBag className="size-5 text-primary" aria-hidden />
                   Filas Operacionais de Pedidos
-                </CardTitle>
-                <CardDescription>
+                </h3>
+                <p className="font-serif text-ink/70 text-sm">
                   Status e gargalos que exigem ação da sua equipe hoje.
-                </CardDescription>
+                </p>
               </div>
               <Button asChild variant="outline" size="sm">
                 <Link to="/admin/pedidos">Gerenciar Todos</Link>
               </Button>
             </div>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="p-4 rounded-xl border border-amber-500/20 bg-amber-500/5 space-y-2">
                 <div className="flex items-center justify-between">
@@ -388,24 +381,24 @@ function DashboardPage() {
                 </Button>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
 
         {/* Alertas de Estoque */}
-        <Card>
-          <CardHeader>
+        <Surface variant="ticket" padding="md" >
+          <div className="flex flex-col mb-4">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base flex items-center gap-2">
+              <h3  className="font-display font-bold text-base flex items-center gap-2">
                 <AlertCircle className="size-5 text-amber-600" aria-hidden />
                 Estoque Crítico
-              </CardTitle>
+              </h3>
               <Button asChild variant="ghost" size="sm">
                 <Link to="/admin/estoque">Ver Tudo</Link>
               </Button>
             </div>
-            <CardDescription>Produtos que exigem reposição imediata.</CardDescription>
-          </CardHeader>
-          <CardContent>
+            <p className="font-serif text-ink/70 text-sm">Produtos que exigem reposição imediata.</p>
+          </div>
+          <div className="">
             {lowStockItems.length === 0 ? (
               <EmptyState
                 title="Estoque regular"
@@ -434,96 +427,96 @@ function DashboardPage() {
                 ))}
               </div>
             )}
-          </CardContent>
-          <CardFooter className="border-t border-border pt-3">
+          </div>
+          <div  className="border-t border-border pt-3">
             <Button asChild variant="outline" size="sm" className="w-full text-xs">
               <Link to="/admin/estoque/movimentos">Registrar Entrada de Estoque</Link>
             </Button>
-          </CardFooter>
-        </Card>
+          </div>
+        </Surface>
       </div>
 
       {/* Links de Atalhos Principais por Área */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="hover:border-primary/50 transition-colors">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+        <Surface variant="ticket" padding="md"  className="hover:border-primary/50 transition-colors">
+          <div  className="pb-2">
+            <h3  className="font-display font-bold text-sm font-semibold flex items-center gap-2">
               <Store className="size-4 text-primary" />
               Catálogo & Produtos
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1.5 text-xs text-muted-foreground">
+            </h3>
+          </div>
+          <div  className="space-y-1.5 text-xs text-muted-foreground">
             <p>Gerencie produtos, categorias, variações de tamanho e imagens.</p>
-          </CardContent>
-          <CardFooter className="pt-2">
+          </div>
+          <div  className="pt-2">
             <Button asChild variant="ghost" size="sm" className="w-full justify-between text-xs">
               <Link to="/admin/catalogo/produtos">
                 Ir para Produtos
                 <ArrowRight className="size-3.5" />
               </Link>
             </Button>
-          </CardFooter>
-        </Card>
+          </div>
+        </Surface>
 
-        <Card className="hover:border-primary/50 transition-colors">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+        <Surface variant="ticket" padding="md"  className="hover:border-primary/50 transition-colors">
+          <div  className="pb-2">
+            <h3  className="font-display font-bold text-sm font-semibold flex items-center gap-2">
               <Wallet className="size-4 text-primary" />
               Frente de Loja & Caixa
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1.5 text-xs text-muted-foreground">
+            </h3>
+          </div>
+          <div  className="space-y-1.5 text-xs text-muted-foreground">
             <p>Controle abertura/fechamento de caixa, troco inicial e lançamentos.</p>
-          </CardContent>
-          <CardFooter className="pt-2">
+          </div>
+          <div  className="pt-2">
             <Button asChild variant="ghost" size="sm" className="w-full justify-between text-xs">
               <Link to="/admin/caixa">
                 Ir para o Caixa
                 <ArrowRight className="size-3.5" />
               </Link>
             </Button>
-          </CardFooter>
-        </Card>
+          </div>
+        </Surface>
 
-        <Card className="hover:border-primary/50 transition-colors">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+        <Surface variant="ticket" padding="md"  className="hover:border-primary/50 transition-colors">
+          <div  className="pb-2">
+            <h3  className="font-display font-bold text-sm font-semibold flex items-center gap-2">
               <Users className="size-4 text-primary" />
               Clientes & Atendimento
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1.5 text-xs text-muted-foreground">
+            </h3>
+          </div>
+          <div  className="space-y-1.5 text-xs text-muted-foreground">
             <p>Ficha de clientes, histórico de compras, fiado/crédito e conversas.</p>
-          </CardContent>
-          <CardFooter className="pt-2">
+          </div>
+          <div  className="pt-2">
             <Button asChild variant="ghost" size="sm" className="w-full justify-between text-xs">
               <Link to="/admin/clientes">
                 Ir para CRM
                 <ArrowRight className="size-3.5" />
               </Link>
             </Button>
-          </CardFooter>
-        </Card>
+          </div>
+        </Surface>
 
-        <Card className="hover:border-primary/50 transition-colors">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+        <Surface variant="ticket" padding="md"  className="hover:border-primary/50 transition-colors">
+          <div  className="pb-2">
+            <h3  className="font-display font-bold text-sm font-semibold flex items-center gap-2">
               <CreditCard className="size-4 text-primary" />
               Pagamentos & Fretes
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1.5 text-xs text-muted-foreground">
+            </h3>
+          </div>
+          <div  className="space-y-1.5 text-xs text-muted-foreground">
             <p>Configure regras de Pix, comprovantes manuais e tabelas de envio.</p>
-          </CardContent>
-          <CardFooter className="pt-2">
+          </div>
+          <div  className="pt-2">
             <Button asChild variant="ghost" size="sm" className="w-full justify-between text-xs">
               <Link to="/admin/configuracoes/pagamentos">
                 Ajustar Pagamentos
                 <ArrowRight className="size-3.5" />
               </Link>
             </Button>
-          </CardFooter>
-        </Card>
+          </div>
+        </Surface>
       </div>
     </div>
   );

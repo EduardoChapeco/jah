@@ -2,7 +2,6 @@ import { useState, useRef } from "react";
 import { Upload, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { uploadMedia } from "@/services/storage.functions";
 import { cn } from "@/lib/utils";
 import { ImageCropperDialog } from "@/components/ui/image-cropper-dialog";
 
@@ -107,7 +106,7 @@ export function ImageUpload({
   return (
     <div className={cn("flex flex-col gap-4", className)}>
       {value ? (
-        <div className="relative min-h-[100px] max-h-[200px] w-full max-w-sm overflow-hidden rounded-lg border border-border p-3 bg-[linear-gradient(45deg,#e2e8f0_25%,transparent_25%),linear-gradient(-45deg,#e2e8f0_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e2e8f0_75%),linear-gradient(-45deg,transparent_75%,#e2e8f0_75%)] bg-[length:16px_16px] bg-[position:0_0,0_8px,8px_-8px,-8px_0px] bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+        <div className="relative min-h-[100px] max-h-[200px] w-full max-w-sm overflow-hidden border border-border p-3 bg-[linear-gradient(45deg,#e2e8f0_25%,transparent_25%),linear-gradient(-45deg,#e2e8f0_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e2e8f0_75%),linear-gradient(-45deg,transparent_75%,#e2e8f0_75%)] bg-[length:16px_16px] bg-[position:0_0,0_8px,8px_-8px,-8px_0px] bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
           <img src={value} alt="Upload" className="max-h-36 w-auto max-w-full object-contain" />
           {onRemove && (
             <Button
@@ -134,7 +133,7 @@ export function ImageUpload({
           )}
         </div>
       ) : (
-        <div className="flex aspect-video w-full max-w-sm flex-col items-center justify-center gap-2 rounded-lg border border-dashed bg-muted/50 p-6 hover:bg-muted">
+        <div className="flex aspect-video w-full max-w-sm flex-col items-center justify-center gap-2 border border-dashed bg-muted/50 p-6 hover:bg-muted">
           <div className="rounded-full bg-background p-3 shadow-sm">
             <Upload className="h-5 w-5 text-muted-foreground" />
           </div>

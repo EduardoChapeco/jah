@@ -33,6 +33,9 @@ import {
 } from "lucide-react";
 import { getOrderById, updateOrderStatus, updateOrderShipment } from "@/services/order.functions";
 import { approvePayment, rejectPayment } from "@/services/payment.functions";
+import { PickingWizard } from "@/components/admin/orders/picking-wizard";
+import { RmaRequestWizard } from "@/components/admin/orders/rma-request-wizard";
+import { formatDate } from "../lib/datetime";
 
 export const Route = createFileRoute("/admin/pedidos/$id")({
   head: () => ({ meta: [{ title: "Detalhes do Pedido" }] }),
@@ -76,15 +79,17 @@ function AdminOrderDetailPage() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
+  const [pickingModalOpen, setPickingModalOpen] = useState(false);
   const [trackingModalOpen, setTrackingModalOpen] = useState(false);
+  const [returnModalOpen, setReturnModalOpen] = useState(false);
   const [trackingForm, setTrackingForm] = useState({
     trackingCode: order.tracking_code || "",
-    carrierName: order.carrier_name || "Correios",
+    carrierName: order.carrier_name || "Transportadora",
     trackingUrl: order.tracking_url || "",
   });
   const [isSavingTracking, setIsSavingTracking] = useState(false);
 
-  const date = new Date(order.created_at).toLocaleDateString("pt-BR");
+  const date = formatDate(order.created_at);
 
   const handleSaveTracking = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -156,6 +161,8 @@ function AdminOrderDetailPage() {
     }
   };
 
+  // handleAtomicReturn was removed in favor of granular RmaRequestWizard
+
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-start">
@@ -175,7 +182,7 @@ function AdminOrderDetailPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Items */}
         <div className="md:col-span-2 space-y-6">
-          <div className="rounded-xl border border-border p-6 bg-card text-card-foreground shadow-xs">
+          <div className="border border-border p-6 bg-card text-card-foreground shadow-xs">
             <h3 className="font-semibold text-lg mb-4 text-foreground">Itens do Pedido</h3>
             <div className="space-y-4">
               {(order.order_items ?? []).map((item: any) => (
@@ -204,7 +211,7 @@ function AdminOrderDetailPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Summary */}
-          <div className="rounded-xl border border-border p-6 bg-card text-card-foreground shadow-xs">
+          <div className="border border-border p-6 bg-card text-card-foreground shadow-xs">
             <h3 className="font-semibold text-lg mb-4 text-foreground">Resumo</h3>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
@@ -223,7 +230,7 @@ function AdminOrderDetailPage() {
           </div>
 
           {/* Status & Actions */}
-          <div className="rounded-xl border border-border p-6 bg-card text-card-foreground shadow-xs">
+          <div className="border border-border p-6 bg-card text-card-foreground shadow-xs">
             <h3 className="font-semibold text-lg mb-4 text-foreground">Status</h3>
             <Badge
               variant={getStatusLabel(order.status).variant}
@@ -292,17 +299,10 @@ function AdminOrderDetailPage() {
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="gap-2 mt-4">
-                      <Button
-                        variant="outline"
-                        onClick={() => setShowCancelConfirm(false)}
-                      >
+                      <Button variant="outline" onClick={() => setShowCancelConfirm(false)}>
                         Voltar
                       </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={handleReject}
-                        disabled={isRejecting}
-                      >
+                      <Button variant="destructive" onClick={handleReject} disabled={isRejecting}>
                         Confirmar Cancelamento
                       </Button>
                     </AlertDialogFooter>
@@ -320,19 +320,14 @@ function AdminOrderDetailPage() {
               <div className="space-y-3 mt-4">
                 <Button
                   className="w-full font-bold"
-                  onClick={() =>
-                    handleStatusChange(
-                      order.shipping_method === "pickup" ? "ready_for_pickup" : "shipped",
-                    )
-                  }
+                  onClick={() => setPickingModalOpen(true)}
                   disabled={isUpdating}
                 >
-                  {order.shipping_method === "pickup"
-                    ? "Pronto para Retirada"
-                    : "Despachar Pedido (Enviado)"}
+                  <Package className="mr-2 h-4 w-4" />
+                  Iniciar Separação (Picking)
                 </Button>
                 <p className="text-xs text-muted-foreground text-center">
-                  Confirme que os itens foram separados e faturados.
+                  Faça a conferência física dos itens antes de faturar o pedido.
                 </p>
               </div>
             )}
@@ -345,6 +340,26 @@ function AdminOrderDetailPage() {
                   disabled={isUpdating}
                 >
                   {order.status === "shipped" ? "Confirmar Entrega" : "Entregar ao Cliente"}
+                </Button>
+              </div>
+            )}
+
+            {(order.status === "delivered" || order.status === "completed") && (
+              <div className="space-y-3 mt-4">
+                <RmaRequestWizard
+                  order={order}
+                  isOpen={returnModalOpen}
+                  onOpenChange={setReturnModalOpen}
+                  onComplete={async () => {
+                    await router.invalidate();
+                  }}
+                />
+                <Button
+                  variant="outline"
+                  className="w-full text-destructive mt-2"
+                  onClick={() => setReturnModalOpen(true)}
+                >
+                  Solicitar Devolução Parcial (RMA)
                 </Button>
               </div>
             )}
@@ -421,7 +436,7 @@ function AdminOrderDetailPage() {
               </div>
 
               {order.tracking_code ? (
-                <div className="p-3 bg-muted/40 rounded-lg text-xs space-y-1.5">
+                <div className="p-3 bg-muted/40 text-xs space-y-1.5">
                   <div className="flex justify-between items-center font-medium">
                     <span>{order.carrier_name || "Transportadora"}</span>
                     <Badge variant="outline">{order.tracking_code}</Badge>
@@ -446,6 +461,17 @@ function AdminOrderDetailPage() {
           </div>
         </div>
       </div>
+
+      <PickingWizard
+        order={order}
+        isOpen={pickingModalOpen}
+        onOpenChange={setPickingModalOpen}
+        onComplete={async () => {
+          await handleStatusChange(
+            order.shipping_method === "pickup" ? "ready_for_pickup" : "shipped",
+          );
+        }}
+      />
     </div>
   );
 }

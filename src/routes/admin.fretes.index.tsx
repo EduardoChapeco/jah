@@ -18,7 +18,7 @@ import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Surface } from "@/components/ui/surface";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -180,63 +180,63 @@ function ShippingHubPage() {
 
       {/* Grid de Métricas de Frete */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="py-3 px-4 flex flex-row items-center justify-between">
+        <Surface variant="polaroid" padding="none">
+          <div className="py-3 px-4 flex flex-row items-center justify-between border-b border-border/10">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Zonas de Entrega
             </span>
             <MapPin className="size-4 text-primary" />
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
+          </div>
+          <div className="p-4 pt-4">
             <div className="text-2xl font-bold">{zones.length} cadastrada(s)</div>
             <p className="text-xs text-muted-foreground mt-1">
               {activeZonesCount} zonas ativas operando
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
 
-        <Card>
-          <CardHeader className="py-3 px-4 flex flex-row items-center justify-between">
+        <Surface variant="polaroid" padding="none">
+          <div className="py-3 px-4 flex flex-row items-center justify-between border-b border-border/10">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Regras & Taxas Fixas
             </span>
             <Truck className="size-4 text-emerald-600" />
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
+          </div>
+          <div className="p-4 pt-4">
             <div className="text-2xl font-bold">{totalRatesCount} regra(s)</div>
             <p className="text-xs text-muted-foreground mt-1">Opções de envio ativas</p>
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
 
-        <Card>
-          <CardHeader className="py-3 px-4 flex flex-row items-center justify-between">
+        <Surface variant="polaroid" padding="none">
+          <div className="py-3 px-4 flex flex-row items-center justify-between border-b border-border/10">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Frete Grátis
             </span>
             <BadgePercent className="size-4 text-amber-600" />
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
+          </div>
+          <div className="p-4 pt-4">
             <div className="text-2xl font-bold">Ativo por Regra</div>
             <p className="text-xs text-muted-foreground mt-1">
               Configurado por valor mínimo de pedido
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
       </div>
 
       {/* Simulador Rápido de CEP */}
-      <Card className="border-primary/20 bg-gradient-to-r from-card to-primary/5">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
+      <Surface variant="zine" className="border-primary/20 from-card to-primary/5">
+        <div className="pb-3 border-b border-border/10">
+          <h4 className="text-base font-bold flex items-center gap-2">
             <Calculator className="size-5 text-primary" />
             Simulador Rápido de CEP & Opções de Envio
-          </CardTitle>
-          <CardDescription>
+          </h4>
+          <p className="text-sm text-muted-foreground mt-1">
             Digite um CEP de destino para simular quais regras de frete serão apresentadas ao
             cliente no checkout.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+          </p>
+        </div>
+        <div className="space-y-4 pt-4">
           <form onSubmit={handleSimulateShipping} className="flex gap-2 max-w-md">
             <Input
               placeholder="Digite o CEP (ex: 89900-000)"
@@ -261,7 +261,7 @@ function ShippingHubPage() {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                   {simResults.map((rate, idx) => (
-                    <div key={idx} className="p-3 rounded-lg border bg-card text-xs space-y-1">
+                    <div key={idx} className="p-3 border bg-card text-xs space-y-1">
                       <div className="flex justify-between font-bold text-foreground">
                         <span>{rate.name}</span>
                         <span>
@@ -277,15 +277,17 @@ function ShippingHubPage() {
               )}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </Surface>
 
       {/* Zonas de Entrega Principais */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+      <Surface variant="default" padding="none" className="overflow-hidden">
+        <div className="flex flex-row items-center justify-between p-6 border-b border-border/20 bg-muted/10">
           <div>
-            <CardTitle className="text-base">Zonas de Entrega Ativas</CardTitle>
-            <CardDescription>Regiões geográficas e suas taxas de envio associadas.</CardDescription>
+            <h3 className="text-base font-bold">Zonas de Entrega Ativas</h3>
+            <p className="text-sm text-muted-foreground">
+              Regiões geográficas e suas taxas de envio associadas.
+            </p>
           </div>
           <Sheet open={openZone} onOpenChange={setOpenZone}>
             <SheetTrigger asChild>
@@ -296,9 +298,7 @@ function ShippingHubPage() {
             <SheetContent side="right" className="sm:max-w-md overflow-y-auto">
               <SheetHeader>
                 <SheetTitle>Criar Zona de Entrega</SheetTitle>
-                <SheetDescription>
-                  Defina um nome e prefixos de CEP para a região.
-                </SheetDescription>
+                <SheetDescription>Defina um nome e prefixos de CEP para a região.</SheetDescription>
               </SheetHeader>
               <form onSubmit={handleCreateZone} className="space-y-4 pt-2">
                 <div className="space-y-2">
@@ -335,8 +335,8 @@ function ShippingHubPage() {
               </form>
             </SheetContent>
           </Sheet>
-        </CardHeader>
-        <CardContent>
+        </div>
+        <div className="p-6">
           {zones.length === 0 ? (
             <EmptyState
               title="Nenhuma zona de entrega cadastrada"
@@ -345,10 +345,7 @@ function ShippingHubPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {zones.map((zone) => (
-                <div
-                  key={zone.id}
-                  className="p-4 rounded-xl border border-border bg-card space-y-3"
-                >
+                <div key={zone.id} className="p-4 border border-border bg-card space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="text-sm font-bold text-foreground">{zone.name}</h4>
@@ -405,8 +402,8 @@ function ShippingHubPage() {
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </Surface>
     </div>
   );
 }

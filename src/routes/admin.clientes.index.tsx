@@ -55,6 +55,7 @@ import {
   promoteLeadToCustomer,
 } from "@/services/crm.functions";
 import { formatMoney } from "@/lib/money";
+import { formatDate } from "../lib/datetime";
 
 export const Route = createFileRoute("/admin/clientes/")({
   head: () => ({ meta: [{ title: "Clientes & Leads" }] }),
@@ -433,10 +434,7 @@ function CustomersPage() {
                           )}
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground">
-                          {new Date(c.joinedAt).toLocaleDateString("pt-BR", {
-                            month: "short",
-                            year: "numeric",
-                          })}
+                          {formatDate(c.joinedAt)}
                         </TableCell>
                         <TableCell className="text-center text-sm font-semibold">
                           {c.orderCount}
@@ -448,7 +446,11 @@ function CustomersPage() {
                           <div className="flex flex-wrap gap-1">
                             {c.tags.length > 0 ? (
                               c.tags.slice(0, 2).map((tag: string) => (
-                                <Badge key={tag} variant="secondary" className="text-[10px] h-5 border-ink/30">
+                                <Badge
+                                  key={tag}
+                                  variant="secondary"
+                                  className="text-[10px] h-5 border-ink/30"
+                                >
                                   {tag}
                                 </Badge>
                               ))
@@ -502,7 +504,7 @@ function CustomersPage() {
                   />
                 ))}
                 {leadsNew.length === 0 && (
-                  <div className="p-6 text-center text-[10px] text-muted-foreground border border-dashed rounded-lg bg-card/50">
+                  <div className="p-6 text-center text-[10px] text-muted-foreground border border-dashed bg-card/50">
                     Nenhum lead novo.
                   </div>
                 )}
@@ -532,7 +534,7 @@ function CustomersPage() {
                   />
                 ))}
                 {leadsContacted.length === 0 && (
-                  <div className="p-6 text-center text-[10px] text-muted-foreground border border-dashed rounded-lg bg-card/50">
+                  <div className="p-6 text-center text-[10px] text-muted-foreground border border-dashed bg-card/50">
                     Nenhum em contato.
                   </div>
                 )}
@@ -562,7 +564,7 @@ function CustomersPage() {
                   />
                 ))}
                 {leadsConverted.length === 0 && (
-                  <div className="p-6 text-center text-[10px] text-muted-foreground border border-dashed rounded-lg bg-card/50">
+                  <div className="p-6 text-center text-[10px] text-muted-foreground border border-dashed bg-card/50">
                     Nenhum convertido.
                   </div>
                 )}
@@ -591,7 +593,7 @@ function CustomersPage() {
                   />
                 ))}
                 {leadsLost.length === 0 && (
-                  <div className="p-6 text-center text-[10px] text-muted-foreground border border-dashed rounded-lg bg-card/50">
+                  <div className="p-6 text-center text-[10px] text-muted-foreground border border-dashed bg-card/50">
                     Nenhum arquivado.
                   </div>
                 )}
@@ -702,7 +704,7 @@ function LeadCard({ lead, onStatusChange, onPromote }: LeadCardProps) {
       </div>
 
       {lead.message && (
-        <div className="p-2 bg-muted/40 rounded-lg border border-border/50 text-[10px] text-muted-foreground leading-relaxed line-clamp-3">
+        <div className="p-2 bg-muted/40 border border-border/50 text-[10px] text-muted-foreground leading-relaxed line-clamp-3">
           {lead.message}
         </div>
       )}

@@ -122,7 +122,10 @@ describe("updateOrderStatusHandler", () => {
     const updateChain = {
       then: (resolve: any) => resolve({ error: null }),
     };
-    mockEq.mockReturnValueOnce(mockQueryChain).mockReturnValueOnce(mockQueryChain).mockReturnValueOnce(updateChain as any);
+    mockEq
+      .mockReturnValueOnce(mockQueryChain)
+      .mockReturnValueOnce(mockQueryChain)
+      .mockReturnValueOnce(updateChain as any);
 
     const res = await updateOrderStatusHandler("ord-1", "shipped", "store-1");
     expect(res).toEqual({ status: "ok", message: "Status do pedido atualizado." });
@@ -137,10 +140,13 @@ describe("updateOrderStatusHandler", () => {
     const updateChain = {
       then: (resolve: any) => resolve({ error: { message: "RLS violation" } }),
     };
-    mockEq.mockReturnValueOnce(mockQueryChain).mockReturnValueOnce(mockQueryChain).mockReturnValueOnce(updateChain as any);
+    mockEq
+      .mockReturnValueOnce(mockQueryChain)
+      .mockReturnValueOnce(mockQueryChain)
+      .mockReturnValueOnce(updateChain as any);
 
-    await expect(updateOrderStatusHandler("ord-1", "delivered", "store-1")).rejects.toThrow("RLS violation");
+    await expect(updateOrderStatusHandler("ord-1", "delivered", "store-1")).rejects.toThrow(
+      "RLS violation",
+    );
   });
 });
-
-

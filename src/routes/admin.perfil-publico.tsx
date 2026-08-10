@@ -15,7 +15,7 @@ import {
   getOrCreateInstitutionalDocument,
 } from "@/services/builder.functions";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Surface } from "@/components/ui/surface";
 
 export const Route = createFileRoute("/admin/perfil-publico")({
   head: () => ({ meta: [{ title: "Perfil Público" }] }),
@@ -39,7 +39,7 @@ const TEMPLATES = [
     id: "modern_commercial",
     name: "Comercial Moderno",
     description: "Focado em vender. Traz destaques, links para categorias e destaques comerciais.",
-    icon: <Store className="w-10 h-10 text-blue-500 mb-4" />,
+    icon: <Store className="w-10 h-10 text-primary mb-4" />,
     features: ["Hero com CTAs", "Categorias em Destaque", "Horários e Mapa"],
   },
   {
@@ -47,7 +47,7 @@ const TEMPLATES = [
     name: "Estilo Instagram",
     description:
       "Layout vertical ideal para colocar no link da bio. Foco em botões e links rápidos.",
-    icon: <Instagram className="w-10 h-10 text-pink-500 mb-4" />,
+    icon: <Instagram className="w-10 h-10 text-accent mb-4" />,
     features: ["Avatar Redondo", "Lista de Links", "Destaque Social"],
   },
   {
@@ -55,21 +55,21 @@ const TEMPLATES = [
     name: "Negócio Local",
     description:
       "Foco absoluto em atrair o cliente para a loja física. Mapa e horários em evidência.",
-    icon: <Map className="w-10 h-10 text-orange-500 mb-4" />,
+    icon: <Map className="w-10 h-10 text-warning mb-4" />,
     features: ["Mapa Destacado", "Botão Rota", "Informações Visíveis"],
   },
   {
     id: "whatsapp_business",
     name: "Catálogo WhatsApp",
     description: "Direciona todas as ações para conversar com um vendedor no WhatsApp.",
-    icon: <MessageCircle className="w-10 h-10 text-green-500 mb-4" />,
+    icon: <MessageCircle className="w-10 h-10 text-success mb-4" />,
     features: ["Botões WhatsApp", "Produtos Rápidos", "Contato Direto"],
   },
   {
     id: "elegant_institutional",
     name: "Nossa História",
     description: "Conta a história da marca, valores e missão. Ideal para reforçar autoridade.",
-    icon: <BookOpen className="w-10 h-10 text-purple-500 mb-4" />,
+    icon: <BookOpen className="w-10 h-10 text-accent mb-4" />,
     features: ["Linha do Tempo", "Missão e Valores", "Depoimentos"],
   },
   {
@@ -101,7 +101,7 @@ function InstitutionalTemplatePicker() {
   };
 
   return (
-    <div className="p-8 max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="p-8 max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in- duration-500">
       <div className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Criar Perfil Institucional</h1>
         <p className="text-muted-foreground text-lg max-w-2xl">
@@ -112,18 +112,20 @@ function InstitutionalTemplatePicker() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {TEMPLATES.map((tpl) => (
-          <Card
+          <Surface
+            variant="default"
+            padding="none"
             key={tpl.id}
             className="flex flex-col relative overflow-hidden group hover:border-primary/50 transition-colors cursor-pointer"
             onClick={() => !isCreating && handleCreate(tpl.id)}
           >
             <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-            <CardHeader>
+            <div className="flex flex-col space-y-1.5 p-6">
               {tpl.icon}
-              <CardTitle>{tpl.name}</CardTitle>
-              <CardDescription className="min-h-[60px]">{tpl.description}</CardDescription>
-            </CardHeader>
-            <CardContent className="mt-auto">
+              <h3 className="font-semibold leading-none tracking-tight">{tpl.name}</h3>
+              <p className="text-sm text-muted-foreground min-h-[60px]">{tpl.description}</p>
+            </div>
+            <div className="p-6 pt-0 mt-auto">
               <ul className="space-y-2 text-sm text-muted-foreground mb-6">
                 {tpl.features.map((feature, i) => (
                   <li key={i} className="flex items-center gap-2">
@@ -135,8 +137,8 @@ function InstitutionalTemplatePicker() {
               <Button className="w-full" disabled={isCreating}>
                 {isCreating ? "Criando..." : "Usar este template"}
               </Button>
-            </CardContent>
-          </Card>
+            </div>
+          </Surface>
         ))}
       </div>
     </div>

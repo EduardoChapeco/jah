@@ -19,7 +19,9 @@ mockOrder.mockReturnValue(mockQueryChain);
 const mockSupabase = { from: mockFrom };
 
 vi.mock("@/lib/server-access", () => ({
-  getServerIdentity: vi.fn().mockResolvedValue({ store_id: "store_123", id: "user-123", role: "owner" }),
+  getServerIdentity: vi
+    .fn()
+    .mockResolvedValue({ store_id: "store_123", id: "user-123", role: "owner" }),
   getSSRClient: () => mockSupabase,
   assertStoreAccess: vi.fn(),
 }));

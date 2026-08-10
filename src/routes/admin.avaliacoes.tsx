@@ -17,16 +17,11 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/state/states";
 import { listReviews, updateReviewStatus, createManualReview } from "@/services/cms.functions";
 import { listAdminProducts } from "@/services/admin-catalog.functions";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Surface } from "@/components/ui/surface";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { formatDate } from "../lib/datetime";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -223,7 +218,7 @@ function ReviewsPage() {
                     {Array.from({ length: 5 }).map((_, i) => (
                       <span
                         key={i}
-                        className={i < review.rating ? "text-yellow-500" : "text-gray-300"}
+                        className={i < review.rating ? "text-warning" : "text-gray-300"}
                       >
                         ★
                       </span>
@@ -249,14 +244,14 @@ function ReviewsPage() {
                           : "Pendente"}
                     </Badge>
                   </TableCell>
-                  <TableCell>{new Date(review.created_at).toLocaleDateString("pt-BR")}</TableCell>
+                  <TableCell>{formatDate(review.created_at)}</TableCell>
                   <TableCell className="text-right">
                     {review.status === "pending" && (
                       <div className="flex justify-end gap-2">
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-8 w-8 text-green-600"
+                          className="h-8 w-8 text-success"
                           onClick={() => handleUpdateStatus(review.id, "approved")}
                           title="Aprovar"
                         >
@@ -265,7 +260,7 @@ function ReviewsPage() {
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-8 w-8 text-red-600"
+                          className="h-8 w-8 text-destructive"
                           onClick={() => handleUpdateStatus(review.id, "rejected")}
                           title="Rejeitar"
                         >

@@ -282,7 +282,9 @@ describe("Admin Catalog Functions", () => {
 
     it("should propagate database insert error", async () => {
       mockSingle
-        .mockResolvedValueOnce({ data: { id: "store-123", memberships: [{ store_id: "store-123", role: "admin" }], } })
+        .mockResolvedValueOnce({
+          data: { id: "store-123", memberships: [{ store_id: "store-123", role: "admin" }] },
+        })
         .mockResolvedValueOnce({ data: null, error: { message: "DB insert fail" } });
 
       await expect(

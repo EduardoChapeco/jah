@@ -61,8 +61,8 @@ function ConfirmationPage() {
     <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
       <div className="mx-auto max-w-3xl space-y-8">
         <div className="flex flex-col items-center text-center">
-          <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-green-50">
-            <CheckCircle2 className="size-10 text-green-600" aria-hidden />
+          <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-success">
+            <CheckCircle2 className="size-10 text-success" aria-hidden />
           </div>
           <PageHeader
             title="Pedido Realizado com Sucesso!"
@@ -76,7 +76,7 @@ function ConfirmationPage() {
 
         {/* Payment instructions */}
         {order.status === "awaiting_payment" && (
-          <div className="rounded-xl border bg-card p-6 space-y-4">
+          <div className="border bg-card p-6 space-y-4">
             <h3 className="font-semibold text-lg">Instruções de Pagamento</h3>
 
             {paymentMethod === "pix" ? (
@@ -84,7 +84,7 @@ function ConfirmationPage() {
                 <p className="text-sm text-muted-foreground">
                   Pague via Pix para aprovação imediata do seu pedido:
                 </p>
-                <div className="bg-muted p-4 rounded-lg flex items-center justify-between gap-3">
+                <div className="bg-muted p-4 flex items-center justify-between gap-3">
                   <span className="font-mono text-xs break-all line-clamp-2 select-all select-none">
                     {pixKey}
                   </span>
@@ -107,7 +107,7 @@ function ConfirmationPage() {
 
                 <Button
                   size="lg"
-                  className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white gap-2"
+                  className="w-full sm:w-auto bg-success hover:bg-success text-white gap-2"
                   onClick={() => {
                     if (!whatsappPhone) {
                       toast.info("Telefone de atendimento não configurado no painel da loja.");
@@ -127,7 +127,7 @@ function ConfirmationPage() {
                 <p className="text-muted-foreground">
                   Faça uma transferência ou depósito para os dados bancários abaixo:
                 </p>
-                <div className="bg-muted p-4 rounded-lg space-y-1 font-mono text-xs">
+                <div className="bg-muted p-4 space-y-1 font-mono text-xs">
                   <p>
                     <strong>Banco:</strong> Itaú (341)
                   </p>
@@ -147,7 +147,7 @@ function ConfirmationPage() {
               </div>
             )}
 
-            <div className="flex items-start gap-2 text-xs text-muted-foreground bg-primary/5 p-3 rounded-lg border border-primary/10">
+            <div className="flex items-start gap-2 text-xs text-muted-foreground bg-primary/5 p-3 border border-primary/10">
               <Info className="h-4 w-4 text-primary shrink-0 mt-0.5" />
               <p>
                 Após pagar, você pode acessar os detalhes do pedido em sua conta para anexar e
@@ -158,7 +158,7 @@ function ConfirmationPage() {
         )}
 
         {/* Order summary */}
-        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+        <div className="overflow-hidden border border-border bg-card shadow-sm">
           <div className="border-b border-border bg-muted/30 px-6 py-4">
             <h2 className="flex items-center text-sm font-semibold text-foreground">
               <Package className="mr-2 size-4" /> Resumo da Compra
@@ -189,7 +189,7 @@ function ConfirmationPage() {
                 <span>{shipping === 0 ? "Grátis" : formatMoney(shipping)}</span>
               </div>
               {discount > 0 && (
-                <div className="flex justify-between text-green-600">
+                <div className="flex justify-between text-success">
                   <span>Desconto</span>
                   <span>-{formatMoney(discount)}</span>
                 </div>
@@ -207,7 +207,7 @@ function ConfirmationPage() {
             <Link to="/conta/pedidos">Acompanhar Pedido</Link>
           </Button>
           <Button asChild size="lg">
-            <Link to="/catalogo">
+            <Link to="/mercado">
               Continuar Comprando <ArrowRight className="ml-2 size-4" />
             </Link>
           </Button>

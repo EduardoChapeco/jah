@@ -1,5 +1,13 @@
 import { createFileRoute, useNavigate, useRouter, Link } from "@tanstack/react-router";
-import { ArrowLeft, Save, QrCode, Ticket, FileText, Calendar as CalendarIcon, MapPin } from "lucide-react";
+import {
+  ArrowLeft,
+  Save,
+  QrCode,
+  Ticket,
+  FileText,
+  Calendar as CalendarIcon,
+  MapPin,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -11,12 +19,30 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Surface } from "@/components/ui/surface";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
-import { getAdminEventById, upsertEvent, listEventLots, upsertEventLot } from "@/services/events.functions";
+import {
+  getAdminEventById,
+  upsertEvent,
+  listEventLots,
+  upsertEventLot,
+} from "@/services/events.functions";
 
 export const Route = createFileRoute("/admin/events/$eventId")({
   head: () => ({ meta: [{ title: "Gerenciar Evento — Admin" }] }),
@@ -41,10 +67,15 @@ function AdminEventEditor() {
   // Event State
   const [title, setTitle] = useState(event?.title || "");
   const [description, setDescription] = useState(event?.description || "");
-  const [eventDate, setEventDate] = useState(event?.event_date ? new Date(event.event_date).toISOString().slice(0, 16) : "");
+  const [eventDate, setEventDate] = useState(
+    event?.event_date ? new Date(event.event_date).toISOString().slice(0, 16) : "",
+  );
   const [location, setLocation] = useState(event?.location || "");
-  const [status, setStatus] = useState<"draft" | "published" | "cancelled">(event?.status || "draft");
-  
+  const [status, setStatus] = useState<"draft" | "published" | "cancelled">(
+    event?.status || "draft",
+  );
+  const [coverImage, setCoverImage] = useState(event?.cover_image || "");
+
   const [isSaving, setIsSaving] = useState(false);
 
   // Lot Management State
@@ -69,14 +100,15 @@ function AdminEventEditor() {
         event_date: new Date(eventDate).toISOString(),
         location,
         status,
+        cover_image: coverImage || null,
       };
       if (!isNew) {
         payload.id = event!.id;
       }
-      
+
       const res = await upsertEvent({ data: payload });
       toast.success(isNew ? "Evento criado!" : "Evento atualizado!");
-      
+
       if (isNew) {
         navigate({ to: "/admin/events/$eventId", params: { eventId: res.id } });
       } else {
@@ -109,12 +141,12 @@ function AdminEventEditor() {
   const handleSaveLot = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!lotName || !lotPrice) return;
-    
+
     setIsSavingLot(true);
     try {
-      const priceCents = Math.round(parseFloat(lotPrice.replace(',', '.')) * 100);
+      const priceCents = Math.round(parseFloat(lotPrice.replace(",", ".")) * 100);
       const capacityNum = lotCapacity ? parseInt(lotCapacity, 10) : undefined;
-      
+
       const payload: any = {
         event_id: event!.id,
         name: lotName,
@@ -122,7 +154,7 @@ function AdminEventEditor() {
         capacity: capacityNum,
         status: lotStatus,
       };
-      
+
       if (editingLot) {
         payload.id = editingLot.id;
       }
@@ -151,7 +183,9 @@ function AdminEventEditor() {
             {isNew ? "Novo Evento" : "Gerenciar Evento"}
           </h1>
           <p className="text-muted-foreground text-sm">
-            {isNew ? "Crie os dados básicos do evento." : "Gerencie informações, ingressos e configurações."}
+            {isNew
+              ? "Crie os dados básicos do evento."
+              : "Gerencie informações, ingressos e configurações."}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -172,32 +206,55 @@ function AdminEventEditor() {
 
       <Tabs defaultValue="info" className="w-full">
         <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent mb-6">
-          <TabsTrigger value="info" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6">
+          <TabsTrigger
+            value="info"
+            className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
+          >
             <FileText className="h-4 w-4 mr-2" />
             Informações
           </TabsTrigger>
-          <TabsTrigger value="tickets" disabled={isNew} className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6">
+          <TabsTrigger
+            value="tickets"
+            disabled={isNew}
+            className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
+          >
             <Ticket className="h-4 w-4 mr-2" />
             Lotes e Ingressos
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="info" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Dados Principais</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <Surface variant="default" padding="none">
+            <div className="p-6 border-b border-border/20 bg-muted/10">
+              <h3 className="text-base font-bold">Dados Principais</h3>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="space-y-2">
+                <Label>Imagem de Capa (Flyer)</Label>
+                <ImageUpload 
+                  value={coverImage} 
+                  onChange={setCoverImage} 
+                  bucket="cms-media"
+                />
+              </div>
               <div className="space-y-2">
                 <Label>Título do Evento</Label>
-                <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex: Festival Jah de Inverno" />
+                <Input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Ex: Festival Jah de Inverno"
+                />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 <div className="space-y-2">
+                <div className="space-y-2">
                   <Label>Data e Hora</Label>
-                  <Input type="datetime-local" value={eventDate} onChange={(e) => setEventDate(e.target.value)} />
+                  <Input
+                    type="datetime-local"
+                    value={eventDate}
+                    onChange={(e) => setEventDate(e.target.value)}
+                  />
                 </div>
-                 <div className="space-y-2">
+                <div className="space-y-2">
                   <Label>Status</Label>
                   <Select value={status} onValueChange={(v: any) => setStatus(v)}>
                     <SelectTrigger>
@@ -213,45 +270,60 @@ function AdminEventEditor() {
               </div>
               <div className="space-y-2">
                 <Label>Local</Label>
-                <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Ex: Praça Central, Rua XV..." />
+                <Input
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="Ex: Praça Central, Rua XV..."
+                />
               </div>
               <div className="space-y-2">
                 <Label>Descrição</Label>
-                <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={5} placeholder="Fale sobre as atrações, regras..." />
+                <Textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={5}
+                  placeholder="Fale sobre as atrações, regras..."
+                />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </Surface>
         </TabsContent>
 
         <TabsContent value="tickets">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+          <Surface variant="default" padding="none">
+            <div className="flex flex-row items-center justify-between p-6 border-b border-border/20 bg-muted/10">
               <div>
-                <CardTitle>Lotes de Ingressos</CardTitle>
-                <CardDescription>Crie categorias de ingresso (Meia, Inteira, VIP).</CardDescription>
+                <h3 className="text-base font-bold">Lotes de Ingressos</h3>
+                <p className="text-sm text-muted-foreground">
+                  Crie categorias de ingresso (Meia, Inteira, VIP).
+                </p>
               </div>
-              <Button onClick={() => openLotSheet()}>
-                Novo Lote
-              </Button>
-            </CardHeader>
-            <CardContent>
+              <Button onClick={() => openLotSheet()}>Novo Lote</Button>
+            </div>
+            <div className="p-6">
               {lots.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground bg-muted/20 border border-dashed rounded-lg">
+                <div className="text-center py-8 text-muted-foreground bg-muted/20 border border-dashed">
                   Nenhum lote cadastrado. Crie um lote para começar a vender.
                 </div>
               ) : (
                 <div className="space-y-3">
                   {lots.map((lot: any) => (
-                    <div key={lot.id} className="flex items-center justify-between p-4 border rounded-lg bg-card">
+                    <div
+                      key={lot.id}
+                      className="flex items-center justify-between p-4 border bg-card"
+                    >
                       <div>
                         <div className="flex items-center gap-2">
                           <h4 className="font-bold">{lot.name}</h4>
-                          <Badge variant={lot.status === 'active' ? 'default' : 'secondary'}>
+                          <Badge variant={lot.status === "active" ? "default" : "secondary"}>
                             {lot.status}
                           </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">
-                          Capacidade: {lot.capacity ? `${lot.sold_count} vendidos de ${lot.capacity}` : `${lot.sold_count} vendidos (ilimitado)`}
+                          Capacidade:{" "}
+                          {lot.capacity
+                            ? `${lot.sold_count} vendidos de ${lot.capacity}`
+                            : `${lot.sold_count} vendidos (ilimitado)`}
                         </p>
                       </div>
                       <div className="flex items-center gap-4">
@@ -266,8 +338,8 @@ function AdminEventEditor() {
                   ))}
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </Surface>
         </TabsContent>
       </Tabs>
 
@@ -276,40 +348,42 @@ function AdminEventEditor() {
         <SheetContent side="right" className="w-[400px] sm:w-[540px]">
           <SheetHeader>
             <SheetTitle>{editingLot ? "Editar Lote" : "Novo Lote"}</SheetTitle>
-            <SheetDescription>Configure o nome, preço e capacidade deste tipo de ingresso.</SheetDescription>
+            <SheetDescription>
+              Configure o nome, preço e capacidade deste tipo de ingresso.
+            </SheetDescription>
           </SheetHeader>
           <form onSubmit={handleSaveLot} className="space-y-6 mt-6">
             <div className="space-y-2">
               <Label>Nome do Lote/Ingresso</Label>
-              <Input 
-                value={lotName} 
-                onChange={(e) => setLotName(e.target.value)} 
-                placeholder="Ex: Pista - Lote 1, Camarote..." 
-                required 
+              <Input
+                value={lotName}
+                onChange={(e) => setLotName(e.target.value)}
+                placeholder="Ex: Pista - Lote 1, Camarote..."
+                required
               />
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
-               <div className="space-y-2">
+              <div className="space-y-2">
                 <Label>Preço (R$)</Label>
-                <Input 
-                  type="number" 
-                  step="0.01" 
+                <Input
+                  type="number"
+                  step="0.01"
                   min="0"
-                  value={lotPrice} 
-                  onChange={(e) => setLotPrice(e.target.value)} 
-                  placeholder="0,00" 
-                  required 
+                  value={lotPrice}
+                  onChange={(e) => setLotPrice(e.target.value)}
+                  placeholder="0,00"
+                  required
                 />
               </div>
               <div className="space-y-2">
                 <Label>Capacidade (Opcional)</Label>
-                <Input 
-                  type="number" 
+                <Input
+                  type="number"
                   min="1"
-                  value={lotCapacity} 
-                  onChange={(e) => setLotCapacity(e.target.value)} 
-                  placeholder="Ilimitado se vazio" 
+                  value={lotCapacity}
+                  onChange={(e) => setLotCapacity(e.target.value)}
+                  placeholder="Ilimitado se vazio"
                 />
               </div>
             </div>

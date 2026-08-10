@@ -1378,3 +1378,208 @@ export const bulkUpdateProductStatus = createServerFn({ method: "POST" })
       throw new Error(e instanceof Error ? e.message : "Erro ao executar ação em lote.");
     }
   });
+
+// ---------------------------------------------------------------------------
+// Destaques (Vitrine)
+// ---------------------------------------------------------------------------
+
+export const getAdminDestaques = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const db = getServerClient();
+    const { data: store } = await db.from("stores").select("id").limit(1).single();
+    if (!store) return { status: "unconfigured" as const };
+
+    // Get all published products and also their product_collections to see if they are in 'destaques'
+    const { data, error } = await db
+      .from("products")
+      .select(
+        `
+        id, title, slug, price_cents, status,
+        product_media(url, alt),
+        product_collections(
+          collections!inner(slug)
+        )
+      `,
+      )
+      .eq("store_id", store.id)
+      .eq("status", "published")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return { status: "ok" as const, data: data || [] };
+  } catch (e: any) {
+    if (e instanceof SupabaseUnconfiguredError) throw e;
+    console.error("[admin-catalog] getAdminDestaques error:", e);
+    return { status: "error" as const, message: "Erro ao carregar destaques." };
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Product Option Groups (Grupos de Opções / Adicionais)
+// Tabelas: product_options + product_option_values
+// Migration: 20260723150000_product_options_schema.sql
+// ---------------------------------------------------------------------------
+
+const optionGroupSchema = z.object({
+  id: z.string().uuid().optional(),
+  product_id: z.string().uuid(),
+  internal_name: z.string().min(1, "Nome interno é obrigatório"),
+  display_name: z.string().min(1, "Nome de exibição é obrigatório"),
+  selection_type: z.enum(["single", "multiple"]).default("single"),
+  min_selections: z.number().int().min(0).default(0),
+  max_selections: z.number().int().min(1).default(1),
+  is_required: z.boolean().default(false),
+  sort_order: z.number().int().default(0),
+});
+
+const optionValueSchema = z.object({
+  id: z.string().uuid().optional(),
+  group_id: z.string().uuid(),
+  label: z.string().min(1, "Rótulo é obrigatório"),
+  price_modifier_cents: z.number().int().default(0),
+  is_default: z.boolean().default(false),
+  is_active: z.boolean().default(true),
+  sort_order: z.number().int().default(0),
+});
+
+/** Lista todos os grupos de opções de um produto com seus valores */
+export const listProductOptionGroups = createServerFn({ method: "GET" })
+  .validator(z.object({ product_id: z.string().uuid() }))
+  .handler(async ({ data: { product_id } }) => {
+    try {
+      await requireAdmin();
+      const db = getServerClient();
+      const { data, error } = await db
+        .from("product_option_groups")
+        .select(`
+          product_id, option_group_id, sort_order,
+          option_groups (
+            id, tenant_id, internal_name, display_name, selection_type,
+            min_selections, max_selections, is_required, created_at,
+            option_values(
+              id, group_id, label, price_modifier_cents, is_default, is_active, sort_order
+            )
+          )
+        `)
+        .eq("product_id", product_id)
+        .order("sort_order", { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    } catch (e: any) {
+      console.error("[admin-catalog] listProductOptionGroups error:", e);
+      throw new Error("Erro ao carregar grupos de opções.");
+    }
+  });
+
+/** Remove um grupo de opções (CASCADE apaga os valores) */
+export const deleteOptionGroup = createServerFn({ method: "POST" })
+  .validator(z.object({ group_id: z.string().uuid() }))
+  .handler(async ({ data: { group_id } }) => {
+    try {
+      await requireAdmin();
+      const db = getServerClient();
+      const { error } = await db.from("product_options").delete().eq("id", group_id);
+      if (error) throw error;
+      return { success: true };
+    } catch (e: any) {
+      throw new Error(e.message || "Erro ao remover grupo de opções.");
+    }
+  });
+
+/** Remove um valor de opção */
+export const deleteOptionValue = createServerFn({ method: "POST" })
+  .validator(z.object({ value_id: z.string().uuid() }))
+  .handler(async ({ data: { value_id } }) => {
+    try {
+      await requireAdmin();
+      const db = getServerClient();
+      const { error } = await db.from("product_option_values").delete().eq("id", value_id);
+      if (error) throw error;
+      return { success: true };
+    } catch (e: any) {
+      throw new Error(e.message || "Erro ao remover opção.");
+    }
+  });
+
+/**
+ * Salva toda a matriz de grupos + valores em batch (substitui e reinsere).
+ * Estratégia idempotente: remove grupos antigos e reinsere todos de uma vez.
+ */
+export const batchSaveOptionGroups = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      product_id: z.string().uuid(),
+      groups: z.array(
+        optionGroupSchema.extend({
+          values: z.array(
+            z.object({
+              id: z.string().uuid().optional(),
+              label: z.string().min(1),
+              price_modifier_cents: z.number().int().default(0),
+              is_default: z.boolean().default(false),
+              is_active: z.boolean().default(true),
+              sort_order: z.number().int().default(0),
+            }),
+          ),
+        }),
+      ),
+    }),
+  )
+  .handler(async ({ data: { product_id, groups } }) => {
+    try {
+      await requireAdmin();
+      const db = getServerClient();
+
+      // Aqui, assumimos que a UI já enviou os IDs dos option_groups globais.
+      // Se não enviou, criamos o grupo global primeiro.
+      
+      await db.from("product_option_groups").delete().eq("product_id", product_id);
+
+      for (let i = 0; i < groups.length; i++) {
+        const { id, values, ...groupData } = groups[i];
+        let groupId = id;
+
+        // Se for um novo grupo (sem UUID)
+        if (!groupId || groupId.length < 32) {
+          const { data: newGroup, error: gErr } = await db
+            .from("option_groups")
+            .insert({ ...groupData })
+            .select()
+            .single();
+
+          if (gErr || !newGroup) throw gErr || new Error("Erro ao criar Option Group.");
+          groupId = newGroup.id;
+
+          if (values.length > 0) {
+            const { error: vErr } = await db.from("option_values").insert(
+              values.map((v, vi) => ({
+                group_id: groupId,
+                label: v.label,
+                price_modifier_cents: v.price_modifier_cents ?? 0,
+                is_default: v.is_default ?? false,
+                is_active: v.is_active ?? true,
+                sort_order: vi,
+              })),
+            );
+            if (vErr) throw vErr;
+          }
+        } else {
+          // Grupo já existe. (Nesta versão simplificada não atualizamos grupos globais pela tela de produto, apenas linkamos)
+        }
+
+        // Link group to product
+        await db.from("product_option_groups").insert({
+          product_id,
+          option_group_id: groupId,
+          sort_order: i
+        });
+      }
+
+      return { success: true };
+    } catch (e: any) {
+      console.error("[admin-catalog] batchSaveOptionGroups error:", e);
+      throw new Error(e.message || "Erro ao salvar opções do produto.");
+    }
+  });
+

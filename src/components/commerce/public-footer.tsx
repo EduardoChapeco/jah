@@ -5,8 +5,7 @@ import { Logo } from "@/components/commerce/logo";
 export function PublicFooter({ menuItems = [], store }: { menuItems?: any[]; store?: any }) {
   const storeName = store?.name || "Jah";
   const storeDesc =
-    store?.description ||
-    "Moda feminina contemporânea com conforto e estilo. Curadoria da Jah.";
+    store?.description || "Plataforma da comunidade para produtores culturais, negócios e artistas locais.";
 
   // Agrupa a lista plana de itens em colunas de até 4 links
   const navItems = menuItems;
@@ -64,7 +63,7 @@ export function PublicFooter({ menuItems = [], store }: { menuItems?: any[]; sto
           <p>
             © {new Date().getFullYear()} {storeName}. Todos os direitos reservados.
           </p>
-          <p>{store?.email ? `Contato: ${store.email}` : "Conforto e Estilo"}</p>
+          <p>{store?.email ? `Contato: ${store.email}` : "Apoie a Comunidade"}</p>
         </div>
       </div>
     </footer>

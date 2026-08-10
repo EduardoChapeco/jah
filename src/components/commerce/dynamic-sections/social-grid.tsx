@@ -40,7 +40,7 @@ export function SocialGrid({ content }: SocialGridProps) {
       </div>
 
       {posts.length === 0 ? (
-        <div className="p-8 text-center text-xs text-muted-foreground border border-dashed rounded-xl">
+        <div className="p-8 text-center text-xs text-muted-foreground border border-dashed">
           Nenhuma publicação vinculada ao feed social.
         </div>
       ) : (
@@ -56,7 +56,7 @@ export function SocialGrid({ content }: SocialGridProps) {
               <Wrapper
                 key={idx}
                 {...wrapperProps}
-                className="group relative aspect-square overflow-hidden rounded-xl bg-muted block border border-border"
+                className="group relative aspect-square overflow-hidden bg-muted block border border-border"
               >
                 <img
                   src={post.image_url}

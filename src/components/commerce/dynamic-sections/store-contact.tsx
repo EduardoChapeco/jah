@@ -149,7 +149,7 @@ export function StoreContact({
         <h2 className="text-xl font-semibold mb-6">{title}</h2>
 
         {contactItems.length > 0 && (
-          <div className="divide-y divide-border rounded-xl border overflow-hidden mb-6">
+          <div className="divide-y divide-border border overflow-hidden mb-6">
             {contactItems.map((item, i) => {
               const Icon = item.icon;
               const isLink = item.href !== "#";

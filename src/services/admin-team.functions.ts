@@ -20,13 +20,14 @@ export async function listTeamMembersHandler() {
     .in("role", ["owner", "admin", "manager", "seller", "finance", "content"])
     .order("created_at", { ascending: true });
 
-  const profiles = members?.map(m => ({
-    id: m.profile_id,
-    role: m.role,
-    created_at: m.created_at,
-    full_name: (m.profiles as any)?.full_name || "",
-    avatar_url: (m.profiles as any)?.avatar_url || null,
-  })) || [];
+  const profiles =
+    members?.map((m) => ({
+      id: m.profile_id,
+      role: m.role,
+      created_at: m.created_at,
+      full_name: (m.profiles as any)?.full_name || "",
+      avatar_url: (m.profiles as any)?.avatar_url || null,
+    })) || [];
 
   if (error) throw error;
 

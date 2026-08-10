@@ -13,12 +13,12 @@ export async function logAuditAction(
   action: string,
   entityType: string,
   entityId: string | null = null,
-  payloadSnapshot: any = {}
+  payloadSnapshot: any = {},
 ) {
   if (!identity.store_id || !identity.id) return;
 
   const supabase = getServerClient();
-  
+
   await supabase.from("audit_logs").insert({
     store_id: identity.store_id,
     user_id: identity.id,
@@ -52,5 +52,4 @@ export async function getAuditLogHandler() {
 /**
  * Gets audit logs for admins - server function wrapper
  */
-export const getAuditLog = createServerFn({ method: "GET" })
-  .handler(() => getAuditLogHandler());
+export const getAuditLog = createServerFn({ method: "GET" }).handler(() => getAuditLogHandler());

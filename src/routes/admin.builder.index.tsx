@@ -23,7 +23,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Surface } from "@/components/ui/surface";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -63,13 +63,13 @@ export const Route = createFileRoute("/admin/builder/")({
 function getTypeIcon(type: string) {
   switch (type) {
     case "storefront":
-      return <LayoutTemplate className="h-4 w-4 text-blue-500" />;
+      return <LayoutTemplate className="h-4 w-4 text-primary" />;
     case "biolink":
-      return <Link2 className="h-4 w-4 text-green-500" />;
+      return <Link2 className="h-4 w-4 text-success" />;
     case "pwa":
-      return <Smartphone className="h-4 w-4 text-purple-500" />;
+      return <Smartphone className="h-4 w-4 text-accent" />;
     case "campaign":
-      return <FileText className="h-4 w-4 text-orange-500" />;
+      return <FileText className="h-4 w-4 text-warning" />;
     default:
       return <FileText className="h-4 w-4" />;
   }
@@ -278,7 +278,9 @@ function BuilderIndex() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filteredDocs.map((doc: ExperienceDocument) => (
-          <Card
+          <Surface
+            variant="default"
+            padding="none"
             key={doc.id}
             className="group overflow-hidden flex flex-col hover:border-primary/50 transition-colors"
           >
@@ -289,7 +291,7 @@ function BuilderIndex() {
                 {getTypeLabel(doc.document_type)}
               </Badge>
             </div>
-            <CardContent className="p-4 flex flex-col flex-1">
+            <div className="p-4 flex flex-col flex-1">
               <h3 className="font-semibold text-lg truncate">{doc.title}</h3>
               <p className="text-xs text-muted-foreground font-mono mt-1 mb-4 truncate">
                 /{doc.slug}
@@ -317,8 +319,8 @@ function BuilderIndex() {
                   </Button>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </Surface>
         ))}
         {filteredDocs.length === 0 && (
           <div className="col-span-full py-12 text-center text-muted-foreground">
@@ -370,7 +372,7 @@ function BuilderIndex() {
                 />
               </div>
             </div>
-            <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/20">
+            <div className="flex items-center justify-between p-3 border bg-muted/20">
               <div>
                 <p className="text-sm font-semibold">Página Ativa</p>
                 <p className="text-xs text-muted-foreground">
@@ -405,11 +407,13 @@ function BuilderIndex() {
             </SheetDescription>
           </SheetHeader>
           <div className="flex flex-col gap-4 py-4 mt-4">
-            <Card
+            <Surface
+              variant="default"
+              padding="none"
               className="cursor-pointer hover:border-primary transition-all overflow-hidden flex flex-col"
               onClick={() => handleCreateDocument(selectedDocType || "storefront", "blank")}
             >
-              <div className="h-32 bg-muted flex items-center justify-center">
+              <div className="h-32 bg-muted flex items-center justify-center border-b">
                 <FileText className="h-8 w-8 text-muted-foreground" />
               </div>
               <div className="p-4">
@@ -418,15 +422,17 @@ function BuilderIndex() {
                   Comece do absoluto zero, com um canvas limpo.
                 </p>
               </div>
-            </Card>
-            <Card
+            </Surface>
+            <Surface
+              variant="default"
+              padding="none"
               className="cursor-pointer hover:border-primary transition-all overflow-hidden flex flex-col"
               onClick={() =>
                 handleCreateDocument(selectedDocType || "storefront", "institutional_profile")
               }
             >
-              <div className="h-32 bg-indigo-50 flex items-center justify-center border-b">
-                <Building className="h-8 w-8 text-indigo-400" />
+              <div className="h-32 bg-accent flex items-center justify-center border-b">
+                <Building className="h-8 w-8 text-accent" />
               </div>
               <div className="p-4">
                 <h4 className="font-semibold text-sm">Perfil Institucional</h4>
@@ -434,8 +440,10 @@ function BuilderIndex() {
                   História, depoimentos e presença da sua marca.
                 </p>
               </div>
-            </Card>
-            <Card
+            </Surface>
+            <Surface
+              variant="default"
+              padding="none"
               className="cursor-pointer hover:border-primary transition-all overflow-hidden flex flex-col"
               onClick={() =>
                 handleCreateDocument(selectedDocType || "storefront", "biolink_classic")
@@ -450,8 +458,10 @@ function BuilderIndex() {
                   Foto de perfil, título, bio e grade de links.
                 </p>
               </div>
-            </Card>
-            <Card
+            </Surface>
+            <Surface
+              variant="default"
+              padding="none"
               className="cursor-pointer hover:border-primary transition-all overflow-hidden flex flex-col"
               onClick={() => handleCreateDocument(selectedDocType || "storefront", "landing_page")}
             >
@@ -464,7 +474,7 @@ function BuilderIndex() {
                   Banner, cronômetro e destaques da coleção.
                 </p>
               </div>
-            </Card>
+            </Surface>
           </div>
         </SheetContent>
       </Sheet>

@@ -536,16 +536,16 @@ function CashRegisterPage() {
                   <div
                     key={variant.variantId}
                     onClick={() => handleAddToCart(variant)}
-                    className="p-3 rounded-xl border border-border bg-card hover:border-primary/50 hover:shadow-xs transition-all cursor-pointer flex items-center gap-3 group"
+                    className="p-3 border border-border bg-card hover:border-primary/50 hover:shadow-xs transition-all cursor-pointer flex items-center gap-3 group"
                   >
                     {variant.coverUrl ? (
                       <img
                         src={variant.coverUrl}
                         alt=""
-                        className="size-12 rounded-lg object-cover border shrink-0"
+                        className="size-12 object-cover border shrink-0"
                       />
                     ) : (
-                      <div className="size-12 rounded-lg bg-muted border flex items-center justify-center shrink-0">
+                      <div className="size-12 bg-muted border flex items-center justify-center shrink-0">
                         <Package className="size-6 text-muted-foreground" />
                       </div>
                     )}
@@ -577,7 +577,7 @@ function CashRegisterPage() {
 
             {/* LADO DIREITO: Carrinho do Balcão e Fechamento (5 Colunas) */}
             <div className="lg:col-span-5 space-y-4">
-              <Card className="rounded-xl border border-border bg-card shadow-xs">
+              <Card className="border border-border bg-card shadow-xs">
                 <CardHeader className="py-3 px-4 border-b bg-muted/30 flex flex-row items-center justify-between">
                   <CardTitle className="text-base flex items-center gap-2">
                     <ShoppingCart className="size-4 text-primary" />
@@ -598,7 +598,7 @@ function CashRegisterPage() {
                       {cartItems.map((item) => (
                         <div
                           key={item.variantId}
-                          className="flex items-center justify-between p-2 rounded-lg border bg-muted/20"
+                          className="flex items-center justify-between p-2 border bg-muted/20"
                         >
                           <div className="min-w-0 flex-1 pr-2">
                             <p className="font-bold text-xs truncate flex items-center gap-1.5">
@@ -781,7 +781,7 @@ function CashRegisterPage() {
 
         {/* TAB 2: EXTRATO DE LANÇAMENTOS */}
         <TabsContent value="lancamentos" className="mt-6">
-          <Card className="rounded-xl border border-border shadow-xs">
+          <Card className="border border-border shadow-xs">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="text-base">Extrato de Lançamentos do Turno</CardTitle>
@@ -835,7 +835,7 @@ function CashRegisterPage() {
 
         {/* TAB 3: FECHAMENTO DE TURNO */}
         <TabsContent value="fechamento" className="mt-6">
-          <Card className="max-w-xl mx-auto rounded-xl border border-border shadow-xs">
+          <Card className="max-w-xl mx-auto border border-border shadow-xs">
             <CardHeader>
               <CardTitle className="text-base">Encerrar Turno de Caixa</CardTitle>
               <CardDescription>
@@ -899,12 +899,16 @@ function CashRegisterPage() {
           {lastReceipt && (
             <div
               id="pos-receipt"
-              className="space-y-3 p-4 bg-muted/40 rounded-xl text-xs text-left border font-mono text-black print:bg-white print:border-none print:w-[300px] print:text-[10px] print:p-0"
+              className="space-y-3 p-4 bg-muted/40 text-xs text-left border font-mono text-black print:bg-white print:border-none print:w-[300px] print:text-[10px] print:p-0"
             >
               <div className="flex flex-col items-center justify-center border-b border-dashed pb-2 font-bold mb-2">
                 <span className="text-lg tracking-widest uppercase">JAH STORE</span>
-                <span className="text-muted-foreground print:text-black">PDV #{lastReceipt.receiptId?.slice(0, 6)}</span>
-                <span className="font-normal text-[10px] mt-1">{formatDateTime(lastReceipt.timestamp)}</span>
+                <span className="text-muted-foreground print:text-black">
+                  PDV #{lastReceipt.receiptId?.slice(0, 6)}
+                </span>
+                <span className="font-normal text-[10px] mt-1">
+                  {formatDateTime(lastReceipt.timestamp)}
+                </span>
               </div>
               <p className="border-b border-dashed pb-2">Cliente: {lastReceipt.customerName}</p>
 
@@ -953,7 +957,7 @@ function CashRegisterPage() {
                   </div>
                 )}
               </div>
-              
+
               <div className="text-center pt-4 text-[10px] italic border-t border-dashed mt-4">
                 Obrigado pela preferência!
               </div>

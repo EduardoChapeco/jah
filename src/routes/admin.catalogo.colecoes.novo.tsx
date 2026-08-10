@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Surface } from "@/components/ui/surface";
 import { createCollection } from "@/services/admin-catalog.functions";
 
 export const Route = createFileRoute("/admin/catalogo/colecoes/novo")({
@@ -81,11 +81,11 @@ function NewCollectionPage() {
       />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Dados Básicos</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <Surface variant="default" padding="none">
+          <div className="p-6 border-b border-border/20 bg-muted/10">
+            <h3 className="text-base font-bold">Dados Básicos</h3>
+          </div>
+          <div className="p-6 space-y-4">
             <div className="space-y-2">
               <Label>Nome da Coleção</Label>
               <Input
@@ -122,8 +122,8 @@ function NewCollectionPage() {
                 </SelectContent>
               </Select>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
 
         <div className="flex justify-end gap-4">
           <Button type="button" variant="ghost" asChild>

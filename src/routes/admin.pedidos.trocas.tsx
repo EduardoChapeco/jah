@@ -12,11 +12,12 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { listAdminRmas, approveRma } from "@/services/rma.functions";
+import { listAdminRmas, updateRmaStatus, resolveRmaWithCredit } from "@/services/rma.functions";
 import { formatMoney } from "@/lib/money";
 import { EmptyState } from "@/components/state/states";
 import { Search, Filter, Box, RefreshCcw, KanbanSquare, Table as TableIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { formatDate } from "../lib/datetime";
 
 export const Route = createFileRoute("/admin/pedidos/trocas")({
   head: () => ({ meta: [{ title: "RMA: Trocas e Devoluções" }] }),
@@ -39,16 +40,26 @@ function translateStatus(status: string) {
   return map[status] || status;
 }
 
-function getStatusBadge(status: string): "default" | "secondary" | "destructive" | "outline" | "success" {
+function getStatusBadge(
+  status: string,
+): "default" | "secondary" | "destructive" | "outline" | "success" {
   switch (status) {
-    case "pending": return "secondary";
-    case "authorized": return "default";
-    case "shipped_back": return "outline";
-    case "received": return "default";
-    case "inspected": return "secondary";
-    case "resolved": return "success";
-    case "rejected": return "destructive";
-    default: return "outline";
+    case "pending":
+      return "secondary";
+    case "authorized":
+      return "default";
+    case "shipped_back":
+      return "outline";
+    case "received":
+      return "default";
+    case "inspected":
+      return "secondary";
+    case "resolved":
+      return "success";
+    case "rejected":
+      return "destructive";
+    default:
+      return "outline";
   }
 }
 
@@ -64,7 +75,7 @@ const KANBAN_COLUMNS = [
   { id: "authorized", title: "Autorizadas" },
   { id: "received", title: "Recebidas" },
   { id: "inspected", title: "Inspecionadas" },
-  { id: "resolved", title: "Concluídas" }
+  { id: "resolved", title: "Concluídas" },
 ];
 
 function RmaDashboardPage() {
@@ -73,12 +84,22 @@ function RmaDashboardPage() {
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"table" | "kanban">("table");
 
-  const handleUpdate = async (rmaId: string, status: string, resolution?: "store_credit" | "refund" | "replacement") => {
+  const handleUpdate = async (
+    rmaId: string,
+    status: string,
+    resolution?: "store_credit" | "refund" | "replacement",
+  ) => {
     setProcessingId(rmaId);
     try {
       if (status === "authorized") {
-        await approveRma({ data: { rmaId, resolution: resolution || "store_credit" } });
+        await updateRmaStatus({ data: { rmaId, status: "authorized" } });
         toast.success("RMA Autorizado com sucesso! O cliente foi notificado.");
+      } else if (status === "received") {
+        await updateRmaStatus({ data: { rmaId, status: "received" } });
+        toast.success("Produto recebido no centro logístico.");
+      } else if (status === "resolved") {
+        const res = await resolveRmaWithCredit({ data: { rmaId } });
+        toast.success(`Vale compras gerado: ${formatMoney(res.creditAmount)}`);
       } else {
         toast.error("Endpoint não implementado para este status nesta demonstração.");
       }
@@ -109,7 +130,8 @@ function RmaDashboardPage() {
             size="sm"
             variant="secondary"
             className="w-full sm:w-auto"
-            onClick={() => toast.info("Simulando: Recebendo produto...")}
+            onClick={() => handleUpdate(rma.id, "received")}
+            disabled={processingId === rma.id}
           >
             Registrar Recebimento
           </Button>
@@ -119,7 +141,8 @@ function RmaDashboardPage() {
             size="sm"
             variant="outline"
             className="w-full sm:w-auto"
-            onClick={() => toast.info("Simulando: Inspecionando item...")}
+            onClick={() => handleUpdate(rma.id, "inspected")}
+            disabled={processingId === rma.id}
           >
             Inspecionar
           </Button>
@@ -129,7 +152,8 @@ function RmaDashboardPage() {
             size="sm"
             variant="default"
             className="w-full sm:w-auto bg-success text-success-foreground hover:bg-success/90"
-            onClick={() => toast.success(`Vale compras gerado: ${formatMoney(rma.orderTotal)}`)}
+            onClick={() => handleUpdate(rma.id, "resolved")}
+            disabled={processingId === rma.id}
           >
             Gerar Vale-Compras
           </Button>
@@ -146,16 +170,16 @@ function RmaDashboardPage() {
           description="Controle logístico de devoluções, trocas e garantias."
         />
         <div className="flex bg-muted p-1 rounded-md">
-          <Button 
-            variant={viewMode === "table" ? "secondary" : "ghost"} 
-            size="sm" 
+          <Button
+            variant={viewMode === "table" ? "secondary" : "ghost"}
+            size="sm"
             onClick={() => setViewMode("table")}
           >
             <TableIcon className="h-4 w-4 mr-2" /> Tabela
           </Button>
-          <Button 
-            variant={viewMode === "kanban" ? "secondary" : "ghost"} 
-            size="sm" 
+          <Button
+            variant={viewMode === "kanban" ? "secondary" : "ghost"}
+            size="sm"
             onClick={() => setViewMode("kanban")}
           >
             <KanbanSquare className="h-4 w-4 mr-2" /> Kanban
@@ -196,9 +220,7 @@ function RmaDashboardPage() {
             <TableBody>
               {rmas.map((rma: any) => (
                 <TableRow key={rma.id}>
-                  <TableCell className="whitespace-nowrap">
-                    {new Date(rma.requestedAt).toLocaleDateString("pt-BR")}
-                  </TableCell>
+                  <TableCell className="whitespace-nowrap">{formatDate(rma.requestedAt)}</TableCell>
                   <TableCell className="font-medium">#{rma.orderToken}</TableCell>
                   <TableCell>{rma.customerName}</TableCell>
                   <TableCell>
@@ -207,7 +229,9 @@ function RmaDashboardPage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={getStatusBadge(rma.status)}>{translateStatus(rma.status)}</Badge>
+                    <Badge variant={getStatusBadge(rma.status)}>
+                      {translateStatus(rma.status)}
+                    </Badge>
                   </TableCell>
                   <TableCell className="text-right flex justify-end">
                     {getActionButtons(rma)}
@@ -219,13 +243,18 @@ function RmaDashboardPage() {
         </div>
       ) : (
         <div className="flex gap-4 overflow-x-auto pb-4">
-          {KANBAN_COLUMNS.map(col => {
+          {KANBAN_COLUMNS.map((col) => {
             const columnRmas = rmas.filter((r: any) => r.status === col.id);
             return (
-              <div key={col.id} className="min-w-[300px] w-[300px] bg-muted/30 p-3 rounded-lg border flex flex-col gap-3">
+              <div
+                key={col.id}
+                className="min-w-[300px] w-[300px] bg-muted/30 p-3 border flex flex-col gap-3"
+              >
                 <div className="flex justify-between items-center font-medium px-1">
                   <span>{col.title}</span>
-                  <Badge variant="outline" className="bg-background">{columnRmas.length}</Badge>
+                  <Badge variant="outline" className="bg-background">
+                    {columnRmas.length}
+                  </Badge>
                 </div>
                 {columnRmas.length === 0 ? (
                   <div className="text-sm text-muted-foreground p-4 text-center border border-dashed rounded-md bg-background/50">
@@ -234,7 +263,10 @@ function RmaDashboardPage() {
                 ) : (
                   <div className="space-y-3">
                     {columnRmas.map((rma: any) => (
-                      <div key={rma.id} className="bg-card p-3 rounded-md shadow-sm border space-y-3">
+                      <div
+                        key={rma.id}
+                        className="bg-card p-3 rounded-md shadow-sm border space-y-3"
+                      >
                         <div className="flex justify-between items-start">
                           <div>
                             <p className="font-medium text-sm">#{rma.orderToken}</p>
