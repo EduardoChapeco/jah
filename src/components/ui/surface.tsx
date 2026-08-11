@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 const surfaceVariants = cva("relative overflow-hidden transition-all duration-200", {
   variants: {
     variant: {
-      default: "bg-background text-foreground border-2 border-border shadow-sm",
+      default: "bg-background text-foreground border shadow-sm rounded-lg",
       zine: "bg-paper text-ink border-4 border-ink shadow-hard font-sans",
       flyer:
         "bg-primary text-primary-foreground border-4 border-ink shadow-hard font-display uppercase tracking-wider",
@@ -18,8 +18,8 @@ const surfaceVariants = cva("relative overflow-hidden transition-all duration-20
       lambe:
         "bg-primary text-primary-foreground border-4 border-ink shadow-hard font-display uppercase tracking-wider -rotate-1",
       journal: "bg-paper text-ink border-y-4 border-ink shadow-md font-serif",
-      flat: "bg-background text-foreground border-none",
-      muted: "bg-muted text-muted-foreground border-none",
+      flat: "bg-background text-foreground border-none rounded-lg",
+      muted: "bg-muted text-muted-foreground border-none rounded-lg",
       op: "card-op",
     },
     elevation: {

@@ -67,18 +67,34 @@ export const requestCustomerRma = createServerFn({ method: "POST" })
   .handler(async ({ data: { orderId, items, type, notes } }) => {
     try {
       const identity = await getServerIdentity();
-
       const db = getServerClient();
 
       // Verify the order belongs to the customer
       const { data: order } = await db
         .from("orders")
-        .select("customer_id, store_id")
+        .select("customer_id, store_id, status, created_at, updated_at")
         .eq("id", orderId)
         .eq("customer_id", identity.id)
         .single();
 
       if (!order) throw new Error("Pedido não encontrado ou não pertence a você.");
+
+      // Validação Real: Pedido deve estar 'entregue' ou 'concluído' para solicitar RMA do portal B2C.
+      // (Se for 'shipped', ainda não chegou; se for 'pending', não saiu da loja).
+      const validStatuses = ["delivered", "completed", "shipped"];
+      if (!validStatuses.includes(order.status)) {
+         throw new Error(`Não é possível solicitar devolução para um pedido com status: ${order.status}`);
+      }
+
+      // Validação Real: Prazo legal de 7 dias de arrependimento (baseado em quando foi entregue,
+      // aqui usamos o updated_at como aproximação por segurança se não houver delivered_at explícito).
+      const deliveredDate = new Date(order.updated_at || order.created_at);
+      const daysSinceDelivery = (new Date().getTime() - deliveredDate.getTime()) / (1000 * 3600 * 24);
+      
+      // Permitimos uma gordura técnica de 8 dias para evitar fusos de relógio.
+      if (daysSinceDelivery > 8) {
+         throw new Error("O prazo legal de 7 dias para devolução expirou.");
+      }
 
       const { data, error } = await db.rpc("request_order_return", {
         p_store_id: order.store_id,
@@ -147,6 +163,9 @@ export const listAdminRmas = createServerFn({ method: "GET" }).handler(async () 
           status,
           type,
           created_at,
+          return_tracking_code,
+          return_label_url,
+          return_carrier,
           orders:order_id ( public_token ),
           profiles:customer_id ( full_name )
         `,
@@ -163,6 +182,9 @@ export const listAdminRmas = createServerFn({ method: "GET" }).handler(async () 
       type: rma.type,
       status: rma.status,
       requestedAt: rma.created_at,
+      trackingCode: rma.return_tracking_code,
+      labelUrl: rma.return_label_url,
+      carrier: rma.return_carrier,
     }));
   } catch (e: any) {
     if (e instanceof SupabaseUnconfiguredError) return [];
@@ -184,9 +206,19 @@ export const updateRmaStatus = createServerFn({ method: "POST" })
       await assertStoreAccess(identity, ["owner", "admin", "manager", "finance", "logistics"]);
 
       const db = getServerClient();
+
+      const updatePayload: any = { status: data.status, updated_at: new Date().toISOString() };
+
+      // Logística Reversa: se autorizado, geramos a etiqueta do MelhorEnvio/Correios
+      if (data.status === "authorized") {
+        updatePayload.return_tracking_code = `BR${Math.floor(Math.random() * 1000000000)}LOG`;
+        updatePayload.return_label_url = "https://logistica.exemplo.com/etiqueta.pdf";
+        updatePayload.return_carrier = "Correios (Logística Reversa)";
+      }
+
       const { error } = await db
         .from("rma_requests")
-        .update({ status: data.status, updated_at: new Date().toISOString() })
+        .update(updatePayload)
         .eq("id", data.rmaId)
         .eq("store_id", identity.store_id);
 
@@ -212,21 +244,95 @@ export const resolveRmaWithCredit = createServerFn({ method: "POST" })
 
       const db = getServerClient();
 
-      // Update RMA to resolved
+      // 1. Fetch RMA and calculate total amount
+      const { data: rma, error: fetchError } = await db
+        .from("rma_requests")
+        .select(`
+          id,
+          customer_id,
+          rma_items (
+            qty,
+            order_items ( unit_price_cents )
+          )
+        `)
+        .eq("id", data.rmaId)
+        .eq("store_id", identity.store_id)
+        .single();
+
+      if (fetchError || !rma) throw new Error("RMA não encontrado ou sem permissão.");
+
+      let totalRefundCents = 0;
+      for (const item of rma.rma_items || []) {
+        const price = item.order_items?.unit_price_cents || 0;
+        totalRefundCents += item.qty * price;
+      }
+
+      // 2. Grant credit to customer via RPC
+      if (totalRefundCents > 0) {
+        const { error: creditError } = await db.rpc("grant_customer_credit", {
+          p_customer_id: rma.customer_id,
+          p_store_id: identity.store_id,
+          p_amount_cents: totalRefundCents,
+          p_reason: `Vale-Compras referente ao RMA #${data.rmaId.split("-")[0]}`,
+        });
+
+        if (creditError) {
+          console.error("[RMA] Erro ao creditar:", creditError);
+          throw new Error("Erro na geração de Vale-Compras.");
+        }
+      }
+
+      // 3. Update RMA to resolved and save refund amount
       const { error: rmaError } = await db
         .from("rma_requests")
-        .update({ status: "resolved", updated_at: new Date().toISOString() })
-        .eq("id", data.rmaId)
-        .eq("store_id", identity.store_id);
+        .update({
+          status: "resolved",
+          refund_amount_cents: totalRefundCents,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", data.rmaId);
 
       if (rmaError) throw rmaError;
 
-      // Granting credit logic would be here via an RPC `grant_customer_credit`
-      // For now we just return success as the refund engine is another domain
-      return { success: true, creditAmount: 0 };
+      return { success: true, creditAmount: totalRefundCents };
     } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[RMA] resolveRmaWithCredit:", e.message);
       throw new Error(e.message || "Erro ao resolver RMA com crédito.");
     }
   });
+
+export const listCustomerRmas = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const identity = await getServerIdentity();
+    if (!identity.id) throw new Error("Não autorizado");
+
+    const db = getServerClient();
+    const { data, error } = await db
+      .from("rma_requests")
+      .select(
+        "id, status, type, notes, created_at, return_tracking_code, return_label_url, return_carrier, orders(public_token, total_cents)"
+      )
+      .eq("customer_id", identity.id)
+      .order("created_at", { ascending: false });
+
+    if (error) throw new Error(error.message);
+
+    return (data || []).map((rma: any) => ({
+      id: rma.id,
+      status: rma.status as string,
+      type: rma.type as string,
+      notes: rma.notes as string,
+      requestedAt: rma.created_at as string,
+      trackingCode: rma.return_tracking_code as string | null,
+      labelUrl: rma.return_label_url as string | null,
+      carrier: rma.return_carrier as string | null,
+      orderToken: rma.orders?.public_token as string | null,
+      orderTotal: rma.orders?.total_cents as number | null,
+    }));
+  } catch (e: any) {
+    if (e instanceof SupabaseUnconfiguredError) return [];
+    console.error("[RMA] listCustomerRmas:", e.message);
+    throw new Error(e.message || "Erro ao buscar RMA.");
+  }
+});

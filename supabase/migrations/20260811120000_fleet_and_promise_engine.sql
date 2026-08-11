@@ -19,16 +19,14 @@ CREATE POLICY "Users can view delivery_drivers for their stores"
     ON public.delivery_drivers FOR SELECT
     USING (
         store_id IN (
-            SELECT store_id FROM public.store_roles WHERE user_id = auth.uid()
+            SELECT store_id FROM public.workspace_members WHERE profile_id = auth.uid()
         )
     );
 
 CREATE POLICY "Users can manage delivery_drivers for their stores"
     ON public.delivery_drivers FOR ALL
     USING (
-        store_id IN (
-            SELECT store_id FROM public.store_roles WHERE user_id = auth.uid() AND role IN ('owner', 'admin', 'manager')
-        )
+        public.has_workspace_role(store_id, ARRAY['owner', 'admin', 'manager', 'logistics'])
     );
 
 -- Atualiza a tabela orders para relacionar com a frota

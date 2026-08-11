@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { listAdminRmas, updateRmaStatus, resolveRmaWithCredit } from "@/services/rma.functions";
 import { formatMoney } from "@/lib/money";
 import { EmptyState } from "@/components/state/states";
-import { Search, Box, RefreshCcw, KanbanSquare, Table as TableIcon } from "lucide-react";
+import { Search, Box, RefreshCcw, KanbanSquare, Table as TableIcon, FileText, Truck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { formatDate } from "../lib/datetime";
 
@@ -173,6 +173,29 @@ function RmaDashboardPage() {
     );
   };
 
+  const getLogisticsInfo = (rma: any) => {
+    if (!rma.trackingCode) return null;
+    return (
+      <div className="mt-3 p-3 bg-muted/40 rounded-md border text-sm space-y-2">
+        <div className="flex items-center gap-2 text-foreground font-medium">
+          <Truck className="h-4 w-4 text-primary" />
+          Logística Reversa ({rma.carrier})
+        </div>
+        <p className="text-muted-foreground text-xs font-mono">
+          Rastreio: {rma.trackingCode}
+        </p>
+        {rma.labelUrl && (
+          <Button size="sm" variant="outline" asChild className="w-full text-xs h-7 mt-1">
+            <a href={rma.labelUrl} target="_blank" rel="noopener noreferrer">
+              <FileText className="h-3 w-3 mr-2" />
+              Imprimir Etiqueta
+            </a>
+          </Button>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -244,8 +267,9 @@ function RmaDashboardPage() {
                       {translateStatus(rma.status)}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right flex justify-end">
+                  <TableCell className="text-right flex flex-col justify-end items-end gap-2">
                     {getActionButtons(rma)}
+                    {getLogisticsInfo(rma)}
                   </TableCell>
                 </TableRow>
               ))}
@@ -290,6 +314,7 @@ function RmaDashboardPage() {
                         <div className="pt-2 border-t flex flex-col gap-2">
                           {getActionButtons(rma)}
                         </div>
+                        {getLogisticsInfo(rma)}
                       </div>
                     ))}
                   </div>

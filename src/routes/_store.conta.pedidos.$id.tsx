@@ -357,7 +357,7 @@ function CustomerOrderDetailPage() {
             </div>
           )}
 
-          {order.status === "delivered" && (
+          {["delivered", "completed", "shipped"].includes(order.status) && (
             <>
               <Button
                 variant="outline"

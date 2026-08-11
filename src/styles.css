@@ -22,13 +22,13 @@
 
 @theme inline {
   /* ── Radius scale — brutalist/sharp (editorial) ──────────────────────── */
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --radius-xl: 0px;
-  --radius-2xl: 0px;
-  --radius-3xl: 0px;
-  --radius-4xl: 0px;
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: calc(var(--radius) - 1px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
 
   /* ── Radius scale — operacional (admin/forms/cards funcionais) ────────── */
   /*   Use estes em contextos administrativos, nunca no contexto editorial   */
@@ -100,11 +100,11 @@
   --font-mono: "JetBrains Mono", "Roboto Mono", ui-monospace, monospace;
 
   /* ── Elevation — Brutalist Solid Shadows & Premium Glows ──────────────── */
-  --shadow-sm: 2px 2px 0px 0px var(--ink);
-  --shadow-md: 4px 4px 0px 0px var(--ink);
-  --shadow-lg: 8px 8px 0px 0px var(--ink);
-  --shadow-hard: 8px 8px 0px 0px var(--ink);
-  --shadow-brand: 6px 6px 0px 0px var(--poster-red);
+  --shadow-sm: 0 1px 2px 0 oklch(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px oklch(0 0 0 / 0.1), 0 2px 4px -2px oklch(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px oklch(0 0 0 / 0.1), 0 4px 6px -4px oklch(0 0 0 / 0.1);
+  --shadow-hard: 0 20px 25px -5px oklch(0 0 0 / 0.1), 0 8px 10px -6px oklch(0 0 0 / 0.1);
+  --shadow-brand: 0 10px 15px -3px color-mix(in oklch, var(--primary) 30%, transparent);
   --shadow-glow: 0px 0px 20px 0px var(--warning);
 
   /* ── Motion ──────────────────────────────────────────────────────────── */
@@ -130,7 +130,7 @@
  * ===========================================================================*/
 :root {
   color-scheme: light dark;
-  --radius: 0px;
+  --radius: 0.5rem; /* 8px default radius */
 
   /* ── Primitivos globais (valores fixos, independem do tema) ───────────── */
   --poster-red: oklch(0.55 0.22 25); /* #dc2626 — vermelho vivo pôster   */
@@ -197,222 +197,30 @@
 
 /* Sistema: segue preferência do dispositivo (sem intervenção do JS) */
 @media (prefers-color-scheme: dark) {
-  :root:not(.light) {
-    color-scheme: dark;
-
-    /* ── Primitivos específicos Dark ──────────────────────────────────── */
-    --ink: oklch(0.95 0.012 80); /* #f5f0e6 — marfim envelhecido  */
-    --paper: oklch(0.1 0.006 60); /* #131210 — carvão quente       */
-    --newsprint: oklch(0.14 0.006 60); /* #1c1b18 — carvão superfície   */
-    --charcoal: oklch(0.1 0.006 60); /* = paper dark (fundo base)     */
-    --charcoal-surface: oklch(0.18 0.006 60); /* card/popover elevados         */
-    --ivory: oklch(0.95 0.012 80); /* = ink dark (texto)            */
-
-    /* poster-red mais queimado/oxidado no dark */
-    --poster-red: oklch(0.5 0.2 25); /* #b83a2d — vermelho óxido      */
-    /* directory-yellow mais escuro para não ofuscar */
-    --directory-yellow: oklch(0.78 0.14 82); /* ocre/mustarda seco            */
-    /* signal-orange levemente mais escuro */
-    --signal-orange: oklch(0.6 0.19 45); /* laranja queimado              */
-    /* electric-cyan mais tênue */
-    --electric-cyan: oklch(0.65 0.13 230); /* ciano levemente mais escuro   */
-
-    /* ── Semânticos Dark ────────────────────────────────────────────── */
-    --background: var(--paper);
-    --foreground: var(--ink);
-    --card: var(--newsprint);
-    --card-foreground: var(--ink);
-    --popover: var(--newsprint);
-    --popover-foreground: var(--ink);
-
-    --primary: var(--ink);
-    --primary-foreground: var(--paper);
-
-    --secondary: var(--directory-yellow);
-    --secondary-foreground: oklch(0.1 0.006 60);
-
-    --muted: var(--charcoal-surface);
-    --muted-foreground: oklch(0.65 0.008 70);
-
-    --accent: var(--poster-red);
-    --accent-foreground: var(--ivory);
-
-    --destructive: var(--poster-red);
-    --destructive-foreground: var(--ivory);
-
-    --success: oklch(0.55 0.13 150); /* verde mais escuro no dark  */
-    --success-foreground: var(--ivory);
-
-    --warning: var(--directory-yellow);
-    --warning-foreground: oklch(0.1 0.006 60);
-
-    --info: var(--electric-cyan);
-    --info-foreground: oklch(0.1 0.006 60);
-
-    --border: oklch(0.28 0.008 70); /* bordas sutis no dark          */
-    --input: var(--charcoal-surface);
-    --ring: var(--poster-red);
-    
-    /* ── Premium Glassmorphism (Dark) ────────────────────────────────────── */
-    --glass-bg: color-mix(in srgb, var(--paper) 70%, transparent);
-    --glass-border: color-mix(in srgb, var(--ink) 15%, transparent);
-  }
-}
-
-/* Classe .dark — override manual (JS, toggle, admin preview) */
-.dark {
-  color-scheme: dark;
-
-  --ink: oklch(0.95 0.012 80);
-  --paper: oklch(0.1 0.006 60);
-  --newsprint: oklch(0.14 0.006 60);
-  --charcoal: oklch(0.1 0.006 60);
-  --charcoal-surface: oklch(0.18 0.006 60);
-  --ivory: oklch(0.95 0.012 80);
-
-  --poster-red: oklch(0.5 0.2 25);
-  --directory-yellow: oklch(0.78 0.14 82);
-  --signal-orange: oklch(0.6 0.19 45);
-  --electric-cyan: oklch(0.65 0.13 230);
-
-  --background: var(--paper);
-  --foreground: var(--ink);
-  --card: var(--newsprint);
-  --card-foreground: var(--ink);
-  --popover: var(--newsprint);
-  --popover-foreground: var(--ink);
-
-  --primary: var(--ink);
-  --primary-foreground: var(--paper);
-
-  --secondary: var(--directory-yellow);
-  --secondary-foreground: oklch(0.1 0.006 60);
-
-  --muted: var(--charcoal-surface);
-  --muted-foreground: oklch(0.65 0.008 70);
-
-  --accent: var(--poster-red);
-  --accent-foreground: var(--ivory);
-
-  --destructive: var(--poster-red);
-  --destructive-foreground: var(--ivory);
-
-  --success: oklch(0.55 0.13 150);
-  --success-foreground: var(--ivory);
-
-  --warning: var(--directory-yellow);
-  --warning-foreground: oklch(0.1 0.006 60);
-
-  --info: var(--electric-cyan);
-  --info-foreground: oklch(0.1 0.006 60);
-
-  --border: oklch(0.3 0.006 60);
-  --input: var(--charcoal-surface);
-  --ring: var(--poster-red);
-}
-
-/* Classe .light — override manual para forçar tema claro */
-.light {
-  color-scheme: light;
-
-  --ink: oklch(0.18 0.005 60);
-  --paper: oklch(0.97 0.01 90);
-  --newsprint: oklch(0.92 0.01 90);
-  --charcoal: oklch(0.18 0.005 60);
-  --charcoal-surface: oklch(0.22 0.005 60);
-  --ivory: oklch(0.97 0.01 90);
-  --poster-red: oklch(0.55 0.22 25);
-  --directory-yellow: oklch(0.9 0.15 95);
-  --signal-orange: oklch(0.65 0.2 45);
-  --electric-cyan: oklch(0.7 0.15 230);
-
-  --background: var(--paper);
-  --foreground: var(--ink);
-  --card: var(--newsprint);
-  --card-foreground: var(--ink);
-  --popover: var(--paper);
-  --popover-foreground: var(--ink);
-  --primary: var(--ink);
-  --primary-foreground: var(--paper);
-  --secondary: var(--directory-yellow);
-  --secondary-foreground: var(--ink);
-  --muted: var(--newsprint);
-  --muted-foreground: oklch(0.4 0.005 60);
-  --accent: var(--poster-red);
-  --accent-foreground: var(--paper);
-  --destructive: var(--poster-red);
-  --destructive-foreground: var(--paper);
-  --success: oklch(0.62 0.13 150);
-  --success-foreground: var(--paper);
-  --warning: var(--directory-yellow);
-  --warning-foreground: var(--ink);
-  --info: var(--electric-cyan);
-  --info-foreground: var(--ink);
-  --border: var(--ink);
-  --input: var(--newsprint);
-  --ring: var(--poster-red);
-}
-
-/* ===========================================================================
- * OPERATIONAL SHELL — Contexto Admin/Painel Operacional
- * ---------------------------------------------------------------------------
- * Aplicado via `data-shell="admin"` no elemento wrapper do AdminShell.
- * NÃO afeta o contexto editorial (Surface, feed, builder, storefront público).
- * Tokens brutalistas continuam disponíveis dentro deste contexto para os
- * componentes Surface que são explicitamente chamados como editoriais.
- * ===========================================================================*/
-[data-shell="admin"] {
-  /* Superfície de fundo mais neutra — levemente acinzentada */
-  --background: oklch(0.96 0.003 240);
-  --foreground: oklch(0.15 0.005 260);
-
-  /* Cards com raio operacional */
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.15 0.005 260);
-
-  /* Borda discreta 1px (não mais 2-4px solid ink) */
-  --border: oklch(0.88 0.004 240);
-  --input: oklch(0.98 0.002 240);
-
-  /* Primary mantém ink escuro para ações */
-  --primary: oklch(0.15 0.005 260);
-  --primary-foreground: oklch(1 0 0);
-
-  /* Muted mais neutro */
-  --muted: oklch(0.94 0.003 240);
-  --muted-foreground: oklch(0.5 0.008 240);
-
-  /* Popover/dropdown com sombra operacional */
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0.005 260);
-}
-
-/* Dark mode dentro do shell operacional */
-@media (prefers-color-scheme: dark) {
   [data-shell="admin"]:not(.light) {
-    --background: oklch(0.1 0.005 260);
-    --foreground: oklch(0.93 0.008 80);
-    --card: oklch(0.13 0.005 260);
-    --card-foreground: oklch(0.93 0.008 80);
-    --border: oklch(0.22 0.006 260);
-    --input: oklch(0.15 0.005 260);
-    --muted: oklch(0.16 0.005 260);
-    --muted-foreground: oklch(0.6 0.008 240);
-    --popover: oklch(0.13 0.005 260);
-    --popover-foreground: oklch(0.93 0.008 80);
+    --background: oklch(0.1 0.01 260);
+    --foreground: oklch(0.95 0 0);
+    --card: oklch(0.13 0.01 260);
+    --card-foreground: oklch(0.95 0 0);
+    --border: oklch(0.25 0.01 260);
+    --input: oklch(0.25 0.01 260);
+    --muted: oklch(0.18 0.01 260);
+    --muted-foreground: oklch(0.7 0.01 260);
+    --popover: oklch(0.13 0.01 260);
+    --popover-foreground: oklch(0.95 0 0);
   }
 }
 .dark [data-shell="admin"] {
-  --background: oklch(0.1 0.005 260);
-  --foreground: oklch(0.93 0.008 80);
-  --card: oklch(0.13 0.005 260);
-  --card-foreground: oklch(0.93 0.008 80);
-  --border: oklch(0.22 0.006 260);
-  --input: oklch(0.15 0.005 260);
-  --muted: oklch(0.16 0.005 260);
-  --muted-foreground: oklch(0.6 0.008 240);
-  --popover: oklch(0.13 0.005 260);
-  --popover-foreground: oklch(0.93 0.008 80);
+    --background: oklch(0.1 0.01 260);
+    --foreground: oklch(0.95 0 0);
+    --card: oklch(0.13 0.01 260);
+    --card-foreground: oklch(0.95 0 0);
+    --border: oklch(0.25 0.01 260);
+    --input: oklch(0.25 0.01 260);
+    --muted: oklch(0.18 0.01 260);
+    --muted-foreground: oklch(0.7 0.01 260);
+    --popover: oklch(0.13 0.01 260);
+    --popover-foreground: oklch(0.95 0 0);
 }
 
 /* ===========================================================================

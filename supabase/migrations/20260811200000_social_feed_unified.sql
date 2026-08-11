@@ -93,9 +93,9 @@ CREATE POLICY "Users can delete their own comments" ON public.post_comments
 CREATE TRIGGER set_updated_at_posts
     BEFORE UPDATE ON public.posts
     FOR EACH ROW
-    EXECUTE FUNCTION trigger_set_timestamp();
+    EXECUTE FUNCTION public.set_updated_at();
 
 CREATE TRIGGER set_updated_at_post_comments
     BEFORE UPDATE ON public.post_comments
     FOR EACH ROW
-    EXECUTE FUNCTION trigger_set_timestamp();
+    EXECUTE FUNCTION public.set_updated_at();
