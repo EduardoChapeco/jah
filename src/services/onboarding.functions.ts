@@ -24,7 +24,7 @@ export interface OnboardingOverview {
   isStoreReadyToSell: boolean;
 }
 
-export async function getOnboardingStatusHandler(): Promise<OnboardingOverview> {
+export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
   const identity = await getServerIdentity();
   assertStoreAccess(identity, [
     "owner",
@@ -465,6 +465,6 @@ export async function getOnboardingStatusHandler(): Promise<OnboardingOverview> 
 }
 
 export const getOnboardingStatus = createServerFn({ method: "GET" }).handler(async () => {
-  const data = await getOnboardingStatusHandler();
+  const data = await _getOnboardingStatus();
   return data;
 });

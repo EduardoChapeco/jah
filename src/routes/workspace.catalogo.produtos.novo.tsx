@@ -1,0 +1,563 @@
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState, useMemo } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { ArrowLeft, CheckCircle2, Plus, X, Upload } from "lucide-react";
+
+import { PageHeader } from "@/components/commerce/page-header";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { ImageUpload } from "@/components/ui/image-upload";
+import { createProduct, listCategories } from "@/services/admin-catalog.functions";
+import { VariantMatrixGrid, type RawVariant } from "@/components/admin/catalog/variant-matrix-grid";
+
+export const Route = createFileRoute("/workspace/catalogo/produtos/novo")({
+  head: () => ({ meta: [{ title: "Criação Rápida" }] }),
+  loader: async () => {
+    const { getStoreSettings } = await import("@/services/store.functions");
+    const [catsRes, typesRes, storeRes] = await Promise.all([
+      listCategories(),
+      import("@/services/admin-catalog.functions").then((m) => m.listProductTypes()),
+      getStoreSettings(),
+    ]);
+    return {
+      categories: catsRes || [],
+      productTypes: typesRes || [],
+      store: storeRes,
+    };
+  },
+  component: QuickNewProductPage,
+});
+
+function slugify(text: string) {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)+/g, "");
+}
+
+type DynamicAttribute = {
+  id: string;
+  name: string;
+  values: string[];
+};
+
+// Gera o produto cartesiano das opções
+function generateVariantsMatrix(
+  attributes: DynamicAttribute[],
+  baseSku: string,
+  baseStock: number,
+): RawVariant[] {
+  const activeAttrs = attributes.filter((a) => a.name.trim() && a.values.length > 0);
+  if (activeAttrs.length === 0) return [];
+
+  const optionArrays = activeAttrs.map((a) => a.values.map((v) => ({ name: a.name, value: v })));
+
+  const cartesian = optionArrays.reduce((a, b) => a.flatMap((d) => b.map((e) => [...d, e])), [
+    [],
+  ] as { name: string; value: string }[][]);
+
+  return cartesian.map((combo, idx) => {
+    const attrsObj: Record<string, string> = {};
+    const skuParts: string[] = [baseSku];
+
+    for (const item of combo) {
+      attrsObj[item.name] = item.value;
+      const cleanVal = item.value
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .slice(0, 4);
+      skuParts.push(cleanVal);
+    }
+
+    return {
+      id: crypto.randomUUID(),
+      sku: skuParts.join("-") || `${baseSku}-var-${idx + 1}`,
+      attributes: attrsObj,
+      stock: baseStock,
+      price_override_cents: null,
+      image_url: null,
+    };
+  });
+}
+
+function QuickNewProductPage() {
+  const { categories, productTypes, store } = Route.useLoaderData();
+  const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Imagem principal
+  const [mainImageUrl, setMainImageUrl] = useState<string | null>(null);
+
+  // Atributos dinâmicos base (Root level JSONB)
+  const [baseAttributes, setBaseAttributes] = useState<Record<string, string>>({
+    tipo: store?.type || "ecommerce",
+  });
+
+  const getInitialAttributes = () => {
+    const type = store?.type;
+    if (type === "event_producer") {
+      return [{ id: crypto.randomUUID(), name: "Lote / Tipo Ingresso", values: ["Lote 1", "VIP"] }];
+    }
+    if (type === "band" || type === "ecommerce") {
+      return [{ id: crypto.randomUUID(), name: "Tamanho", values: ["P", "M", "G"] }];
+    }
+    if (type === "delivery" as any) {
+      return [{ id: crypto.randomUUID(), name: "Adicionais", values: ["Com Queijo", "Sem Cebola"] }];
+    }
+    return [];
+  };
+
+  // Atributos dinâmicos
+  const [attributes, setAttributes] = useState<DynamicAttribute[]>(getInitialAttributes());
+
+  // Tabela final de variações (substitui a seleção estática)
+  const [variantsMatrix, setVariantsMatrix] = useState<RawVariant[]>([]);
+  const [isMatrixGenerated, setIsMatrixGenerated] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      title: "",
+      slug: "",
+      price_cents: "",
+      status: "draft",
+      category_id: "none",
+      type_id: "none",
+    },
+  });
+
+  const basePriceCents = parseInt(watch("price_cents").replace(/\D/g, ""), 10) || 0;
+  const targetSlug = watch("slug") || slugify(watch("title"));
+
+  // --- Manipulação de Atributos ---
+  const addAttribute = () => {
+    setAttributes([...attributes, { id: crypto.randomUUID(), name: "", values: [] }]);
+  };
+
+  const removeAttribute = (id: string) => {
+    setAttributes(attributes.filter((a) => a.id !== id));
+  };
+
+  const updateAttributeName = (id: string, name: string) => {
+    setAttributes(attributes.map((a) => (a.id === id ? { ...a, name } : a)));
+  };
+
+  const addAttributeValue = (id: string, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const val = e.currentTarget.value.trim();
+      if (val) {
+        setAttributes(
+          attributes.map((a) =>
+            a.id === id && !a.values.includes(val) ? { ...a, values: [...a.values, val] } : a,
+          ),
+        );
+        e.currentTarget.value = "";
+      }
+    }
+  };
+
+  const removeAttributeValue = (attrId: string, valueToRemove: string) => {
+    setAttributes(
+      attributes.map((a) =>
+        a.id === attrId ? { ...a, values: a.values.filter((v) => v !== valueToRemove) } : a,
+      ),
+    );
+  };
+
+  // --- Geração da Matriz ---
+  const handleGenerateMatrix = () => {
+    if (attributes.length === 0 || attributes.every((a) => a.values.length === 0)) {
+      toast.error("Adicione pelo menos um atributo com valores para gerar variações.");
+      return;
+    }
+    const matrix = generateVariantsMatrix(attributes, targetSlug || "PROD", 0);
+    if (matrix.length > 150) {
+      toast.error(
+        `Esta combinação gerará ${matrix.length} variações. Recomendamos criar no máximo 150 de uma vez para não travar o navegador.`,
+      );
+      return;
+    }
+    setVariantsMatrix(matrix);
+    setIsMatrixGenerated(true);
+    toast.success(`${matrix.length} variações geradas com sucesso!`);
+  };
+
+  // --- Atualização de Variação Individual ---
+  const updateVariant = (id: string, field: keyof RawVariant, value: any) => {
+    setVariantsMatrix((prev) => prev.map((v) => (v.id === id ? { ...v, [field]: value } : v)));
+  };
+
+  const onSubmit = async (values: any) => {
+    setIsSubmitting(true);
+    try {
+      const priceCents = parseInt(values.price_cents.replace(/\D/g, ""), 10) || 0;
+      const finalSlug = values.slug || slugify(values.title);
+
+      // Garante que se o usuário digitou variações no cadastro inicial mas esqueceu de clicar
+      // no botão "Gerar Matriz de Variações", a matriz é gerada automaticamente no padrão da indústria (estoque inicial 0)
+      let finalVariants: RawVariant[] | undefined = undefined;
+      if (isMatrixGenerated && variantsMatrix.length > 0) {
+        finalVariants = variantsMatrix;
+      } else {
+        const activeAttrs = attributes.filter((a) => a.name.trim() && a.values.length > 0);
+        if (activeAttrs.length > 0) {
+          finalVariants = generateVariantsMatrix(attributes, finalSlug || "PROD", 0);
+        }
+      }
+
+      const res = await createProduct({
+        data: {
+          title: values.title,
+          slug: finalSlug,
+          price_cents: priceCents,
+          status: values.status as "draft" | "published" | "archived",
+          category_ids: values.category_id !== "none" ? [values.category_id] : [],
+          type_id: values.type_id !== "none" ? values.type_id : null,
+          media_urls: mainImageUrl ? [mainImageUrl] : [],
+          is_physical: true,
+          attributes: baseAttributes,
+          variants: finalVariants?.map((v) => ({
+            sku: v.sku || "",
+            attributes: v.attributes,
+            price_override_cents: v.price_override_cents ?? undefined,
+            stock: v.stock,
+            image_url: v.image_url,
+            allow_backorder: v.allow_backorder,
+            backorder_lead_time_days: v.backorder_lead_time_days,
+            requires_payment_for_backorder: v.requires_payment_for_backorder,
+          })),
+        },
+      });
+
+      if (res) {
+        toast.success(`Produto salvo com ${finalVariants?.length || 1} variação(ões)!`);
+        navigate({ to: "/workspace/catalogo/produtos/$id", params: { id: res.id } });
+      } else {
+        toast.error("Erro ao criar produto");
+        setIsSubmitting(false);
+      }
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Erro inesperado ao salvar produto");
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6 max-w-5xl mx-auto pb-12">
+      <PageHeader
+        eyebrow="Catálogo / Produtos"
+        title="Novo Produto"
+        description="Cadastre seu produto de forma flexível. Crie opções dinâmicas como Tamanho, Cor, Material, etc."
+        actions={
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => navigate({ to: "/workspace/catalogo/produtos" })}>
+              <ArrowLeft className="mr-2 size-4" /> Cancelar
+            </Button>
+            <Button onClick={handleSubmit(onSubmit)} disabled={isSubmitting} className="min-w-32">
+              {isSubmitting ? (
+                "Criando..."
+              ) : (
+                <>
+                  <CheckCircle2 className="size-4 mr-2" /> Salvar & Continuar
+                </>
+              )}
+            </Button>
+          </div>
+        }
+      />
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* Informações Principais */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Informações Principais</CardTitle>
+            <CardDescription>O básico para iniciar o cadastro.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">Nome do produto *</Label>
+              <Input
+                {...register("title", { required: "Obrigatório" })}
+                className="h-11 text-base font-medium"
+                placeholder="Ex: Tênis Runner Pro Masculino"
+                autoFocus
+                onChange={(e) => {
+                  register("title").onChange(e);
+                  setValue("slug", slugify(e.target.value));
+                }}
+              />
+              {errors.title && (
+                <p className="text-xs text-destructive">{errors.title.message as string}</p>
+              )}
+            </div>
+
+            {/* Campos Dinâmicos Baseados no Nicho */}
+            {store?.type === "event_producer" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-muted/30 rounded-lg border">
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold text-poster-red">Data do Evento *</Label>
+                  <Input 
+                    type="datetime-local" 
+                    className="h-11"
+                    value={baseAttributes["data_evento"] || ""}
+                    onChange={(e) => setBaseAttributes({...baseAttributes, data_evento: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold text-poster-red">Localização</Label>
+                  <Input 
+                    placeholder="Ex: Galpão 5, SP" 
+                    className="h-11"
+                    value={baseAttributes["local"] || ""}
+                    onChange={(e) => setBaseAttributes({...baseAttributes, local: e.target.value})}
+                  />
+                </div>
+              </div>
+            )}
+            
+            {store?.type === "creator" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-muted/30 rounded-lg border">
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold">Duração (Minutos)</Label>
+                  <Input 
+                    type="number"
+                    placeholder="Ex: 60" 
+                    className="h-11"
+                    value={baseAttributes["duracao_min"] || ""}
+                    onChange={(e) => setBaseAttributes({...baseAttributes, duracao_min: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold">Formato</Label>
+                  <Select 
+                    value={baseAttributes["formato"] || ""} 
+                    onValueChange={(v) => setBaseAttributes({...baseAttributes, formato: v})}
+                  >
+                    <SelectTrigger className="h-11"><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="online">Online (Meet/Zoom)</SelectItem>
+                      <SelectItem value="presencial">Presencial</SelectItem>
+                      <SelectItem value="gravado">Conteúdo Gravado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold">Preço Base (R$) *</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+                    R$
+                  </span>
+                  <Input
+                    {...register("price_cents", { required: "Obrigatório" })}
+                    className="pl-9 h-11 text-lg font-medium"
+                    placeholder="0,00"
+                    onChange={(e) => {
+                      let val = e.target.value.replace(/\D/g, "");
+                      if (val) {
+                        val = (parseInt(val, 10) / 100).toLocaleString("pt-BR", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        });
+                      }
+                      e.target.value = val;
+                      register("price_cents").onChange(e);
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold">URL Automática (Slug)</Label>
+                <Input {...register("slug")} className="h-11 bg-muted/50" readOnly />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold">Categoria Principal</Label>
+                <Select onValueChange={(val) => setValue("category_id", val)}>
+                  <SelectTrigger className="h-11">
+                    <SelectValue placeholder="Sem categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Nenhuma</SelectItem>
+                    {categories.map((c: any) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold">Tipo / Template de Ficha</Label>
+                <Select onValueChange={(val) => setValue("type_id", val)}>
+                  <SelectTrigger className="h-11">
+                    <SelectValue placeholder="Geral (Padrão)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Geral (Padrão)</SelectItem>
+                    {productTypes.map((t: any) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Mídia Principal */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Foto de Capa Inicial (Opcional)</CardTitle>
+            <CardDescription>
+              A imagem principal deste produto. Você poderá adicionar mais depois.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="max-w-sm">
+              <ImageUpload onChange={setMainImageUrl} value={mainImageUrl} bucket="product-media" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Gerador de Variações Dinâmicas */}
+        <Card className="overflow-hidden">
+          <div className="bg-accent/5 px-6 py-4 border-b">
+            <h3 className="text-lg font-bold text-accent dark:text-accent">
+              Construtor Dinâmico de Variações
+            </h3>
+            <p className="text-sm text-accent/80 dark:text-accent/80 mt-1">
+              Crie opções customizadas (Tamanho, Cor, Material) para gerar automaticamente a matriz
+              de estoque.
+            </p>
+          </div>
+
+          <CardContent className="p-6 space-y-6">
+            {!isMatrixGenerated ? (
+              <div className="space-y-6 animate-in fade-in">
+                {attributes.map((attr, index) => (
+                  <div key={attr.id} className="p-4 border bg-card relative group">
+                    <button
+                      type="button"
+                      onClick={() => removeAttribute(attr.id)}
+                      className="absolute right-4 top-4 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div className="md:col-span-1 space-y-2">
+                        <Label>Nome da Opção</Label>
+                        <Input
+                          placeholder="Ex: Tamanho"
+                          value={attr.name}
+                          onChange={(e) => updateAttributeName(attr.id, e.target.value)}
+                        />
+                      </div>
+                      <div className="md:col-span-3 space-y-2">
+                        <Label>Valores (Pressione Enter para adicionar)</Label>
+                        <Input
+                          placeholder="Ex: P, M, G, Vermelho, Azul..."
+                          onKeyDown={(e) => addAttributeValue(attr.id, e)}
+                        />
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {attr.values.map((val) => (
+                            <span
+                              key={val}
+                              className="px-3 py-1 bg-secondary rounded-full text-sm font-medium flex items-center gap-1 border"
+                            >
+                              {val}
+                              <button
+                                type="button"
+                                onClick={() => removeAttributeValue(attr.id, val)}
+                                className="hover:text-destructive p-0.5 rounded-full hover:bg-black/5 ml-1"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                <div className="flex gap-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={addAttribute}
+                    className="border-dashed border-2"
+                  >
+                    <Plus className="mr-2 h-4 w-4" /> Adicionar Opção (Atributo)
+                  </Button>
+                  {attributes.length > 0 && (
+                    <Button
+                      type="button"
+                      onClick={handleGenerateMatrix}
+                      className="bg-accent hover:bg-accent text-white"
+                    >
+                      Gerar Matriz de Variações
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4 animate-in fade-in">
+                <div className="flex items-center justify-between bg-muted/50 p-4 border">
+                  <div>
+                    <h4 className="font-bold text-base">Matriz de Variações Gerada</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {variantsMatrix.length} variações prontas para revisão.
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsMatrixGenerated(false)}
+                  >
+                    Editar Atributos Base
+                  </Button>
+                </div>
+
+                <VariantMatrixGrid
+                  variants={variantsMatrix}
+                  onChange={setVariantsMatrix}
+                  basePriceCents={
+                    parseInt(watch("price_cents")?.replace(/\D/g, "") || "0", 10) || 0
+                  }
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </form>
+    </div>
+  );
+}

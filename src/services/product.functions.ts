@@ -18,9 +18,9 @@ import type {
   ProductMediaDTO,
 } from "@/types/catalog";
 
-export async function getProductBySlugHandler(slug: string) {
+async function _getProductBySlug(slug: string) {
   try {
-    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const { resolveTenantStoreId } = await import("@/lib/tenant.server");
     const store_id = await resolveTenantStoreId();
     if (!store_id) throw new Error("Loja não encontrada");
 
@@ -184,5 +184,5 @@ export async function getProductBySlugHandler(slug: string) {
 export const getProductBySlug = createServerFn({ method: "GET" })
   .validator(z.object({ slug: z.string() }))
   .handler(async ({ data: { slug } }) => {
-    return getProductBySlugHandler(slug);
+    return _getProductBySlug(slug);
   });

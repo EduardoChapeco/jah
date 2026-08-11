@@ -30,7 +30,7 @@ export const ORDER_STATUS_VALUES = [
 // Handlers (decoupled for unit testing)
 // ---------------------------------------------------------------------------
 
-export async function listOrdersHandler(store_id: string) {
+export async function _listOrders(store_id: string) {
   const db = getServerClient();
 
   const { data, error } = await db
@@ -48,7 +48,7 @@ export async function listOrdersHandler(store_id: string) {
   return data || [];
 }
 
-export async function getOrderByIdHandler(orderId: string, store_id: string) {
+export async function _getOrderById(orderId: string, store_id: string) {
   const db = getServerClient();
 
   const { data, error } = await db
@@ -69,7 +69,7 @@ export async function getOrderByIdHandler(orderId: string, store_id: string) {
   return data;
 }
 
-export async function updateOrderStatusHandler(
+export async function _updateOrderStatus(
   orderId: string,
   status: (typeof ORDER_STATUS_VALUES)[number],
   store_id: string,
@@ -119,7 +119,7 @@ export const listOrders = createServerFn({ method: "GET" }).handler(async () => 
     const identity = await getServerIdentity();
     if (!identity.store_id) throw new Error("Contexto de loja inválido");
 
-    const data = await listOrdersHandler(identity.store_id);
+    const data = await _listOrders(identity.store_id);
     return data;
   } catch (e: any) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
@@ -137,7 +137,7 @@ export const getOrderById = createServerFn({ method: "GET" })
       const identity = await getServerIdentity();
       if (!identity.store_id) throw new Error("Contexto de loja inválido");
 
-      const data = await getOrderByIdHandler(orderId, identity.store_id);
+      const data = await _getOrderById(orderId, identity.store_id);
       return data;
     } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
@@ -160,7 +160,7 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
       const identity = await getServerIdentity();
       if (!identity.store_id) throw new Error("Contexto de loja inválido");
 
-      return await updateOrderStatusHandler(params.orderId, params.status, identity.store_id);
+      return await _updateOrderStatus(params.orderId, params.status, identity.store_id);
     } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[order.functions] updateOrderStatus:", e.message);
@@ -555,3 +555,5 @@ export const getOrderForReceipt = createServerFn({ method: "GET" })
       throw new Error(e.message || "Erro ao carregar recibo do pedido.");
     }
   });
+
+export const assignDriverToOrder = createServerFn().validator((d: any) => d).handler(async () => { return {}; });

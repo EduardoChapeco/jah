@@ -6,7 +6,7 @@ import { getCurrentIdentity } from "@/services/cart-helpers";
 export const toggleStoreFollow = createServerFn({ method: "POST" }).handler(async () => {
   const supabase = getServerClient();
   const identity = await getCurrentIdentity();
-  const { resolveTenantStoreId } = await import("@/lib/tenant");
+  const { resolveTenantStoreId } = await import("@/lib/tenant.server");
   const storeId = await resolveTenantStoreId();
   if (!storeId) throw new Error("Loja não encontrada.");
 
@@ -14,7 +14,6 @@ export const toggleStoreFollow = createServerFn({ method: "POST" }).handler(asyn
     throw new Error("Você precisa estar logado para seguir uma loja.");
   }
 
-  // Check if already following
   const { data: existing } = await supabase
     .from("store_followers")
     .select("store_id")
@@ -41,7 +40,7 @@ export const toggleStoreFollow = createServerFn({ method: "POST" }).handler(asyn
 export const getStoreFollowStatus = createServerFn({ method: "GET" }).handler(async () => {
   const supabase = getServerClient();
   const identity = await getCurrentIdentity();
-  const { resolveTenantStoreId } = await import("@/lib/tenant");
+  const { resolveTenantStoreId } = await import("@/lib/tenant.server");
   const storeId = await resolveTenantStoreId();
   if (!storeId) return { following: false };
 
@@ -69,7 +68,7 @@ export const submitProductReview = createServerFn({ method: "POST" })
   .handler(async ({ data: { productId, rating, comment } }) => {
     const supabase = getServerClient();
     const identity = await getCurrentIdentity();
-    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const { resolveTenantStoreId } = await import("@/lib/tenant.server");
     const storeId = await resolveTenantStoreId();
     if (!storeId) throw new Error("Loja não encontrada.");
 
@@ -77,7 +76,6 @@ export const submitProductReview = createServerFn({ method: "POST" })
       throw new Error("Você precisa estar logado para avaliar um produto.");
     }
 
-    // Security check: Must have purchased the product
     const { data: purchaseVerify } = await supabase
       .from("orders")
       .select("id, order_items!inner(product_id)")
@@ -97,7 +95,7 @@ export const submitProductReview = createServerFn({ method: "POST" })
       user_id: identity.customer_id,
       rating,
       comment,
-      status: "pending", // Now requires moderation or we can leave as approved if we trust verified buyers
+      status: "pending",
     });
 
     if (error) {
@@ -179,52 +177,29 @@ export const listStoreFollowers = createServerFn({ method: "GET" }).handler(asyn
 });
 
 // ---------------------------------------------------------------------------
-// MURAL FEED
+// MURAL FEED & POSTS
 // ---------------------------------------------------------------------------
 
-/**
- * Tipos de item do feed do Mural.
- * Cada item tem um `type` explícito para renderização condicional no cliente.
- */
-export type MuralFeedItem =
-  | {
-      type: "classified";
-      id: string;
-      category: string;
-      title: string;
-      content: string;
-      price_cents: number | null;
-      images: string[];
-      location_text: string | null;
-      condition: string | null;
-      negotiable: boolean;
-      created_at: string;
-    }
-  | {
-      type: "event";
-      id: string;
-      title: string;
-      description: string | null;
-      event_date: string;
-      end_date: string | null;
-      location: string | null;
-      address: string | null;
-      is_free: boolean;
-      cover_image: string | null;
-      tags: string[];
-      store_id: string;
-      created_at: string;
-    }
-  | {
-      type: "ad";
-      id: string;
-      title: string;
-      body: string | null;
-      image_url: string | null;
-      target_url: string | null;
-      store_id: string;
-      created_at: string;
-    };
+export type PostReferenceType = "product" | "event" | "classified" | "ad" | "job" | "none";
+
+export type MuralFeedItem = {
+  type: "post";
+  id: string;
+  author: {
+    id: string;
+    name: string;
+    avatar_url: string | null;
+    is_store: boolean;
+  };
+  content_text: string | null;
+  media_urls: string[];
+  reference_type: PostReferenceType;
+  reference_id: string | null;
+  reference_data?: any;
+  created_at: string;
+  likes_count: number;
+  user_liked: boolean;
+};
 
 export type MuralFeedResponse = {
   items: MuralFeedItem[];
@@ -234,12 +209,7 @@ export type MuralFeedResponse = {
 
 const muralFeedInput = z.object({
   limit: z.number().int().min(1).max(50).default(20),
-  cursor: z.string().datetime().optional(), // ISO timestamp — busca itens ANTES deste cursor
-  types: z
-    .array(z.enum(["classified", "event", "ad"]))
-    .optional()
-    .default(["classified", "event", "ad"]),
-  category: z.string().optional(), // Filtro de categoria para classifieds
+  cursor: z.string().datetime().optional(),
 });
 
 export type MuralFeedInput = z.infer<typeof muralFeedInput>;
@@ -248,112 +218,219 @@ export const getMuralFeed = createServerFn({ method: "GET" })
   .validator(muralFeedInput)
   .handler(async ({ data: input }) => {
     const db = getServerClient();
-    const { limit, cursor, types, category } = input;
+    // Resolve current user's profile_id — non-blocking failure for public access
+    let profile_id: string | null = null;
+    try {
+      const identity = await getCurrentIdentity();
+      profile_id = (identity as any).profile_id ?? null;
+    } catch {
+      // anonymous visitor — no likes
+    }
+
+    const { limit, cursor } = input;
     const now = new Date().toISOString();
     const cursorDate = cursor || now;
-    const perType = Math.ceil(limit / types.length);
 
-    const items: MuralFeedItem[] = [];
+    // ── 1. Fetch posts (single query with joined author info) ──────────────
+    const { data: postsData, error } = await db
+      .from("posts")
+      .select(`
+        id, content_text, media_urls, reference_type, reference_id, created_at,
+        author_profile_id, author_store_id,
+        profiles!posts_author_profile_id_fkey(first_name, last_name, avatar_url),
+        stores!posts_author_store_id_fkey(name, logo_url)
+      `)
+      .eq("status", "active")
+      .lt("created_at", cursorDate)
+      .order("created_at", { ascending: false })
+      .limit(limit + 1);
 
-    // ── Classificados ────────────────────────────────────────────────────────
-    if (types.includes("classified")) {
-      let q = db
-        .from("classifieds")
-        .select(
-          "id, category, title, content, price_cents, images, location_text, condition, negotiable, created_at",
-        )
-        .eq("status", "active")
-        .or(`expires_at.is.null,expires_at.gt.${now}`)
-        .lt("created_at", cursorDate)
-        .order("created_at", { ascending: false })
-        .limit(perType);
-
-      if (category) q = q.eq("category", category);
-
-      const { data } = await q;
-      for (const c of data || []) {
-        items.push({
-          type: "classified",
-          id: c.id,
-          category: c.category,
-          title: c.title,
-          content: c.content,
-          price_cents: c.price_cents,
-          images: (c.images as string[]) ?? [],
-          location_text: c.location_text,
-          condition: c.condition,
-          negotiable: c.negotiable ?? true,
-          created_at: c.created_at,
-        });
-      }
+    if (error) {
+      console.error("Erro ao buscar posts:", error);
+      throw new Error("Erro ao carregar o mural.");
     }
 
-    // ── Eventos publicados (próximos 60 dias) ─────────────────────────────────
-    if (types.includes("event")) {
-      const sixtyDaysFromNow = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
+    const posts = postsData ?? [];
+    const postIds = posts.map((p) => p.id);
+
+    if (postIds.length === 0) {
+      return { items: [], hasMore: false, nextCursor: null } as MuralFeedResponse;
+    }
+
+    // ── 2. Batch: likes_count per post (single aggregate query) ───────────
+    const { data: likeCounts } = await db
+      .from("post_likes")
+      .select("post_id")
+      .in("post_id", postIds);
+
+    const likeCountMap = new Map<string, number>();
+    (likeCounts ?? []).forEach((row: any) => {
+      likeCountMap.set(row.post_id, (likeCountMap.get(row.post_id) ?? 0) + 1);
+    });
+
+    // ── 3. Batch: which posts the current user liked ───────────────────────
+    const likedSet = new Set<string>();
+    if (profile_id) {
+      const { data: userLikes } = await db
+        .from("post_likes")
+        .select("post_id")
+        .in("post_id", postIds)
+        .eq("profile_id", profile_id);
+      (userLikes ?? []).forEach((row: any) => likedSet.add(row.post_id));
+    }
+
+    // ── 4. Batch: reference data by type ──────────────────────────────────
+    const productIds = posts
+      .filter((p) => p.reference_type === "product" && p.reference_id)
+      .map((p) => p.reference_id!);
+    const eventIds = posts
+      .filter((p) => p.reference_type === "event" && p.reference_id)
+      .map((p) => p.reference_id!);
+    const classifiedIds = posts
+      .filter((p) => p.reference_type === "classified" && p.reference_id)
+      .map((p) => p.reference_id!);
+
+    const productMap = new Map<string, any>();
+    const eventMap = new Map<string, any>();
+    const classifiedMap = new Map<string, any>();
+
+    if (productIds.length > 0) {
+      const { data } = await db
+        .from("products")
+        .select("id, title, price_cents, images")
+        .in("id", productIds);
+      (data ?? []).forEach((r: any) => productMap.set(r.id, r));
+    }
+    if (eventIds.length > 0) {
       const { data } = await db
         .from("events")
-        .select(
-          "id, title, description, event_date, end_date, location, address, is_free, cover_image, tags, store_id, created_at",
-        )
-        .eq("status", "published")
-        .gte("event_date", now)
-        .lte("event_date", sixtyDaysFromNow)
-        .lt("created_at", cursorDate)
-        .order("event_date", { ascending: true })
-        .limit(perType);
-
-      for (const e of data || []) {
-        items.push({
-          type: "event",
-          id: e.id,
-          title: e.title,
-          description: e.description,
-          event_date: e.event_date,
-          end_date: e.end_date ?? null,
-          location: e.location,
-          address: e.address ?? null,
-          is_free: e.is_free ?? false,
-          cover_image: e.cover_image,
-          tags: (e.tags as string[]) ?? [],
-          store_id: e.store_id,
-          created_at: e.created_at,
-        });
-      }
+        .select("id, title, event_date, cover_image, is_free")
+        .in("id", eventIds);
+      (data ?? []).forEach((r: any) => eventMap.set(r.id, r));
     }
-
-    // ── Anúncios do Feed ──────────────────────────────────────────────────────
-    if (types.includes("ad")) {
+    if (classifiedIds.length > 0) {
       const { data } = await db
-        .from("ad_campaigns")
-        .select("id, title, body, image_url, target_url, store_id, created_at")
-        .eq("status", "active")
-        .contains("placements", ["feed"])
-        .lt("created_at", cursorDate)
-        .order("created_at", { ascending: false })
-        .limit(Math.max(2, Math.floor(perType / 3))); // Máx 1/3 do feed são anúncios
-
-      for (const a of data || []) {
-        items.push({
-          type: "ad",
-          id: a.id,
-          title: a.title,
-          body: a.body ?? null,
-          image_url: a.image_url ?? null,
-          target_url: a.target_url ?? null,
-          store_id: a.store_id,
-          created_at: a.created_at,
-        });
-      }
+        .from("classifieds")
+        .select("id, title, price_cents, images")
+        .in("id", classifiedIds);
+      (data ?? []).forEach((r: any) => classifiedMap.set(r.id, r));
     }
 
-    // Ordenar por created_at descrescente (mistura os tipos no feed)
-    items.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    // ── 5. Assemble items ─────────────────────────────────────────────────
+    const items: MuralFeedItem[] = posts.map((p) => {
+      const is_store = !!p.author_store_id && !!p.stores;
+      const prof = p.profiles as any;
+      const store = p.stores as any;
 
-    const trimmed = items.slice(0, limit);
+      let reference_data: any = null;
+      if (p.reference_type === "product" && p.reference_id)
+        reference_data = productMap.get(p.reference_id) ?? null;
+      else if (p.reference_type === "event" && p.reference_id)
+        reference_data = eventMap.get(p.reference_id) ?? null;
+      else if (p.reference_type === "classified" && p.reference_id)
+        reference_data = classifiedMap.get(p.reference_id) ?? null;
+
+      return {
+        type: "post" as const,
+        id: p.id,
+        author: {
+          id: p.author_store_id || p.author_profile_id,
+          name: is_store ? store.name : `${prof?.first_name ?? ""} ${prof?.last_name ?? ""}`.trim(),
+          avatar_url: is_store ? store.logo_url : prof?.avatar_url ?? null,
+          is_store,
+        },
+        content_text: p.content_text,
+        media_urls: p.media_urls || [],
+        reference_type: p.reference_type as PostReferenceType,
+        reference_id: p.reference_id,
+        reference_data,
+        created_at: p.created_at,
+        likes_count: likeCountMap.get(p.id) ?? 0,
+        user_liked: likedSet.has(p.id),
+      };
+    });
+
     const hasMore = items.length > limit;
-    const nextCursor = hasMore ? trimmed[trimmed.length - 1]?.created_at ?? null : null;
+    if (hasMore) items.pop();
+    const nextCursor = hasMore ? items[items.length - 1]?.created_at ?? null : null;
 
-    return { items: trimmed, hasMore, nextCursor } as MuralFeedResponse;
+    return { items, hasMore, nextCursor } as MuralFeedResponse;
   });
 
+export const createPost = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      content_text: z.string().min(1, "Escreva algo para publicar.").optional(),
+      media_urls: z.array(z.string().url()).optional(),
+      reference_type: z.enum(["product", "event", "classified", "ad", "job", "none"]).default("none"),
+      reference_id: z.string().uuid().optional().nullable(),
+      as_store: z.boolean().default(false),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    const db = getServerClient();
+    // Autorização canônica — nunca as any
+    const { getServerIdentity } = await import("@/lib/server-access");
+    const identity = await getServerIdentity();
+
+    if (!identity.id) throw new Error("Não autorizado — faça login para publicar.");
+    if (!input.content_text && (!input.media_urls || input.media_urls.length === 0)) {
+      throw new Error("O post precisa ter texto ou mídia.");
+    }
+
+    let author_store_id: string | null = null;
+    if (input.as_store) {
+      if (!identity.store_id) throw new Error("Nenhuma loja ativa para publicar como loja.");
+      author_store_id = identity.store_id;
+    }
+
+    const { data, error } = await db
+      .from("posts")
+      .insert({
+        author_profile_id: identity.id,
+        author_store_id,
+        content_text: input.content_text || null,
+        media_urls: input.media_urls || [],
+        reference_type: input.reference_type,
+        reference_id: input.reference_id || null,
+        status: "active",
+      })
+      .select("id")
+      .single();
+
+    if (error) {
+      console.error("Erro ao criar post:", error);
+      throw new Error("Falha ao criar publicação no mural");
+    }
+
+    return { success: true, post_id: data.id };
+  });
+
+export const togglePostLike = createServerFn({ method: "POST" })
+  .validator(z.object({ post_id: z.string().uuid() }))
+  .handler(async ({ data: { post_id } }) => {
+    const db = getServerClient();
+    // Autorização canônica
+    const { getServerIdentity } = await import("@/lib/server-access");
+    const identity = await getServerIdentity();
+    if (!identity.id) throw new Error("Precisa estar logado para curtir.");
+
+    // Usa o profile_id (auth.users.id) como identificador de curtida
+    const profile_id = identity.id;
+
+    const { data: existing } = await db
+      .from("post_likes")
+      .select("post_id")
+      .eq("post_id", post_id)
+      .eq("profile_id", profile_id)
+      .maybeSingle();
+
+    if (existing) {
+      await db.from("post_likes").delete().eq("post_id", post_id).eq("profile_id", profile_id);
+      return { liked: false };
+    } else {
+      await db.from("post_likes").insert({ post_id, profile_id });
+      return { liked: true };
+    }
+  });
+

@@ -30,7 +30,7 @@ export const Route = createFileRoute("/api/feed/xml")({
           let storeId = url.searchParams.get("store");
 
           if (!storeId) {
-            const { resolveTenantStoreId } = await import("@/lib/tenant");
+            const { resolveTenantStoreId } = await import("@/lib/tenant.server");
             storeId = await resolveTenantStoreId();
           }
 

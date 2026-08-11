@@ -14,7 +14,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { setTenantContextHandler } from "@/services/identity.functions";
+import { setTenantContext } from "@/services/identity.functions";
 import type { ServerIdentity } from "@/lib/identity-core";
 
 interface TenantSwitcherProps {
@@ -30,7 +30,7 @@ export function TenantSwitcher({ identity }: TenantSwitcherProps) {
 
   const setContextMutation = useMutation({
     mutationFn: async (store_id: string | null) => {
-      return setTenantContextHandler({ data: { store_id } });
+      return setTenantContext({ data: { store_id } });
     },
     onSuccess: () => {
       router.invalidate();

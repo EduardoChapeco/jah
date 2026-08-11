@@ -63,7 +63,7 @@ export interface FinancialSummaryDTO {
 // Handlers (decoupled for unit testing)
 // ---------------------------------------------------------------------------
 
-export async function listFinancialTransactionsHandler(filters: {
+export async function _listFinancialTransactions(filters: {
   startDate?: string;
   endDate?: string;
   type?: FinancialTxType;
@@ -102,7 +102,7 @@ export async function listFinancialTransactionsHandler(filters: {
   return (data || []) as FinancialTransactionDTO[];
 }
 
-export async function getFinancialSummaryHandler(filters: {
+export async function _getFinancialSummary(filters: {
   startDate: string;
   endDate: string;
 }): Promise<FinancialSummaryDTO> {
@@ -148,7 +148,7 @@ export async function getFinancialSummaryHandler(filters: {
   };
 }
 
-export async function createManualTransactionHandler(input: {
+export async function _createManualTransaction(input: {
   type: FinancialTxType;
   amount_cents: number;
   description: string;
@@ -212,7 +212,7 @@ export const listFinancialTransactions = createServerFn({ method: "GET" })
   )
   .handler(async ({ data: filters }) => {
     try {
-      return await listFinancialTransactionsHandler(filters);
+      return await _listFinancialTransactions(filters);
     } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[finance] listFinancialTransactions:", e.message);
@@ -229,7 +229,7 @@ export const getFinancialSummary = createServerFn({ method: "GET" })
   )
   .handler(async ({ data: filters }) => {
     try {
-      return await getFinancialSummaryHandler(filters);
+      return await _getFinancialSummary(filters);
     } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[finance] getFinancialSummary:", e.message);
@@ -249,7 +249,7 @@ export const createManualTransaction = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
-      return await createManualTransactionHandler(input);
+      return await _createManualTransaction(input);
     } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[finance] createManualTransaction:", e.message);

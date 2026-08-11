@@ -56,10 +56,7 @@ export const createAdCampaign = createServerFn({ method: "POST" })
 
     if (!product) throw new Error("Produto não encontrado.");
 
-    // 3. Create the Ad Campaign (starts as paused until invoice is paid)
-    // For testing/mocking in this phase without webhooks, we can set it to active immediately 
-    // or simulate payment. Let's set it to 'active' for now to see it in the UI, but in production,
-    // a webhook listener would update this to active upon PIX payment.
+    // Strict Server-Authoritative: campaign starts paused until invoice is paid via Webhook
     const { data: campaign, error: campError } = await supabase
       .from("ad_campaigns")
       .insert({
@@ -67,7 +64,7 @@ export const createAdCampaign = createServerFn({ method: "POST" })
         product_id: data.productId,
         type: data.type,
         budget_cents: data.budgetCents,
-        status: "active", // Fake instant-payment for UX testing
+        status: "paused", // Real initial state
         title: product.title,
         body: product.description,
         image_url: product.cover_url,

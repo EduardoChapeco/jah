@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/commerce/page-header";
 import { Surface } from "@/components/ui/surface";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Loader2, AlertCircle, Phone, MapPin, CheckCircle } from "lucide-react";
-import { getPublicDirectoryHandler } from "@/services/directory.functions";
+import { getPublicDirectory } from "@/services/directory.functions";
 
 export const Route = createFileRoute("/_store/diretorio")({
   head: () => ({ meta: [{ title: "Diretório" }] }),
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_store/diretorio")({
 function DirectoryPage() {
   const { data: listings, isLoading, isError } = useQuery({
     queryKey: ["public-directory"],
-    queryFn: () => getPublicDirectoryHandler({ data: { limit: 50 } }),
+    queryFn: () => getPublicDirectory({ data: { limit: 50 } }),
     staleTime: 60_000,
   });
 

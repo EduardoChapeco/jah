@@ -16,7 +16,7 @@ import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
 // Product Types (Formulário Adaptativo)
 // ---------------------------------------------------------------------------
 
-export async function listProductTypesHandler() {
+export async function _listProductTypes() {
   const db = getServerClient();
 
   // RLS will enforce store isolation
@@ -32,7 +32,7 @@ export async function listProductTypesHandler() {
 export const listProductTypes = createServerFn({ method: "GET" }).handler(async () => {
   try {
     await requireAdmin(); // SECURITY FIX
-    const data = await listProductTypesHandler();
+    const data = await _listProductTypes();
     return data;
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
@@ -41,7 +41,7 @@ export const listProductTypes = createServerFn({ method: "GET" }).handler(async 
   }
 });
 
-export async function createProductTypeHandler(input: {
+export async function _createProductType(input: {
   name: string;
   slug: string;
   field_schema: any[];
@@ -83,7 +83,7 @@ export const createProductType = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       await requireAdmin(); // SECURITY FIX
-      const data = await createProductTypeHandler(input);
+      const data = await _createProductType(input);
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] createProductType error:", e);
@@ -91,7 +91,7 @@ export const createProductType = createServerFn({ method: "POST" })
     }
   });
 
-export async function updateProductTypeHandler(input: {
+export async function _updateProductType(input: {
   id: string;
   name: string;
   slug: string;
@@ -126,7 +126,7 @@ export const updateProductType = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       await requireAdmin(); // SECURITY FIX
-      const data = await updateProductTypeHandler(input);
+      const data = await _updateProductType(input);
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] updateProductType error:", e);
@@ -134,7 +134,7 @@ export const updateProductType = createServerFn({ method: "POST" })
     }
   });
 
-export async function deleteProductTypeHandler(id: string) {
+export async function _deleteProductType(id: string) {
   const db = getServerClient();
   const { error } = await db.from("product_types").delete().eq("id", id);
   if (error) throw error;
@@ -146,7 +146,7 @@ export const deleteProductType = createServerFn({ method: "POST" })
   .handler(async ({ data: { id } }) => {
     try {
       await requireAdmin(); // SECURITY FIX
-      await deleteProductTypeHandler(id);
+      await _deleteProductType(id);
       return { status: "success" as const };
     } catch (e: unknown) {
       console.error("[admin-catalog] deleteProductType error:", e);
@@ -160,7 +160,7 @@ export const deleteProductType = createServerFn({ method: "POST" })
 // Products
 // ---------------------------------------------------------------------------
 
-export async function listAdminProductsHandler() {
+export async function _listAdminProducts() {
   const db = getServerClient();
   const { getServerIdentity } = await import("@/lib/server-access");
   const { store_id } = await getServerIdentity();
@@ -186,7 +186,7 @@ export async function listAdminProductsHandler() {
 export const listAdminProducts = createServerFn({ method: "GET" }).handler(async () => {
   try {
     await requireAdmin(); // SECURITY FIX
-    const data = await listAdminProductsHandler();
+    const data = await _listAdminProducts();
     return data || [];
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
@@ -195,7 +195,7 @@ export const listAdminProducts = createServerFn({ method: "GET" }).handler(async
   }
 });
 
-export async function createProductHandler(input: {
+export async function _createProduct(input: {
   type_id?: string | null;
   title: string;
   slug: string;
@@ -245,7 +245,7 @@ export async function createProductHandler(input: {
   });
 
   if (error) {
-    console.error("[admin-catalog] createProductHandler RPC error:", error);
+    console.error("[admin-catalog] createProduct RPC error:", error);
     throw new Error(error.message || "Erro atômico ao criar o produto e matriz.");
   }
 
@@ -298,7 +298,7 @@ export const createProduct = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       await requireAdmin(); // SECURITY FIX
-      const data = await createProductHandler(input);
+      const data = await _createProduct(input);
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] createProduct error:", e);
@@ -310,7 +310,7 @@ export const createProduct = createServerFn({ method: "POST" })
 // Categories
 // ---------------------------------------------------------------------------
 
-export async function listCategoriesHandler() {
+export async function _listCategories() {
   const db = getServerClient();
 
   const { data, error } = await db
@@ -325,7 +325,7 @@ export async function listCategoriesHandler() {
 export const listCategories = createServerFn({ method: "GET" }).handler(async () => {
   try {
     await requireAdmin(); // SECURITY FIX
-    const data = await listCategoriesHandler();
+    const data = await _listCategories();
     return data;
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
@@ -334,7 +334,7 @@ export const listCategories = createServerFn({ method: "GET" }).handler(async ()
   }
 });
 
-export async function createCategoryHandler(input: {
+export async function _createCategory(input: {
   name: string;
   slug: string;
   parent_id?: string | null;
@@ -373,7 +373,7 @@ export const createCategory = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       await requireAdmin(); // SECURITY FIX
-      const data = await createCategoryHandler(input);
+      const data = await _createCategory(input);
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] createCategory error:", e);
@@ -381,7 +381,7 @@ export const createCategory = createServerFn({ method: "POST" })
     }
   });
 
-export async function getCategoryByIdHandler(id: string) {
+export async function _getCategoryById(id: string) {
   const db = getServerClient();
   const { data, error } = await db.from("categories").select("*").eq("id", id).single();
   if (error) throw error;
@@ -393,7 +393,7 @@ export const getCategoryById = createServerFn({ method: "GET" })
   .handler(async ({ data: { id } }) => {
     try {
       await requireAdmin(); // SECURITY FIX
-      const data = await getCategoryByIdHandler(id);
+      const data = await _getCategoryById(id);
       return data;
     } catch (e) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
@@ -402,7 +402,7 @@ export const getCategoryById = createServerFn({ method: "GET" })
     }
   });
 
-export async function updateCategoryHandler(input: {
+export async function _updateCategory(input: {
   id: string;
   name?: string;
   slug?: string;
@@ -437,7 +437,7 @@ export const updateCategory = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       await requireAdmin(); // SECURITY FIX
-      const data = await updateCategoryHandler(input);
+      const data = await _updateCategory(input);
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] updateCategory error:", e);
@@ -449,7 +449,7 @@ export const updateCategory = createServerFn({ method: "POST" })
 // Collections
 // ---------------------------------------------------------------------------
 
-export async function listCollectionsHandler() {
+export async function _listCollections() {
   const db = getServerClient();
 
   const { data, error } = await db
@@ -464,7 +464,7 @@ export async function listCollectionsHandler() {
 export const listCollections = createServerFn({ method: "GET" }).handler(async () => {
   try {
     await requireAdmin(); // SECURITY FIX
-    const data = await listCollectionsHandler();
+    const data = await _listCollections();
     return data;
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
@@ -473,7 +473,7 @@ export const listCollections = createServerFn({ method: "GET" }).handler(async (
   }
 });
 
-export async function createCollectionHandler(input: {
+export async function _createCollection(input: {
   name: string;
   slug: string;
   status: "active" | "inactive";
@@ -510,7 +510,7 @@ export const createCollection = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       await requireAdmin(); // SECURITY FIX
-      const data = await createCollectionHandler(input);
+      const data = await _createCollection(input);
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] createCollection error:", e);
@@ -518,7 +518,7 @@ export const createCollection = createServerFn({ method: "POST" })
     }
   });
 
-export async function getCollectionByIdHandler(id: string) {
+export async function _getCollectionById(id: string) {
   const db = getServerClient();
   const { data, error } = await db.from("collections").select("*").eq("id", id).single();
   if (error) throw error;
@@ -530,7 +530,7 @@ export const getCollectionById = createServerFn({ method: "GET" })
   .handler(async ({ data: { id } }) => {
     try {
       await requireAdmin(); // SECURITY FIX
-      const data = await getCollectionByIdHandler(id);
+      const data = await _getCollectionById(id);
       return data;
     } catch (e) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
@@ -539,7 +539,7 @@ export const getCollectionById = createServerFn({ method: "GET" })
     }
   });
 
-export async function updateCollectionHandler(input: {
+export async function _updateCollection(input: {
   id: string;
   name?: string;
   slug?: string;
@@ -572,7 +572,7 @@ export const updateCollection = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       await requireAdmin(); // SECURITY FIX
-      const data = await updateCollectionHandler(input);
+      const data = await _updateCollection(input);
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] updateCollection error:", e);
@@ -584,7 +584,7 @@ export const updateCollection = createServerFn({ method: "POST" })
 // Product Edit & Variants
 // ---------------------------------------------------------------------------
 
-export async function getProductByIdHandler(id: string) {
+export async function _getProductById(id: string) {
   const db = getServerClient();
 
   const { data, error } = await db
@@ -610,7 +610,7 @@ export const getProductById = createServerFn({ method: "POST" })
   .handler(async ({ data: { id } }) => {
     try {
       await requireAdmin(); // SECURITY FIX
-      const data = await getProductByIdHandler(id);
+      const data = await _getProductById(id);
       return data;
     } catch (e) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
@@ -619,7 +619,7 @@ export const getProductById = createServerFn({ method: "POST" })
     }
   });
 
-export async function updateProductHandler(input: {
+export async function _updateProduct(input: {
   id: string;
   title?: string;
   description?: string | null;
@@ -691,7 +691,7 @@ export async function updateProductHandler(input: {
       // nunca usar price_cents como fallback — isso quebraria a herança dinâmica
       price_override_cents: v.price_override_cents ?? null,
     }));
-    await batchUpsertVariantMatrixHandler({
+    await _batchUpsertVariantMatrix({
       product_id: id,
       matrix,
     });
@@ -744,7 +744,7 @@ export const updateProduct = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       await requireAdmin(); // SECURITY FIX
-      const data = await updateProductHandler(input);
+      const data = await _updateProduct(input);
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] updateProduct error:", e);
@@ -752,7 +752,7 @@ export const updateProduct = createServerFn({ method: "POST" })
     }
   });
 
-export async function upsertProductVariantHandler(input: {
+export async function _upsertProductVariant(input: {
   id?: string;
   product_id: string;
   sku: string;
@@ -795,7 +795,7 @@ export async function upsertProductVariantHandler(input: {
   if (otherVariants.length > 0) {
     // We intentionally allow incoming variants to have different keys than existing variants.
     // This allows the store owner to add a new option (e.g. "Material") without breaking the system.
-    // Obsolete variants that lack the new dimension will be archived by batchUpsertVariantMatrixHandler.
+    // Obsolete variants that lack the new dimension will be archived by batchUpsertVariantMatrix.
 
     const incomingComboStr = Object.keys(cleanAttrs)
       .sort()
@@ -854,14 +854,14 @@ export const upsertProductVariant = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       await requireAdmin(); // SECURITY FIX
-      const data = await upsertProductVariantHandler(input);
+      const data = await _upsertProductVariant(input);
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] upsertProductVariant error:", e);
       throw new Error(e instanceof Error ? e.message : "Erro ao salvar variante.");
     }
   });
-export async function batchUpsertVariantMatrixHandler(input: {
+export async function _batchUpsertVariantMatrix(input: {
   product_id: string;
   matrix: {
     id?: string;
@@ -928,7 +928,7 @@ export const batchUpsertVariantMatrix = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       await requireAdmin(); // SECURITY FIX
-      return await batchUpsertVariantMatrixHandler(input);
+      return await _batchUpsertVariantMatrix(input);
     } catch (e: unknown) {
       console.error("[admin-catalog] batchUpsertVariantMatrix error:", e);
       throw new Error(e instanceof Error ? e.message : "Erro ao salvar matriz de variações.");
@@ -990,7 +990,7 @@ export const reorderProductMedia = createServerFn({ method: "POST" })
     }
   });
 
-export async function getOnboardingProgressHandler() {
+export async function _getOnboardingProgress() {
   const db = getServerClient();
 
   // Fetch store
@@ -1045,7 +1045,7 @@ export async function getOnboardingProgressHandler() {
 export const getOnboardingProgress = createServerFn({ method: "GET" }).handler(async () => {
   try {
     await requireAdmin(); // SECURITY FIX
-    const data = await getOnboardingProgressHandler();
+    const data = await _getOnboardingProgress();
     return {
       status: "ok" as const,
       data,
@@ -1059,7 +1059,7 @@ export const getOnboardingProgress = createServerFn({ method: "GET" }).handler(a
   }
 });
 
-export async function deleteProductMediaHandler(input: { id: string; url: string }) {
+export async function _deleteProductMedia(input: { id: string; url: string }) {
   const db = getServerClient();
   const { id, url } = input;
 
@@ -1080,13 +1080,13 @@ export const deleteProductMedia = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       await requireAdmin(); // SECURITY FIX
-      return await deleteProductMediaHandler(input);
+      return await _deleteProductMedia(input);
     } catch (e: any) {
       throw new Error(e.message || "Erro ao deletar mídia.");
     }
   });
 
-export async function addProductMediaLinkHandler(input: {
+export async function _addProductMediaLink(input: {
   product_id: string;
   url: string;
   variant_id?: string | null;
@@ -1120,14 +1120,14 @@ export const addProductMediaLink = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       await requireAdmin(); // SECURITY FIX
-      const data = await addProductMediaLinkHandler(input);
+      const data = await _addProductMediaLink(input);
       return data;
     } catch (e: any) {
       throw new Error(e.message || "Erro ao vincular mídia");
     }
   });
 
-export async function toggleProductCollectionHandler(input: {
+export async function _toggleProductCollection(input: {
   productId: string;
   collectionId?: string;
   collectionSlug?: string;
@@ -1191,7 +1191,7 @@ export const toggleProductCollection = createServerFn({ method: "POST" })
     }): Promise<{ status: "success" } | { status: "error"; message: string }> => {
       try {
         await requireAdmin(); // SECURITY FIX
-        return await toggleProductCollectionHandler(input);
+        return await _toggleProductCollection(input);
       } catch (e: any) {
         console.error("[admin-catalog] toggleProductCollection error:", e);
         return { status: "error" as const, message: e.message || "Erro ao vincular coleção" };
@@ -1203,7 +1203,7 @@ export const toggleProductCollection = createServerFn({ method: "POST" })
 // Ações de Gestão em Lote e Duplicação de Produtos
 // ---------------------------------------------------------------------------
 
-export async function duplicateProductHandler(productId: string) {
+export async function _duplicateProduct(productId: string) {
   const db = getServerClient();
   const { getServerIdentity } = await import("@/lib/server-access");
   const { store_id } = await getServerIdentity();
@@ -1290,7 +1290,7 @@ export const duplicateProduct = createServerFn({ method: "POST" })
   .handler(async ({ data: { productId } }) => {
     try {
       await requireAdmin(); // SECURITY FIX
-      const data = await duplicateProductHandler(productId);
+      const data = await _duplicateProduct(productId);
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] duplicateProduct error:", e);
@@ -1298,7 +1298,7 @@ export const duplicateProduct = createServerFn({ method: "POST" })
     }
   });
 
-export async function toggleProductStatusHandler(input: {
+export async function _toggleProductStatus(input: {
   productId: string;
   status: "draft" | "published" | "archived";
 }) {
@@ -1329,7 +1329,7 @@ export const toggleProductStatus = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       await requireAdmin(); // SECURITY FIX
-      const data = await toggleProductStatusHandler(input);
+      const data = await _toggleProductStatus(input);
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] toggleProductStatus error:", e);
@@ -1337,7 +1337,7 @@ export const toggleProductStatus = createServerFn({ method: "POST" })
     }
   });
 
-export async function bulkUpdateProductStatusHandler(input: {
+export async function _bulkUpdateProductStatus(input: {
   productIds: string[];
   action: "draft" | "published" | "archived" | "delete";
 }) {
@@ -1371,7 +1371,7 @@ export const bulkUpdateProductStatus = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       await requireAdmin(); // SECURITY FIX
-      const res = await bulkUpdateProductStatusHandler(input);
+      const res = await _bulkUpdateProductStatus(input);
       return res;
     } catch (e: unknown) {
       console.error("[admin-catalog] bulkUpdateProductStatus error:", e);

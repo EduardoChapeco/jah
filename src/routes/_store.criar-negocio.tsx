@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Surface } from "@/components/ui/surface";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { createBusinessProfileHandler } from "@/services/identity.functions";
+import { createBusinessProfile } from "@/services/identity.functions";
 
 export const Route = createFileRoute("/_store/criar-negocio")({
   head: () => ({ meta: [{ title: "Criar Coletivo / Negócio" }] }),
@@ -63,7 +63,7 @@ function CriarNegocioPage() {
 
     setIsSubmitting(true);
     try {
-      await createBusinessProfileHandler({
+      await createBusinessProfile({
         data: {
           name,
           type: type as any,
@@ -74,7 +74,7 @@ function CriarNegocioPage() {
       toast.success("Negócio criado com sucesso! Bem-vindo ao painel do produtor.");
       // Força refresh total do cache e vai pro admin
       await router.invalidate();
-      navigate({ to: "/admin" });
+      navigate({ to: "/workspace" });
     } catch (e: any) {
       toast.error(e.message || "Erro ao criar perfil de produtor.");
     } finally {

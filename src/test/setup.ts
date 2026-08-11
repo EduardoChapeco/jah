@@ -32,14 +32,14 @@ vi.mock("@/lib/supabase", () => ({
   SupabaseUnconfiguredError: class extends Error {},
 }));
 
-vi.mock("@/lib/tenant", () => ({
+vi.mock("@/lib/tenant.server", () => ({
   resolveTenantStoreId: vi.fn(),
 }));
 
 import { getServerIdentity } from "@/lib/server-access";
 import { getSSRClient } from "@/lib/server-access";
 import { getServerClient } from "@/lib/supabase";
-import { resolveTenantStoreId } from "@/lib/tenant";
+import { resolveTenantStoreId } from "@/lib/tenant.server";
 
 beforeEach(() => {
   vi.clearAllMocks();

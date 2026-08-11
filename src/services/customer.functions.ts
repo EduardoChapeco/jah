@@ -36,7 +36,7 @@ export const addCustomerAddress = createServerFn({ method: "POST" })
       data: { user },
     } = await ssrClient.auth.getUser();
     if (!user) throw new Error("Não autorizado");
-    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const { resolveTenantStoreId } = await import("@/lib/tenant.server");
     const storeId = await resolveTenantStoreId();
     const store = storeId ? { id: storeId } : null;
     if (!store) throw new Error("Loja não encontrada");
@@ -74,7 +74,7 @@ export const deleteCustomerAddress = createServerFn({ method: "POST" })
     return { status: "success" };
   });
 
-export async function setDefaultAddressHandler(id: string) {
+export async function _setDefaultAddress(id: string) {
   const ssrClient = await getSSRClient();
   const {
     data: { user },
@@ -102,4 +102,4 @@ export async function setDefaultAddressHandler(id: string) {
 
 export const setDefaultAddress = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.string().uuid() }))
-  .handler(async ({ data: { id } }) => setDefaultAddressHandler(id));
+  .handler(async ({ data: { id } }) => _setDefaultAddress(id));

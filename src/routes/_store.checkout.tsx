@@ -549,10 +549,10 @@ function CheckoutPage() {
 
       // Redirecionamento canônico ao invés de view local
       // Checa se há outros carrinhos pendentes para voltar ao hub (a esteira de checkout)
-      const remainingCarts = globalCarts.filter(c => c.id !== cart.id);
+      const remainingCarts = globalCarts.filter((c: any) => c.id !== cart.id);
       if (remainingCarts.length > 0) {
         toast.info(`Você tem mais ${remainingCarts.length} pacote(s) aguardando pagamento.`);
-        navigate({ to: "/checkout-hub" });
+        navigate({ to: "/checkout" });
       } else {
         navigate({ to: "/pedido/$publicToken/confirmacao", params: { publicToken: res.orderToken } });
       }
@@ -574,7 +574,7 @@ function CheckoutPage() {
       try {
         await cancelCart({ data: { cartId: cart.id } });
         toast.success("Pacote removido com sucesso.");
-        navigate({ to: "/checkout-hub" });
+        navigate({ to: "/checkout" });
       } catch (err: any) {
         toast.error(err.message || "Erro ao remover pacote.");
       }
@@ -1046,7 +1046,7 @@ function CheckoutPage() {
                         type="button"
                         className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white flex items-center justify-center gap-2"
                         onClick={() => {
-                          const wppNumber = storeProfile?.contactPhone?.replace(/\D/g, "");
+                          const wppNumber = storeProfile?.phone?.replace(/\D/g, "");
                           if (wppNumber) {
                             const text = encodeURIComponent(`Olá! Gostaria de finalizar o pedido da minha sacola no valor de ${formatMoney(checkoutTotalCents)}.`);
                             window.open(`https://wa.me/55${wppNumber}?text=${text}`, "_blank");
@@ -1473,20 +1473,8 @@ function CheckoutPage() {
           </div>
         </Surface>
 
-        {/* Upsell / Cross-sell Placeholder */}
-        <Surface variant="default" elevation="sm" className="p-6 h-fit mt-6">
-          <h3 className="font-bold text-lg mb-2 flex items-center gap-2 text-ink">
-            <Gift className="size-5 text-primary" />
-            Aproveite também
-          </h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            Clientes que compram esses itens costumam levar:
-          </p>
-          <div className="flex items-center justify-center p-6 border-2 border-dashed rounded-lg bg-muted/20 text-muted-foreground text-sm">
-            [ Área reservada para Upsell / Ofertas Especiais da Loja ]
-          </div>
-        </Surface>
-        
+
+
         </div>
       </div>
     </div>

@@ -55,7 +55,7 @@ export function BuilderTopBar({
       <div className="flex items-center gap-3 min-w-0">
         <button
           type="button"
-          onClick={() => navigate({ to: "/admin/builder", search: {} as any })}
+          onClick={() => navigate({ to: "/workspace/cms/paginas", search: {} as any })}
           className="flex items-center gap-1.5 text-white/60 hover:text-white text-xs transition-colors shrink-0"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -135,7 +135,7 @@ export function BuilderTopBar({
         )}
 
         <Link
-          to="/admin/configuracoes/loja"
+          to="/workspace"
           className="flex items-center gap-1.5 text-white/60 hover:text-white text-xs transition-colors hidden md:flex border-r border-white/10 pr-3 mr-1"
           title="Logo, Favicon e Dados da Loja"
         >

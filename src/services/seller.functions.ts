@@ -7,7 +7,7 @@ export const getSellerShowcase = createServerFn({ method: "GET" })
   .validator(z.object({ slug: z.string() }))
   .handler(async ({ data: { slug } }) => {
     try {
-      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const { resolveTenantStoreId } = await import("@/lib/tenant.server");
       const storeId = await resolveTenantStoreId();
       if (!storeId) return { status: "not_found" as const };
 

@@ -18,7 +18,7 @@ export interface TimelineItem {
   };
 }
 
-export async function getTimelineFeedHandler({
+export async function _getTimelineFeed({
   storeId,
   limit = 20,
 }: {
@@ -139,5 +139,5 @@ export const getTimelineFeed = createServerFn({ method: "GET" })
       .optional(),
   )
   .handler(async ({ data }) => {
-    return getTimelineFeedHandler(data || {});
+    return _getTimelineFeed(data || {});
   });

@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getServerClient } from "@/lib/supabase";
 import { z } from "zod";
 
-export const getPublicDirectoryHandler = createServerFn({ method: "GET" })
+export const getPublicDirectory = createServerFn({ method: "GET" })
   .validator(
     z.object({
       limit: z.number().int().min(1).max(100).optional(),
@@ -30,7 +30,7 @@ export const getPublicDirectoryHandler = createServerFn({ method: "GET" })
     const { data: listings, error } = await query;
 
     if (error) {
-      console.error("[directory] getPublicDirectoryHandler error:", error);
+      console.error("[directory] getPublicDirectory error:", error);
       throw new Error("Não foi possível carregar o diretório.");
     }
 

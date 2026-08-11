@@ -152,7 +152,7 @@ export const getCustomerChatThread = createServerFn({ method: "GET" })
 
       const db = getServerClient();
 
-      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const { resolveTenantStoreId } = await import("@/lib/tenant.server");
       const storeId = await resolveTenantStoreId();
       if (!storeId) throw new Error("Loja não identificada.");
 
@@ -206,7 +206,7 @@ export const sendCustomerChatMessage = createServerFn({ method: "POST" })
 
       const db = getServerClient();
 
-      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const { resolveTenantStoreId } = await import("@/lib/tenant.server");
       const storeId = await resolveTenantStoreId();
       if (!storeId) throw new Error("Loja não identificada.");
 
@@ -249,7 +249,7 @@ export const listCustomerChatThreads = createServerFn({ method: "GET" }).handler
     } = await ssrClient.auth.getUser();
     if (!user) throw new Error("Não autorizado");
 
-    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const { resolveTenantStoreId } = await import("@/lib/tenant.server");
     const storeId = await resolveTenantStoreId();
     if (!storeId) throw new Error("Loja não identificada.");
 
@@ -284,7 +284,7 @@ export const startCustomerChatThread = createServerFn({ method: "POST" })
       } = await ssrClient.auth.getUser();
       if (!user) throw new Error("Não autorizado. Faça login para iniciar um atendimento.");
 
-      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const { resolveTenantStoreId } = await import("@/lib/tenant.server");
       const storeId = await resolveTenantStoreId();
       if (!storeId) throw new Error("Loja não identificada.");
 

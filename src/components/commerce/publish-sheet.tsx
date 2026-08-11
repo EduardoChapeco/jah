@@ -4,12 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Surface } from "@/components/ui/surface";
 import { useQuery } from "@tanstack/react-query";
-import { getIdentityHandler } from "@/services/identity.functions";
+import { getIdentity } from "@/services/identity.functions";
 
 export function PublishSheet() {
   const { data: identity, isLoading } = useQuery({
     queryKey: ["identity"],
-    queryFn: () => getIdentityHandler(),
+    queryFn: () => getIdentity(),
   });
 
   const hasBusiness = identity && identity.memberships && identity.memberships.length > 0;
@@ -35,7 +35,7 @@ export function PublishSheet() {
           </SheetHeader>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-8">
-            <Link to="/admin/events" className="block outline-none hover-lift group">
+            <Link to="/workspace/agenda" className="block outline-none hover-lift group">
               <Surface variant="flyer" padding="md" className="h-full group-hover:bg-ivory transition-colors">
                 <div className="flex items-start gap-4">
                   <div className="bg-poster-red/10 p-4 rounded-xl border-2 border-poster-red">
@@ -53,7 +53,7 @@ export function PublishSheet() {
               </Surface>
             </Link>
 
-            <Link to="/admin/catalogo/produtos/novo" className="block outline-none hover-lift group">
+            <Link to="/workspace/catalogo/produtos/novo" className="block outline-none hover-lift group">
               <Surface variant="polaroid" padding="md" className="h-full group-hover:bg-ivory transition-colors">
                 <div className="flex items-start gap-4">
                   <div className="bg-electric-cyan/10 p-4 rounded-xl border-2 border-electric-cyan">
@@ -71,7 +71,7 @@ export function PublishSheet() {
               </Surface>
             </Link>
 
-            <Link to="/admin/classificados/novo" className="block outline-none hover-lift group">
+            <Link to="/conta/classificados" className="block outline-none hover-lift group">
               <Surface variant="yellow-pages" padding="md" className="h-full group-hover:bg-ivory transition-colors">
                 <div className="flex items-start gap-4">
                   <div className="bg-ink/5 p-4 rounded-xl border-2 border-ink">
@@ -89,23 +89,23 @@ export function PublishSheet() {
               </Surface>
             </Link>
 
-            <div className="block outline-none opacity-50 cursor-not-allowed">
-              <Surface variant="zine" padding="md" className="h-full grayscale">
+            <Link to="/workspace/mural/novo" className="block outline-none hover-lift group">
+              <Surface variant="zine" padding="md" className="h-full group-hover:bg-ivory transition-colors">
                 <div className="flex items-start gap-4">
-                  <div className="bg-ink/10 p-4 rounded-xl border-2 border-ink border-dashed">
-                    <PlusCircle className="size-8 text-ink/50" />
+                  <div className="bg-ink/10 p-4 rounded-xl border-2 border-ink">
+                    <PlusCircle className="size-8 text-ink" />
                   </div>
                   <div>
-                    <h3 className="font-display text-2xl uppercase tracking-tight text-ink mb-2">
+                    <h3 className="font-display text-2xl uppercase tracking-tight text-ink mb-2 group-hover:text-signal-orange transition-colors">
                       Post Rápido
                     </h3>
                     <p className="font-serif text-ink/70">
-                      Em breve. Mande uma foto ou mensagem rápida para seus seguidores no Feed.
+                      Mande uma foto ou mensagem para seus seguidores no Mural da Comunidade.
                     </p>
                   </div>
                 </div>
               </Surface>
-            </div>
+            </Link>
           </div>
 
           <div className="mt-12 pt-8 border-t-4 border-ink/10 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -120,7 +120,7 @@ export function PublishSheet() {
                    Conta de Produtor Ativa
                  </p>
                  <Button variant="outline" asChild className="border-2 border-ink shadow-sm bg-white text-ink hover:bg-ivory">
-                    <Link to="/admin">Ir para meu Painel</Link>
+                  <Link to="/workspace">Ir para meu Painel</Link>
                  </Button>
                </>
              ) : (

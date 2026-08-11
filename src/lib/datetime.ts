@@ -29,6 +29,33 @@ export function formatDateTime(iso: string | Date): string {
   return dateTimeFmt.format(typeof iso === "string" ? new Date(iso) : iso);
 }
 
+/**
+ * Retorna tempo relativo como "há 2 horas", "há 3 dias", "há 1 mês".
+ * Usa Intl.RelativeTimeFormat para localização em pt-BR.
+ * Datas com mais de 30 dias caem para formatDateTime completo.
+ */
+const relTimeFmt = new Intl.RelativeTimeFormat("pt-BR", { numeric: "auto" });
+
+export function formatRelativeTime(iso: string | Date): string {
+  const date = typeof iso === "string" ? new Date(iso) : iso;
+  const diffMs = date.getTime() - Date.now();
+  const diffSec = Math.round(diffMs / 1000);
+  const diffMin = Math.round(diffSec / 60);
+  const diffHour = Math.round(diffMin / 60);
+  const diffDay = Math.round(diffHour / 24);
+  const diffMonth = Math.round(diffDay / 30);
+  const diffYear = Math.round(diffDay / 365);
+
+  if (Math.abs(diffSec) < 60) return relTimeFmt.format(diffSec, "second");
+  if (Math.abs(diffMin) < 60) return relTimeFmt.format(diffMin, "minute");
+  if (Math.abs(diffHour) < 24) return relTimeFmt.format(diffHour, "hour");
+  if (Math.abs(diffDay) < 30) return relTimeFmt.format(diffDay, "day");
+  if (Math.abs(diffMonth) < 12) return relTimeFmt.format(diffMonth, "month");
+  if (Math.abs(diffYear) < 5) return relTimeFmt.format(diffYear, "year");
+  // fallback para data absoluta em datas muito antigas/futuras
+  return formatDateTime(date);
+}
+
 export function getOpenStatus(
   extendedHours: any[] | null | undefined,
   holidayExceptions?: any[] | null | undefined,
@@ -109,3 +136,4 @@ export function getOpenStatus(
     return { status: "unknown", text: "Erro ao verificar horários" };
   }
 }
+

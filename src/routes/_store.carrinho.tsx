@@ -23,8 +23,8 @@ import { Surface } from "@/components/ui/surface";
 export const Route = createFileRoute("/_store/carrinho")({
   head: () => ({ meta: [{ title: "Meu Carrinho" }] }),
   loader: async () => {
-    const carts = await getCart();
-    return carts || [];
+    const cart = await getCart();
+    return cart ? [cart] : [];
   },
   pendingComponent: PageSkeleton,
   component: StoreCartPage,

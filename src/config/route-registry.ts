@@ -15,7 +15,7 @@
 export {
   PUBLIC_ROUTES,
   CUSTOMER_ROUTES,
-  ADMIN_ROUTES,
+  WORKSPACE_ROUTES,
   ALL_ROUTES,
   getRoute,
   toTanstackPath,

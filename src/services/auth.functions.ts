@@ -385,7 +385,7 @@ function isValidCpf(cpf: string): boolean {
 }
 
 // ---------------------------------------------------------------------------
-// updateProfile (enriched)
+// _updateProfile(enriched)
 // ---------------------------------------------------------------------------
 
 const UpdateProfileSchema = z.object({
@@ -404,7 +404,7 @@ const UpdateProfileSchema = z.object({
 
 export type UpdateProfileInput = z.infer<typeof UpdateProfileSchema>;
 
-export async function updateProfileHandler(data: UpdateProfileInput) {
+export async function _updateProfile(data: UpdateProfileInput) {
   const supabase = await getSSRClient();
   const {
     data: { user },
@@ -440,7 +440,7 @@ export async function updateProfileHandler(data: UpdateProfileInput) {
 
 export const updateProfile = createServerFn({ method: "POST" })
   .validator(UpdateProfileSchema)
-  .handler(async ({ data }) => updateProfileHandler(data));
+  .handler(async ({ data }) => _updateProfile(data));
 
 // ---------------------------------------------------------------------------
 // requestAccountDeletion — LGPD Art. 18 right to erasure

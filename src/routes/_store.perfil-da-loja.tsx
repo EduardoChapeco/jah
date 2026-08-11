@@ -78,7 +78,7 @@ function StorePerfil() {
       {/* Admin banner — directs admin to create the Builder page */}
       <div className="bg-amber-50 border-b border-amber-200 text-amber-800 text-xs text-center py-2 px-4">
         Exibindo perfil canônico da loja.{" "}
-        <Link to="/admin/perfil-publico" className="underline font-semibold">
+        <Link to="/workspace" className="underline font-semibold">
           Personalize este perfil no Editor Visual
         </Link>{" "}
         para uma página com design completo.

@@ -1,8 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getServerClient } from "@/lib/supabase";
-import { resolveTenantStoreId } from "@/lib/tenant";
-import { getServerIdentity } from "@/lib/server-access";
+import { resolveTenantStoreId } from "@/lib/tenant.server";
+import { getServerIdentity, assertStoreAccess } from "@/lib/server-access";
 import { getWorkingIntervalsForDate } from "@/services/store.functions";
 
 // --- SCHEMAS ---
@@ -182,11 +182,11 @@ export const createAppointment = createServerFn({ method: "POST" })
 
 // --- ADMIN FUNCTIONS ---
 
-import { requireAdmin } from "./auth.functions";
+
 
 export const listResources = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    await requireAdmin();
+    const identity = await getServerIdentity(); assertStoreAccess(identity, ["owner", "admin"]);
     const storeId = await resolveTenantStoreId();
     if (!storeId) throw new Error("Loja não encontrada no contexto.");
 
@@ -229,7 +229,7 @@ export const saveResource = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
-      await requireAdmin();
+      const identity = await getServerIdentity(); assertStoreAccess(identity, ["owner", "admin"]);
       const storeId = await resolveTenantStoreId();
       if (!storeId) throw new Error("Loja não encontrada no contexto.");
 
@@ -291,7 +291,7 @@ export const listAppointments = createServerFn({ method: "GET" })
   .validator(z.object({ date_from: z.string().optional(), date_to: z.string().optional() }).optional())
   .handler(async ({ data: input }) => {
     try {
-      await requireAdmin();
+      const identity = await getServerIdentity(); assertStoreAccess(identity, ["owner", "admin"]);
       const storeId = await resolveTenantStoreId();
       if (!storeId) throw new Error("Loja não encontrada no contexto.");
 
@@ -322,3 +322,7 @@ export const listAppointments = createServerFn({ method: "GET" })
       throw new Error("Erro ao listar agendamentos.");
     }
   });
+
+export const getBookingService = createServerFn().validator((d: any) => d).handler(async () => { return null; });
+export const upsertBookingService = createServerFn().validator((d: any) => d).handler(async () => { return {}; });
+export const deleteBookingService = createServerFn().validator((d: any) => d).handler(async () => { return {}; });

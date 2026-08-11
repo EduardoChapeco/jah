@@ -8,7 +8,7 @@ export const Route = createFileRoute("/admin-master")({
       const profile = await getProfile();
       // Ensure only system level platform_admin can access this
       if (profile.role !== "platform_admin") {
-        throw redirect({ to: "/admin" });
+        throw redirect({ to: "/workspace" });
       }
     } catch {
       throw redirect({ to: "/entrar" });

@@ -77,11 +77,12 @@ ALTER TABLE public.classifieds
 CREATE INDEX IF NOT EXISTS classifieds_fts_idx ON public.classifieds USING GIN (search_vector);
 
 -- 9. RLS: staff da plataforma pode moderar
-CREATE POLICY IF NOT EXISTS "classifieds_admin_all" ON public.classifieds
+DROP POLICY IF EXISTS "classifieds_admin_all" ON public.classifieds;
+CREATE POLICY "classifieds_admin_all" ON public.classifieds
   FOR ALL USING (
     EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE id = auth.uid()
+      SELECT 1 FROM public.workspace_members
+      WHERE profile_id = auth.uid()
         AND role IN ('owner', 'admin')
     )
   );

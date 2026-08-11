@@ -32,7 +32,7 @@ export async function logAuditAction(
 /**
  * Gets audit logs for admins - testable handler
  */
-export async function getAuditLogHandler() {
+export async function _getAuditLog() {
   const supabase = getServerClient();
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin", "manager"]);
@@ -52,4 +52,4 @@ export async function getAuditLogHandler() {
 /**
  * Gets audit logs for admins - server function wrapper
  */
-export const getAuditLog = createServerFn({ method: "GET" }).handler(() => getAuditLogHandler());
+export const getAuditLog = createServerFn({ method: "GET" }).handler(() => _getAuditLog());

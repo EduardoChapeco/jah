@@ -378,9 +378,9 @@ const STAFF_ALL: Role[] = [
   "support",
 ];
 
-export const ADMIN_ROUTES: RouteEntry[] = [
+export const WORKSPACE_ROUTES: RouteEntry[] = [
   {
-    path: "/admin",
+    path: "/workspace",
     label: "Visão geral",
     description: "Dashboard do painel",
     audience: "admin",
@@ -390,7 +390,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     navIcon: "LayoutDashboard",
   },
   {
-    path: "/admin/onboarding",
+    path: "/workspace/onboarding",
     label: "Onboarding",
     description: "Primeiros passos",
     audience: "admin",
@@ -400,7 +400,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     navIcon: "Store",
   },
   {
-    path: "/admin/catalogo/produtos",
+    path: "/workspace/catalogo/produtos",
     label: "Produtos",
     description: "Lista de produtos",
     audience: "admin",
@@ -410,7 +410,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     navIcon: "Package",
   },
   {
-    path: "/admin/catalogo/produtos/novo",
+    path: "/workspace/catalogo/produtos/novo",
     label: "Novo produto",
     description: "Cadastro de produto",
     audience: "admin",
@@ -418,7 +418,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 1,
   },
   {
-    path: "/admin/catalogo/produtos/:id",
+    path: "/workspace/catalogo/produtos/:id",
     label: "Editar produto",
     description: "Edição de produto",
     audience: "admin",
@@ -427,7 +427,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     dynamic: true,
   },
   {
-    path: "/admin/catalogo/tipos",
+    path: "/workspace/catalogo/tipos",
     label: "Tipos de produto",
     description: "Schemas de atributos",
     audience: "admin",
@@ -435,7 +435,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 1,
   },
   {
-    path: "/admin/catalogo/categorias",
+    path: "/workspace/catalogo/categorias",
     label: "Categorias",
     description: "Árvore de categorias",
     audience: "admin",
@@ -443,7 +443,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 1,
   },
   {
-    path: "/admin/catalogo/categorias/novo",
+    path: "/workspace/catalogo/categorias/novo",
     label: "Nova categoria",
     description: "Criar categoria",
     audience: "admin",
@@ -451,7 +451,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 1,
   },
   {
-    path: "/admin/catalogo/categorias/:id",
+    path: "/workspace/catalogo/categorias/:id",
     label: "Editar categoria",
     description: "Edição de categoria",
     audience: "admin",
@@ -460,7 +460,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     dynamic: true,
   },
   {
-    path: "/admin/catalogo/colecoes",
+    path: "/workspace/catalogo/colecoes",
     label: "Coleções",
     description: "Coleções curadas",
     audience: "admin",
@@ -468,7 +468,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 1,
   },
   {
-    path: "/admin/catalogo/colecoes/novo",
+    path: "/workspace/catalogo/colecoes/novo",
     label: "Nova coleção",
     description: "Criar coleção",
     audience: "admin",
@@ -476,7 +476,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 1,
   },
   {
-    path: "/admin/catalogo/colecoes/:id",
+    path: "/workspace/catalogo/colecoes/:id",
     label: "Editar coleção",
     description: "Edição de coleção",
     audience: "admin",
@@ -485,7 +485,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     dynamic: true,
   },
   {
-    path: "/admin/catalogo/atributos",
+    path: "/workspace/catalogo/atributos",
     label: "Atributos",
     description: "Definições de atributos",
     audience: "admin",
@@ -493,7 +493,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 1,
   },
   {
-    path: "/admin/midias",
+    path: "/workspace/midias",
     label: "Mídias",
     description: "Biblioteca de mídia",
     audience: "admin",
@@ -501,7 +501,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 1,
   },
   {
-    path: "/admin/estoque",
+    path: "/workspace/estoque",
     label: "Estoque",
     description: "Estoque por variação",
     audience: "admin",
@@ -509,7 +509,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 1,
   },
   {
-    path: "/admin/estoque/movimentos",
+    path: "/workspace/estoque/movimentos",
     label: "Movimentos",
     description: "Movimentos de estoque",
     audience: "admin",
@@ -517,7 +517,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 1,
   },
   {
-    path: "/admin/estoque/alertas",
+    path: "/workspace/estoque/alertas",
     label: "Alertas",
     description: "Alertas de estoque",
     audience: "admin",
@@ -525,7 +525,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 1,
   },
   {
-    path: "/admin/pedidos",
+    path: "/workspace/pedidos",
     label: "Pedidos",
     description: "Lista de pedidos",
     audience: "admin",
@@ -533,7 +533,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 2,
   },
   {
-    path: "/admin/pedidos/:id",
+    path: "/workspace/pedidos/:id",
     label: "Pedido",
     description: "Detalhe do pedido",
     audience: "admin",
@@ -542,7 +542,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     dynamic: true,
   },
   {
-    path: "/admin/fretes",
+    path: "/workspace/fretes",
     label: "Fretes",
     description: "Estratégias de frete",
     audience: "admin",
@@ -550,7 +550,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 2,
   },
   {
-    path: "/admin/fretes/tabelas",
+    path: "/workspace/fretes/tabelas",
     label: "Tabelas de frete",
     description: "Frete manual",
     audience: "admin",
@@ -558,7 +558,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 2,
   },
   {
-    path: "/admin/fretes/cotacoes",
+    path: "/workspace/fretes/cotacoes",
     label: "Cotações",
     description: "Cotações manuais",
     audience: "admin",
@@ -566,7 +566,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 2,
   },
   {
-    path: "/admin/pagamentos",
+    path: "/workspace/pagamentos",
     label: "Pagamentos",
     description: "Pagamentos recebidos",
     audience: "admin",
@@ -574,7 +574,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 2,
   },
   {
-    path: "/admin/comprovantes",
+    path: "/workspace/comprovantes",
     label: "Comprovantes",
     description: "Comprovantes manuais",
     audience: "admin",
@@ -582,7 +582,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 2,
   },
   {
-    path: "/admin/clientes",
+    path: "/workspace/clientes",
     label: "Clientes",
     description: "Lista de clientes",
     audience: "admin",
@@ -590,7 +590,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 4,
   },
   {
-    path: "/admin/clientes/:id",
+    path: "/workspace/clientes/:id",
     label: "Cliente",
     description: "Ficha 360 da cliente",
     audience: "admin",
@@ -599,7 +599,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     dynamic: true,
   },
   {
-    path: "/admin/suporte",
+    path: "/workspace/suporte",
     label: "Suporte",
     description: "Atendimentos",
     audience: "admin",
@@ -607,7 +607,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 4,
   },
   {
-    path: "/admin/classificados",
+    path: "/workspace/classificados",
     label: "Classificados",
     description: "Mural de classificados",
     audience: "admin",
@@ -615,7 +615,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 4,
   },
   {
-    path: "/admin/classificados/novo",
+    path: "/workspace/classificados/novo",
     label: "Novo Classificado",
     description: "Criar classificado",
     audience: "admin",
@@ -623,7 +623,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 4,
   },
   {
-    path: "/admin/classificados/:id",
+    path: "/workspace/classificados/:id",
     label: "Editar Classificado",
     description: "Edição de classificado",
     audience: "admin",
@@ -632,7 +632,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     dynamic: true,
   },
   {
-    path: "/admin/conversas",
+    path: "/workspace/conversas",
     label: "Conversas",
     description: "Chat com clientes",
     audience: "admin",
@@ -640,7 +640,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 4,
   },
   {
-    path: "/admin/pedidos/trocas",
+    path: "/workspace/pedidos/trocas",
     label: "Trocas",
     description: "Trocas e devoluções",
     audience: "admin",
@@ -648,7 +648,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 4,
   },
   {
-    path: "/admin/avaliacoes",
+    path: "/workspace/avaliacoes",
     label: "Avaliações",
     description: "Moderação de avaliações",
     audience: "admin",
@@ -656,7 +656,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 3,
   },
   {
-    path: "/admin/vitrine",
+    path: "/workspace/vitrine",
     label: "Vitrine (Home)",
     description: "Construtor visual da página inicial",
     audience: "admin",
@@ -666,7 +666,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     navIcon: "LayoutTemplate",
   },
   {
-    path: "/admin/builder",
+    path: "/workspace/builder",
     label: "Páginas Extras & Bio Links",
     description: "Crie campanhas, bio links e landing pages",
     audience: "admin",
@@ -676,7 +676,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     navIcon: "FileText",
   },
   {
-    path: "/admin/builder/:documentId/editor",
+    path: "/workspace/builder/:documentId/editor",
     label: "Editor Dinâmico",
     description: "Editor de documentos",
     audience: "admin",
@@ -685,7 +685,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     dynamic: true,
   },
   {
-    path: "/admin/builder/analytics",
+    path: "/workspace/builder/analytics",
     label: "Métricas do Builder",
     description: "Desempenho e conversões do Builder",
     audience: "admin",
@@ -693,7 +693,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 3,
   },
   {
-    path: "/admin/events",
+    path: "/workspace/events",
     label: "Eventos",
     description: "Gestão de eventos e lotes",
     audience: "admin",
@@ -703,7 +703,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     navIcon: "Calendar",
   },
   {
-    path: "/admin/events/new",
+    path: "/workspace/events/new",
     label: "Novo Evento",
     description: "Criar evento",
     audience: "admin",
@@ -711,7 +711,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 4,
   },
   {
-    path: "/admin/events/:eventId",
+    path: "/workspace/events/:eventId",
     label: "Editar Evento",
     description: "Edição de evento e lotes",
     audience: "admin",
@@ -720,7 +720,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     dynamic: true,
   },
   {
-    path: "/admin/events/:eventId/checkin",
+    path: "/workspace/events/:eventId/checkin",
     label: "Check-in na Portaria",
     description: "Validação de Ingressos via QR Code",
     audience: "admin",
@@ -730,7 +730,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
   },
 
   {
-    path: "/admin/cms/navegacao",
+    path: "/workspace/cms/navegacao",
     label: "Navegação",
     description: "Menus de navegação",
     audience: "admin",
@@ -738,7 +738,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 3,
   },
   {
-    path: "/admin/cms/tema",
+    path: "/workspace/cms/tema",
     label: "Tema",
     description: "Editor de tema",
     audience: "admin",
@@ -746,7 +746,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 3,
   },
   {
-    path: "/admin/stories",
+    path: "/workspace/stories",
     label: "Stories",
     description: "Gestão de stories",
     audience: "admin",
@@ -754,7 +754,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 3,
   },
   {
-    path: "/admin/destaques",
+    path: "/workspace/destaques",
     label: "Destaques",
     description: "Destaques permanentes",
     audience: "admin",
@@ -762,7 +762,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 3,
   },
   {
-    path: "/admin/perfil-publico",
+    path: "/workspace/perfil-publico",
     label: "Perfil público",
     description: "Portfólio da loja",
     audience: "admin",
@@ -770,7 +770,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 3,
   },
   {
-    path: "/admin/link-da-bio",
+    path: "/workspace/link-da-bio",
     label: "Link da bio",
     description: "Página de links",
     audience: "admin",
@@ -778,7 +778,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 3,
   },
   {
-    path: "/admin/marketing/cupons",
+    path: "/workspace/marketing/cupons",
     label: "Cupons",
     description: "Cupons de desconto",
     audience: "admin",
@@ -786,7 +786,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 5,
   },
   {
-    path: "/admin/marketing/seguidores",
+    path: "/workspace/marketing/seguidores",
     label: "Seguidores da Loja",
     description: "Lista de clientes seguindo a loja",
     audience: "admin",
@@ -794,7 +794,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 5,
   },
   {
-    path: "/admin/marketing/ofertas-checkout",
+    path: "/workspace/marketing/ofertas-checkout",
     label: "Ofertas de Checkout",
     description: "Configuração de regras de Upsell no checkout",
     audience: "admin",
@@ -802,7 +802,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 4,
   },
   {
-    path: "/admin/marketing/gift-cards",
+    path: "/workspace/marketing/gift-cards",
     label: "Gift cards",
     description: "Gestão de gift cards",
     audience: "admin",
@@ -810,7 +810,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 4,
   },
   {
-    path: "/admin/marketing/carrinhos",
+    path: "/workspace/marketing/carrinhos",
     label: "Carrinhos",
     description: "Carrinhos abandonados",
     audience: "admin",
@@ -818,7 +818,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 5,
   },
   {
-    path: "/admin/marketing/notificacoes",
+    path: "/workspace/marketing/notificacoes",
     label: "Notificações",
     description: "Push e campanhas",
     audience: "admin",
@@ -826,7 +826,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 5,
   },
   {
-    path: "/admin/marketing/feed",
+    path: "/workspace/marketing/feed",
     label: "Feeds",
     description: "Feeds Meta/Google",
     audience: "admin",
@@ -834,7 +834,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 5,
   },
   {
-    path: "/admin/match-time",
+    path: "/workspace/match-time",
     label: "Match Time",
     description: "Recomendação por swipe",
     audience: "admin",
@@ -842,7 +842,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 5,
   },
   {
-    path: "/admin/criador",
+    path: "/workspace/criador",
     label: "Criador",
     description: "Criador de posts/arte",
     audience: "admin",
@@ -850,7 +850,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 5,
   },
   {
-    path: "/admin/caixa",
+    path: "/workspace/caixa",
     label: "Caixa",
     description: "Caixa e frente de loja",
     audience: "admin",
@@ -858,7 +858,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 4,
   },
   {
-    path: "/admin/caixa/turnos",
+    path: "/workspace/caixa/turnos",
     label: "Turnos",
     description: "Turnos de caixa",
     audience: "admin",
@@ -866,7 +866,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 4,
   },
   {
-    path: "/admin/caixa/lancamentos",
+    path: "/workspace/caixa/lancamentos",
     label: "Lançamentos",
     description: "Entradas e saídas de caixa",
     audience: "admin",
@@ -874,7 +874,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 4,
   },
   {
-    path: "/admin/comissoes",
+    path: "/workspace/comissoes",
     label: "Comissões",
     description: "Comissões da equipe",
     audience: "admin",
@@ -882,7 +882,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 4,
   },
   {
-    path: "/admin/equipe",
+    path: "/workspace/equipe",
     label: "Equipe",
     description: "Usuários e papéis",
     audience: "admin",
@@ -890,7 +890,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 1,
   },
   {
-    path: "/admin/relatorios",
+    path: "/workspace/relatorios",
     label: "Relatórios",
     description: "Relatórios e métricas",
     audience: "admin",
@@ -898,7 +898,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 4,
   },
   {
-    path: "/admin/integracoes",
+    path: "/workspace/integracoes",
     label: "Integrações",
     description: "Conexões externas",
     audience: "admin",
@@ -906,7 +906,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 5,
   },
   {
-    path: "/admin/configuracoes/loja",
+    path: "/workspace/configuracoes/loja",
     label: "Loja",
     description: "Dados da loja",
     audience: "admin",
@@ -914,7 +914,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 0,
   },
   {
-    path: "/admin/configuracoes/pagamentos",
+    path: "/workspace/configuracoes/pagamentos",
     label: "Métodos de Pagamento",
     description: "Configuração de Pix Manual, Ficha e taxas",
     audience: "admin",
@@ -922,7 +922,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 2,
   },
   {
-    path: "/admin/configuracoes/politicas",
+    path: "/workspace/configuracoes/politicas",
     label: "Políticas",
     description: "Políticas e termos",
     audience: "admin",
@@ -930,7 +930,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 3,
   },
   {
-    path: "/admin/configuracoes/lgpd",
+    path: "/workspace/configuracoes/lgpd",
     label: "LGPD",
     description: "Privacidade e consentimentos",
     audience: "admin",
@@ -938,7 +938,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 3,
   },
   {
-    path: "/admin/configuracoes/auditoria",
+    path: "/workspace/configuracoes/auditoria",
     label: "Auditoria",
     description: "Log de auditoria",
     audience: "admin",
@@ -946,7 +946,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 4,
   },
   {
-    path: "/admin/configuracoes/seo",
+    path: "/workspace/configuracoes/seo",
     label: "SEO",
     description: "Configurações de SEO",
     audience: "admin",
@@ -954,7 +954,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 3,
   },
   {
-    path: "/admin/configuracoes/etapas",
+    path: "/workspace/configuracoes/etapas",
     label: "Etapas da Loja",
     description: "Etapas para uma loja de sucesso",
     audience: "admin",
@@ -965,7 +965,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
   },
 ];
 
-export const ALL_ROUTES: RouteEntry[] = [...PUBLIC_ROUTES, ...CUSTOMER_ROUTES, ...ADMIN_ROUTES];
+export const ALL_ROUTES: RouteEntry[] = [...PUBLIC_ROUTES, ...CUSTOMER_ROUTES, ...WORKSPACE_ROUTES];
 
 export function getRoute(path: string): RouteEntry | undefined {
   const exact = ALL_ROUTES.find((r) => r.path === path);

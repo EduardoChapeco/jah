@@ -48,7 +48,7 @@ export const listIntegrationSettings = createServerFn({ method: "GET" }).handler
  * Returns active public pixels/analytics IDs without exposing secret tokens.
  */
 export const getPublicPixels = createServerFn({ method: "GET" }).handler(async () => {
-  const { resolveTenantStoreId } = await import("@/lib/tenant");
+  const { resolveTenantStoreId } = await import("@/lib/tenant.server");
   const storeId = await resolveTenantStoreId();
   if (!storeId) return [];
 

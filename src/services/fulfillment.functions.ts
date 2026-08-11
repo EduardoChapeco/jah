@@ -62,7 +62,7 @@ async function requireStaffAccess(): Promise<string> {
 // Handlers (decoupled for unit testing)
 // ---------------------------------------------------------------------------
 
-export async function listShipmentsHandler(filters?: {
+export async function _listShipments(filters?: {
   status?: (typeof SHIPMENT_STATUS_VALUES)[number];
   orderId?: string;
 }) {
@@ -91,7 +91,7 @@ export async function listShipmentsHandler(filters?: {
   return data || [];
 }
 
-export async function getShipmentByIdHandler(id: string) {
+export async function _getShipmentById(id: string) {
   const db = getServerClient();
   const { data, error } = await db
     .from("shipments")
@@ -106,7 +106,7 @@ export async function getShipmentByIdHandler(id: string) {
   return data;
 }
 
-export async function createShipmentHandler(input: {
+export async function _createShipment(input: {
   order_id: string;
   carrier_name?: string;
   tracking_code?: string;
@@ -167,7 +167,7 @@ export async function createShipmentHandler(input: {
   return data;
 }
 
-export async function updateShipmentTrackingHandler(input: {
+export async function _updateShipmentTracking(input: {
   id: string;
   tracking_code?: string;
   carrier_name?: string;
@@ -233,7 +233,7 @@ export async function updateShipmentTrackingHandler(input: {
   return shipment;
 }
 
-export async function listPendingFulfillmentHandler() {
+export async function _listPendingFulfillment() {
   const db = getServerClient();
 
   // Orders that are paid or in processing state but have no shipment yet
@@ -280,7 +280,7 @@ export const listShipments = createServerFn({ method: "GET" })
   )
   .handler(async ({ data: filters }) => {
     try {
-      return await listShipmentsHandler(filters ?? undefined);
+      return await _listShipments(filters ?? undefined);
     } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[fulfillment] listShipments:", e.message);
@@ -292,7 +292,7 @@ export const getShipmentById = createServerFn({ method: "GET" })
   .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: { id } }) => {
     try {
-      return await getShipmentByIdHandler(id);
+      return await _getShipmentById(id);
     } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[fulfillment] getShipmentById:", e.message);
@@ -315,7 +315,7 @@ export const createShipment = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
-      return await createShipmentHandler(input);
+      return await _createShipment(input);
     } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[fulfillment] createShipment:", e.message);
@@ -339,7 +339,7 @@ export const updateShipmentTracking = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
-      return await updateShipmentTrackingHandler(input);
+      return await _updateShipmentTracking(input);
     } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[fulfillment] updateShipmentTracking:", e.message);
@@ -349,7 +349,7 @@ export const updateShipmentTracking = createServerFn({ method: "POST" })
 
 export const listPendingFulfillment = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    return await listPendingFulfillmentHandler();
+    return await _listPendingFulfillment();
   } catch (e: any) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[fulfillment] listPendingFulfillment:", e.message);

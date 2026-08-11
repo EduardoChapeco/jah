@@ -14,7 +14,7 @@ import { getSSRClient } from "@/lib/server-access";
 // Admin CRUD
 // ---------------------------------------------------------------------------
 
-export async function listAdminPagesHandler() {
+export async function _listAdminPages() {
   const { getServerIdentity } = await import("@/lib/server-access");
   const { store_id } = await getServerIdentity();
   if (!store_id) throw new Error("Loja não encontrada");
@@ -32,7 +32,7 @@ export async function listAdminPagesHandler() {
 
 export const listAdminPages = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    const data = await listAdminPagesHandler();
+    const data = await _listAdminPages();
     return data;
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
@@ -196,7 +196,7 @@ export const getPublicPageBySlug = createServerFn({ method: "GET" })
     try {
       const db = getServerClient();
 
-      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const { resolveTenantStoreId } = await import("@/lib/tenant.server");
       const storeId = await resolveTenantStoreId();
       const storeData = storeId ? { id: storeId } : null;
       if (!storeData) return { status: "unconfigured" as const, reason: "Sem loja configurada" };
@@ -233,7 +233,7 @@ export const getPublicPageBySlug = createServerFn({ method: "GET" })
 
 export const getPublicStoreSettings = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const { resolveTenantStoreId } = await import("@/lib/tenant.server");
     const storeId = await resolveTenantStoreId();
     if (!storeId) return { status: "not_found" as const };
 
@@ -265,7 +265,7 @@ export const getThemeSettings = createServerFn({ method: "GET" }).handler(async 
   try {
     const db = getServerClient();
 
-    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const { resolveTenantStoreId } = await import("@/lib/tenant.server");
     const storeId = await resolveTenantStoreId();
     const storeData = storeId ? { id: storeId } : null;
     if (!storeData) throw new Error("No store found");
@@ -344,7 +344,7 @@ export const getNavigationMenus = createServerFn({ method: "GET" }).handler(asyn
   try {
     const db = getServerClient();
 
-    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const { resolveTenantStoreId } = await import("@/lib/tenant.server");
     const storeId = await resolveTenantStoreId();
     const storeData = storeId ? { id: storeId } : null;
     if (!storeData) throw new Error("No store found");
@@ -527,7 +527,7 @@ export const getLinkInBio = createServerFn({ method: "GET" }).handler(async () =
   try {
     const db = getServerClient();
 
-    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const { resolveTenantStoreId } = await import("@/lib/tenant.server");
     const storeId = await resolveTenantStoreId();
     const storeData = storeId ? { id: storeId } : null;
     if (!storeData) throw new Error("No store found");
@@ -699,7 +699,7 @@ export const listPublicStories = createServerFn({ method: "GET" }).handler(async
   try {
     const db = getServerClient();
 
-    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const { resolveTenantStoreId } = await import("@/lib/tenant.server");
     const storeId = await resolveTenantStoreId();
     const storeData = storeId ? { id: storeId } : null;
     if (!storeData) throw new Error("No store found");
@@ -727,7 +727,7 @@ export const getPageBySlug = createServerFn({ method: "GET" })
       const db = getServerClient();
 
       // Get the first store id
-      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const { resolveTenantStoreId } = await import("@/lib/tenant.server");
       const storeId = await resolveTenantStoreId();
       const store = storeId ? { id: storeId } : null;
       if (!store) throw new Error("Loja não encontrada.");
@@ -849,7 +849,7 @@ export const listCustomerReviews = createServerFn({ method: "GET" }).handler(asy
     } = await ssrClient.auth.getUser();
     if (!user) throw new Error("Não autorizado");
 
-    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const { resolveTenantStoreId } = await import("@/lib/tenant.server");
     const storeId = await resolveTenantStoreId();
     if (!storeId) throw new Error("Loja não encontrada");
 

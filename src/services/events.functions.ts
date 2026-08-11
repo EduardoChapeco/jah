@@ -9,7 +9,7 @@ import { logAuditAction } from "./audit.functions";
 // EVENTS
 // ---------------------------------------------------------------------------
 
-export async function listAdminEventsHandler() {
+async function _listAdminEvents() {
   const supabase = getServerClient();
   const identity = await getServerIdentity();
 
@@ -28,9 +28,9 @@ export async function listAdminEventsHandler() {
   return events || [];
 }
 
-export const listAdminEvents = createServerFn({ method: "GET" }).handler(listAdminEventsHandler);
+export const listAdminEvents = createServerFn({ method: "GET" }).handler(_listAdminEvents);
 
-export async function getAdminEventByIdHandler(eventId: string) {
+async function _getAdminEventById(eventId: string) {
   const supabase = getServerClient();
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin", "manager", "content", "seller"]);
@@ -48,9 +48,9 @@ export async function getAdminEventByIdHandler(eventId: string) {
 
 export const getAdminEventById = createServerFn({ method: "GET" })
   .validator(z.string().uuid())
-  .handler(async ({ data: eventId }) => getAdminEventByIdHandler(eventId));
+  .handler(async ({ data: eventId }) => _getAdminEventById(eventId));
 
-export async function upsertEventHandler(data: Partial<z.infer<typeof eventSchema>>) {
+async function _upsertEvent(data: Partial<z.infer<typeof eventSchema>>) {
   const supabase = getServerClient();
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin", "manager", "content"]);
@@ -77,14 +77,14 @@ export const upsertEvent = createServerFn({ method: "POST" })
     title: z.string().min(1),
     event_date: z.string(),
   }))
-  .handler(async ({ data }) => upsertEventHandler(data));
+  .handler(async ({ data }) => _upsertEvent(data));
 
 
 // ---------------------------------------------------------------------------
 // TICKET LOTS
 // ---------------------------------------------------------------------------
 
-export async function listEventLotsHandler(eventId: string) {
+async function _listEventLots(eventId: string) {
   const supabase = getServerClient();
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin", "manager", "content", "seller"]);
@@ -110,9 +110,9 @@ export async function listEventLotsHandler(eventId: string) {
 
 export const listEventLots = createServerFn({ method: "GET" })
   .validator(z.string().uuid())
-  .handler(async ({ data: eventId }) => listEventLotsHandler(eventId));
+  .handler(async ({ data: eventId }) => _listEventLots(eventId));
 
-export async function upsertEventLotHandler(data: Partial<z.infer<typeof ticketLotSchema>>) {
+async function _upsertEventLot(data: Partial<z.infer<typeof ticketLotSchema>>) {
   const supabase = getServerClient();
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin", "manager"]);
@@ -152,13 +152,13 @@ export async function upsertEventLotHandler(data: Partial<z.infer<typeof ticketL
 
 export const upsertEventLot = createServerFn({ method: "POST" })
   .validator(ticketLotSchema.partial().extend({ event_id: z.string().uuid(), name: z.string() }))
-  .handler(async ({ data }) => upsertEventLotHandler(data));
+  .handler(async ({ data }) => _upsertEventLot(data));
 
 // ---------------------------------------------------------------------------
 // TICKETS / CHECK-IN
 // ---------------------------------------------------------------------------
 
-export async function validateTicketCheckinHandler(eventId: string, ticketCode: string) {
+async function _validateTicketCheckin(eventId: string, ticketCode: string) {
   const supabase = getServerClient();
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin", "manager", "seller"]); // sellers can check-in
@@ -227,15 +227,15 @@ export async function validateTicketCheckinHandler(eventId: string, ticketCode: 
 
 export const validateTicketCheckin = createServerFn({ method: "POST" })
   .validator(z.object({ eventId: z.string().uuid(), ticketCode: z.string() }))
-  .handler(async ({ data }) => validateTicketCheckinHandler(data.eventId, data.ticketCode));
+  .handler(async ({ data }) => _validateTicketCheckin(data.eventId, data.ticketCode));
 
 // ---------------------------------------------------------------------------
 // PUBLIC EVENTS API
 // ---------------------------------------------------------------------------
 
-export async function getEventWithLotsHandler(eventId: string) {
+async function _getEventWithLots(eventId: string) {
   const supabase = getServerClient();
-  const { resolveTenantStoreId } = await import("@/lib/tenant");
+  const { resolveTenantStoreId } = await import("@/lib/tenant.server");
   const storeId = await resolveTenantStoreId();
 
   const { data: event, error: eventError } = await supabase
@@ -261,13 +261,13 @@ export async function getEventWithLotsHandler(eventId: string) {
 
 export const getEventWithLots = createServerFn({ method: "GET" })
   .validator(z.object({ eventId: z.string().uuid() }))
-  .handler(async ({ data }) => getEventWithLotsHandler(data.eventId));
+  .handler(async ({ data }) => _getEventWithLots(data.eventId));
 
 // ---------------------------------------------------------------------------
 // PUBLIC EVENTS LISTING (no auth required)
 // ---------------------------------------------------------------------------
 
-export async function getPublicEventsHandler(opts: { limit?: number } = {}) {
+async function _getPublicEvents(opts: { limit?: number } = {}) {
   const supabase = getServerClient();
   const limit = opts.limit ?? 50;
 
@@ -281,7 +281,7 @@ export async function getPublicEventsHandler(opts: { limit?: number } = {}) {
     .limit(limit);
 
   if (error) {
-    console.error("[events] getPublicEventsHandler error:", error);
+    console.error("[events] getPublicEvents error:", error);
     throw new Error("Não foi possível carregar os eventos.");
   }
 
@@ -292,5 +292,5 @@ export const getPublicEvents = createServerFn({ method: "GET" })
   .validator(
     z.object({ limit: z.number().int().min(1).max(100).optional() }).optional()
   )
-  .handler(async ({ data }) => getPublicEventsHandler(data || {}));
+  .handler(async ({ data }) => _getPublicEvents(data || {}));
 

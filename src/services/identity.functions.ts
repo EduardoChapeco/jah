@@ -3,11 +3,11 @@ import { setCookie } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { getServerIdentity } from "@/lib/server-access";
 
-export const getIdentityHandler = createServerFn({ method: "GET" }).handler(async () => {
+export const getIdentity = createServerFn({ method: "GET" }).handler(async () => {
   return await getServerIdentity();
 });
 
-export const setTenantContextHandler = createServerFn({ method: "POST" })
+export const setTenantContext = createServerFn({ method: "POST" })
   .validator(z.object({ store_id: z.string().uuid().nullable() }))
   .handler(async ({ data: { store_id } }) => {
     const identity = await getServerIdentity();
@@ -49,7 +49,7 @@ export const setTenantContextHandler = createServerFn({ method: "POST" })
     return { success: true, store_id };
   });
 
-export const createBusinessProfileHandler = createServerFn({ method: "POST" })
+export const createBusinessProfile = createServerFn({ method: "POST" })
   .validator(
     z.object({
       name: z.string().min(2, "O nome deve ter no mínimo 2 caracteres"),

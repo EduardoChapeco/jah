@@ -56,22 +56,22 @@ ALTER TABLE ad_campaigns ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ad_events ENABLE ROW LEVEL SECURITY;
 
 -- Stores can read their own data
-CREATE POLICY "Stores can view their invoices" ON platform_invoices FOR SELECT USING (store_id IN (SELECT store_id FROM store_members WHERE profile_id = auth.uid()));
-CREATE POLICY "Stores can view their subscriptions" ON platform_subscriptions FOR SELECT USING (store_id IN (SELECT store_id FROM store_members WHERE profile_id = auth.uid()));
-CREATE POLICY "Stores can manage their campaigns" ON ad_campaigns FOR ALL USING (store_id IN (SELECT store_id FROM store_members WHERE profile_id = auth.uid()));
-CREATE POLICY "Stores can view their ad events" ON ad_events FOR SELECT USING (campaign_id IN (SELECT id FROM ad_campaigns WHERE store_id IN (SELECT store_id FROM store_members WHERE profile_id = auth.uid())));
+CREATE POLICY "Stores can view their invoices" ON platform_invoices FOR SELECT USING (store_id IN (SELECT store_id FROM workspace_members WHERE profile_id = auth.uid()));
+CREATE POLICY "Stores can view their subscriptions" ON platform_subscriptions FOR SELECT USING (store_id IN (SELECT store_id FROM workspace_members WHERE profile_id = auth.uid()));
+CREATE POLICY "Stores can manage their campaigns" ON ad_campaigns FOR ALL USING (store_id IN (SELECT store_id FROM workspace_members WHERE profile_id = auth.uid()));
+CREATE POLICY "Stores can view their ad events" ON ad_events FOR SELECT USING (campaign_id IN (SELECT id FROM ad_campaigns WHERE store_id IN (SELECT store_id FROM workspace_members WHERE profile_id = auth.uid())));
 
 -- Platform Admins (service_role) bypass RLS automatically.
 
 -- Triggers for updated_at
 CREATE TRIGGER set_timestamp_platform_invoices
 BEFORE UPDATE ON platform_invoices
-FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
+FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 CREATE TRIGGER set_timestamp_platform_subscriptions
 BEFORE UPDATE ON platform_subscriptions
-FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
+FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 CREATE TRIGGER set_timestamp_ad_campaigns
 BEFORE UPDATE ON ad_campaigns
-FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
+FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();

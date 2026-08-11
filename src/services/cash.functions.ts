@@ -76,7 +76,7 @@ async function getEntriesForRegister(registerId: string): Promise<CashRegisterEn
 // Decoupled Handlers (for unit testing)
 // ---------------------------------------------------------------------------
 
-export async function getActiveRegisterHandler(): Promise<ActiveCashRegister | null> {
+export async function _getActiveRegister(): Promise<ActiveCashRegister | null> {
   const supabase = getServerClient();
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin", "manager", "finance", "seller"]);
@@ -98,15 +98,21 @@ export async function getActiveRegisterHandler(): Promise<ActiveCashRegister | n
   ]);
   const summary = summarizeCashEntries(registerRow.initial_balance_cents, entries);
 
+  // Expiration check (24h)
+  const openedAt = new Date(registerRow.opened_at);
+  const diffHours = (Date.now() - openedAt.getTime()) / (1000 * 60 * 60);
+  const isExpired = diffHours >= 24;
+
   return {
     ...registerRow,
     ...summary,
     opened_by_profile: profileFor(profiles, registerRow.opened_by),
     recentEntries: entries,
+    isExpired,
   } satisfies ActiveCashRegister;
 }
 
-export async function openRegisterHandler(
+export async function _openRegister(
   initialBalanceCents: number,
   notes?: string,
 ): Promise<{ status: "success" }> {
@@ -138,7 +144,7 @@ export async function openRegisterHandler(
   return { status: "success" };
 }
 
-export async function closeRegisterHandler(
+export async function _closeRegister(
   registerId: string,
   countedBalanceCents: number,
   notes?: string,
@@ -173,7 +179,7 @@ export async function closeRegisterHandler(
   return result as { status: string; expected: number; counted: number; discrepancy: boolean };
 }
 
-export async function addRegisterEntryHandler(
+export async function _addRegisterEntry(
   registerId: string,
   amountCents: number,
   method: CashEntryMethod,
@@ -217,7 +223,7 @@ export async function addRegisterEntryHandler(
   return { status: "success" };
 }
 
-export async function listRegisterHistoryHandler(): Promise<CashRegisterHistoryItem[]> {
+export async function _listRegisterHistory(): Promise<CashRegisterHistoryItem[]> {
   const supabase = getServerClient();
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin", "manager", "finance"]);
@@ -275,7 +281,7 @@ export async function listRegisterHistoryHandler(): Promise<CashRegisterHistoryI
 // ---------------------------------------------------------------------------
 
 export const getActiveRegister = createServerFn({ method: "GET" }).handler(async () => {
-  return await getActiveRegisterHandler();
+  return await _getActiveRegister();
 });
 
 export const openRegister = createServerFn({ method: "POST" })
@@ -286,7 +292,7 @@ export const openRegister = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data: { initialBalanceCents, notes } }) => {
-    return await openRegisterHandler(initialBalanceCents, notes);
+    return await _openRegister(initialBalanceCents, notes);
   });
 
 export const closeRegister = createServerFn({ method: "POST" })
@@ -298,7 +304,7 @@ export const closeRegister = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data: { registerId, countedBalanceCents, notes } }) => {
-    return await closeRegisterHandler(registerId, countedBalanceCents, notes);
+    return await _closeRegister(registerId, countedBalanceCents, notes);
   });
 
 export const addRegisterEntry = createServerFn({ method: "POST" })
@@ -311,10 +317,10 @@ export const addRegisterEntry = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data: { registerId, amountCents, method, description } }) => {
-    return await addRegisterEntryHandler(registerId, amountCents, method, description);
+    return await _addRegisterEntry(registerId, amountCents, method, description);
   });
 
-export async function processPOSSaleHandler(input: {
+export async function _processPOSSale(input: {
   registerId: string;
   items: Array<{
     variantId: string;
@@ -337,12 +343,19 @@ export async function processPOSSaleHandler(input: {
   // 1. Validate open register
   const { data: register, error: regErr } = await supabase
     .from("cash_registers")
-    .select("id, status")
+    .select("id, status, opened_at")
     .eq("id", input.registerId)
     .single();
 
   if (regErr || !register || register.status !== "open") {
     throw new Error("É necessário ter um caixa aberto para realizar vendas de balcão.");
+  }
+
+  // Strict 24h validation
+  const openedAt = new Date(register.opened_at);
+  const diffHours = (Date.now() - openedAt.getTime()) / (1000 * 60 * 60);
+  if (diffHours >= 24) {
+    throw new Error("CAIXA_EXPIRADO");
   }
 
   if (!input.items || input.items.length === 0) {
@@ -443,9 +456,9 @@ export const processPOSSale = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data }) => {
-    return await processPOSSaleHandler(data);
+    return await _processPOSSale(data);
   });
 
 export const listRegisterHistory = createServerFn({ method: "GET" }).handler(async () => {
-  return await listRegisterHistoryHandler();
+  return await _listRegisterHistory();
 });

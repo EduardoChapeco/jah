@@ -3,7 +3,7 @@
 -- 1. Create Option Groups (Global level per tenant)
 CREATE TABLE IF NOT EXISTS public.option_groups (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
+    store_id UUID NOT NULL REFERENCES public.stores(id) ON DELETE CASCADE,
     internal_name TEXT NOT NULL,
     display_name TEXT NOT NULL,
     selection_type TEXT DEFAULT 'single' CHECK (selection_type IN ('single', 'multiple')),
@@ -41,7 +41,6 @@ ALTER TABLE public.option_values ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.product_option_groups ENABLE ROW LEVEL SECURITY;
 
 -- Basic RLS Policies (Read public, Write admin/tenant)
--- (Assuming standard multi-tenant RLS logic based on current_setting('request.jwt.claims'))
 
 CREATE POLICY "Option Groups are readable by everyone" 
   ON public.option_groups FOR SELECT 
@@ -49,11 +48,11 @@ CREATE POLICY "Option Groups are readable by everyone"
 
 CREATE POLICY "Option Groups are insertable by admins" 
   ON public.option_groups FOR INSERT 
-  WITH CHECK (tenant_id = (current_setting('request.jwt.claims', true)::json->>'tenant_id')::uuid);
+  WITH CHECK (public.is_store_staff(store_id));
 
 CREATE POLICY "Option Groups are updatable by admins" 
   ON public.option_groups FOR UPDATE 
-  USING (tenant_id = (current_setting('request.jwt.claims', true)::json->>'tenant_id')::uuid);
+  USING (public.is_store_staff(store_id));
 
 CREATE POLICY "Option Values are readable by everyone" 
   ON public.option_values FOR SELECT 
@@ -64,7 +63,7 @@ CREATE POLICY "Option Values are insertable by admins"
   WITH CHECK (EXISTS (
     SELECT 1 FROM public.option_groups g 
     WHERE g.id = group_id 
-    AND g.tenant_id = (current_setting('request.jwt.claims', true)::json->>'tenant_id')::uuid
+    AND public.is_store_staff(g.store_id)
   ));
 
 CREATE POLICY "Product Option Groups are readable by everyone" 
@@ -76,5 +75,5 @@ CREATE POLICY "Product Option Groups are insertable by admins"
   WITH CHECK (EXISTS (
     SELECT 1 FROM public.products p 
     WHERE p.id = product_id 
-    AND p.tenant_id = (current_setting('request.jwt.claims', true)::json->>'tenant_id')::uuid
+    AND public.is_store_staff(p.store_id)
   ));

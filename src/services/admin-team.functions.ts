@@ -8,7 +8,7 @@ import { getServerIdentity, assertStoreAccess } from "@/lib/server-access";
 // Team Management (Equipe)
 // ---------------------------------------------------------------------------
 
-export async function listTeamMembersHandler() {
+export async function _listTeamMembers() {
   const db = getServerClient();
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin", "manager"]);
@@ -57,7 +57,7 @@ export async function listTeamMembersHandler() {
 
 export const listTeamMembers = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    const data = await listTeamMembersHandler();
+    const data = await _listTeamMembers();
     return data;
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
@@ -66,7 +66,7 @@ export const listTeamMembers = createServerFn({ method: "GET" }).handler(async (
   }
 });
 
-export async function updateTeamMemberRoleHandler(input: {
+export async function _updateTeamMemberRole(input: {
   id: string;
   role: "owner" | "admin" | "manager" | "seller" | "finance" | "content" | "customer";
 }) {
@@ -122,7 +122,7 @@ export const updateTeamMemberRole = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
-      const data = await updateTeamMemberRoleHandler(input);
+      const data = await _updateTeamMemberRole(input);
       return data;
     } catch (e: unknown) {
       console.error("[admin-team] updateTeamMemberRole error:", e);
@@ -130,7 +130,7 @@ export const updateTeamMemberRole = createServerFn({ method: "POST" })
     }
   });
 
-export async function inviteTeamMemberHandler(input: {
+export async function _inviteTeamMember(input: {
   email: string;
   fullName: string;
   role: "admin" | "manager" | "seller" | "finance" | "content";
@@ -185,7 +185,7 @@ export const inviteTeamMember = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
-      return await inviteTeamMemberHandler(input);
+      return await _inviteTeamMember(input);
     } catch (e: unknown) {
       console.error("[admin-team] inviteTeamMember error:", e);
       throw new Error(e instanceof Error ? e.message : "Erro.");

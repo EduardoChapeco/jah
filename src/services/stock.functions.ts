@@ -8,7 +8,7 @@ import { getServerIdentity, requireAdmin } from "@/lib/server-access";
 // Handlers (decoupled for unit testing)
 // ---------------------------------------------------------------------------
 
-export async function getStockLevelsHandler(params: { search?: string }, store_id: string) {
+export async function _getStockLevels(params: { search?: string }, store_id: string) {
   const db = getServerClient();
 
   let query = db
@@ -46,7 +46,7 @@ export const getStockLevels = createServerFn({ method: "GET" })
       const identity = await getServerIdentity();
       if (!identity.store_id) throw new Error("Contexto de loja inválido");
 
-      const data = await getStockLevelsHandler(params, identity.store_id);
+      const data = await _getStockLevels(params, identity.store_id);
       return data;
     } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
@@ -57,7 +57,7 @@ export const getStockLevels = createServerFn({ method: "GET" })
 
 // ---------------------------------------------------------------------------
 
-export async function adjustStockHandler(
+export async function _adjustStock(
   params: {
     variantId: string;
     qty: number;
@@ -104,7 +104,7 @@ export const adjustStock = createServerFn({ method: "POST" })
       const identity = await getServerIdentity();
       if (!identity.store_id) throw new Error("Contexto de loja inválido");
 
-      return await adjustStockHandler(params, identity.store_id);
+      return await _adjustStock(params, identity.store_id);
     } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[stock.functions] adjustStock:", e.message);
@@ -114,7 +114,7 @@ export const adjustStock = createServerFn({ method: "POST" })
 
 // ---------------------------------------------------------------------------
 
-export async function getStockMovementsHandler(limit: number, store_id: string) {
+export async function _getStockMovements(limit: number, store_id: string) {
   const db = getServerClient();
 
   const { data, error } = await db
@@ -156,7 +156,7 @@ export const getStockMovements = createServerFn({ method: "GET" })
       const identity = await getServerIdentity();
       if (!identity.store_id) throw new Error("Contexto de loja inválido");
 
-      const data = await getStockMovementsHandler(limit, identity.store_id);
+      const data = await _getStockMovements(limit, identity.store_id);
       return data;
     } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError) throw e;

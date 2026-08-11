@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getServerClient } from "@/lib/supabase";
-import { getIdentityHandler } from "./identity.functions";
+import { getIdentity } from "./identity.functions";
 import { z } from "zod";
 import { classifiedSchema } from "@/types/community";
 
@@ -8,7 +8,7 @@ import { classifiedSchema } from "@/types/community";
 // PUBLIC (no auth required)
 // ---------------------------------------------------------------------------
 
-export const getPublicClassifiedsHandler = createServerFn({ method: "GET" })
+export const getPublicClassifieds = createServerFn({ method: "GET" })
   .validator(
     z.object({
       limit: z.number().int().min(1).max(100).optional(),
@@ -33,7 +33,7 @@ export const getPublicClassifiedsHandler = createServerFn({ method: "GET" })
     const { data: classifieds, error } = await query;
 
     if (error) {
-      console.error("[classifieds] getPublicClassifiedsHandler error:", error);
+      console.error("[classifieds] getPublicClassifieds error:", error);
       throw new Error("Não foi possível carregar os classificados.");
     }
 
@@ -44,9 +44,9 @@ export const getPublicClassifiedsHandler = createServerFn({ method: "GET" })
 // AUTHENTICATED (own classifieds — admin)
 // ---------------------------------------------------------------------------
 
-export const getClassifiedsHandler = createServerFn({ method: "GET" }).handler(async () => {
+export const getClassifieds = createServerFn({ method: "GET" }).handler(async () => {
   const supabase = getServerClient();
-  const identity = await getIdentityHandler();
+  const identity = await getIdentity();
 
   if (!identity || !identity.id) {
     throw new Error("Unauthorized");
@@ -66,11 +66,11 @@ export const getClassifiedsHandler = createServerFn({ method: "GET" }).handler(a
   return data;
 });
 
-export const getClassifiedHandler = createServerFn({ method: "GET" })
+export const getClassified = createServerFn({ method: "GET" })
   .validator(z.string().uuid())
   .handler(async ({ data: id }) => {
     const supabase = getServerClient();
-    const identity = await getIdentityHandler();
+    const identity = await getIdentity();
 
     if (!identity || !identity.id) {
       throw new Error("Unauthorized");
@@ -109,11 +109,11 @@ const upsertClassifiedInput = classifiedSchema.omit({
 });
 
 
-export const upsertClassifiedHandler = createServerFn({ method: "POST" })
+export const upsertClassified = createServerFn({ method: "POST" })
   .validator(upsertClassifiedInput)
   .handler(async ({ data: input }) => {
     const supabase = getServerClient();
-    const identity = await getIdentityHandler();
+    const identity = await getIdentity();
 
     if (!identity || !identity.id) {
       throw new Error("Unauthorized");
@@ -156,11 +156,11 @@ export const upsertClassifiedHandler = createServerFn({ method: "POST" })
     }
   });
 
-export const deleteClassifiedHandler = createServerFn({ method: "POST" })
+export const deleteClassified = createServerFn({ method: "POST" })
   .validator(z.string().uuid())
   .handler(async ({ data: id }) => {
     const supabase = getServerClient();
-    const identity = await getIdentityHandler();
+    const identity = await getIdentity();
 
     if (!identity || !identity.id) {
       throw new Error("Unauthorized");

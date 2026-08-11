@@ -101,7 +101,7 @@ export type FederatedSearchResponse = {
 // Handler
 // ---------------------------------------------------------------------------
 
-async function federatedSearchHandler(
+async function _federatedSearch(
   input: FederatedSearchInput,
 ): Promise<FederatedSearchResponse> {
   const db = getServerClient();
@@ -325,4 +325,4 @@ async function federatedSearchHandler(
 
 export const federatedSearch = createServerFn({ method: "GET" })
   .validator(federatedSearchInput)
-  .handler(async ({ data }) => federatedSearchHandler(data));
+  .handler(async ({ data }) => _federatedSearch(data));

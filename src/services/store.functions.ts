@@ -5,7 +5,7 @@ import { getServerIdentity, assertStoreAccess } from "@/lib/server-access";
 
 // --- DADOS DA LOJA ---
 
-export async function getStoreSettingsHandler() {
+export async function _getStoreSettings() {
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin", "manager", "finance"]);
 
@@ -25,7 +25,7 @@ export async function getStoreSettingsHandler() {
   return store;
 }
 
-export const getStoreSettings = createServerFn({ method: "GET" }).handler(getStoreSettingsHandler);
+export const getStoreSettings = createServerFn({ method: "GET" }).handler(_getStoreSettings);
 
 export const saveStoreSettingsSchema = z.object({
   name: z.string().min(2).max(100),
@@ -42,7 +42,7 @@ export const saveStoreSettingsSchema = z.object({
   hideNameWithLogo: z.boolean().optional(),
 });
 
-export async function saveStoreSettingsHandler(data: z.infer<typeof saveStoreSettingsSchema>) {
+export async function _saveStoreSettings(data: z.infer<typeof saveStoreSettingsSchema>) {
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin"]);
 
@@ -85,11 +85,11 @@ export async function saveStoreSettingsHandler(data: z.infer<typeof saveStoreSet
 
 export const saveStoreSettings = createServerFn({ method: "POST" })
   .validator(saveStoreSettingsSchema)
-  .handler(async ({ data }) => saveStoreSettingsHandler(data));
+  .handler(async ({ data }) => _saveStoreSettings(data));
 
 // --- POLÍTICAS DA LOJA ---
 
-export async function getPoliciesHandler() {
+export async function _getPolicies() {
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin", "manager", "finance"]);
 
@@ -107,7 +107,7 @@ export async function getPoliciesHandler() {
   return store;
 }
 
-export const getPolicies = createServerFn({ method: "GET" }).handler(getPoliciesHandler);
+export const getPolicies = createServerFn({ method: "GET" }).handler(_getPolicies);
 
 export const savePoliciesSchema = z.object({
   privacy_policy: z.string(),
@@ -115,7 +115,7 @@ export const savePoliciesSchema = z.object({
   terms: z.string(),
 });
 
-export async function savePoliciesHandler(data: z.infer<typeof savePoliciesSchema>) {
+export async function _savePolicies(data: z.infer<typeof savePoliciesSchema>) {
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin"]);
 
@@ -131,11 +131,11 @@ export async function savePoliciesHandler(data: z.infer<typeof savePoliciesSchem
 
 export const savePolicies = createServerFn({ method: "POST" })
   .validator(savePoliciesSchema)
-  .handler(async ({ data }) => savePoliciesHandler(data));
+  .handler(async ({ data }) => _savePolicies(data));
 
 // --- SEO DA LOJA ---
 
-export async function getStoreSeoHandler() {
+export async function _getStoreSeo() {
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin", "manager", "finance"]);
 
@@ -153,7 +153,7 @@ export async function getStoreSeoHandler() {
   return store;
 }
 
-export const getStoreSeo = createServerFn({ method: "GET" }).handler(getStoreSeoHandler);
+export const getStoreSeo = createServerFn({ method: "GET" }).handler(_getStoreSeo);
 
 export const saveStoreSeoSchema = z.object({
   seo_title: z.string().max(60),
@@ -161,7 +161,7 @@ export const saveStoreSeoSchema = z.object({
   seo_keywords: z.string(),
 });
 
-export async function saveStoreSeoHandler(data: z.infer<typeof saveStoreSeoSchema>) {
+export async function _saveStoreSeo(data: z.infer<typeof saveStoreSeoSchema>) {
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin"]);
 
@@ -177,11 +177,11 @@ export async function saveStoreSeoHandler(data: z.infer<typeof saveStoreSeoSchem
 
 export const saveStoreSeo = createServerFn({ method: "POST" })
   .validator(saveStoreSeoSchema)
-  .handler(async ({ data }) => saveStoreSeoHandler(data));
+  .handler(async ({ data }) => _saveStoreSeo(data));
 
 // --- PERFIL PÚBLICO DA LOJA ---
 
-export async function getPublicProfileHandler() {
+export async function _getPublicProfile() {
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin", "manager", "support", "finance", "seller"]);
 
@@ -201,7 +201,7 @@ export async function getPublicProfileHandler() {
   return store;
 }
 
-export const getPublicProfile = createServerFn({ method: "GET" }).handler(getPublicProfileHandler);
+export const getPublicProfile = createServerFn({ method: "GET" }).handler(_getPublicProfile);
 
 export const savePublicProfileSchema = z.object({
   description: z.string().max(500),
@@ -212,7 +212,7 @@ export const savePublicProfileSchema = z.object({
   settings: z.record(z.any()).optional(),
 });
 
-export async function savePublicProfileHandler(data: z.infer<typeof savePublicProfileSchema>) {
+export async function _savePublicProfile(data: z.infer<typeof savePublicProfileSchema>) {
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin"]);
 
@@ -228,11 +228,11 @@ export async function savePublicProfileHandler(data: z.infer<typeof savePublicPr
 
 export const savePublicProfile = createServerFn({ method: "POST" })
   .validator(savePublicProfileSchema)
-  .handler(async ({ data }) => savePublicProfileHandler(data));
+  .handler(async ({ data }) => _savePublicProfile(data));
 
 // --- CONFIGURAÇÕES DE PAGAMENTO ---
 
-export async function getPaymentSettingsHandler() {
+export async function _getPaymentSettings() {
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin", "manager", "finance"]);
 
@@ -264,7 +264,7 @@ export async function getPaymentSettingsHandler() {
 }
 
 export const getPaymentSettings = createServerFn({ method: "GET" }).handler(
-  getPaymentSettingsHandler,
+  _getPaymentSettings as any
 );
 
 export const savePaymentSettingsSchema = z.object({

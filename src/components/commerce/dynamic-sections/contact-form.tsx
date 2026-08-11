@@ -39,8 +39,8 @@ export function ContactForm({ storeId, content }: ContactFormProps) {
 
     setIsSubmitting(true);
     try {
-      // Resolve storeId or fallback to a dummy UUID for design-preview purposes
-      const resolvedStoreId = storeId || "00000000-0000-0000-0000-000000000000";
+      if (!storeId) throw new Error("ID da loja não encontrado.");
+      const resolvedStoreId = storeId;
 
       const res = await submitContactForm({
         data: {

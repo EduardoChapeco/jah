@@ -64,7 +64,7 @@
 | `/conta/conversas/:id` | Thread de conversa    | customer  | 4    | Página estrutural |
 | `/conta/privacidade`   | Consentimentos e LGPD | customer  | 3    | Página estrutural |
 
-## Rotas do painel (admin)
+## Rotas do workspace (B2B)
 
 | Rota                             | Descrição                    | Permissão                                                       | Fase | Status Fase 0      |
 | -------------------------------- | ---------------------------- | --------------------------------------------------------------- | ---- | ------------------ |

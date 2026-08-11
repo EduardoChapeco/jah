@@ -105,11 +105,11 @@ export const processCheckout = createServerFn({ method: "POST" })
         .single();
 
       if (cartValidation && cartValidation.shipping_method) {
-        const { calculateShippingHandler } = await import("@/services/shipping.functions");
-        const currentRates = await calculateShippingHandler({
+        const { calculateShipping } = await import("@/services/shipping.functions");
+        const currentRates = await calculateShipping({ data: {
           zipcode: cartValidation.shipping_zipcode || "",
           cartId: params.cartId,
-        });
+        }} as any);
         const matchedRate = currentRates.find(
           (r) =>
             r.service_name === cartValidation.shipping_method ||

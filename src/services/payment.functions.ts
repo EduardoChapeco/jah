@@ -594,7 +594,7 @@ export const getPublicPaymentMethods = createServerFn({ method: "GET" })
   .handler(async ({ data: inputData }) => {
     try {
       const db = getServerClient();
-      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const { resolveTenantStoreId } = await import("@/lib/tenant.server");
       const storeId = inputData?.storeId || (await resolveTenantStoreId());
       if (!storeId) throw new Error("Loja não encontrada");
       const storeData = { id: storeId };
@@ -619,7 +619,7 @@ export const getGatewayStatus = createServerFn({ method: "GET" })
   .validator(z.object({ storeId: z.string().optional() }).optional())
   .handler(async ({ data: inputData }) => {
     const db = getServerClient();
-    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const { resolveTenantStoreId } = await import("@/lib/tenant.server");
     const storeId = inputData?.storeId || (await resolveTenantStoreId());
     if (!storeId) return false;
 

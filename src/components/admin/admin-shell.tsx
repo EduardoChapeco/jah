@@ -436,7 +436,7 @@ export function AdminShell({
                   <Store className="size-5 text-primary" />
                 </div>
               ) : (
-                <Link to="/admin" className="flex items-center">
+                <Link to="/workspace" className="flex items-center">
                   <Logo className="h-6" src={logoUrl} />
                 </Link>
               )}
@@ -449,7 +449,7 @@ export function AdminShell({
               className="w-full text-xs font-semibold bg-primary/10 hover:bg-primary/20 text-primary border-transparent"
               asChild
             >
-              <Link to="/admin" onClick={() => setViewMode("modules")}>
+              <Link to="/workspace" onClick={() => setViewMode("modules")}>
                 {collapsed ? <Grid className="size-4" /> : "← Voltar aos Módulos"}
               </Link>
             </Button>
@@ -472,7 +472,7 @@ export function AdminShell({
                     <li key={item.path}>
                       <Link
                         to={item.path}
-                        activeOptions={{ exact: item.path === "/admin" }}
+                        activeOptions={{ exact: item.path === "/workspace" }}
                         className={cn(
                           "flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground",
                           collapsed && "justify-center",
@@ -613,7 +613,7 @@ export function AdminShell({
                           className="h-8 px-2 text-nav font-semibold text-primary"
                           asChild
                         >
-                          <Link to="/admin" onClick={() => setViewMode("modules")}>
+                          <Link to="/workspace" onClick={() => setViewMode("modules")}>
                             ← Módulos
                           </Link>
                         </Button>
@@ -625,7 +625,7 @@ export function AdminShell({
                             <li key={item.path}>
                               <Link
                                 to={item.path}
-                                activeOptions={{ exact: item.path === "/admin" }}
+                                activeOptions={{ exact: item.path === "/workspace" }}
                                 className="flex min-h-11 items-center gap-3 px-3 text-sm font-medium text-sidebar-foreground/85 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
                                 activeProps={{
                                   className: "bg-sidebar-accent text-sidebar-foreground",
@@ -673,7 +673,7 @@ export function AdminShell({
               </ScrollArea>
             </SheetContent>
           </Sheet>
-          <Link to="/admin" className="flex items-center md:hidden">
+          <Link to="/workspace" className="flex items-center md:hidden">
             <Logo className="h-6" />
           </Link>
           <span className="hidden text-sm font-semibold tracking-tight text-foreground/80 sm:inline-block">

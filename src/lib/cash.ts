@@ -29,6 +29,9 @@ export interface ActiveCashRegister {
   notes: string | null;
   created_at: string;
   updated_at: string;
+  isExpired?: boolean;
+
+  // Hydrated fields
   opened_by_profile: CashRegisterProfile | null;
   closed_by_profile?: CashRegisterProfile | null;
   currentBalanceCents: number;

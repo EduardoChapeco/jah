@@ -46,7 +46,7 @@ export interface CommissionSummaryDTO {
 // Handlers
 // ---------------------------------------------------------------------------
 
-export async function getAffiliatePerformanceHandler(filters: {
+export async function _getAffiliatePerformance(filters: {
   startDate?: string;
   endDate?: string;
   sellerId?: string;
@@ -130,7 +130,7 @@ export async function getAffiliatePerformanceHandler(filters: {
   return result.filter((r) => r.totalOrders > 0 || r.totalCommissionCents > 0);
 }
 
-export async function getCommissionSummaryHandler(): Promise<CommissionSummaryDTO> {
+export async function _getCommissionSummary(): Promise<CommissionSummaryDTO> {
   const db = getServerClient();
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin", "manager", "finance"]);
@@ -162,7 +162,7 @@ export async function getCommissionSummaryHandler(): Promise<CommissionSummaryDT
 /**
  * Retorna o perfil de comissão do afiliado logado (auto-consulta).
  */
-export async function getMyCommissionProfileHandler() {
+export async function _getMyCommissionProfile() {
   const ssrClient = await getSSRClient();
   const {
     data: { user },
@@ -216,7 +216,7 @@ export async function getMyCommissionProfileHandler() {
  * Gera/obtém o link de afiliação deste vendedor.
  * O link inclui o slug da loja + o ID do vendedor como parâmetro de rastreio.
  */
-export async function getAffiliateLinkHandler(baseUrl: string): Promise<{ link: string }> {
+export async function _getAffiliateLink(baseUrl: string): Promise<{ link: string }> {
   const ssrClient = await getSSRClient();
   const {
     data: { user },
@@ -237,7 +237,7 @@ export async function getAffiliateLinkHandler(baseUrl: string): Promise<{ link: 
 /**
  * Lista todos os pedidos atribuídos ao vendedor logado (auto-consulta).
  */
-export async function listMyAttributedOrdersHandler() {
+export async function _listMyAttributedOrders() {
   const ssrClient = await getSSRClient();
   const {
     data: { user },
@@ -274,7 +274,7 @@ export const getAffiliatePerformance = createServerFn({ method: "GET" })
   )
   .handler(async ({ data: filters }) => {
     try {
-      return await getAffiliatePerformanceHandler(filters);
+      return await _getAffiliatePerformance(filters);
     } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[affiliates] getAffiliatePerformance:", e.message);
@@ -284,7 +284,7 @@ export const getAffiliatePerformance = createServerFn({ method: "GET" })
 
 export const getCommissionSummary = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    return await getCommissionSummaryHandler();
+    return await _getCommissionSummary();
   } catch (e: any) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[affiliates] getCommissionSummary:", e.message);
@@ -294,7 +294,7 @@ export const getCommissionSummary = createServerFn({ method: "GET" }).handler(as
 
 export const getMyCommissionProfile = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    return await getMyCommissionProfileHandler();
+    return await _getMyCommissionProfile();
   } catch (e: any) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[affiliates] getMyCommissionProfile:", e.message);
@@ -306,7 +306,7 @@ export const getAffiliateLink = createServerFn({ method: "GET" })
   .validator(z.object({ baseUrl: z.string().url() }))
   .handler(async ({ data: { baseUrl } }) => {
     try {
-      return await getAffiliateLinkHandler(baseUrl);
+      return await _getAffiliateLink(baseUrl);
     } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[affiliates] getAffiliateLink:", e.message);
@@ -316,7 +316,7 @@ export const getAffiliateLink = createServerFn({ method: "GET" })
 
 export const listMyAttributedOrders = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    return await listMyAttributedOrdersHandler();
+    return await _listMyAttributedOrders();
   } catch (e: any) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[affiliates] listMyAttributedOrders:", e.message);

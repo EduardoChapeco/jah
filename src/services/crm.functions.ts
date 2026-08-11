@@ -412,15 +412,13 @@ export const promoteLeadToCustomer = createServerFn({ method: "POST" })
       if (fetchError || !lead) throw new Error("Lead não encontrado");
 
       // Call our existing createCustomer logic
-      await createCustomer({
-        data: {
+      await createCustomer({ data: {
           fullName: lead.full_name,
           email: lead.email,
           phone: lead.phone || "",
           tags: ["Lead Convertido"],
           notes: lead.message ? `Mensagem original: ${lead.message}` : undefined,
-        },
-      });
+      }});
 
       // Update lead status
       await supabase

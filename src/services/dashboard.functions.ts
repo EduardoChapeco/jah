@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
 import { getServerIdentity, assertStoreAccess } from "@/lib/server-access";
-import { getOnboardingStatusHandler } from "@/services/onboarding.functions";
+import { getOnboardingStatus } from "@/services/onboarding.functions";
 
 export interface DashboardMetrics {
   salesTodayCents: number;
@@ -42,7 +42,7 @@ export interface DashboardMetrics {
   setupProgressPercentage: number;
 }
 
-export async function getDashboardDataHandler(): Promise<DashboardMetrics> {
+export async function _getDashboardData(): Promise<DashboardMetrics> {
   const identity = await getServerIdentity();
   assertStoreAccess(identity, [
     "owner",
@@ -215,7 +215,7 @@ export async function getDashboardDataHandler(): Promise<DashboardMetrics> {
   }
 
   // 6. Setup Checklist (Fonte Única de Verdade via onboarding.functions)
-  const onboarding = await getOnboardingStatusHandler();
+  const onboarding = await getOnboardingStatus();
   const coreIds = ["profile", "logo", "categories", "first_product", "payment", "shipping"];
 
   const setupChecklist = onboarding.steps
@@ -250,7 +250,7 @@ export async function getDashboardDataHandler(): Promise<DashboardMetrics> {
 
 export const getDashboardData = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    const data = await getDashboardDataHandler();
+    const data = await _getDashboardData();
     return data;
   } catch (e: any) {
     if (e instanceof SupabaseUnconfiguredError) throw e;

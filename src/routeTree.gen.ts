@@ -9,157 +9,106 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as FeedRouteImport } from './routes/feed'
-import { Route as CheckoutHubRouteImport } from './routes/checkout-hub'
-import { Route as AdminMasterRouteImport } from './routes/admin-master'
-import { Route as AdminRouteImport } from './routes/admin'
 import { Route as StoreRouteImport } from './routes/_store'
-import { Route as AdminIndexRouteImport } from './routes/admin.index'
-import { Route as AdminMasterIndexRouteImport } from './routes/admin-master.index'
+import { Route as AdminMasterRouteImport } from './routes/admin-master'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as WorkspaceRouteImport } from './routes/workspace'
 import { Route as StoreIndexRouteImport } from './routes/_store.index'
-import { Route as AdminVitrineRouteImport } from './routes/admin.vitrine'
-import { Route as AdminSuporteRouteImport } from './routes/admin.suporte'
-import { Route as AdminStoriesRouteImport } from './routes/admin.stories'
-import { Route as AdminRelatoriosRouteImport } from './routes/admin.relatorios'
-import { Route as AdminPerfilPublicoRouteImport } from './routes/admin.perfil-publico'
-import { Route as AdminPagamentosRouteImport } from './routes/admin.pagamentos'
-import { Route as AdminOnboardingRouteImport } from './routes/admin.onboarding'
-import { Route as AdminMidiasRouteImport } from './routes/admin.midias'
-import { Route as AdminMatchTimeRouteImport } from './routes/admin.match-time'
-import { Route as AdminLinkDaBioRouteImport } from './routes/admin.link-da-bio'
-import { Route as AdminIntegracoesRouteImport } from './routes/admin.integracoes'
-import { Route as AdminEquipeRouteImport } from './routes/admin.equipe'
-import { Route as AdminDestaquesRouteImport } from './routes/admin.destaques'
-import { Route as AdminCriadorRouteImport } from './routes/admin.criador'
-import { Route as AdminConversasRouteImport } from './routes/admin.conversas'
-import { Route as AdminComprovantesRouteImport } from './routes/admin.comprovantes'
-import { Route as AdminComissoesRouteImport } from './routes/admin.comissoes'
-import { Route as AdminAvaliacoesRouteImport } from './routes/admin.avaliacoes'
-import { Route as AdminMasterLojasRouteImport } from './routes/admin-master.lojas'
-import { Route as AdminMasterFaturasRouteImport } from './routes/admin-master.faturas'
-import { Route as StoreTrocasEDevolucoesRouteImport } from './routes/_store.trocas-e-devolucoes'
-import { Route as StoreTermosRouteImport } from './routes/_store.termos'
-import { Route as StoreStoriesRouteImport } from './routes/_store.stories'
-import { Route as StoreRecuperarSenhaRouteImport } from './routes/_store.recuperar-senha'
-import { Route as StorePrivacidadeRouteImport } from './routes/_store.privacidade'
-import { Route as StorePerfilDaLojaRouteImport } from './routes/_store.perfil-da-loja'
-import { Route as StoreMuralRouteImport } from './routes/_store.mural'
-import { Route as StoreMercadoRouteImport } from './routes/_store.mercado'
-import { Route as StoreMatchTimeRouteImport } from './routes/_store.match-time'
-import { Route as StoreFaqRouteImport } from './routes/_store.faq'
-import { Route as StoreEntrarRouteImport } from './routes/_store.entrar'
-import { Route as StoreDiretorioRouteImport } from './routes/_store.diretorio'
-import { Route as StoreCriarNegocioRouteImport } from './routes/_store.criar-negocio'
-import { Route as StoreContatoRouteImport } from './routes/_store.contato'
-import { Route as StoreContaRouteImport } from './routes/_store.conta'
-import { Route as StoreCheckoutRouteImport } from './routes/_store.checkout'
-import { Route as StoreCarrinhoRouteImport } from './routes/_store.carrinho'
-import { Route as StoreCadastroRouteImport } from './routes/_store.cadastro'
-import { Route as StoreBuscarRouteImport } from './routes/_store.buscar'
 import { Route as StoreAgendaRouteImport } from './routes/_store.agenda'
-import { Route as AdminPedidosIndexRouteImport } from './routes/admin.pedidos.index'
-import { Route as AdminFretesIndexRouteImport } from './routes/admin.fretes.index'
-import { Route as AdminEventsIndexRouteImport } from './routes/admin.events.index'
-import { Route as AdminEstoqueIndexRouteImport } from './routes/admin.estoque.index'
-import { Route as AdminClientesIndexRouteImport } from './routes/admin.clientes.index'
-import { Route as AdminClassificadosIndexRouteImport } from './routes/admin.classificados.index'
-import { Route as AdminCaixaIndexRouteImport } from './routes/admin.caixa.index'
-import { Route as AdminBuilderIndexRouteImport } from './routes/admin.builder.index'
-import { Route as AdminAgendamentosIndexRouteImport } from './routes/admin.agendamentos.index'
-import { Route as AdminAdsIndexRouteImport } from './routes/admin.ads.index'
-import { Route as StoreContaIndexRouteImport } from './routes/_store.conta.index'
-import { Route as ApiWebhooksShipmentRouteImport } from './routes/api.webhooks.shipment'
-import { Route as ApiWebhooksPaymentRouteImport } from './routes/api/webhooks/payment'
-import { Route as ApiFeedXmlRouteImport } from './routes/api.feed.xml'
-import { Route as ApiAuthConfirmRouteImport } from './routes/api.auth.confirm'
-import { Route as ApiAuthCallbackRouteImport } from './routes/api.auth.callback'
-import { Route as AdminPedidosTrocasRouteImport } from './routes/admin.pedidos.trocas'
-import { Route as AdminPedidosGestorRouteImport } from './routes/admin.pedidos.gestor'
-import { Route as AdminPedidosIdRouteImport } from './routes/admin.pedidos.$id'
-import { Route as AdminMarketingSeguidoresRouteImport } from './routes/admin.marketing.seguidores'
-import { Route as AdminMarketingOfertasCheckoutRouteImport } from './routes/admin.marketing.ofertas-checkout'
-import { Route as AdminMarketingNotificacoesRouteImport } from './routes/admin.marketing.notificacoes'
-import { Route as AdminMarketingGiftCardsRouteImport } from './routes/admin.marketing.gift-cards'
-import { Route as AdminMarketingFeedRouteImport } from './routes/admin.marketing.feed'
-import { Route as AdminMarketingCuponsRouteImport } from './routes/admin.marketing.cupons'
-import { Route as AdminMarketingCarrinhosRouteImport } from './routes/admin.marketing.carrinhos'
-import { Route as AdminLogisticaFrotaRouteImport } from './routes/admin.logistica.frota'
-import { Route as AdminGrowthComissoesRouteImport } from './routes/admin.growth.comissoes'
-import { Route as AdminGrowthCampanhasRouteImport } from './routes/admin.growth.campanhas'
-import { Route as AdminFretesTabelasRouteImport } from './routes/admin.fretes.tabelas'
-import { Route as AdminFretesCotacoesRouteImport } from './routes/admin.fretes.cotacoes'
-import { Route as AdminFinanceiroFuncionariosRouteImport } from './routes/admin.financeiro.funcionarios'
-import { Route as AdminEventsEventIdRouteImport } from './routes/admin.events.$eventId'
-import { Route as AdminEstoqueMovimentosRouteImport } from './routes/admin.estoque.movimentos'
-import { Route as AdminEstoqueAlertasRouteImport } from './routes/admin.estoque.alertas'
-import { Route as AdminConfiguracoesSeoRouteImport } from './routes/admin.configuracoes.seo'
-import { Route as AdminConfiguracoesPoliticasRouteImport } from './routes/admin.configuracoes.politicas'
-import { Route as AdminConfiguracoesPagamentosRouteImport } from './routes/admin.configuracoes.pagamentos'
-import { Route as AdminConfiguracoesLojaRouteImport } from './routes/admin.configuracoes.loja'
-import { Route as AdminConfiguracoesLgpdRouteImport } from './routes/admin.configuracoes.lgpd'
-import { Route as AdminConfiguracoesIntegracoesRouteImport } from './routes/admin.configuracoes.integracoes'
-import { Route as AdminConfiguracoesEtapasRouteImport } from './routes/admin.configuracoes.etapas'
-import { Route as AdminConfiguracoesAuditoriaRouteImport } from './routes/admin.configuracoes.auditoria'
-import { Route as AdminCmsTemaRouteImport } from './routes/admin.cms.tema'
-import { Route as AdminCmsNavegacaoRouteImport } from './routes/admin.cms.navegacao'
-import { Route as AdminClientesIdRouteImport } from './routes/admin.clientes.$id'
-import { Route as AdminClassificadosNovoRouteImport } from './routes/admin.classificados.novo'
-import { Route as AdminClassificadosIdRouteImport } from './routes/admin.classificados.$id'
-import { Route as AdminCatalogoTiposRouteImport } from './routes/admin.catalogo.tipos'
-import { Route as AdminCatalogoAtributosRouteImport } from './routes/admin.catalogo.atributos'
-import { Route as AdminCaixaTurnosRouteImport } from './routes/admin.caixa.turnos'
-import { Route as AdminCaixaLancamentosRouteImport } from './routes/admin.caixa.lancamentos'
-import { Route as AdminBuilderAnalyticsRouteImport } from './routes/admin.builder.analytics'
-import { Route as AdminAgendamentosRecursosRouteImport } from './routes/admin.agendamentos.recursos'
-import { Route as StoreVendedoraSlugRouteImport } from './routes/_store.vendedora.$slug'
-import { Route as StoreProdutoSlugRouteImport } from './routes/_store.produto.$slug'
-import { Route as StorePoliticasSlugRouteImport } from './routes/_store.politicas.$slug'
-import { Route as StorePaginasSlugRouteImport } from './routes/_store.paginas.$slug'
-import { Route as StoreGiftCardClaimTokenRouteImport } from './routes/_store.gift-card.$claimToken'
-import { Route as StoreEventoIdRouteImport } from './routes/_store.evento.$id'
-import { Route as StoreDestaquesSlugRouteImport } from './routes/_store.destaques.$slug'
-import { Route as StoreContaTrocasRouteImport } from './routes/_store.conta.trocas'
-import { Route as StoreContaSuporteRouteImport } from './routes/_store.conta.suporte'
-import { Route as StoreContaPerfilRouteImport } from './routes/_store.conta.perfil'
-import { Route as StoreContaPagamentosRouteImport } from './routes/_store.conta.pagamentos'
-import { Route as StoreContaGiftCardsRouteImport } from './routes/_store.conta.gift-cards'
-import { Route as StoreContaEnderecosRouteImport } from './routes/_store.conta.enderecos'
-import { Route as StoreContaCreditosRouteImport } from './routes/_store.conta.creditos'
-import { Route as StoreContaAvaliacoesRouteImport } from './routes/_store.conta.avaliacoes'
-import { Route as StoreColecaoSlugRouteImport } from './routes/_store.colecao.$slug'
-import { Route as StoreCategoriaSlugRouteImport } from './routes/_store.categoria.$slug'
+import { Route as StoreAgendarRouteImport } from './routes/_store.agendar'
+import { Route as StoreBuscarRouteImport } from './routes/_store.buscar'
+import { Route as StoreCadastroRouteImport } from './routes/_store.cadastro'
+import { Route as StoreCarrinhoRouteImport } from './routes/_store.carrinho'
+import { Route as StoreCheckoutRouteImport } from './routes/_store.checkout'
+import { Route as StoreContaRouteImport } from './routes/_store.conta'
+import { Route as StoreContatoRouteImport } from './routes/_store.contato'
+import { Route as StoreCriarNegocioRouteImport } from './routes/_store.criar-negocio'
+import { Route as StoreDiretorioRouteImport } from './routes/_store.diretorio'
+import { Route as StoreEntrarRouteImport } from './routes/_store.entrar'
+import { Route as StoreFaqRouteImport } from './routes/_store.faq'
+import { Route as StoreMatchTimeRouteImport } from './routes/_store.match-time'
+import { Route as StoreMercadoRouteImport } from './routes/_store.mercado'
+import { Route as StoreMuralRouteImport } from './routes/_store.mural'
+import { Route as StorePerfilDaLojaRouteImport } from './routes/_store.perfil-da-loja'
+import { Route as StorePrivacidadeRouteImport } from './routes/_store.privacidade'
+import { Route as StoreRecuperarSenhaRouteImport } from './routes/_store.recuperar-senha'
+import { Route as StoreStoriesRouteImport } from './routes/_store.stories'
+import { Route as StoreTermosRouteImport } from './routes/_store.termos'
+import { Route as StoreTrocasEDevolucoesRouteImport } from './routes/_store.trocas-e-devolucoes'
+import { Route as AdminMasterIndexRouteImport } from './routes/admin-master.index'
+import { Route as AdminMasterFaturasRouteImport } from './routes/admin-master.faturas'
+import { Route as AdminMasterLojasRouteImport } from './routes/admin-master.lojas'
+import { Route as StoreAgendarIndexRouteImport } from './routes/_store.agendar.index'
 import { Route as StoreBioSlugRouteImport } from './routes/_store.bio.$slug'
-import { Route as AdminCatalogoProdutosIndexRouteImport } from './routes/admin.catalogo.produtos.index'
-import { Route as AdminCatalogoColecoesIndexRouteImport } from './routes/admin.catalogo.colecoes.index'
-import { Route as AdminCatalogoCategoriasIndexRouteImport } from './routes/admin.catalogo.categorias.index'
-import { Route as StoreContaPedidosIndexRouteImport } from './routes/_store.conta.pedidos.index'
-import { Route as AdminPedidosIdReciboRouteImport } from './routes/admin_.pedidos.$id.recibo'
-import { Route as AdminEventsEventIdCheckinRouteImport } from './routes/admin.events.$eventId.checkin'
-import { Route as AdminCatalogoProdutosNovoRouteImport } from './routes/admin.catalogo.produtos.novo'
-import { Route as AdminCatalogoProdutosIdRouteImport } from './routes/admin.catalogo.produtos.$id'
-import { Route as AdminCatalogoColecoesNovoRouteImport } from './routes/admin.catalogo.colecoes.novo'
-import { Route as AdminCatalogoColecoesIdRouteImport } from './routes/admin.catalogo.colecoes.$id'
-import { Route as AdminCatalogoCategoriasNovoRouteImport } from './routes/admin.catalogo.categorias.novo'
-import { Route as AdminCatalogoCategoriasIdRouteImport } from './routes/admin.catalogo.categorias.$id'
-import { Route as AdminBuilderDocumentIdEditorRouteImport } from './routes/admin.builder.$documentId.editor'
-import { Route as StorePedidoPublicTokenConfirmacaoRouteImport } from './routes/_store.pedido.$publicToken.confirmacao'
-import { Route as StoreContaPedidosIdRouteImport } from './routes/_store.conta.pedidos.$id'
+import { Route as StoreCategoriaSlugRouteImport } from './routes/_store.categoria.$slug'
+import { Route as StoreColecaoSlugRouteImport } from './routes/_store.colecao.$slug'
+import { Route as StoreContaIndexRouteImport } from './routes/_store.conta.index'
+import { Route as StoreContaAvaliacoesRouteImport } from './routes/_store.conta.avaliacoes'
+import { Route as StoreContaCreditosRouteImport } from './routes/_store.conta.creditos'
+import { Route as StoreContaEnderecosRouteImport } from './routes/_store.conta.enderecos'
+import { Route as StoreContaGiftCardsRouteImport } from './routes/_store.conta.gift-cards'
+import { Route as StoreContaPagamentosRouteImport } from './routes/_store.conta.pagamentos'
+import { Route as StoreContaPerfilRouteImport } from './routes/_store.conta.perfil'
+import { Route as StoreContaSuporteRouteImport } from './routes/_store.conta.suporte'
+import { Route as StoreContaTrocasRouteImport } from './routes/_store.conta.trocas'
+import { Route as StoreDestaquesSlugRouteImport } from './routes/_store.destaques.$slug'
+import { Route as StoreEventoIdRouteImport } from './routes/_store.evento.$id'
+import { Route as StoreGiftCardClaimTokenRouteImport } from './routes/_store.gift-card.$claimToken'
+import { Route as StorePaginasSlugRouteImport } from './routes/_store.paginas.$slug'
+import { Route as StorePoliticasSlugRouteImport } from './routes/_store.politicas.$slug'
+import { Route as StoreProdutoSlugRouteImport } from './routes/_store.produto.$slug'
+import { Route as StoreVendedoraSlugRouteImport } from './routes/_store.vendedora.$slug'
+import { Route as ApiAuthCallbackRouteImport } from './routes/api.auth.callback'
+import { Route as ApiAuthConfirmRouteImport } from './routes/api.auth.confirm'
+import { Route as ApiFeedXmlRouteImport } from './routes/api.feed.xml'
+import { Route as ApiWebhooksShipmentRouteImport } from './routes/api.webhooks.shipment'
+import { Route as WorkspaceAgendaIndexRouteImport } from './routes/workspace.agenda.index'
+import { Route as WorkspaceAgendaRecursosRouteImport } from './routes/workspace.agenda.recursos'
+import { Route as WorkspaceCatalogoAtributosRouteImport } from './routes/workspace.catalogo.atributos'
+import { Route as WorkspaceCatalogoTiposRouteImport } from './routes/workspace.catalogo.tipos'
+import { Route as WorkspaceClientesIndexRouteImport } from './routes/workspace.clientes.index'
+import { Route as WorkspaceClientesIdRouteImport } from './routes/workspace.clientes.$id'
+import { Route as WorkspaceCmsNavegacaoRouteImport } from './routes/workspace.cms.navegacao'
+import { Route as WorkspaceEstoqueIndexRouteImport } from './routes/workspace.estoque.index'
+import { Route as WorkspaceEstoqueAlertasRouteImport } from './routes/workspace.estoque.alertas'
+import { Route as WorkspaceEstoqueMovimentosRouteImport } from './routes/workspace.estoque.movimentos'
+import { Route as WorkspaceEstudioIndexRouteImport } from './routes/workspace.estudio.index'
+import { Route as WorkspaceFinanceiroComissoesRouteImport } from './routes/workspace.financeiro.comissoes'
+import { Route as WorkspaceFinanceiroComprovantesRouteImport } from './routes/workspace.financeiro.comprovantes'
+import { Route as WorkspaceFinanceiroFuncionariosRouteImport } from './routes/workspace.financeiro.funcionarios'
+import { Route as WorkspaceFinanceiroPagamentosRouteImport } from './routes/workspace.financeiro.pagamentos'
+import { Route as WorkspaceMuralNovoRouteImport } from './routes/workspace.mural.novo'
+import { Route as WorkspacePdvIndexRouteImport } from './routes/workspace.pdv.index'
+import { Route as WorkspacePdvComandasRouteImport } from './routes/workspace.pdv.comandas'
+import { Route as WorkspacePedidosIndexRouteImport } from './routes/workspace.pedidos.index'
+import { Route as WorkspacePedidosIdRouteImport } from './routes/workspace.pedidos.$id'
+import { Route as WorkspacePedidosFrotaRouteImport } from './routes/workspace.pedidos.frota'
+import { Route as WorkspacePedidosGestorRouteImport } from './routes/workspace.pedidos.gestor'
+import { Route as WorkspacePedidosTrocasRouteImport } from './routes/workspace.pedidos.trocas'
+import { Route as StoreContaClassificadosIndexRouteImport } from './routes/_store.conta.classificados.index'
 import { Route as StoreContaConversasIdRouteImport } from './routes/_store.conta.conversas.$id'
+import { Route as StoreContaPedidosIndexRouteImport } from './routes/_store.conta.pedidos.index'
+import { Route as StoreContaPedidosIdRouteImport } from './routes/_store.conta.pedidos.$id'
+import { Route as StorePedidoPublicTokenConfirmacaoRouteImport } from './routes/_store.pedido.$publicToken.confirmacao'
+import { Route as WorkspaceAgendaServicosIndexRouteImport } from './routes/workspace.agenda.servicos.index'
+import { Route as WorkspaceCatalogoCategoriasIndexRouteImport } from './routes/workspace.catalogo.categorias.index'
+import { Route as WorkspaceCatalogoCategoriasIdRouteImport } from './routes/workspace.catalogo.categorias.$id'
+import { Route as WorkspaceCatalogoCategoriasNovoRouteImport } from './routes/workspace.catalogo.categorias.novo'
+import { Route as WorkspaceCatalogoColecoesIndexRouteImport } from './routes/workspace.catalogo.colecoes.index'
+import { Route as WorkspaceCatalogoColecoesIdRouteImport } from './routes/workspace.catalogo.colecoes.$id'
+import { Route as WorkspaceCatalogoColecoesNovoRouteImport } from './routes/workspace.catalogo.colecoes.novo'
+import { Route as WorkspaceCatalogoProdutosIndexRouteImport } from './routes/workspace.catalogo.produtos.index'
+import { Route as WorkspaceCatalogoProdutosIdRouteImport } from './routes/workspace.catalogo.produtos.$id'
+import { Route as WorkspaceCatalogoProdutosNovoRouteImport } from './routes/workspace.catalogo.produtos.novo'
+import { Route as WorkspaceCmsPaginasIndexRouteImport } from './routes/workspace.cms.paginas.index'
+import { Route as WorkspaceConfiguracoesFretesCotacoesRouteImport } from './routes/workspace.configuracoes.fretes.cotacoes'
+import { Route as WorkspaceFinanceiroCaixaIndexRouteImport } from './routes/workspace.financeiro.caixa.index'
+import { Route as WorkspaceFinanceiroCaixaLancamentosRouteImport } from './routes/workspace.financeiro.caixa.lancamentos'
+import { Route as WorkspaceFinanceiroCaixaTurnosRouteImport } from './routes/workspace.financeiro.caixa.turnos'
+import { Route as WorkspacePedidosIdReciboRouteImport } from './routes/workspace_.pedidos.$id.recibo'
 
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FeedRoute = FeedRouteImport.update({
-  id: '/feed',
-  path: '/feed',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CheckoutHubRoute = CheckoutHubRouteImport.update({
-  id: '/checkout-hub',
-  path: '/checkout-hub',
+const StoreRoute = StoreRouteImport.update({
+  id: '/_store',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminMasterRoute = AdminMasterRouteImport.update({
@@ -167,223 +116,19 @@ const AdminMasterRoute = AdminMasterRouteImport.update({
   path: '/admin-master',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
-const StoreRoute = StoreRouteImport.update({
-  id: '/_store',
+const WorkspaceRoute = WorkspaceRouteImport.update({
+  id: '/workspace',
+  path: '/workspace',
   getParentRoute: () => rootRouteImport,
-} as any)
-const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminMasterIndexRoute = AdminMasterIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminMasterRoute,
 } as any)
 const StoreIndexRoute = StoreIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => StoreRoute,
-} as any)
-const AdminVitrineRoute = AdminVitrineRouteImport.update({
-  id: '/vitrine',
-  path: '/vitrine',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminSuporteRoute = AdminSuporteRouteImport.update({
-  id: '/suporte',
-  path: '/suporte',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminStoriesRoute = AdminStoriesRouteImport.update({
-  id: '/stories',
-  path: '/stories',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminRelatoriosRoute = AdminRelatoriosRouteImport.update({
-  id: '/relatorios',
-  path: '/relatorios',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminPerfilPublicoRoute = AdminPerfilPublicoRouteImport.update({
-  id: '/perfil-publico',
-  path: '/perfil-publico',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminPagamentosRoute = AdminPagamentosRouteImport.update({
-  id: '/pagamentos',
-  path: '/pagamentos',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminOnboardingRoute = AdminOnboardingRouteImport.update({
-  id: '/onboarding',
-  path: '/onboarding',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminMidiasRoute = AdminMidiasRouteImport.update({
-  id: '/midias',
-  path: '/midias',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminMatchTimeRoute = AdminMatchTimeRouteImport.update({
-  id: '/match-time',
-  path: '/match-time',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminLinkDaBioRoute = AdminLinkDaBioRouteImport.update({
-  id: '/link-da-bio',
-  path: '/link-da-bio',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminIntegracoesRoute = AdminIntegracoesRouteImport.update({
-  id: '/integracoes',
-  path: '/integracoes',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminEquipeRoute = AdminEquipeRouteImport.update({
-  id: '/equipe',
-  path: '/equipe',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminDestaquesRoute = AdminDestaquesRouteImport.update({
-  id: '/destaques',
-  path: '/destaques',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminCriadorRoute = AdminCriadorRouteImport.update({
-  id: '/criador',
-  path: '/criador',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminConversasRoute = AdminConversasRouteImport.update({
-  id: '/conversas',
-  path: '/conversas',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminComprovantesRoute = AdminComprovantesRouteImport.update({
-  id: '/comprovantes',
-  path: '/comprovantes',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminComissoesRoute = AdminComissoesRouteImport.update({
-  id: '/comissoes',
-  path: '/comissoes',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminAvaliacoesRoute = AdminAvaliacoesRouteImport.update({
-  id: '/avaliacoes',
-  path: '/avaliacoes',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminMasterLojasRoute = AdminMasterLojasRouteImport.update({
-  id: '/lojas',
-  path: '/lojas',
-  getParentRoute: () => AdminMasterRoute,
-} as any)
-const AdminMasterFaturasRoute = AdminMasterFaturasRouteImport.update({
-  id: '/faturas',
-  path: '/faturas',
-  getParentRoute: () => AdminMasterRoute,
-} as any)
-const StoreTrocasEDevolucoesRoute = StoreTrocasEDevolucoesRouteImport.update({
-  id: '/trocas-e-devolucoes',
-  path: '/trocas-e-devolucoes',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StoreTermosRoute = StoreTermosRouteImport.update({
-  id: '/termos',
-  path: '/termos',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StoreStoriesRoute = StoreStoriesRouteImport.update({
-  id: '/stories',
-  path: '/stories',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StoreRecuperarSenhaRoute = StoreRecuperarSenhaRouteImport.update({
-  id: '/recuperar-senha',
-  path: '/recuperar-senha',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StorePrivacidadeRoute = StorePrivacidadeRouteImport.update({
-  id: '/privacidade',
-  path: '/privacidade',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StorePerfilDaLojaRoute = StorePerfilDaLojaRouteImport.update({
-  id: '/perfil-da-loja',
-  path: '/perfil-da-loja',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StoreMuralRoute = StoreMuralRouteImport.update({
-  id: '/mural',
-  path: '/mural',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StoreMercadoRoute = StoreMercadoRouteImport.update({
-  id: '/mercado',
-  path: '/mercado',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StoreMatchTimeRoute = StoreMatchTimeRouteImport.update({
-  id: '/match-time',
-  path: '/match-time',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StoreFaqRoute = StoreFaqRouteImport.update({
-  id: '/faq',
-  path: '/faq',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StoreEntrarRoute = StoreEntrarRouteImport.update({
-  id: '/entrar',
-  path: '/entrar',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StoreDiretorioRoute = StoreDiretorioRouteImport.update({
-  id: '/diretorio',
-  path: '/diretorio',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StoreCriarNegocioRoute = StoreCriarNegocioRouteImport.update({
-  id: '/criar-negocio',
-  path: '/criar-negocio',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StoreContatoRoute = StoreContatoRouteImport.update({
-  id: '/contato',
-  path: '/contato',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StoreContaRoute = StoreContaRouteImport.update({
-  id: '/conta',
-  path: '/conta',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StoreCheckoutRoute = StoreCheckoutRouteImport.update({
-  id: '/checkout',
-  path: '/checkout',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StoreCarrinhoRoute = StoreCarrinhoRouteImport.update({
-  id: '/carrinho',
-  path: '/carrinho',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StoreCadastroRoute = StoreCadastroRouteImport.update({
-  id: '/cadastro',
-  path: '/cadastro',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StoreBuscarRoute = StoreBuscarRouteImport.update({
-  id: '/buscar',
-  path: '/buscar',
   getParentRoute: () => StoreRoute,
 } as any)
 const StoreAgendaRoute = StoreAgendaRouteImport.update({
@@ -391,364 +136,129 @@ const StoreAgendaRoute = StoreAgendaRouteImport.update({
   path: '/agenda',
   getParentRoute: () => StoreRoute,
 } as any)
-const AdminPedidosIndexRoute = AdminPedidosIndexRouteImport.update({
-  id: '/pedidos/',
-  path: '/pedidos/',
-  getParentRoute: () => AdminRoute,
+const StoreAgendarRoute = StoreAgendarRouteImport.update({
+  id: '/agendar',
+  path: '/agendar',
+  getParentRoute: () => StoreRoute,
 } as any)
-const AdminFretesIndexRoute = AdminFretesIndexRouteImport.update({
-  id: '/fretes/',
-  path: '/fretes/',
-  getParentRoute: () => AdminRoute,
+const StoreBuscarRoute = StoreBuscarRouteImport.update({
+  id: '/buscar',
+  path: '/buscar',
+  getParentRoute: () => StoreRoute,
 } as any)
-const AdminEventsIndexRoute = AdminEventsIndexRouteImport.update({
-  id: '/events/',
-  path: '/events/',
-  getParentRoute: () => AdminRoute,
+const StoreCadastroRoute = StoreCadastroRouteImport.update({
+  id: '/cadastro',
+  path: '/cadastro',
+  getParentRoute: () => StoreRoute,
 } as any)
-const AdminEstoqueIndexRoute = AdminEstoqueIndexRouteImport.update({
-  id: '/estoque/',
-  path: '/estoque/',
-  getParentRoute: () => AdminRoute,
+const StoreCarrinhoRoute = StoreCarrinhoRouteImport.update({
+  id: '/carrinho',
+  path: '/carrinho',
+  getParentRoute: () => StoreRoute,
 } as any)
-const AdminClientesIndexRoute = AdminClientesIndexRouteImport.update({
-  id: '/clientes/',
-  path: '/clientes/',
-  getParentRoute: () => AdminRoute,
+const StoreCheckoutRoute = StoreCheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => StoreRoute,
 } as any)
-const AdminClassificadosIndexRoute = AdminClassificadosIndexRouteImport.update({
-  id: '/classificados/',
-  path: '/classificados/',
-  getParentRoute: () => AdminRoute,
+const StoreContaRoute = StoreContaRouteImport.update({
+  id: '/conta',
+  path: '/conta',
+  getParentRoute: () => StoreRoute,
 } as any)
-const AdminCaixaIndexRoute = AdminCaixaIndexRouteImport.update({
-  id: '/caixa/',
-  path: '/caixa/',
-  getParentRoute: () => AdminRoute,
+const StoreContatoRoute = StoreContatoRouteImport.update({
+  id: '/contato',
+  path: '/contato',
+  getParentRoute: () => StoreRoute,
 } as any)
-const AdminBuilderIndexRoute = AdminBuilderIndexRouteImport.update({
-  id: '/builder/',
-  path: '/builder/',
-  getParentRoute: () => AdminRoute,
+const StoreCriarNegocioRoute = StoreCriarNegocioRouteImport.update({
+  id: '/criar-negocio',
+  path: '/criar-negocio',
+  getParentRoute: () => StoreRoute,
 } as any)
-const AdminAgendamentosIndexRoute = AdminAgendamentosIndexRouteImport.update({
-  id: '/agendamentos/',
-  path: '/agendamentos/',
-  getParentRoute: () => AdminRoute,
+const StoreDiretorioRoute = StoreDiretorioRouteImport.update({
+  id: '/diretorio',
+  path: '/diretorio',
+  getParentRoute: () => StoreRoute,
 } as any)
-const AdminAdsIndexRoute = AdminAdsIndexRouteImport.update({
-  id: '/ads/',
-  path: '/ads/',
-  getParentRoute: () => AdminRoute,
+const StoreEntrarRoute = StoreEntrarRouteImport.update({
+  id: '/entrar',
+  path: '/entrar',
+  getParentRoute: () => StoreRoute,
 } as any)
-const StoreContaIndexRoute = StoreContaIndexRouteImport.update({
+const StoreFaqRoute = StoreFaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StoreMatchTimeRoute = StoreMatchTimeRouteImport.update({
+  id: '/match-time',
+  path: '/match-time',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StoreMercadoRoute = StoreMercadoRouteImport.update({
+  id: '/mercado',
+  path: '/mercado',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StoreMuralRoute = StoreMuralRouteImport.update({
+  id: '/mural',
+  path: '/mural',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StorePerfilDaLojaRoute = StorePerfilDaLojaRouteImport.update({
+  id: '/perfil-da-loja',
+  path: '/perfil-da-loja',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StorePrivacidadeRoute = StorePrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StoreRecuperarSenhaRoute = StoreRecuperarSenhaRouteImport.update({
+  id: '/recuperar-senha',
+  path: '/recuperar-senha',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StoreStoriesRoute = StoreStoriesRouteImport.update({
+  id: '/stories',
+  path: '/stories',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StoreTermosRoute = StoreTermosRouteImport.update({
+  id: '/termos',
+  path: '/termos',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StoreTrocasEDevolucoesRoute = StoreTrocasEDevolucoesRouteImport.update({
+  id: '/trocas-e-devolucoes',
+  path: '/trocas-e-devolucoes',
+  getParentRoute: () => StoreRoute,
+} as any)
+const AdminMasterIndexRoute = AdminMasterIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => StoreContaRoute,
+  getParentRoute: () => AdminMasterRoute,
 } as any)
-const ApiWebhooksShipmentRoute = ApiWebhooksShipmentRouteImport.update({
-  id: '/api/webhooks/shipment',
-  path: '/api/webhooks/shipment',
-  getParentRoute: () => rootRouteImport,
+const AdminMasterFaturasRoute = AdminMasterFaturasRouteImport.update({
+  id: '/faturas',
+  path: '/faturas',
+  getParentRoute: () => AdminMasterRoute,
 } as any)
-const ApiWebhooksPaymentRoute = ApiWebhooksPaymentRouteImport.update({
-  id: '/api/webhooks/payment',
-  path: '/api/webhooks/payment',
-  getParentRoute: () => rootRouteImport,
+const AdminMasterLojasRoute = AdminMasterLojasRouteImport.update({
+  id: '/lojas',
+  path: '/lojas',
+  getParentRoute: () => AdminMasterRoute,
 } as any)
-const ApiFeedXmlRoute = ApiFeedXmlRouteImport.update({
-  id: '/api/feed/xml',
-  path: '/api/feed/xml',
-  getParentRoute: () => rootRouteImport,
+const StoreAgendarIndexRoute = StoreAgendarIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => StoreAgendarRoute,
 } as any)
-const ApiAuthConfirmRoute = ApiAuthConfirmRouteImport.update({
-  id: '/api/auth/confirm',
-  path: '/api/auth/confirm',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAuthCallbackRoute = ApiAuthCallbackRouteImport.update({
-  id: '/api/auth/callback',
-  path: '/api/auth/callback',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminPedidosTrocasRoute = AdminPedidosTrocasRouteImport.update({
-  id: '/pedidos/trocas',
-  path: '/pedidos/trocas',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminPedidosGestorRoute = AdminPedidosGestorRouteImport.update({
-  id: '/pedidos/gestor',
-  path: '/pedidos/gestor',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminPedidosIdRoute = AdminPedidosIdRouteImport.update({
-  id: '/pedidos/$id',
-  path: '/pedidos/$id',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminMarketingSeguidoresRoute =
-  AdminMarketingSeguidoresRouteImport.update({
-    id: '/marketing/seguidores',
-    path: '/marketing/seguidores',
-    getParentRoute: () => AdminRoute,
-  } as any)
-const AdminMarketingOfertasCheckoutRoute =
-  AdminMarketingOfertasCheckoutRouteImport.update({
-    id: '/marketing/ofertas-checkout',
-    path: '/marketing/ofertas-checkout',
-    getParentRoute: () => AdminRoute,
-  } as any)
-const AdminMarketingNotificacoesRoute =
-  AdminMarketingNotificacoesRouteImport.update({
-    id: '/marketing/notificacoes',
-    path: '/marketing/notificacoes',
-    getParentRoute: () => AdminRoute,
-  } as any)
-const AdminMarketingGiftCardsRoute = AdminMarketingGiftCardsRouteImport.update({
-  id: '/marketing/gift-cards',
-  path: '/marketing/gift-cards',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminMarketingFeedRoute = AdminMarketingFeedRouteImport.update({
-  id: '/marketing/feed',
-  path: '/marketing/feed',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminMarketingCuponsRoute = AdminMarketingCuponsRouteImport.update({
-  id: '/marketing/cupons',
-  path: '/marketing/cupons',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminMarketingCarrinhosRoute = AdminMarketingCarrinhosRouteImport.update({
-  id: '/marketing/carrinhos',
-  path: '/marketing/carrinhos',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminLogisticaFrotaRoute = AdminLogisticaFrotaRouteImport.update({
-  id: '/logistica/frota',
-  path: '/logistica/frota',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminGrowthComissoesRoute = AdminGrowthComissoesRouteImport.update({
-  id: '/growth/comissoes',
-  path: '/growth/comissoes',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminGrowthCampanhasRoute = AdminGrowthCampanhasRouteImport.update({
-  id: '/growth/campanhas',
-  path: '/growth/campanhas',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminFretesTabelasRoute = AdminFretesTabelasRouteImport.update({
-  id: '/fretes/tabelas',
-  path: '/fretes/tabelas',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminFretesCotacoesRoute = AdminFretesCotacoesRouteImport.update({
-  id: '/fretes/cotacoes',
-  path: '/fretes/cotacoes',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminFinanceiroFuncionariosRoute =
-  AdminFinanceiroFuncionariosRouteImport.update({
-    id: '/financeiro/funcionarios',
-    path: '/financeiro/funcionarios',
-    getParentRoute: () => AdminRoute,
-  } as any)
-const AdminEventsEventIdRoute = AdminEventsEventIdRouteImport.update({
-  id: '/events/$eventId',
-  path: '/events/$eventId',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminEstoqueMovimentosRoute = AdminEstoqueMovimentosRouteImport.update({
-  id: '/estoque/movimentos',
-  path: '/estoque/movimentos',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminEstoqueAlertasRoute = AdminEstoqueAlertasRouteImport.update({
-  id: '/estoque/alertas',
-  path: '/estoque/alertas',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminConfiguracoesSeoRoute = AdminConfiguracoesSeoRouteImport.update({
-  id: '/configuracoes/seo',
-  path: '/configuracoes/seo',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminConfiguracoesPoliticasRoute =
-  AdminConfiguracoesPoliticasRouteImport.update({
-    id: '/configuracoes/politicas',
-    path: '/configuracoes/politicas',
-    getParentRoute: () => AdminRoute,
-  } as any)
-const AdminConfiguracoesPagamentosRoute =
-  AdminConfiguracoesPagamentosRouteImport.update({
-    id: '/configuracoes/pagamentos',
-    path: '/configuracoes/pagamentos',
-    getParentRoute: () => AdminRoute,
-  } as any)
-const AdminConfiguracoesLojaRoute = AdminConfiguracoesLojaRouteImport.update({
-  id: '/configuracoes/loja',
-  path: '/configuracoes/loja',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminConfiguracoesLgpdRoute = AdminConfiguracoesLgpdRouteImport.update({
-  id: '/configuracoes/lgpd',
-  path: '/configuracoes/lgpd',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminConfiguracoesIntegracoesRoute =
-  AdminConfiguracoesIntegracoesRouteImport.update({
-    id: '/configuracoes/integracoes',
-    path: '/configuracoes/integracoes',
-    getParentRoute: () => AdminRoute,
-  } as any)
-const AdminConfiguracoesEtapasRoute =
-  AdminConfiguracoesEtapasRouteImport.update({
-    id: '/configuracoes/etapas',
-    path: '/configuracoes/etapas',
-    getParentRoute: () => AdminRoute,
-  } as any)
-const AdminConfiguracoesAuditoriaRoute =
-  AdminConfiguracoesAuditoriaRouteImport.update({
-    id: '/configuracoes/auditoria',
-    path: '/configuracoes/auditoria',
-    getParentRoute: () => AdminRoute,
-  } as any)
-const AdminCmsTemaRoute = AdminCmsTemaRouteImport.update({
-  id: '/cms/tema',
-  path: '/cms/tema',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminCmsNavegacaoRoute = AdminCmsNavegacaoRouteImport.update({
-  id: '/cms/navegacao',
-  path: '/cms/navegacao',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminClientesIdRoute = AdminClientesIdRouteImport.update({
-  id: '/clientes/$id',
-  path: '/clientes/$id',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminClassificadosNovoRoute = AdminClassificadosNovoRouteImport.update({
-  id: '/classificados/novo',
-  path: '/classificados/novo',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminClassificadosIdRoute = AdminClassificadosIdRouteImport.update({
-  id: '/classificados/$id',
-  path: '/classificados/$id',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminCatalogoTiposRoute = AdminCatalogoTiposRouteImport.update({
-  id: '/catalogo/tipos',
-  path: '/catalogo/tipos',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminCatalogoAtributosRoute = AdminCatalogoAtributosRouteImport.update({
-  id: '/catalogo/atributos',
-  path: '/catalogo/atributos',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminCaixaTurnosRoute = AdminCaixaTurnosRouteImport.update({
-  id: '/caixa/turnos',
-  path: '/caixa/turnos',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminCaixaLancamentosRoute = AdminCaixaLancamentosRouteImport.update({
-  id: '/caixa/lancamentos',
-  path: '/caixa/lancamentos',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminBuilderAnalyticsRoute = AdminBuilderAnalyticsRouteImport.update({
-  id: '/builder/analytics',
-  path: '/builder/analytics',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminAgendamentosRecursosRoute =
-  AdminAgendamentosRecursosRouteImport.update({
-    id: '/agendamentos/recursos',
-    path: '/agendamentos/recursos',
-    getParentRoute: () => AdminRoute,
-  } as any)
-const StoreVendedoraSlugRoute = StoreVendedoraSlugRouteImport.update({
-  id: '/vendedora/$slug',
-  path: '/vendedora/$slug',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StoreProdutoSlugRoute = StoreProdutoSlugRouteImport.update({
-  id: '/produto/$slug',
-  path: '/produto/$slug',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StorePoliticasSlugRoute = StorePoliticasSlugRouteImport.update({
-  id: '/politicas/$slug',
-  path: '/politicas/$slug',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StorePaginasSlugRoute = StorePaginasSlugRouteImport.update({
-  id: '/paginas/$slug',
-  path: '/paginas/$slug',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StoreGiftCardClaimTokenRoute = StoreGiftCardClaimTokenRouteImport.update({
-  id: '/gift-card/$claimToken',
-  path: '/gift-card/$claimToken',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StoreEventoIdRoute = StoreEventoIdRouteImport.update({
-  id: '/evento/$id',
-  path: '/evento/$id',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StoreDestaquesSlugRoute = StoreDestaquesSlugRouteImport.update({
-  id: '/destaques/$slug',
-  path: '/destaques/$slug',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StoreContaTrocasRoute = StoreContaTrocasRouteImport.update({
-  id: '/trocas',
-  path: '/trocas',
-  getParentRoute: () => StoreContaRoute,
-} as any)
-const StoreContaSuporteRoute = StoreContaSuporteRouteImport.update({
-  id: '/suporte',
-  path: '/suporte',
-  getParentRoute: () => StoreContaRoute,
-} as any)
-const StoreContaPerfilRoute = StoreContaPerfilRouteImport.update({
-  id: '/perfil',
-  path: '/perfil',
-  getParentRoute: () => StoreContaRoute,
-} as any)
-const StoreContaPagamentosRoute = StoreContaPagamentosRouteImport.update({
-  id: '/pagamentos',
-  path: '/pagamentos',
-  getParentRoute: () => StoreContaRoute,
-} as any)
-const StoreContaGiftCardsRoute = StoreContaGiftCardsRouteImport.update({
-  id: '/gift-cards',
-  path: '/gift-cards',
-  getParentRoute: () => StoreContaRoute,
-} as any)
-const StoreContaEnderecosRoute = StoreContaEnderecosRouteImport.update({
-  id: '/enderecos',
-  path: '/enderecos',
-  getParentRoute: () => StoreContaRoute,
-} as any)
-const StoreContaCreditosRoute = StoreContaCreditosRouteImport.update({
-  id: '/creditos',
-  path: '/creditos',
-  getParentRoute: () => StoreContaRoute,
-} as any)
-const StoreContaAvaliacoesRoute = StoreContaAvaliacoesRouteImport.update({
-  id: '/avaliacoes',
-  path: '/avaliacoes',
-  getParentRoute: () => StoreContaRoute,
-} as any)
-const StoreColecaoSlugRoute = StoreColecaoSlugRouteImport.update({
-  id: '/colecao/$slug',
-  path: '/colecao/$slug',
+const StoreBioSlugRoute = StoreBioSlugRouteImport.update({
+  id: '/bio/$slug',
+  path: '/bio/$slug',
   getParentRoute: () => StoreRoute,
 } as any)
 const StoreCategoriaSlugRoute = StoreCategoriaSlugRouteImport.update({
@@ -756,110 +266,363 @@ const StoreCategoriaSlugRoute = StoreCategoriaSlugRouteImport.update({
   path: '/categoria/$slug',
   getParentRoute: () => StoreRoute,
 } as any)
-const StoreBioSlugRoute = StoreBioSlugRouteImport.update({
-  id: '/bio/$slug',
-  path: '/bio/$slug',
+const StoreColecaoSlugRoute = StoreColecaoSlugRouteImport.update({
+  id: '/colecao/$slug',
+  path: '/colecao/$slug',
   getParentRoute: () => StoreRoute,
 } as any)
-const AdminCatalogoProdutosIndexRoute =
-  AdminCatalogoProdutosIndexRouteImport.update({
-    id: '/catalogo/produtos/',
-    path: '/catalogo/produtos/',
-    getParentRoute: () => AdminRoute,
+const StoreContaIndexRoute = StoreContaIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => StoreContaRoute,
+} as any)
+const StoreContaAvaliacoesRoute = StoreContaAvaliacoesRouteImport.update({
+  id: '/avaliacoes',
+  path: '/avaliacoes',
+  getParentRoute: () => StoreContaRoute,
+} as any)
+const StoreContaCreditosRoute = StoreContaCreditosRouteImport.update({
+  id: '/creditos',
+  path: '/creditos',
+  getParentRoute: () => StoreContaRoute,
+} as any)
+const StoreContaEnderecosRoute = StoreContaEnderecosRouteImport.update({
+  id: '/enderecos',
+  path: '/enderecos',
+  getParentRoute: () => StoreContaRoute,
+} as any)
+const StoreContaGiftCardsRoute = StoreContaGiftCardsRouteImport.update({
+  id: '/gift-cards',
+  path: '/gift-cards',
+  getParentRoute: () => StoreContaRoute,
+} as any)
+const StoreContaPagamentosRoute = StoreContaPagamentosRouteImport.update({
+  id: '/pagamentos',
+  path: '/pagamentos',
+  getParentRoute: () => StoreContaRoute,
+} as any)
+const StoreContaPerfilRoute = StoreContaPerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => StoreContaRoute,
+} as any)
+const StoreContaSuporteRoute = StoreContaSuporteRouteImport.update({
+  id: '/suporte',
+  path: '/suporte',
+  getParentRoute: () => StoreContaRoute,
+} as any)
+const StoreContaTrocasRoute = StoreContaTrocasRouteImport.update({
+  id: '/trocas',
+  path: '/trocas',
+  getParentRoute: () => StoreContaRoute,
+} as any)
+const StoreDestaquesSlugRoute = StoreDestaquesSlugRouteImport.update({
+  id: '/destaques/$slug',
+  path: '/destaques/$slug',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StoreEventoIdRoute = StoreEventoIdRouteImport.update({
+  id: '/evento/$id',
+  path: '/evento/$id',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StoreGiftCardClaimTokenRoute = StoreGiftCardClaimTokenRouteImport.update({
+  id: '/gift-card/$claimToken',
+  path: '/gift-card/$claimToken',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StorePaginasSlugRoute = StorePaginasSlugRouteImport.update({
+  id: '/paginas/$slug',
+  path: '/paginas/$slug',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StorePoliticasSlugRoute = StorePoliticasSlugRouteImport.update({
+  id: '/politicas/$slug',
+  path: '/politicas/$slug',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StoreProdutoSlugRoute = StoreProdutoSlugRouteImport.update({
+  id: '/produto/$slug',
+  path: '/produto/$slug',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StoreVendedoraSlugRoute = StoreVendedoraSlugRouteImport.update({
+  id: '/vendedora/$slug',
+  path: '/vendedora/$slug',
+  getParentRoute: () => StoreRoute,
+} as any)
+const ApiAuthCallbackRoute = ApiAuthCallbackRouteImport.update({
+  id: '/api/auth/callback',
+  path: '/api/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthConfirmRoute = ApiAuthConfirmRouteImport.update({
+  id: '/api/auth/confirm',
+  path: '/api/auth/confirm',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFeedXmlRoute = ApiFeedXmlRouteImport.update({
+  id: '/api/feed/xml',
+  path: '/api/feed/xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWebhooksShipmentRoute = ApiWebhooksShipmentRouteImport.update({
+  id: '/api/webhooks/shipment',
+  path: '/api/webhooks/shipment',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WorkspaceAgendaIndexRoute = WorkspaceAgendaIndexRouteImport.update({
+  id: '/agenda/',
+  path: '/agenda/',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
+const WorkspaceAgendaRecursosRoute = WorkspaceAgendaRecursosRouteImport.update({
+  id: '/agenda/recursos',
+  path: '/agenda/recursos',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
+const WorkspaceCatalogoAtributosRoute =
+  WorkspaceCatalogoAtributosRouteImport.update({
+    id: '/catalogo/atributos',
+    path: '/catalogo/atributos',
+    getParentRoute: () => WorkspaceRoute,
   } as any)
-const AdminCatalogoColecoesIndexRoute =
-  AdminCatalogoColecoesIndexRouteImport.update({
-    id: '/catalogo/colecoes/',
-    path: '/catalogo/colecoes/',
-    getParentRoute: () => AdminRoute,
+const WorkspaceCatalogoTiposRoute = WorkspaceCatalogoTiposRouteImport.update({
+  id: '/catalogo/tipos',
+  path: '/catalogo/tipos',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
+const WorkspaceClientesIndexRoute = WorkspaceClientesIndexRouteImport.update({
+  id: '/clientes/',
+  path: '/clientes/',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
+const WorkspaceClientesIdRoute = WorkspaceClientesIdRouteImport.update({
+  id: '/clientes/$id',
+  path: '/clientes/$id',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
+const WorkspaceCmsNavegacaoRoute = WorkspaceCmsNavegacaoRouteImport.update({
+  id: '/cms/navegacao',
+  path: '/cms/navegacao',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
+const WorkspaceEstoqueIndexRoute = WorkspaceEstoqueIndexRouteImport.update({
+  id: '/estoque/',
+  path: '/estoque/',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
+const WorkspaceEstoqueAlertasRoute = WorkspaceEstoqueAlertasRouteImport.update({
+  id: '/estoque/alertas',
+  path: '/estoque/alertas',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
+const WorkspaceEstoqueMovimentosRoute =
+  WorkspaceEstoqueMovimentosRouteImport.update({
+    id: '/estoque/movimentos',
+    path: '/estoque/movimentos',
+    getParentRoute: () => WorkspaceRoute,
   } as any)
-const AdminCatalogoCategoriasIndexRoute =
-  AdminCatalogoCategoriasIndexRouteImport.update({
-    id: '/catalogo/categorias/',
-    path: '/catalogo/categorias/',
-    getParentRoute: () => AdminRoute,
+const WorkspaceEstudioIndexRoute = WorkspaceEstudioIndexRouteImport.update({
+  id: '/estudio/',
+  path: '/estudio/',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
+const WorkspaceFinanceiroComissoesRoute =
+  WorkspaceFinanceiroComissoesRouteImport.update({
+    id: '/financeiro/comissoes',
+    path: '/financeiro/comissoes',
+    getParentRoute: () => WorkspaceRoute,
   } as any)
+const WorkspaceFinanceiroComprovantesRoute =
+  WorkspaceFinanceiroComprovantesRouteImport.update({
+    id: '/financeiro/comprovantes',
+    path: '/financeiro/comprovantes',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
+const WorkspaceFinanceiroFuncionariosRoute =
+  WorkspaceFinanceiroFuncionariosRouteImport.update({
+    id: '/financeiro/funcionarios',
+    path: '/financeiro/funcionarios',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
+const WorkspaceFinanceiroPagamentosRoute =
+  WorkspaceFinanceiroPagamentosRouteImport.update({
+    id: '/financeiro/pagamentos',
+    path: '/financeiro/pagamentos',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
+const WorkspaceMuralNovoRoute = WorkspaceMuralNovoRouteImport.update({
+  id: '/mural/novo',
+  path: '/mural/novo',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
+const WorkspacePdvIndexRoute = WorkspacePdvIndexRouteImport.update({
+  id: '/pdv/',
+  path: '/pdv/',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
+const WorkspacePdvComandasRoute = WorkspacePdvComandasRouteImport.update({
+  id: '/pdv/comandas',
+  path: '/pdv/comandas',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
+const WorkspacePedidosIndexRoute = WorkspacePedidosIndexRouteImport.update({
+  id: '/pedidos/',
+  path: '/pedidos/',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
+const WorkspacePedidosIdRoute = WorkspacePedidosIdRouteImport.update({
+  id: '/pedidos/$id',
+  path: '/pedidos/$id',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
+const WorkspacePedidosFrotaRoute = WorkspacePedidosFrotaRouteImport.update({
+  id: '/pedidos/frota',
+  path: '/pedidos/frota',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
+const WorkspacePedidosGestorRoute = WorkspacePedidosGestorRouteImport.update({
+  id: '/pedidos/gestor',
+  path: '/pedidos/gestor',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
+const WorkspacePedidosTrocasRoute = WorkspacePedidosTrocasRouteImport.update({
+  id: '/pedidos/trocas',
+  path: '/pedidos/trocas',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
+const StoreContaClassificadosIndexRoute =
+  StoreContaClassificadosIndexRouteImport.update({
+    id: '/classificados/',
+    path: '/classificados/',
+    getParentRoute: () => StoreContaRoute,
+  } as any)
+const StoreContaConversasIdRoute = StoreContaConversasIdRouteImport.update({
+  id: '/conversas/$id',
+  path: '/conversas/$id',
+  getParentRoute: () => StoreContaRoute,
+} as any)
 const StoreContaPedidosIndexRoute = StoreContaPedidosIndexRouteImport.update({
   id: '/pedidos/',
   path: '/pedidos/',
   getParentRoute: () => StoreContaRoute,
 } as any)
-const AdminPedidosIdReciboRoute = AdminPedidosIdReciboRouteImport.update({
-  id: '/admin_/pedidos/$id/recibo',
-  path: '/admin/pedidos/$id/recibo',
-  getParentRoute: () => rootRouteImport,
+const StoreContaPedidosIdRoute = StoreContaPedidosIdRouteImport.update({
+  id: '/pedidos/$id',
+  path: '/pedidos/$id',
+  getParentRoute: () => StoreContaRoute,
 } as any)
-const AdminEventsEventIdCheckinRoute =
-  AdminEventsEventIdCheckinRouteImport.update({
-    id: '/checkin',
-    path: '/checkin',
-    getParentRoute: () => AdminEventsEventIdRoute,
-  } as any)
-const AdminCatalogoProdutosNovoRoute =
-  AdminCatalogoProdutosNovoRouteImport.update({
-    id: '/catalogo/produtos/novo',
-    path: '/catalogo/produtos/novo',
-    getParentRoute: () => AdminRoute,
-  } as any)
-const AdminCatalogoProdutosIdRoute = AdminCatalogoProdutosIdRouteImport.update({
-  id: '/catalogo/produtos/$id',
-  path: '/catalogo/produtos/$id',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminCatalogoColecoesNovoRoute =
-  AdminCatalogoColecoesNovoRouteImport.update({
-    id: '/catalogo/colecoes/novo',
-    path: '/catalogo/colecoes/novo',
-    getParentRoute: () => AdminRoute,
-  } as any)
-const AdminCatalogoColecoesIdRoute = AdminCatalogoColecoesIdRouteImport.update({
-  id: '/catalogo/colecoes/$id',
-  path: '/catalogo/colecoes/$id',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminCatalogoCategoriasNovoRoute =
-  AdminCatalogoCategoriasNovoRouteImport.update({
-    id: '/catalogo/categorias/novo',
-    path: '/catalogo/categorias/novo',
-    getParentRoute: () => AdminRoute,
-  } as any)
-const AdminCatalogoCategoriasIdRoute =
-  AdminCatalogoCategoriasIdRouteImport.update({
-    id: '/catalogo/categorias/$id',
-    path: '/catalogo/categorias/$id',
-    getParentRoute: () => AdminRoute,
-  } as any)
-const AdminBuilderDocumentIdEditorRoute =
-  AdminBuilderDocumentIdEditorRouteImport.update({
-    id: '/builder/$documentId/editor',
-    path: '/builder/$documentId/editor',
-    getParentRoute: () => AdminRoute,
-  } as any)
 const StorePedidoPublicTokenConfirmacaoRoute =
   StorePedidoPublicTokenConfirmacaoRouteImport.update({
     id: '/pedido/$publicToken/confirmacao',
     path: '/pedido/$publicToken/confirmacao',
     getParentRoute: () => StoreRoute,
   } as any)
-const StoreContaPedidosIdRoute = StoreContaPedidosIdRouteImport.update({
-  id: '/pedidos/$id',
-  path: '/pedidos/$id',
-  getParentRoute: () => StoreContaRoute,
-} as any)
-const StoreContaConversasIdRoute = StoreContaConversasIdRouteImport.update({
-  id: '/conversas/$id',
-  path: '/conversas/$id',
-  getParentRoute: () => StoreContaRoute,
-} as any)
+const WorkspaceAgendaServicosIndexRoute =
+  WorkspaceAgendaServicosIndexRouteImport.update({
+    id: '/agenda/servicos/',
+    path: '/agenda/servicos/',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
+const WorkspaceCatalogoCategoriasIndexRoute =
+  WorkspaceCatalogoCategoriasIndexRouteImport.update({
+    id: '/catalogo/categorias/',
+    path: '/catalogo/categorias/',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
+const WorkspaceCatalogoCategoriasIdRoute =
+  WorkspaceCatalogoCategoriasIdRouteImport.update({
+    id: '/catalogo/categorias/$id',
+    path: '/catalogo/categorias/$id',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
+const WorkspaceCatalogoCategoriasNovoRoute =
+  WorkspaceCatalogoCategoriasNovoRouteImport.update({
+    id: '/catalogo/categorias/novo',
+    path: '/catalogo/categorias/novo',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
+const WorkspaceCatalogoColecoesIndexRoute =
+  WorkspaceCatalogoColecoesIndexRouteImport.update({
+    id: '/catalogo/colecoes/',
+    path: '/catalogo/colecoes/',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
+const WorkspaceCatalogoColecoesIdRoute =
+  WorkspaceCatalogoColecoesIdRouteImport.update({
+    id: '/catalogo/colecoes/$id',
+    path: '/catalogo/colecoes/$id',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
+const WorkspaceCatalogoColecoesNovoRoute =
+  WorkspaceCatalogoColecoesNovoRouteImport.update({
+    id: '/catalogo/colecoes/novo',
+    path: '/catalogo/colecoes/novo',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
+const WorkspaceCatalogoProdutosIndexRoute =
+  WorkspaceCatalogoProdutosIndexRouteImport.update({
+    id: '/catalogo/produtos/',
+    path: '/catalogo/produtos/',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
+const WorkspaceCatalogoProdutosIdRoute =
+  WorkspaceCatalogoProdutosIdRouteImport.update({
+    id: '/catalogo/produtos/$id',
+    path: '/catalogo/produtos/$id',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
+const WorkspaceCatalogoProdutosNovoRoute =
+  WorkspaceCatalogoProdutosNovoRouteImport.update({
+    id: '/catalogo/produtos/novo',
+    path: '/catalogo/produtos/novo',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
+const WorkspaceCmsPaginasIndexRoute =
+  WorkspaceCmsPaginasIndexRouteImport.update({
+    id: '/cms/paginas/',
+    path: '/cms/paginas/',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
+const WorkspaceConfiguracoesFretesCotacoesRoute =
+  WorkspaceConfiguracoesFretesCotacoesRouteImport.update({
+    id: '/configuracoes/fretes/cotacoes',
+    path: '/configuracoes/fretes/cotacoes',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
+const WorkspaceFinanceiroCaixaIndexRoute =
+  WorkspaceFinanceiroCaixaIndexRouteImport.update({
+    id: '/financeiro/caixa/',
+    path: '/financeiro/caixa/',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
+const WorkspaceFinanceiroCaixaLancamentosRoute =
+  WorkspaceFinanceiroCaixaLancamentosRouteImport.update({
+    id: '/financeiro/caixa/lancamentos',
+    path: '/financeiro/caixa/lancamentos',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
+const WorkspaceFinanceiroCaixaTurnosRoute =
+  WorkspaceFinanceiroCaixaTurnosRouteImport.update({
+    id: '/financeiro/caixa/turnos',
+    path: '/financeiro/caixa/turnos',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
+const WorkspacePedidosIdReciboRoute =
+  WorkspacePedidosIdReciboRouteImport.update({
+    id: '/workspace_/pedidos/$id/recibo',
+    path: '/workspace/pedidos/$id/recibo',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof StoreIndexRoute
-  '/admin': typeof AdminRouteWithChildren
   '/admin-master': typeof AdminMasterRouteWithChildren
-  '/checkout-hub': typeof CheckoutHubRoute
-  '/feed': typeof FeedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/workspace': typeof WorkspaceRouteWithChildren
   '/agenda': typeof StoreAgendaRoute
+  '/agendar': typeof StoreAgendarRouteWithChildren
   '/buscar': typeof StoreBuscarRoute
   '/cadastro': typeof StoreCadastroRoute
   '/carrinho': typeof StoreCarrinhoRoute
@@ -881,26 +644,7 @@ export interface FileRoutesByFullPath {
   '/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
   '/admin-master/faturas': typeof AdminMasterFaturasRoute
   '/admin-master/lojas': typeof AdminMasterLojasRoute
-  '/admin/avaliacoes': typeof AdminAvaliacoesRoute
-  '/admin/comissoes': typeof AdminComissoesRoute
-  '/admin/comprovantes': typeof AdminComprovantesRoute
-  '/admin/conversas': typeof AdminConversasRoute
-  '/admin/criador': typeof AdminCriadorRoute
-  '/admin/destaques': typeof AdminDestaquesRoute
-  '/admin/equipe': typeof AdminEquipeRoute
-  '/admin/integracoes': typeof AdminIntegracoesRoute
-  '/admin/link-da-bio': typeof AdminLinkDaBioRoute
-  '/admin/match-time': typeof AdminMatchTimeRoute
-  '/admin/midias': typeof AdminMidiasRoute
-  '/admin/onboarding': typeof AdminOnboardingRoute
-  '/admin/pagamentos': typeof AdminPagamentosRoute
-  '/admin/perfil-publico': typeof AdminPerfilPublicoRoute
-  '/admin/relatorios': typeof AdminRelatoriosRoute
-  '/admin/stories': typeof AdminStoriesRoute
-  '/admin/suporte': typeof AdminSuporteRoute
-  '/admin/vitrine': typeof AdminVitrineRoute
   '/admin-master/': typeof AdminMasterIndexRoute
-  '/admin/': typeof AdminIndexRoute
   '/bio/$slug': typeof StoreBioSlugRoute
   '/categoria/$slug': typeof StoreCategoriaSlugRoute
   '/colecao/$slug': typeof StoreColecaoSlugRoute
@@ -919,81 +663,60 @@ export interface FileRoutesByFullPath {
   '/politicas/$slug': typeof StorePoliticasSlugRoute
   '/produto/$slug': typeof StoreProdutoSlugRoute
   '/vendedora/$slug': typeof StoreVendedoraSlugRoute
-  '/admin/agendamentos/recursos': typeof AdminAgendamentosRecursosRoute
-  '/admin/builder/analytics': typeof AdminBuilderAnalyticsRoute
-  '/admin/caixa/lancamentos': typeof AdminCaixaLancamentosRoute
-  '/admin/caixa/turnos': typeof AdminCaixaTurnosRoute
-  '/admin/catalogo/atributos': typeof AdminCatalogoAtributosRoute
-  '/admin/catalogo/tipos': typeof AdminCatalogoTiposRoute
-  '/admin/classificados/$id': typeof AdminClassificadosIdRoute
-  '/admin/classificados/novo': typeof AdminClassificadosNovoRoute
-  '/admin/clientes/$id': typeof AdminClientesIdRoute
-  '/admin/cms/navegacao': typeof AdminCmsNavegacaoRoute
-  '/admin/cms/tema': typeof AdminCmsTemaRoute
-  '/admin/configuracoes/auditoria': typeof AdminConfiguracoesAuditoriaRoute
-  '/admin/configuracoes/etapas': typeof AdminConfiguracoesEtapasRoute
-  '/admin/configuracoes/integracoes': typeof AdminConfiguracoesIntegracoesRoute
-  '/admin/configuracoes/lgpd': typeof AdminConfiguracoesLgpdRoute
-  '/admin/configuracoes/loja': typeof AdminConfiguracoesLojaRoute
-  '/admin/configuracoes/pagamentos': typeof AdminConfiguracoesPagamentosRoute
-  '/admin/configuracoes/politicas': typeof AdminConfiguracoesPoliticasRoute
-  '/admin/configuracoes/seo': typeof AdminConfiguracoesSeoRoute
-  '/admin/estoque/alertas': typeof AdminEstoqueAlertasRoute
-  '/admin/estoque/movimentos': typeof AdminEstoqueMovimentosRoute
-  '/admin/events/$eventId': typeof AdminEventsEventIdRouteWithChildren
-  '/admin/financeiro/funcionarios': typeof AdminFinanceiroFuncionariosRoute
-  '/admin/fretes/cotacoes': typeof AdminFretesCotacoesRoute
-  '/admin/fretes/tabelas': typeof AdminFretesTabelasRoute
-  '/admin/growth/campanhas': typeof AdminGrowthCampanhasRoute
-  '/admin/growth/comissoes': typeof AdminGrowthComissoesRoute
-  '/admin/logistica/frota': typeof AdminLogisticaFrotaRoute
-  '/admin/marketing/carrinhos': typeof AdminMarketingCarrinhosRoute
-  '/admin/marketing/cupons': typeof AdminMarketingCuponsRoute
-  '/admin/marketing/feed': typeof AdminMarketingFeedRoute
-  '/admin/marketing/gift-cards': typeof AdminMarketingGiftCardsRoute
-  '/admin/marketing/notificacoes': typeof AdminMarketingNotificacoesRoute
-  '/admin/marketing/ofertas-checkout': typeof AdminMarketingOfertasCheckoutRoute
-  '/admin/marketing/seguidores': typeof AdminMarketingSeguidoresRoute
-  '/admin/pedidos/$id': typeof AdminPedidosIdRoute
-  '/admin/pedidos/gestor': typeof AdminPedidosGestorRoute
-  '/admin/pedidos/trocas': typeof AdminPedidosTrocasRoute
   '/api/auth/callback': typeof ApiAuthCallbackRoute
   '/api/auth/confirm': typeof ApiAuthConfirmRoute
   '/api/feed/xml': typeof ApiFeedXmlRoute
-  '/api/webhooks/payment': typeof ApiWebhooksPaymentRoute
   '/api/webhooks/shipment': typeof ApiWebhooksShipmentRoute
+  '/workspace/agenda/recursos': typeof WorkspaceAgendaRecursosRoute
+  '/workspace/catalogo/atributos': typeof WorkspaceCatalogoAtributosRoute
+  '/workspace/catalogo/tipos': typeof WorkspaceCatalogoTiposRoute
+  '/workspace/clientes/$id': typeof WorkspaceClientesIdRoute
+  '/workspace/cms/navegacao': typeof WorkspaceCmsNavegacaoRoute
+  '/workspace/estoque/alertas': typeof WorkspaceEstoqueAlertasRoute
+  '/workspace/estoque/movimentos': typeof WorkspaceEstoqueMovimentosRoute
+  '/workspace/financeiro/comissoes': typeof WorkspaceFinanceiroComissoesRoute
+  '/workspace/financeiro/comprovantes': typeof WorkspaceFinanceiroComprovantesRoute
+  '/workspace/financeiro/funcionarios': typeof WorkspaceFinanceiroFuncionariosRoute
+  '/workspace/financeiro/pagamentos': typeof WorkspaceFinanceiroPagamentosRoute
+  '/workspace/mural/novo': typeof WorkspaceMuralNovoRoute
+  '/workspace/pdv/comandas': typeof WorkspacePdvComandasRoute
+  '/workspace/pedidos/$id': typeof WorkspacePedidosIdRoute
+  '/workspace/pedidos/frota': typeof WorkspacePedidosFrotaRoute
+  '/workspace/pedidos/gestor': typeof WorkspacePedidosGestorRoute
+  '/workspace/pedidos/trocas': typeof WorkspacePedidosTrocasRoute
+  '/agendar/': typeof StoreAgendarIndexRoute
   '/conta/': typeof StoreContaIndexRoute
-  '/admin/ads/': typeof AdminAdsIndexRoute
-  '/admin/agendamentos/': typeof AdminAgendamentosIndexRoute
-  '/admin/builder/': typeof AdminBuilderIndexRoute
-  '/admin/caixa/': typeof AdminCaixaIndexRoute
-  '/admin/classificados/': typeof AdminClassificadosIndexRoute
-  '/admin/clientes/': typeof AdminClientesIndexRoute
-  '/admin/estoque/': typeof AdminEstoqueIndexRoute
-  '/admin/events/': typeof AdminEventsIndexRoute
-  '/admin/fretes/': typeof AdminFretesIndexRoute
-  '/admin/pedidos/': typeof AdminPedidosIndexRoute
+  '/workspace/agenda/': typeof WorkspaceAgendaIndexRoute
+  '/workspace/clientes/': typeof WorkspaceClientesIndexRoute
+  '/workspace/estoque/': typeof WorkspaceEstoqueIndexRoute
+  '/workspace/estudio/': typeof WorkspaceEstudioIndexRoute
+  '/workspace/pdv/': typeof WorkspacePdvIndexRoute
+  '/workspace/pedidos/': typeof WorkspacePedidosIndexRoute
   '/conta/conversas/$id': typeof StoreContaConversasIdRoute
   '/conta/pedidos/$id': typeof StoreContaPedidosIdRoute
   '/pedido/$publicToken/confirmacao': typeof StorePedidoPublicTokenConfirmacaoRoute
-  '/admin/builder/$documentId/editor': typeof AdminBuilderDocumentIdEditorRoute
-  '/admin/catalogo/categorias/$id': typeof AdminCatalogoCategoriasIdRoute
-  '/admin/catalogo/categorias/novo': typeof AdminCatalogoCategoriasNovoRoute
-  '/admin/catalogo/colecoes/$id': typeof AdminCatalogoColecoesIdRoute
-  '/admin/catalogo/colecoes/novo': typeof AdminCatalogoColecoesNovoRoute
-  '/admin/catalogo/produtos/$id': typeof AdminCatalogoProdutosIdRoute
-  '/admin/catalogo/produtos/novo': typeof AdminCatalogoProdutosNovoRoute
-  '/admin/events/$eventId/checkin': typeof AdminEventsEventIdCheckinRoute
-  '/admin/pedidos/$id/recibo': typeof AdminPedidosIdReciboRoute
+  '/workspace/catalogo/categorias/$id': typeof WorkspaceCatalogoCategoriasIdRoute
+  '/workspace/catalogo/categorias/novo': typeof WorkspaceCatalogoCategoriasNovoRoute
+  '/workspace/catalogo/colecoes/$id': typeof WorkspaceCatalogoColecoesIdRoute
+  '/workspace/catalogo/colecoes/novo': typeof WorkspaceCatalogoColecoesNovoRoute
+  '/workspace/catalogo/produtos/$id': typeof WorkspaceCatalogoProdutosIdRoute
+  '/workspace/catalogo/produtos/novo': typeof WorkspaceCatalogoProdutosNovoRoute
+  '/workspace/configuracoes/fretes/cotacoes': typeof WorkspaceConfiguracoesFretesCotacoesRoute
+  '/workspace/financeiro/caixa/lancamentos': typeof WorkspaceFinanceiroCaixaLancamentosRoute
+  '/workspace/financeiro/caixa/turnos': typeof WorkspaceFinanceiroCaixaTurnosRoute
+  '/workspace/pedidos/$id/recibo': typeof WorkspacePedidosIdReciboRoute
+  '/conta/classificados/': typeof StoreContaClassificadosIndexRoute
   '/conta/pedidos/': typeof StoreContaPedidosIndexRoute
-  '/admin/catalogo/categorias/': typeof AdminCatalogoCategoriasIndexRoute
-  '/admin/catalogo/colecoes/': typeof AdminCatalogoColecoesIndexRoute
-  '/admin/catalogo/produtos/': typeof AdminCatalogoProdutosIndexRoute
+  '/workspace/agenda/servicos/': typeof WorkspaceAgendaServicosIndexRoute
+  '/workspace/catalogo/categorias/': typeof WorkspaceCatalogoCategoriasIndexRoute
+  '/workspace/catalogo/colecoes/': typeof WorkspaceCatalogoColecoesIndexRoute
+  '/workspace/catalogo/produtos/': typeof WorkspaceCatalogoProdutosIndexRoute
+  '/workspace/cms/paginas/': typeof WorkspaceCmsPaginasIndexRoute
+  '/workspace/financeiro/caixa/': typeof WorkspaceFinanceiroCaixaIndexRoute
 }
 export interface FileRoutesByTo {
-  '/checkout-hub': typeof CheckoutHubRoute
-  '/feed': typeof FeedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/workspace': typeof WorkspaceRouteWithChildren
   '/agenda': typeof StoreAgendaRoute
   '/buscar': typeof StoreBuscarRoute
   '/cadastro': typeof StoreCadastroRoute
@@ -1015,27 +738,8 @@ export interface FileRoutesByTo {
   '/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
   '/admin-master/faturas': typeof AdminMasterFaturasRoute
   '/admin-master/lojas': typeof AdminMasterLojasRoute
-  '/admin/avaliacoes': typeof AdminAvaliacoesRoute
-  '/admin/comissoes': typeof AdminComissoesRoute
-  '/admin/comprovantes': typeof AdminComprovantesRoute
-  '/admin/conversas': typeof AdminConversasRoute
-  '/admin/criador': typeof AdminCriadorRoute
-  '/admin/destaques': typeof AdminDestaquesRoute
-  '/admin/equipe': typeof AdminEquipeRoute
-  '/admin/integracoes': typeof AdminIntegracoesRoute
-  '/admin/link-da-bio': typeof AdminLinkDaBioRoute
-  '/admin/match-time': typeof AdminMatchTimeRoute
-  '/admin/midias': typeof AdminMidiasRoute
-  '/admin/onboarding': typeof AdminOnboardingRoute
-  '/admin/pagamentos': typeof AdminPagamentosRoute
-  '/admin/perfil-publico': typeof AdminPerfilPublicoRoute
-  '/admin/relatorios': typeof AdminRelatoriosRoute
-  '/admin/stories': typeof AdminStoriesRoute
-  '/admin/suporte': typeof AdminSuporteRoute
-  '/admin/vitrine': typeof AdminVitrineRoute
   '/': typeof StoreIndexRoute
   '/admin-master': typeof AdminMasterIndexRoute
-  '/admin': typeof AdminIndexRoute
   '/bio/$slug': typeof StoreBioSlugRoute
   '/categoria/$slug': typeof StoreCategoriaSlugRoute
   '/colecao/$slug': typeof StoreColecaoSlugRoute
@@ -1054,86 +758,65 @@ export interface FileRoutesByTo {
   '/politicas/$slug': typeof StorePoliticasSlugRoute
   '/produto/$slug': typeof StoreProdutoSlugRoute
   '/vendedora/$slug': typeof StoreVendedoraSlugRoute
-  '/admin/agendamentos/recursos': typeof AdminAgendamentosRecursosRoute
-  '/admin/builder/analytics': typeof AdminBuilderAnalyticsRoute
-  '/admin/caixa/lancamentos': typeof AdminCaixaLancamentosRoute
-  '/admin/caixa/turnos': typeof AdminCaixaTurnosRoute
-  '/admin/catalogo/atributos': typeof AdminCatalogoAtributosRoute
-  '/admin/catalogo/tipos': typeof AdminCatalogoTiposRoute
-  '/admin/classificados/$id': typeof AdminClassificadosIdRoute
-  '/admin/classificados/novo': typeof AdminClassificadosNovoRoute
-  '/admin/clientes/$id': typeof AdminClientesIdRoute
-  '/admin/cms/navegacao': typeof AdminCmsNavegacaoRoute
-  '/admin/cms/tema': typeof AdminCmsTemaRoute
-  '/admin/configuracoes/auditoria': typeof AdminConfiguracoesAuditoriaRoute
-  '/admin/configuracoes/etapas': typeof AdminConfiguracoesEtapasRoute
-  '/admin/configuracoes/integracoes': typeof AdminConfiguracoesIntegracoesRoute
-  '/admin/configuracoes/lgpd': typeof AdminConfiguracoesLgpdRoute
-  '/admin/configuracoes/loja': typeof AdminConfiguracoesLojaRoute
-  '/admin/configuracoes/pagamentos': typeof AdminConfiguracoesPagamentosRoute
-  '/admin/configuracoes/politicas': typeof AdminConfiguracoesPoliticasRoute
-  '/admin/configuracoes/seo': typeof AdminConfiguracoesSeoRoute
-  '/admin/estoque/alertas': typeof AdminEstoqueAlertasRoute
-  '/admin/estoque/movimentos': typeof AdminEstoqueMovimentosRoute
-  '/admin/events/$eventId': typeof AdminEventsEventIdRouteWithChildren
-  '/admin/financeiro/funcionarios': typeof AdminFinanceiroFuncionariosRoute
-  '/admin/fretes/cotacoes': typeof AdminFretesCotacoesRoute
-  '/admin/fretes/tabelas': typeof AdminFretesTabelasRoute
-  '/admin/growth/campanhas': typeof AdminGrowthCampanhasRoute
-  '/admin/growth/comissoes': typeof AdminGrowthComissoesRoute
-  '/admin/logistica/frota': typeof AdminLogisticaFrotaRoute
-  '/admin/marketing/carrinhos': typeof AdminMarketingCarrinhosRoute
-  '/admin/marketing/cupons': typeof AdminMarketingCuponsRoute
-  '/admin/marketing/feed': typeof AdminMarketingFeedRoute
-  '/admin/marketing/gift-cards': typeof AdminMarketingGiftCardsRoute
-  '/admin/marketing/notificacoes': typeof AdminMarketingNotificacoesRoute
-  '/admin/marketing/ofertas-checkout': typeof AdminMarketingOfertasCheckoutRoute
-  '/admin/marketing/seguidores': typeof AdminMarketingSeguidoresRoute
-  '/admin/pedidos/$id': typeof AdminPedidosIdRoute
-  '/admin/pedidos/gestor': typeof AdminPedidosGestorRoute
-  '/admin/pedidos/trocas': typeof AdminPedidosTrocasRoute
   '/api/auth/callback': typeof ApiAuthCallbackRoute
   '/api/auth/confirm': typeof ApiAuthConfirmRoute
   '/api/feed/xml': typeof ApiFeedXmlRoute
-  '/api/webhooks/payment': typeof ApiWebhooksPaymentRoute
   '/api/webhooks/shipment': typeof ApiWebhooksShipmentRoute
+  '/workspace/agenda/recursos': typeof WorkspaceAgendaRecursosRoute
+  '/workspace/catalogo/atributos': typeof WorkspaceCatalogoAtributosRoute
+  '/workspace/catalogo/tipos': typeof WorkspaceCatalogoTiposRoute
+  '/workspace/clientes/$id': typeof WorkspaceClientesIdRoute
+  '/workspace/cms/navegacao': typeof WorkspaceCmsNavegacaoRoute
+  '/workspace/estoque/alertas': typeof WorkspaceEstoqueAlertasRoute
+  '/workspace/estoque/movimentos': typeof WorkspaceEstoqueMovimentosRoute
+  '/workspace/financeiro/comissoes': typeof WorkspaceFinanceiroComissoesRoute
+  '/workspace/financeiro/comprovantes': typeof WorkspaceFinanceiroComprovantesRoute
+  '/workspace/financeiro/funcionarios': typeof WorkspaceFinanceiroFuncionariosRoute
+  '/workspace/financeiro/pagamentos': typeof WorkspaceFinanceiroPagamentosRoute
+  '/workspace/mural/novo': typeof WorkspaceMuralNovoRoute
+  '/workspace/pdv/comandas': typeof WorkspacePdvComandasRoute
+  '/workspace/pedidos/$id': typeof WorkspacePedidosIdRoute
+  '/workspace/pedidos/frota': typeof WorkspacePedidosFrotaRoute
+  '/workspace/pedidos/gestor': typeof WorkspacePedidosGestorRoute
+  '/workspace/pedidos/trocas': typeof WorkspacePedidosTrocasRoute
+  '/agendar': typeof StoreAgendarIndexRoute
   '/conta': typeof StoreContaIndexRoute
-  '/admin/ads': typeof AdminAdsIndexRoute
-  '/admin/agendamentos': typeof AdminAgendamentosIndexRoute
-  '/admin/builder': typeof AdminBuilderIndexRoute
-  '/admin/caixa': typeof AdminCaixaIndexRoute
-  '/admin/classificados': typeof AdminClassificadosIndexRoute
-  '/admin/clientes': typeof AdminClientesIndexRoute
-  '/admin/estoque': typeof AdminEstoqueIndexRoute
-  '/admin/events': typeof AdminEventsIndexRoute
-  '/admin/fretes': typeof AdminFretesIndexRoute
-  '/admin/pedidos': typeof AdminPedidosIndexRoute
+  '/workspace/agenda': typeof WorkspaceAgendaIndexRoute
+  '/workspace/clientes': typeof WorkspaceClientesIndexRoute
+  '/workspace/estoque': typeof WorkspaceEstoqueIndexRoute
+  '/workspace/estudio': typeof WorkspaceEstudioIndexRoute
+  '/workspace/pdv': typeof WorkspacePdvIndexRoute
+  '/workspace/pedidos': typeof WorkspacePedidosIndexRoute
   '/conta/conversas/$id': typeof StoreContaConversasIdRoute
   '/conta/pedidos/$id': typeof StoreContaPedidosIdRoute
   '/pedido/$publicToken/confirmacao': typeof StorePedidoPublicTokenConfirmacaoRoute
-  '/admin/builder/$documentId/editor': typeof AdminBuilderDocumentIdEditorRoute
-  '/admin/catalogo/categorias/$id': typeof AdminCatalogoCategoriasIdRoute
-  '/admin/catalogo/categorias/novo': typeof AdminCatalogoCategoriasNovoRoute
-  '/admin/catalogo/colecoes/$id': typeof AdminCatalogoColecoesIdRoute
-  '/admin/catalogo/colecoes/novo': typeof AdminCatalogoColecoesNovoRoute
-  '/admin/catalogo/produtos/$id': typeof AdminCatalogoProdutosIdRoute
-  '/admin/catalogo/produtos/novo': typeof AdminCatalogoProdutosNovoRoute
-  '/admin/events/$eventId/checkin': typeof AdminEventsEventIdCheckinRoute
-  '/admin/pedidos/$id/recibo': typeof AdminPedidosIdReciboRoute
+  '/workspace/catalogo/categorias/$id': typeof WorkspaceCatalogoCategoriasIdRoute
+  '/workspace/catalogo/categorias/novo': typeof WorkspaceCatalogoCategoriasNovoRoute
+  '/workspace/catalogo/colecoes/$id': typeof WorkspaceCatalogoColecoesIdRoute
+  '/workspace/catalogo/colecoes/novo': typeof WorkspaceCatalogoColecoesNovoRoute
+  '/workspace/catalogo/produtos/$id': typeof WorkspaceCatalogoProdutosIdRoute
+  '/workspace/catalogo/produtos/novo': typeof WorkspaceCatalogoProdutosNovoRoute
+  '/workspace/configuracoes/fretes/cotacoes': typeof WorkspaceConfiguracoesFretesCotacoesRoute
+  '/workspace/financeiro/caixa/lancamentos': typeof WorkspaceFinanceiroCaixaLancamentosRoute
+  '/workspace/financeiro/caixa/turnos': typeof WorkspaceFinanceiroCaixaTurnosRoute
+  '/workspace/pedidos/$id/recibo': typeof WorkspacePedidosIdReciboRoute
+  '/conta/classificados': typeof StoreContaClassificadosIndexRoute
   '/conta/pedidos': typeof StoreContaPedidosIndexRoute
-  '/admin/catalogo/categorias': typeof AdminCatalogoCategoriasIndexRoute
-  '/admin/catalogo/colecoes': typeof AdminCatalogoColecoesIndexRoute
-  '/admin/catalogo/produtos': typeof AdminCatalogoProdutosIndexRoute
+  '/workspace/agenda/servicos': typeof WorkspaceAgendaServicosIndexRoute
+  '/workspace/catalogo/categorias': typeof WorkspaceCatalogoCategoriasIndexRoute
+  '/workspace/catalogo/colecoes': typeof WorkspaceCatalogoColecoesIndexRoute
+  '/workspace/catalogo/produtos': typeof WorkspaceCatalogoProdutosIndexRoute
+  '/workspace/cms/paginas': typeof WorkspaceCmsPaginasIndexRoute
+  '/workspace/financeiro/caixa': typeof WorkspaceFinanceiroCaixaIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_store': typeof StoreRouteWithChildren
-  '/admin': typeof AdminRouteWithChildren
   '/admin-master': typeof AdminMasterRouteWithChildren
-  '/checkout-hub': typeof CheckoutHubRoute
-  '/feed': typeof FeedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/workspace': typeof WorkspaceRouteWithChildren
   '/_store/agenda': typeof StoreAgendaRoute
+  '/_store/agendar': typeof StoreAgendarRouteWithChildren
   '/_store/buscar': typeof StoreBuscarRoute
   '/_store/cadastro': typeof StoreCadastroRoute
   '/_store/carrinho': typeof StoreCarrinhoRoute
@@ -1155,27 +838,8 @@ export interface FileRoutesById {
   '/_store/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
   '/admin-master/faturas': typeof AdminMasterFaturasRoute
   '/admin-master/lojas': typeof AdminMasterLojasRoute
-  '/admin/avaliacoes': typeof AdminAvaliacoesRoute
-  '/admin/comissoes': typeof AdminComissoesRoute
-  '/admin/comprovantes': typeof AdminComprovantesRoute
-  '/admin/conversas': typeof AdminConversasRoute
-  '/admin/criador': typeof AdminCriadorRoute
-  '/admin/destaques': typeof AdminDestaquesRoute
-  '/admin/equipe': typeof AdminEquipeRoute
-  '/admin/integracoes': typeof AdminIntegracoesRoute
-  '/admin/link-da-bio': typeof AdminLinkDaBioRoute
-  '/admin/match-time': typeof AdminMatchTimeRoute
-  '/admin/midias': typeof AdminMidiasRoute
-  '/admin/onboarding': typeof AdminOnboardingRoute
-  '/admin/pagamentos': typeof AdminPagamentosRoute
-  '/admin/perfil-publico': typeof AdminPerfilPublicoRoute
-  '/admin/relatorios': typeof AdminRelatoriosRoute
-  '/admin/stories': typeof AdminStoriesRoute
-  '/admin/suporte': typeof AdminSuporteRoute
-  '/admin/vitrine': typeof AdminVitrineRoute
   '/_store/': typeof StoreIndexRoute
   '/admin-master/': typeof AdminMasterIndexRoute
-  '/admin/': typeof AdminIndexRoute
   '/_store/bio/$slug': typeof StoreBioSlugRoute
   '/_store/categoria/$slug': typeof StoreCategoriaSlugRoute
   '/_store/colecao/$slug': typeof StoreColecaoSlugRoute
@@ -1194,87 +858,66 @@ export interface FileRoutesById {
   '/_store/politicas/$slug': typeof StorePoliticasSlugRoute
   '/_store/produto/$slug': typeof StoreProdutoSlugRoute
   '/_store/vendedora/$slug': typeof StoreVendedoraSlugRoute
-  '/admin/agendamentos/recursos': typeof AdminAgendamentosRecursosRoute
-  '/admin/builder/analytics': typeof AdminBuilderAnalyticsRoute
-  '/admin/caixa/lancamentos': typeof AdminCaixaLancamentosRoute
-  '/admin/caixa/turnos': typeof AdminCaixaTurnosRoute
-  '/admin/catalogo/atributos': typeof AdminCatalogoAtributosRoute
-  '/admin/catalogo/tipos': typeof AdminCatalogoTiposRoute
-  '/admin/classificados/$id': typeof AdminClassificadosIdRoute
-  '/admin/classificados/novo': typeof AdminClassificadosNovoRoute
-  '/admin/clientes/$id': typeof AdminClientesIdRoute
-  '/admin/cms/navegacao': typeof AdminCmsNavegacaoRoute
-  '/admin/cms/tema': typeof AdminCmsTemaRoute
-  '/admin/configuracoes/auditoria': typeof AdminConfiguracoesAuditoriaRoute
-  '/admin/configuracoes/etapas': typeof AdminConfiguracoesEtapasRoute
-  '/admin/configuracoes/integracoes': typeof AdminConfiguracoesIntegracoesRoute
-  '/admin/configuracoes/lgpd': typeof AdminConfiguracoesLgpdRoute
-  '/admin/configuracoes/loja': typeof AdminConfiguracoesLojaRoute
-  '/admin/configuracoes/pagamentos': typeof AdminConfiguracoesPagamentosRoute
-  '/admin/configuracoes/politicas': typeof AdminConfiguracoesPoliticasRoute
-  '/admin/configuracoes/seo': typeof AdminConfiguracoesSeoRoute
-  '/admin/estoque/alertas': typeof AdminEstoqueAlertasRoute
-  '/admin/estoque/movimentos': typeof AdminEstoqueMovimentosRoute
-  '/admin/events/$eventId': typeof AdminEventsEventIdRouteWithChildren
-  '/admin/financeiro/funcionarios': typeof AdminFinanceiroFuncionariosRoute
-  '/admin/fretes/cotacoes': typeof AdminFretesCotacoesRoute
-  '/admin/fretes/tabelas': typeof AdminFretesTabelasRoute
-  '/admin/growth/campanhas': typeof AdminGrowthCampanhasRoute
-  '/admin/growth/comissoes': typeof AdminGrowthComissoesRoute
-  '/admin/logistica/frota': typeof AdminLogisticaFrotaRoute
-  '/admin/marketing/carrinhos': typeof AdminMarketingCarrinhosRoute
-  '/admin/marketing/cupons': typeof AdminMarketingCuponsRoute
-  '/admin/marketing/feed': typeof AdminMarketingFeedRoute
-  '/admin/marketing/gift-cards': typeof AdminMarketingGiftCardsRoute
-  '/admin/marketing/notificacoes': typeof AdminMarketingNotificacoesRoute
-  '/admin/marketing/ofertas-checkout': typeof AdminMarketingOfertasCheckoutRoute
-  '/admin/marketing/seguidores': typeof AdminMarketingSeguidoresRoute
-  '/admin/pedidos/$id': typeof AdminPedidosIdRoute
-  '/admin/pedidos/gestor': typeof AdminPedidosGestorRoute
-  '/admin/pedidos/trocas': typeof AdminPedidosTrocasRoute
   '/api/auth/callback': typeof ApiAuthCallbackRoute
   '/api/auth/confirm': typeof ApiAuthConfirmRoute
   '/api/feed/xml': typeof ApiFeedXmlRoute
-  '/api/webhooks/payment': typeof ApiWebhooksPaymentRoute
   '/api/webhooks/shipment': typeof ApiWebhooksShipmentRoute
+  '/workspace/agenda/recursos': typeof WorkspaceAgendaRecursosRoute
+  '/workspace/catalogo/atributos': typeof WorkspaceCatalogoAtributosRoute
+  '/workspace/catalogo/tipos': typeof WorkspaceCatalogoTiposRoute
+  '/workspace/clientes/$id': typeof WorkspaceClientesIdRoute
+  '/workspace/cms/navegacao': typeof WorkspaceCmsNavegacaoRoute
+  '/workspace/estoque/alertas': typeof WorkspaceEstoqueAlertasRoute
+  '/workspace/estoque/movimentos': typeof WorkspaceEstoqueMovimentosRoute
+  '/workspace/financeiro/comissoes': typeof WorkspaceFinanceiroComissoesRoute
+  '/workspace/financeiro/comprovantes': typeof WorkspaceFinanceiroComprovantesRoute
+  '/workspace/financeiro/funcionarios': typeof WorkspaceFinanceiroFuncionariosRoute
+  '/workspace/financeiro/pagamentos': typeof WorkspaceFinanceiroPagamentosRoute
+  '/workspace/mural/novo': typeof WorkspaceMuralNovoRoute
+  '/workspace/pdv/comandas': typeof WorkspacePdvComandasRoute
+  '/workspace/pedidos/$id': typeof WorkspacePedidosIdRoute
+  '/workspace/pedidos/frota': typeof WorkspacePedidosFrotaRoute
+  '/workspace/pedidos/gestor': typeof WorkspacePedidosGestorRoute
+  '/workspace/pedidos/trocas': typeof WorkspacePedidosTrocasRoute
+  '/_store/agendar/': typeof StoreAgendarIndexRoute
   '/_store/conta/': typeof StoreContaIndexRoute
-  '/admin/ads/': typeof AdminAdsIndexRoute
-  '/admin/agendamentos/': typeof AdminAgendamentosIndexRoute
-  '/admin/builder/': typeof AdminBuilderIndexRoute
-  '/admin/caixa/': typeof AdminCaixaIndexRoute
-  '/admin/classificados/': typeof AdminClassificadosIndexRoute
-  '/admin/clientes/': typeof AdminClientesIndexRoute
-  '/admin/estoque/': typeof AdminEstoqueIndexRoute
-  '/admin/events/': typeof AdminEventsIndexRoute
-  '/admin/fretes/': typeof AdminFretesIndexRoute
-  '/admin/pedidos/': typeof AdminPedidosIndexRoute
+  '/workspace/agenda/': typeof WorkspaceAgendaIndexRoute
+  '/workspace/clientes/': typeof WorkspaceClientesIndexRoute
+  '/workspace/estoque/': typeof WorkspaceEstoqueIndexRoute
+  '/workspace/estudio/': typeof WorkspaceEstudioIndexRoute
+  '/workspace/pdv/': typeof WorkspacePdvIndexRoute
+  '/workspace/pedidos/': typeof WorkspacePedidosIndexRoute
   '/_store/conta/conversas/$id': typeof StoreContaConversasIdRoute
   '/_store/conta/pedidos/$id': typeof StoreContaPedidosIdRoute
   '/_store/pedido/$publicToken/confirmacao': typeof StorePedidoPublicTokenConfirmacaoRoute
-  '/admin/builder/$documentId/editor': typeof AdminBuilderDocumentIdEditorRoute
-  '/admin/catalogo/categorias/$id': typeof AdminCatalogoCategoriasIdRoute
-  '/admin/catalogo/categorias/novo': typeof AdminCatalogoCategoriasNovoRoute
-  '/admin/catalogo/colecoes/$id': typeof AdminCatalogoColecoesIdRoute
-  '/admin/catalogo/colecoes/novo': typeof AdminCatalogoColecoesNovoRoute
-  '/admin/catalogo/produtos/$id': typeof AdminCatalogoProdutosIdRoute
-  '/admin/catalogo/produtos/novo': typeof AdminCatalogoProdutosNovoRoute
-  '/admin/events/$eventId/checkin': typeof AdminEventsEventIdCheckinRoute
-  '/admin_/pedidos/$id/recibo': typeof AdminPedidosIdReciboRoute
+  '/workspace/catalogo/categorias/$id': typeof WorkspaceCatalogoCategoriasIdRoute
+  '/workspace/catalogo/categorias/novo': typeof WorkspaceCatalogoCategoriasNovoRoute
+  '/workspace/catalogo/colecoes/$id': typeof WorkspaceCatalogoColecoesIdRoute
+  '/workspace/catalogo/colecoes/novo': typeof WorkspaceCatalogoColecoesNovoRoute
+  '/workspace/catalogo/produtos/$id': typeof WorkspaceCatalogoProdutosIdRoute
+  '/workspace/catalogo/produtos/novo': typeof WorkspaceCatalogoProdutosNovoRoute
+  '/workspace/configuracoes/fretes/cotacoes': typeof WorkspaceConfiguracoesFretesCotacoesRoute
+  '/workspace/financeiro/caixa/lancamentos': typeof WorkspaceFinanceiroCaixaLancamentosRoute
+  '/workspace/financeiro/caixa/turnos': typeof WorkspaceFinanceiroCaixaTurnosRoute
+  '/workspace_/pedidos/$id/recibo': typeof WorkspacePedidosIdReciboRoute
+  '/_store/conta/classificados/': typeof StoreContaClassificadosIndexRoute
   '/_store/conta/pedidos/': typeof StoreContaPedidosIndexRoute
-  '/admin/catalogo/categorias/': typeof AdminCatalogoCategoriasIndexRoute
-  '/admin/catalogo/colecoes/': typeof AdminCatalogoColecoesIndexRoute
-  '/admin/catalogo/produtos/': typeof AdminCatalogoProdutosIndexRoute
+  '/workspace/agenda/servicos/': typeof WorkspaceAgendaServicosIndexRoute
+  '/workspace/catalogo/categorias/': typeof WorkspaceCatalogoCategoriasIndexRoute
+  '/workspace/catalogo/colecoes/': typeof WorkspaceCatalogoColecoesIndexRoute
+  '/workspace/catalogo/produtos/': typeof WorkspaceCatalogoProdutosIndexRoute
+  '/workspace/cms/paginas/': typeof WorkspaceCmsPaginasIndexRoute
+  '/workspace/financeiro/caixa/': typeof WorkspaceFinanceiroCaixaIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/admin'
     | '/admin-master'
-    | '/checkout-hub'
-    | '/feed'
     | '/sitemap.xml'
+    | '/workspace'
     | '/agenda'
+    | '/agendar'
     | '/buscar'
     | '/cadastro'
     | '/carrinho'
@@ -1296,26 +939,7 @@ export interface FileRouteTypes {
     | '/trocas-e-devolucoes'
     | '/admin-master/faturas'
     | '/admin-master/lojas'
-    | '/admin/avaliacoes'
-    | '/admin/comissoes'
-    | '/admin/comprovantes'
-    | '/admin/conversas'
-    | '/admin/criador'
-    | '/admin/destaques'
-    | '/admin/equipe'
-    | '/admin/integracoes'
-    | '/admin/link-da-bio'
-    | '/admin/match-time'
-    | '/admin/midias'
-    | '/admin/onboarding'
-    | '/admin/pagamentos'
-    | '/admin/perfil-publico'
-    | '/admin/relatorios'
-    | '/admin/stories'
-    | '/admin/suporte'
-    | '/admin/vitrine'
     | '/admin-master/'
-    | '/admin/'
     | '/bio/$slug'
     | '/categoria/$slug'
     | '/colecao/$slug'
@@ -1334,81 +958,60 @@ export interface FileRouteTypes {
     | '/politicas/$slug'
     | '/produto/$slug'
     | '/vendedora/$slug'
-    | '/admin/agendamentos/recursos'
-    | '/admin/builder/analytics'
-    | '/admin/caixa/lancamentos'
-    | '/admin/caixa/turnos'
-    | '/admin/catalogo/atributos'
-    | '/admin/catalogo/tipos'
-    | '/admin/classificados/$id'
-    | '/admin/classificados/novo'
-    | '/admin/clientes/$id'
-    | '/admin/cms/navegacao'
-    | '/admin/cms/tema'
-    | '/admin/configuracoes/auditoria'
-    | '/admin/configuracoes/etapas'
-    | '/admin/configuracoes/integracoes'
-    | '/admin/configuracoes/lgpd'
-    | '/admin/configuracoes/loja'
-    | '/admin/configuracoes/pagamentos'
-    | '/admin/configuracoes/politicas'
-    | '/admin/configuracoes/seo'
-    | '/admin/estoque/alertas'
-    | '/admin/estoque/movimentos'
-    | '/admin/events/$eventId'
-    | '/admin/financeiro/funcionarios'
-    | '/admin/fretes/cotacoes'
-    | '/admin/fretes/tabelas'
-    | '/admin/growth/campanhas'
-    | '/admin/growth/comissoes'
-    | '/admin/logistica/frota'
-    | '/admin/marketing/carrinhos'
-    | '/admin/marketing/cupons'
-    | '/admin/marketing/feed'
-    | '/admin/marketing/gift-cards'
-    | '/admin/marketing/notificacoes'
-    | '/admin/marketing/ofertas-checkout'
-    | '/admin/marketing/seguidores'
-    | '/admin/pedidos/$id'
-    | '/admin/pedidos/gestor'
-    | '/admin/pedidos/trocas'
     | '/api/auth/callback'
     | '/api/auth/confirm'
     | '/api/feed/xml'
-    | '/api/webhooks/payment'
     | '/api/webhooks/shipment'
+    | '/workspace/agenda/recursos'
+    | '/workspace/catalogo/atributos'
+    | '/workspace/catalogo/tipos'
+    | '/workspace/clientes/$id'
+    | '/workspace/cms/navegacao'
+    | '/workspace/estoque/alertas'
+    | '/workspace/estoque/movimentos'
+    | '/workspace/financeiro/comissoes'
+    | '/workspace/financeiro/comprovantes'
+    | '/workspace/financeiro/funcionarios'
+    | '/workspace/financeiro/pagamentos'
+    | '/workspace/mural/novo'
+    | '/workspace/pdv/comandas'
+    | '/workspace/pedidos/$id'
+    | '/workspace/pedidos/frota'
+    | '/workspace/pedidos/gestor'
+    | '/workspace/pedidos/trocas'
+    | '/agendar/'
     | '/conta/'
-    | '/admin/ads/'
-    | '/admin/agendamentos/'
-    | '/admin/builder/'
-    | '/admin/caixa/'
-    | '/admin/classificados/'
-    | '/admin/clientes/'
-    | '/admin/estoque/'
-    | '/admin/events/'
-    | '/admin/fretes/'
-    | '/admin/pedidos/'
+    | '/workspace/agenda/'
+    | '/workspace/clientes/'
+    | '/workspace/estoque/'
+    | '/workspace/estudio/'
+    | '/workspace/pdv/'
+    | '/workspace/pedidos/'
     | '/conta/conversas/$id'
     | '/conta/pedidos/$id'
     | '/pedido/$publicToken/confirmacao'
-    | '/admin/builder/$documentId/editor'
-    | '/admin/catalogo/categorias/$id'
-    | '/admin/catalogo/categorias/novo'
-    | '/admin/catalogo/colecoes/$id'
-    | '/admin/catalogo/colecoes/novo'
-    | '/admin/catalogo/produtos/$id'
-    | '/admin/catalogo/produtos/novo'
-    | '/admin/events/$eventId/checkin'
-    | '/admin/pedidos/$id/recibo'
+    | '/workspace/catalogo/categorias/$id'
+    | '/workspace/catalogo/categorias/novo'
+    | '/workspace/catalogo/colecoes/$id'
+    | '/workspace/catalogo/colecoes/novo'
+    | '/workspace/catalogo/produtos/$id'
+    | '/workspace/catalogo/produtos/novo'
+    | '/workspace/configuracoes/fretes/cotacoes'
+    | '/workspace/financeiro/caixa/lancamentos'
+    | '/workspace/financeiro/caixa/turnos'
+    | '/workspace/pedidos/$id/recibo'
+    | '/conta/classificados/'
     | '/conta/pedidos/'
-    | '/admin/catalogo/categorias/'
-    | '/admin/catalogo/colecoes/'
-    | '/admin/catalogo/produtos/'
+    | '/workspace/agenda/servicos/'
+    | '/workspace/catalogo/categorias/'
+    | '/workspace/catalogo/colecoes/'
+    | '/workspace/catalogo/produtos/'
+    | '/workspace/cms/paginas/'
+    | '/workspace/financeiro/caixa/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/checkout-hub'
-    | '/feed'
     | '/sitemap.xml'
+    | '/workspace'
     | '/agenda'
     | '/buscar'
     | '/cadastro'
@@ -1430,27 +1033,8 @@ export interface FileRouteTypes {
     | '/trocas-e-devolucoes'
     | '/admin-master/faturas'
     | '/admin-master/lojas'
-    | '/admin/avaliacoes'
-    | '/admin/comissoes'
-    | '/admin/comprovantes'
-    | '/admin/conversas'
-    | '/admin/criador'
-    | '/admin/destaques'
-    | '/admin/equipe'
-    | '/admin/integracoes'
-    | '/admin/link-da-bio'
-    | '/admin/match-time'
-    | '/admin/midias'
-    | '/admin/onboarding'
-    | '/admin/pagamentos'
-    | '/admin/perfil-publico'
-    | '/admin/relatorios'
-    | '/admin/stories'
-    | '/admin/suporte'
-    | '/admin/vitrine'
     | '/'
     | '/admin-master'
-    | '/admin'
     | '/bio/$slug'
     | '/categoria/$slug'
     | '/colecao/$slug'
@@ -1469,85 +1053,64 @@ export interface FileRouteTypes {
     | '/politicas/$slug'
     | '/produto/$slug'
     | '/vendedora/$slug'
-    | '/admin/agendamentos/recursos'
-    | '/admin/builder/analytics'
-    | '/admin/caixa/lancamentos'
-    | '/admin/caixa/turnos'
-    | '/admin/catalogo/atributos'
-    | '/admin/catalogo/tipos'
-    | '/admin/classificados/$id'
-    | '/admin/classificados/novo'
-    | '/admin/clientes/$id'
-    | '/admin/cms/navegacao'
-    | '/admin/cms/tema'
-    | '/admin/configuracoes/auditoria'
-    | '/admin/configuracoes/etapas'
-    | '/admin/configuracoes/integracoes'
-    | '/admin/configuracoes/lgpd'
-    | '/admin/configuracoes/loja'
-    | '/admin/configuracoes/pagamentos'
-    | '/admin/configuracoes/politicas'
-    | '/admin/configuracoes/seo'
-    | '/admin/estoque/alertas'
-    | '/admin/estoque/movimentos'
-    | '/admin/events/$eventId'
-    | '/admin/financeiro/funcionarios'
-    | '/admin/fretes/cotacoes'
-    | '/admin/fretes/tabelas'
-    | '/admin/growth/campanhas'
-    | '/admin/growth/comissoes'
-    | '/admin/logistica/frota'
-    | '/admin/marketing/carrinhos'
-    | '/admin/marketing/cupons'
-    | '/admin/marketing/feed'
-    | '/admin/marketing/gift-cards'
-    | '/admin/marketing/notificacoes'
-    | '/admin/marketing/ofertas-checkout'
-    | '/admin/marketing/seguidores'
-    | '/admin/pedidos/$id'
-    | '/admin/pedidos/gestor'
-    | '/admin/pedidos/trocas'
     | '/api/auth/callback'
     | '/api/auth/confirm'
     | '/api/feed/xml'
-    | '/api/webhooks/payment'
     | '/api/webhooks/shipment'
+    | '/workspace/agenda/recursos'
+    | '/workspace/catalogo/atributos'
+    | '/workspace/catalogo/tipos'
+    | '/workspace/clientes/$id'
+    | '/workspace/cms/navegacao'
+    | '/workspace/estoque/alertas'
+    | '/workspace/estoque/movimentos'
+    | '/workspace/financeiro/comissoes'
+    | '/workspace/financeiro/comprovantes'
+    | '/workspace/financeiro/funcionarios'
+    | '/workspace/financeiro/pagamentos'
+    | '/workspace/mural/novo'
+    | '/workspace/pdv/comandas'
+    | '/workspace/pedidos/$id'
+    | '/workspace/pedidos/frota'
+    | '/workspace/pedidos/gestor'
+    | '/workspace/pedidos/trocas'
+    | '/agendar'
     | '/conta'
-    | '/admin/ads'
-    | '/admin/agendamentos'
-    | '/admin/builder'
-    | '/admin/caixa'
-    | '/admin/classificados'
-    | '/admin/clientes'
-    | '/admin/estoque'
-    | '/admin/events'
-    | '/admin/fretes'
-    | '/admin/pedidos'
+    | '/workspace/agenda'
+    | '/workspace/clientes'
+    | '/workspace/estoque'
+    | '/workspace/estudio'
+    | '/workspace/pdv'
+    | '/workspace/pedidos'
     | '/conta/conversas/$id'
     | '/conta/pedidos/$id'
     | '/pedido/$publicToken/confirmacao'
-    | '/admin/builder/$documentId/editor'
-    | '/admin/catalogo/categorias/$id'
-    | '/admin/catalogo/categorias/novo'
-    | '/admin/catalogo/colecoes/$id'
-    | '/admin/catalogo/colecoes/novo'
-    | '/admin/catalogo/produtos/$id'
-    | '/admin/catalogo/produtos/novo'
-    | '/admin/events/$eventId/checkin'
-    | '/admin/pedidos/$id/recibo'
+    | '/workspace/catalogo/categorias/$id'
+    | '/workspace/catalogo/categorias/novo'
+    | '/workspace/catalogo/colecoes/$id'
+    | '/workspace/catalogo/colecoes/novo'
+    | '/workspace/catalogo/produtos/$id'
+    | '/workspace/catalogo/produtos/novo'
+    | '/workspace/configuracoes/fretes/cotacoes'
+    | '/workspace/financeiro/caixa/lancamentos'
+    | '/workspace/financeiro/caixa/turnos'
+    | '/workspace/pedidos/$id/recibo'
+    | '/conta/classificados'
     | '/conta/pedidos'
-    | '/admin/catalogo/categorias'
-    | '/admin/catalogo/colecoes'
-    | '/admin/catalogo/produtos'
+    | '/workspace/agenda/servicos'
+    | '/workspace/catalogo/categorias'
+    | '/workspace/catalogo/colecoes'
+    | '/workspace/catalogo/produtos'
+    | '/workspace/cms/paginas'
+    | '/workspace/financeiro/caixa'
   id:
     | '__root__'
     | '/_store'
-    | '/admin'
     | '/admin-master'
-    | '/checkout-hub'
-    | '/feed'
     | '/sitemap.xml'
+    | '/workspace'
     | '/_store/agenda'
+    | '/_store/agendar'
     | '/_store/buscar'
     | '/_store/cadastro'
     | '/_store/carrinho'
@@ -1569,27 +1132,8 @@ export interface FileRouteTypes {
     | '/_store/trocas-e-devolucoes'
     | '/admin-master/faturas'
     | '/admin-master/lojas'
-    | '/admin/avaliacoes'
-    | '/admin/comissoes'
-    | '/admin/comprovantes'
-    | '/admin/conversas'
-    | '/admin/criador'
-    | '/admin/destaques'
-    | '/admin/equipe'
-    | '/admin/integracoes'
-    | '/admin/link-da-bio'
-    | '/admin/match-time'
-    | '/admin/midias'
-    | '/admin/onboarding'
-    | '/admin/pagamentos'
-    | '/admin/perfil-publico'
-    | '/admin/relatorios'
-    | '/admin/stories'
-    | '/admin/suporte'
-    | '/admin/vitrine'
     | '/_store/'
     | '/admin-master/'
-    | '/admin/'
     | '/_store/bio/$slug'
     | '/_store/categoria/$slug'
     | '/_store/colecao/$slug'
@@ -1608,114 +1152,77 @@ export interface FileRouteTypes {
     | '/_store/politicas/$slug'
     | '/_store/produto/$slug'
     | '/_store/vendedora/$slug'
-    | '/admin/agendamentos/recursos'
-    | '/admin/builder/analytics'
-    | '/admin/caixa/lancamentos'
-    | '/admin/caixa/turnos'
-    | '/admin/catalogo/atributos'
-    | '/admin/catalogo/tipos'
-    | '/admin/classificados/$id'
-    | '/admin/classificados/novo'
-    | '/admin/clientes/$id'
-    | '/admin/cms/navegacao'
-    | '/admin/cms/tema'
-    | '/admin/configuracoes/auditoria'
-    | '/admin/configuracoes/etapas'
-    | '/admin/configuracoes/integracoes'
-    | '/admin/configuracoes/lgpd'
-    | '/admin/configuracoes/loja'
-    | '/admin/configuracoes/pagamentos'
-    | '/admin/configuracoes/politicas'
-    | '/admin/configuracoes/seo'
-    | '/admin/estoque/alertas'
-    | '/admin/estoque/movimentos'
-    | '/admin/events/$eventId'
-    | '/admin/financeiro/funcionarios'
-    | '/admin/fretes/cotacoes'
-    | '/admin/fretes/tabelas'
-    | '/admin/growth/campanhas'
-    | '/admin/growth/comissoes'
-    | '/admin/logistica/frota'
-    | '/admin/marketing/carrinhos'
-    | '/admin/marketing/cupons'
-    | '/admin/marketing/feed'
-    | '/admin/marketing/gift-cards'
-    | '/admin/marketing/notificacoes'
-    | '/admin/marketing/ofertas-checkout'
-    | '/admin/marketing/seguidores'
-    | '/admin/pedidos/$id'
-    | '/admin/pedidos/gestor'
-    | '/admin/pedidos/trocas'
     | '/api/auth/callback'
     | '/api/auth/confirm'
     | '/api/feed/xml'
-    | '/api/webhooks/payment'
     | '/api/webhooks/shipment'
+    | '/workspace/agenda/recursos'
+    | '/workspace/catalogo/atributos'
+    | '/workspace/catalogo/tipos'
+    | '/workspace/clientes/$id'
+    | '/workspace/cms/navegacao'
+    | '/workspace/estoque/alertas'
+    | '/workspace/estoque/movimentos'
+    | '/workspace/financeiro/comissoes'
+    | '/workspace/financeiro/comprovantes'
+    | '/workspace/financeiro/funcionarios'
+    | '/workspace/financeiro/pagamentos'
+    | '/workspace/mural/novo'
+    | '/workspace/pdv/comandas'
+    | '/workspace/pedidos/$id'
+    | '/workspace/pedidos/frota'
+    | '/workspace/pedidos/gestor'
+    | '/workspace/pedidos/trocas'
+    | '/_store/agendar/'
     | '/_store/conta/'
-    | '/admin/ads/'
-    | '/admin/agendamentos/'
-    | '/admin/builder/'
-    | '/admin/caixa/'
-    | '/admin/classificados/'
-    | '/admin/clientes/'
-    | '/admin/estoque/'
-    | '/admin/events/'
-    | '/admin/fretes/'
-    | '/admin/pedidos/'
+    | '/workspace/agenda/'
+    | '/workspace/clientes/'
+    | '/workspace/estoque/'
+    | '/workspace/estudio/'
+    | '/workspace/pdv/'
+    | '/workspace/pedidos/'
     | '/_store/conta/conversas/$id'
     | '/_store/conta/pedidos/$id'
     | '/_store/pedido/$publicToken/confirmacao'
-    | '/admin/builder/$documentId/editor'
-    | '/admin/catalogo/categorias/$id'
-    | '/admin/catalogo/categorias/novo'
-    | '/admin/catalogo/colecoes/$id'
-    | '/admin/catalogo/colecoes/novo'
-    | '/admin/catalogo/produtos/$id'
-    | '/admin/catalogo/produtos/novo'
-    | '/admin/events/$eventId/checkin'
-    | '/admin_/pedidos/$id/recibo'
+    | '/workspace/catalogo/categorias/$id'
+    | '/workspace/catalogo/categorias/novo'
+    | '/workspace/catalogo/colecoes/$id'
+    | '/workspace/catalogo/colecoes/novo'
+    | '/workspace/catalogo/produtos/$id'
+    | '/workspace/catalogo/produtos/novo'
+    | '/workspace/configuracoes/fretes/cotacoes'
+    | '/workspace/financeiro/caixa/lancamentos'
+    | '/workspace/financeiro/caixa/turnos'
+    | '/workspace_/pedidos/$id/recibo'
+    | '/_store/conta/classificados/'
     | '/_store/conta/pedidos/'
-    | '/admin/catalogo/categorias/'
-    | '/admin/catalogo/colecoes/'
-    | '/admin/catalogo/produtos/'
+    | '/workspace/agenda/servicos/'
+    | '/workspace/catalogo/categorias/'
+    | '/workspace/catalogo/colecoes/'
+    | '/workspace/catalogo/produtos/'
+    | '/workspace/cms/paginas/'
+    | '/workspace/financeiro/caixa/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   StoreRoute: typeof StoreRouteWithChildren
-  AdminRoute: typeof AdminRouteWithChildren
   AdminMasterRoute: typeof AdminMasterRouteWithChildren
-  CheckoutHubRoute: typeof CheckoutHubRoute
-  FeedRoute: typeof FeedRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  WorkspaceRoute: typeof WorkspaceRouteWithChildren
   ApiAuthCallbackRoute: typeof ApiAuthCallbackRoute
   ApiAuthConfirmRoute: typeof ApiAuthConfirmRoute
   ApiFeedXmlRoute: typeof ApiFeedXmlRoute
-  ApiWebhooksPaymentRoute: typeof ApiWebhooksPaymentRoute
   ApiWebhooksShipmentRoute: typeof ApiWebhooksShipmentRoute
-  AdminPedidosIdReciboRoute: typeof AdminPedidosIdReciboRoute
+  WorkspacePedidosIdReciboRoute: typeof WorkspacePedidosIdReciboRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/feed': {
-      id: '/feed'
-      path: '/feed'
-      fullPath: '/feed'
-      preLoaderRoute: typeof FeedRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/checkout-hub': {
-      id: '/checkout-hub'
-      path: '/checkout-hub'
-      fullPath: '/checkout-hub'
-      preLoaderRoute: typeof CheckoutHubRouteImport
+    '/_store': {
+      id: '/_store'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof StoreRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin-master': {
@@ -1725,312 +1232,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMasterRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_store': {
-      id: '/_store'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof StoreRouteImport
+    '/workspace': {
+      id: '/workspace'
+      path: '/workspace'
+      fullPath: '/workspace'
+      preLoaderRoute: typeof WorkspaceRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/admin/': {
-      id: '/admin/'
-      path: '/'
-      fullPath: '/admin/'
-      preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin-master/': {
-      id: '/admin-master/'
-      path: '/'
-      fullPath: '/admin-master/'
-      preLoaderRoute: typeof AdminMasterIndexRouteImport
-      parentRoute: typeof AdminMasterRoute
     }
     '/_store/': {
       id: '/_store/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof StoreIndexRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/admin/vitrine': {
-      id: '/admin/vitrine'
-      path: '/vitrine'
-      fullPath: '/admin/vitrine'
-      preLoaderRoute: typeof AdminVitrineRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/suporte': {
-      id: '/admin/suporte'
-      path: '/suporte'
-      fullPath: '/admin/suporte'
-      preLoaderRoute: typeof AdminSuporteRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/stories': {
-      id: '/admin/stories'
-      path: '/stories'
-      fullPath: '/admin/stories'
-      preLoaderRoute: typeof AdminStoriesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/relatorios': {
-      id: '/admin/relatorios'
-      path: '/relatorios'
-      fullPath: '/admin/relatorios'
-      preLoaderRoute: typeof AdminRelatoriosRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/perfil-publico': {
-      id: '/admin/perfil-publico'
-      path: '/perfil-publico'
-      fullPath: '/admin/perfil-publico'
-      preLoaderRoute: typeof AdminPerfilPublicoRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/pagamentos': {
-      id: '/admin/pagamentos'
-      path: '/pagamentos'
-      fullPath: '/admin/pagamentos'
-      preLoaderRoute: typeof AdminPagamentosRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/onboarding': {
-      id: '/admin/onboarding'
-      path: '/onboarding'
-      fullPath: '/admin/onboarding'
-      preLoaderRoute: typeof AdminOnboardingRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/midias': {
-      id: '/admin/midias'
-      path: '/midias'
-      fullPath: '/admin/midias'
-      preLoaderRoute: typeof AdminMidiasRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/match-time': {
-      id: '/admin/match-time'
-      path: '/match-time'
-      fullPath: '/admin/match-time'
-      preLoaderRoute: typeof AdminMatchTimeRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/link-da-bio': {
-      id: '/admin/link-da-bio'
-      path: '/link-da-bio'
-      fullPath: '/admin/link-da-bio'
-      preLoaderRoute: typeof AdminLinkDaBioRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/integracoes': {
-      id: '/admin/integracoes'
-      path: '/integracoes'
-      fullPath: '/admin/integracoes'
-      preLoaderRoute: typeof AdminIntegracoesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/equipe': {
-      id: '/admin/equipe'
-      path: '/equipe'
-      fullPath: '/admin/equipe'
-      preLoaderRoute: typeof AdminEquipeRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/destaques': {
-      id: '/admin/destaques'
-      path: '/destaques'
-      fullPath: '/admin/destaques'
-      preLoaderRoute: typeof AdminDestaquesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/criador': {
-      id: '/admin/criador'
-      path: '/criador'
-      fullPath: '/admin/criador'
-      preLoaderRoute: typeof AdminCriadorRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/conversas': {
-      id: '/admin/conversas'
-      path: '/conversas'
-      fullPath: '/admin/conversas'
-      preLoaderRoute: typeof AdminConversasRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/comprovantes': {
-      id: '/admin/comprovantes'
-      path: '/comprovantes'
-      fullPath: '/admin/comprovantes'
-      preLoaderRoute: typeof AdminComprovantesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/comissoes': {
-      id: '/admin/comissoes'
-      path: '/comissoes'
-      fullPath: '/admin/comissoes'
-      preLoaderRoute: typeof AdminComissoesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/avaliacoes': {
-      id: '/admin/avaliacoes'
-      path: '/avaliacoes'
-      fullPath: '/admin/avaliacoes'
-      preLoaderRoute: typeof AdminAvaliacoesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin-master/lojas': {
-      id: '/admin-master/lojas'
-      path: '/lojas'
-      fullPath: '/admin-master/lojas'
-      preLoaderRoute: typeof AdminMasterLojasRouteImport
-      parentRoute: typeof AdminMasterRoute
-    }
-    '/admin-master/faturas': {
-      id: '/admin-master/faturas'
-      path: '/faturas'
-      fullPath: '/admin-master/faturas'
-      preLoaderRoute: typeof AdminMasterFaturasRouteImport
-      parentRoute: typeof AdminMasterRoute
-    }
-    '/_store/trocas-e-devolucoes': {
-      id: '/_store/trocas-e-devolucoes'
-      path: '/trocas-e-devolucoes'
-      fullPath: '/trocas-e-devolucoes'
-      preLoaderRoute: typeof StoreTrocasEDevolucoesRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/termos': {
-      id: '/_store/termos'
-      path: '/termos'
-      fullPath: '/termos'
-      preLoaderRoute: typeof StoreTermosRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/stories': {
-      id: '/_store/stories'
-      path: '/stories'
-      fullPath: '/stories'
-      preLoaderRoute: typeof StoreStoriesRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/recuperar-senha': {
-      id: '/_store/recuperar-senha'
-      path: '/recuperar-senha'
-      fullPath: '/recuperar-senha'
-      preLoaderRoute: typeof StoreRecuperarSenhaRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/privacidade': {
-      id: '/_store/privacidade'
-      path: '/privacidade'
-      fullPath: '/privacidade'
-      preLoaderRoute: typeof StorePrivacidadeRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/perfil-da-loja': {
-      id: '/_store/perfil-da-loja'
-      path: '/perfil-da-loja'
-      fullPath: '/perfil-da-loja'
-      preLoaderRoute: typeof StorePerfilDaLojaRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/mural': {
-      id: '/_store/mural'
-      path: '/mural'
-      fullPath: '/mural'
-      preLoaderRoute: typeof StoreMuralRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/mercado': {
-      id: '/_store/mercado'
-      path: '/mercado'
-      fullPath: '/mercado'
-      preLoaderRoute: typeof StoreMercadoRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/match-time': {
-      id: '/_store/match-time'
-      path: '/match-time'
-      fullPath: '/match-time'
-      preLoaderRoute: typeof StoreMatchTimeRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/faq': {
-      id: '/_store/faq'
-      path: '/faq'
-      fullPath: '/faq'
-      preLoaderRoute: typeof StoreFaqRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/entrar': {
-      id: '/_store/entrar'
-      path: '/entrar'
-      fullPath: '/entrar'
-      preLoaderRoute: typeof StoreEntrarRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/diretorio': {
-      id: '/_store/diretorio'
-      path: '/diretorio'
-      fullPath: '/diretorio'
-      preLoaderRoute: typeof StoreDiretorioRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/criar-negocio': {
-      id: '/_store/criar-negocio'
-      path: '/criar-negocio'
-      fullPath: '/criar-negocio'
-      preLoaderRoute: typeof StoreCriarNegocioRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/contato': {
-      id: '/_store/contato'
-      path: '/contato'
-      fullPath: '/contato'
-      preLoaderRoute: typeof StoreContatoRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/conta': {
-      id: '/_store/conta'
-      path: '/conta'
-      fullPath: '/conta'
-      preLoaderRoute: typeof StoreContaRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/checkout': {
-      id: '/_store/checkout'
-      path: '/checkout'
-      fullPath: '/checkout'
-      preLoaderRoute: typeof StoreCheckoutRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/carrinho': {
-      id: '/_store/carrinho'
-      path: '/carrinho'
-      fullPath: '/carrinho'
-      preLoaderRoute: typeof StoreCarrinhoRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/cadastro': {
-      id: '/_store/cadastro'
-      path: '/cadastro'
-      fullPath: '/cadastro'
-      preLoaderRoute: typeof StoreCadastroRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/buscar': {
-      id: '/_store/buscar'
-      path: '/buscar'
-      fullPath: '/buscar'
-      preLoaderRoute: typeof StoreBuscarRouteImport
       parentRoute: typeof StoreRoute
     }
     '/_store/agenda': {
@@ -2040,494 +1260,179 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreAgendaRouteImport
       parentRoute: typeof StoreRoute
     }
-    '/admin/pedidos/': {
-      id: '/admin/pedidos/'
-      path: '/pedidos'
-      fullPath: '/admin/pedidos/'
-      preLoaderRoute: typeof AdminPedidosIndexRouteImport
-      parentRoute: typeof AdminRoute
+    '/_store/agendar': {
+      id: '/_store/agendar'
+      path: '/agendar'
+      fullPath: '/agendar'
+      preLoaderRoute: typeof StoreAgendarRouteImport
+      parentRoute: typeof StoreRoute
     }
-    '/admin/fretes/': {
-      id: '/admin/fretes/'
-      path: '/fretes'
-      fullPath: '/admin/fretes/'
-      preLoaderRoute: typeof AdminFretesIndexRouteImport
-      parentRoute: typeof AdminRoute
+    '/_store/buscar': {
+      id: '/_store/buscar'
+      path: '/buscar'
+      fullPath: '/buscar'
+      preLoaderRoute: typeof StoreBuscarRouteImport
+      parentRoute: typeof StoreRoute
     }
-    '/admin/events/': {
-      id: '/admin/events/'
-      path: '/events'
-      fullPath: '/admin/events/'
-      preLoaderRoute: typeof AdminEventsIndexRouteImport
-      parentRoute: typeof AdminRoute
+    '/_store/cadastro': {
+      id: '/_store/cadastro'
+      path: '/cadastro'
+      fullPath: '/cadastro'
+      preLoaderRoute: typeof StoreCadastroRouteImport
+      parentRoute: typeof StoreRoute
     }
-    '/admin/estoque/': {
-      id: '/admin/estoque/'
-      path: '/estoque'
-      fullPath: '/admin/estoque/'
-      preLoaderRoute: typeof AdminEstoqueIndexRouteImport
-      parentRoute: typeof AdminRoute
+    '/_store/carrinho': {
+      id: '/_store/carrinho'
+      path: '/carrinho'
+      fullPath: '/carrinho'
+      preLoaderRoute: typeof StoreCarrinhoRouteImport
+      parentRoute: typeof StoreRoute
     }
-    '/admin/clientes/': {
-      id: '/admin/clientes/'
-      path: '/clientes'
-      fullPath: '/admin/clientes/'
-      preLoaderRoute: typeof AdminClientesIndexRouteImport
-      parentRoute: typeof AdminRoute
+    '/_store/checkout': {
+      id: '/_store/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof StoreCheckoutRouteImport
+      parentRoute: typeof StoreRoute
     }
-    '/admin/classificados/': {
-      id: '/admin/classificados/'
-      path: '/classificados'
-      fullPath: '/admin/classificados/'
-      preLoaderRoute: typeof AdminClassificadosIndexRouteImport
-      parentRoute: typeof AdminRoute
+    '/_store/conta': {
+      id: '/_store/conta'
+      path: '/conta'
+      fullPath: '/conta'
+      preLoaderRoute: typeof StoreContaRouteImport
+      parentRoute: typeof StoreRoute
     }
-    '/admin/caixa/': {
-      id: '/admin/caixa/'
-      path: '/caixa'
-      fullPath: '/admin/caixa/'
-      preLoaderRoute: typeof AdminCaixaIndexRouteImport
-      parentRoute: typeof AdminRoute
+    '/_store/contato': {
+      id: '/_store/contato'
+      path: '/contato'
+      fullPath: '/contato'
+      preLoaderRoute: typeof StoreContatoRouteImport
+      parentRoute: typeof StoreRoute
     }
-    '/admin/builder/': {
-      id: '/admin/builder/'
-      path: '/builder'
-      fullPath: '/admin/builder/'
-      preLoaderRoute: typeof AdminBuilderIndexRouteImport
-      parentRoute: typeof AdminRoute
+    '/_store/criar-negocio': {
+      id: '/_store/criar-negocio'
+      path: '/criar-negocio'
+      fullPath: '/criar-negocio'
+      preLoaderRoute: typeof StoreCriarNegocioRouteImport
+      parentRoute: typeof StoreRoute
     }
-    '/admin/agendamentos/': {
-      id: '/admin/agendamentos/'
-      path: '/agendamentos'
-      fullPath: '/admin/agendamentos/'
-      preLoaderRoute: typeof AdminAgendamentosIndexRouteImport
-      parentRoute: typeof AdminRoute
+    '/_store/diretorio': {
+      id: '/_store/diretorio'
+      path: '/diretorio'
+      fullPath: '/diretorio'
+      preLoaderRoute: typeof StoreDiretorioRouteImport
+      parentRoute: typeof StoreRoute
     }
-    '/admin/ads/': {
-      id: '/admin/ads/'
-      path: '/ads'
-      fullPath: '/admin/ads/'
-      preLoaderRoute: typeof AdminAdsIndexRouteImport
-      parentRoute: typeof AdminRoute
+    '/_store/entrar': {
+      id: '/_store/entrar'
+      path: '/entrar'
+      fullPath: '/entrar'
+      preLoaderRoute: typeof StoreEntrarRouteImport
+      parentRoute: typeof StoreRoute
     }
-    '/_store/conta/': {
-      id: '/_store/conta/'
+    '/_store/faq': {
+      id: '/_store/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof StoreFaqRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/match-time': {
+      id: '/_store/match-time'
+      path: '/match-time'
+      fullPath: '/match-time'
+      preLoaderRoute: typeof StoreMatchTimeRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/mercado': {
+      id: '/_store/mercado'
+      path: '/mercado'
+      fullPath: '/mercado'
+      preLoaderRoute: typeof StoreMercadoRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/mural': {
+      id: '/_store/mural'
+      path: '/mural'
+      fullPath: '/mural'
+      preLoaderRoute: typeof StoreMuralRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/perfil-da-loja': {
+      id: '/_store/perfil-da-loja'
+      path: '/perfil-da-loja'
+      fullPath: '/perfil-da-loja'
+      preLoaderRoute: typeof StorePerfilDaLojaRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/privacidade': {
+      id: '/_store/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof StorePrivacidadeRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/recuperar-senha': {
+      id: '/_store/recuperar-senha'
+      path: '/recuperar-senha'
+      fullPath: '/recuperar-senha'
+      preLoaderRoute: typeof StoreRecuperarSenhaRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/stories': {
+      id: '/_store/stories'
+      path: '/stories'
+      fullPath: '/stories'
+      preLoaderRoute: typeof StoreStoriesRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/termos': {
+      id: '/_store/termos'
+      path: '/termos'
+      fullPath: '/termos'
+      preLoaderRoute: typeof StoreTermosRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/trocas-e-devolucoes': {
+      id: '/_store/trocas-e-devolucoes'
+      path: '/trocas-e-devolucoes'
+      fullPath: '/trocas-e-devolucoes'
+      preLoaderRoute: typeof StoreTrocasEDevolucoesRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/admin-master/': {
+      id: '/admin-master/'
       path: '/'
-      fullPath: '/conta/'
-      preLoaderRoute: typeof StoreContaIndexRouteImport
-      parentRoute: typeof StoreContaRoute
+      fullPath: '/admin-master/'
+      preLoaderRoute: typeof AdminMasterIndexRouteImport
+      parentRoute: typeof AdminMasterRoute
     }
-    '/api/webhooks/shipment': {
-      id: '/api/webhooks/shipment'
-      path: '/api/webhooks/shipment'
-      fullPath: '/api/webhooks/shipment'
-      preLoaderRoute: typeof ApiWebhooksShipmentRouteImport
-      parentRoute: typeof rootRouteImport
+    '/admin-master/faturas': {
+      id: '/admin-master/faturas'
+      path: '/faturas'
+      fullPath: '/admin-master/faturas'
+      preLoaderRoute: typeof AdminMasterFaturasRouteImport
+      parentRoute: typeof AdminMasterRoute
     }
-    '/api/webhooks/payment': {
-      id: '/api/webhooks/payment'
-      path: '/api/webhooks/payment'
-      fullPath: '/api/webhooks/payment'
-      preLoaderRoute: typeof ApiWebhooksPaymentRouteImport
-      parentRoute: typeof rootRouteImport
+    '/admin-master/lojas': {
+      id: '/admin-master/lojas'
+      path: '/lojas'
+      fullPath: '/admin-master/lojas'
+      preLoaderRoute: typeof AdminMasterLojasRouteImport
+      parentRoute: typeof AdminMasterRoute
     }
-    '/api/feed/xml': {
-      id: '/api/feed/xml'
-      path: '/api/feed/xml'
-      fullPath: '/api/feed/xml'
-      preLoaderRoute: typeof ApiFeedXmlRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_store/agendar/': {
+      id: '/_store/agendar/'
+      path: '/'
+      fullPath: '/agendar/'
+      preLoaderRoute: typeof StoreAgendarIndexRouteImport
+      parentRoute: typeof StoreAgendarRoute
     }
-    '/api/auth/confirm': {
-      id: '/api/auth/confirm'
-      path: '/api/auth/confirm'
-      fullPath: '/api/auth/confirm'
-      preLoaderRoute: typeof ApiAuthConfirmRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/auth/callback': {
-      id: '/api/auth/callback'
-      path: '/api/auth/callback'
-      fullPath: '/api/auth/callback'
-      preLoaderRoute: typeof ApiAuthCallbackRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/pedidos/trocas': {
-      id: '/admin/pedidos/trocas'
-      path: '/pedidos/trocas'
-      fullPath: '/admin/pedidos/trocas'
-      preLoaderRoute: typeof AdminPedidosTrocasRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/pedidos/gestor': {
-      id: '/admin/pedidos/gestor'
-      path: '/pedidos/gestor'
-      fullPath: '/admin/pedidos/gestor'
-      preLoaderRoute: typeof AdminPedidosGestorRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/pedidos/$id': {
-      id: '/admin/pedidos/$id'
-      path: '/pedidos/$id'
-      fullPath: '/admin/pedidos/$id'
-      preLoaderRoute: typeof AdminPedidosIdRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/marketing/seguidores': {
-      id: '/admin/marketing/seguidores'
-      path: '/marketing/seguidores'
-      fullPath: '/admin/marketing/seguidores'
-      preLoaderRoute: typeof AdminMarketingSeguidoresRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/marketing/ofertas-checkout': {
-      id: '/admin/marketing/ofertas-checkout'
-      path: '/marketing/ofertas-checkout'
-      fullPath: '/admin/marketing/ofertas-checkout'
-      preLoaderRoute: typeof AdminMarketingOfertasCheckoutRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/marketing/notificacoes': {
-      id: '/admin/marketing/notificacoes'
-      path: '/marketing/notificacoes'
-      fullPath: '/admin/marketing/notificacoes'
-      preLoaderRoute: typeof AdminMarketingNotificacoesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/marketing/gift-cards': {
-      id: '/admin/marketing/gift-cards'
-      path: '/marketing/gift-cards'
-      fullPath: '/admin/marketing/gift-cards'
-      preLoaderRoute: typeof AdminMarketingGiftCardsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/marketing/feed': {
-      id: '/admin/marketing/feed'
-      path: '/marketing/feed'
-      fullPath: '/admin/marketing/feed'
-      preLoaderRoute: typeof AdminMarketingFeedRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/marketing/cupons': {
-      id: '/admin/marketing/cupons'
-      path: '/marketing/cupons'
-      fullPath: '/admin/marketing/cupons'
-      preLoaderRoute: typeof AdminMarketingCuponsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/marketing/carrinhos': {
-      id: '/admin/marketing/carrinhos'
-      path: '/marketing/carrinhos'
-      fullPath: '/admin/marketing/carrinhos'
-      preLoaderRoute: typeof AdminMarketingCarrinhosRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/logistica/frota': {
-      id: '/admin/logistica/frota'
-      path: '/logistica/frota'
-      fullPath: '/admin/logistica/frota'
-      preLoaderRoute: typeof AdminLogisticaFrotaRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/growth/comissoes': {
-      id: '/admin/growth/comissoes'
-      path: '/growth/comissoes'
-      fullPath: '/admin/growth/comissoes'
-      preLoaderRoute: typeof AdminGrowthComissoesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/growth/campanhas': {
-      id: '/admin/growth/campanhas'
-      path: '/growth/campanhas'
-      fullPath: '/admin/growth/campanhas'
-      preLoaderRoute: typeof AdminGrowthCampanhasRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/fretes/tabelas': {
-      id: '/admin/fretes/tabelas'
-      path: '/fretes/tabelas'
-      fullPath: '/admin/fretes/tabelas'
-      preLoaderRoute: typeof AdminFretesTabelasRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/fretes/cotacoes': {
-      id: '/admin/fretes/cotacoes'
-      path: '/fretes/cotacoes'
-      fullPath: '/admin/fretes/cotacoes'
-      preLoaderRoute: typeof AdminFretesCotacoesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/financeiro/funcionarios': {
-      id: '/admin/financeiro/funcionarios'
-      path: '/financeiro/funcionarios'
-      fullPath: '/admin/financeiro/funcionarios'
-      preLoaderRoute: typeof AdminFinanceiroFuncionariosRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/events/$eventId': {
-      id: '/admin/events/$eventId'
-      path: '/events/$eventId'
-      fullPath: '/admin/events/$eventId'
-      preLoaderRoute: typeof AdminEventsEventIdRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/estoque/movimentos': {
-      id: '/admin/estoque/movimentos'
-      path: '/estoque/movimentos'
-      fullPath: '/admin/estoque/movimentos'
-      preLoaderRoute: typeof AdminEstoqueMovimentosRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/estoque/alertas': {
-      id: '/admin/estoque/alertas'
-      path: '/estoque/alertas'
-      fullPath: '/admin/estoque/alertas'
-      preLoaderRoute: typeof AdminEstoqueAlertasRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/configuracoes/seo': {
-      id: '/admin/configuracoes/seo'
-      path: '/configuracoes/seo'
-      fullPath: '/admin/configuracoes/seo'
-      preLoaderRoute: typeof AdminConfiguracoesSeoRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/configuracoes/politicas': {
-      id: '/admin/configuracoes/politicas'
-      path: '/configuracoes/politicas'
-      fullPath: '/admin/configuracoes/politicas'
-      preLoaderRoute: typeof AdminConfiguracoesPoliticasRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/configuracoes/pagamentos': {
-      id: '/admin/configuracoes/pagamentos'
-      path: '/configuracoes/pagamentos'
-      fullPath: '/admin/configuracoes/pagamentos'
-      preLoaderRoute: typeof AdminConfiguracoesPagamentosRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/configuracoes/loja': {
-      id: '/admin/configuracoes/loja'
-      path: '/configuracoes/loja'
-      fullPath: '/admin/configuracoes/loja'
-      preLoaderRoute: typeof AdminConfiguracoesLojaRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/configuracoes/lgpd': {
-      id: '/admin/configuracoes/lgpd'
-      path: '/configuracoes/lgpd'
-      fullPath: '/admin/configuracoes/lgpd'
-      preLoaderRoute: typeof AdminConfiguracoesLgpdRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/configuracoes/integracoes': {
-      id: '/admin/configuracoes/integracoes'
-      path: '/configuracoes/integracoes'
-      fullPath: '/admin/configuracoes/integracoes'
-      preLoaderRoute: typeof AdminConfiguracoesIntegracoesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/configuracoes/etapas': {
-      id: '/admin/configuracoes/etapas'
-      path: '/configuracoes/etapas'
-      fullPath: '/admin/configuracoes/etapas'
-      preLoaderRoute: typeof AdminConfiguracoesEtapasRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/configuracoes/auditoria': {
-      id: '/admin/configuracoes/auditoria'
-      path: '/configuracoes/auditoria'
-      fullPath: '/admin/configuracoes/auditoria'
-      preLoaderRoute: typeof AdminConfiguracoesAuditoriaRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/cms/tema': {
-      id: '/admin/cms/tema'
-      path: '/cms/tema'
-      fullPath: '/admin/cms/tema'
-      preLoaderRoute: typeof AdminCmsTemaRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/cms/navegacao': {
-      id: '/admin/cms/navegacao'
-      path: '/cms/navegacao'
-      fullPath: '/admin/cms/navegacao'
-      preLoaderRoute: typeof AdminCmsNavegacaoRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/clientes/$id': {
-      id: '/admin/clientes/$id'
-      path: '/clientes/$id'
-      fullPath: '/admin/clientes/$id'
-      preLoaderRoute: typeof AdminClientesIdRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/classificados/novo': {
-      id: '/admin/classificados/novo'
-      path: '/classificados/novo'
-      fullPath: '/admin/classificados/novo'
-      preLoaderRoute: typeof AdminClassificadosNovoRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/classificados/$id': {
-      id: '/admin/classificados/$id'
-      path: '/classificados/$id'
-      fullPath: '/admin/classificados/$id'
-      preLoaderRoute: typeof AdminClassificadosIdRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/catalogo/tipos': {
-      id: '/admin/catalogo/tipos'
-      path: '/catalogo/tipos'
-      fullPath: '/admin/catalogo/tipos'
-      preLoaderRoute: typeof AdminCatalogoTiposRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/catalogo/atributos': {
-      id: '/admin/catalogo/atributos'
-      path: '/catalogo/atributos'
-      fullPath: '/admin/catalogo/atributos'
-      preLoaderRoute: typeof AdminCatalogoAtributosRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/caixa/turnos': {
-      id: '/admin/caixa/turnos'
-      path: '/caixa/turnos'
-      fullPath: '/admin/caixa/turnos'
-      preLoaderRoute: typeof AdminCaixaTurnosRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/caixa/lancamentos': {
-      id: '/admin/caixa/lancamentos'
-      path: '/caixa/lancamentos'
-      fullPath: '/admin/caixa/lancamentos'
-      preLoaderRoute: typeof AdminCaixaLancamentosRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/builder/analytics': {
-      id: '/admin/builder/analytics'
-      path: '/builder/analytics'
-      fullPath: '/admin/builder/analytics'
-      preLoaderRoute: typeof AdminBuilderAnalyticsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/agendamentos/recursos': {
-      id: '/admin/agendamentos/recursos'
-      path: '/agendamentos/recursos'
-      fullPath: '/admin/agendamentos/recursos'
-      preLoaderRoute: typeof AdminAgendamentosRecursosRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/_store/vendedora/$slug': {
-      id: '/_store/vendedora/$slug'
-      path: '/vendedora/$slug'
-      fullPath: '/vendedora/$slug'
-      preLoaderRoute: typeof StoreVendedoraSlugRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/produto/$slug': {
-      id: '/_store/produto/$slug'
-      path: '/produto/$slug'
-      fullPath: '/produto/$slug'
-      preLoaderRoute: typeof StoreProdutoSlugRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/politicas/$slug': {
-      id: '/_store/politicas/$slug'
-      path: '/politicas/$slug'
-      fullPath: '/politicas/$slug'
-      preLoaderRoute: typeof StorePoliticasSlugRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/paginas/$slug': {
-      id: '/_store/paginas/$slug'
-      path: '/paginas/$slug'
-      fullPath: '/paginas/$slug'
-      preLoaderRoute: typeof StorePaginasSlugRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/gift-card/$claimToken': {
-      id: '/_store/gift-card/$claimToken'
-      path: '/gift-card/$claimToken'
-      fullPath: '/gift-card/$claimToken'
-      preLoaderRoute: typeof StoreGiftCardClaimTokenRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/evento/$id': {
-      id: '/_store/evento/$id'
-      path: '/evento/$id'
-      fullPath: '/evento/$id'
-      preLoaderRoute: typeof StoreEventoIdRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/destaques/$slug': {
-      id: '/_store/destaques/$slug'
-      path: '/destaques/$slug'
-      fullPath: '/destaques/$slug'
-      preLoaderRoute: typeof StoreDestaquesSlugRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/conta/trocas': {
-      id: '/_store/conta/trocas'
-      path: '/trocas'
-      fullPath: '/conta/trocas'
-      preLoaderRoute: typeof StoreContaTrocasRouteImport
-      parentRoute: typeof StoreContaRoute
-    }
-    '/_store/conta/suporte': {
-      id: '/_store/conta/suporte'
-      path: '/suporte'
-      fullPath: '/conta/suporte'
-      preLoaderRoute: typeof StoreContaSuporteRouteImport
-      parentRoute: typeof StoreContaRoute
-    }
-    '/_store/conta/perfil': {
-      id: '/_store/conta/perfil'
-      path: '/perfil'
-      fullPath: '/conta/perfil'
-      preLoaderRoute: typeof StoreContaPerfilRouteImport
-      parentRoute: typeof StoreContaRoute
-    }
-    '/_store/conta/pagamentos': {
-      id: '/_store/conta/pagamentos'
-      path: '/pagamentos'
-      fullPath: '/conta/pagamentos'
-      preLoaderRoute: typeof StoreContaPagamentosRouteImport
-      parentRoute: typeof StoreContaRoute
-    }
-    '/_store/conta/gift-cards': {
-      id: '/_store/conta/gift-cards'
-      path: '/gift-cards'
-      fullPath: '/conta/gift-cards'
-      preLoaderRoute: typeof StoreContaGiftCardsRouteImport
-      parentRoute: typeof StoreContaRoute
-    }
-    '/_store/conta/enderecos': {
-      id: '/_store/conta/enderecos'
-      path: '/enderecos'
-      fullPath: '/conta/enderecos'
-      preLoaderRoute: typeof StoreContaEnderecosRouteImport
-      parentRoute: typeof StoreContaRoute
-    }
-    '/_store/conta/creditos': {
-      id: '/_store/conta/creditos'
-      path: '/creditos'
-      fullPath: '/conta/creditos'
-      preLoaderRoute: typeof StoreContaCreditosRouteImport
-      parentRoute: typeof StoreContaRoute
-    }
-    '/_store/conta/avaliacoes': {
-      id: '/_store/conta/avaliacoes'
-      path: '/avaliacoes'
-      fullPath: '/conta/avaliacoes'
-      preLoaderRoute: typeof StoreContaAvaliacoesRouteImport
-      parentRoute: typeof StoreContaRoute
-    }
-    '/_store/colecao/$slug': {
-      id: '/_store/colecao/$slug'
-      path: '/colecao/$slug'
-      fullPath: '/colecao/$slug'
-      preLoaderRoute: typeof StoreColecaoSlugRouteImport
+    '/_store/bio/$slug': {
+      id: '/_store/bio/$slug'
+      path: '/bio/$slug'
+      fullPath: '/bio/$slug'
+      preLoaderRoute: typeof StoreBioSlugRouteImport
       parentRoute: typeof StoreRoute
     }
     '/_store/categoria/$slug': {
@@ -2537,116 +1442,319 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreCategoriaSlugRouteImport
       parentRoute: typeof StoreRoute
     }
-    '/_store/bio/$slug': {
-      id: '/_store/bio/$slug'
-      path: '/bio/$slug'
-      fullPath: '/bio/$slug'
-      preLoaderRoute: typeof StoreBioSlugRouteImport
+    '/_store/colecao/$slug': {
+      id: '/_store/colecao/$slug'
+      path: '/colecao/$slug'
+      fullPath: '/colecao/$slug'
+      preLoaderRoute: typeof StoreColecaoSlugRouteImport
       parentRoute: typeof StoreRoute
     }
-    '/admin/catalogo/produtos/': {
-      id: '/admin/catalogo/produtos/'
-      path: '/catalogo/produtos'
-      fullPath: '/admin/catalogo/produtos/'
-      preLoaderRoute: typeof AdminCatalogoProdutosIndexRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/catalogo/colecoes/': {
-      id: '/admin/catalogo/colecoes/'
-      path: '/catalogo/colecoes'
-      fullPath: '/admin/catalogo/colecoes/'
-      preLoaderRoute: typeof AdminCatalogoColecoesIndexRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/catalogo/categorias/': {
-      id: '/admin/catalogo/categorias/'
-      path: '/catalogo/categorias'
-      fullPath: '/admin/catalogo/categorias/'
-      preLoaderRoute: typeof AdminCatalogoCategoriasIndexRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/_store/conta/pedidos/': {
-      id: '/_store/conta/pedidos/'
-      path: '/pedidos'
-      fullPath: '/conta/pedidos/'
-      preLoaderRoute: typeof StoreContaPedidosIndexRouteImport
+    '/_store/conta/': {
+      id: '/_store/conta/'
+      path: '/'
+      fullPath: '/conta/'
+      preLoaderRoute: typeof StoreContaIndexRouteImport
       parentRoute: typeof StoreContaRoute
     }
-    '/admin_/pedidos/$id/recibo': {
-      id: '/admin_/pedidos/$id/recibo'
-      path: '/admin/pedidos/$id/recibo'
-      fullPath: '/admin/pedidos/$id/recibo'
-      preLoaderRoute: typeof AdminPedidosIdReciboRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_store/conta/avaliacoes': {
+      id: '/_store/conta/avaliacoes'
+      path: '/avaliacoes'
+      fullPath: '/conta/avaliacoes'
+      preLoaderRoute: typeof StoreContaAvaliacoesRouteImport
+      parentRoute: typeof StoreContaRoute
     }
-    '/admin/events/$eventId/checkin': {
-      id: '/admin/events/$eventId/checkin'
-      path: '/checkin'
-      fullPath: '/admin/events/$eventId/checkin'
-      preLoaderRoute: typeof AdminEventsEventIdCheckinRouteImport
-      parentRoute: typeof AdminEventsEventIdRoute
+    '/_store/conta/creditos': {
+      id: '/_store/conta/creditos'
+      path: '/creditos'
+      fullPath: '/conta/creditos'
+      preLoaderRoute: typeof StoreContaCreditosRouteImport
+      parentRoute: typeof StoreContaRoute
     }
-    '/admin/catalogo/produtos/novo': {
-      id: '/admin/catalogo/produtos/novo'
-      path: '/catalogo/produtos/novo'
-      fullPath: '/admin/catalogo/produtos/novo'
-      preLoaderRoute: typeof AdminCatalogoProdutosNovoRouteImport
-      parentRoute: typeof AdminRoute
+    '/_store/conta/enderecos': {
+      id: '/_store/conta/enderecos'
+      path: '/enderecos'
+      fullPath: '/conta/enderecos'
+      preLoaderRoute: typeof StoreContaEnderecosRouteImport
+      parentRoute: typeof StoreContaRoute
     }
-    '/admin/catalogo/produtos/$id': {
-      id: '/admin/catalogo/produtos/$id'
-      path: '/catalogo/produtos/$id'
-      fullPath: '/admin/catalogo/produtos/$id'
-      preLoaderRoute: typeof AdminCatalogoProdutosIdRouteImport
-      parentRoute: typeof AdminRoute
+    '/_store/conta/gift-cards': {
+      id: '/_store/conta/gift-cards'
+      path: '/gift-cards'
+      fullPath: '/conta/gift-cards'
+      preLoaderRoute: typeof StoreContaGiftCardsRouteImport
+      parentRoute: typeof StoreContaRoute
     }
-    '/admin/catalogo/colecoes/novo': {
-      id: '/admin/catalogo/colecoes/novo'
-      path: '/catalogo/colecoes/novo'
-      fullPath: '/admin/catalogo/colecoes/novo'
-      preLoaderRoute: typeof AdminCatalogoColecoesNovoRouteImport
-      parentRoute: typeof AdminRoute
+    '/_store/conta/pagamentos': {
+      id: '/_store/conta/pagamentos'
+      path: '/pagamentos'
+      fullPath: '/conta/pagamentos'
+      preLoaderRoute: typeof StoreContaPagamentosRouteImport
+      parentRoute: typeof StoreContaRoute
     }
-    '/admin/catalogo/colecoes/$id': {
-      id: '/admin/catalogo/colecoes/$id'
-      path: '/catalogo/colecoes/$id'
-      fullPath: '/admin/catalogo/colecoes/$id'
-      preLoaderRoute: typeof AdminCatalogoColecoesIdRouteImport
-      parentRoute: typeof AdminRoute
+    '/_store/conta/perfil': {
+      id: '/_store/conta/perfil'
+      path: '/perfil'
+      fullPath: '/conta/perfil'
+      preLoaderRoute: typeof StoreContaPerfilRouteImport
+      parentRoute: typeof StoreContaRoute
     }
-    '/admin/catalogo/categorias/novo': {
-      id: '/admin/catalogo/categorias/novo'
-      path: '/catalogo/categorias/novo'
-      fullPath: '/admin/catalogo/categorias/novo'
-      preLoaderRoute: typeof AdminCatalogoCategoriasNovoRouteImport
-      parentRoute: typeof AdminRoute
+    '/_store/conta/suporte': {
+      id: '/_store/conta/suporte'
+      path: '/suporte'
+      fullPath: '/conta/suporte'
+      preLoaderRoute: typeof StoreContaSuporteRouteImport
+      parentRoute: typeof StoreContaRoute
     }
-    '/admin/catalogo/categorias/$id': {
-      id: '/admin/catalogo/categorias/$id'
-      path: '/catalogo/categorias/$id'
-      fullPath: '/admin/catalogo/categorias/$id'
-      preLoaderRoute: typeof AdminCatalogoCategoriasIdRouteImport
-      parentRoute: typeof AdminRoute
+    '/_store/conta/trocas': {
+      id: '/_store/conta/trocas'
+      path: '/trocas'
+      fullPath: '/conta/trocas'
+      preLoaderRoute: typeof StoreContaTrocasRouteImport
+      parentRoute: typeof StoreContaRoute
     }
-    '/admin/builder/$documentId/editor': {
-      id: '/admin/builder/$documentId/editor'
-      path: '/builder/$documentId/editor'
-      fullPath: '/admin/builder/$documentId/editor'
-      preLoaderRoute: typeof AdminBuilderDocumentIdEditorRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/_store/pedido/$publicToken/confirmacao': {
-      id: '/_store/pedido/$publicToken/confirmacao'
-      path: '/pedido/$publicToken/confirmacao'
-      fullPath: '/pedido/$publicToken/confirmacao'
-      preLoaderRoute: typeof StorePedidoPublicTokenConfirmacaoRouteImport
+    '/_store/destaques/$slug': {
+      id: '/_store/destaques/$slug'
+      path: '/destaques/$slug'
+      fullPath: '/destaques/$slug'
+      preLoaderRoute: typeof StoreDestaquesSlugRouteImport
       parentRoute: typeof StoreRoute
     }
-    '/_store/conta/pedidos/$id': {
-      id: '/_store/conta/pedidos/$id'
+    '/_store/evento/$id': {
+      id: '/_store/evento/$id'
+      path: '/evento/$id'
+      fullPath: '/evento/$id'
+      preLoaderRoute: typeof StoreEventoIdRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/gift-card/$claimToken': {
+      id: '/_store/gift-card/$claimToken'
+      path: '/gift-card/$claimToken'
+      fullPath: '/gift-card/$claimToken'
+      preLoaderRoute: typeof StoreGiftCardClaimTokenRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/paginas/$slug': {
+      id: '/_store/paginas/$slug'
+      path: '/paginas/$slug'
+      fullPath: '/paginas/$slug'
+      preLoaderRoute: typeof StorePaginasSlugRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/politicas/$slug': {
+      id: '/_store/politicas/$slug'
+      path: '/politicas/$slug'
+      fullPath: '/politicas/$slug'
+      preLoaderRoute: typeof StorePoliticasSlugRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/produto/$slug': {
+      id: '/_store/produto/$slug'
+      path: '/produto/$slug'
+      fullPath: '/produto/$slug'
+      preLoaderRoute: typeof StoreProdutoSlugRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/vendedora/$slug': {
+      id: '/_store/vendedora/$slug'
+      path: '/vendedora/$slug'
+      fullPath: '/vendedora/$slug'
+      preLoaderRoute: typeof StoreVendedoraSlugRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/api/auth/callback': {
+      id: '/api/auth/callback'
+      path: '/api/auth/callback'
+      fullPath: '/api/auth/callback'
+      preLoaderRoute: typeof ApiAuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/confirm': {
+      id: '/api/auth/confirm'
+      path: '/api/auth/confirm'
+      fullPath: '/api/auth/confirm'
+      preLoaderRoute: typeof ApiAuthConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/feed/xml': {
+      id: '/api/feed/xml'
+      path: '/api/feed/xml'
+      fullPath: '/api/feed/xml'
+      preLoaderRoute: typeof ApiFeedXmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/webhooks/shipment': {
+      id: '/api/webhooks/shipment'
+      path: '/api/webhooks/shipment'
+      fullPath: '/api/webhooks/shipment'
+      preLoaderRoute: typeof ApiWebhooksShipmentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/workspace/agenda/': {
+      id: '/workspace/agenda/'
+      path: '/agenda'
+      fullPath: '/workspace/agenda/'
+      preLoaderRoute: typeof WorkspaceAgendaIndexRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/agenda/recursos': {
+      id: '/workspace/agenda/recursos'
+      path: '/agenda/recursos'
+      fullPath: '/workspace/agenda/recursos'
+      preLoaderRoute: typeof WorkspaceAgendaRecursosRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/catalogo/atributos': {
+      id: '/workspace/catalogo/atributos'
+      path: '/catalogo/atributos'
+      fullPath: '/workspace/catalogo/atributos'
+      preLoaderRoute: typeof WorkspaceCatalogoAtributosRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/catalogo/tipos': {
+      id: '/workspace/catalogo/tipos'
+      path: '/catalogo/tipos'
+      fullPath: '/workspace/catalogo/tipos'
+      preLoaderRoute: typeof WorkspaceCatalogoTiposRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/clientes/': {
+      id: '/workspace/clientes/'
+      path: '/clientes'
+      fullPath: '/workspace/clientes/'
+      preLoaderRoute: typeof WorkspaceClientesIndexRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/clientes/$id': {
+      id: '/workspace/clientes/$id'
+      path: '/clientes/$id'
+      fullPath: '/workspace/clientes/$id'
+      preLoaderRoute: typeof WorkspaceClientesIdRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/cms/navegacao': {
+      id: '/workspace/cms/navegacao'
+      path: '/cms/navegacao'
+      fullPath: '/workspace/cms/navegacao'
+      preLoaderRoute: typeof WorkspaceCmsNavegacaoRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/estoque/': {
+      id: '/workspace/estoque/'
+      path: '/estoque'
+      fullPath: '/workspace/estoque/'
+      preLoaderRoute: typeof WorkspaceEstoqueIndexRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/estoque/alertas': {
+      id: '/workspace/estoque/alertas'
+      path: '/estoque/alertas'
+      fullPath: '/workspace/estoque/alertas'
+      preLoaderRoute: typeof WorkspaceEstoqueAlertasRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/estoque/movimentos': {
+      id: '/workspace/estoque/movimentos'
+      path: '/estoque/movimentos'
+      fullPath: '/workspace/estoque/movimentos'
+      preLoaderRoute: typeof WorkspaceEstoqueMovimentosRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/estudio/': {
+      id: '/workspace/estudio/'
+      path: '/estudio'
+      fullPath: '/workspace/estudio/'
+      preLoaderRoute: typeof WorkspaceEstudioIndexRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/financeiro/comissoes': {
+      id: '/workspace/financeiro/comissoes'
+      path: '/financeiro/comissoes'
+      fullPath: '/workspace/financeiro/comissoes'
+      preLoaderRoute: typeof WorkspaceFinanceiroComissoesRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/financeiro/comprovantes': {
+      id: '/workspace/financeiro/comprovantes'
+      path: '/financeiro/comprovantes'
+      fullPath: '/workspace/financeiro/comprovantes'
+      preLoaderRoute: typeof WorkspaceFinanceiroComprovantesRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/financeiro/funcionarios': {
+      id: '/workspace/financeiro/funcionarios'
+      path: '/financeiro/funcionarios'
+      fullPath: '/workspace/financeiro/funcionarios'
+      preLoaderRoute: typeof WorkspaceFinanceiroFuncionariosRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/financeiro/pagamentos': {
+      id: '/workspace/financeiro/pagamentos'
+      path: '/financeiro/pagamentos'
+      fullPath: '/workspace/financeiro/pagamentos'
+      preLoaderRoute: typeof WorkspaceFinanceiroPagamentosRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/mural/novo': {
+      id: '/workspace/mural/novo'
+      path: '/mural/novo'
+      fullPath: '/workspace/mural/novo'
+      preLoaderRoute: typeof WorkspaceMuralNovoRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/pdv/': {
+      id: '/workspace/pdv/'
+      path: '/pdv'
+      fullPath: '/workspace/pdv/'
+      preLoaderRoute: typeof WorkspacePdvIndexRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/pdv/comandas': {
+      id: '/workspace/pdv/comandas'
+      path: '/pdv/comandas'
+      fullPath: '/workspace/pdv/comandas'
+      preLoaderRoute: typeof WorkspacePdvComandasRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/pedidos/': {
+      id: '/workspace/pedidos/'
+      path: '/pedidos'
+      fullPath: '/workspace/pedidos/'
+      preLoaderRoute: typeof WorkspacePedidosIndexRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/pedidos/$id': {
+      id: '/workspace/pedidos/$id'
       path: '/pedidos/$id'
-      fullPath: '/conta/pedidos/$id'
-      preLoaderRoute: typeof StoreContaPedidosIdRouteImport
+      fullPath: '/workspace/pedidos/$id'
+      preLoaderRoute: typeof WorkspacePedidosIdRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/pedidos/frota': {
+      id: '/workspace/pedidos/frota'
+      path: '/pedidos/frota'
+      fullPath: '/workspace/pedidos/frota'
+      preLoaderRoute: typeof WorkspacePedidosFrotaRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/pedidos/gestor': {
+      id: '/workspace/pedidos/gestor'
+      path: '/pedidos/gestor'
+      fullPath: '/workspace/pedidos/gestor'
+      preLoaderRoute: typeof WorkspacePedidosGestorRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/pedidos/trocas': {
+      id: '/workspace/pedidos/trocas'
+      path: '/pedidos/trocas'
+      fullPath: '/workspace/pedidos/trocas'
+      preLoaderRoute: typeof WorkspacePedidosTrocasRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/_store/conta/classificados/': {
+      id: '/_store/conta/classificados/'
+      path: '/classificados'
+      fullPath: '/conta/classificados/'
+      preLoaderRoute: typeof StoreContaClassificadosIndexRouteImport
       parentRoute: typeof StoreContaRoute
     }
     '/_store/conta/conversas/$id': {
@@ -2656,8 +1764,153 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreContaConversasIdRouteImport
       parentRoute: typeof StoreContaRoute
     }
+    '/_store/conta/pedidos/': {
+      id: '/_store/conta/pedidos/'
+      path: '/pedidos'
+      fullPath: '/conta/pedidos/'
+      preLoaderRoute: typeof StoreContaPedidosIndexRouteImport
+      parentRoute: typeof StoreContaRoute
+    }
+    '/_store/conta/pedidos/$id': {
+      id: '/_store/conta/pedidos/$id'
+      path: '/pedidos/$id'
+      fullPath: '/conta/pedidos/$id'
+      preLoaderRoute: typeof StoreContaPedidosIdRouteImport
+      parentRoute: typeof StoreContaRoute
+    }
+    '/_store/pedido/$publicToken/confirmacao': {
+      id: '/_store/pedido/$publicToken/confirmacao'
+      path: '/pedido/$publicToken/confirmacao'
+      fullPath: '/pedido/$publicToken/confirmacao'
+      preLoaderRoute: typeof StorePedidoPublicTokenConfirmacaoRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/workspace/agenda/servicos/': {
+      id: '/workspace/agenda/servicos/'
+      path: '/agenda/servicos'
+      fullPath: '/workspace/agenda/servicos/'
+      preLoaderRoute: typeof WorkspaceAgendaServicosIndexRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/catalogo/categorias/': {
+      id: '/workspace/catalogo/categorias/'
+      path: '/catalogo/categorias'
+      fullPath: '/workspace/catalogo/categorias/'
+      preLoaderRoute: typeof WorkspaceCatalogoCategoriasIndexRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/catalogo/categorias/$id': {
+      id: '/workspace/catalogo/categorias/$id'
+      path: '/catalogo/categorias/$id'
+      fullPath: '/workspace/catalogo/categorias/$id'
+      preLoaderRoute: typeof WorkspaceCatalogoCategoriasIdRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/catalogo/categorias/novo': {
+      id: '/workspace/catalogo/categorias/novo'
+      path: '/catalogo/categorias/novo'
+      fullPath: '/workspace/catalogo/categorias/novo'
+      preLoaderRoute: typeof WorkspaceCatalogoCategoriasNovoRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/catalogo/colecoes/': {
+      id: '/workspace/catalogo/colecoes/'
+      path: '/catalogo/colecoes'
+      fullPath: '/workspace/catalogo/colecoes/'
+      preLoaderRoute: typeof WorkspaceCatalogoColecoesIndexRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/catalogo/colecoes/$id': {
+      id: '/workspace/catalogo/colecoes/$id'
+      path: '/catalogo/colecoes/$id'
+      fullPath: '/workspace/catalogo/colecoes/$id'
+      preLoaderRoute: typeof WorkspaceCatalogoColecoesIdRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/catalogo/colecoes/novo': {
+      id: '/workspace/catalogo/colecoes/novo'
+      path: '/catalogo/colecoes/novo'
+      fullPath: '/workspace/catalogo/colecoes/novo'
+      preLoaderRoute: typeof WorkspaceCatalogoColecoesNovoRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/catalogo/produtos/': {
+      id: '/workspace/catalogo/produtos/'
+      path: '/catalogo/produtos'
+      fullPath: '/workspace/catalogo/produtos/'
+      preLoaderRoute: typeof WorkspaceCatalogoProdutosIndexRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/catalogo/produtos/$id': {
+      id: '/workspace/catalogo/produtos/$id'
+      path: '/catalogo/produtos/$id'
+      fullPath: '/workspace/catalogo/produtos/$id'
+      preLoaderRoute: typeof WorkspaceCatalogoProdutosIdRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/catalogo/produtos/novo': {
+      id: '/workspace/catalogo/produtos/novo'
+      path: '/catalogo/produtos/novo'
+      fullPath: '/workspace/catalogo/produtos/novo'
+      preLoaderRoute: typeof WorkspaceCatalogoProdutosNovoRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/cms/paginas/': {
+      id: '/workspace/cms/paginas/'
+      path: '/cms/paginas'
+      fullPath: '/workspace/cms/paginas/'
+      preLoaderRoute: typeof WorkspaceCmsPaginasIndexRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/configuracoes/fretes/cotacoes': {
+      id: '/workspace/configuracoes/fretes/cotacoes'
+      path: '/configuracoes/fretes/cotacoes'
+      fullPath: '/workspace/configuracoes/fretes/cotacoes'
+      preLoaderRoute: typeof WorkspaceConfiguracoesFretesCotacoesRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/financeiro/caixa/': {
+      id: '/workspace/financeiro/caixa/'
+      path: '/financeiro/caixa'
+      fullPath: '/workspace/financeiro/caixa/'
+      preLoaderRoute: typeof WorkspaceFinanceiroCaixaIndexRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/financeiro/caixa/lancamentos': {
+      id: '/workspace/financeiro/caixa/lancamentos'
+      path: '/financeiro/caixa/lancamentos'
+      fullPath: '/workspace/financeiro/caixa/lancamentos'
+      preLoaderRoute: typeof WorkspaceFinanceiroCaixaLancamentosRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/financeiro/caixa/turnos': {
+      id: '/workspace/financeiro/caixa/turnos'
+      path: '/financeiro/caixa/turnos'
+      fullPath: '/workspace/financeiro/caixa/turnos'
+      preLoaderRoute: typeof WorkspaceFinanceiroCaixaTurnosRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace_/pedidos/$id/recibo': {
+      id: '/workspace_/pedidos/$id/recibo'
+      path: '/workspace/pedidos/$id/recibo'
+      fullPath: '/workspace/pedidos/$id/recibo'
+      preLoaderRoute: typeof WorkspacePedidosIdReciboRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
+
+interface StoreAgendarRouteChildren {
+  StoreAgendarIndexRoute: typeof StoreAgendarIndexRoute
+}
+
+const StoreAgendarRouteChildren: StoreAgendarRouteChildren = {
+  StoreAgendarIndexRoute: StoreAgendarIndexRoute,
+}
+
+const StoreAgendarRouteWithChildren = StoreAgendarRoute._addFileChildren(
+  StoreAgendarRouteChildren,
+)
 
 interface StoreContaRouteChildren {
   StoreContaAvaliacoesRoute: typeof StoreContaAvaliacoesRoute
@@ -2671,6 +1924,7 @@ interface StoreContaRouteChildren {
   StoreContaIndexRoute: typeof StoreContaIndexRoute
   StoreContaConversasIdRoute: typeof StoreContaConversasIdRoute
   StoreContaPedidosIdRoute: typeof StoreContaPedidosIdRoute
+  StoreContaClassificadosIndexRoute: typeof StoreContaClassificadosIndexRoute
   StoreContaPedidosIndexRoute: typeof StoreContaPedidosIndexRoute
 }
 
@@ -2686,6 +1940,7 @@ const StoreContaRouteChildren: StoreContaRouteChildren = {
   StoreContaIndexRoute: StoreContaIndexRoute,
   StoreContaConversasIdRoute: StoreContaConversasIdRoute,
   StoreContaPedidosIdRoute: StoreContaPedidosIdRoute,
+  StoreContaClassificadosIndexRoute: StoreContaClassificadosIndexRoute,
   StoreContaPedidosIndexRoute: StoreContaPedidosIndexRoute,
 }
 
@@ -2695,6 +1950,7 @@ const StoreContaRouteWithChildren = StoreContaRoute._addFileChildren(
 
 interface StoreRouteChildren {
   StoreAgendaRoute: typeof StoreAgendaRoute
+  StoreAgendarRoute: typeof StoreAgendarRouteWithChildren
   StoreBuscarRoute: typeof StoreBuscarRoute
   StoreCadastroRoute: typeof StoreCadastroRoute
   StoreCarrinhoRoute: typeof StoreCarrinhoRoute
@@ -2730,6 +1986,7 @@ interface StoreRouteChildren {
 
 const StoreRouteChildren: StoreRouteChildren = {
   StoreAgendaRoute: StoreAgendaRoute,
+  StoreAgendarRoute: StoreAgendarRouteWithChildren,
   StoreBuscarRoute: StoreBuscarRoute,
   StoreCadastroRoute: StoreCadastroRoute,
   StoreCarrinhoRoute: StoreCarrinhoRoute,
@@ -2766,179 +2023,6 @@ const StoreRouteChildren: StoreRouteChildren = {
 
 const StoreRouteWithChildren = StoreRoute._addFileChildren(StoreRouteChildren)
 
-interface AdminEventsEventIdRouteChildren {
-  AdminEventsEventIdCheckinRoute: typeof AdminEventsEventIdCheckinRoute
-}
-
-const AdminEventsEventIdRouteChildren: AdminEventsEventIdRouteChildren = {
-  AdminEventsEventIdCheckinRoute: AdminEventsEventIdCheckinRoute,
-}
-
-const AdminEventsEventIdRouteWithChildren =
-  AdminEventsEventIdRoute._addFileChildren(AdminEventsEventIdRouteChildren)
-
-interface AdminRouteChildren {
-  AdminAvaliacoesRoute: typeof AdminAvaliacoesRoute
-  AdminComissoesRoute: typeof AdminComissoesRoute
-  AdminComprovantesRoute: typeof AdminComprovantesRoute
-  AdminConversasRoute: typeof AdminConversasRoute
-  AdminCriadorRoute: typeof AdminCriadorRoute
-  AdminDestaquesRoute: typeof AdminDestaquesRoute
-  AdminEquipeRoute: typeof AdminEquipeRoute
-  AdminIntegracoesRoute: typeof AdminIntegracoesRoute
-  AdminLinkDaBioRoute: typeof AdminLinkDaBioRoute
-  AdminMatchTimeRoute: typeof AdminMatchTimeRoute
-  AdminMidiasRoute: typeof AdminMidiasRoute
-  AdminOnboardingRoute: typeof AdminOnboardingRoute
-  AdminPagamentosRoute: typeof AdminPagamentosRoute
-  AdminPerfilPublicoRoute: typeof AdminPerfilPublicoRoute
-  AdminRelatoriosRoute: typeof AdminRelatoriosRoute
-  AdminStoriesRoute: typeof AdminStoriesRoute
-  AdminSuporteRoute: typeof AdminSuporteRoute
-  AdminVitrineRoute: typeof AdminVitrineRoute
-  AdminIndexRoute: typeof AdminIndexRoute
-  AdminAgendamentosRecursosRoute: typeof AdminAgendamentosRecursosRoute
-  AdminBuilderAnalyticsRoute: typeof AdminBuilderAnalyticsRoute
-  AdminCaixaLancamentosRoute: typeof AdminCaixaLancamentosRoute
-  AdminCaixaTurnosRoute: typeof AdminCaixaTurnosRoute
-  AdminCatalogoAtributosRoute: typeof AdminCatalogoAtributosRoute
-  AdminCatalogoTiposRoute: typeof AdminCatalogoTiposRoute
-  AdminClassificadosIdRoute: typeof AdminClassificadosIdRoute
-  AdminClassificadosNovoRoute: typeof AdminClassificadosNovoRoute
-  AdminClientesIdRoute: typeof AdminClientesIdRoute
-  AdminCmsNavegacaoRoute: typeof AdminCmsNavegacaoRoute
-  AdminCmsTemaRoute: typeof AdminCmsTemaRoute
-  AdminConfiguracoesAuditoriaRoute: typeof AdminConfiguracoesAuditoriaRoute
-  AdminConfiguracoesEtapasRoute: typeof AdminConfiguracoesEtapasRoute
-  AdminConfiguracoesIntegracoesRoute: typeof AdminConfiguracoesIntegracoesRoute
-  AdminConfiguracoesLgpdRoute: typeof AdminConfiguracoesLgpdRoute
-  AdminConfiguracoesLojaRoute: typeof AdminConfiguracoesLojaRoute
-  AdminConfiguracoesPagamentosRoute: typeof AdminConfiguracoesPagamentosRoute
-  AdminConfiguracoesPoliticasRoute: typeof AdminConfiguracoesPoliticasRoute
-  AdminConfiguracoesSeoRoute: typeof AdminConfiguracoesSeoRoute
-  AdminEstoqueAlertasRoute: typeof AdminEstoqueAlertasRoute
-  AdminEstoqueMovimentosRoute: typeof AdminEstoqueMovimentosRoute
-  AdminEventsEventIdRoute: typeof AdminEventsEventIdRouteWithChildren
-  AdminFinanceiroFuncionariosRoute: typeof AdminFinanceiroFuncionariosRoute
-  AdminFretesCotacoesRoute: typeof AdminFretesCotacoesRoute
-  AdminFretesTabelasRoute: typeof AdminFretesTabelasRoute
-  AdminGrowthCampanhasRoute: typeof AdminGrowthCampanhasRoute
-  AdminGrowthComissoesRoute: typeof AdminGrowthComissoesRoute
-  AdminLogisticaFrotaRoute: typeof AdminLogisticaFrotaRoute
-  AdminMarketingCarrinhosRoute: typeof AdminMarketingCarrinhosRoute
-  AdminMarketingCuponsRoute: typeof AdminMarketingCuponsRoute
-  AdminMarketingFeedRoute: typeof AdminMarketingFeedRoute
-  AdminMarketingGiftCardsRoute: typeof AdminMarketingGiftCardsRoute
-  AdminMarketingNotificacoesRoute: typeof AdminMarketingNotificacoesRoute
-  AdminMarketingOfertasCheckoutRoute: typeof AdminMarketingOfertasCheckoutRoute
-  AdminMarketingSeguidoresRoute: typeof AdminMarketingSeguidoresRoute
-  AdminPedidosIdRoute: typeof AdminPedidosIdRoute
-  AdminPedidosGestorRoute: typeof AdminPedidosGestorRoute
-  AdminPedidosTrocasRoute: typeof AdminPedidosTrocasRoute
-  AdminAdsIndexRoute: typeof AdminAdsIndexRoute
-  AdminAgendamentosIndexRoute: typeof AdminAgendamentosIndexRoute
-  AdminBuilderIndexRoute: typeof AdminBuilderIndexRoute
-  AdminCaixaIndexRoute: typeof AdminCaixaIndexRoute
-  AdminClassificadosIndexRoute: typeof AdminClassificadosIndexRoute
-  AdminClientesIndexRoute: typeof AdminClientesIndexRoute
-  AdminEstoqueIndexRoute: typeof AdminEstoqueIndexRoute
-  AdminEventsIndexRoute: typeof AdminEventsIndexRoute
-  AdminFretesIndexRoute: typeof AdminFretesIndexRoute
-  AdminPedidosIndexRoute: typeof AdminPedidosIndexRoute
-  AdminBuilderDocumentIdEditorRoute: typeof AdminBuilderDocumentIdEditorRoute
-  AdminCatalogoCategoriasIdRoute: typeof AdminCatalogoCategoriasIdRoute
-  AdminCatalogoCategoriasNovoRoute: typeof AdminCatalogoCategoriasNovoRoute
-  AdminCatalogoColecoesIdRoute: typeof AdminCatalogoColecoesIdRoute
-  AdminCatalogoColecoesNovoRoute: typeof AdminCatalogoColecoesNovoRoute
-  AdminCatalogoProdutosIdRoute: typeof AdminCatalogoProdutosIdRoute
-  AdminCatalogoProdutosNovoRoute: typeof AdminCatalogoProdutosNovoRoute
-  AdminCatalogoCategoriasIndexRoute: typeof AdminCatalogoCategoriasIndexRoute
-  AdminCatalogoColecoesIndexRoute: typeof AdminCatalogoColecoesIndexRoute
-  AdminCatalogoProdutosIndexRoute: typeof AdminCatalogoProdutosIndexRoute
-}
-
-const AdminRouteChildren: AdminRouteChildren = {
-  AdminAvaliacoesRoute: AdminAvaliacoesRoute,
-  AdminComissoesRoute: AdminComissoesRoute,
-  AdminComprovantesRoute: AdminComprovantesRoute,
-  AdminConversasRoute: AdminConversasRoute,
-  AdminCriadorRoute: AdminCriadorRoute,
-  AdminDestaquesRoute: AdminDestaquesRoute,
-  AdminEquipeRoute: AdminEquipeRoute,
-  AdminIntegracoesRoute: AdminIntegracoesRoute,
-  AdminLinkDaBioRoute: AdminLinkDaBioRoute,
-  AdminMatchTimeRoute: AdminMatchTimeRoute,
-  AdminMidiasRoute: AdminMidiasRoute,
-  AdminOnboardingRoute: AdminOnboardingRoute,
-  AdminPagamentosRoute: AdminPagamentosRoute,
-  AdminPerfilPublicoRoute: AdminPerfilPublicoRoute,
-  AdminRelatoriosRoute: AdminRelatoriosRoute,
-  AdminStoriesRoute: AdminStoriesRoute,
-  AdminSuporteRoute: AdminSuporteRoute,
-  AdminVitrineRoute: AdminVitrineRoute,
-  AdminIndexRoute: AdminIndexRoute,
-  AdminAgendamentosRecursosRoute: AdminAgendamentosRecursosRoute,
-  AdminBuilderAnalyticsRoute: AdminBuilderAnalyticsRoute,
-  AdminCaixaLancamentosRoute: AdminCaixaLancamentosRoute,
-  AdminCaixaTurnosRoute: AdminCaixaTurnosRoute,
-  AdminCatalogoAtributosRoute: AdminCatalogoAtributosRoute,
-  AdminCatalogoTiposRoute: AdminCatalogoTiposRoute,
-  AdminClassificadosIdRoute: AdminClassificadosIdRoute,
-  AdminClassificadosNovoRoute: AdminClassificadosNovoRoute,
-  AdminClientesIdRoute: AdminClientesIdRoute,
-  AdminCmsNavegacaoRoute: AdminCmsNavegacaoRoute,
-  AdminCmsTemaRoute: AdminCmsTemaRoute,
-  AdminConfiguracoesAuditoriaRoute: AdminConfiguracoesAuditoriaRoute,
-  AdminConfiguracoesEtapasRoute: AdminConfiguracoesEtapasRoute,
-  AdminConfiguracoesIntegracoesRoute: AdminConfiguracoesIntegracoesRoute,
-  AdminConfiguracoesLgpdRoute: AdminConfiguracoesLgpdRoute,
-  AdminConfiguracoesLojaRoute: AdminConfiguracoesLojaRoute,
-  AdminConfiguracoesPagamentosRoute: AdminConfiguracoesPagamentosRoute,
-  AdminConfiguracoesPoliticasRoute: AdminConfiguracoesPoliticasRoute,
-  AdminConfiguracoesSeoRoute: AdminConfiguracoesSeoRoute,
-  AdminEstoqueAlertasRoute: AdminEstoqueAlertasRoute,
-  AdminEstoqueMovimentosRoute: AdminEstoqueMovimentosRoute,
-  AdminEventsEventIdRoute: AdminEventsEventIdRouteWithChildren,
-  AdminFinanceiroFuncionariosRoute: AdminFinanceiroFuncionariosRoute,
-  AdminFretesCotacoesRoute: AdminFretesCotacoesRoute,
-  AdminFretesTabelasRoute: AdminFretesTabelasRoute,
-  AdminGrowthCampanhasRoute: AdminGrowthCampanhasRoute,
-  AdminGrowthComissoesRoute: AdminGrowthComissoesRoute,
-  AdminLogisticaFrotaRoute: AdminLogisticaFrotaRoute,
-  AdminMarketingCarrinhosRoute: AdminMarketingCarrinhosRoute,
-  AdminMarketingCuponsRoute: AdminMarketingCuponsRoute,
-  AdminMarketingFeedRoute: AdminMarketingFeedRoute,
-  AdminMarketingGiftCardsRoute: AdminMarketingGiftCardsRoute,
-  AdminMarketingNotificacoesRoute: AdminMarketingNotificacoesRoute,
-  AdminMarketingOfertasCheckoutRoute: AdminMarketingOfertasCheckoutRoute,
-  AdminMarketingSeguidoresRoute: AdminMarketingSeguidoresRoute,
-  AdminPedidosIdRoute: AdminPedidosIdRoute,
-  AdminPedidosGestorRoute: AdminPedidosGestorRoute,
-  AdminPedidosTrocasRoute: AdminPedidosTrocasRoute,
-  AdminAdsIndexRoute: AdminAdsIndexRoute,
-  AdminAgendamentosIndexRoute: AdminAgendamentosIndexRoute,
-  AdminBuilderIndexRoute: AdminBuilderIndexRoute,
-  AdminCaixaIndexRoute: AdminCaixaIndexRoute,
-  AdminClassificadosIndexRoute: AdminClassificadosIndexRoute,
-  AdminClientesIndexRoute: AdminClientesIndexRoute,
-  AdminEstoqueIndexRoute: AdminEstoqueIndexRoute,
-  AdminEventsIndexRoute: AdminEventsIndexRoute,
-  AdminFretesIndexRoute: AdminFretesIndexRoute,
-  AdminPedidosIndexRoute: AdminPedidosIndexRoute,
-  AdminBuilderDocumentIdEditorRoute: AdminBuilderDocumentIdEditorRoute,
-  AdminCatalogoCategoriasIdRoute: AdminCatalogoCategoriasIdRoute,
-  AdminCatalogoCategoriasNovoRoute: AdminCatalogoCategoriasNovoRoute,
-  AdminCatalogoColecoesIdRoute: AdminCatalogoColecoesIdRoute,
-  AdminCatalogoColecoesNovoRoute: AdminCatalogoColecoesNovoRoute,
-  AdminCatalogoProdutosIdRoute: AdminCatalogoProdutosIdRoute,
-  AdminCatalogoProdutosNovoRoute: AdminCatalogoProdutosNovoRoute,
-  AdminCatalogoCategoriasIndexRoute: AdminCatalogoCategoriasIndexRoute,
-  AdminCatalogoColecoesIndexRoute: AdminCatalogoColecoesIndexRoute,
-  AdminCatalogoProdutosIndexRoute: AdminCatalogoProdutosIndexRoute,
-}
-
-const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
-
 interface AdminMasterRouteChildren {
   AdminMasterFaturasRoute: typeof AdminMasterFaturasRoute
   AdminMasterLojasRoute: typeof AdminMasterLojasRoute
@@ -2955,19 +2039,104 @@ const AdminMasterRouteWithChildren = AdminMasterRoute._addFileChildren(
   AdminMasterRouteChildren,
 )
 
+interface WorkspaceRouteChildren {
+  WorkspaceAgendaRecursosRoute: typeof WorkspaceAgendaRecursosRoute
+  WorkspaceCatalogoAtributosRoute: typeof WorkspaceCatalogoAtributosRoute
+  WorkspaceCatalogoTiposRoute: typeof WorkspaceCatalogoTiposRoute
+  WorkspaceClientesIdRoute: typeof WorkspaceClientesIdRoute
+  WorkspaceCmsNavegacaoRoute: typeof WorkspaceCmsNavegacaoRoute
+  WorkspaceEstoqueAlertasRoute: typeof WorkspaceEstoqueAlertasRoute
+  WorkspaceEstoqueMovimentosRoute: typeof WorkspaceEstoqueMovimentosRoute
+  WorkspaceFinanceiroComissoesRoute: typeof WorkspaceFinanceiroComissoesRoute
+  WorkspaceFinanceiroComprovantesRoute: typeof WorkspaceFinanceiroComprovantesRoute
+  WorkspaceFinanceiroFuncionariosRoute: typeof WorkspaceFinanceiroFuncionariosRoute
+  WorkspaceFinanceiroPagamentosRoute: typeof WorkspaceFinanceiroPagamentosRoute
+  WorkspaceMuralNovoRoute: typeof WorkspaceMuralNovoRoute
+  WorkspacePdvComandasRoute: typeof WorkspacePdvComandasRoute
+  WorkspacePedidosIdRoute: typeof WorkspacePedidosIdRoute
+  WorkspacePedidosFrotaRoute: typeof WorkspacePedidosFrotaRoute
+  WorkspacePedidosGestorRoute: typeof WorkspacePedidosGestorRoute
+  WorkspacePedidosTrocasRoute: typeof WorkspacePedidosTrocasRoute
+  WorkspaceAgendaIndexRoute: typeof WorkspaceAgendaIndexRoute
+  WorkspaceClientesIndexRoute: typeof WorkspaceClientesIndexRoute
+  WorkspaceEstoqueIndexRoute: typeof WorkspaceEstoqueIndexRoute
+  WorkspaceEstudioIndexRoute: typeof WorkspaceEstudioIndexRoute
+  WorkspacePdvIndexRoute: typeof WorkspacePdvIndexRoute
+  WorkspacePedidosIndexRoute: typeof WorkspacePedidosIndexRoute
+  WorkspaceCatalogoCategoriasIdRoute: typeof WorkspaceCatalogoCategoriasIdRoute
+  WorkspaceCatalogoCategoriasNovoRoute: typeof WorkspaceCatalogoCategoriasNovoRoute
+  WorkspaceCatalogoColecoesIdRoute: typeof WorkspaceCatalogoColecoesIdRoute
+  WorkspaceCatalogoColecoesNovoRoute: typeof WorkspaceCatalogoColecoesNovoRoute
+  WorkspaceCatalogoProdutosIdRoute: typeof WorkspaceCatalogoProdutosIdRoute
+  WorkspaceCatalogoProdutosNovoRoute: typeof WorkspaceCatalogoProdutosNovoRoute
+  WorkspaceConfiguracoesFretesCotacoesRoute: typeof WorkspaceConfiguracoesFretesCotacoesRoute
+  WorkspaceFinanceiroCaixaLancamentosRoute: typeof WorkspaceFinanceiroCaixaLancamentosRoute
+  WorkspaceFinanceiroCaixaTurnosRoute: typeof WorkspaceFinanceiroCaixaTurnosRoute
+  WorkspaceAgendaServicosIndexRoute: typeof WorkspaceAgendaServicosIndexRoute
+  WorkspaceCatalogoCategoriasIndexRoute: typeof WorkspaceCatalogoCategoriasIndexRoute
+  WorkspaceCatalogoColecoesIndexRoute: typeof WorkspaceCatalogoColecoesIndexRoute
+  WorkspaceCatalogoProdutosIndexRoute: typeof WorkspaceCatalogoProdutosIndexRoute
+  WorkspaceCmsPaginasIndexRoute: typeof WorkspaceCmsPaginasIndexRoute
+  WorkspaceFinanceiroCaixaIndexRoute: typeof WorkspaceFinanceiroCaixaIndexRoute
+}
+
+const WorkspaceRouteChildren: WorkspaceRouteChildren = {
+  WorkspaceAgendaRecursosRoute: WorkspaceAgendaRecursosRoute,
+  WorkspaceCatalogoAtributosRoute: WorkspaceCatalogoAtributosRoute,
+  WorkspaceCatalogoTiposRoute: WorkspaceCatalogoTiposRoute,
+  WorkspaceClientesIdRoute: WorkspaceClientesIdRoute,
+  WorkspaceCmsNavegacaoRoute: WorkspaceCmsNavegacaoRoute,
+  WorkspaceEstoqueAlertasRoute: WorkspaceEstoqueAlertasRoute,
+  WorkspaceEstoqueMovimentosRoute: WorkspaceEstoqueMovimentosRoute,
+  WorkspaceFinanceiroComissoesRoute: WorkspaceFinanceiroComissoesRoute,
+  WorkspaceFinanceiroComprovantesRoute: WorkspaceFinanceiroComprovantesRoute,
+  WorkspaceFinanceiroFuncionariosRoute: WorkspaceFinanceiroFuncionariosRoute,
+  WorkspaceFinanceiroPagamentosRoute: WorkspaceFinanceiroPagamentosRoute,
+  WorkspaceMuralNovoRoute: WorkspaceMuralNovoRoute,
+  WorkspacePdvComandasRoute: WorkspacePdvComandasRoute,
+  WorkspacePedidosIdRoute: WorkspacePedidosIdRoute,
+  WorkspacePedidosFrotaRoute: WorkspacePedidosFrotaRoute,
+  WorkspacePedidosGestorRoute: WorkspacePedidosGestorRoute,
+  WorkspacePedidosTrocasRoute: WorkspacePedidosTrocasRoute,
+  WorkspaceAgendaIndexRoute: WorkspaceAgendaIndexRoute,
+  WorkspaceClientesIndexRoute: WorkspaceClientesIndexRoute,
+  WorkspaceEstoqueIndexRoute: WorkspaceEstoqueIndexRoute,
+  WorkspaceEstudioIndexRoute: WorkspaceEstudioIndexRoute,
+  WorkspacePdvIndexRoute: WorkspacePdvIndexRoute,
+  WorkspacePedidosIndexRoute: WorkspacePedidosIndexRoute,
+  WorkspaceCatalogoCategoriasIdRoute: WorkspaceCatalogoCategoriasIdRoute,
+  WorkspaceCatalogoCategoriasNovoRoute: WorkspaceCatalogoCategoriasNovoRoute,
+  WorkspaceCatalogoColecoesIdRoute: WorkspaceCatalogoColecoesIdRoute,
+  WorkspaceCatalogoColecoesNovoRoute: WorkspaceCatalogoColecoesNovoRoute,
+  WorkspaceCatalogoProdutosIdRoute: WorkspaceCatalogoProdutosIdRoute,
+  WorkspaceCatalogoProdutosNovoRoute: WorkspaceCatalogoProdutosNovoRoute,
+  WorkspaceConfiguracoesFretesCotacoesRoute:
+    WorkspaceConfiguracoesFretesCotacoesRoute,
+  WorkspaceFinanceiroCaixaLancamentosRoute:
+    WorkspaceFinanceiroCaixaLancamentosRoute,
+  WorkspaceFinanceiroCaixaTurnosRoute: WorkspaceFinanceiroCaixaTurnosRoute,
+  WorkspaceAgendaServicosIndexRoute: WorkspaceAgendaServicosIndexRoute,
+  WorkspaceCatalogoCategoriasIndexRoute: WorkspaceCatalogoCategoriasIndexRoute,
+  WorkspaceCatalogoColecoesIndexRoute: WorkspaceCatalogoColecoesIndexRoute,
+  WorkspaceCatalogoProdutosIndexRoute: WorkspaceCatalogoProdutosIndexRoute,
+  WorkspaceCmsPaginasIndexRoute: WorkspaceCmsPaginasIndexRoute,
+  WorkspaceFinanceiroCaixaIndexRoute: WorkspaceFinanceiroCaixaIndexRoute,
+}
+
+const WorkspaceRouteWithChildren = WorkspaceRoute._addFileChildren(
+  WorkspaceRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   StoreRoute: StoreRouteWithChildren,
-  AdminRoute: AdminRouteWithChildren,
   AdminMasterRoute: AdminMasterRouteWithChildren,
-  CheckoutHubRoute: CheckoutHubRoute,
-  FeedRoute: FeedRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  WorkspaceRoute: WorkspaceRouteWithChildren,
   ApiAuthCallbackRoute: ApiAuthCallbackRoute,
   ApiAuthConfirmRoute: ApiAuthConfirmRoute,
   ApiFeedXmlRoute: ApiFeedXmlRoute,
-  ApiWebhooksPaymentRoute: ApiWebhooksPaymentRoute,
   ApiWebhooksShipmentRoute: ApiWebhooksShipmentRoute,
-  AdminPedidosIdReciboRoute: AdminPedidosIdReciboRoute,
+  WorkspacePedidosIdReciboRoute: WorkspacePedidosIdReciboRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

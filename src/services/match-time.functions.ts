@@ -16,7 +16,7 @@ export const startMatchTimeSession = createServerFn({ method: "POST" }).handler(
 
     const db = getServerClient();
 
-    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const { resolveTenantStoreId } = await import("@/lib/tenant.server");
     const storeId = await resolveTenantStoreId();
     const store = storeId ? { id: storeId } : null;
     if (!store) throw new Error("Loja não encontrada.");
@@ -88,7 +88,7 @@ export const getNextProductsForSwipe = createServerFn({ method: "GET" }).handler
 
     const db = getServerClient();
 
-    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const { resolveTenantStoreId } = await import("@/lib/tenant.server");
     const storeId = await resolveTenantStoreId();
     const store = storeId ? { id: storeId } : null;
     if (!store) throw new Error("Loja não encontrada.");
@@ -151,7 +151,7 @@ export const generateMatchTimeOffer = createServerFn({ method: "POST" })
       if (!user) throw new Error("Não autorizado");
 
       const db = getServerClient();
-      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const { resolveTenantStoreId } = await import("@/lib/tenant.server");
       const storeId = await resolveTenantStoreId();
       const store = storeId ? { id: storeId } : null;
       if (!store) throw new Error("Loja não encontrada.");
@@ -214,7 +214,7 @@ export const recordSwipe = createServerFn({ method: "POST" })
       if (!user) throw new Error("Não autorizado");
 
       const db = getServerClient();
-      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const { resolveTenantStoreId } = await import("@/lib/tenant.server");
       const storeId = await resolveTenantStoreId();
       const store = storeId ? { id: storeId } : null;
       if (!store) throw new Error("Loja não encontrada.");
@@ -253,7 +253,7 @@ export const getCustomerAffinityRecommendations = createServerFn({ method: "GET"
       if (!user) throw new Error("Não autenticado.");
 
       const db = getServerClient();
-      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const { resolveTenantStoreId } = await import("@/lib/tenant.server");
       const storeId = await resolveTenantStoreId();
       const store = storeId ? { id: storeId } : null;
       if (!store) throw new Error("Loja não encontrada.");

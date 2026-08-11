@@ -2017,7 +2017,7 @@ export const getPublicExperienceDocumentBySlug = createServerFn({ method: "GET" 
   )
   .handler(async ({ data: input }) => {
     try {
-      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const { resolveTenantStoreId } = await import("@/lib/tenant.server");
       const storeId = await resolveTenantStoreId();
       if (!storeId) return { status: "not_found" as const };
 
@@ -2191,7 +2191,7 @@ export const getPublicExperienceDocumentBySlug = createServerFn({ method: "GET" 
 
 export const getActiveGlobalPopups = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const { resolveTenantStoreId } = await import("@/lib/tenant.server");
     const storeId = await resolveTenantStoreId();
     if (!storeId) return [];
 

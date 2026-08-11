@@ -1,0 +1,400 @@
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { useState, useMemo, useEffect, Fragment } from "react";
+import { toast } from "sonner";
+import { 
+  ArrowLeft, 
+  ChefHat, 
+  Clock, 
+  CheckCircle2, 
+  Bike, 
+  PackageSearch,
+  Maximize,
+  Printer,
+  FileText
+} from "lucide-react";
+
+import { listOrders, updateOrderStatus } from "@/services/order.functions";
+import { formatMoney } from "@/lib/money";
+import { formatDateTime } from "@/lib/datetime";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Separator } from "@/components/ui/separator";
+
+export const Route = createFileRoute("/workspace/pedidos/gestor")({
+  head: () => ({ meta: [{ title: "KDS - Gestor de Pedidos" }] }),
+  loader: async () => {
+    const res = await listOrders();
+    // Filter only orders that make sense for the kitchen/fulfillment display
+    return (res || []).filter((o: any) => 
+      !["draft", "cancelled", "refunded"].includes(o.status)
+    );
+  },
+  component: KDSPage,
+});
+
+function KDSPage() {
+  const router = useRouter();
+  const initialOrders = Route.useLoaderData();
+  const [orders, setOrders] = useState<any[]>(initialOrders);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+
+  // Optional: Add auto-refresh polling here in the future
+  
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().then(() => setIsFullscreen(true));
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().then(() => setIsFullscreen(false));
+      }
+    }
+  };
+
+  useEffect(() => {
+    const onFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
+  }, []);
+
+  const handleStatusChange = async (e: React.MouseEvent, orderId: string, newStatus: string) => {
+    e.stopPropagation(); // Previne abrir o detalhe ao clicar na ação rápida
+    const res = await updateOrderStatus({ data: { orderId, status: newStatus as any } });
+    if (res?.status === "ok") {
+      toast.success("Status atualizado!");
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+      if (selectedOrder && selectedOrder.id === orderId) {
+        setSelectedOrder((prev: any) => ({ ...prev, status: newStatus }));
+      }
+    } else {
+      toast.error("Erro ao atualizar o pedido");
+    }
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const columns = [
+    {
+      id: "paid",
+      title: "Novos (Pendentes)",
+      icon: <PackageSearch className="size-5" />,
+      color: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+      nextStatus: "processing",
+      nextLabel: "Iniciar Preparo",
+    },
+    {
+      id: "processing",
+      title: "Em Preparo",
+      icon: <ChefHat className="size-5" />,
+      color: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+      nextStatus: "shipped",
+      nextLabel: "Pronto p/ Entrega",
+    },
+    {
+      id: "shipped",
+      title: "Aguardando Retirada",
+      icon: <Bike className="size-5" />,
+      color: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+      nextStatus: "delivered",
+      nextLabel: "Finalizar (Entregue)",
+    },
+    {
+      id: "delivered",
+      title: "Concluídos",
+      icon: <CheckCircle2 className="size-5" />,
+      color: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+      nextStatus: null,
+      nextLabel: null,
+    },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-50 bg-background flex flex-col h-screen overflow-hidden text-foreground">
+      {/* Estilos de Impressão (Bobina 80mm) */}
+      <style>{`
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          #printable-receipt, #printable-receipt * {
+            visibility: visible;
+          }
+          #printable-receipt {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 80mm;
+            padding: 0;
+            margin: 0;
+            font-family: monospace;
+            color: #000;
+            background: #fff;
+          }
+          .no-print {
+            display: none !important;
+          }
+        }
+      `}</style>
+
+      {/* Topbar */}
+      <header className="flex-none h-16 border-b border-border bg-card px-4 flex items-center justify-between no-print">
+        <div className="flex items-center gap-4">
+          {!isFullscreen && (
+            <Button variant="ghost" size="icon" asChild>
+              <Link to="/workspace/pedidos">
+                <ArrowLeft className="size-5" />
+              </Link>
+            </Button>
+          )}
+          <div>
+            <h1 className="text-lg font-bold">KDS / Gestor de Pedidos</h1>
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <Clock className="size-3" /> Atualizado em {new Date().toLocaleTimeString()}
+            </p>
+          </div>
+        </div>
+        <Button variant="outline" size="sm" onClick={toggleFullscreen} className="gap-2">
+          <Maximize className="size-4" />
+          {isFullscreen ? "Sair da Tela Cheia" : "Tela Cheia"}
+        </Button>
+      </header>
+
+      {/* Kanban Board */}
+      <main className="flex-1 overflow-x-auto p-4 flex gap-4 bg-muted/30 no-print">
+        {columns.map(col => {
+          const isPrepCol = col.id === "processing";
+          const colOrders = orders.filter(o => 
+            isPrepCol ? (o.status === "processing" || o.status === "kitchen_prep") : o.status === col.id
+          ).sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+          
+          return (
+            <div key={col.id} className="flex-shrink-0 w-[350px] flex flex-col gap-3 h-full">
+              <div className={`rounded-xl border ${col.color} p-3 flex items-center justify-between shadow-op-sm bg-card`}>
+                <div className="flex items-center gap-2 font-bold uppercase tracking-wider text-sm">
+                  {col.icon}
+                  {col.title}
+                </div>
+                <Badge variant="secondary" className="font-mono text-sm">{colOrders.length}</Badge>
+              </div>
+
+              <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-3 pb-24">
+                {colOrders.map(order => (
+                  <div 
+                    key={order.id} 
+                    className="bg-card rounded-xl border border-border shadow-op-sm p-4 flex flex-col gap-3 cursor-pointer hover:border-primary/50 transition-colors"
+                    onClick={() => setSelectedOrder(order)}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <span className="text-xs font-bold text-muted-foreground">#{order.id.split("-")[0].toUpperCase()}</span>
+                        <h4 className="font-bold text-base leading-tight mt-1">{order.customer_snapshot?.name || order.customer?.name || "Cliente Avulso"}</h4>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-xs text-muted-foreground">{formatDateTime(order.created_at)}</p>
+                          {order.origin_type && order.origin_type !== "ecommerce" && (
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 uppercase">
+                              {order.origin_type === "table" ? "Mesa" : order.origin_type}
+                            </Badge>
+                          )}
+                          {order.table_identifier && (
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 bg-primary/10 text-primary">
+                              {order.table_identifier}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      <Badge variant="outline" className="font-mono bg-background">
+                        {formatMoney(order.total_cents)}
+                      </Badge>
+                    </div>
+
+                    <div className="py-2 border-y border-border/50 text-sm space-y-2">
+                      {order.order_items?.map((item: any) => {
+                        const options = item.selected_options ? Object.values(item.selected_options) : [];
+                        return (
+                          <div key={item.id} className="flex flex-col">
+                            <div className="flex justify-between items-start">
+                              <span className="font-medium leading-tight">
+                                <span className="text-primary font-bold mr-1">{item.qty}x</span>
+                                {item.product_title || "Item genérico"}
+                              </span>
+                            </div>
+                            {options.length > 0 && (
+                              <div className="text-xs text-muted-foreground mt-0.5 ml-5 border-l border-border pl-2 py-0.5 space-y-0.5">
+                                {options.map((opt: any, idx: number) => (
+                                  <div key={idx}>+ {opt.label}</div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    
+                    {col.nextStatus && (
+                      <Button 
+                        className="w-full font-bold uppercase tracking-wider h-10 shadow-op-sm" 
+                        onClick={(e) => handleStatusChange(e, order.id, col.nextStatus!)}
+                      >
+                        {col.nextLabel}
+                      </Button>
+                    )}
+                  </div>
+                ))}
+                {colOrders.length === 0 && (
+                  <div className="h-24 flex items-center justify-center border-2 border-dashed border-border/60 rounded-xl text-muted-foreground text-sm font-medium">
+                    Nenhum pedido nesta fila
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </main>
+
+      {/* Sheet para Detalhes do Pedido */}
+      <Sheet open={!!selectedOrder} onOpenChange={(open) => !open && setSelectedOrder(null)}>
+        <SheetContent className="w-full sm:max-w-md md:max-w-lg overflow-y-auto p-0 flex flex-col no-print">
+          {selectedOrder && (
+            <>
+              <SheetHeader className="p-6 pb-4 border-b">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <SheetTitle className="text-2xl font-black">
+                      Pedido #{selectedOrder.id.split("-")[0].toUpperCase()}
+                    </SheetTitle>
+                    <p className="text-muted-foreground text-sm mt-1">
+                      {formatDateTime(selectedOrder.created_at)}
+                    </p>
+                  </div>
+                  <Button variant="outline" size="sm" className="gap-2" onClick={handlePrint}>
+                    <Printer className="size-4" />
+                    Imprimir Comanda
+                  </Button>
+                </div>
+              </SheetHeader>
+              
+              <div className="flex-1 p-6 space-y-6">
+                {/* Cliente Info */}
+                <section>
+                  <h3 className="text-sm font-bold uppercase text-muted-foreground mb-3">Cliente</h3>
+                  <div className="bg-muted/40 rounded-xl p-4 border border-border">
+                    <p className="font-bold text-lg">{selectedOrder.customer_snapshot?.name || selectedOrder.customer?.name || "Cliente Avulso"}</p>
+                    {selectedOrder.customer_snapshot?.phone && (
+                      <p className="text-sm text-muted-foreground">{selectedOrder.customer_snapshot.phone}</p>
+                    )}
+                    {selectedOrder.shipping_method === "pickup" && (
+                      <Badge className="mt-2" variant="secondary">Retirada na Loja</Badge>
+                    )}
+                  </div>
+                </section>
+
+                <Separator />
+
+                {/* Itens do Pedido */}
+                <section>
+                  <h3 className="text-sm font-bold uppercase text-muted-foreground mb-3">Itens ({selectedOrder.order_items?.length})</h3>
+                  <div className="space-y-4">
+                    {selectedOrder.order_items?.map((item: any) => {
+                      const options = item.selected_options ? Object.values(item.selected_options) : [];
+                      return (
+                        <div key={item.id} className="bg-card border rounded-lg p-3">
+                          <div className="flex justify-between items-start mb-1">
+                            <span className="font-bold text-base">
+                              <span className="text-primary mr-2">{item.qty}x</span>
+                              {item.product_title}
+                            </span>
+                            <span className="font-medium text-sm">
+                              {formatMoney(item.total_cents)}
+                            </span>
+                          </div>
+                          
+                          {/* Modifiers / Options */}
+                          {options.length > 0 && (
+                            <div className="mt-2 ml-7 pl-3 border-l-2 border-primary/30 space-y-1">
+                              {options.map((opt: any, idx: number) => (
+                                <div key={idx} className="flex justify-between text-sm text-muted-foreground">
+                                  <span>+ {opt.label}</span>
+                                  {opt.price_modifier_cents > 0 && (
+                                    <span>{formatMoney(opt.price_modifier_cents * item.qty)}</span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+                
+                <Separator />
+                
+                {/* Resumo Financeiro */}
+                <section className="bg-muted/30 p-4 rounded-lg">
+                  <div className="flex justify-between font-bold text-lg">
+                    <span>Total</span>
+                    <span className="text-primary">{formatMoney(selectedOrder.total_cents)}</span>
+                  </div>
+                </section>
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* Printable Receipt (Escondido na tela normal) */}
+      {selectedOrder && (
+        <div id="printable-receipt" className="hidden">
+          <div style={{ textAlign: "center", marginBottom: "15px", paddingBottom: "10px", borderBottom: "1px dashed #000" }}>
+            <h2 style={{ margin: "0 0 5px 0", fontSize: "16px" }}>PEDIDO #{selectedOrder.id.split("-")[0].toUpperCase()}</h2>
+            <p style={{ margin: "0", fontSize: "12px" }}>{new Date(selectedOrder.created_at).toLocaleString('pt-BR')}</p>
+            {selectedOrder.origin_type && (
+              <p style={{ margin: "5px 0 0 0", fontSize: "14px", fontWeight: "bold" }}>
+                {selectedOrder.origin_type === "table" ? "MESA " + (selectedOrder.table_identifier || "") : "BALCÃO"}
+              </p>
+            )}
+          </div>
+          
+          <div style={{ marginBottom: "15px", paddingBottom: "10px", borderBottom: "1px dashed #000" }}>
+            <p style={{ margin: "0 0 5px 0", fontSize: "14px", fontWeight: "bold" }}>CLIENTE:</p>
+            <p style={{ margin: "0", fontSize: "14px" }}>{selectedOrder.customer_snapshot?.name || selectedOrder.customer?.name || "Avulso"}</p>
+          </div>
+
+          <div style={{ marginBottom: "15px" }}>
+            <p style={{ margin: "0 0 10px 0", fontSize: "14px", fontWeight: "bold" }}>ITENS:</p>
+            {selectedOrder.order_items?.map((item: any) => {
+              const options = item.selected_options ? Object.values(item.selected_options) : [];
+              return (
+                <div key={item.id} style={{ marginBottom: "10px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "14px", fontWeight: "bold" }}>
+                    <span>{item.qty}x {item.product_title}</span>
+                  </div>
+                  {options.map((opt: any, idx: number) => (
+                    <div key={idx} style={{ fontSize: "12px", marginLeft: "15px", marginTop: "2px" }}>
+                      + {opt.label}
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+
+          <div style={{ borderTop: "1px dashed #000", paddingTop: "10px", display: "flex", justifyContent: "space-between", fontSize: "16px", fontWeight: "bold" }}>
+            <span>TOTAL:</span>
+            <span>R$ {(selectedOrder.total_cents / 100).toFixed(2).replace('.', ',')}</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

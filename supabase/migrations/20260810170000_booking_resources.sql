@@ -58,10 +58,7 @@ CREATE POLICY "Public can read active availabilities"
 CREATE POLICY "Store staff can manage booking resources"
   ON public.booking_resources FOR ALL TO authenticated
   USING (
-    store_id IN (
-      SELECT store_id FROM public.profiles 
-      WHERE id = auth.uid() AND role IN ('owner', 'admin', 'manager')
-    )
+    public.has_workspace_role(store_id, ARRAY['owner', 'admin', 'manager'])
   );
 
 CREATE POLICY "Store staff can manage booking service resources"
@@ -70,10 +67,7 @@ CREATE POLICY "Store staff can manage booking service resources"
     EXISTS (
       SELECT 1 FROM public.booking_services s 
       WHERE s.id = service_id 
-      AND s.store_id IN (
-        SELECT store_id FROM public.profiles 
-        WHERE id = auth.uid() AND role IN ('owner', 'admin', 'manager')
-      )
+      AND public.has_workspace_role(s.store_id, ARRAY['owner', 'admin', 'manager'])
     )
   );
 
@@ -83,9 +77,6 @@ CREATE POLICY "Store staff can manage booking resource availabilities"
     EXISTS (
       SELECT 1 FROM public.booking_resources r 
       WHERE r.id = resource_id 
-      AND r.store_id IN (
-        SELECT store_id FROM public.profiles 
-        WHERE id = auth.uid() AND role IN ('owner', 'admin', 'manager')
-      )
+      AND public.has_workspace_role(r.store_id, ARRAY['owner', 'admin', 'manager'])
     )
   );

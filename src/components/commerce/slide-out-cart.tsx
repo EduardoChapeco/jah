@@ -15,7 +15,7 @@ export function SlideOutCart() {
   const handleNavigateToCheckoutHub = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsCartOpen(false);
-    router.navigate({ to: "/checkout-hub" });
+    router.navigate({ to: "/checkout" });
   };
 
   const handleNavigateToCatalog = (e: React.MouseEvent) => {

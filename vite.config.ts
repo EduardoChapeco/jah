@@ -13,4 +13,11 @@ export default defineConfig({
   nitro: {
     preset: "cloudflare-pages",
   },
+  vite: {
+    build: {
+      rollupOptions: {
+        external: ["vinxi/routes"]
+      }
+    }
+  }
 });

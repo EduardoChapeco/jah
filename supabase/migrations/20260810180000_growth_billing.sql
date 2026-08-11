@@ -39,10 +39,7 @@ ALTER TABLE public.campaign_metrics ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Store staff can manage dynamic commission rules"
   ON public.dynamic_commission_rules FOR ALL TO authenticated
   USING (
-    store_id IN (
-      SELECT store_id FROM public.profiles 
-      WHERE id = auth.uid() AND role IN ('owner', 'admin', 'manager')
-    )
+    public.has_workspace_role(store_id, ARRAY['owner', 'admin', 'manager'])
   );
 
 CREATE POLICY "Sellers can view their own commission rules"
@@ -55,8 +52,5 @@ CREATE POLICY "Sellers can view their own commission rules"
 CREATE POLICY "Store staff can manage campaign metrics"
   ON public.campaign_metrics FOR ALL TO authenticated
   USING (
-    store_id IN (
-      SELECT store_id FROM public.profiles 
-      WHERE id = auth.uid() AND role IN ('owner', 'admin', 'manager')
-    )
+    public.has_workspace_role(store_id, ARRAY['owner', 'admin', 'manager'])
   );

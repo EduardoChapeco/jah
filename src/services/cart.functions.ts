@@ -31,7 +31,7 @@ async function getOrCreateCartId(identity: {
   if (identity.customer_id) {
     query = query.eq("customer_id", identity.customer_id);
   } else {
-    query = query.eq("session_token", identity.session_token);
+    query = query.eq("session_token", identity.session_token as string | undefined);
   }
 
   const { data: existing } = await query
@@ -41,7 +41,7 @@ async function getOrCreateCartId(identity: {
   if (existing) return existing.id;
 
   // 2. Fetch the default store. In a multi-tenant setup, this would be derived from the Host or domain.
-  const { resolveTenantStoreId } = await import("@/lib/tenant");
+  const { resolveTenantStoreId } = await import("@/lib/tenant.server");
   const storeId = await resolveTenantStoreId();
   if (!storeId) throw new Error("Loja não configurada");
   const store = { id: storeId };
@@ -251,9 +251,9 @@ export async function mapCartToDTO(cart: any): Promise<CartDTO> {
 export const getCart = createServerFn({ method: "GET" }).handler(
   async (): Promise<CartDTO | null> => {
     const identity = await getCurrentIdentity();
-    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const { resolveTenantStoreId } = await import("@/lib/tenant.server");
     const storeId = await resolveTenantStoreId();
-    return fetchCartDTO(identity, storeId);
+    return fetchCartDTO(identity, storeId as string | undefined);
   },
 );
 
@@ -381,7 +381,7 @@ export const addToCart = createServerFn({ method: "POST" })
     const variantId = targetVariantId;
 
     // Resolve Store
-    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const { resolveTenantStoreId } = await import("@/lib/tenant.server");
     const storeId = await resolveTenantStoreId();
     if (!storeId) throw new Error("Loja não configurada");
 
@@ -505,7 +505,7 @@ export const applyCouponToCart = createServerFn({ method: "POST" })
     if (!cartDetails) throw new Error("Erro ao buscar detalhes do carrinho");
 
     // Search for coupon
-    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const { resolveTenantStoreId } = await import("@/lib/tenant.server");
     const storeId = await resolveTenantStoreId();
     if (!storeId) throw new Error("Loja não configurada");
     const store = { id: storeId };

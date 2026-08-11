@@ -80,7 +80,7 @@ export const checkGiftCardBalance = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data: { code } }) => {
-    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const { resolveTenantStoreId } = await import("@/lib/tenant.server");
     const storeId = await resolveTenantStoreId();
     if (!storeId) throw new Error("Loja não identificada.");
 
@@ -144,7 +144,7 @@ export const claimGiftCard = createServerFn({ method: "POST" })
 
     if (!user) throw new Error("Você precisa estar logado para resgatar um vale-presente.");
 
-    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const { resolveTenantStoreId } = await import("@/lib/tenant.server");
     const storeId = await resolveTenantStoreId();
     if (!storeId) throw new Error("Loja não identificada.");
 
@@ -178,7 +178,7 @@ export const listCustomerGiftCards = createServerFn({ method: "GET" }).handler(a
   } = await ssrClient.auth.getUser();
   if (!user) throw new Error("Não autorizado");
 
-  const { resolveTenantStoreId } = await import("@/lib/tenant");
+  const { resolveTenantStoreId } = await import("@/lib/tenant.server");
   const storeId = await resolveTenantStoreId();
   if (!storeId) throw new Error("Loja não identificada.");
 

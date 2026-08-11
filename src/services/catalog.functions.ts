@@ -31,7 +31,7 @@ import type {
 // Helpers
 // ---------------------------------------------------------------------------
 
-import { resolveTenantStoreId } from "@/lib/tenant";
+import { resolveTenantStoreId } from "@/lib/tenant.server";
 
 /**
  * Helper to map Supabase joined row into ProductCardDTO(s).
@@ -358,7 +358,7 @@ export const listPublishedCategories = createServerFn({ method: "GET" }).handler
 });
 
 // ---------------------------------------------------------------------------
-// listAvailableAttributes (Dynamic Filters)
+// _listAvailableAttributes(Dynamic Filters)
 // ---------------------------------------------------------------------------
 
 export const listAvailableAttributes = createServerFn({ method: "GET" }).handler(async () => {
@@ -394,7 +394,7 @@ export const getStoreConfig = createServerFn({ method: "GET" }).handler(async ()
   try {
     const db = getAnonServerClient();
 
-    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const { resolveTenantStoreId } = await import("@/lib/tenant.server");
     const storeId = await resolveTenantStoreId();
     if (!storeId) {
       return {
@@ -465,7 +465,7 @@ export const searchProducts = createServerFn({ method: "GET" })
   .handler(async ({ data: { query } }) => {
     try {
       const db = await getAnonServerClient();
-      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const { resolveTenantStoreId } = await import("@/lib/tenant.server");
       const storeId = await resolveTenantStoreId();
       const store = { id: storeId };
       if (!storeId) {
@@ -540,7 +540,7 @@ export const getProductsByCollection = createServerFn({ method: "GET" })
   .handler(async ({ data: { slug } }) => {
     try {
       const db = await getAnonServerClient();
-      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const { resolveTenantStoreId } = await import("@/lib/tenant.server");
       const storeId = await resolveTenantStoreId();
       const store = { id: storeId };
       if (!storeId) {
@@ -611,7 +611,7 @@ export const getProductsByCollection = createServerFn({ method: "GET" })
 export const getPromotionalProducts = createServerFn({ method: "GET" }).handler(async () => {
   try {
     const db = await getAnonServerClient();
-    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const { resolveTenantStoreId } = await import("@/lib/tenant.server");
     const storeId = await resolveTenantStoreId();
     const store = { id: storeId };
     if (!storeId) {
@@ -647,14 +647,14 @@ export const getPromotionalProducts = createServerFn({ method: "GET" }).handler(
 });
 
 // ---------------------------------------------------------------------------
-// getProductDetail (PDP)
+// _getProductDetail(PDP)
 // ---------------------------------------------------------------------------
 
 export const getProductDetail = createServerFn({ method: "GET" })
   .validator(z.object({ slug: z.string().min(1) }))
   .handler(async ({ data: { slug } }) => {
     try {
-      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const { resolveTenantStoreId } = await import("@/lib/tenant.server");
       const storeId = await resolveTenantStoreId();
       if (!storeId) {
         return {
@@ -785,7 +785,7 @@ export const getPublicStoreProfile = createServerFn({ method: "GET" })
   .validator(z.object({ storeId: z.string().optional() }).optional())
   .handler(async ({ data }) => {
     try {
-      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const { resolveTenantStoreId } = await import("@/lib/tenant.server");
       const storeIdToUse = data?.storeId || (await resolveTenantStoreId());
       if (!storeIdToUse) throw new Error("Loja não encontrada");
 
@@ -841,7 +841,7 @@ export const getPublicStoreProfile = createServerFn({ method: "GET" })
 export const getPublicFaqs = createServerFn({ method: "GET" }).handler(async () => {
   try {
     const db = await getAnonServerClient();
-    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const { resolveTenantStoreId } = await import("@/lib/tenant.server");
     const storeId = await resolveTenantStoreId();
     if (!storeId) return [];
 
@@ -871,29 +871,7 @@ export const getPublicFaqs = createServerFn({ method: "GET" }).handler(async () 
       }
     }
 
-    // Default canonical FAQs when not yet custom-configured
-    return [
-      {
-        question: "Como funciona a entrega e o prazo de envio?",
-        answer:
-          "Os pedidos são processados em até 2 dias úteis após a confirmação do pagamento. O prazo de entrega varia conforme a região e a modalidade de frete escolhida no checkout.",
-      },
-      {
-        question: "Como posso rastrear meu pedido?",
-        answer:
-          "Assim que seu pedido for despachado, você receberá o código e o link de rastreamento por e-mail e poderá acompanhar diretamente no painel 'Meus Pedidos'.",
-      },
-      {
-        question: "Qual é a política de trocas e devoluções?",
-        answer:
-          "Você tem até 7 dias corridos após o recebimento do produto para solicitar a troca ou devolução gratuitamente através da nossa central de atendimento ou pelo painel do cliente.",
-      },
-      {
-        question: "Quais são as formas de pagamento aceitas?",
-        answer:
-          "Aceitamos Pix com aprovação imediata, Cartões de Crédito (em até 12x), Boleto Bancário e Pagamento Manual na entrega/retirada.",
-      },
-    ];
+    return [];
   } catch (e) {
     console.error("[catalog.functions] getPublicFaqs error:", e);
     return [];

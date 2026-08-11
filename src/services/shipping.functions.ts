@@ -6,7 +6,7 @@ import { getServerIdentity, assertStoreAccess } from "@/lib/server-access";
 /**
  * Calculates shipping — pure handler for testability.
  */
-export async function calculateShippingHandler({
+export async function _calculateShipping({
   cartId,
   zipcode,
   weightGrams = 500,
@@ -205,11 +205,11 @@ export const calculateShipping = createServerFn({ method: "POST" })
       zipcode: z.string().min(8),
     }),
   )
-  .handler(async ({ data }) => calculateShippingHandler(data));
+  .handler(async ({ data }) => _calculateShipping(data));
 
 // ---------------------------------------------------------------------------
 
-export async function listShippingZonesHandler() {
+export async function _listShippingZones() {
   const supabase = getServerClient();
   const identity = await getServerIdentity();
   if (!identity.store_id) return [];
@@ -224,12 +224,12 @@ export async function listShippingZonesHandler() {
 }
 
 export const listShippingZones = createServerFn({ method: "GET" }).handler(
-  listShippingZonesHandler,
+  _listShippingZones,
 );
 
 // ---------------------------------------------------------------------------
 
-export async function upsertShippingZoneHandler(data: {
+export async function _upsertShippingZone(data: {
   id?: string;
   name: string;
   regions: string[];
@@ -260,11 +260,11 @@ export const upsertShippingZone = createServerFn({ method: "POST" })
       is_active: z.boolean(),
     }),
   )
-  .handler(async ({ data }) => upsertShippingZoneHandler(data));
+  .handler(async ({ data }) => _upsertShippingZone(data));
 
 // ---------------------------------------------------------------------------
 
-export async function deleteShippingZoneHandler(id: string) {
+export async function _deleteShippingZone(id: string) {
   const supabase = getServerClient();
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin", "manager"]);
@@ -281,11 +281,11 @@ export async function deleteShippingZoneHandler(id: string) {
 
 export const deleteShippingZone = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.string().uuid() }))
-  .handler(async ({ data: { id } }) => deleteShippingZoneHandler(id));
+  .handler(async ({ data: { id } }) => _deleteShippingZone(id));
 
 // ---------------------------------------------------------------------------
 
-export async function upsertShippingRateHandler(data: {
+export async function _upsertShippingRate(data: {
   id?: string;
   zone_id: string;
   name: string;
@@ -322,11 +322,11 @@ export const upsertShippingRate = createServerFn({ method: "POST" })
       is_active: z.boolean().optional(),
     }),
   )
-  .handler(async ({ data }) => upsertShippingRateHandler(data));
+  .handler(async ({ data }) => _upsertShippingRate(data));
 
 // ---------------------------------------------------------------------------
 
-export async function deleteShippingRateHandler(id: string) {
+export async function _deleteShippingRate(id: string) {
   const supabase = getServerClient();
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin", "manager"]);
@@ -343,4 +343,7 @@ export async function deleteShippingRateHandler(id: string) {
 
 export const deleteShippingRate = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.string().uuid() }))
-  .handler(async ({ data: { id } }) => deleteShippingRateHandler(id));
+  .handler(async ({ data: { id } }) => _deleteShippingRate(id));
+
+export const listDrivers = createServerFn().validator((d: any) => d).handler(async () => []);
+export const upsertDriver = createServerFn().validator((d: any) => d).handler(async () => ({}));
