@@ -19,6 +19,9 @@ import {
   Banknote,
   FileText,
   LayoutTemplate,
+  Star,
+  Link2,
+  Image as ImageIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signOut } from "@/services/auth.functions";
@@ -45,6 +48,9 @@ const WORKSPACE_NAV = [
   { path: "/workspace/mural/novo", label: "Novo Post", icon: LayoutDashboard },
   { path: "/workspace/cms/paginas", label: "Páginas", icon: FileText },
   { path: "/workspace/cms/navegacao", label: "Navegação", icon: LayoutTemplate },
+  { path: "/workspace/cms/stories", label: "Stories", icon: ImageIcon },
+  { path: "/workspace/cms/bio", label: "Link-in-Bio", icon: Link2 },
+  { path: "/workspace/cms/avaliacoes", label: "Avaliações", icon: Star },
   { path: "/workspace/configuracoes/fretes", label: "Fretes", icon: MapPin },
   { path: "/workspace/configuracoes/loja", label: "Configurações", icon: Settings },
 ];

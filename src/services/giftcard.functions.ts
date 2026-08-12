@@ -36,7 +36,7 @@ export const createGiftCard = createServerFn({ method: "POST" })
       store_id: identity.store_id,
       code,
       initial_balance_cents: initialBalanceCents,
-      current_balance_cents: initialBalanceCents,
+      balance_cents: initialBalanceCents,
       purchaser_id: identity.id, // Admin created
       recipient_email: recipientEmail || null,
       status: "active",
@@ -55,7 +55,7 @@ export const listGiftCards = createServerFn({ method: "GET" }).handler(async () 
   const { data: cards, error } = await supabase
     .from("gift_cards")
     .select(
-      "id, code, initial_balance_cents, current_balance_cents, status, created_at, purchaser_profile:profiles!gift_cards_purchaser_id_fkey(full_name)",
+      "id, code, initial_balance_cents, balance_cents, status, created_at, purchaser_profile:profiles!gift_cards_purchaser_id_fkey(full_name)",
     )
     .eq("store_id", identity.store_id)
     .order("created_at", { ascending: false });
@@ -66,7 +66,7 @@ export const listGiftCards = createServerFn({ method: "GET" }).handler(async () 
     id: c.id,
     code: c.code,
     initialBalance: c.initial_balance_cents,
-    currentBalance: c.current_balance_cents,
+    currentBalance: c.balance_cents,
     status: c.status,
     createdAt: c.created_at,
     purchaserName: c.purchaser_profile?.full_name || "Sistema",
@@ -88,7 +88,7 @@ export const checkGiftCardBalance = createServerFn({ method: "POST" })
 
     const { data: card, error } = await supabase
       .from("gift_cards")
-      .select("id, current_balance_cents, status, expires_at")
+      .select("id, balance_cents, status, expires_at")
       .eq("code", code)
       .eq("store_id", storeId)
       .limit(1)
@@ -103,7 +103,7 @@ export const checkGiftCardBalance = createServerFn({ method: "POST" })
 
     return {
       id: card.id,
-      balanceCents: card.current_balance_cents,
+      balanceCents: card.balance_cents,
     };
   });
 
@@ -150,7 +150,7 @@ export const claimGiftCard = createServerFn({ method: "POST" })
 
     const { data: card, error: findError } = await supabase
       .from("gift_cards")
-      .select("id, purchaser_id, status, current_balance_cents")
+      .select("id, purchaser_id, status, balance_cents")
       .eq("code", code)
       .eq("store_id", storeId)
       .limit(1)
@@ -159,7 +159,7 @@ export const claimGiftCard = createServerFn({ method: "POST" })
     if (findError || !card) throw new Error("Vale-presente inválido ou não encontrado.");
     if (card.status !== "active")
       throw new Error("Este vale-presente já foi utilizado ou está inativo.");
-    if (card.current_balance_cents <= 0) throw new Error("Este vale-presente não possui saldo.");
+    if (card.balance_cents <= 0) throw new Error("Este vale-presente não possui saldo.");
 
     const { error: updateError } = await supabase
       .from("gift_cards")
@@ -186,7 +186,7 @@ export const listCustomerGiftCards = createServerFn({ method: "GET" }).handler(a
   const { data: cards, error } = await supabase
     .from("gift_cards")
     .select(
-      "id, code, initial_balance_cents, current_balance_cents, status, expires_at, created_at",
+      "id, code, initial_balance_cents, balance_cents, status, expires_at, created_at",
     )
     .eq("purchaser_id", user.id)
     .eq("store_id", storeId)

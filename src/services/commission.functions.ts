@@ -75,8 +75,8 @@ export const listSellers = createServerFn({ method: "GET" }).handler(async () =>
       ?.map((m) => ({
         id: m.profile_id,
         role: m.role,
-        full_name: (m.profiles && !Array.isArray(m.profiles) ? m.profiles.full_name : "") || "",
-        commission_rate: (m.profiles && !Array.isArray(m.profiles) ? (m.profiles as { commission_rate?: number }).commission_rate : 0) || 0,
+        full_name: (m.profiles as any)?.full_name || "",
+        commission_rate: (m.profiles as any)?.commission_rate || 0,
       }))
       .sort((a, b) => a.full_name.localeCompare(b.full_name)) || [];
 

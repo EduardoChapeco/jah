@@ -31,7 +31,7 @@ import {
   ExternalLink,
   Package,
 } from "lucide-react";
-import { getOrderById, updateOrderStatus, updateOrderShipment } from "@/services/order.functions";
+import { getOrderById, updateOrderStatus, updateOrderShipment, updateOrderShippingQuote } from "@/services/order.functions";
 import { approvePayment, rejectPayment } from "@/services/payment.functions";
 import { PickingWizard } from "@/components/admin/orders/picking-wizard";
 import { RmaRequestWizard } from "@/components/admin/orders/rma-request-wizard";
@@ -78,6 +78,8 @@ function AdminOrderDetailPage() {
   const [isRejecting, setIsRejecting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [shippingQuoteCents, setShippingQuoteCents] = useState<string>("");
+  const [isSavingQuote, setIsSavingQuote] = useState(false);
 
   const [pickingModalOpen, setPickingModalOpen] = useState(false);
   const [trackingModalOpen, setTrackingModalOpen] = useState(false);
@@ -111,6 +113,25 @@ function AdminOrderDetailPage() {
       toast.error((err instanceof Error ? err.message : String(err)) || "Erro ao salvar rastreamento");
     } finally {
       setIsSavingTracking(false);
+    }
+  };
+
+  const handleSaveQuote = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!shippingQuoteCents) return;
+    setIsSavingQuote(true);
+    try {
+      const cents = Math.round(parseFloat(shippingQuoteCents.replace(",", ".")) * 100);
+      await updateOrderShippingQuote({
+        data: { orderId: order.id, shippingCents: cents },
+      });
+      toast.success("Cotação enviada! Pedido atualizado para Aguardando Pagamento.");
+      setShippingQuoteCents("");
+      router.invalidate();
+    } catch (err: unknown) {
+      toast.error((err instanceof Error ? err.message : String(err)) || "Erro ao salvar cotação");
+    } finally {
+      setIsSavingQuote(false);
     }
   };
 
@@ -252,6 +273,36 @@ function AdminOrderDetailPage() {
             >
               {getStatusLabel(order.status).label}
             </Badge>
+
+            {order.status === "awaiting_shipping_quote" && (
+              <div className="space-y-4 mb-4 p-4 border border-warning/50 bg-warning/10 rounded-md">
+                <h4 className="font-semibold text-warning-foreground text-sm flex items-center gap-2">
+                  <AlertTriangle className="size-4" />
+                  Cotação de Frete Pendente
+                </h4>
+                <p className="text-xs text-muted-foreground">
+                  O cliente solicitou uma cotação de frete personalizada. Informe o valor do frete para liberar o pagamento.
+                </p>
+                <form onSubmit={handleSaveQuote} className="flex gap-2">
+                  <div className="relative flex-1">
+                    <span className="absolute left-3 top-2.5 text-muted-foreground text-sm">R$</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      required
+                      placeholder="0,00"
+                      value={shippingQuoteCents}
+                      onChange={(e) => setShippingQuoteCents(e.target.value)}
+                      className="w-full rounded-md border px-3 py-2 pl-8 text-sm"
+                    />
+                  </div>
+                  <Button type="submit" disabled={isSavingQuote}>
+                    {isSavingQuote ? "Enviando..." : "Enviar Cotação"}
+                  </Button>
+                </form>
+              </div>
+            )}
 
             {order.status === "awaiting_payment" && (
               <div className="space-y-3">

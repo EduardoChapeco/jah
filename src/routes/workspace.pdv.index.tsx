@@ -413,7 +413,7 @@ function PdvTerminal() {
                 {formatMoney(cartTotal)}
               </strong>
               {discountCents > 0 && (
-                <span className="text-green-700 ml-3 text-sm">
+                <span className="text-success font-medium ml-3 text-sm">
                   ({formatMoney(discountCents)} de desconto)
                 </span>
               )}
@@ -451,7 +451,7 @@ function PdvTerminal() {
                     className="border border-border rounded-none h-12 text-base font-bold font-mono"
                   />
                   {changeCents > 0 && (
-                    <p className="text-green-700 font-bold font-mono text-sm mt-1">
+                    <p className="text-success font-bold font-mono text-sm mt-1">
                       Troco: {formatMoney(changeCents)}
                     </p>
                   )}

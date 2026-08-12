@@ -12,17 +12,18 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { listAdminRmas, updateRmaStatus, resolveRmaWithCredit, inspectRmaItem } from "@/services/rma.functions";
+import { listExchanges, updateExchangeStatus } from "@/services/exchanges.functions";
 import { formatMoney } from "@/lib/money";
 import { EmptyState } from "@/components/state/states";
 import {
   Search,
-  Box,
   KanbanSquare,
   Table as TableIcon,
-  FileText,
-  Truck,
   CheckCircle2,
+  Gift,
+  RefreshCw,
+  Banknote,
+  XCircle
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { formatDate } from "../lib/datetime";
@@ -36,21 +37,18 @@ import {
 import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/workspace/pedidos/trocas")({
-  head: () => ({ meta: [{ title: "RMA: Trocas e Devoluções" }] }),
+  head: () => ({ meta: [{ title: "Trocas e Devoluções" }] }),
   loader: async () => {
-    return await listAdminRmas();
+    return await listExchanges();
   },
-  component: RmaDashboardPage,
+  component: ExchangesDashboardPage,
 });
 
 function translateStatus(status: string) {
   const map: Record<string, string> = {
-    pending: "Aguardando Análise",
-    authorized: "Aguardando Envio",
-    shipped_back: "Em Trânsito",
-    received: "Recebida",
-    inspected: "Inspecionada",
-    resolved: "Concluída",
+    requested: "Solicitada",
+    approved: "Em Andamento",
+    completed: "Concluída",
     rejected: "Rejeitada",
   };
   return map[status] || status;
@@ -60,17 +58,11 @@ function getStatusBadge(
   status: string,
 ): "default" | "secondary" | "destructive" | "outline" | "success" {
   switch (status) {
-    case "pending":
+    case "requested":
       return "secondary";
-    case "authorized":
+    case "approved":
       return "default";
-    case "shipped_back":
-      return "outline";
-    case "received":
-      return "default";
-    case "inspected":
-      return "secondary";
-    case "resolved":
+    case "completed":
       return "success";
     case "rejected":
       return "destructive";
@@ -79,64 +71,53 @@ function getStatusBadge(
   }
 }
 
-function translateType(type: string) {
-  if (type === "return") return "Devolução";
-  if (type === "exchange") return "Troca";
-  if (type === "warranty") return "Garantia";
-  return type;
-}
-
 const KANBAN_COLUMNS = [
-  { id: "pending", title: "Novas" },
-  { id: "authorized", title: "Autorizadas" },
-  { id: "received", title: "Recebidas" },
-  { id: "inspected", title: "Inspecionadas" },
-  { id: "resolved", title: "Concluídas" },
+  { id: "requested", title: "Novas" },
+  { id: "approved", title: "Em Andamento" },
+  { id: "completed", title: "Concluídas" },
+  { id: "rejected", title: "Rejeitadas" },
 ];
 
-function InspectionDrawer({ rma, isOpen, onClose, onInspected }: { rma: any, isOpen: boolean, onClose: () => void, onInspected: () => void }) {
+function ResolutionDrawer({ 
+  exchange, 
+  isOpen, 
+  onClose, 
+  onResolved 
+}: { 
+  exchange: any, 
+  isOpen: boolean, 
+  onClose: () => void, 
+  onResolved: () => void 
+}) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const items = rma?.items || [];
+  const [resolutionType, setResolutionType] = useState<"store_credit" | "refund" | "replacement">("store_credit");
   
-  // State for each item's inspection form
-  const [inspectionData, setInspectionData] = useState<Record<string, { condition: string, destination: string, qty: number }>>({});
+  // Default to full order total, but user can change it
+  const [refundValue, setRefundValue] = useState<string>((exchange?.orderTotal / 100 || 0).toFixed(2));
 
-  const handleDataChange = (itemId: string, field: string, value: string | number) => {
-    setInspectionData(prev => ({
-      ...prev,
-      [itemId]: {
-        ...prev[itemId],
-        [field]: value
-      }
-    }));
-  };
-
-  const handleInspect = async (item: any) => {
-    const data = inspectionData[item.id] || {};
-    const qtyToInspect = data.qty || (item.qty - item.qty_received);
-    const condition = data.condition || "perfect";
-    const destination = data.destination || "restock";
-
-    if (qtyToInspect <= 0 || qtyToInspect > (item.qty - item.qty_received)) {
-      toast.error("Quantidade inválida");
+  const handleResolve = async () => {
+    const valCents = Math.round(parseFloat(refundValue.replace(",", ".")) * 100);
+    
+    if (isNaN(valCents) || valCents < 0) {
+      toast.error("Valor inválido");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await inspectRmaItem({
+      await updateExchangeStatus({
         data: {
-          rmaItemId: item.id,
-          qty: qtyToInspect,
-          condition: condition as any,
-          destination: destination as any,
-          notes: "Inspecionado via painel"
+          exchangeId: exchange.id,
+          status: "completed",
+          resolutionType,
+          refundCents: valCents
         }
       });
-      toast.success("Item inspecionado!");
-      onInspected();
+      toast.success("Troca concluída com sucesso!");
+      onResolved();
+      onClose();
     } catch (e: any) {
-      toast.error(e.message || "Erro ao inspecionar item");
+      toast.error(e.message || "Erro ao concluir troca");
     } finally {
       setIsSubmitting(false);
     }
@@ -144,121 +125,121 @@ function InspectionDrawer({ rma, isOpen, onClose, onInspected }: { rma: any, isO
 
   return (
     <Sheet open={isOpen} onOpenChange={(val) => !val && onClose()}>
-      <SheetContent className="sm:max-w-md flex flex-col h-full overflow-y-auto">
+      <SheetContent className="sm:max-w-md flex flex-col h-full">
         <SheetHeader>
-          <SheetTitle>Inspecionar Caixa / Quarentena</SheetTitle>
+          <SheetTitle>Finalizar Troca / Devolução</SheetTitle>
           <SheetDescription>
-            Pedido #{rma?.orderToken} - Analise cada item devolvido e determine seu destino físico antes do estorno financeiro.
+            Pedido #{exchange?.orderToken} - Determine a resolução financeira para o cliente.
           </SheetDescription>
         </SheetHeader>
         
         <div className="py-6 space-y-6 flex-1">
-          {items.map((item: any) => {
-            const product = item.order_items?.product_variants?.products?.name || "Produto Desconhecido";
-            const price = item.order_items?.unit_price_cents || 0;
-            const remainingQty = item.qty - item.qty_received;
-            const isFullyInspected = remainingQty === 0;
+          <div className="p-4 surface-subtle border border-border rounded-lg space-y-2">
+            <h4 className="font-semibold text-sm">Resumo da Solicitação</h4>
+            <p className="text-sm text-muted-foreground">Motivo: {exchange?.reason}</p>
+            <p className="text-sm text-muted-foreground font-bold">Valor do Pedido: {formatMoney(exchange?.orderTotal || 0)}</p>
+          </div>
 
-            return (
-              <div key={item.id} className="p-4 bg-muted/30 border border-border rounded-lg space-y-3">
-                <div className="flex justify-between items-start">
+          <div className="space-y-4">
+            <div>
+              <Label className="text-sm font-semibold mb-2 block">Tipo de Resolução</Label>
+              <div className="grid grid-cols-1 gap-2">
+                <button
+                  onClick={() => setResolutionType("store_credit")}
+                  className={`flex items-center gap-3 p-3 border rounded-md text-left transition-colors ${
+                    resolutionType === "store_credit" 
+                      ? "border-primary bg-primary/5 ring-1 ring-primary" 
+                      : "border-border hover:bg-muted/50"
+                  }`}
+                >
+                  <Gift className={`size-5 ${resolutionType === "store_credit" ? "text-primary" : "text-muted-foreground"}`} />
                   <div>
-                    <h4 className="font-semibold text-sm">{product}</h4>
-                    <p className="text-xs text-muted-foreground">Motivo: {item.reason}</p>
-                    <p className="text-xs text-muted-foreground">{formatMoney(price)} un.</p>
+                    <p className="font-semibold text-sm">Vale-Compras (Prioridade)</p>
+                    <p className="text-xs text-muted-foreground">Gera um Gift Card para o cliente usar na loja</p>
                   </div>
-                  {isFullyInspected ? (
-                    <Badge variant="success" className="text-xs"><CheckCircle2 className="size-3 mr-1" /> Inspecionado</Badge>
-                  ) : (
-                    <Badge variant="secondary" className="text-xs">Falta Inspecionar: {remainingQty}</Badge>
-                  )}
-                </div>
-
-                {!isFullyInspected && (
-                  <div className="grid gap-3 pt-3 border-t border-border/50">
-                    <div>
-                      <Label className="text-xs text-muted-foreground">Condição Física</Label>
-                      <select 
-                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                        value={inspectionData[item.id]?.condition || "perfect"}
-                        onChange={(e) => handleDataChange(item.id, "condition", e.target.value)}
-                      >
-                        <option value="perfect">Perfeito / Sem Avaria</option>
-                        <option value="damaged">Danificado / Avariado</option>
-                        <option value="wrong_item">Produto Incorreto</option>
-                      </select>
-                    </div>
-                    <div>
-                      <Label className="text-xs text-muted-foreground">Destino Físico (Quarentena)</Label>
-                      <select 
-                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                        value={inspectionData[item.id]?.destination || "restock"}
-                        onChange={(e) => handleDataChange(item.id, "destination", e.target.value)}
-                      >
-                        <option value="restock">Prateleira (Restock Imediato)</option>
-                        <option value="quarantine">Quarentena (Aguardar Análise)</option>
-                        <option value="discard">Descarte (Lixo)</option>
-                        <option value="return_to_supplier">Devolver ao Fornecedor</option>
-                      </select>
-                    </div>
-                    <Button size="sm" onClick={() => handleInspect(item)} disabled={isSubmitting}>
-                      Registrar Item
-                    </Button>
+                </button>
+                <button
+                  onClick={() => setResolutionType("refund")}
+                  className={`flex items-center gap-3 p-3 border rounded-md text-left transition-colors ${
+                    resolutionType === "refund" 
+                      ? "border-primary bg-primary/5 ring-1 ring-primary" 
+                      : "border-border hover:bg-muted/50"
+                  }`}
+                >
+                  <Banknote className={`size-5 ${resolutionType === "refund" ? "text-primary" : "text-muted-foreground"}`} />
+                  <div>
+                    <p className="font-semibold text-sm">Estorno Financeiro</p>
+                    <p className="text-xs text-muted-foreground">Devolve o dinheiro (Pix, Cartão, Dinheiro)</p>
                   </div>
-                )}
+                </button>
+                <button
+                  onClick={() => setResolutionType("replacement")}
+                  className={`flex items-center gap-3 p-3 border rounded-md text-left transition-colors ${
+                    resolutionType === "replacement" 
+                      ? "border-primary bg-primary/5 ring-1 ring-primary" 
+                      : "border-border hover:bg-muted/50"
+                  }`}
+                >
+                  <RefreshCw className={`size-5 ${resolutionType === "replacement" ? "text-primary" : "text-muted-foreground"}`} />
+                  <div>
+                    <p className="font-semibold text-sm">Substituição</p>
+                    <p className="text-xs text-muted-foreground">O cliente pegou outro produto de mesmo valor</p>
+                  </div>
+                </button>
               </div>
-            );
-          })}
-
-          {items.length > 0 && items.every((i: any) => i.qty === i.qty_received) && (
-            <div className="text-center p-4 bg-success/10 text-success-foreground rounded-lg border border-success/20">
-              <CheckCircle2 className="size-6 mx-auto mb-2" />
-              <p className="font-semibold">Caixa Totalmente Inspecionada</p>
-              <p className="text-xs mt-1">O RMA já está apto para o estorno financeiro.</p>
             </div>
-          )}
+
+            {(resolutionType === "store_credit" || resolutionType === "refund") && (
+              <div className="space-y-2 mt-4">
+                <Label className="text-sm font-semibold">Valor (R$)</Label>
+                <Input 
+                  type="number"
+                  step="0.01"
+                  value={refundValue}
+                  onChange={(e) => setRefundValue(e.target.value)}
+                  className="font-bold text-lg h-12"
+                />
+              </div>
+            )}
+            
+            <Button 
+              size="lg" 
+              className="w-full mt-4 font-bold" 
+              onClick={handleResolve} 
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Finalizando..." : "Confirmar e Concluir Troca"}
+            </Button>
+          </div>
         </div>
       </SheetContent>
     </Sheet>
   );
 }
 
-function RmaDashboardPage() {
-  const rmas = Route.useLoaderData();
+function ExchangesDashboardPage() {
+  const exchanges = Route.useLoaderData();
   const router = useRouter();
   const [processingId, setProcessingId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<"table" | "kanban">("table");
+  const [viewMode, setViewMode] = useState<"table" | "kanban">("kanban");
   const [searchQuery, setSearchQuery] = useState("");
-  const [inspectingRma, setInspectingRma] = useState<any>(null);
+  const [resolvingExchange, setResolvingExchange] = useState<any>(null);
 
-  const filteredRmas = rmas.filter((rma: any) => {
+  const filteredExchanges = exchanges.filter((ex: any) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return (
-      rma.orderToken?.toLowerCase().includes(q) ||
-      rma.customerName?.toLowerCase().includes(q) ||
-      rma.type?.toLowerCase().includes(q)
+      ex.orderToken?.toLowerCase().includes(q) ||
+      ex.customerName?.toLowerCase().includes(q) ||
+      ex.reason?.toLowerCase().includes(q)
     );
   });
 
-  const handleUpdate = async (
-    rmaId: string,
-    status: string,
-  ) => {
-    setProcessingId(rmaId);
+  const handleUpdateStatus = async (exchangeId: string, status: "approved" | "rejected") => {
+    setProcessingId(exchangeId);
     try {
-      if (status === "authorized") {
-        await updateRmaStatus({ data: { rmaId, status: "authorized" } });
-        toast.success("RMA Autorizado com sucesso! O cliente foi notificado.");
-      } else if (status === "received") {
-        await updateRmaStatus({ data: { rmaId, status: "received" } });
-        toast.success("Produto recebido no centro logístico.");
-      } else if (status === "resolved") {
-        const res = await resolveRmaWithCredit({ data: { rmaId } });
-        toast.success(`Vale compras gerado: ${formatMoney(res.creditAmount)}`);
-      } else {
-        toast.error("Endpoint não implementado para este status nesta demonstração.");
-      }
+      await updateExchangeStatus({ data: { exchangeId, status } });
+      toast.success(`Troca ${status === "approved" ? "aprovada" : "rejeitada"} com sucesso!`);
       router.invalidate();
     } catch (e: unknown) {
       toast.error((e instanceof Error ? e.message : String(e)) || "Erro");
@@ -267,72 +248,40 @@ function RmaDashboardPage() {
     }
   };
 
-  const getActionButtons = (rma: any) => {
+  const getActionButtons = (exchange: any) => {
     return (
       <div className="flex flex-wrap gap-2">
-        {rma.status === "pending" && (
-          <Button
-            size="sm"
-            variant="default"
-            className="w-full sm:w-auto"
-            onClick={() => handleUpdate(rma.id, "authorized")}
-            disabled={processingId === rma.id}
-          >
-            Autorizar
-          </Button>
+        {exchange.status === "requested" && (
+          <>
+            <Button
+              size="sm"
+              variant="default"
+              className="w-full sm:w-auto"
+              onClick={() => handleUpdateStatus(exchange.id, "approved")}
+              disabled={processingId === exchange.id}
+            >
+              Aprovar Recebimento
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              className="w-full sm:w-auto"
+              onClick={() => handleUpdateStatus(exchange.id, "rejected")}
+              disabled={processingId === exchange.id}
+            >
+              <XCircle className="size-4 mr-1" /> Rejeitar
+            </Button>
+          </>
         )}
-        {rma.status === "authorized" && (
-          <Button
-            size="sm"
-            variant="secondary"
-            className="w-full sm:w-auto"
-            onClick={() => handleUpdate(rma.id, "received")}
-            disabled={processingId === rma.id}
-          >
-            Registrar Recebimento
-          </Button>
-        )}
-        {rma.status === "received" && (
-          <Button
-            size="sm"
-            variant="outline"
-            className="w-full sm:w-auto bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 border-amber-500/30"
-            onClick={() => setInspectingRma(rma)}
-            disabled={processingId === rma.id}
-          >
-            Inspecionar Caixa
-          </Button>
-        )}
-        {rma.status === "inspected" && (
+        {exchange.status === "approved" && (
           <Button
             size="sm"
             variant="default"
             className="w-full sm:w-auto bg-success text-success-foreground hover:bg-success/90"
-            onClick={() => handleUpdate(rma.id, "resolved")}
-            disabled={processingId === rma.id}
+            onClick={() => setResolvingExchange(exchange)}
+            disabled={processingId === exchange.id}
           >
-            Gerar Vale-Compras
-          </Button>
-        )}
-      </div>
-    );
-  };
-
-  const getLogisticsInfo = (rma: any) => {
-    if (!rma.trackingCode) return null;
-    return (
-      <div className="mt-3 p-3 bg-muted/40 rounded-md border text-sm space-y-2">
-        <div className="flex items-center gap-2 text-foreground font-medium">
-          <Truck className="h-4 w-4 text-primary" />
-          Logística Reversa ({rma.carrier})
-        </div>
-        <p className="text-muted-foreground text-xs font-mono">Rastreio: {rma.trackingCode}</p>
-        {rma.labelUrl && (
-          <Button size="sm" variant="outline" asChild className="w-full text-xs h-7 mt-1">
-            <a href={rma.labelUrl} target="_blank" rel="noopener noreferrer">
-              <FileText className="h-3 w-3 mr-2" />
-              Imprimir Etiqueta
-            </a>
+            <CheckCircle2 className="size-4 mr-1" /> Finalizar Resolução
           </Button>
         )}
       </div>
@@ -342,21 +291,21 @@ function RmaDashboardPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <PageHeader title="Gestão de RMA" description="Autorizações, Logística Reversa e Quarentena de Produtos" />
-        <div className="flex bg-muted p-1 rounded-md">
-          <Button
-            variant={viewMode === "table" ? "secondary" : "ghost"}
-            size="sm"
-            onClick={() => setViewMode("table")}
-          >
-            <TableIcon className="h-4 w-4 mr-2" /> Tabela
-          </Button>
+        <PageHeader title="Trocas e Devoluções" />
+        <div className="flex surface-subtle p-1 rounded-md border border-border">
           <Button
             variant={viewMode === "kanban" ? "secondary" : "ghost"}
             size="sm"
             onClick={() => setViewMode("kanban")}
           >
             <KanbanSquare className="h-4 w-4 mr-2" /> Kanban
+          </Button>
+          <Button
+            variant={viewMode === "table" ? "secondary" : "ghost"}
+            size="sm"
+            onClick={() => setViewMode("table")}
+          >
+            <TableIcon className="h-4 w-4 mr-2" /> Tabela
           </Button>
         </div>
       </div>
@@ -365,7 +314,7 @@ function RmaDashboardPage() {
         <div className="relative flex-1 sm:w-80">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por pedido ou cliente..."
+            placeholder="Buscar por pedido, cliente ou motivo..."
             className="pl-9 bg-background"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -373,40 +322,37 @@ function RmaDashboardPage() {
         </div>
       </div>
 
-      {filteredRmas.length === 0 ? (
-        <EmptyState title="Nenhum RMA aberto" />
+      {filteredExchanges.length === 0 ? (
+        <EmptyState title="Nenhuma solicitação de troca encontrada" />
       ) : viewMode === "table" ? (
-        <div className="rounded-md border bg-card overflow-hidden">
+        <div className="rounded-md border bg-card shadow-xs overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Data</TableHead>
                 <TableHead>Pedido</TableHead>
                 <TableHead>Cliente</TableHead>
-                <TableHead>Tipo</TableHead>
+                <TableHead>Motivo</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredRmas.map((rma: any) => (
-                <TableRow key={rma.id}>
-                  <TableCell className="whitespace-nowrap">{formatDate(rma.requestedAt)}</TableCell>
-                  <TableCell className="font-medium">#{rma.orderToken}</TableCell>
-                  <TableCell>{rma.customerName}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1.5 text-muted-foreground">
-                      <Box className="h-4 w-4" /> {translateType(rma.type)}
-                    </div>
+              {filteredExchanges.map((ex: any) => (
+                <TableRow key={ex.id}>
+                  <TableCell className="whitespace-nowrap">{formatDate(ex.requestedAt)}</TableCell>
+                  <TableCell className="font-medium">#{ex.orderToken}</TableCell>
+                  <TableCell>{ex.customerName}</TableCell>
+                  <TableCell className="max-w-[200px] truncate" title={ex.reason}>
+                    {ex.reason}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={getStatusBadge(rma.status)}>
-                      {translateStatus(rma.status)}
+                    <Badge variant={getStatusBadge(ex.status)}>
+                      {translateStatus(ex.status)}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right flex flex-col justify-end items-end gap-2">
-                    {getActionButtons(rma)}
-                    {getLogisticsInfo(rma)}
+                    {getActionButtons(ex)}
                   </TableCell>
                 </TableRow>
               ))}
@@ -414,44 +360,55 @@ function RmaDashboardPage() {
           </Table>
         </div>
       ) : (
-        <div className="flex gap-4 overflow-x-auto pb-4">
+        <div className="flex gap-4 overflow-x-auto pb-4 items-start min-h-[600px]">
           {KANBAN_COLUMNS.map((col) => {
-            const columnRmas = filteredRmas.filter((r: any) => r.status === col.id);
+            const columnExchanges = filteredExchanges.filter((r: any) => r.status === col.id);
             return (
               <div
                 key={col.id}
-                className="min-w-[300px] w-[300px] bg-muted/30 p-3 border flex flex-col gap-3 rounded-md"
+                className="min-w-[320px] w-[320px] surface-subtle p-3 border border-border flex flex-col gap-3 rounded-md"
               >
                 <div className="flex justify-between items-center font-medium px-1">
-                  <span>{col.title}</span>
+                  <span className="font-bold text-foreground">{col.title}</span>
                   <Badge variant="outline" className="bg-background">
-                    {columnRmas.length}
+                    {columnExchanges.length}
                   </Badge>
                 </div>
-                {columnRmas.length === 0 ? (
+                {columnExchanges.length === 0 ? (
                   <div className="text-sm text-muted-foreground p-4 text-center border border-dashed rounded-md bg-background/50">
                     Nenhum item
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {columnRmas.map((rma: any) => (
+                    {columnExchanges.map((ex: any) => (
                       <div
-                        key={rma.id}
-                        className="bg-card p-3 rounded-md shadow-sm border space-y-3"
+                        key={ex.id}
+                        className="bg-card p-4 rounded-md shadow-xs border border-border space-y-3"
                       >
                         <div className="flex justify-between items-start">
                           <div>
-                            <p className="font-medium text-sm">#{rma.orderToken}</p>
-                            <p className="text-xs text-muted-foreground">{rma.customerName}</p>
+                            <p className="font-bold text-sm">#{ex.orderToken}</p>
+                            <p className="text-xs text-muted-foreground font-medium">{ex.customerName}</p>
                           </div>
-                          <Badge variant={getStatusBadge(rma.status)} className="text-[10px]">
-                            {translateType(rma.type)}
+                          <Badge variant={getStatusBadge(ex.status)} className="text-[10px]">
+                            {translateStatus(ex.status)}
                           </Badge>
                         </div>
-                        <div className="pt-2 border-t flex flex-col gap-2">
-                          {getActionButtons(rma)}
+                        
+                        <div className="text-xs text-foreground p-2 surface-subtle rounded border">
+                          <span className="font-semibold text-muted-foreground">Motivo:</span> {ex.reason}
                         </div>
-                        {getLogisticsInfo(rma)}
+                        
+                        <div className="flex justify-between items-center text-xs text-muted-foreground">
+                          <span>Valor: {formatMoney(ex.orderTotal || 0)}</span>
+                          <span>{formatDate(ex.requestedAt)}</span>
+                        </div>
+
+                        {ex.status !== "completed" && ex.status !== "rejected" && (
+                          <div className="pt-3 border-t flex flex-col gap-2">
+                            {getActionButtons(ex)}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -462,12 +419,12 @@ function RmaDashboardPage() {
         </div>
       )}
 
-      {inspectingRma && (
-        <InspectionDrawer 
-          rma={inspectingRma} 
-          isOpen={!!inspectingRma} 
-          onClose={() => setInspectingRma(null)} 
-          onInspected={() => {
+      {resolvingExchange && (
+        <ResolutionDrawer 
+          exchange={resolvingExchange} 
+          isOpen={!!resolvingExchange} 
+          onClose={() => setResolvingExchange(null)} 
+          onResolved={() => {
             router.invalidate();
           }}
         />

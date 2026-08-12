@@ -1223,7 +1223,7 @@ function CheckoutPage() {
                           </span>
                         </div>
                         {pixDiscountPercent > 0 && (
-                          <p className="text-xs text-success font-semibold bg-success px-2.5 py-1 rounded border border-green-200 w-fit">
+                          <p className="text-xs text-success font-semibold bg-success/10 px-2.5 py-1 rounded border border-success/20 w-fit">
                             Desconto Ativo: Economize {pixDiscountPercent}% no total da sua compra!
                           </p>
                         )}
