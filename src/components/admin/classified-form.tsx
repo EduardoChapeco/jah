@@ -5,8 +5,21 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Surface } from "@/components/ui/surface";
 import { Loader2 } from "lucide-react";
 import { formatMoney } from "@/lib/money";
@@ -40,7 +53,7 @@ export function ClassifiedForm({ defaultValues, onSubmit, isSubmitting }: Classi
   });
 
   return (
-    <Surface variant="zine" padding="lg">
+    <div className="border border-border bg-card rounded-md shadow-xs p-8">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -49,9 +62,13 @@ export function ClassifiedForm({ defaultValues, onSubmit, isSubmitting }: Classi
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-mono text-ink">Título do Anúncio</FormLabel>
+                  <FormLabel className="font-mono text-foreground">Título do Anúncio</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ex: Aulas de Guitarra" className="border-2 border-ink shadow-sm rounded-none focus-visible:ring-0" {...field} />
+                    <Input
+                      placeholder="Ex: Aulas de Guitarra"
+                      className="border border-border shadow-sm rounded-none focus-visible:ring-0"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -63,10 +80,10 @@ export function ClassifiedForm({ defaultValues, onSubmit, isSubmitting }: Classi
               name="category"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-mono text-ink">Categoria</FormLabel>
+                  <FormLabel className="font-mono text-foreground">Categoria</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger className="border-2 border-ink shadow-sm rounded-none">
+                      <SelectTrigger className="border border-border shadow-sm rounded-none">
                         <SelectValue placeholder="Selecione uma categoria" />
                       </SelectTrigger>
                     </FormControl>
@@ -88,12 +105,12 @@ export function ClassifiedForm({ defaultValues, onSubmit, isSubmitting }: Classi
             name="content"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="font-mono text-ink">Descrição</FormLabel>
+                <FormLabel className="font-mono text-foreground">Descrição</FormLabel>
                 <FormControl>
-                  <Textarea 
-                    placeholder="Descreva o que você está anunciando..." 
-                    className="min-h-[150px] border-2 border-ink shadow-sm rounded-none focus-visible:ring-0" 
-                    {...field} 
+                  <Textarea
+                    placeholder="Descreva o que você está anunciando..."
+                    className="min-h-[150px] border border-border shadow-sm rounded-none focus-visible:ring-0"
+                    {...field}
                   />
                 </FormControl>
                 <FormMessage />
@@ -107,14 +124,16 @@ export function ClassifiedForm({ defaultValues, onSubmit, isSubmitting }: Classi
               name="price_cents"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-mono text-ink">Preço (Opcional)</FormLabel>
+                  <FormLabel className="font-mono text-foreground">Preço (Opcional)</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <span className="absolute left-3 top-2.5 font-mono text-ink/50">R$</span>
-                      <Input 
-                        type="number" 
-                        step="0.01" 
-                        className="pl-9 border-2 border-ink shadow-sm rounded-none focus-visible:ring-0" 
+                      <span className="absolute left-3 top-2.5 font-mono text-foreground/50">
+                        R$
+                      </span>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        className="pl-9 border border-border shadow-sm rounded-none focus-visible:ring-0"
                         placeholder="0,00"
                         value={field.value ? (field.value / 100).toFixed(2) : ""}
                         onChange={(e) => {
@@ -134,10 +153,10 @@ export function ClassifiedForm({ defaultValues, onSubmit, isSubmitting }: Classi
               name="status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-mono text-ink">Status</FormLabel>
+                  <FormLabel className="font-mono text-foreground">Status</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger className="border-2 border-ink shadow-sm rounded-none">
+                      <SelectTrigger className="border border-border shadow-sm rounded-none">
                         <SelectValue placeholder="Selecione o status" />
                       </SelectTrigger>
                     </FormControl>
@@ -153,10 +172,10 @@ export function ClassifiedForm({ defaultValues, onSubmit, isSubmitting }: Classi
             />
           </div>
 
-          <div className="flex justify-end pt-4 border-t-2 border-ink/10">
-            <Button 
-              type="submit" 
-              className="bg-electric-cyan text-ink font-bold border-2 border-ink shadow-hard hover-lift px-8"
+          <div className="flex justify-end pt-4 border-t-2 border-border/10">
+            <Button
+              type="submit"
+              className="bg-primary text-foreground font-bold border border-border shadow-sm px-8"
               disabled={isSubmitting}
             >
               {isSubmitting ? (
@@ -171,6 +190,6 @@ export function ClassifiedForm({ defaultValues, onSubmit, isSubmitting }: Classi
           </div>
         </form>
       </Form>
-    </Surface>
+    </div>
   );
 }

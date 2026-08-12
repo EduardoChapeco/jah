@@ -136,4 +136,3 @@ export function getOpenStatus(
     return { status: "unknown", text: "Erro ao verificar horários" };
   }
 }
-

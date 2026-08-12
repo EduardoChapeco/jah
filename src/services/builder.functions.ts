@@ -10,7 +10,12 @@ import { z } from "zod";
 import { requireAdmin } from "@/lib/server-access";
 import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
 import { getOpenStatus } from "@/lib/datetime";
-import type { ExperienceDocument, ExperienceNode, ExperienceType } from "@/lib/builder-types";
+import {
+  ExperienceNodeSchema,
+  type ExperienceDocument,
+  type ExperienceNode,
+  type ExperienceType,
+} from "@/lib/builder-types";
 
 // ---------------------------------------------------------------------------
 // Store Profile Hydration Helper
@@ -834,9 +839,9 @@ export const listMediaAssets = createServerFn({ method: "GET" }).handler(async (
     if (error) throw error;
 
     return data;
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("[builder.functions] listMediaAssets error:", e);
-    throw new Error(e.message || "Erro ao carregar mídias");
+    throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao carregar mídias");
   }
 });
 
@@ -1318,9 +1323,9 @@ export const applyHomeTemplate = createServerFn({ method: "POST" })
         status: "success" as const,
         data: { versionId: version.id, templateId: input.template_id },
       };
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[builder.functions] applyHomeTemplate error:", e);
-      throw new Error(e.message || "Erro ao aplicar template de vitrine.");
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao aplicar template de vitrine.");
     }
   });
 
@@ -2257,7 +2262,7 @@ export const saveBuilderNodes = createServerFn({ method: "POST" })
   .validator(
     z.object({
       version_id: z.string().uuid(),
-      nodes: z.array(z.any()),
+      nodes: z.array(ExperienceNodeSchema),
     }),
   )
   .handler(async ({ data: input }) => {
@@ -2270,33 +2275,52 @@ export const saveBuilderNodes = createServerFn({ method: "POST" })
 
       const db = getServerClient();
 
-      // 0. Validate ownership
+      // 0. Validate ownership and get version info
       const { data: versionCheck } = await db
         .from("experience_versions")
-        .select("id, experience_documents!inner(store_id)")
+        .select("id, status, document_id, version_number, experience_documents!inner(store_id)")
         .eq("id", input.version_id)
         .eq("experience_documents.store_id", storeId)
         .single();
 
       if (!versionCheck) throw new Error("Acesso negado à versão do documento.");
 
-      // Save keeps the version as "draft" — does NOT publish.
-      // 1. Delete all current nodes for this version (full replace strategy)
-      const { error: delError } = await db
-        .from("experience_nodes")
-        .delete()
-        .eq("version_id", input.version_id);
+      let targetVersionId = input.version_id;
 
-      if (delError) throw delError;
+      if (versionCheck.status === "published") {
+        // Fork: Create a new draft version
+        const { data: newVersion, error: forkError } = await db
+          .from("experience_versions")
+          .insert({
+            document_id: versionCheck.document_id,
+            version_number: versionCheck.version_number + 1,
+            status: "draft",
+          })
+          .select()
+          .single();
+
+        if (forkError) throw forkError;
+        targetVersionId = newVersion.id;
+      } else {
+        // Save keeps the version as "draft" — does NOT publish.
+        // 1. Delete all current nodes for this draft version (full replace strategy)
+        const { error: delError } = await db
+          .from("experience_nodes")
+          .delete()
+          .eq("version_id", targetVersionId);
+
+        if (delError) throw delError;
+      }
 
       // 2. Insert new nodes
       if (input.nodes.length > 0) {
         const nodesToInsert = input.nodes.map((node: any) => ({
           id: node.id,
-          version_id: input.version_id,
+          version_id: targetVersionId,
           parent_id: node.parent_id || null,
           node_type: node.node_type,
           block_type: node.block_type,
+          layout_variant: node.layout_variant || null,
           content: node.content || {},
           design_tokens: node.design_tokens || {},
           layout_rules: node.layout_rules || {},
@@ -2312,7 +2336,7 @@ export const saveBuilderNodes = createServerFn({ method: "POST" })
         if (insError) throw insError;
       }
 
-      return { status: "success" as const };
+      return { status: "success" as const, version_id: targetVersionId };
     } catch (e: unknown) {
       console.error("[builder.functions] saveBuilderNodes error:", e);
       throw new Error("Erro ao salvar o documento.");
@@ -2327,7 +2351,7 @@ export const publishBuilderVersion = createServerFn({ method: "POST" })
   .validator(
     z.object({
       version_id: z.string().uuid(),
-      nodes: z.array(z.any()),
+      nodes: z.array(ExperienceNodeSchema),
     }),
   )
   .handler(async ({ data: input }) => {
@@ -2354,7 +2378,7 @@ export const publishBuilderVersion = createServerFn({ method: "POST" })
 
       await db
         .from("experience_versions")
-        .update({ status: "draft" })
+        .update({ status: "archived" })
         .eq("document_id", version.document_id)
         .eq("status", "published");
 
@@ -2368,6 +2392,7 @@ export const publishBuilderVersion = createServerFn({ method: "POST" })
           parent_id: node.parent_id || null,
           node_type: node.node_type,
           block_type: node.block_type,
+          layout_variant: node.layout_variant || null,
           content: node.content || {},
           design_tokens: node.design_tokens || {},
           layout_rules: node.layout_rules || {},

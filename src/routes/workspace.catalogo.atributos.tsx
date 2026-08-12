@@ -149,8 +149,8 @@ function AtributosPage() {
 
       toast.success(`Grupo "${preset.title}" importado com sucesso!`);
       router.invalidate();
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao importar preset.");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao importar preset.");
     } finally {
       setIsSaving(false);
     }
@@ -192,8 +192,8 @@ function AtributosPage() {
       setGroupSlug("");
       setOptionsList([]);
       router.invalidate();
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao criar grupo.");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao criar grupo.");
     } finally {
       setIsSaving(false);
     }
@@ -204,7 +204,6 @@ function AtributosPage() {
       <PageHeader
         eyebrow="Catálogo / Atributos Globais"
         title="Grupos de Opções Reutilizáveis"
-        description="Defina conjuntos padrão de tamanhos, cores e características para reutilizar em diferentes produtos com 1 clique."
         actions={
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
@@ -312,13 +311,8 @@ function AtributosPage() {
       />
 
       {/* Seção 1: Presets Prontos (1-Click Import) */}
-      <Surface
-        variant="zine"
-        elevation="sm"
-        padding="md"
-        className="border-primary/20 bg-primary/5 dark:bg-primary/10"
-      >
-        <div className="pb-3 border-b border-ink/10 mb-4">
+      <div className="border border-border bg-primary/5 dark:bg-primary/10 rounded-md shadow-xs p-6">
+        <div className="pb-3 border-b border-border/10 mb-4">
           <h3 className="font-display font-bold text-lg flex items-center gap-2">
             <Sparkles className="size-5 text-primary" aria-hidden />
             Biblioteca de Presets de Variação (1-Clique)
@@ -335,7 +329,7 @@ function AtributosPage() {
             return (
               <div
                 key={preset.id}
-                className="p-4 border border-ink/20 bg-card hover:border-primary/40 transition-all flex flex-col justify-between gap-3"
+                className="p-4 border border-border/20 bg-card hover:border-primary/40 transition-all flex flex-col justify-between gap-3"
               >
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -347,7 +341,11 @@ function AtributosPage() {
                   <h4 className="text-sm font-bold text-foreground">{preset.title}</h4>
                   <div className="flex flex-wrap gap-1">
                     {preset.options.map((opt) => (
-                      <Badge key={opt} variant="outline" className="text-[11px] py-0 border-ink/30">
+                      <Badge
+                        key={opt}
+                        variant="outline"
+                        className="text-[11px] py-0 border-border/30"
+                      >
                         {opt}
                       </Badge>
                     ))}
@@ -374,11 +372,11 @@ function AtributosPage() {
             );
           })}
         </div>
-      </Surface>
+      </div>
 
       {/* Seção 2: Grupos de Opções Ativos */}
-      <Surface variant="zine" elevation="sm" padding="md">
-        <div className="pb-4 border-b border-ink/10 mb-4">
+      <div className="border border-border bg-card rounded-md shadow-xs p-6">
+        <div className="pb-4 border-b border-border/10 mb-4">
           <h3 className="font-display font-bold text-lg">Grupos de Opções Ativos no Sistema</h3>
           <p className="text-sm text-muted-foreground mt-1">
             Estes esquemas estão disponíveis para seleção dinâmica nos Tipos de Produto e no Editor.
@@ -386,10 +384,7 @@ function AtributosPage() {
         </div>
         <div>
           {types.length === 0 ? (
-            <EmptyState
-              title="Nenhum grupo ativo"
-              description="Importe um preset acima ou crie um grupo personalizado."
-            />
+            <EmptyState title="Nenhum grupo ativo" />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {types.map((type: any) => {
@@ -399,13 +394,13 @@ function AtributosPage() {
                 );
 
                 return (
-                  <div key={type.id} className="p-4 border border-ink/20 bg-card space-y-3">
+                  <div key={type.id} className="p-4 border border-border/20 bg-card space-y-3">
                     <div className="flex items-center justify-between">
                       <div>
                         <h4 className="text-sm font-bold text-foreground">{type.name}</h4>
                         <p className="text-xs text-muted-foreground font-mono">/{type.slug}</p>
                       </div>
-                      <Badge variant="secondary" className="text-xs border-ink/30">
+                      <Badge variant="secondary" className="text-xs border-border/30">
                         {optionFields.length > 0
                           ? `${optionFields.length} grupo(s)`
                           : "Campos livres"}
@@ -422,7 +417,7 @@ function AtributosPage() {
                             <Badge
                               key={opt}
                               variant="outline"
-                              className="text-xs bg-muted/40 border-ink/30"
+                              className="text-xs bg-muted/40 border-border/30"
                             >
                               {opt}
                             </Badge>
@@ -436,7 +431,7 @@ function AtributosPage() {
             </div>
           )}
         </div>
-      </Surface>
+      </div>
     </div>
   );
 }

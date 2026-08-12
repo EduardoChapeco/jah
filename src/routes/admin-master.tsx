@@ -22,7 +22,7 @@ function AdminMasterLayout() {
     <div className="min-h-screen bg-background text-foreground flex">
       {/* Sidebar */}
       <aside className="w-64 border-r bg-muted/20 flex flex-col hidden md:flex">
-        <div className="p-6 border-b flex items-center gap-2 text-poster-red">
+        <div className="p-6 border-b flex items-center gap-2 text-primary">
           <Shield className="size-6" />
           <span className="font-black text-xl tracking-tighter uppercase">Jah Master</span>
         </div>
@@ -46,14 +46,13 @@ function AdminMasterLayout() {
             <DollarSign className="size-4" /> Faturamentos
           </Link>
         </nav>
-        <div className="p-4 border-t">
-        </div>
+        <div className="p-4 border-t"></div>
       </aside>
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0">
         <div className="md:hidden p-4 border-b flex items-center justify-between">
-          <div className="flex items-center gap-2 text-poster-red">
+          <div className="flex items-center gap-2 text-primary">
             <Shield className="size-5" />
             <span className="font-black">JAH MASTER</span>
           </div>

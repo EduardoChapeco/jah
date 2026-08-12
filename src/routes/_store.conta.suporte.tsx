@@ -43,8 +43,8 @@ function CustomerSupportPage() {
     try {
       const data = await getTicketThread({ data: { ticketId: id } });
       setThread(data);
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao carregar atendimento");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao carregar atendimento");
       setSelectedTicketId(null);
     } finally {
       setLoadingThread(false);
@@ -62,8 +62,8 @@ function CustomerSupportPage() {
       setMessage("");
       await loadThread(selectedTicketId);
       router.invalidate();
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao enviar mensagem");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao enviar mensagem");
     } finally {
       setSending(false);
     }
@@ -75,10 +75,7 @@ function CustomerSupportPage() {
         <Link to="/conta" className="text-muted-foreground hover:text-foreground">
           <ChevronLeft className="w-5 h-5" />
         </Link>
-        <PageHeader
-          title="Meus Atendimentos"
-          description="Acompanhe suas solicitações de suporte, trocas e devoluções."
-        />
+        <PageHeader title="Meus Atendimentos" />
       </div>
 
       <div className="flex-1 bg-card border overflow-hidden flex flex-col md:flex-row">
@@ -100,7 +97,7 @@ function CustomerSupportPage() {
                   <button
                     key={t.id}
                     onClick={() => setSelectedTicketId(t.id)}
-                    className={`w-full text-left p-4 hover:bg-muted/50 transition-colors ${selectedTicketId === t.id ? "bg-muted border-l-4 border-l-primary" : "border-l-4 border-l-transparent"}`}
+                    className={`w-full text-left p-4 hover:bg-muted/50 transition-colors ${selectedTicketId === t.id ? "bg-muted border-l border-l-primary" : "border-l border-l-transparent"}`}
                   >
                     <div className="flex justify-between items-start mb-1">
                       <span className="font-medium text-sm truncate pr-2">{t.subject}</span>
@@ -138,10 +135,7 @@ function CustomerSupportPage() {
         >
           {!selectedTicketId ? (
             <div className="flex-1 flex flex-col justify-center items-center p-6">
-              <EmptyState
-                title="Selecione um Chamado"
-                description="Escolha um atendimento na lista para ver as mensagens."
-              />
+              <EmptyState title="Selecione um Chamado" />
             </div>
           ) : (
             <>

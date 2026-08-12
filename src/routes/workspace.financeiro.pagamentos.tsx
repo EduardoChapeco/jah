@@ -44,8 +44,8 @@ function AdminPaymentsPage() {
       } else {
         toast.error((res as any).message || "Erro ao aprovar pagamento");
       }
-    } catch (e: any) {
-      toast.error(e.message || "Erro inesperado ao aprovar");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro inesperado ao aprovar");
     } finally {
       setApproving(null);
     }
@@ -53,17 +53,10 @@ function AdminPaymentsPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        eyebrow="Vendas"
-        title="Pagamentos"
-        description="Conciliação de pagamentos manuais (PIX/Transferência). Aprovar confirma o recebimento."
-      />
+      <PageHeader eyebrow="Vendas" title="Pagamentos" />
 
       {payments.length === 0 ? (
-        <EmptyState
-          title="Nenhum pagamento pendente"
-          description="Os pedidos aguardando confirmação de pagamento aparecerão aqui."
-        />
+        <EmptyState title="Nenhum pagamento pendente" />
       ) : (
         <div className="rounded-md border">
           <Table>

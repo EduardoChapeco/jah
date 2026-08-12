@@ -3,7 +3,7 @@
 Este documento normaliza o briefing completo do projeto Jah Community Platform em um plano mestre. Ele é a porta de entrada para qualquer pessoa (humana ou agente) que for trabalhar no produto. Os detalhes técnicos aprofundados vivem em documentos irmãos, que são fontes únicas de verdade (single source of truth) para seus respectivos temas:
 
 - `DESIGN.md` — design system, tokens visuais, tipografia (Inter, Space Grotesk, Oswald, JetBrains Mono), cores, espaçamentos, primitivas de superfície (Surface).
-- `AGENTS.md` — regras de comportamento para agentes/IA que editam este repositório.
+- `.agents/AGENTS.md` — regras de comportamento vinculantes para agentes/IA e protocolo obrigatório do Time de Elite (Arquitetura, Design Ops, QA).
 - `docs/ARCHITECTURE.md` — arquitetura de software, camadas, fluxo de dados, integração com Supabase.
 - `DOMAIN_MODEL.md` — entidades de domínio (Feeds, Events, Tickets, Classifieds, Products).
 - `ROUTES.md` — registro de rotas públicas, de cliente e de admin.
@@ -45,6 +45,7 @@ Ambos os públicos são prioritariamente mobile. Desktop é suportado, mas o des
 4. **Sem recursos fantasmas**: funcionalidades não implementadas não devem aparecer na interface. Se um botão, menu ou página existe, ele deve ser real e funcional. Proibido usar "Em breve".
 5. **Servidor é dono de dinheiro, estoque e pedidos**: cálculos financeiros, de estoque e de pedidos são sempre feitos no servidor (funções de servidor/BFF). O cliente (browser) nunca calcula preço final, frete, desconto ou disponibilidade — apenas exibe o que o servidor retorna.
 6. **Sem acesso direto ao Supabase a partir de componentes**: todo componente React consome dados por meio de serviços/funções de servidor. Nenhuma chamada `supabase.from(...)` dentro de componentes de UI.
+7. **Auditoria Recursiva E2E Obrigatória**: Nenhuma UI, input ou bloco de código visual pode ser criado sem antes projetar a raiz da tabela/schema no banco, tipar os DTOs do BFF e validar os tokens de design do `DESIGN.md`. A JAH exige propagação síncrona completa. Nada de "pontas soltas" no frontend.
 
 ## 4. Escopo da Fase 0
 
@@ -112,3 +113,10 @@ A Fase 0 é considerada concluída somente quando todos os itens abaixo forem ve
 ## 9. Como este documento se relaciona com os demais
 
 Este `MASTER_PLAN.md` é o ponto de partida narrativo. Para trabalho técnico específico, consulte sempre o documento especializado correspondente listado na introdução. Alterações de escopo de fase devem ser refletidas em `ROADMAP.md`; alterações de estratégia de teste, em `TEST_STRATEGY.md`; e qualquer mudança neste documento que afete outro deve ser propagada para manter consistência entre todos.
+
+## 10. Protocolo de Execução do Time de Elite
+
+Qualquer agente de Inteligência Artificial atuando na JAH não é apenas um "gerador de código". É esperado que opere como um **Time de Elite**, assumindo as personas detalhadas em `.agents/AGENTS.md`:
+1. **Design Ops**: Antes de gerar componentes, deve consultar o `DESIGN.md` para garantir que o estilo gerado reflita as diretrizes visuais criadas pelo cliente (Operacional Clean x Editorial Cultural).
+2. **Data Architect**: Se houver um requisito visual novo (como um "Campo de Status de Entrega"), o agente deve traçar a arquitetura até o banco, propondo tabelas, schemas e contratos BFF ANTES de modificar o front-end. 
+3. **QA/Product Owner**: Cada execução termina com a prova no runtime e a verificação estrita. Não presuma, prove com código tipado, RLS blindado e sincronização fim-a-fim.

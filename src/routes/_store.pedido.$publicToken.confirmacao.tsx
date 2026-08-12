@@ -21,7 +21,7 @@ function ConfirmationPage() {
   if (!order) {
     return (
       <div className="mx-auto max-w-screen-xl px-4 py-20 md:px-6">
-        <ErrorState description="Pedido não encontrado." />
+        <ErrorState />
       </div>
     );
   }
@@ -64,10 +64,7 @@ function ConfirmationPage() {
           <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-success">
             <CheckCircle2 className="size-10 text-success" aria-hidden />
           </div>
-          <PageHeader
-            title="Pedido Realizado com Sucesso!"
-            description="Seu pedido foi registrado e está aguardando o pagamento para ser enviado."
-          />
+          <PageHeader title="Pedido Realizado com Sucesso!" />
           <p className="mt-2 text-sm text-muted-foreground">
             Código do pedido:{" "}
             <span className="font-mono font-medium text-foreground">{order.public_token}</span>

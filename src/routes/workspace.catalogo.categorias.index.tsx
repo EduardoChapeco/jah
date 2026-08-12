@@ -89,7 +89,6 @@ function AdminCategoriesPage() {
       <PageHeader
         eyebrow="Catálogo"
         title="Categorias"
-        description="Organize seus produtos em categorias hierárquicas."
         actions={
           <Button asChild size="sm">
             <Link to="/workspace/catalogo/categorias/novo">
@@ -133,26 +132,9 @@ function AdminCategoriesPage() {
               ? "Nenhuma categoria encontrada"
               : "Nenhuma categoria no arquivo morto"
           }
-          description={
-            searchQuery
-              ? "Tente alterar os termos da sua busca."
-              : statusFilter === "active"
-                ? "Crie categorias para organizar seus produtos na vitrine."
-                : "Categorias arquivadas aparecerão aqui."
-          }
-          action={
-            statusFilter === "active" ? (
-              <Button asChild size="sm">
-                <Link to="/workspace/catalogo/categorias/novo">
-                  <Plus className="mr-1.5 size-4" />
-                  Nova Categoria
-                </Link>
-              </Button>
-            ) : undefined
-          }
         />
       ) : (
-        <Surface variant="default" padding="none">
+        <div className="border border-border rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -218,7 +200,7 @@ function AdminCategoriesPage() {
                           {cat.status !== "archived" ? (
                             <>
                               <DropdownMenuItem asChild>
-                                <Link to={`/admin/catalogo/categorias/${cat.id}` as any}>
+                                <Link to={`/workspace/catalogo/categorias/${cat.id}` as any}>
                                   <Edit className="mr-2 size-3.5" />
                                   Editar Categoria
                                 </Link>
@@ -260,7 +242,7 @@ function AdminCategoriesPage() {
               </TableBody>
             </Table>
           </div>
-        </Surface>
+        </div>
       )}
     </div>
   );

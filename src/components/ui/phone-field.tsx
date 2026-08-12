@@ -3,8 +3,10 @@ import { Input } from "./input";
 import { cn } from "@/lib/utils";
 import { parsePhoneNumber, AsYouType } from "libphonenumber-js";
 
-export interface PhoneFieldProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange"> {
+export interface PhoneFieldProps extends Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  "value" | "onChange"
+> {
   value?: string; // Esperado em E.164, ex: +5511999999999
   onChange?: (value: string | undefined) => void;
   defaultCountry?: "BR" | string;
@@ -36,7 +38,7 @@ export const PhoneField = forwardRef<HTMLInputElement, PhoneFieldProps>(
         if (phone && phone.isValid()) {
           onChange?.(phone.format("E.164"));
         } else {
-          // Se não for válido, podemos passar undefined ou o formato limpo, 
+          // Se não for válido, podemos passar undefined ou o formato limpo,
           // mas o ideal é que o hook-form valide. Vamos passar undefined se inválido.
           onChange?.(undefined);
         }
@@ -72,6 +74,6 @@ export const PhoneField = forwardRef<HTMLInputElement, PhoneFieldProps>(
         {...props}
       />
     );
-  }
+  },
 );
 PhoneField.displayName = "PhoneField";

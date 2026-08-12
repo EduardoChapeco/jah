@@ -20,7 +20,11 @@ export async function _calculateShipping({
   if (!identity.store_id) throw new Error("Loja não identificada.");
 
   // Fetch store type to adapt shipping logic
-  const { data: storeInfo } = await supabase.from("stores").select("type").eq("id", identity.store_id).single();
+  const { data: storeInfo } = await supabase
+    .from("stores")
+    .select("type")
+    .eq("id", identity.store_id)
+    .single();
   const storeType = storeInfo?.type || "ecommerce";
 
   const finalQuotes: any[] = [];
@@ -34,7 +38,7 @@ export async function _calculateShipping({
         service_name: "Envio Eletrônico / Ingresso",
         price_cents: 0,
         estimated_days: 0,
-      }
+      },
     ];
   }
 
@@ -223,9 +227,7 @@ export async function _listShippingZones() {
   return zones || [];
 }
 
-export const listShippingZones = createServerFn({ method: "GET" }).handler(
-  _listShippingZones,
-);
+export const listShippingZones = createServerFn({ method: "GET" }).handler(_listShippingZones);
 
 // ---------------------------------------------------------------------------
 
@@ -345,5 +347,65 @@ export const deleteShippingRate = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: { id } }) => _deleteShippingRate(id));
 
-export const listDrivers = createServerFn().validator((d: any) => d).handler(async () => []);
-export const upsertDriver = createServerFn().validator((d: any) => d).handler(async () => ({}));
+export async function _listDrivers() {
+  const supabase = getServerClient();
+  const identity = await getServerIdentity();
+  if (!identity.store_id) return [];
+  assertStoreAccess(identity, ["owner", "admin", "manager", "logistics"]);
+
+  const { data: drivers, error } = await supabase
+    .from("delivery_drivers")
+    .select("*")
+    .eq("store_id", identity.store_id)
+    .order("name", { ascending: true });
+
+  if (error) throw new Error(error.message);
+  return drivers || [];
+}
+
+export const listDrivers = createServerFn({ method: "GET" }).handler(_listDrivers);
+
+export const upsertDriver = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string().uuid().optional(),
+      name: z.string().min(2),
+      phone: z.string().optional(),
+      vehicle_type: z.enum(["motorcycle", "bicycle", "car", "van"]).default("motorcycle"),
+      status: z.enum(["available", "busy", "offline"]).default("available"),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "logistics"]);
+
+    const payload = { ...data, store_id: identity.store_id };
+    const { data: driver, error } = await supabase
+      .from("delivery_drivers")
+      .upsert(payload)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return driver;
+  });
+
+export const getOrderDispatches = createServerFn({ method: "GET" })
+  .validator(z.object({ orderId: z.string().uuid() }))
+  .handler(async ({ data: { orderId } }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "logistics"]);
+
+    const { data, error } = await supabase
+      .from("delivery_dispatches")
+      .select("*, delivery_drivers(name, vehicle_type, phone)")
+      .eq("order_id", orderId)
+      .eq("store_id", identity.store_id)
+      .order("created_at", { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return data || [];
+  });
+

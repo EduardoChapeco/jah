@@ -77,9 +77,9 @@ export const upsertCoupon = createServerFn({ method: "POST" })
 
       if (result.error) throw result.error;
       return result.data;
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[growth] upsertCoupon error:", e);
-      if (e.code === "23505") throw new Error("Código de cupom já existe.");
+      if ((e as any).code === "23505") throw new Error("Código de cupom já existe.");
       throw new Error("Erro ao salvar cupom.");
     }
   });
@@ -99,7 +99,7 @@ export const deleteCoupon = createServerFn({ method: "POST" })
 
       if (error) throw error;
       return { status: "success" as const };
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[growth] deleteCoupon error:", e);
       throw new Error("Erro ao excluir cupom.");
     }
@@ -185,9 +185,9 @@ export const upsertIntegration = createServerFn({ method: "POST" })
 
       if (error) throw error;
       return data;
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[growth] upsertIntegration error:", e);
-      throw new Error(e.message || "Erro ao salvar integração.");
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao salvar integração.");
     }
   });
 
@@ -200,20 +200,22 @@ export const listCampaigns = createServerFn({ method: "GET" }).handler(async () 
 
     const { data, error } = await db
       .from("ad_campaigns")
-      .select(`
+      .select(
+        `
         id, title, status, budget_cents, start_date, end_date, target_url, placements,
         campaign_metrics(impressions, clicks, spend_cents)
-      `)
+      `,
+      )
       .eq("store_id", identity.store_id)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-    
+
     const formattedData = (data || []).map((camp: any) => {
       let totalImpressions = 0;
       let totalClicks = 0;
       let totalSpend = 0;
-      
+
       if (camp.campaign_metrics) {
         camp.campaign_metrics.forEach((m: any) => {
           totalImpressions += m.impressions;
@@ -221,15 +223,15 @@ export const listCampaigns = createServerFn({ method: "GET" }).handler(async () 
           totalSpend += m.spend_cents;
         });
       }
-      
+
       return {
         ...camp,
-        metrics: { impressions: totalImpressions, clicks: totalClicks, spend_cents: totalSpend }
+        metrics: { impressions: totalImpressions, clicks: totalClicks, spend_cents: totalSpend },
       };
     });
 
     return formattedData;
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("[growth] listCampaigns error:", e);
     throw new Error("Erro ao listar campanhas.");
   }
@@ -245,7 +247,7 @@ export const saveCampaign = createServerFn({ method: "POST" })
       budget_cents: z.number().int().min(0),
       status: z.enum(["draft", "active", "paused", "completed", "archived"]).default("active"),
       placements: z.array(z.string()).default(["feed"]),
-    })
+    }),
   )
   .handler(async ({ data: input }) => {
     try {
@@ -282,11 +284,11 @@ export const saveCampaign = createServerFn({ method: "POST" })
           })
           .eq("id", input.id)
           .eq("store_id", identity.store_id);
-        
+
         if (error) throw error;
         return { success: true, id: input.id };
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[growth] saveCampaign error:", e);
       throw new Error("Erro ao salvar campanha.");
     }
@@ -301,17 +303,19 @@ export const listCommissionRules = createServerFn({ method: "GET" }).handler(asy
 
     const { data, error } = await db
       .from("dynamic_commission_rules")
-      .select(`
+      .select(
+        `
         id, rate_percentage, status, valid_until, seller_id, product_id,
         seller:profiles!dynamic_commission_rules_seller_id_fkey(name, email),
         product:products!dynamic_commission_rules_product_id_fkey(title)
-      `)
+      `,
+      )
       .eq("store_id", identity.store_id)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
     return data || [];
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("[growth] listCommissionRules error:", e);
     throw new Error("Erro ao listar regras de comissão.");
   }
@@ -326,7 +330,7 @@ export const saveCommissionRule = createServerFn({ method: "POST" })
       rate_percentage: z.number().min(0).max(100),
       status: z.enum(["active", "inactive"]).default("active"),
       valid_until: z.string().optional().nullable(),
-    })
+    }),
   )
   .handler(async ({ data: input }) => {
     try {
@@ -357,11 +361,11 @@ export const saveCommissionRule = createServerFn({ method: "POST" })
           .update(payload)
           .eq("id", input.id)
           .eq("store_id", identity.store_id);
-        
+
         if (error) throw error;
         return { success: true, id: input.id };
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[growth] saveCommissionRule error:", e);
       throw new Error("Erro ao salvar regra de comissão.");
     }

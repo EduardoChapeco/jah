@@ -231,7 +231,7 @@ function ExperienceNodeRenderer({
             />
           ))
         ) : isEditing ? (
-          <div className="p-8 text-center border-2 border-dashed border-border/50 text-muted-foreground text-sm">
+          <div className="p-8 text-center border border-dashed border-border/50 text-muted-foreground text-sm">
             Seção Vazia — adicione um Container
           </div>
         ) : null}
@@ -426,6 +426,7 @@ function ExperienceNodeRenderer({
         // ── Extra canonical props ───────────────────────────────────────────
         node_id={node.id}
         block_type={node.block_type}
+        layout_variant={node.layout_variant}
         design_tokens={designTokens}
         layout_rules={layoutRules}
         data_bindings={node.data_bindings}

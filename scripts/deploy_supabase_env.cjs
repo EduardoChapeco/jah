@@ -3,7 +3,7 @@ const { execSync } = require('child_process');
 try {
   const env = { 
     ...process.env, 
-    SUPABASE_ACCESS_TOKEN: "sbp_18bd7e0be8a740d6d43c3150aedaa7ee3fe940f0" 
+    SUPABASE_ACCESS_TOKEN: "<REMOVED_TOKEN>" 
   };
 
   console.log("Linking project mirhhypunfwbxnmpcnjs...");

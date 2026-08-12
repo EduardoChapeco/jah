@@ -125,8 +125,8 @@ function CustomersPage() {
         isConsentLgpd: false,
       });
       router.invalidate();
-    } catch (e: any) {
-      toast.error(e.message || "Erro inesperado");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro inesperado");
     } finally {
       setIsSaving(false);
     }
@@ -174,7 +174,6 @@ function CustomersPage() {
       <PageHeader
         eyebrow="CRM"
         title="Clientes & Leads"
-        description="Gestão integrada de fichas de clientes, funil de vendas e contatos de vitrines."
         actions={
           <Button onClick={() => setIsOpen(true)} size="sm">
             <Plus className="mr-1.5 size-4" aria-hidden />
@@ -185,7 +184,7 @@ function CustomersPage() {
 
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetContent side="right" className="sm:max-w-2xl p-0 overflow-y-auto">
-          <SheetHeader className="px-6 py-4 border-b border-ink/10 bg-muted/30">
+          <SheetHeader className="px-6 py-4 border-b border-border/10 bg-muted/30">
             <SheetTitle className="flex items-center gap-2 text-xl font-display font-bold">
               <UserCheck className="size-5 text-primary" />
               Cadastrar Novo Cliente
@@ -390,20 +389,13 @@ function CustomersPage() {
         {/* Tab 1: Customers CRM List */}
         <TabsContent value="customers" className="space-y-4">
           {filteredCustomers.length === 0 ? (
-            <EmptyState
-              title="Nenhum cliente encontrado"
-              description={
-                searchTerm
-                  ? "Sua busca não retornou nenhum cliente."
-                  : "Nenhum cliente cadastrado no CRM ainda."
-              }
-            />
+            <EmptyState title="Nenhum cliente encontrado" />
           ) : (
-            <Surface variant="zine" elevation="sm" padding="none">
+            <div className="border border-border bg-card rounded-md shadow-xs overflow-hidden">
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-muted/40 border-b border-ink/20">
+                    <TableRow className="bg-muted/40 border-b border-border/20">
                       <TableHead>Cliente</TableHead>
                       <TableHead>Desde</TableHead>
                       <TableHead className="text-center">Pedidos</TableHead>
@@ -449,7 +441,7 @@ function CustomersPage() {
                                 <Badge
                                   key={tag}
                                   variant="secondary"
-                                  className="text-[10px] h-5 border-ink/30"
+                                  className="text-[10px] h-5 border-border/30"
                                 >
                                   {tag}
                                 </Badge>
@@ -458,7 +450,7 @@ function CustomersPage() {
                               <span className="text-xs text-muted-foreground">-</span>
                             )}
                             {c.tags.length > 2 && (
-                              <Badge variant="outline" className="text-[10px] h-5 border-ink/30">
+                              <Badge variant="outline" className="text-[10px] h-5 border-border/30">
                                 +{c.tags.length - 2}
                               </Badge>
                             )}
@@ -477,7 +469,7 @@ function CustomersPage() {
                   </TableBody>
                 </Table>
               </div>
-            </Surface>
+            </div>
           )}
         </TabsContent>
 
@@ -485,16 +477,16 @@ function CustomersPage() {
         <TabsContent value="kanban" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
             {/* Column 1: New */}
-            <Card className="bg-muted/30 border border-border shadow-xs">
-              <CardHeader className="p-3 pb-2 border-b">
+            <div className="bg-muted/30 border border-border rounded-md shadow-xs overflow-hidden">
+              <div className="p-3 pb-2 border-b border-border/50 bg-muted/50">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black uppercase text-foreground">Novos Leads</span>
                   <Badge variant="secondary" className="h-5 text-[10px]">
                     {leadsNew.length}
                   </Badge>
                 </div>
-              </CardHeader>
-              <CardContent className="p-2 space-y-2">
+              </div>
+              <div className="p-2 space-y-2">
                 {leadsNew.map((l: any) => (
                   <LeadCard
                     key={l.id}
@@ -508,12 +500,12 @@ function CustomersPage() {
                     Nenhum lead novo.
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             {/* Column 2: Contacted */}
-            <Card className="bg-muted/30 border border-border shadow-xs">
-              <CardHeader className="p-3 pb-2 border-b">
+            <div className="bg-muted/30 border border-border rounded-md shadow-xs overflow-hidden">
+              <div className="p-3 pb-2 border-b border-border/50 bg-muted/50">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black uppercase text-amber-600">Em Contato</span>
                   <Badge
@@ -523,8 +515,8 @@ function CustomersPage() {
                     {leadsContacted.length}
                   </Badge>
                 </div>
-              </CardHeader>
-              <CardContent className="p-2 space-y-2">
+              </div>
+              <div className="p-2 space-y-2">
                 {leadsContacted.map((l: any) => (
                   <LeadCard
                     key={l.id}
@@ -538,12 +530,12 @@ function CustomersPage() {
                     Nenhum em contato.
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             {/* Column 3: Converted */}
-            <Card className="bg-muted/30 border border-border shadow-xs">
-              <CardHeader className="p-3 pb-2 border-b">
+            <div className="bg-muted/30 border border-border rounded-md shadow-xs overflow-hidden">
+              <div className="p-3 pb-2 border-b border-border/50 bg-muted/50">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black uppercase text-emerald-600">Convertidos</span>
                   <Badge
@@ -553,8 +545,8 @@ function CustomersPage() {
                     {leadsConverted.length}
                   </Badge>
                 </div>
-              </CardHeader>
-              <CardContent className="p-2 space-y-2">
+              </div>
+              <div className="p-2 space-y-2">
                 {leadsConverted.map((l: any) => (
                   <LeadCard
                     key={l.id}
@@ -568,12 +560,12 @@ function CustomersPage() {
                     Nenhum convertido.
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             {/* Column 4: Lost */}
-            <Card className="bg-muted/30 border border-border shadow-xs">
-              <CardHeader className="p-3 pb-2 border-b">
+            <div className="bg-muted/30 border border-border rounded-md shadow-xs overflow-hidden">
+              <div className="p-3 pb-2 border-b border-border/50 bg-muted/50">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black uppercase text-muted-foreground">
                     Arquivados
@@ -582,8 +574,8 @@ function CustomersPage() {
                     {leadsLost.length}
                   </Badge>
                 </div>
-              </CardHeader>
-              <CardContent className="p-2 space-y-2">
+              </div>
+              <div className="p-2 space-y-2">
                 {leadsLost.map((l: any) => (
                   <LeadCard
                     key={l.id}
@@ -597,24 +589,21 @@ function CustomersPage() {
                     Nenhum arquivado.
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         </TabsContent>
 
         {/* Tab 3: Message Logs */}
         <TabsContent value="messages" className="space-y-4">
           {leads.length === 0 ? (
-            <EmptyState
-              title="Nenhuma mensagem registrada"
-              description="Mensagens enviadas através de formulários de contato aparecerão aqui."
-            />
+            <EmptyState title="Nenhuma mensagem registrada" />
           ) : (
-            <Surface variant="zine" elevation="sm" padding="none">
+            <div className="border border-border bg-card rounded-md shadow-xs overflow-hidden">
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-muted/40 border-b border-ink/20">
+                    <TableRow className="bg-muted/40 border-b border-border/20">
                       <TableHead>Remetente</TableHead>
                       <TableHead>Mensagem</TableHead>
                       <TableHead>Data</TableHead>
@@ -670,7 +659,7 @@ function CustomersPage() {
                   </TableBody>
                 </Table>
               </div>
-            </Surface>
+            </div>
           )}
         </TabsContent>
       </Tabs>
@@ -686,7 +675,7 @@ interface LeadCardProps {
 
 function LeadCard({ lead, onStatusChange, onPromote }: LeadCardProps) {
   return (
-    <Card className="shadow-xs border border-border/80 bg-card hover:shadow-sm transition-all p-3 space-y-3 relative group">
+    <div className="border border-border/80 bg-card hover:border-primary/50 transition-colors rounded-md p-3 space-y-3 relative group">
       <div className="space-y-1">
         <h4 className="text-xs font-black tracking-tight text-foreground truncate">
           {lead.full_name}
@@ -773,6 +762,6 @@ function LeadCard({ lead, onStatusChange, onPromote }: LeadCardProps) {
           )}
         </div>
       </div>
-    </Card>
+    </div>
   );
 }

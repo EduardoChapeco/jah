@@ -57,10 +57,10 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
         .eq("store_id", storeId)
         .maybeSingle();
 
-      if (error) return { status: "error" as const, error: error.message };
+      if (error) return { status: "error" as const, error: (error instanceof Error ? error.message : String(error)) };
       return { status: "ok" as const, data: { ...data, theme_settings: theme } };
-    } catch (e: any) {
-      return { status: "error" as const, error: e.message || "Erro de banco" };
+    } catch (e: unknown) {
+      return { status: "error" as const, error: (e instanceof Error ? e.message : String(e)) || "Erro de banco" };
     }
   };
 
@@ -74,7 +74,7 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
         query = query.eq(filterColumn, filterValue);
       }
       const { count, error } = await query;
-      if (error) return { status: "error" as const, error: error.message };
+      if (error) return { status: "error" as const, error: (error instanceof Error ? error.message : String(error)) };
       return { status: "ok" as const, count: count ?? 0 };
     } catch (e: unknown) {
       const err = e as Error;
@@ -89,7 +89,7 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
         .select("id, products!inner(store_id)", { count: "exact", head: true })
         .eq("products.store_id", storeId)
         .gt("stock_on_hand", 0);
-      if (error) return { status: "error" as const, error: error.message };
+      if (error) return { status: "error" as const, error: (error instanceof Error ? error.message : String(error)) };
       return { status: "ok" as const, count: count ?? 0 };
     } catch (e: unknown) {
       const err = e as Error;

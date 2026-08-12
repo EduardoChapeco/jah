@@ -69,10 +69,7 @@ function CommissionsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Comissões de Vendas"
-        description="Gestão de pagamento de comissões e regras da equipe de vendas."
-      />
+      <PageHeader title="Comissões de Vendas" />
 
       <Tabs defaultValue="extrato" className="w-full">
         <TabsList className="mb-4">
@@ -88,12 +85,9 @@ function CommissionsPage() {
 
         <TabsContent value="extrato" className="mt-0">
           {commissions.length === 0 ? (
-            <EmptyState
-              title="Sem comissões"
-              description="Nenhuma comissão registrada nesta loja."
-            />
+            <EmptyState title="Sem comissões" />
           ) : (
-            <Card className="p-0">
+            <div className="border border-border bg-card rounded-md shadow-xs overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -146,12 +140,12 @@ function CommissionsPage() {
                   ))}
                 </TableBody>
               </Table>
-            </Card>
+            </div>
           )}
         </TabsContent>
 
         <TabsContent value="equipe" className="mt-0">
-          <Card className="p-0">
+          <div className="border border-border bg-card rounded-md shadow-xs overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -234,7 +228,7 @@ function CommissionsPage() {
                 )}
               </TableBody>
             </Table>
-          </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

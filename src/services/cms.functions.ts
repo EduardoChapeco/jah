@@ -113,7 +113,7 @@ export const createPage = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[cms.functions] createPage error:", e);
-      throw new Error(e instanceof Error ? e.message : "Erro.");
+      throw new Error(e instanceof Error ? (e instanceof Error ? e.message : String(e)) : "Erro.");
     }
   });
 
@@ -513,9 +513,9 @@ export const createProductReview = createServerFn({ method: "POST" })
 
       if (error) throw error;
       return data;
-    } catch (e: any) {
-      console.error("[cms.functions] createProductReview error:", e.message || e);
-      throw new Error(e.message || "Erro ao enviar avaliação.");
+    } catch (e: unknown) {
+      console.error("[cms.functions] createProductReview error:", (e instanceof Error ? e.message : String(e)) || e);
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao enviar avaliação.");
     }
   });
 
@@ -781,20 +781,33 @@ export const createReview = createServerFn({ method: "POST" })
         .single();
       if (!product) throw new Error("Produto não encontrado.");
 
+      // Check if user has a delivered order for this product
+      const { data: purchaseItems } = await ssrClient
+        .from("order_items")
+        .select("id, orders!inner(status, customer_id), product_variants!inner(product_id)")
+        .eq("product_variants.product_id", productId)
+        .eq("orders.status", "delivered")
+        .eq("orders.customer_id", user.id)
+        .limit(1);
+
+      if (!purchaseItems || purchaseItems.length === 0) {
+        throw new Error("Você só pode avaliar produtos que já comprou e recebeu.");
+      }
+
       const { error } = await ssrClient.from("reviews").insert({
         store_id: product.store_id,
         product_id: productId,
         user_id: user.id,
         rating,
         comment: comment || null,
-        status: "pending",
+        status: "approved",
       });
 
       if (error) throw error;
       return { status: "success" as const };
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[cms.functions] createReview:", e);
-      throw new Error(e.message || "Erro ao enviar avaliação.");
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao enviar avaliação.");
     }
   });
 
@@ -835,9 +848,9 @@ export const createManualReview = createServerFn({ method: "POST" })
 
       if (error) throw error;
       return { status: "success" as const };
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[cms.functions] createManualReview:", e);
-      throw new Error(e.message || "Erro ao inserir avaliação manual.");
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao inserir avaliação manual.");
     }
   });
 
@@ -862,7 +875,7 @@ export const listCustomerReviews = createServerFn({ method: "GET" }).handler(asy
       .eq("store_id", storeId)
       .order("created_at", { ascending: false });
 
-    if (error) throw new Error(error.message);
+    if (error) throw new Error((error instanceof Error ? error.message : String(error)));
 
     return (data || []).map((r: any) => ({
       id: r.id as string,
@@ -873,7 +886,7 @@ export const listCustomerReviews = createServerFn({ method: "GET" }).handler(asy
       productName: r.products?.title as string | null,
       productSlug: r.products?.slug as string | null,
     }));
-  } catch (e: any) {
-    throw new Error(e.message || "Erro ao buscar avaliações.");
+  } catch (e: unknown) {
+    throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao buscar avaliações.");
   }
 });

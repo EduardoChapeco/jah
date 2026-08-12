@@ -12,12 +12,28 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { listAdminRmas, updateRmaStatus, resolveRmaWithCredit } from "@/services/rma.functions";
+import { listAdminRmas, updateRmaStatus, resolveRmaWithCredit, inspectRmaItem } from "@/services/rma.functions";
 import { formatMoney } from "@/lib/money";
 import { EmptyState } from "@/components/state/states";
-import { Search, Box, RefreshCcw, KanbanSquare, Table as TableIcon, FileText, Truck } from "lucide-react";
+import {
+  Search,
+  Box,
+  KanbanSquare,
+  Table as TableIcon,
+  FileText,
+  Truck,
+  CheckCircle2,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { formatDate } from "../lib/datetime";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/workspace/pedidos/trocas")({
   head: () => ({ meta: [{ title: "RMA: Trocas e Devoluções" }] }),
@@ -78,27 +94,156 @@ const KANBAN_COLUMNS = [
   { id: "resolved", title: "Concluídas" },
 ];
 
+function InspectionDrawer({ rma, isOpen, onClose, onInspected }: { rma: any, isOpen: boolean, onClose: () => void, onInspected: () => void }) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const items = rma?.items || [];
+  
+  // State for each item's inspection form
+  const [inspectionData, setInspectionData] = useState<Record<string, { condition: string, destination: string, qty: number }>>({});
+
+  const handleDataChange = (itemId: string, field: string, value: string | number) => {
+    setInspectionData(prev => ({
+      ...prev,
+      [itemId]: {
+        ...prev[itemId],
+        [field]: value
+      }
+    }));
+  };
+
+  const handleInspect = async (item: any) => {
+    const data = inspectionData[item.id] || {};
+    const qtyToInspect = data.qty || (item.qty - item.qty_received);
+    const condition = data.condition || "perfect";
+    const destination = data.destination || "restock";
+
+    if (qtyToInspect <= 0 || qtyToInspect > (item.qty - item.qty_received)) {
+      toast.error("Quantidade inválida");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await inspectRmaItem({
+        data: {
+          rmaItemId: item.id,
+          qty: qtyToInspect,
+          condition: condition as any,
+          destination: destination as any,
+          notes: "Inspecionado via painel"
+        }
+      });
+      toast.success("Item inspecionado!");
+      onInspected();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao inspecionar item");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Sheet open={isOpen} onOpenChange={(val) => !val && onClose()}>
+      <SheetContent className="sm:max-w-md flex flex-col h-full overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>Inspecionar Caixa / Quarentena</SheetTitle>
+          <SheetDescription>
+            Pedido #{rma?.orderToken} - Analise cada item devolvido e determine seu destino físico antes do estorno financeiro.
+          </SheetDescription>
+        </SheetHeader>
+        
+        <div className="py-6 space-y-6 flex-1">
+          {items.map((item: any) => {
+            const product = item.order_items?.product_variants?.products?.name || "Produto Desconhecido";
+            const price = item.order_items?.unit_price_cents || 0;
+            const remainingQty = item.qty - item.qty_received;
+            const isFullyInspected = remainingQty === 0;
+
+            return (
+              <div key={item.id} className="p-4 bg-muted/30 border border-border rounded-lg space-y-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="font-semibold text-sm">{product}</h4>
+                    <p className="text-xs text-muted-foreground">Motivo: {item.reason}</p>
+                    <p className="text-xs text-muted-foreground">{formatMoney(price)} un.</p>
+                  </div>
+                  {isFullyInspected ? (
+                    <Badge variant="success" className="text-xs"><CheckCircle2 className="size-3 mr-1" /> Inspecionado</Badge>
+                  ) : (
+                    <Badge variant="secondary" className="text-xs">Falta Inspecionar: {remainingQty}</Badge>
+                  )}
+                </div>
+
+                {!isFullyInspected && (
+                  <div className="grid gap-3 pt-3 border-t border-border/50">
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Condição Física</Label>
+                      <select 
+                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        value={inspectionData[item.id]?.condition || "perfect"}
+                        onChange={(e) => handleDataChange(item.id, "condition", e.target.value)}
+                      >
+                        <option value="perfect">Perfeito / Sem Avaria</option>
+                        <option value="damaged">Danificado / Avariado</option>
+                        <option value="wrong_item">Produto Incorreto</option>
+                      </select>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Destino Físico (Quarentena)</Label>
+                      <select 
+                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        value={inspectionData[item.id]?.destination || "restock"}
+                        onChange={(e) => handleDataChange(item.id, "destination", e.target.value)}
+                      >
+                        <option value="restock">Prateleira (Restock Imediato)</option>
+                        <option value="quarantine">Quarentena (Aguardar Análise)</option>
+                        <option value="discard">Descarte (Lixo)</option>
+                        <option value="return_to_supplier">Devolver ao Fornecedor</option>
+                      </select>
+                    </div>
+                    <Button size="sm" onClick={() => handleInspect(item)} disabled={isSubmitting}>
+                      Registrar Item
+                    </Button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {items.length > 0 && items.every((i: any) => i.qty === i.qty_received) && (
+            <div className="text-center p-4 bg-success/10 text-success-foreground rounded-lg border border-success/20">
+              <CheckCircle2 className="size-6 mx-auto mb-2" />
+              <p className="font-semibold">Caixa Totalmente Inspecionada</p>
+              <p className="text-xs mt-1">O RMA já está apto para o estorno financeiro.</p>
+            </div>
+          )}
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
 function RmaDashboardPage() {
   const rmas = Route.useLoaderData();
   const router = useRouter();
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"table" | "kanban">("table");
   const [searchQuery, setSearchQuery] = useState("");
+  const [inspectingRma, setInspectingRma] = useState<any>(null);
 
   const filteredRmas = rmas.filter((rma: any) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return (
-      rma.order?.id?.toLowerCase().includes(q) ||
-      rma.order?.customer_name?.toLowerCase().includes(q) ||
-      rma.reason?.toLowerCase().includes(q)
+      rma.orderToken?.toLowerCase().includes(q) ||
+      rma.customerName?.toLowerCase().includes(q) ||
+      rma.type?.toLowerCase().includes(q)
     );
   });
 
   const handleUpdate = async (
     rmaId: string,
     status: string,
-    resolution?: "store_credit" | "refund" | "replacement",
   ) => {
     setProcessingId(rmaId);
     try {
@@ -115,8 +260,8 @@ function RmaDashboardPage() {
         toast.error("Endpoint não implementado para este status nesta demonstração.");
       }
       router.invalidate();
-    } catch (e: any) {
-      toast.error(e.message || "Erro");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro");
     } finally {
       setProcessingId(null);
     }
@@ -130,7 +275,7 @@ function RmaDashboardPage() {
             size="sm"
             variant="default"
             className="w-full sm:w-auto"
-            onClick={() => handleUpdate(rma.id, "authorized", "store_credit")}
+            onClick={() => handleUpdate(rma.id, "authorized")}
             disabled={processingId === rma.id}
           >
             Autorizar
@@ -151,11 +296,11 @@ function RmaDashboardPage() {
           <Button
             size="sm"
             variant="outline"
-            className="w-full sm:w-auto"
-            onClick={() => handleUpdate(rma.id, "inspected")}
+            className="w-full sm:w-auto bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 border-amber-500/30"
+            onClick={() => setInspectingRma(rma)}
             disabled={processingId === rma.id}
           >
-            Inspecionar
+            Inspecionar Caixa
           </Button>
         )}
         {rma.status === "inspected" && (
@@ -181,9 +326,7 @@ function RmaDashboardPage() {
           <Truck className="h-4 w-4 text-primary" />
           Logística Reversa ({rma.carrier})
         </div>
-        <p className="text-muted-foreground text-xs font-mono">
-          Rastreio: {rma.trackingCode}
-        </p>
+        <p className="text-muted-foreground text-xs font-mono">Rastreio: {rma.trackingCode}</p>
         {rma.labelUrl && (
           <Button size="sm" variant="outline" asChild className="w-full text-xs h-7 mt-1">
             <a href={rma.labelUrl} target="_blank" rel="noopener noreferrer">
@@ -199,10 +342,7 @@ function RmaDashboardPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <PageHeader
-          title="Gestão de RMA"
-          description="Controle logístico de devoluções, trocas e garantias."
-        />
+        <PageHeader title="Gestão de RMA" description="Autorizações, Logística Reversa e Quarentena de Produtos" />
         <div className="flex bg-muted p-1 rounded-md">
           <Button
             variant={viewMode === "table" ? "secondary" : "ghost"}
@@ -234,10 +374,7 @@ function RmaDashboardPage() {
       </div>
 
       {filteredRmas.length === 0 ? (
-        <EmptyState
-          title="Nenhum RMA aberto"
-          description="Nenhuma solicitação de troca ou devolução no momento."
-        />
+        <EmptyState title="Nenhum RMA aberto" />
       ) : viewMode === "table" ? (
         <div className="rounded-md border bg-card overflow-hidden">
           <Table>
@@ -283,7 +420,7 @@ function RmaDashboardPage() {
             return (
               <div
                 key={col.id}
-                className="min-w-[300px] w-[300px] bg-muted/30 p-3 border flex flex-col gap-3"
+                className="min-w-[300px] w-[300px] bg-muted/30 p-3 border flex flex-col gap-3 rounded-md"
               >
                 <div className="flex justify-between items-center font-medium px-1">
                   <span>{col.title}</span>
@@ -323,6 +460,17 @@ function RmaDashboardPage() {
             );
           })}
         </div>
+      )}
+
+      {inspectingRma && (
+        <InspectionDrawer 
+          rma={inspectingRma} 
+          isOpen={!!inspectingRma} 
+          onClose={() => setInspectingRma(null)} 
+          onInspected={() => {
+            router.invalidate();
+          }}
+        />
       )}
     </div>
   );

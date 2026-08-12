@@ -107,8 +107,8 @@ function AdminOrderDetailPage() {
       toast.success("Rastreamento do pedido atualizado!");
       setTrackingModalOpen(false);
       router.invalidate();
-    } catch (err: any) {
-      toast.error(err.message || "Erro ao salvar rastreamento");
+    } catch (err: unknown) {
+      toast.error((err instanceof Error ? err.message : String(err)) || "Erro ao salvar rastreamento");
     } finally {
       setIsSavingTracking(false);
     }
@@ -123,8 +123,8 @@ function AdminOrderDetailPage() {
       if (res.status !== "ok") throw new Error((res as any).message);
       toast.success("Status atualizado!");
       router.invalidate();
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao atualizar");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao atualizar");
     } finally {
       setIsUpdating(false);
     }
@@ -137,8 +137,8 @@ function AdminOrderDetailPage() {
       if (res.status !== "success") throw new Error((res as any).message);
       toast.success("Pagamento confirmado. O pedido está agora em separação!");
       router.invalidate();
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao aprovar");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao aprovar");
     } finally {
       setIsConfirming(false);
     }
@@ -154,8 +154,8 @@ function AdminOrderDetailPage() {
       if (res.status !== "success") throw new Error((res as any).message);
       toast.success("Pedido cancelado e pagamento rejeitado.");
       router.invalidate();
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao cancelar");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao cancelar");
     } finally {
       setIsRejecting(false);
     }
@@ -166,11 +166,7 @@ function AdminOrderDetailPage() {
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-start">
-        <PageHeader
-          eyebrow="Vendas"
-          title={`Pedido #${order.public_token}`}
-          description={`Realizado em ${date} por ${(order.customer_snapshot as any)?.name ?? "Desconhecido"}`}
-        />
+        <PageHeader eyebrow="Vendas" title={`Pedido #${order.public_token}`} />
         <Button
           variant="outline"
           onClick={() => window.open(`/admin_/pedidos/${order.id}/recibo`, "_blank")}

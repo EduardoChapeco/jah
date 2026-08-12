@@ -4,24 +4,24 @@ export interface OfferDTO {
   // Generic IDs
   id: string; // The original ID in its respective table (e.g., products.id)
   type: OfferType;
-  
+
   // Display Information
   title: string;
   brand?: string;
   subtitle?: string; // Short description or secondary text
   image_url?: string;
-  
+
   // Pricing
   price_cents: number;
   compare_at_cents?: number | null;
-  
+
   // Availability
   is_available: boolean;
   stock_quantity?: number | null; // Null means unlimited
-  
+
   // Logistics
   is_physical: boolean;
-  
+
   // Raw Reference
   raw_data?: any; // The original record (e.g. ProductRow or EventRow) just in case
 }

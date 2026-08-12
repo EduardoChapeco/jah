@@ -60,8 +60,8 @@ function AddressesPage() {
         state: "",
       });
       router.invalidate();
-    } catch (error: any) {
-      toast.error(error.message || "Erro ao adicionar endereço.");
+    } catch (error: unknown) {
+      toast.error((error instanceof Error ? error.message : String(error)) || "Erro ao adicionar endereço.");
     } finally {
       setIsSubmitting(false);
     }
@@ -73,7 +73,7 @@ function AddressesPage() {
       await deleteCustomerAddress({ data: { id } });
       toast.success("Endereço excluído.");
       router.invalidate();
-    } catch (e: any) {
+    } catch (e: unknown) {
       toast.error("Erro ao excluir.");
     }
   };
@@ -83,7 +83,7 @@ function AddressesPage() {
       await setDefaultAddress({ data: { id } });
       toast.success("Endereço padrão atualizado.");
       router.invalidate();
-    } catch (e: any) {
+    } catch (e: unknown) {
       toast.error("Erro ao atualizar.");
     }
   };
@@ -91,7 +91,7 @@ function AddressesPage() {
   return (
     <section>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-editorial text-2xl text-foreground">Endereços</h2>
+        <h2 className="font-semibold text-2xl text-foreground">Endereços</h2>
         {!isAdding && <Button onClick={() => setIsAdding(true)}>Novo Endereço</Button>}
       </div>
 
@@ -177,10 +177,7 @@ function AddressesPage() {
       )}
 
       {!isAdding && addresses.length === 0 ? (
-        <EmptyState
-          title="Nenhum endereço cadastrado"
-          description="Você ainda não adicionou endereços de entrega."
-        />
+        <EmptyState title="Nenhum endereço cadastrado" />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {addresses.map((addr: any) => (

@@ -54,8 +54,8 @@ function EventDetailPage() {
       });
       toast.success("Ingresso adicionado ao carrinho!");
       router.navigate({ to: "/carrinho" });
-    } catch (err: any) {
-      toast.error(err.message || "Erro ao adicionar ingresso.");
+    } catch (err: unknown) {
+      toast.error((err instanceof Error ? err.message : String(err)) || "Erro ao adicionar ingresso.");
     }
   };
 
@@ -120,7 +120,7 @@ function EventDetailPage() {
               return (
                 <div
                   key={lot.id}
-                  className={`p-6 border-2 transition-all ${isSoldOut ? "border-border bg-muted/30 opacity-70" : "border-primary/20 bg-card hover:border-primary/50 shadow-sm"}`}
+                  className={`p-6 border transition-all ${isSoldOut ? "border-border bg-muted/30 opacity-70" : "border-primary/20 bg-card hover:border-primary/50 shadow-sm"}`}
                 >
                   <div className="flex justify-between items-start mb-4">
                     <div>

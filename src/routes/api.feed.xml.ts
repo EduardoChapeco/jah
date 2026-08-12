@@ -192,7 +192,7 @@ export const Route = createFileRoute("/api/feed/xml")({
               "Cache-Control": "public, max-age=3600",
             },
           });
-        } catch (e: any) {
+        } catch (e: unknown) {
           console.error("Feed XML Exception:", e);
           return new Response("Internal Server Error", { status: 500 });
         }

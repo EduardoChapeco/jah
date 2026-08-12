@@ -69,7 +69,6 @@ function NewCollectionPage() {
       <PageHeader
         eyebrow="Catálogo"
         title="Nova coleção"
-        description="Crie uma nova coleção para campanhas."
         actions={
           <Button variant="outline" asChild>
             <Link to="/workspace/catalogo/colecoes">
@@ -81,7 +80,7 @@ function NewCollectionPage() {
       />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <Surface variant="default" padding="none">
+        <div className="border border-border bg-card rounded-md shadow-xs overflow-hidden">
           <div className="p-6 border-b border-border/20 bg-muted/10">
             <h3 className="text-base font-bold">Dados Básicos</h3>
           </div>
@@ -123,7 +122,7 @@ function NewCollectionPage() {
               </Select>
             </div>
           </div>
-        </Surface>
+        </div>
 
         <div className="flex justify-end gap-4">
           <Button type="button" variant="ghost" asChild>

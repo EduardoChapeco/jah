@@ -71,7 +71,7 @@ function Page() {
         <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">
           Bem-vinda de volta
         </p>
-        <h2 className="text-editorial text-2xl text-foreground">
+        <h2 className="font-semibold text-2xl text-foreground">
           {profile.fullName || profile.email}
         </h2>
         <p className="text-sm text-muted-foreground mt-1">{profile.email}</p>

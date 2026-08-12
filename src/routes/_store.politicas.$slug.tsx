@@ -28,10 +28,7 @@ function Page() {
       <PageHeader eyebrow="Documento" title={page?.title || "Política da Loja"} />
       <div className="mt-8">
         {!page ? (
-          <EmptyState
-            title="Página não encontrada"
-            description="Este documento ainda não foi publicado."
-          />
+          <EmptyState title="Página não encontrada" />
         ) : (
           <div className="prose prose-neutral max-w-none">
             {page.sections?.map((section) => (

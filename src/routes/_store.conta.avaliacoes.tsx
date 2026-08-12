@@ -53,12 +53,11 @@ function Page() {
 
   return (
     <section>
-      <h2 className="text-editorial text-2xl text-foreground mb-6">Minhas Avaliações</h2>
+      <h2 className="font-semibold text-2xl text-foreground mb-6">Minhas Avaliações</h2>
 
       {reviews.length === 0 ? (
         <EmptyState
           title="Nenhuma avaliação"
-          description="Você ainda não avaliou nenhum produto. Após receber um pedido, você poderá deixar sua opinião."
           action={
             <Button asChild>
               <Link to="/mercado">Explorar produtos</Link>

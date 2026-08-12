@@ -10,10 +10,12 @@ import { classifiedSchema } from "@/types/community";
 
 export const getPublicClassifieds = createServerFn({ method: "GET" })
   .validator(
-    z.object({
-      limit: z.number().int().min(1).max(100).optional(),
-      category: z.enum(["job", "sale", "trade", "service"]).optional(),
-    }).optional(),
+    z
+      .object({
+        limit: z.number().int().min(1).max(100).optional(),
+        category: z.enum(["job", "sale", "trade", "service"]).optional(),
+      })
+      .optional(),
   )
   .handler(async ({ data }) => {
     const supabase = getServerClient();
@@ -91,23 +93,24 @@ export const getClassified = createServerFn({ method: "GET" })
     return data;
   });
 
-const upsertClassifiedInput = classifiedSchema.omit({
-  id: true,
-  author_profile_id: true,
-  created_at: true,
-  updated_at: true,
-}).extend({
-  id: z.string().uuid().optional(),
-  // New fields from Microfase C migration — all optional for backwards compat
-  images: z.array(z.string()).optional().default([]),
-  contact_whatsapp: z.string().nullable().optional(),
-  location_text: z.string().nullable().optional(),
-  expires_at: z.string().datetime().nullable().optional(),
-  condition: z.enum(["new", "used", "refurbished"]).nullable().optional(),
-  negotiable: z.boolean().optional().default(true),
-  attributes: z.record(z.any()).optional().default({}),
-});
-
+const upsertClassifiedInput = classifiedSchema
+  .omit({
+    id: true,
+    author_profile_id: true,
+    created_at: true,
+    updated_at: true,
+  })
+  .extend({
+    id: z.string().uuid().optional(),
+    // New fields from Microfase C migration — all optional for backwards compat
+    images: z.array(z.string()).optional().default([]),
+    contact_whatsapp: z.string().nullable().optional(),
+    location_text: z.string().nullable().optional(),
+    expires_at: z.string().datetime().nullable().optional(),
+    condition: z.enum(["new", "used", "refurbished"]).nullable().optional(),
+    negotiable: z.boolean().optional().default(true),
+    attributes: z.record(z.any()).optional().default({}),
+  });
 
 export const upsertClassified = createServerFn({ method: "POST" })
   .validator(upsertClassifiedInput)
@@ -135,19 +138,15 @@ export const upsertClassified = createServerFn({ method: "POST" })
         .eq("author_profile_id", identity.id)
         .select()
         .single();
-        
+
       if (error) {
         console.error("Error upserting classified:", error);
         throw new Error("Failed to save classified");
       }
       return data;
     } else {
-      const { data, error } = await supabase
-        .from("classifieds")
-        .insert(payload)
-        .select()
-        .single();
-        
+      const { data, error } = await supabase.from("classifieds").insert(payload).select().single();
+
       if (error) {
         console.error("Error upserting classified:", error);
         throw new Error("Failed to save classified");

@@ -213,11 +213,11 @@ export function BuilderInspector({
                       <div className="grid grid-cols-2 gap-2">
                         {[
                           { id: "default", label: "Padrão", bg: "bg-[#18181b]" },
-                          { id: "zine", label: "Zine", bg: "bg-[#f5f5f5] border-2 border-black" },
+                          { id: "zine", label: "Zine", bg: "bg-[#f5f5f5] border border-black" },
                           {
                             id: "ticket",
                             label: "Ticket",
-                            bg: "bg-white border-2 border-dashed border-gray-300",
+                            bg: "bg-white border border-dashed border-gray-300",
                           },
                           { id: "polaroid", label: "Polaróide", bg: "bg-[#fffff8] shadow-sm pb-4" },
                         ].map((theme) => (
@@ -483,7 +483,7 @@ export function BuilderInspector({
                       </label>
                       <select
                         className="w-full text-sm p-2 bg-white/5 border border-white/10 text-white"
-                        value={(selectedNode.data_bindings as any)?.source ?? ""}
+                        value={selectedNode.data_bindings?.source ?? ""}
                         onChange={(e) => {
                           const source = e.target.value;
                           setNodes((prev: any[]) =>
@@ -503,14 +503,14 @@ export function BuilderInspector({
                         <option value="latest_classifieds">Classificados da Comunidade</option>
                       </select>
                     </div>
-                    {(selectedNode.data_bindings as any)?.source === "product_collection" && (
+                    {selectedNode.data_bindings?.source === "product_collection" && (
                       <div className="space-y-1.5">
                         <label className="text-white/60 text-[11px] font-medium uppercase tracking-wide">
                           Coleção ou Categoria
                         </label>
                         <select
                           className="w-full text-sm p-2 bg-white/5 border border-white/10 text-white"
-                          value={(selectedNode.data_bindings as any)?.collection_slug ?? ""}
+                          value={selectedNode.data_bindings?.collection_slug ?? ""}
                           onChange={(e) =>
                             updateNode(
                               selectedNode.id,
@@ -535,7 +535,7 @@ export function BuilderInspector({
                       </div>
                     )}
                     {["dynamic_products", "upcoming_events", "latest_classifieds"].includes(
-                      (selectedNode.data_bindings as any)?.source,
+                      selectedNode.data_bindings?.source || "",
                     ) && (
                       <div className="space-y-1.5">
                         <label className="text-white/60 text-[11px] font-medium uppercase tracking-wide">
@@ -546,7 +546,7 @@ export function BuilderInspector({
                           min={1}
                           max={24}
                           className="h-8 text-sm bg-white/5 border-white/10 text-white"
-                          value={(selectedNode.data_bindings as any)?.limit ?? 12}
+                          value={selectedNode.data_bindings?.limit ?? 12}
                           onChange={(e) => {
                             const val = parseInt(e.target.value, 10);
                             updateNode(
@@ -563,9 +563,40 @@ export function BuilderInspector({
                 )}
 
                 {/* Layout Tab */}
-                {inspectorTab === "layout" && blockManifest.inspector?.layout && (
+                {inspectorTab === "layout" && (
                   <div className="space-y-4">
-                    {blockManifest.inspector.layout.map((field: any) => (
+                    {/* Native Layout Variant (from canonical registry) */}
+                    {blockManifest.layoutVariants && (
+                      <div className="space-y-1.5 p-3 border border-dashed border-white/20 bg-white/5 rounded-md">
+                        <label className="text-white text-[12px] font-semibold tracking-wide flex items-center gap-2">
+                          Variante Canônica de Layout
+                        </label>
+                        <select
+                          className="w-full text-sm p-2 bg-black/40 border border-white/10 text-white"
+                          value={selectedNode.layout_variant ?? ""}
+                          onChange={(e) =>
+                            updateNode(
+                              selectedNode.id,
+                              "root", // update root property
+                              "layout_variant",
+                              e.target.value,
+                            )
+                          }
+                        >
+                          <option value="" disabled>
+                            Selecione o Layout
+                          </option>
+                          {blockManifest.layoutVariants.map((opt: any) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Generic Layout Rules (spacing, maxWidth, etc) */}
+                    {blockManifest.inspector?.layout?.map((field: any) => (
                       <div key={field.name} className="space-y-1.5">
                         <label className="text-white/60 text-[11px] font-medium uppercase tracking-wide">
                           {field.label}

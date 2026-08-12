@@ -142,7 +142,7 @@ export function BookingCalendar({ content }: BookingCalendarProps) {
                       <div
                         key={svc.id}
                         onClick={() => setSelectedService(svc.id)}
-                        className={`p-4 border-2 cursor-pointer transition-all ${selectedService === svc.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}
+                        className={`p-4 border cursor-pointer transition-all ${selectedService === svc.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}
                       >
                         <h3 className="font-semibold text-lg">{svc.title}</h3>
                         <p className="text-sm text-muted-foreground mt-1 line-clamp-2">

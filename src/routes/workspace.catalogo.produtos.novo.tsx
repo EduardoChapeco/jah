@@ -114,8 +114,10 @@ function QuickNewProductPage() {
     if (type === "band" || type === "ecommerce") {
       return [{ id: crypto.randomUUID(), name: "Tamanho", values: ["P", "M", "G"] }];
     }
-    if (type === "delivery" as any) {
-      return [{ id: crypto.randomUUID(), name: "Adicionais", values: ["Com Queijo", "Sem Cebola"] }];
+    if (type === ("delivery" as any)) {
+      return [
+        { id: crypto.randomUUID(), name: "Adicionais", values: ["Com Queijo", "Sem Cebola"] },
+      ];
     }
     return [];
   };
@@ -262,14 +264,16 @@ function QuickNewProductPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-12">
+    <div className="space-y-6 pb-12">
       <PageHeader
         eyebrow="Catálogo / Produtos"
         title="Novo Produto"
-        description="Cadastre seu produto de forma flexível. Crie opções dinâmicas como Tamanho, Cor, Material, etc."
         actions={
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => navigate({ to: "/workspace/catalogo/produtos" })}>
+            <Button
+              variant="outline"
+              onClick={() => navigate({ to: "/workspace/catalogo/produtos" })}
+            >
               <ArrowLeft className="mr-2 size-4" /> Cancelar
             </Button>
             <Button onClick={handleSubmit(onSubmit)} disabled={isSubmitting} className="min-w-32">
@@ -287,12 +291,12 @@ function QuickNewProductPage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Informações Principais */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Informações Principais</CardTitle>
-            <CardDescription>O básico para iniciar o cadastro.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
+        <div>
+          <div className="mb-4">
+            <h3 className="text-lg font-bold text-foreground">Informações Principais</h3>
+            <p className="text-sm text-muted-foreground">O básico para iniciar o cadastro.</p>
+          </div>
+          <div className="space-y-6">
             <div className="space-y-2">
               <Label className="text-sm font-semibold">Nome do produto *</Label>
               <Input
@@ -314,45 +318,53 @@ function QuickNewProductPage() {
             {store?.type === "event_producer" && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-muted/30 rounded-lg border">
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-poster-red">Data do Evento *</Label>
-                  <Input 
-                    type="datetime-local" 
+                  <Label className="text-sm font-semibold text-primary">Data do Evento *</Label>
+                  <Input
+                    type="datetime-local"
                     className="h-11"
                     value={baseAttributes["data_evento"] || ""}
-                    onChange={(e) => setBaseAttributes({...baseAttributes, data_evento: e.target.value})}
+                    onChange={(e) =>
+                      setBaseAttributes({ ...baseAttributes, data_evento: e.target.value })
+                    }
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-poster-red">Localização</Label>
-                  <Input 
-                    placeholder="Ex: Galpão 5, SP" 
+                  <Label className="text-sm font-semibold text-primary">Localização</Label>
+                  <Input
+                    placeholder="Ex: Galpão 5, SP"
                     className="h-11"
                     value={baseAttributes["local"] || ""}
-                    onChange={(e) => setBaseAttributes({...baseAttributes, local: e.target.value})}
+                    onChange={(e) =>
+                      setBaseAttributes({ ...baseAttributes, local: e.target.value })
+                    }
                   />
                 </div>
               </div>
             )}
-            
+
             {store?.type === "creator" && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-muted/30 rounded-lg border">
                 <div className="space-y-2">
                   <Label className="text-sm font-semibold">Duração (Minutos)</Label>
-                  <Input 
+                  <Input
                     type="number"
-                    placeholder="Ex: 60" 
+                    placeholder="Ex: 60"
                     className="h-11"
                     value={baseAttributes["duracao_min"] || ""}
-                    onChange={(e) => setBaseAttributes({...baseAttributes, duracao_min: e.target.value})}
+                    onChange={(e) =>
+                      setBaseAttributes({ ...baseAttributes, duracao_min: e.target.value })
+                    }
                   />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-sm font-semibold">Formato</Label>
-                  <Select 
-                    value={baseAttributes["formato"] || ""} 
-                    onValueChange={(v) => setBaseAttributes({...baseAttributes, formato: v})}
+                  <Select
+                    value={baseAttributes["formato"] || ""}
+                    onValueChange={(v) => setBaseAttributes({ ...baseAttributes, formato: v })}
                   >
-                    <SelectTrigger className="h-11"><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                    <SelectTrigger className="h-11">
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="online">Online (Meet/Zoom)</SelectItem>
                       <SelectItem value="presencial">Presencial</SelectItem>
@@ -428,37 +440,35 @@ function QuickNewProductPage() {
                 </Select>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Mídia Principal */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Foto de Capa Inicial (Opcional)</CardTitle>
-            <CardDescription>
+        <div className="pt-6 border-t">
+          <div className="mb-4">
+            <h3 className="text-lg font-bold text-foreground">Foto de Capa Inicial (Opcional)</h3>
+            <p className="text-sm text-muted-foreground">
               A imagem principal deste produto. Você poderá adicionar mais depois.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+            </p>
+          </div>
+          <div>
             <div className="max-w-sm">
               <ImageUpload onChange={setMainImageUrl} value={mainImageUrl} bucket="product-media" />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Gerador de Variações Dinâmicas */}
-        <Card className="overflow-hidden">
-          <div className="bg-accent/5 px-6 py-4 border-b">
-            <h3 className="text-lg font-bold text-accent dark:text-accent">
-              Construtor Dinâmico de Variações
-            </h3>
-            <p className="text-sm text-accent/80 dark:text-accent/80 mt-1">
+        <div className="pt-6 border-t">
+          <div className="mb-4">
+            <h3 className="text-lg font-bold text-foreground">Construtor Dinâmico de Variações</h3>
+            <p className="text-sm text-muted-foreground">
               Crie opções customizadas (Tamanho, Cor, Material) para gerar automaticamente a matriz
               de estoque.
             </p>
           </div>
 
-          <CardContent className="p-6 space-y-6">
+          <div className="space-y-6">
             {!isMatrixGenerated ? (
               <div className="space-y-6 animate-in fade-in">
                 {attributes.map((attr, index) => (
@@ -512,7 +522,7 @@ function QuickNewProductPage() {
                     type="button"
                     variant="outline"
                     onClick={addAttribute}
-                    className="border-dashed border-2"
+                    className="border-dashed border"
                   >
                     <Plus className="mr-2 h-4 w-4" /> Adicionar Opção (Atributo)
                   </Button>
@@ -555,8 +565,8 @@ function QuickNewProductPage() {
                 />
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </form>
     </div>
   );

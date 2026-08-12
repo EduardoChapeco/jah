@@ -84,10 +84,7 @@ export type SearchResultStore = {
 };
 
 export type SearchResult =
-  | SearchResultProduct
-  | SearchResultEvent
-  | SearchResultClassified
-  | SearchResultStore;
+  SearchResultProduct | SearchResultEvent | SearchResultClassified | SearchResultStore;
 
 export type FederatedSearchResponse = {
   products: SearchResultProduct[];
@@ -101,9 +98,7 @@ export type FederatedSearchResponse = {
 // Handler
 // ---------------------------------------------------------------------------
 
-async function _federatedSearch(
-  input: FederatedSearchInput,
-): Promise<FederatedSearchResponse> {
+async function _federatedSearch(input: FederatedSearchInput): Promise<FederatedSearchResponse> {
   const db = getServerClient();
   const { query, types, limit, store_id } = input;
 
@@ -158,7 +153,9 @@ async function _federatedSearch(
             }));
             return;
           }
-        } catch {}
+        } catch (err) {
+          // ignore error and fallback
+        }
 
         // Fallback ILIKE
         const { data } = await q.ilike("title", ilikeTerm);
@@ -182,7 +179,9 @@ async function _federatedSearch(
       (async () => {
         let q = db
           .from("events")
-          .select("id, title, description, event_date, location, is_free, cover_image, store_id, status")
+          .select(
+            "id, title, description, event_date, location, is_free, cover_image, store_id, status",
+          )
           .eq("status", "published")
           .gte("event_date", new Date().toISOString()) // Apenas eventos futuros
           .order("event_date", { ascending: true })
@@ -210,7 +209,9 @@ async function _federatedSearch(
             }));
             return;
           }
-        } catch {}
+        } catch (err) {
+          // ignore error and fallback
+        }
 
         const { data } = await q.ilike("title", ilikeTerm);
         results.events = (data || []).map((e) => ({
@@ -233,7 +234,7 @@ async function _federatedSearch(
   if (types.includes("classified")) {
     promises.push(
       (async () => {
-        let q = db
+        const q = db
           .from("classifieds")
           .select(
             "id, title, content, category, price_cents, location_text, images, condition, negotiable, author_profile_id, status",
@@ -265,7 +266,9 @@ async function _federatedSearch(
             }));
             return;
           }
-        } catch {}
+        } catch (err) {
+          // ignore error and fallback
+        }
 
         const { data } = await q.ilike("title", ilikeTerm);
         results.classifieds = (data || []).map((c) => ({

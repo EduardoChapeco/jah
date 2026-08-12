@@ -42,7 +42,7 @@ export function getEnvVar(key: string): string | undefined {
   } else {
     debug += "gEnv=no;";
   }
-  
+
   // 1b. Resolve via injected process.env from wrap-worker.js
   const gProcess = (globalThis as any).process;
   if (gProcess && gProcess.env && typeof gProcess.env[key] === "string" && gProcess.env[key]) {
@@ -70,10 +70,9 @@ export function getEnvVar(key: string): string | undefined {
     } else {
       debug += "evt=null;";
     }
-  } catch (err: any) {
-    debug += `evtThrow=${err.message};`;
+  } catch (err: unknown) {
+    debug += `evtThrow=${(err instanceof Error ? err.message : String(err))};`;
   }
-
 
   // 2. Fallback to process.env (Node.js runtime / local dev)
   if (typeof process !== "undefined" && process.env && process.env[key]) {

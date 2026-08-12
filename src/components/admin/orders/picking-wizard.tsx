@@ -54,8 +54,8 @@ export function PickingWizard({ order, isOpen, onOpenChange, onComplete }: Picki
           newPicked[it.order_item_id] = it.qty_picked;
         }
         setPickedState(newPicked);
-      } catch (err: any) {
-        toast.error(err.message || "Erro ao iniciar sessão no WMS.");
+      } catch (err: unknown) {
+        toast.error((err instanceof Error ? (err instanceof Error ? err.message : String(err)) : String(err)) || "Erro ao iniciar sessão no WMS.");
         onOpenChange(false);
       } finally {
         setIsLoadingSession(false);
@@ -98,8 +98,8 @@ export function PickingWizard({ order, isOpen, onOpenChange, onComplete }: Picki
         [item.id]: (prev[item.id] || 0) + qtyToPick,
       }));
       toast.success(`${item.product_title} conferido!`);
-    } catch (err: any) {
-      toast.error(err.message || "Erro ao registrar conferência no WMS.");
+    } catch (err: unknown) {
+      toast.error((err instanceof Error ? (err instanceof Error ? err.message : String(err)) : String(err)) || "Erro ao registrar conferência no WMS.");
     } finally {
       setProcessingItems((prev) => {
         const next = new Set(prev);
@@ -118,9 +118,9 @@ export function PickingWizard({ order, isOpen, onOpenChange, onComplete }: Picki
       await onComplete(); // Refresh UI / invalidate router
       toast.success("Separação e baixa de estoque concluídas de forma transacional!");
       onOpenChange(false);
-    } catch (e: any) {
+    } catch (e: unknown) {
       toast.error(
-        e.message || "Erro ao finalizar separação. O servidor rejeitou a integridade da remessa.",
+        (e instanceof Error ? e.message : String(e)) || "Erro ao finalizar separação. O servidor rejeitou a integridade da remessa.",
       );
     } finally {
       setIsSubmitting(false);
@@ -178,7 +178,7 @@ export function PickingWizard({ order, isOpen, onOpenChange, onComplete }: Picki
                 return (
                   <div
                     key={item.id}
-                    className={`flex gap-4 p-4 border-2 transition-all duration-200 cursor-pointer ${isChecked ? "border-green-500/40 bg-success/5" : "border-border/50 hover:border-primary/40 hover:bg-muted/20"} ${isProcessing ? "opacity-50 pointer-events-none" : ""}`}
+                    className={`flex gap-4 p-4 border transition-all duration-200 cursor-pointer ${isChecked ? "border-green-500/40 bg-success/5" : "border-border/50 hover:border-primary/40 hover:bg-muted/20"} ${isProcessing ? "opacity-50 pointer-events-none" : ""}`}
                     onClick={() => {
                       if (!isChecked) handlePickItem(item);
                     }}

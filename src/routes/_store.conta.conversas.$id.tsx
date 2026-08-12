@@ -109,31 +109,42 @@ function Page() {
   const isClosed = thread.status === "closed" || thread.status === "resolved";
 
   return (
-    <section className="flex flex-col h-full min-h-[60vh]">
+    <section className="flex flex-col h-full min-h-[60vh] font-sans text-foreground">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <Button variant="ghost" size="icon" asChild>
-          <Link to="/conta/pedidos" aria-label="Voltar">
-            <ChevronLeft className="size-5" />
+      <div className="flex items-center gap-4 mb-6 border-b border-border pb-4">
+        <Button
+          variant="ghost"
+          className="rounded-md border border-border bg-white h-10 w-10 p-0 flex items-center justify-center text-foreground"
+          asChild
+        >
+          <Link to="/conta/suporte" aria-label="Voltar">
+            <ChevronLeft className="size-6" />
           </Link>
         </Button>
         <div className="flex-1 min-w-0">
-          <h2 className="text-xl font-editorial text-foreground truncate">
+          <h2 className="text-2xl font-semibold font-black text-foreground uppercase truncate">
             {thread.subject || "Suporte"}
           </h2>
-          <p className="text-xs text-muted-foreground">Aberta em {formatDate(thread.createdAt)}</p>
+          <p className="text-sm font-medium text-foreground/70 font-mono mt-1">
+            Aberta em {formatDate(thread.createdAt)}
+          </p>
         </div>
-        <Badge variant={isClosed ? "secondary" : "default"}>
+        <span
+          className={`px-3 py-1 font-black text-sm uppercase tracking-widest border border-border shadow-sm ${isClosed ? "bg-muted/30 text-foreground" : "bg-success text-white"}`}
+        >
           {STATUS_LABELS[thread.status] ?? thread.status}
-        </Badge>
+        </span>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 space-y-3 overflow-y-auto pr-1 mb-4 max-h-[50vh]">
+      <div className="flex-1 space-y-5 overflow-y-auto pr-2 mb-6 max-h-[50vh] scrollbar-thin">
         {messages.length === 0 && (
-          <p className="text-center text-sm text-muted-foreground py-8">
-            Nenhuma mensagem ainda. Envie uma mensagem para a equipe.
-          </p>
+          <div className="text-center p-10 border border-dashed border-border bg-background">
+            <p className="text-lg font-bold text-foreground uppercase">Nenhuma mensagem ainda.</p>
+            <p className="text-sm text-foreground/70 font-medium">
+              Envie uma mensagem para a equipe.
+            </p>
+          </div>
         )}
         {messages.map((msg: any) => (
           <div
@@ -141,11 +152,11 @@ function Page() {
             className={`flex ${msg.isStaffReply ? "justify-start" : "justify-end"}`}
           >
             <div
-              className={`max-w-[80%] px-4 py-2.5 text-sm ${msg.isStaffReply ? "bg-muted text-foreground rounded-tl-sm" : "bg-primary text-primary-foreground rounded-tr-sm"}`}
+              className={`max-w-[85%] px-5 py-3 border border-border shadow-sm ${msg.isStaffReply ? "bg-background rounded-md rounded-br-2xl text-foreground" : "bg-primary text-primary-foreground rounded-md rounded-bl-2xl"}`}
             >
-              <p>{msg.message}</p>
+              <p className="text-base font-medium leading-relaxed">{msg.message}</p>
               <p
-                className={`text-xs mt-1 ${msg.isStaffReply ? "text-muted-foreground" : "text-primary-foreground/70"}`}
+                className={`text-xs mt-2 font-mono font-bold ${msg.isStaffReply ? "text-foreground/60" : "text-primary-foreground/70"}`}
               >
                 {new Date(msg.createdAt).toLocaleTimeString("pt-BR", {
                   hour: "2-digit",
@@ -160,25 +171,30 @@ function Page() {
 
       {/* Input */}
       {isClosed ? (
-        <div className="border border-border bg-muted p-4 text-center text-sm text-muted-foreground">
-          Esta conversa está encerrada. Abra um novo chamado de suporte se precisar de ajuda.
+        <div className="border border-border bg-secondary p-4 text-center">
+          <p className="font-semibold text-xl font-black uppercase text-foreground">
+            Conversa Encerrada
+          </p>
+          <p className="text-sm text-foreground/80 font-medium">
+            Abra um novo chamado de suporte se precisar de ajuda.
+          </p>
         </div>
       ) : (
-        <form onSubmit={handleSend} className="flex gap-2">
+        <form onSubmit={handleSend} className="flex gap-3">
           <Input
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Escreva sua mensagem..."
             disabled={isSending}
-            className="flex-1"
+            className="flex-1 h-14 border border-border rounded-md bg-background font-medium focus-visible:ring-0 focus-visible:border-poster-red placeholder:text-foreground/40"
           />
           <Button
             type="submit"
             disabled={!text.trim() || isSending}
-            size="icon"
+            className="h-14 w-14 rounded-md bg-primary text-primary-foreground border border-border p-0 flex items-center justify-center cursor-pointer disabled:opacity-50 disabled:-none"
             aria-label="Enviar"
           >
-            <Send className="size-4" aria-hidden />
+            <Send className="size-6" aria-hidden />
           </Button>
         </form>
       )}

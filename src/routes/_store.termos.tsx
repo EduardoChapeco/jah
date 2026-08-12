@@ -29,10 +29,7 @@ function Page() {
   if (!res || res.status === "not_found") {
     return (
       <div className="container py-20">
-        <EmptyState
-          title="Documento não encontrado"
-          description="Os termos de serviço ainda não foram publicados."
-        />
+        <EmptyState title="Documento não encontrado" />
       </div>
     );
   }

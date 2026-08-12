@@ -186,7 +186,7 @@ export const listCustomerExchanges = createServerFn({ method: "GET" }).handler(a
       .eq("customer_id", user.id)
       .order("requested_at", { ascending: false });
 
-    if (error) throw new Error(error.message);
+    if (error) throw new Error((error instanceof Error ? error.message : String(error)));
 
     return (data || []).map((ex: any) => ({
       id: ex.id,
@@ -196,7 +196,7 @@ export const listCustomerExchanges = createServerFn({ method: "GET" }).handler(a
       orderToken: ex.orders?.public_token as string | null,
       orderTotal: ex.orders?.total_cents as number | null,
     }));
-  } catch (e: any) {
-    throw new Error(e.message || "Erro ao buscar trocas.");
+  } catch (e: unknown) {
+    throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao buscar trocas.");
   }
 });

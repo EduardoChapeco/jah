@@ -16,14 +16,16 @@ export const getStoreInvoices = createServerFn({ method: "GET" })
   });
 
 export const createInvoice = createServerFn({ method: "POST" })
-  .validator((d: { storeId: string; periodStart: string; periodEnd: string; platformFeeCents: number }) => d)
+  .validator(
+    (d: { storeId: string; periodStart: string; periodEnd: string; platformFeeCents: number }) => d,
+  )
   .handler(async ({ data }) => {
     const supabase = await getServerClient();
-    
+
     // Calcula o vencimento (10 dias após o fim do período)
     const dueDate = new Date(data.periodEnd);
     dueDate.setDate(dueDate.getDate() + 10);
-    
+
     const { data: invoice, error } = await supabase
       .from("platform_invoices")
       .insert({

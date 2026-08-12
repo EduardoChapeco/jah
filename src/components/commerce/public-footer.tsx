@@ -5,7 +5,8 @@ import { Logo } from "@/components/commerce/logo";
 export function PublicFooter({ menuItems = [], store }: { menuItems?: any[]; store?: any }) {
   const storeName = store?.name || "Jah";
   const storeDesc =
-    store?.description || "Plataforma da comunidade para produtores culturais, negócios e artistas locais.";
+    store?.description ||
+    "Plataforma da comunidade para produtores culturais, negócios e artistas locais.";
 
   // Agrupa a lista plana de itens em colunas de até 4 links
   const navItems = menuItems;

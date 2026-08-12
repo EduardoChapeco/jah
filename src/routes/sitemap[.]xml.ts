@@ -27,13 +27,19 @@ export const Route = createFileRoute("/sitemap.xml")({
           }
 
           // 2. Fetch active products
-          const { data: products } = await db.from("products").select("slug").eq("status", "active");
+          const { data: products } = await db
+            .from("products")
+            .select("slug")
+            .eq("status", "published");
           if (products) {
             products.forEach((p) => dynamicPaths.push(`/produto/${p.slug}`));
           }
 
           // 3. Fetch active classifieds
-          const { data: classifieds } = await db.from("classifieds").select("slug").eq("status", "active");
+          const { data: classifieds } = await db
+            .from("classifieds")
+            .select("slug")
+            .eq("status", "published");
           if (classifieds) {
             classifieds.forEach((c) => dynamicPaths.push(`/classificados/${c.slug}`));
           }

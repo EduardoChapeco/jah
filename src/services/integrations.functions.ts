@@ -62,7 +62,7 @@ export const getPublicPixels = createServerFn({ method: "GET" }).handler(async (
 
   if (error || !credentials) return [];
 
-  return credentials.map(c => ({
+  return credentials.map((c) => ({
     provider: c.provider,
     pixelId: c.provider === "meta_pixel" ? c.token_payload?.pixel_id : null,
     measurementId: c.provider === "google_analytics" ? c.token_payload?.measurement_id : null,

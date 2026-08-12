@@ -27,13 +27,15 @@ export const getPlatformMetrics = createServerFn({ method: "GET" }).handler(asyn
 
   if (invError) throw new Error("Erro ao ler faturas");
 
-  const totalRevenueCents = invoices
-    ?.filter((i) => i.status === "paid")
-    .reduce((sum: number, i: any) => sum + i.amount_cents, 0) || 0;
+  const totalRevenueCents =
+    invoices
+      ?.filter((i) => i.status === "paid")
+      .reduce((sum: number, i: any) => sum + i.amount_cents, 0) || 0;
 
-  const pendingRevenueCents = invoices
-    ?.filter((i) => i.status === "pending" || i.status === "overdue")
-    .reduce((sum: number, i: any) => sum + i.amount_cents, 0) || 0;
+  const pendingRevenueCents =
+    invoices
+      ?.filter((i) => i.status === "pending" || i.status === "overdue")
+      .reduce((sum: number, i: any) => sum + i.amount_cents, 0) || 0;
 
   // Fetch total stores
   const { count: totalStores, error: storeError } = await db
@@ -91,7 +93,12 @@ export const toggleStoreStatus = createServerFn({ method: "POST" })
   });
 
 export const updateInvoiceStatus = createServerFn({ method: "POST" })
-  .validator(z.object({ invoiceId: z.string().uuid(), status: z.enum(["pending", "paid", "overdue", "cancelled"]) }))
+  .validator(
+    z.object({
+      invoiceId: z.string().uuid(),
+      status: z.enum(["pending", "paid", "overdue", "cancelled"]),
+    }),
+  )
   .handler(async ({ data }) => {
     await requirePlatformAdmin();
     const db = getServerClient();
@@ -113,25 +120,25 @@ export const updateInvoiceStatus = createServerFn({ method: "POST" })
   });
 
 export const createPlatformInvoice = createServerFn({ method: "POST" })
-  .validator(z.object({
-    storeId: z.string().uuid(),
-    description: z.string().min(1, "Descrição obrigatória"),
-    amountCents: z.number().positive("Valor deve ser maior que zero"),
-    dueDate: z.string() // ISO date string
-  }))
+  .validator(
+    z.object({
+      storeId: z.string().uuid(),
+      description: z.string().min(1, "Descrição obrigatória"),
+      amountCents: z.number().positive("Valor deve ser maior que zero"),
+      dueDate: z.string(), // ISO date string
+    }),
+  )
   .handler(async ({ data }) => {
     await requirePlatformAdmin();
     const db = getServerClient();
 
-    const { error } = await db
-      .from("platform_invoices")
-      .insert({
-        store_id: data.storeId,
-        description: data.description,
-        amount_cents: data.amountCents,
-        due_date: data.dueDate,
-        status: "pending"
-      });
+    const { error } = await db.from("platform_invoices").insert({
+      store_id: data.storeId,
+      description: data.description,
+      amount_cents: data.amountCents,
+      due_date: data.dueDate,
+      status: "pending",
+    });
 
     if (error) throw new Error("Erro ao emitir fatura: " + error.message);
     return { success: true };

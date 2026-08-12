@@ -406,7 +406,6 @@ export const builderRegistry: Record<string, BlockManifest> = {
     allowedChildTypes: "none",
     contentSchema: z.object({
       title: z.string().optional(),
-      layout: z.enum(["carousel", "grid"]).default("carousel"),
       collection_slug: z.string().optional(),
       itemsPerRowDesktop: z.enum(["3", "4", "5"]).default("4"),
       itemsPerRowMobile: z.enum(["1", "2"]).default("2"),
@@ -418,15 +417,6 @@ export const builderRegistry: Record<string, BlockManifest> = {
         { name: "collection_slug", label: "Coleção (opcional)", type: "collection_select" },
       ],
       layout: [
-        {
-          name: "layout",
-          label: "Layout de Exibição",
-          type: "select",
-          options: [
-            { label: "Carrossel", value: "carousel" },
-            { label: "Grid", value: "grid" },
-          ],
-        },
         {
           name: "itemsPerRowDesktop",
           label: "Produtos por linha (Desktop)",
@@ -449,12 +439,16 @@ export const builderRegistry: Record<string, BlockManifest> = {
         { name: "freeScroll", label: "Rolagem Livre (Mobile Slider)", type: "boolean" },
       ],
     },
+    layoutVariants: [
+      { label: "Carrossel", value: "carousel" },
+      { label: "Grade (Grid)", value: "grid" },
+    ],
     defaultProps: {
       node_type: "composition",
       block_type: "product_rail",
+      layout_variant: "carousel",
       content: {
         title: "Destaques",
-        layout: "carousel",
         itemsPerRowDesktop: "4",
         itemsPerRowMobile: "2",
         freeScroll: true,

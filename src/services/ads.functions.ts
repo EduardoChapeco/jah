@@ -68,7 +68,7 @@ export const createAdCampaign = createServerFn({ method: "POST" })
         title: product.title,
         body: product.description,
         image_url: product.cover_url,
-        target_url: `/produto/${product.title.toLowerCase().replace(/ /g, '-')}-${data.productId}`, // Basic slug fallback
+        target_url: `/produto/${product.title.toLowerCase().replace(/ /g, "-")}-${data.productId}`, // Basic slug fallback
       })
       .select("id")
       .single();
@@ -88,9 +88,7 @@ export const createAdCampaign = createServerFn({ method: "POST" })
   });
 
 export const trackAdEvent = createServerFn({ method: "POST" })
-  .validator(
-    z.object({ campaignId: z.string().uuid(), eventType: z.enum(["view", "click"]) }),
-  )
+  .validator(z.object({ campaignId: z.string().uuid(), eventType: z.enum(["view", "click"]) }))
   .handler(async ({ data }) => {
     const supabase = getServerClient();
 

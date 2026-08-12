@@ -348,7 +348,6 @@ function CatalogPage() {
             ? (categories.find((c) => c.slug === search.categoria)?.name ?? "Catálogo")
             : "Explorar Tudo"
         }
-        description="Eventos, Lojas, Serviços e muito mais."
       />
 
       {/* Niche Tabs */}
@@ -364,12 +363,13 @@ function CatalogPage() {
           return (
             <button
               key={tab.label}
-              onClick={() => navigate({ to: Route.fullPath, search: (s: any) => ({ ...s, niche: tab.id || undefined }) })}
-              className={`px-4 py-2 rounded-full whitespace-nowrap text-sm font-semibold transition-colors border ${
-                isActive 
-                  ? "bg-ink text-white border-ink" 
-                  : "bg-surface hover:bg-muted border-border text-foreground"
-              }`}
+              onClick={() =>
+                navigate({
+                  to: Route.fullPath,
+                  search: (s: any) => ({ ...s, niche: tab.id || undefined }),
+                })
+              }
+              className={`px-4 py-2 rounded-full whitespace-nowrap text-sm font-semibold transition-colors border ${isActive ? "bg-primary text-white border-border" : "bg-surface hover:bg-muted border-border text-foreground"}`}
             >
               {tab.label}
             </button>
@@ -456,25 +456,11 @@ function CatalogPage() {
 
         {/* Product grid */}
         <div className="flex-1">
-          {result.status === "unconfigured" && <UnconfiguredState description={result.reason} />}
+          {result.status === "unconfigured" && <UnconfiguredState />}
           {result.status === "empty" && (
             <EmptyState
               title="Nenhum produto encontrado"
-              description={
-                activeFiltersCount > 0
-                  ? "Tente remover alguns filtros para ver mais produtos."
-                  : "Ainda não há produtos neste catálogo."
-              }
-              action={
-                activeFiltersCount > 0 ? (
-                  <Button
-                    variant="outline"
-                    onClick={() => navigate({ to: Route.fullPath, search: {} })}
-                  >
-                    Limpar filtros
-                  </Button>
-                ) : undefined
-              }
+              description="Tente ajustar os filtros ou pesquisar por outro termo"
             />
           )}
           {result.status === "ok" && <ProductGrid result={result} />}

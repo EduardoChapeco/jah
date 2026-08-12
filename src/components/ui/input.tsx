@@ -17,7 +17,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           "flex h-11 w-full px-3 py-2 text-base md:text-sm",
           // Aparência — usa tokens do design system
           "bg-input text-foreground",
-          "border-2 border-border",
+          "border border-border",
           // Comportamento
           "transition-colors",
           "placeholder:text-muted-foreground",

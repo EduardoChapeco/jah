@@ -1,5 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { getCart, getGlobalCarts, updateCartItemQty, removeFromCart } from "@/services/cart.functions";
+import {
+  getCart,
+  getGlobalCarts,
+  updateCartItemQty,
+  removeFromCart,
+} from "@/services/cart.functions";
 import type { CartDTO } from "@/types/orders";
 import { toast } from "sonner";
 import { useRouter } from "@tanstack/react-router";
@@ -35,10 +40,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (isCartUpdating) return;
     setIsCartUpdating(true);
     try {
-      const [updatedCart, updatedGlobalCarts] = await Promise.all([
-        getCart(),
-        getGlobalCarts(),
-      ]);
+      const [updatedCart, updatedGlobalCarts] = await Promise.all([getCart(), getGlobalCarts()]);
       setCart(updatedCart || null);
       setGlobalCarts(updatedGlobalCarts || []);
       await router.invalidate();
@@ -61,8 +63,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setIsCartUpdating(true);
     try {
       await updateCartItemQty({ data: { variantId, delta } });
-    } catch (e: any) {
-      toast.error(e.message || "Erro inesperado ao atualizar carrinho");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? (e instanceof Error ? e.message : String(e)) : String(e)) || "Erro inesperado ao atualizar carrinho");
     } finally {
       setIsCartUpdating(false);
       await refreshCart();
@@ -73,8 +75,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setIsCartUpdating(true);
     try {
       await removeFromCart({ data: { itemId } });
-    } catch (e: any) {
-      toast.error(e.message || "Erro inesperado ao remover item");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? (e instanceof Error ? e.message : String(e)) : String(e)) || "Erro inesperado ao remover item");
     } finally {
       setIsCartUpdating(false);
       await refreshCart();

@@ -45,9 +45,9 @@ export const listBookingServices = createServerFn({ method: "GET" }).handler(asy
 
     if (error) throw error;
     return { status: "success" as const, data };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[booking.functions] listBookingServices error:", error);
-    throw new Error(error.message || "Erro ao listar serviços de agendamento.");
+    throw new Error((error instanceof Error ? error.message : String(error)) || "Erro ao listar serviços de agendamento.");
   }
 });
 
@@ -130,9 +130,9 @@ export const getAvailableSlots = createServerFn({ method: "GET" })
       }
 
       return { status: "success" as const, data: slots };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("[booking.functions] getAvailableSlots error:", error);
-      throw new Error(error.message || "Erro ao buscar horários disponíveis.");
+      throw new Error((error instanceof Error ? error.message : String(error)) || "Erro ao buscar horários disponíveis.");
     }
   });
 
@@ -174,39 +174,40 @@ export const createAppointment = createServerFn({ method: "POST" })
       if (error) throw error;
 
       return { status: "success" as const, data };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("[booking.functions] createAppointment error:", error);
-      throw new Error(error.message || "Erro ao criar agendamento.");
+      throw new Error((error instanceof Error ? error.message : String(error)) || "Erro ao criar agendamento.");
     }
   });
 
 // --- ADMIN FUNCTIONS ---
 
-
-
 export const listResources = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    const identity = await getServerIdentity(); assertStoreAccess(identity, ["owner", "admin"]);
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin"]);
     const storeId = await resolveTenantStoreId();
     if (!storeId) throw new Error("Loja não encontrada no contexto.");
 
     const db = getServerClient();
     const { data, error } = await db
       .from("booking_resources")
-      .select(`
+      .select(
+        `
         id, name, resource_type, capacity, status,
         booking_resource_availabilities (
           id, day_of_week, start_time, end_time
         )
-      `)
+      `,
+      )
       .eq("store_id", storeId)
       .order("name", { ascending: true });
 
     if (error) throw error;
     return { status: "success" as const, data: data || [] };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[booking.functions] listResources error:", error);
-    throw new Error(error.message || "Erro ao listar recursos.");
+    throw new Error((error instanceof Error ? error.message : String(error)) || "Erro ao listar recursos.");
   }
 });
 
@@ -223,13 +224,14 @@ export const saveResource = createServerFn({ method: "POST" })
           day_of_week: z.number().int().min(0).max(6),
           start_time: z.string(),
           end_time: z.string(),
-        })
+        }),
       ),
-    })
+    }),
   )
   .handler(async ({ data: input }) => {
     try {
-      const identity = await getServerIdentity(); assertStoreAccess(identity, ["owner", "admin"]);
+      const identity = await getServerIdentity();
+      assertStoreAccess(identity, ["owner", "admin"]);
       const storeId = await resolveTenantStoreId();
       if (!storeId) throw new Error("Loja não encontrada no contexto.");
 
@@ -262,7 +264,7 @@ export const saveResource = createServerFn({ method: "POST" })
           })
           .eq("id", resourceId)
           .eq("store_id", storeId);
-        
+
         if (error) throw error;
       }
 
@@ -274,24 +276,27 @@ export const saveResource = createServerFn({ method: "POST" })
             resource_id: resourceId,
             day_of_week: a.day_of_week,
             start_time: a.start_time,
-            end_time: a.end_time
-          }))
+            end_time: a.end_time,
+          })),
         );
         if (vErr) throw vErr;
       }
 
       return { status: "success" as const, data: { id: resourceId } };
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[booking] saveResource error:", e);
       throw new Error("Erro ao salvar recurso.");
     }
   });
 
 export const listAppointments = createServerFn({ method: "GET" })
-  .validator(z.object({ date_from: z.string().optional(), date_to: z.string().optional() }).optional())
+  .validator(
+    z.object({ date_from: z.string().optional(), date_to: z.string().optional() }).optional(),
+  )
   .handler(async ({ data: input }) => {
     try {
-      const identity = await getServerIdentity(); assertStoreAccess(identity, ["owner", "admin"]);
+      const identity = await getServerIdentity();
+      assertStoreAccess(identity, ["owner", "admin"]);
       const storeId = await resolveTenantStoreId();
       if (!storeId) throw new Error("Loja não encontrada no contexto.");
 
@@ -299,14 +304,16 @@ export const listAppointments = createServerFn({ method: "GET" })
 
       let query = db
         .from("booking_appointments")
-        .select(`
+        .select(
+          `
           id, scheduled_at, duration_minutes, status, guest_name, guest_phone,
           booking_services(title),
           booking_resources(name)
-        `)
+        `,
+        )
         .eq("store_id", storeId)
         .order("scheduled_at", { ascending: true });
-        
+
       if (input?.date_from) {
         query = query.gte("scheduled_at", input.date_from);
       }
@@ -317,12 +324,141 @@ export const listAppointments = createServerFn({ method: "GET" })
       const { data, error } = await query;
       if (error) throw error;
       return { status: "success" as const, data: data || [] };
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[booking] listAppointments error:", e);
       throw new Error("Erro ao listar agendamentos.");
     }
   });
 
-export const getBookingService = createServerFn().validator((d: any) => d).handler(async () => { return null; });
-export const upsertBookingService = createServerFn().validator((d: any) => d).handler(async () => { return {}; });
-export const deleteBookingService = createServerFn().validator((d: any) => d).handler(async () => { return {}; });
+export const getBookingService = createServerFn()
+  .validator((d: any) => d)
+  .handler(async () => {
+    return null;
+  });
+export const upsertBookingService = createServerFn()
+  .validator((d: any) => d)
+  .handler(async () => {
+    return {};
+  });
+export const deleteBookingService = createServerFn()
+  .validator((d: any) => d)
+  .handler(async () => {
+    return {};
+  });
+
+export const updateAppointmentStatus = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string().uuid(),
+      status: z.enum([
+        "pending",
+        "confirmed",
+        "cancelled",
+        "completed",
+        "checked_in",
+        "no_show",
+        "in_service",
+      ]),
+    }),
+  )
+  .handler(async ({ data: { id, status } }) => {
+    try {
+      const identity = await getServerIdentity();
+      assertStoreAccess(identity, ["owner", "admin", "manager", "professional"]);
+      const storeId = await resolveTenantStoreId();
+
+      const db = getServerClient();
+      const { error } = await db
+        .from("booking_appointments")
+        .update({ status })
+        .eq("id", id)
+        .eq("store_id", storeId);
+
+      if (error) throw error;
+      return { success: true };
+    } catch (e: unknown) {
+      console.error("[booking] updateAppointmentStatus error:", e);
+      throw new Error("Erro ao atualizar status do agendamento.");
+    }
+  });
+
+export const addClinicalRecord = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      appointment_id: z.string().uuid(),
+      record_type: z.enum(["anamnesis", "evolution", "allergy_warning", "general_note"]),
+      content: z.string().min(1),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    try {
+      const identity = await getServerIdentity();
+      assertStoreAccess(identity, ["owner", "admin", "manager", "professional"]);
+      const storeId = await resolveTenantStoreId();
+
+      const db = getServerClient();
+      
+      // First get the customer_id from the appointment
+      const { data: appt, error: apptErr } = await db
+        .from("booking_appointments")
+        .select("customer_id")
+        .eq("id", input.appointment_id)
+        .single();
+        
+      if (apptErr) throw apptErr;
+      
+      // If customer_id is null (guest booking), we might need to handle it.
+      // But the schema says customer_id is NOT NULL for clinical records.
+      // Wait, guest bookings might not have customer_id. 
+      // Let's check `booking_engine_v4.sql`. 
+      // `customer_id UUID NOT NULL REFERENCES auth.users(id)`
+      // If it's a guest, the UI should warn that clinical records need registered users, or we use a fallback.
+      if (!appt.customer_id) {
+         throw new Error("Não é possível criar prontuário para cliente não cadastrado na base.");
+      }
+
+      const { data, error } = await db
+        .from("crm_clinical_records")
+        .insert({
+          store_id: storeId,
+          customer_id: appt.customer_id,
+          appointment_id: input.appointment_id,
+          author_id: identity.id,
+          record_type: input.record_type,
+          content: input.content,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { success: true, data };
+    } catch (e: unknown) {
+      console.error("[booking] addClinicalRecord error:", e);
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao adicionar prontuário.");
+    }
+  });
+
+export const listClinicalRecords = createServerFn({ method: "GET" })
+  .validator(z.object({ appointment_id: z.string().uuid() }))
+  .handler(async ({ data: { appointment_id } }) => {
+    try {
+      const identity = await getServerIdentity();
+      assertStoreAccess(identity, ["owner", "admin", "manager", "professional"]);
+      const storeId = await resolveTenantStoreId();
+
+      const db = getServerClient();
+      const { data, error } = await db
+        .from("crm_clinical_records")
+        .select("*, author:author_id(email, raw_user_meta_data)")
+        .eq("appointment_id", appointment_id)
+        .eq("store_id", storeId)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return { success: true, data: data || [] };
+    } catch (e: unknown) {
+      console.error("[booking] listClinicalRecords error:", e);
+      throw new Error("Erro ao listar prontuários.");
+    }
+  });
+

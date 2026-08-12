@@ -77,24 +77,15 @@ function CustomerInstallmentsPage() {
   if (plans.length === 0 && orders.length === 0) {
     return (
       <div className="space-y-6">
-        <PageHeader
-          title="Central de Pagamentos"
-          description="Acompanhe o status financeiro de seus pedidos, faturas e parcelamentos."
-        />
-        <EmptyState
-          title="Nenhum histórico de pagamento"
-          description="Você não possui compras em aberto, carnês ou pagamentos registrados no momento."
-        />
+        <PageHeader title="Central de Pagamentos" />
+        <EmptyState title="Nenhum histórico de pagamento" />
       </div>
     );
   }
 
   return (
     <div className="space-y-10">
-      <PageHeader
-        title="Central de Pagamentos"
-        description="Acompanhe o status financeiro de seus pedidos, acesse QR Codes PIX, anexe comprovantes e gerencie faturas."
-      />
+      <PageHeader title="Central de Pagamentos" />
 
       {/* Seção 1: Pagamentos de Pedidos */}
       {orders.length > 0 && (
@@ -109,7 +100,7 @@ function CustomerInstallmentsPage() {
             </p>
           </div>
 
-          <Surface variant="zine" padding="none">
+          <Surface variant="default" padding="none">
             <Table>
               <TableHeader>
                 <TableRow>

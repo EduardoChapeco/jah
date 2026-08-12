@@ -23,7 +23,7 @@ function BookingIndexPage() {
         <p className="text-muted-foreground">Selecione o serviço que deseja agendar.</p>
       </div>
 
-      {(!services || services.length === 0) ? (
+      {!services || services.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-muted-foreground">Nenhum serviço disponível no momento.</p>
         </div>
@@ -39,15 +39,17 @@ function BookingIndexPage() {
                     {service.duration_minutes} minutos
                   </div>
                   {service.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-3">{service.description}</p>
+                    <p className="text-sm text-muted-foreground line-clamp-3">
+                      {service.description}
+                    </p>
                   )}
                 </div>
                 <div className="flex items-center justify-between mt-auto pt-4 border-t border-border">
-                  <span className="font-bold text-lg">{formatMoney(service.price_cents, "BRL")}</span>
+                  <span className="font-bold text-lg">
+                    {formatMoney(service.price_cents, "BRL")}
+                  </span>
                   <Button asChild>
-                    <Link to="/agendar" >
-                      Agendar
-                    </Link>
+                    <Link to="/agendar">Agendar</Link>
                   </Button>
                 </div>
               </CardContent>

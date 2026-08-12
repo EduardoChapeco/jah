@@ -111,7 +111,9 @@ export async function _getTimelineFeed({
 
   if (productsData) {
     productsData.forEach((prod) => {
-      const primaryMedia = (prod.product_media as any[])?.find(m => m.is_primary) || (prod.product_media as any[])?.[0];
+      const primaryMedia =
+        (prod.product_media as any[])?.find((m) => m.is_primary) ||
+        (prod.product_media as any[])?.[0];
       timeline.push({
         type: "product",
         id: prod.id,

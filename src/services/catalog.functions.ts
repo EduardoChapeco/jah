@@ -240,7 +240,7 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
       const { data, error } = await query;
 
       if (error) {
-        console.error("[catalog.functions] listPublishedProducts:", error.message);
+        console.error("[catalog.functions] listPublishedProducts:", (error instanceof Error ? error.message : String(error)));
         throw new Error("Não foi possível carregar os produtos.");
       }
 
@@ -299,7 +299,7 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
       console.error("[catalog.functions] unexpected error:", e);
       return {
         status: "error",
-        message: e instanceof Error ? e.message : "Erro inesperado ao carregar produtos.",
+        message: e instanceof Error ? (e instanceof Error ? e.message : String(e)) : "Erro inesperado ao carregar produtos.",
       };
     }
   });
@@ -329,7 +329,7 @@ export const listPublishedCategories = createServerFn({ method: "GET" }).handler
       .order("sort_order", { ascending: true });
 
     if (error) {
-      console.error("[catalog.functions] listPublishedCategories:", error.message);
+      console.error("[catalog.functions] listPublishedCategories:", (error instanceof Error ? error.message : String(error)));
       throw new Error("Não foi possível carregar as categorias.");
     }
 
@@ -375,7 +375,7 @@ export const listAvailableAttributes = createServerFn({ method: "GET" }).handler
     });
 
     if (error) {
-      console.error("[catalog.functions] listAvailableAttributes RPC error:", error.message);
+      console.error("[catalog.functions] listAvailableAttributes RPC error:", (error instanceof Error ? error.message : String(error)));
       return [];
     }
 
@@ -530,8 +530,8 @@ export const searchProducts = createServerFn({ method: "GET" })
 
       const results: ProductCardDTO[] = trigramData.flatMap(explodeProductToCards);
       return results;
-    } catch (e: any) {
-      throw new Error(e.message || "Erro desconhecido");
+    } catch (e: unknown) {
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro desconhecido");
     }
   });
 
@@ -597,14 +597,14 @@ export const getProductsByCollection = createServerFn({ method: "GET" })
         .in("id", productIds)
         .order("created_at", { ascending: false });
 
-      if (error) throw new Error(error.message);
+      if (error) throw new Error((error instanceof Error ? error.message : String(error)));
       if (!data || data.length === 0) return [];
 
       const mapped: ProductCardDTO[] = data.flatMap(explodeProductToCards);
 
       return mapped;
-    } catch (e: any) {
-      throw new Error(e.message || "Erro desconhecido");
+    } catch (e: unknown) {
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro desconhecido");
     }
   });
 
@@ -629,7 +629,7 @@ export const getPromotionalProducts = createServerFn({ method: "GET" }).handler(
       .order("created_at", { ascending: false })
       .limit(20);
 
-    if (error) throw new Error(error.message);
+    if (error) throw new Error((error instanceof Error ? error.message : String(error)));
     if (!data || data.length === 0) return [];
 
     // Filter natively to ensure only actual discounts are returned (compare > price)
@@ -641,8 +641,8 @@ export const getPromotionalProducts = createServerFn({ method: "GET" }).handler(
     const mapped: ProductCardDTO[] = discountedData.flatMap(explodeProductToCards);
 
     return mapped;
-  } catch (e: any) {
-    throw new Error(e.message || "Erro desconhecido");
+  } catch (e: unknown) {
+    throw new Error((e instanceof Error ? e.message : String(e)) || "Erro desconhecido");
   }
 });
 
@@ -832,7 +832,6 @@ export const getPublicStoreProfile = createServerFn({ method: "GET" })
       throw new Error("Erro inesperado ao carregar perfil da loja.");
     }
   });
-
 
 // ---------------------------------------------------------------------------
 // getPublicFaqs

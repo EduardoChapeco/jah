@@ -1,5 +1,10 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { getPlatformInvoicesList, getPlatformStoresList, updateInvoiceStatus, createPlatformInvoice } from "@/services/master.functions";
+import {
+  getPlatformInvoicesList,
+  getPlatformStoresList,
+  updateInvoiceStatus,
+  createPlatformInvoice,
+} from "@/services/master.functions";
 import { formatMoney, parseMoney } from "@/lib/money";
 import { Surface } from "@/components/ui/surface";
 import { DollarSign, FileText, Plus, Receipt } from "lucide-react";
@@ -24,7 +29,7 @@ export const Route = createFileRoute("/admin-master/faturas")({
   loader: async () => {
     const [invoices, stores] = await Promise.all([
       getPlatformInvoicesList(),
-      getPlatformStoresList()
+      getPlatformStoresList(),
     ]);
     return { invoices, stores };
   },
@@ -34,7 +39,7 @@ export const Route = createFileRoute("/admin-master/faturas")({
 function MasterFaturasPage() {
   const { invoices, stores } = Route.useLoaderData();
   const router = useRouter();
-  
+
   const [isCreating, setIsCreating] = useState(false);
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
 
@@ -44,16 +49,19 @@ function MasterFaturasPage() {
   const [amountStr, setAmountStr] = useState("");
   const [dueDate, setDueDate] = useState("");
 
-  const handleUpdateStatus = async (invoiceId: string, newStatus: "pending" | "paid" | "overdue" | "cancelled") => {
+  const handleUpdateStatus = async (
+    invoiceId: string,
+    newStatus: "pending" | "paid" | "overdue" | "cancelled",
+  ) => {
     if (!confirm(`Confirmar alteração de status para: ${newStatus.toUpperCase()}?`)) return;
-    
+
     setLoadingAction(invoiceId);
     try {
       await updateInvoiceStatus({ data: { invoiceId, status: newStatus } });
       toast.success("Status atualizado com sucesso.");
       router.invalidate();
-    } catch (e: any) {
-      toast.error(e.message);
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)));
     } finally {
       setLoadingAction(null);
     }
@@ -74,13 +82,13 @@ function MasterFaturasPage() {
 
     setLoadingAction("creating");
     try {
-      await createPlatformInvoice({ 
-        data: { 
-          storeId, 
-          description, 
-          amountCents, 
-          dueDate: new Date(dueDate).toISOString() 
-        } 
+      await createPlatformInvoice({
+        data: {
+          storeId,
+          description,
+          amountCents,
+          dueDate: new Date(dueDate).toISOString(),
+        },
       });
       toast.success("Fatura emitida com sucesso.");
       setIsCreating(false);
@@ -89,8 +97,8 @@ function MasterFaturasPage() {
       setAmountStr("");
       setDueDate("");
       router.invalidate();
-    } catch (e: any) {
-      toast.error(e.message);
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)));
     } finally {
       setLoadingAction(null);
     }
@@ -109,17 +117,26 @@ function MasterFaturasPage() {
           </p>
         </div>
         <Button onClick={() => setIsCreating(!isCreating)} className="font-bold">
-          {isCreating ? "Cancelar" : <><Plus className="size-4 mr-2" /> Emitir Nova Fatura</>}
+          {isCreating ? (
+            "Cancelar"
+          ) : (
+            <>
+              <Plus className="size-4 mr-2" /> Emitir Nova Fatura
+            </>
+          )}
         </Button>
       </div>
 
       {isCreating && (
-        <Surface variant="zine" className="p-6 bg-muted/20 border-primary/20">
+        <div className="border border-border bg-card rounded-md shadow-xs p-6 bg-muted/20 border-primary/20">
           <h2 className="text-lg font-bold flex items-center gap-2 mb-4">
             <Receipt className="size-5 text-primary" />
             Emitir Fatura Avulsa
           </h2>
-          <form onSubmit={handleCreateInvoice} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+          <form
+            onSubmit={handleCreateInvoice}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end"
+          >
             <div className="space-y-2">
               <Label>Loja Destinatária</Label>
               <Select value={storeId} onValueChange={setStoreId}>
@@ -128,53 +145,55 @@ function MasterFaturasPage() {
                 </SelectTrigger>
                 <SelectContent>
                   {stores.map((s: any) => (
-                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
               <Label>Descrição da Cobrança</Label>
-              <Input 
-                placeholder="Ex: Mensalidade - Outubro" 
-                value={description} 
-                onChange={(e) => setDescription(e.target.value)} 
+              <Input
+                placeholder="Ex: Mensalidade - Outubro"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label>Valor (R$)</Label>
-              <Input 
-                placeholder="0,00" 
-                value={amountStr} 
-                onChange={(e) => setAmountStr(e.target.value)} 
+              <Input
+                placeholder="0,00"
+                value={amountStr}
+                onChange={(e) => setAmountStr(e.target.value)}
               />
             </div>
 
             <div className="space-y-2">
               <Label>Vencimento</Label>
-              <Input 
-                type="date"
-                value={dueDate} 
-                onChange={(e) => setDueDate(e.target.value)} 
-              />
+              <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
             </div>
 
-            <Button type="submit" disabled={loadingAction === "creating"} className="w-full lg:col-span-4">
+            <Button
+              type="submit"
+              disabled={loadingAction === "creating"}
+              className="w-full lg:col-span-4"
+            >
               {loadingAction === "creating" ? "Emitindo..." : "Emitir Cobrança"}
             </Button>
           </form>
-        </Surface>
+        </div>
       )}
 
-      <Surface variant="default" padding="none">
+      <div className="border border-border bg-card rounded-md shadow-xs overflow-hidden">
         <div className="p-4 border-b bg-muted/30">
           <h3 className="font-bold flex items-center gap-2">
             <FileText className="size-4 text-primary" /> Histórico de Faturas
           </h3>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead className="bg-muted text-muted-foreground border-b font-medium uppercase text-[10px] tracking-wider">
@@ -193,14 +212,13 @@ function MasterFaturasPage() {
                 const isPaid = inv.status === "paid";
                 const isOverdue = inv.status === "overdue";
                 const isCancelled = inv.status === "cancelled";
-                
+
                 return (
                   <tr key={inv.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="px-6 py-4 font-semibold text-ink">
-                      {inv.description}
-                    </td>
+                    <td className="px-6 py-4 font-semibold text-foreground">{inv.description}</td>
                     <td className="px-6 py-4 text-muted-foreground">
-                      {inv.stores?.name} <span className="text-[10px] block opacity-70">/{inv.stores?.slug}</span>
+                      {inv.stores?.name}{" "}
+                      <span className="text-[10px] block opacity-70">/{inv.stores?.slug}</span>
                     </td>
                     <td className="px-6 py-4 text-muted-foreground text-xs">
                       {format(new Date(inv.created_at), "dd/MM/yyyy")}
@@ -208,13 +226,23 @@ function MasterFaturasPage() {
                     <td className="px-6 py-4 font-mono text-xs">
                       {format(new Date(inv.due_date), "dd/MM/yyyy")}
                     </td>
-                    <td className="px-6 py-4 text-right font-black text-ink text-base">
+                    <td className="px-6 py-4 text-right font-black text-foreground text-base">
                       {formatMoney(inv.amount_cents)}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <Badge 
-                        variant={isPaid ? "default" : isOverdue ? "destructive" : isCancelled ? "outline" : "secondary"}
-                        className={isPaid ? "bg-success text-white" : isCancelled ? "opacity-50" : ""}
+                      <Badge
+                        variant={
+                          isPaid
+                            ? "default"
+                            : isOverdue
+                              ? "destructive"
+                              : isCancelled
+                                ? "outline"
+                                : "secondary"
+                        }
+                        className={
+                          isPaid ? "bg-success text-white" : isCancelled ? "opacity-50" : ""
+                        }
                       >
                         {inv.status.toUpperCase()}
                       </Badge>
@@ -268,7 +296,7 @@ function MasterFaturasPage() {
             </tbody>
           </table>
         </div>
-      </Surface>
+      </div>
     </div>
   );
 }

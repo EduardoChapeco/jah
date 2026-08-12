@@ -70,35 +70,35 @@ export function PostCard({ item, queryKey = ["mural-feed"] }: PostCardProps) {
   const authorInitial = item.author.name?.charAt(0)?.toUpperCase() ?? "?";
 
   return (
-    <Surface variant="zine" padding="md" className="flex flex-col hover-lift group">
+    <Surface variant="default" padding="md" className="flex flex-col group">
       {/* Header: Autor + Timestamp */}
       <div className="flex items-center gap-3 mb-4">
-        <Avatar className="h-10 w-10 border-2 border-ink rounded-none shrink-0">
+        <Avatar className="h-10 w-10 border border-border rounded-none shrink-0">
           <AvatarImage src={item.author.avatar_url ?? ""} alt={item.author.name} />
-          <AvatarFallback className="font-mono bg-paper text-ink font-bold text-sm">
+          <AvatarFallback className="font-mono bg-background text-foreground font-bold text-sm">
             {authorInitial}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-ink leading-none font-display text-base uppercase truncate flex items-center gap-2">
+          <p className="font-bold text-foreground leading-none font-display text-base uppercase truncate flex items-center gap-2">
             {item.author.name}
             {item.author.is_store && (
               <Badge
                 variant="default"
-                className="text-[10px] bg-ink text-paper rounded-none px-1 py-0 leading-tight font-mono"
+                className="text-[10px] bg-ink text-primary-foreground rounded-none px-1 py-0 leading-tight font-mono"
               >
                 LOJA
               </Badge>
             )}
           </p>
-          <p className="text-xs font-mono text-ink/50 mt-0.5">
+          <p className="text-xs font-mono text-foreground/50 mt-0.5">
             {formatRelativeTime(item.created_at)}
           </p>
         </div>
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-ink/40 hover:text-ink hover:bg-ink/10 shrink-0"
+          className="h-8 w-8 text-foreground/40 hover:text-foreground hover:bg-ink/10 shrink-0"
           aria-label="Mais opcoes"
         >
           <MoreHorizontal className="size-4" />
@@ -107,14 +107,14 @@ export function PostCard({ item, queryKey = ["mural-feed"] }: PostCardProps) {
 
       {/* Conteudo de texto */}
       {item.content_text && (
-        <p className="font-serif text-ink mb-4 whitespace-pre-wrap leading-relaxed">
+        <p className="font-serif text-foreground mb-4 whitespace-pre-wrap leading-relaxed">
           {item.content_text}
         </p>
       )}
 
       {/* Midia principal */}
       {item.media_urls.length > 0 && (
-        <div className="mb-4 -mx-4 md:mx-0 border-y-2 md:border-2 border-ink bg-black overflow-hidden">
+        <div className="mb-4 -mx-4 md:mx-0 border-y-2 md:border border-border bg-black overflow-hidden">
           <img
             src={item.media_urls[0]}
             className="w-full max-h-96 object-contain"
@@ -126,8 +126,8 @@ export function PostCard({ item, queryKey = ["mural-feed"] }: PostCardProps) {
 
       {/* Referencia: Produto */}
       {!item.media_urls.length && item.reference_data && item.reference_type === "product" && (
-        <div className="mb-4 border-2 border-ink p-3 flex gap-4 items-center bg-paper/50 hover:bg-paper transition-colors cursor-pointer group/ref">
-          <div className="size-16 bg-ink/10 shrink-0 border border-ink overflow-hidden">
+        <div className="mb-4 border border-border p-3 flex gap-4 items-center bg-background/50 hover:bg-background transition-colors cursor-pointer group/ref">
+          <div className="size-16 bg-ink/10 shrink-0 border border-border overflow-hidden">
             {item.reference_data.images?.[0] ? (
               <img
                 src={item.reference_data.images[0]}
@@ -135,47 +135,63 @@ export function PostCard({ item, queryKey = ["mural-feed"] }: PostCardProps) {
                 alt={item.reference_data.title}
               />
             ) : (
-              <ShoppingBag className="size-6 text-ink/30 m-auto mt-5" />
+              <ShoppingBag className="size-6 text-foreground/30 m-auto mt-5" />
             )}
           </div>
           <div className="min-w-0">
-            <Badge variant="outline" className="mb-1 text-[10px] font-mono">PRODUTO</Badge>
-            <p className="font-bold uppercase font-display leading-tight truncate">{item.reference_data.title}</p>
-            <p className="font-mono text-sm text-ink/70">{formatMoney(item.reference_data.price_cents)}</p>
+            <Badge variant="outline" className="mb-1 text-[10px] font-mono">
+              PRODUTO
+            </Badge>
+            <p className="font-bold uppercase font-display leading-tight truncate">
+              {item.reference_data.title}
+            </p>
+            <p className="font-mono text-sm text-foreground/70">
+              {formatMoney(item.reference_data.price_cents)}
+            </p>
           </div>
         </div>
       )}
 
       {/* Referencia: Evento */}
       {!item.media_urls.length && item.reference_data && item.reference_type === "event" && (
-        <div className="mb-4 border-2 border-ink p-3 flex gap-4 items-center bg-paper/50 hover:bg-paper transition-colors cursor-pointer group/ref">
-          <div className="size-16 bg-ink text-paper shrink-0 flex flex-col items-center justify-center">
+        <div className="mb-4 border border-border p-3 flex gap-4 items-center bg-background/50 hover:bg-background transition-colors cursor-pointer group/ref">
+          <div className="size-16 bg-ink text-primary-foreground shrink-0 flex flex-col items-center justify-center">
             <Calendar className="size-6 mb-1 opacity-80" />
           </div>
           <div className="min-w-0">
-            <Badge variant="outline" className="mb-1 text-[10px] font-mono">EVENTO</Badge>
-            <p className="font-bold uppercase font-display leading-tight truncate">{item.reference_data.title}</p>
+            <Badge variant="outline" className="mb-1 text-[10px] font-mono">
+              EVENTO
+            </Badge>
+            <p className="font-bold uppercase font-display leading-tight truncate">
+              {item.reference_data.title}
+            </p>
             <p className="font-mono text-sm opacity-70">Ver detalhes</p>
           </div>
         </div>
       )}
 
       {/* Acoes */}
-      <div className="flex items-center gap-4 pt-3 border-t border-ink/10 mt-auto">
+      <div className="flex items-center gap-4 pt-3 border-t border-border/10 mt-auto">
         <button
           onClick={() => toggleLike.mutate(undefined)}
           disabled={toggleLike.isPending}
           aria-label={item.user_liked ? "Descurtir" : "Curtir"}
-          className={`flex items-center gap-1.5 text-sm font-mono transition-colors disabled:opacity-50 ${item.user_liked ? "text-poster-red" : "text-ink/60 hover:text-ink"}`}
+          className={`flex items-center gap-1.5 text-sm font-mono transition-colors disabled:opacity-50 ${item.user_liked ? "text-primary" : "text-foreground/60 hover:text-foreground"}`}
         >
           <Heart className={`size-5 ${item.user_liked ? "fill-current" : ""}`} />
           <span className="font-bold tabular-nums">{item.likes_count}</span>
         </button>
-        <button className="flex items-center gap-1.5 text-sm font-mono text-ink/60 hover:text-ink transition-colors" aria-label="Comentar">
+        <button
+          className="flex items-center gap-1.5 text-sm font-mono text-foreground/60 hover:text-foreground transition-colors"
+          aria-label="Comentar"
+        >
           <MessageSquare className="size-5" />
           <span className="font-bold">Comentar</span>
         </button>
-        <button className="flex items-center gap-1.5 text-sm font-mono text-ink/60 hover:text-ink ml-auto transition-colors" aria-label="Compartilhar">
+        <button
+          className="flex items-center gap-1.5 text-sm font-mono text-foreground/60 hover:text-foreground ml-auto transition-colors"
+          aria-label="Compartilhar"
+        >
           <Share2 className="size-5" />
         </button>
       </div>

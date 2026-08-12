@@ -86,8 +86,8 @@ function HrFinancePage() {
       toast.success("Lançamento efetuado com sucesso!");
       setModalOpen(false);
       router.invalidate();
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao registrar evento");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao registrar evento");
     } finally {
       setLoading(false);
     }
@@ -95,22 +95,16 @@ function HrFinancePage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Gestão de RH & Comissões"
-        description="Acompanhe o saldo dinâmico de comissões e registre vales/adiantamentos para a equipe."
-      />
+      <PageHeader title="Gestão de RH & Comissões" />
 
       {staffBalances.length === 0 ? (
-        <EmptyState
-          title="Nenhum funcionário encontrado"
-          description="Sua loja ainda não possui funcionários cadastrados."
-        />
+        <EmptyState title="Nenhum funcionário encontrado" />
       ) : (
         <div className="grid grid-cols-1 gap-4">
           {staffBalances.map((emp: any) => (
-            <Card
+            <div
               key={emp.id}
-              className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4"
+              className="border border-border bg-card rounded-md shadow-xs p-6 flex flex-col md:flex-row md:items-center justify-between gap-4"
             >
               <div className="flex items-center gap-4">
                 <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-display font-bold text-lg shrink-0 border border-primary/20">
@@ -118,7 +112,7 @@ function HrFinancePage() {
                 </div>
                 <div>
                   <h3 className="font-display font-bold text-lg">{emp.name}</h3>
-                  <Badge variant="outline" className="mt-1 border-ink/30">
+                  <Badge variant="outline" className="mt-1 border-border/30">
                     {emp.role}
                   </Badge>
                 </div>
@@ -135,7 +129,7 @@ function HrFinancePage() {
                 </div>
                 <Button onClick={() => handleOpenModal(emp)}>Lançar Evento / Vale</Button>
               </div>
-            </Card>
+            </div>
           ))}
         </div>
       )}

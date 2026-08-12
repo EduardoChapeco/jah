@@ -45,8 +45,8 @@ function StockAlertsPage() {
       });
       toast.success("10 unidades adicionadas ao estoque.");
       router.invalidate();
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao repor estoque");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao repor estoque");
     } finally {
       setAdjustingId(null);
     }
@@ -54,16 +54,10 @@ function StockAlertsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Alertas de Estoque"
-        description="Variantes com estoque disponível crítico (5 unidades ou menos)."
-      />
+      <PageHeader title="Alertas de Estoque" />
 
       {variants.length === 0 ? (
-        <EmptyState
-          title="Nenhum alerta"
-          description="Todos os produtos com estoque ativo estão acima do nível mínimo."
-        />
+        <EmptyState title="Nenhum alerta" />
       ) : (
         <div className="rounded-md border bg-card overflow-hidden">
           <Table>

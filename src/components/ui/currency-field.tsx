@@ -2,8 +2,10 @@ import React, { useState, useEffect, forwardRef } from "react";
 import { Input } from "./input";
 import { cn } from "@/lib/utils";
 
-export interface CurrencyFieldProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange"> {
+export interface CurrencyFieldProps extends Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  "value" | "onChange"
+> {
   value?: number; // Valor em centavos
   onChange?: (value: number | undefined) => void;
   currencySymbol?: string;
@@ -33,7 +35,7 @@ export const CurrencyField = forwardRef<HTMLInputElement, CurrencyFieldProps>(
             new Intl.NumberFormat("pt-BR", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
-            }).format(decimalValue)
+            }).format(decimalValue),
           );
         }
       }
@@ -42,7 +44,7 @@ export const CurrencyField = forwardRef<HTMLInputElement, CurrencyFieldProps>(
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       // Remove tudo que não for dígito ou vírgula
       let raw = e.target.value.replace(/[^\d,]/g, "");
-      
+
       // Garante que só exista uma vírgula
       const parts = raw.split(",");
       if (parts.length > 2) {
@@ -97,6 +99,6 @@ export const CurrencyField = forwardRef<HTMLInputElement, CurrencyFieldProps>(
         />
       </div>
     );
-  }
+  },
 );
 CurrencyField.displayName = "CurrencyField";

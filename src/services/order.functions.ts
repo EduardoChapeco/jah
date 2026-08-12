@@ -121,9 +121,9 @@ export const listOrders = createServerFn({ method: "GET" }).handler(async () => 
 
     const data = await _listOrders(identity.store_id);
     return data;
-  } catch (e: any) {
+  } catch (e: unknown) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
-    console.error("[order.functions] listOrders:", e.message);
+    console.error("[order.functions] listOrders:", (e instanceof Error ? e.message : String(e)));
     throw new Error("Erro ao buscar pedidos.");
   }
 });
@@ -139,10 +139,10 @@ export const getOrderById = createServerFn({ method: "GET" })
 
       const data = await _getOrderById(orderId, identity.store_id);
       return data;
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[order.functions] getOrderById:", e.message);
-      throw new Error(e.message || "Pedido não encontrado.");
+      console.error("[order.functions] getOrderById:", (e instanceof Error ? e.message : String(e)));
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Pedido não encontrado.");
     }
   });
 
@@ -161,9 +161,9 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
       if (!identity.store_id) throw new Error("Contexto de loja inválido");
 
       return await _updateOrderStatus(params.orderId, params.status, identity.store_id);
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[order.functions] updateOrderStatus:", e.message);
+      console.error("[order.functions] updateOrderStatus:", (e instanceof Error ? e.message : String(e)));
       throw new Error("Erro ao atualizar pedido.");
     }
   });
@@ -191,9 +191,9 @@ export const listPayments = createServerFn({ method: "GET" }).handler(async () =
     if (error) throw error;
 
     return data || [];
-  } catch (e: any) {
+  } catch (e: unknown) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
-    console.error("[order.functions] listPayments:", e.message);
+    console.error("[order.functions] listPayments:", (e instanceof Error ? e.message : String(e)));
     throw new Error("Erro ao buscar pagamentos.");
   }
 });
@@ -235,8 +235,8 @@ export const listCustomerOrders = createServerFn({ method: "GET" }).handler(asyn
             (item.unit_price_cents ?? item.price_snapshot_cents ?? 0) * (item.qty ?? 1),
         })) || [],
     }));
-  } catch (e: any) {
-    console.error("[order.functions] listCustomerOrders:", e.message);
+  } catch (e: unknown) {
+    console.error("[order.functions] listCustomerOrders:", (e instanceof Error ? e.message : String(e)));
     throw new Error("Erro ao buscar seus pedidos.");
   }
 });
@@ -279,9 +279,9 @@ export const getCustomerOrder = createServerFn({ method: "GET" })
               (item.unit_price_cents ?? item.price_snapshot_cents ?? 0) * (item.qty ?? 1),
           })) || [],
       };
-    } catch (e: any) {
-      console.error("[order.functions] getCustomerOrder:", e.message);
-      throw new Error(e.message || "Erro ao buscar detalhes do pedido.");
+    } catch (e: unknown) {
+      console.error("[order.functions] getCustomerOrder:", (e instanceof Error ? e.message : String(e)));
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao buscar detalhes do pedido.");
     }
   });
 
@@ -307,9 +307,9 @@ export const listOrdersAwaitingShippingQuote = createServerFn({ method: "GET" })
 
       if (error) throw error;
       return data || [];
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[order.functions] listOrdersAwaitingShippingQuote error:", e);
-      throw new Error(e.message || "Erro ao buscar solicitações de frete.");
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao buscar solicitações de frete.");
     }
   },
 );
@@ -365,9 +365,9 @@ export const updateOrderShippingQuote = createServerFn({ method: "POST" })
       if (payError) throw payError;
 
       return { status: "success" as const };
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[order.functions] updateOrderShippingQuote error:", e);
-      throw new Error(e.message || "Erro ao atualizar frete do pedido.");
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao atualizar frete do pedido.");
     }
   });
 
@@ -413,9 +413,9 @@ export const getOrderPaymentInstructions = createServerFn({ method: "GET" })
           payment_instructions: store?.payment_instructions ?? null,
         },
       };
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[order.functions] getOrderPaymentInstructions:", e);
-      throw new Error(e.message || "Erro ao buscar instruções de pagamento.");
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao buscar instruções de pagamento.");
     }
   });
 export const requestOrderReturn = createServerFn({ method: "POST" })
@@ -458,9 +458,9 @@ export const requestOrderReturn = createServerFn({ method: "POST" })
       });
 
       return { status: "success" as const };
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[order.functions] requestOrderReturn:", e);
-      throw new Error(e.message || "Erro ao solicitar devolução.");
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao solicitar devolução.");
     }
   });
 
@@ -517,9 +517,9 @@ export const updateOrderShipment = createServerFn({ method: "POST" })
 
       if (error) throw error;
       return data;
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[order.functions] updateOrderShipment error:", e);
-      throw new Error(e.message || "Erro ao atualizar rastreamento do pedido.");
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao atualizar rastreamento do pedido.");
     }
   });
 
@@ -549,11 +549,78 @@ export const getOrderForReceipt = createServerFn({ method: "GET" })
         .single();
       if (error) throw new Error("Pedido não encontrado");
       return data;
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[order.functions] getOrderForReceipt error:", e);
-      throw new Error(e.message || "Erro ao carregar recibo do pedido.");
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao carregar recibo do pedido.");
     }
   });
 
-export const assignDriverToOrder = createServerFn().validator((d: any) => d).handler(async () => { return {}; });
+export const assignDriverToOrder = createServerFn({ method: "POST" })
+  .validator(z.object({ orderId: z.string().uuid(), driverId: z.string().uuid() }))
+  .handler(async ({ data: { orderId, driverId } }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "logistics"]);
+
+    // 1. Create the dispatch log
+    const { error: dispatchErr } = await supabase
+      .from("delivery_dispatches")
+      .insert({
+        store_id: identity.store_id,
+        order_id: orderId,
+        driver_id: driverId,
+        status: "assigned",
+      });
+
+    if (dispatchErr) throw new Error("Erro ao criar tentativa de despacho: " + dispatchErr.message);
+
+    // 2. Update the order
+    const { error: orderErr } = await supabase
+      .from("orders")
+      .update({ driver_id: driverId, status: "shipped", updated_at: new Date().toISOString() })
+      .eq("id", orderId)
+      .eq("store_id", identity.store_id);
+
+    if (orderErr) throw new Error("Erro ao atualizar o status do pedido: " + orderErr.message);
+
+    return { success: true };
+  });
+
+export const respondToDispatch = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      dispatchId: z.string().uuid(),
+      response: z.enum(["accepted", "rejected", "failed", "delivered"]),
+      reason: z.string().optional(),
+    }),
+  )
+  .handler(async ({ data: { dispatchId, response, reason } }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "logistics"]);
+
+    const payload: any = {
+      status: response,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (response === "accepted" || response === "rejected") {
+      payload.responded_at = payload.updated_at;
+    }
+    if (response === "failed" || response === "delivered") {
+      payload.completed_at = payload.updated_at;
+    }
+    if (reason) payload.failure_reason = reason;
+
+    const { error } = await supabase
+      .from("delivery_dispatches")
+      .update(payload)
+      .eq("id", dispatchId)
+      .eq("store_id", identity.store_id);
+
+    if (error) throw new Error("Erro ao registrar resposta do entregador: " + error.message);
+
+    return { success: true };
+  });
+

@@ -71,16 +71,16 @@ export function MediaUploader({
 
             onChange(res.url);
             toast.success("Mídia carregada com sucesso");
-          } catch (err: any) {
-            toast.error(err.message || "Erro no upload");
+          } catch (err: unknown) {
+            toast.error((err instanceof Error ? err.message : String(err)) || "Erro no upload");
           } finally {
             setIsUploading(false);
           }
         }
       };
       reader.readAsDataURL(file);
-    } catch (error: any) {
-      toast.error(error.message || "Erro ao iniciar upload");
+    } catch (error: unknown) {
+      toast.error((error instanceof Error ? (error instanceof Error ? error.message : String(error)) : String(error)) || "Erro ao iniciar upload");
       setIsUploading(false);
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -92,7 +92,7 @@ export function MediaUploader({
     setIsUploading(true);
     try {
       const { directUploadMedia } = await import("@/lib/upload-helper");
-      
+
       const byteString = atob(croppedBase64.split(",")[1]);
       const ab = new ArrayBuffer(byteString.length);
       const ia = new Uint8Array(ab);
@@ -108,8 +108,8 @@ export function MediaUploader({
       });
       onChange(res.url);
       toast.success("Imagem enviada com sucesso");
-    } catch (error: any) {
-      toast.error(error.message || "Erro ao fazer upload da imagem");
+    } catch (error: unknown) {
+      toast.error((error instanceof Error ? (error instanceof Error ? error.message : String(error)) : String(error)) || "Erro ao fazer upload da imagem");
     } finally {
       setIsUploading(false);
     }
@@ -145,7 +145,7 @@ export function MediaUploader({
         </div>
       ) : (
         <div
-          className="h-32 rounded-md border-2 border-dashed flex flex-col items-center justify-center gap-2 text-muted-foreground bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+          className="h-32 rounded-md border border-dashed flex flex-col items-center justify-center gap-2 text-muted-foreground bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
           onClick={() => fileInputRef.current?.click()}
         >
           {isUploading ? (

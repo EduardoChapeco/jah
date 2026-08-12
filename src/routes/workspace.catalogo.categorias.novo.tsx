@@ -79,7 +79,6 @@ function NewCategoryPage() {
       <PageHeader
         eyebrow="Catálogo"
         title="Nova categoria"
-        description="Crie uma nova categoria para agrupar seus produtos."
         actions={
           <Button variant="outline" asChild>
             <Link to="/workspace/catalogo/categorias">
@@ -91,8 +90,8 @@ function NewCategoryPage() {
       />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <Surface variant="default" padding="md" className="space-y-6">
-          <header className="space-y-1">
+        <div>
+          <header className="mb-4">
             <h2 className="font-bold text-lg">Dados Básicos</h2>
           </header>
           <div className="space-y-4">
@@ -157,7 +156,7 @@ function NewCategoryPage() {
               </div>
             </div>
           </div>
-        </Surface>
+        </div>
 
         <div className="flex justify-end gap-4">
           <Button type="button" variant="ghost" asChild>

@@ -4,9 +4,7 @@ import type { LucideIcon } from "lucide-react";
 
 export function BottomNav({ storeType }: { storeType?: string }) {
   // Configuração dinâmica das abas (Tabs) baseada no tipo da loja PWA
-  const items = [
-    { to: "/", label: "Mural", icon: Home, exact: true },
-  ];
+  const items = [{ to: "/", label: "Mural", icon: Home, exact: true }];
 
   if (storeType === "event_producer") {
     items.push({ to: "/agenda", label: "Agenda", icon: LayoutGrid, exact: false });
@@ -18,7 +16,7 @@ export function BottomNav({ storeType }: { storeType?: string }) {
   }
 
   items.push({ to: "/buscar", label: "Buscar", icon: Search, exact: false });
-  
+
   // A Sacola é controlada via SlideOut no Header, mas mantemos atalho no BottomNav
   items.push({ to: "/conta", label: "Conta", icon: User, exact: false });
   return (

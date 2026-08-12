@@ -296,9 +296,9 @@ export const approvePayment = createServerFn({ method: "POST" })
       const { data } = await db.from("orders").select("*").eq("id", orderId).single();
 
       return data;
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[payment] approvePayment error:", e);
-      throw new Error(e.message || "Erro ao aprovar pagamento.");
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao aprovar pagamento.");
     }
   });
 
@@ -337,9 +337,9 @@ export const rejectPayment = createServerFn({ method: "POST" })
       if (error) throw error;
 
       return data;
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[payment] rejectPayment error:", e);
-      throw new Error(e.message || "Erro ao rejeitar comprovante.");
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao rejeitar comprovante.");
     }
   });
 
@@ -362,9 +362,9 @@ export const listPendingManualPayments = createServerFn({ method: "GET" }).handl
 
     if (error) throw error;
     return data || [];
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("[payment] listPendingManualPayments error:", e);
-    throw new Error(e.message || "Erro ao buscar comprovantes pendentes.");
+    throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao buscar comprovantes pendentes.");
   }
 });
 
@@ -478,9 +478,9 @@ export const uploadPaymentReceipt = createServerFn({ method: "POST" })
         await db.from("orders").update({ status: "payment_processing" }).eq("id", orderId);
 
         return { status: "success" as const };
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error("[payment] uploadPaymentReceipt error:", e);
-        throw new Error(e.message || "Erro ao enviar comprovante.");
+        throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao enviar comprovante.");
       }
     },
   );
@@ -525,9 +525,9 @@ export const listManualPaymentMethods = createServerFn({ method: "GET" }).handle
 
     if (error) throw error;
     return data || [];
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("[payment] listManualPaymentMethods error:", e);
-    throw new Error(e.message || "Erro ao listar métodos de pagamento manual.");
+    throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao listar métodos de pagamento manual.");
   }
 });
 
@@ -562,9 +562,9 @@ export const saveManualPaymentMethod = createServerFn({ method: "POST" })
       }
 
       return { status: "success" as const };
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[payment] saveManualPaymentMethod error:", e);
-      throw new Error(e.message || "Erro ao salvar método de pagamento.");
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao salvar método de pagamento.");
     }
   });
 
@@ -583,9 +583,9 @@ export const deleteManualPaymentMethod = createServerFn({ method: "POST" })
 
       if (error) throw error;
       return { status: "success" as const };
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[payment] deleteManualPaymentMethod error:", e);
-      throw new Error(e.message || "Erro ao excluir método de pagamento.");
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao excluir método de pagamento.");
     }
   });
 
@@ -600,20 +600,20 @@ export const getPublicPaymentMethods = createServerFn({ method: "GET" })
       const storeData = { id: storeId };
       if (!storeData) throw new Error("Loja não encontrada");
 
-    const { data, error } = await db
-      .from("manual_payment_methods")
-      .select("id, name, instructions, surcharge_percentage, discount_percentage")
-      .eq("store_id", storeData.id)
-      .eq("is_active", true)
-      .order("created_at", { ascending: true });
+      const { data, error } = await db
+        .from("manual_payment_methods")
+        .select("id, name, instructions, surcharge_percentage, discount_percentage")
+        .eq("store_id", storeData.id)
+        .eq("is_active", true)
+        .order("created_at", { ascending: true });
 
-    if (error) throw error;
-    return data || [];
-  } catch (e: any) {
-    console.error("[payment] getPublicPaymentMethods error:", e);
-    throw new Error(e.message || "Erro ao obter métodos de pagamento públicos.");
-  }
-});
+      if (error) throw error;
+      return data || [];
+    } catch (e: unknown) {
+      console.error("[payment] getPublicPaymentMethods error:", e);
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao obter métodos de pagamento públicos.");
+    }
+  });
 
 export const getGatewayStatus = createServerFn({ method: "GET" })
   .validator(z.object({ storeId: z.string().optional() }).optional())
@@ -623,17 +623,17 @@ export const getGatewayStatus = createServerFn({ method: "GET" })
     const storeId = inputData?.storeId || (await resolveTenantStoreId());
     if (!storeId) return false;
 
-  const { data } = await db
-    .from("integration_credentials")
-    .select("id")
-    .eq("store_id", storeId)
-    .eq("is_active", true)
-    .in("provider", ["mercado_pago", "stripe"])
-    .limit(1)
-    .maybeSingle();
+    const { data } = await db
+      .from("integration_credentials")
+      .select("id")
+      .eq("store_id", storeId)
+      .eq("is_active", true)
+      .in("provider", ["mercado_pago", "stripe"])
+      .limit(1)
+      .maybeSingle();
 
-  return !!data;
-});
+    return !!data;
+  });
 
 export const getCustomerOrderPayments = createServerFn({ method: "GET" }).handler(async () => {
   const supabase = getServerClient();

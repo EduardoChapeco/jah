@@ -229,9 +229,9 @@ export const createCustomer = createServerFn({ method: "POST" })
       }
 
       return { status: "success" as const, customerId: userId };
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[crm] createCustomer error:", e);
-      throw new Error(e.message || "Erro ao cadastrar cliente.");
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao cadastrar cliente.");
     }
   });
 
@@ -262,9 +262,9 @@ export const submitContactForm = createServerFn({ method: "POST" })
       });
       if (error) throw error;
       return { status: "success" as const };
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[crm] submitContactForm error:", e);
-      throw new Error(e.message || "Erro ao enviar mensagem");
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao enviar mensagem");
     }
   });
 
@@ -304,9 +304,9 @@ export const updateLeadStatus = createServerFn({ method: "POST" })
 
       if (error) throw error;
       return { status: "success" as const };
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[crm] updateLeadStatus error:", e);
-      throw new Error(e.message);
+      throw new Error((e instanceof Error ? e.message : String(e)));
     }
   });
 
@@ -338,9 +338,9 @@ export const updateLeadDetails = createServerFn({ method: "POST" })
 
       if (error) throw error;
       return { status: "success" as const };
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[crm] updateLeadDetails error:", e);
-      throw new Error(e.message || "Erro ao atualizar lead.");
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao atualizar lead.");
     }
   });
 
@@ -360,9 +360,9 @@ export const deleteLead = createServerFn({ method: "POST" })
 
       if (error) throw error;
       return { status: "success" as const };
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[crm] deleteLead error:", e);
-      throw new Error(e.message || "Erro ao remover lead.");
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao remover lead.");
     }
   });
 
@@ -387,7 +387,7 @@ export const getLeadStats = createServerFn({ method: "GET" }).handler(async () =
     }
 
     return stats;
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("[crm] getLeadStats error:", e);
     throw new Error("Erro ao buscar estatísticas de leads.");
   }
@@ -412,13 +412,15 @@ export const promoteLeadToCustomer = createServerFn({ method: "POST" })
       if (fetchError || !lead) throw new Error("Lead não encontrado");
 
       // Call our existing createCustomer logic
-      await createCustomer({ data: {
+      await createCustomer({
+        data: {
           fullName: lead.full_name,
           email: lead.email,
           phone: lead.phone || "",
           tags: ["Lead Convertido"],
           notes: lead.message ? `Mensagem original: ${lead.message}` : undefined,
-      }});
+        },
+      });
 
       // Update lead status
       await supabase
@@ -427,9 +429,9 @@ export const promoteLeadToCustomer = createServerFn({ method: "POST" })
         .eq("id", leadId);
 
       return { status: "success" as const };
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[crm] promoteLeadToCustomer error:", e);
-      throw new Error(e.message || "Erro ao converter lead.");
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao converter lead.");
     }
   });
 
@@ -486,9 +488,9 @@ export const upsertCustomerAddress = createServerFn({ method: "POST" })
 
       if (result.error) throw result.error;
       return result.data;
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[crm] upsertCustomerAddress error:", e);
-      throw new Error(e.message || "Erro ao salvar endereço.");
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao salvar endereço.");
     }
   });
 
@@ -514,8 +516,8 @@ export const deleteCustomerAddress = createServerFn({ method: "POST" })
 
       if (error) throw error;
       return { status: "success" as const };
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[crm] deleteCustomerAddress error:", e);
-      throw new Error(e.message || "Erro ao deletar endereço.");
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao deletar endereço.");
     }
   });

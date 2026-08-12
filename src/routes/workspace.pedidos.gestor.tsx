@@ -1,16 +1,16 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useState, useMemo, useEffect, Fragment } from "react";
 import { toast } from "sonner";
-import { 
-  ArrowLeft, 
-  ChefHat, 
-  Clock, 
-  CheckCircle2, 
-  Bike, 
+import {
+  ArrowLeft,
+  ChefHat,
+  Clock,
+  CheckCircle2,
+  Bike,
   PackageSearch,
   Maximize,
   Printer,
-  FileText
+  FileText,
 } from "lucide-react";
 
 import { listOrders, updateOrderStatus } from "@/services/order.functions";
@@ -18,12 +18,7 @@ import { formatMoney } from "@/lib/money";
 import { formatDateTime } from "@/lib/datetime";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 
 export const Route = createFileRoute("/workspace/pedidos/gestor")({
@@ -31,9 +26,7 @@ export const Route = createFileRoute("/workspace/pedidos/gestor")({
   loader: async () => {
     const res = await listOrders();
     // Filter only orders that make sense for the kitchen/fulfillment display
-    return (res || []).filter((o: any) => 
-      !["draft", "cancelled", "refunded"].includes(o.status)
-    );
+    return (res || []).filter((o: any) => !["draft", "cancelled", "refunded"].includes(o.status));
   },
   component: KDSPage,
 });
@@ -46,7 +39,7 @@ function KDSPage() {
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
 
   // Optional: Add auto-refresh polling here in the future
-  
+
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().then(() => setIsFullscreen(true));
@@ -70,7 +63,7 @@ function KDSPage() {
     const res = await updateOrderStatus({ data: { orderId, status: newStatus as any } });
     if (res?.status === "ok") {
       toast.success("Status atualizado!");
-      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+      setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)));
       if (selectedOrder && selectedOrder.id === orderId) {
         setSelectedOrder((prev: any) => ({ ...prev, status: newStatus }));
       }
@@ -171,42 +164,64 @@ function KDSPage() {
 
       {/* Kanban Board */}
       <main className="flex-1 overflow-x-auto p-4 flex gap-4 bg-muted/30 no-print">
-        {columns.map(col => {
+        {columns.map((col) => {
           const isPrepCol = col.id === "processing";
-          const colOrders = orders.filter(o => 
-            isPrepCol ? (o.status === "processing" || o.status === "kitchen_prep") : o.status === col.id
-          ).sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-          
+          const colOrders = orders
+            .filter((o) =>
+              isPrepCol
+                ? o.status === "processing" || o.status === "kitchen_prep"
+                : o.status === col.id,
+            )
+            .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+
           return (
             <div key={col.id} className="flex-shrink-0 w-[350px] flex flex-col gap-3 h-full">
-              <div className={`rounded-xl border ${col.color} p-3 flex items-center justify-between shadow-op-sm bg-card`}>
+              <div
+                className={`rounded-xl border ${col.color} p-3 flex items-center justify-between shadow-op-sm bg-card`}
+              >
                 <div className="flex items-center gap-2 font-bold uppercase tracking-wider text-sm">
                   {col.icon}
                   {col.title}
                 </div>
-                <Badge variant="secondary" className="font-mono text-sm">{colOrders.length}</Badge>
+                <Badge variant="secondary" className="font-mono text-sm">
+                  {colOrders.length}
+                </Badge>
               </div>
 
               <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-3 pb-24">
-                {colOrders.map(order => (
-                  <div 
-                    key={order.id} 
+                {colOrders.map((order) => (
+                  <div
+                    key={order.id}
                     className="bg-card rounded-xl border border-border shadow-op-sm p-4 flex flex-col gap-3 cursor-pointer hover:border-primary/50 transition-colors"
                     onClick={() => setSelectedOrder(order)}
                   >
                     <div className="flex justify-between items-start">
                       <div>
-                        <span className="text-xs font-bold text-muted-foreground">#{order.id.split("-")[0].toUpperCase()}</span>
-                        <h4 className="font-bold text-base leading-tight mt-1">{order.customer_snapshot?.name || order.customer?.name || "Cliente Avulso"}</h4>
+                        <span className="text-xs font-bold text-muted-foreground">
+                          #{order.id.split("-")[0].toUpperCase()}
+                        </span>
+                        <h4 className="font-bold text-base leading-tight mt-1">
+                          {order.customer_snapshot?.name ||
+                            order.customer?.name ||
+                            "Cliente Avulso"}
+                        </h4>
                         <div className="flex items-center gap-2 mt-1">
-                          <p className="text-xs text-muted-foreground">{formatDateTime(order.created_at)}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatDateTime(order.created_at)}
+                          </p>
                           {order.origin_type && order.origin_type !== "ecommerce" && (
-                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 uppercase">
+                            <Badge
+                              variant="secondary"
+                              className="text-[10px] px-1.5 py-0 h-4 uppercase"
+                            >
                               {order.origin_type === "table" ? "Mesa" : order.origin_type}
                             </Badge>
                           )}
                           {order.table_identifier && (
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 bg-primary/10 text-primary">
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] px-1.5 py-0 h-4 bg-primary/10 text-primary"
+                            >
                               {order.table_identifier}
                             </Badge>
                           )}
@@ -219,7 +234,9 @@ function KDSPage() {
 
                     <div className="py-2 border-y border-border/50 text-sm space-y-2">
                       {order.order_items?.map((item: any) => {
-                        const options = item.selected_options ? Object.values(item.selected_options) : [];
+                        const options = item.selected_options
+                          ? Object.values(item.selected_options)
+                          : [];
                         return (
                           <div key={item.id} className="flex flex-col">
                             <div className="flex justify-between items-start">
@@ -239,10 +256,10 @@ function KDSPage() {
                         );
                       })}
                     </div>
-                    
+
                     {col.nextStatus && (
-                      <Button 
-                        className="w-full font-bold uppercase tracking-wider h-10 shadow-op-sm" 
+                      <Button
+                        className="w-full font-bold uppercase tracking-wider h-10 shadow-op-sm"
                         onClick={(e) => handleStatusChange(e, order.id, col.nextStatus!)}
                       >
                         {col.nextLabel}
@@ -251,7 +268,7 @@ function KDSPage() {
                   </div>
                 ))}
                 {colOrders.length === 0 && (
-                  <div className="h-24 flex items-center justify-center border-2 border-dashed border-border/60 rounded-xl text-muted-foreground text-sm font-medium">
+                  <div className="h-24 flex items-center justify-center border border-dashed border-border/60 rounded-xl text-muted-foreground text-sm font-medium">
                     Nenhum pedido nesta fila
                   </div>
                 )}
@@ -282,18 +299,28 @@ function KDSPage() {
                   </Button>
                 </div>
               </SheetHeader>
-              
+
               <div className="flex-1 p-6 space-y-6">
                 {/* Cliente Info */}
                 <section>
-                  <h3 className="text-sm font-bold uppercase text-muted-foreground mb-3">Cliente</h3>
+                  <h3 className="text-sm font-bold uppercase text-muted-foreground mb-3">
+                    Cliente
+                  </h3>
                   <div className="bg-muted/40 rounded-xl p-4 border border-border">
-                    <p className="font-bold text-lg">{selectedOrder.customer_snapshot?.name || selectedOrder.customer?.name || "Cliente Avulso"}</p>
+                    <p className="font-bold text-lg">
+                      {selectedOrder.customer_snapshot?.name ||
+                        selectedOrder.customer?.name ||
+                        "Cliente Avulso"}
+                    </p>
                     {selectedOrder.customer_snapshot?.phone && (
-                      <p className="text-sm text-muted-foreground">{selectedOrder.customer_snapshot.phone}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {selectedOrder.customer_snapshot.phone}
+                      </p>
                     )}
                     {selectedOrder.shipping_method === "pickup" && (
-                      <Badge className="mt-2" variant="secondary">Retirada na Loja</Badge>
+                      <Badge className="mt-2" variant="secondary">
+                        Retirada na Loja
+                      </Badge>
                     )}
                   </div>
                 </section>
@@ -302,10 +329,14 @@ function KDSPage() {
 
                 {/* Itens do Pedido */}
                 <section>
-                  <h3 className="text-sm font-bold uppercase text-muted-foreground mb-3">Itens ({selectedOrder.order_items?.length})</h3>
+                  <h3 className="text-sm font-bold uppercase text-muted-foreground mb-3">
+                    Itens ({selectedOrder.order_items?.length})
+                  </h3>
                   <div className="space-y-4">
                     {selectedOrder.order_items?.map((item: any) => {
-                      const options = item.selected_options ? Object.values(item.selected_options) : [];
+                      const options = item.selected_options
+                        ? Object.values(item.selected_options)
+                        : [];
                       return (
                         <div key={item.id} className="bg-card border rounded-lg p-3">
                           <div className="flex justify-between items-start mb-1">
@@ -317,12 +348,15 @@ function KDSPage() {
                               {formatMoney(item.total_cents)}
                             </span>
                           </div>
-                          
+
                           {/* Modifiers / Options */}
                           {options.length > 0 && (
                             <div className="mt-2 ml-7 pl-3 border-l-2 border-primary/30 space-y-1">
                               {options.map((opt: any, idx: number) => (
-                                <div key={idx} className="flex justify-between text-sm text-muted-foreground">
+                                <div
+                                  key={idx}
+                                  className="flex justify-between text-sm text-muted-foreground"
+                                >
                                   <span>+ {opt.label}</span>
                                   {opt.price_modifier_cents > 0 && (
                                     <span>{formatMoney(opt.price_modifier_cents * item.qty)}</span>
@@ -336,9 +370,9 @@ function KDSPage() {
                     })}
                   </div>
                 </section>
-                
+
                 <Separator />
-                
+
                 {/* Resumo Financeiro */}
                 <section className="bg-muted/30 p-4 rounded-lg">
                   <div className="flex justify-between font-bold text-lg">
@@ -355,19 +389,36 @@ function KDSPage() {
       {/* Printable Receipt (Escondido na tela normal) */}
       {selectedOrder && (
         <div id="printable-receipt" className="hidden">
-          <div style={{ textAlign: "center", marginBottom: "15px", paddingBottom: "10px", borderBottom: "1px dashed #000" }}>
-            <h2 style={{ margin: "0 0 5px 0", fontSize: "16px" }}>PEDIDO #{selectedOrder.id.split("-")[0].toUpperCase()}</h2>
-            <p style={{ margin: "0", fontSize: "12px" }}>{new Date(selectedOrder.created_at).toLocaleString('pt-BR')}</p>
+          <div
+            style={{
+              textAlign: "center",
+              marginBottom: "15px",
+              paddingBottom: "10px",
+              borderBottom: "1px dashed #000",
+            }}
+          >
+            <h2 style={{ margin: "0 0 5px 0", fontSize: "16px" }}>
+              PEDIDO #{selectedOrder.id.split("-")[0].toUpperCase()}
+            </h2>
+            <p style={{ margin: "0", fontSize: "12px" }}>
+              {new Date(selectedOrder.created_at).toLocaleString("pt-BR")}
+            </p>
             {selectedOrder.origin_type && (
               <p style={{ margin: "5px 0 0 0", fontSize: "14px", fontWeight: "bold" }}>
-                {selectedOrder.origin_type === "table" ? "MESA " + (selectedOrder.table_identifier || "") : "BALCÃO"}
+                {selectedOrder.origin_type === "table"
+                  ? "MESA " + (selectedOrder.table_identifier || "")
+                  : "BALCÃO"}
               </p>
             )}
           </div>
-          
-          <div style={{ marginBottom: "15px", paddingBottom: "10px", borderBottom: "1px dashed #000" }}>
+
+          <div
+            style={{ marginBottom: "15px", paddingBottom: "10px", borderBottom: "1px dashed #000" }}
+          >
             <p style={{ margin: "0 0 5px 0", fontSize: "14px", fontWeight: "bold" }}>CLIENTE:</p>
-            <p style={{ margin: "0", fontSize: "14px" }}>{selectedOrder.customer_snapshot?.name || selectedOrder.customer?.name || "Avulso"}</p>
+            <p style={{ margin: "0", fontSize: "14px" }}>
+              {selectedOrder.customer_snapshot?.name || selectedOrder.customer?.name || "Avulso"}
+            </p>
           </div>
 
           <div style={{ marginBottom: "15px" }}>
@@ -376,11 +427,23 @@ function KDSPage() {
               const options = item.selected_options ? Object.values(item.selected_options) : [];
               return (
                 <div key={item.id} style={{ marginBottom: "10px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "14px", fontWeight: "bold" }}>
-                    <span>{item.qty}x {item.product_title}</span>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      fontSize: "14px",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    <span>
+                      {item.qty}x {item.product_title}
+                    </span>
                   </div>
                   {options.map((opt: any, idx: number) => (
-                    <div key={idx} style={{ fontSize: "12px", marginLeft: "15px", marginTop: "2px" }}>
+                    <div
+                      key={idx}
+                      style={{ fontSize: "12px", marginLeft: "15px", marginTop: "2px" }}
+                    >
                       + {opt.label}
                     </div>
                   ))}
@@ -389,9 +452,18 @@ function KDSPage() {
             })}
           </div>
 
-          <div style={{ borderTop: "1px dashed #000", paddingTop: "10px", display: "flex", justifyContent: "space-between", fontSize: "16px", fontWeight: "bold" }}>
+          <div
+            style={{
+              borderTop: "1px dashed #000",
+              paddingTop: "10px",
+              display: "flex",
+              justifyContent: "space-between",
+              fontSize: "16px",
+              fontWeight: "bold",
+            }}
+          >
             <span>TOTAL:</span>
-            <span>R$ {(selectedOrder.total_cents / 100).toFixed(2).replace('.', ',')}</span>
+            <span>R$ {(selectedOrder.total_cents / 100).toFixed(2).replace(".", ",")}</span>
           </div>
         </div>
       )}

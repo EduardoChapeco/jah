@@ -45,7 +45,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
     for (const file of files) {
       const isImage = file.type.startsWith("image/");
       const isVideo = file.type.startsWith("video/");
-      
+
       if (!isImage && !isVideo) continue;
 
       const ext = file.name.split(".").pop();
@@ -75,7 +75,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
 
     onChange?.(newMedia);
     setUploading(false);
-    
+
     // Limpa o input
     if (e.target) {
       e.target.value = "";
@@ -90,7 +90,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
     } catch (e) {
       console.error("Erro ao remover mídia do storage:", e);
     }
-    
+
     // Remove do estado
     const newMedia = value.filter((m) => m.id !== mediaToRemove.id);
     onChange?.(newMedia);
@@ -100,7 +100,10 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
     <div className={cn("space-y-4", className)}>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {value.map((media) => (
-          <div key={media.id} className="relative aspect-square rounded-xl overflow-hidden border border-border group bg-muted">
+          <div
+            key={media.id}
+            className="relative aspect-square rounded-xl overflow-hidden border border-border group bg-muted"
+          >
             {media.type === "image" ? (
               <img src={media.url} alt="Mídia" className="w-full h-full object-cover" />
             ) : (
@@ -115,9 +118,9 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
             </button>
           </div>
         ))}
-        
+
         {value.length < maxFiles && (
-          <label className="relative aspect-square rounded-xl border-2 border-dashed border-border hover:border-primary/50 transition-colors flex flex-col items-center justify-center cursor-pointer bg-muted/30 hover:bg-muted/50 group">
+          <label className="relative aspect-square rounded-xl border border-dashed border-border hover:border-primary/50 transition-colors flex flex-col items-center justify-center cursor-pointer bg-muted/30 hover:bg-muted/50 group">
             <input
               type="file"
               multiple

@@ -86,10 +86,7 @@ function CustomerOrderDetailPage() {
         >
           <ChevronLeft className="h-4 w-4" /> Voltar para pedidos
         </Link>
-        <EmptyState
-          title="Pedido não encontrado"
-          description="O pedido solicitado não pôde ser localizado."
-        />
+        <EmptyState title="Pedido não encontrado" />
       </div>
     );
   }
@@ -129,8 +126,8 @@ function CustomerOrderDetailPage() {
         if (res.status === "error") throw new Error(res.message);
         toast.success("Comprovante enviado! Aguardando confirmação da loja.");
         router.invalidate();
-      } catch (err: any) {
-        toast.error(err.message || "Erro ao enviar comprovante.");
+      } catch (err: unknown) {
+        toast.error((err instanceof Error ? err.message : String(err)) || "Erro ao enviar comprovante.");
       } finally {
         setUploading(false);
       }
@@ -139,29 +136,36 @@ function CustomerOrderDetailPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 font-sans text-foreground">
+      <div className="flex items-center justify-between border-b border-border pb-4">
         <Link
           to="/conta/pedidos"
-          className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+          className="flex items-center gap-1 text-sm font-bold text-foreground hover:underline decoration-2"
         >
           <ChevronLeft className="h-4 w-4" /> Voltar para pedidos
         </Link>
-        <Badge variant={getStatusVariant(order.status)}>{translateStatus(order.status)}</Badge>
+        <span className="px-3 py-1 font-mono text-xs font-black uppercase border border-border bg-secondary shadow-sm">
+          {translateStatus(order.status)}
+        </span>
       </div>
 
-      <PageHeader
-        title={`Pedido #${order.public_token}`}
-        description={`Realizado em ${formatDate(order.created_at)}`}
-      />
+      <div>
+        <h1 className="text-3xl font-semibold font-bold flex items-center gap-3">
+          <Package className="size-8 text-primary" strokeWidth={3} />
+          Pedido #{order.public_token}
+        </h1>
+        <p className="text-sm font-mono mt-2 bg-primary text-primary-foreground inline-block px-2 py-1 shadow-sm">
+          Realizado em {formatDate(order.created_at)}
+        </p>
+      </div>
 
       <div className="grid gap-6 md:grid-cols-3">
         {/* Left: items + shipping */}
         <div className="md:col-span-2 space-y-6">
           {/* Order items */}
-          <div className="border bg-card p-5 space-y-4">
-            <h3 className="font-semibold flex items-center gap-2 text-foreground">
-              <Package className="h-5 w-5 text-muted-foreground" />
+          <div className="border border-border bg-background shadow-sm p-5 space-y-4 mb-6">
+            <h3 className="font-semibold text-xl font-bold flex items-center gap-2 border-b border-border pb-3">
+              <Package className="h-6 w-6 text-primary" strokeWidth={2.5} />
               Itens do Pedido
             </h3>
             <div className="divide-y">
@@ -171,16 +175,18 @@ function CustomerOrderDetailPage() {
                   className="flex justify-between py-4 first:pt-0 last:pb-0 text-sm"
                 >
                   <div>
-                    <p className="font-medium text-foreground">{item.product_title}</p>
-                    <p className="text-xs text-muted-foreground font-mono mt-0.5">
+                    <p className="font-bold text-lg">{item.product_title}</p>
+                    <p className="text-xs text-foreground/70 font-mono mt-0.5">
                       SKU: {item.variant_sku}
                     </p>
                   </div>
                   <div className="text-right">
                     {/* Canonical DB field: total_cents (not total_price_cents) */}
-                    <p className="font-semibold">{formatMoney(item.total_cents)}</p>
+                    <p className="font-black font-semibold text-lg">
+                      {formatMoney(item.total_cents)}
+                    </p>
                     {/* Canonical DB field: qty (not quantity) */}
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-foreground/70">
                       {item.qty}x {formatMoney(item.unit_price_cents)}
                     </p>
                     {order.status === "delivered" && (
@@ -193,19 +199,19 @@ function CustomerOrderDetailPage() {
           </div>
 
           {/* Delivery & Shipping Address */}
-          <div className="border bg-card p-5 space-y-3">
-            <h3 className="font-semibold flex items-center gap-2 text-foreground">
-              <MapPin className="h-5 w-5 text-muted-foreground" />
+          <div className="border border-border bg-background shadow-sm p-5 space-y-3 mb-6">
+            <h3 className="font-semibold text-xl font-bold flex items-center gap-2 border-b border-border pb-3">
+              <MapPin className="h-6 w-6 text-primary" strokeWidth={2.5} />
               Entrega / Retirada
             </h3>
             {order.shipping_method === "pickup" ? (
-              <p className="text-sm text-muted-foreground">
-                Modalidade: <strong>Retirada na Loja</strong>
+              <p className="text-sm text-foreground/80">
+                Modalidade: <strong className="text-foreground">Retirada na Loja</strong>
               </p>
             ) : (
-              <div className="text-sm text-muted-foreground space-y-1">
+              <div className="text-sm text-foreground/80 space-y-1">
                 <p>
-                  <strong>Modalidade:</strong> Entrega domiciliar
+                  <strong className="text-foreground">Modalidade:</strong> Entrega domiciliar
                 </p>
                 {address.street && (
                   <p>
@@ -219,7 +225,9 @@ function CustomerOrderDetailPage() {
                   </p>
                 )}
                 {address.zipcode && (
-                  <p className="font-mono text-xs mt-1">CEP: {address.zipcode}</p>
+                  <p className="font-mono text-xs mt-1 font-bold text-foreground">
+                    CEP: {address.zipcode}
+                  </p>
                 )}
               </div>
             )}
@@ -229,72 +237,82 @@ function CustomerOrderDetailPage() {
         {/* Right: totals + payment */}
         <div className="space-y-6">
           {/* Summary totals */}
-          <div className="border bg-card p-5 space-y-3">
-            <h3 className="font-semibold text-foreground">Resumo de Valores</h3>
-            <div className="space-y-2 text-sm text-muted-foreground">
+          <div className="border border-border bg-secondary shadow-sm p-6 space-y-4 mb-6 text-foreground">
+            <h3 className="font-semibold text-2xl font-bold border-b border-border pb-3 flex items-center gap-2">
+              <CreditCard className="size-6 text-primary" strokeWidth={2.5} />
+              Resumo Financeiro
+            </h3>
+            <div className="space-y-2 text-sm font-medium">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>{formatMoney(order.subtotal_cents)}</span>
+                <span className="font-mono font-bold">{formatMoney(order.subtotal_cents)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Frete</span>
-                <span>
+                <span className="font-mono font-bold">
                   {order.shipping_cents === 0 ? "Grátis" : formatMoney(order.shipping_cents)}
                 </span>
               </div>
               {order.discount_cents > 0 && (
-                <div className="flex justify-between text-success">
+                <div className="flex justify-between text-success font-black border border-success bg-white px-2 py-1 shadow-sm mt-1">
                   <span>Desconto</span>
                   <span>-{formatMoney(order.discount_cents)}</span>
                 </div>
               )}
-              <div className="flex justify-between font-bold text-foreground border-t pt-2 mt-2">
-                <span>Total</span>
-                <span>{formatMoney(order.total_cents)}</span>
+              <div className="flex justify-between items-end border-t border-border pt-4 mt-4">
+                <span className="font-bold text-xl font-semibold">Total</span>
+                <span className="font-black text-4xl text-primary font-semibold tracking-tight drop-shadow-sm">
+                  {formatMoney(order.total_cents)}
+                </span>
               </div>
             </div>
           </div>
 
           {/* Payment instructions & Upload */}
           {order.status === "awaiting_payment" && (
-            <div className="border bg-card p-5 space-y-4">
-              <h3 className="font-semibold flex items-center gap-2 text-foreground">
-                <CreditCard className="h-5 w-5 text-muted-foreground" />
+            <div className="border border-border bg-background shadow-sm p-5 space-y-5 text-foreground">
+              <h3 className="font-semibold text-xl font-bold flex items-center gap-2 border-b border-border pb-3">
+                <CreditCard className="h-6 w-6 text-primary" strokeWidth={2.5} />
                 Como Pagar
               </h3>
 
               {paymentInstructions.pix_key ? (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <QrCode className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <p className="text-xs text-muted-foreground">
+                    <QrCode className="h-4 w-4 text-foreground shrink-0" />
+                    <p className="text-xs font-bold text-foreground">
                       Copie a chave abaixo e cole no app do seu banco:
                     </p>
                   </div>
-                  <div className="bg-muted p-3 rounded text-[11px] font-mono break-all select-all">
+                  <div className="bg-muted/30 border border-border p-3 text-xs font-mono break-all select-all font-bold">
                     {paymentInstructions.pix_key}
                   </div>
-                  <Button size="sm" variant="outline" className="w-full" onClick={handleCopyPix}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full border border-border font-bold rounded-md bg-white text-foreground"
+                    onClick={handleCopyPix}
+                  >
                     <Copy className="h-3.5 w-3.5 mr-2" /> Copiar Chave PIX
                   </Button>
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-foreground/80 font-medium">
                   Entre em contato com a loja para obter as instruções de pagamento.
                 </p>
               )}
 
               {paymentInstructions.payment_instructions && (
-                <div className="bg-muted/50 p-3 text-xs text-muted-foreground border">
-                  <p className="font-medium text-foreground mb-1">Instruções adicionais:</p>
+                <div className="bg-secondary/30 p-3 text-xs text-foreground border border-border font-medium">
+                  <p className="font-bold text-foreground mb-1">Instruções adicionais:</p>
                   <p className="whitespace-pre-wrap">{paymentInstructions.payment_instructions}</p>
                 </div>
               )}
 
               {/* Upload section */}
-              <div className="border-2 border-dashed border-muted p-4 text-center space-y-2">
-                <Upload className="h-6 w-6 mx-auto text-muted-foreground" />
-                <p className="text-xs text-muted-foreground">
+              <div className="border border-dashed border-border bg-muted/30 p-5 text-center space-y-3">
+                <Upload className="h-6 w-6 mx-auto text-foreground" />
+                <p className="text-xs font-bold text-foreground">
                   Envie o comprovante de pagamento para agilizar a confirmação.
                 </p>
                 <input
@@ -308,11 +326,10 @@ function CustomerOrderDetailPage() {
                 <Button
                   asChild
                   size="sm"
-                  variant="secondary"
-                  className="w-full"
+                  className="w-full bg-primary text-primary-foreground border border-border rounded-md font-bold cursor-pointer"
                   disabled={uploading}
                 >
-                  <label htmlFor="receipt-file" className="cursor-pointer">
+                  <label htmlFor="receipt-file">
                     {uploading ? "Enviando..." : "Anexar Comprovante"}
                   </label>
                 </Button>
@@ -322,11 +339,11 @@ function CustomerOrderDetailPage() {
 
           {/* Payment status messages */}
           {order.status === "payment_processing" && (
-            <div className="flex items-start gap-2 bg-warning text-warning text-xs p-3 border border-yellow-200">
-              <Info className="h-4 w-4 shrink-0 mt-0.5 text-warning" />
+            <div className="flex items-start gap-3 bg-secondary text-foreground text-sm p-4 border border-border shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+              <Info className="h-5 w-5 shrink-0 mt-0.5 text-foreground" strokeWidth={2.5} />
               <div>
-                <p className="font-semibold">Comprovante em análise</p>
-                <p className="mt-0.5 text-warning">
+                <p className="font-black font-semibold uppercase">Comprovante em análise</p>
+                <p className="mt-1 text-foreground/80 font-medium">
                   A equipe está confirmando seu pagamento. Você será notificado em breve.
                 </p>
               </div>
@@ -334,11 +351,14 @@ function CustomerOrderDetailPage() {
           )}
 
           {payment?.receipt_status === "rejected" && (
-            <div className="flex items-start gap-2 bg-destructive text-destructive text-xs p-3 border border-red-200">
-              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-destructive" />
+            <div className="flex items-start gap-3 bg-primary text-primary-foreground text-sm p-4 border border-border shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+              <AlertTriangle
+                className="h-5 w-5 shrink-0 mt-0.5 text-primary-foreground"
+                strokeWidth={2.5}
+              />
               <div>
-                <p className="font-semibold">Comprovante Recusado</p>
-                <p className="mt-0.5 text-destructive">
+                <p className="font-black font-semibold uppercase">Comprovante Recusado</p>
+                <p className="mt-1 text-primary-foreground/90 font-medium">
                   O comprovante não pôde ser validado. Por favor, envie novamente ou contate a loja.
                 </p>
               </div>
@@ -346,11 +366,11 @@ function CustomerOrderDetailPage() {
           )}
 
           {["paid", "processing", "completed"].includes(order.status) && (
-            <div className="flex items-start gap-2 bg-success text-success text-xs p-3 border border-green-200">
-              <Info className="h-4 w-4 shrink-0 mt-0.5 text-success" />
+            <div className="flex items-start gap-3 bg-success text-white text-sm p-4 border border-border shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+              <Info className="h-5 w-5 shrink-0 mt-0.5 text-white" strokeWidth={2.5} />
               <div>
-                <p className="font-semibold">Pagamento Confirmado</p>
-                <p className="mt-0.5 text-success">
+                <p className="font-black font-semibold uppercase">Pagamento Confirmado</p>
+                <p className="mt-1 text-white/90 font-medium">
                   Seu pagamento foi confirmado! O pedido está sendo preparado.
                 </p>
               </div>
@@ -361,7 +381,7 @@ function CustomerOrderDetailPage() {
             <>
               <Button
                 variant="outline"
-                className="w-full mt-4 text-destructive border-destructive hover:bg-destructive/10"
+                className="w-full mt-6 bg-background text-primary border border-border rounded-md font-black uppercase tracking-wider"
                 onClick={() => setRmaWizardOpen(true)}
               >
                 Solicitar Devolução / Troca

@@ -27,10 +27,7 @@ function Page() {
       <PageHeader eyebrow="Documento" title={page?.title || "Política de privacidade"} />
       <div className="mt-8">
         {!page ? (
-          <EmptyState
-            title="Página não encontrada"
-            description="Este documento ainda não foi publicado."
-          />
+          <EmptyState title="Página não encontrada" />
         ) : (
           <div className="prose prose-neutral max-w-none">
             {/* Aqui renderizaríamos as seções do construtor de página se existissem. Como é texto rico, vamos simplificar: */}

@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { cn } from "@/lib/utils";
 import {
   User,
   ChevronLeft,
@@ -117,7 +118,7 @@ function CustomerDetailPage() {
       toast.success("Ficha do cliente atualizada.");
       router.invalidate();
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Erro ao salvar");
+      toast.error(e instanceof Error ? (e instanceof Error ? e.message : String(e)) : "Erro ao salvar");
     } finally {
       setIsSubmitting(false);
     }
@@ -217,8 +218,8 @@ function CustomerDetailPage() {
       } else {
         toast.error(res.message || "Erro ao salvar endereço");
       }
-    } catch (e: any) {
-      toast.error(e.message || "Erro inesperado");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro inesperado");
     } finally {
       setIsSavingAddress(false);
     }
@@ -250,9 +251,9 @@ function CustomerDetailPage() {
       </nav>
 
       {/* Identidade Resumida */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 bg-card border border-border shadow-xs">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 py-2">
         <div className="flex items-center gap-4">
-          <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+          <div className="size-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
             <User className="size-6" />
           </div>
           <div className="space-y-1">
@@ -292,7 +293,7 @@ function CustomerDetailPage() {
         </TabsList>
 
         <TabsContent value="crm" className="space-y-4">
-          <div className="max-w-2xl border border-border bg-card p-6 shadow-xs">
+          <div className="max-w-2xl pt-2">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <FormField
@@ -366,11 +367,12 @@ function CustomerDetailPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {data.addresses.map((addr: any) => (
-              <Surface
+              <div
                 key={addr.id}
-                variant={addr.is_default ? "polaroid" : "default"}
-                padding="none"
-                className={`relative overflow-hidden border-2 ${addr.is_default ? "border-primary bg-primary/5" : ""}`}
+                className={cn(
+                  "relative overflow-hidden border rounded-lg",
+                  addr.is_default ? "border-primary bg-primary/5" : "border-border bg-card",
+                )}
               >
                 {addr.is_default && (
                   <div className="absolute top-2 right-2 flex items-center gap-1 text-xs text-primary font-bold">
@@ -446,7 +448,7 @@ function CustomerDetailPage() {
                     )}
                   </div>
                 </div>
-              </Surface>
+              </div>
             ))}
 
             {data.addresses.length === 0 && (
@@ -459,7 +461,7 @@ function CustomerDetailPage() {
         </TabsContent>
 
         <TabsContent value="pedidos">
-          <div className="border border-border bg-card overflow-hidden shadow-xs">
+          <div className="border border-border rounded-lg bg-card overflow-hidden">
             {data.orders.length === 0 ? (
               <div className="p-8 text-center text-muted-foreground text-xs">
                 Este cliente ainda não fez nenhum pedido no e-commerce ou balcão.

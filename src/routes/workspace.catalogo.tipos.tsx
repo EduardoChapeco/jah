@@ -190,7 +190,6 @@ function ProductTypesPage() {
       <PageHeader
         eyebrow="Catálogo"
         title="Tipos de produto"
-        description="Defina os esquemas de atributos dinâmicos para diferentes categorias de produtos."
         actions={
           <Sheet
             open={open}
@@ -388,20 +387,13 @@ function ProductTypesPage() {
       </div>
 
       {filteredTypes.length === 0 ? (
-        <EmptyState
-          title="Nenhum tipo de produto"
-          description={
-            searchQuery
-              ? "Tente alterar os termos da sua busca."
-              : "Crie tipos de produtos para definir esquemas adaptativos de atributos, como tamanhos e materiais."
-          }
-        />
+        <EmptyState title="Nenhum tipo de produto" />
       ) : (
-        <Surface variant="zine" elevation="sm" padding="none">
+        <div className="border border-border bg-card rounded-md shadow-xs overflow-hidden">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-muted/40 border-b border-ink/20">
+                <TableRow className="bg-muted/40 border-b border-border/20">
                   <TableHead>Nome</TableHead>
                   <TableHead>Slug</TableHead>
                   <TableHead>Campos Dinâmicos</TableHead>
@@ -426,7 +418,7 @@ function ProductTypesPage() {
                         {type.slug}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary" className="text-xs border-ink/30">
+                        <Badge variant="secondary" className="text-xs border-border/30">
                           {Array.isArray(type.field_schema) ? type.field_schema.length : 0} campos
                         </Badge>
                       </TableCell>
@@ -461,7 +453,7 @@ function ProductTypesPage() {
               </TableBody>
             </Table>
           </div>
-        </Surface>
+        </div>
       )}
     </div>
   );

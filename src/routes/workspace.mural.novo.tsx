@@ -21,12 +21,10 @@ const postSchema = z.object({
 
 type PostFormData = z.infer<typeof postSchema>;
 
-export const Route = createFileRoute("/workspace/mural/novo")(
-{
+export const Route = createFileRoute("/workspace/mural/novo")({
   head: () => ({ meta: [{ title: "Nova Publicacao - JAH" }] }),
   component: NovoPostPage,
-}
-);
+});
 
 function NovoPostPage() {
   const navigate = useNavigate();
@@ -76,11 +74,7 @@ function NovoPostPage() {
         data: {
           fileName: file.name,
           contentType: file.type as
-            | "image/jpeg"
-            | "image/png"
-            | "image/webp"
-            | "image/gif"
-            | "video/mp4",
+            "image/jpeg" | "image/png" | "image/webp" | "image/gif" | "video/mp4",
         },
       });
       // 2. Upload direto para o Supabase Storage (sem passar pelo servidor)
@@ -92,8 +86,8 @@ function NovoPostPage() {
       if (!uploadRes.ok) throw new Error("Falha no upload para o Storage.");
       setMediaUrls([publicUrl]);
       toast.success("Midia enviada com sucesso!");
-    } catch (err: any) {
-      toast.error(err.message || "Erro ao fazer upload da midia.");
+    } catch (err: unknown) {
+      toast.error((err instanceof Error ? err.message : String(err)) || "Erro ao fazer upload da midia.");
       setMediaPreview(null);
       setMediaUrls([]);
     } finally {
@@ -126,41 +120,35 @@ function NovoPostPage() {
 
       toast.success("Publicacao enviada pro Mural!");
       navigate({ to: "/mural" });
-    } catch (err: any) {
-      toast.error(err.message || "Erro ao publicar.");
+    } catch (err: unknown) {
+      toast.error((err instanceof Error ? err.message : String(err)) || "Erro ao publicar.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="container max-w-2xl mx-auto px-4 md:px-8 py-10 space-y-8">
+    <div className="max-w-2xl px-4 md:px-8 py-10 space-y-8">
       <PageHeader
         title="Nova Publicacao"
-        description="Compartilhe novidades com a comunidade."
         actions={
-          <Button
-            variant="outline"
-            onClick={() => navigate({ to: "/mural" })}
-          >
+          <Button variant="outline" onClick={() => navigate({ to: "/mural" })}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Voltar ao Mural
           </Button>
         }
       />
 
-      <Surface variant="zine" padding="lg">
+      <div className="border border-border bg-card rounded-md shadow-xs p-8 max-w-3xl mx-auto">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Contexto de publicacao: Pessoal ou Loja */}
           <div className="space-y-2">
-            <Label className="font-mono uppercase text-xs font-bold text-ink/70">
+            <Label className="font-mono uppercase text-xs font-bold text-foreground/70">
               Como voce quer postar?
             </Label>
             <div className="flex gap-4">
               <label
-                className={`flex-1 border-2 p-4 flex flex-col items-center gap-2 cursor-pointer transition-colors ${
-                  !asStore ? "border-ink bg-ink text-paper" : "border-ink/20 hover:border-ink/50"
-                }`}
+                className={`flex-1 border p-4 flex flex-col items-center gap-2 cursor-pointer transition-colors ${!asStore ? "border-border bg-ink text-primary-foreground" : "border-border/20 hover:border-border/50"}`}
               >
                 <input
                   type="radio"
@@ -172,9 +160,7 @@ function NovoPostPage() {
                 <span className="font-bold uppercase font-mono text-sm">Pessoal</span>
               </label>
               <label
-                className={`flex-1 border-2 p-4 flex flex-col items-center gap-2 cursor-pointer transition-colors ${
-                  asStore ? "border-ink bg-ink text-paper" : "border-ink/20 hover:border-ink/50"
-                }`}
+                className={`flex-1 border p-4 flex flex-col items-center gap-2 cursor-pointer transition-colors ${asStore ? "border-border bg-ink text-primary-foreground" : "border-border/20 hover:border-border/50"}`}
               >
                 <input
                   type="radio"
@@ -192,18 +178,18 @@ function NovoPostPage() {
           <div className="space-y-2">
             <Label
               htmlFor="content_text"
-              className="font-mono uppercase text-xs font-bold text-ink/70"
+              className="font-mono uppercase text-xs font-bold text-foreground/70"
             >
               Mensagem
             </Label>
             <Textarea
               id="content_text"
               placeholder="O que esta acontecendo?"
-              className="min-h-32 text-lg font-serif border-2 border-ink rounded-none bg-transparent resize-none focus-visible:ring-0 focus-visible:border-ink p-4"
+              className="min-h-32 text-lg font-serif border border-border rounded-none bg-transparent resize-none focus-visible:ring-0 focus-visible:border-border p-4"
               {...register("content_text")}
             />
             {errors.content_text && (
-              <p className="text-poster-red text-sm font-bold font-mono">
+              <p className="text-primary text-sm font-bold font-mono">
                 {errors.content_text.message}
               </p>
             )}
@@ -211,12 +197,12 @@ function NovoPostPage() {
 
           {/* Upload de midia real */}
           <div className="space-y-2">
-            <Label className="font-mono uppercase text-xs font-bold text-ink/70">
+            <Label className="font-mono uppercase text-xs font-bold text-foreground/70">
               Midia (Opcional)
             </Label>
 
             {mediaPreview ? (
-              <div className="relative border-2 border-ink overflow-hidden">
+              <div className="relative border border-border overflow-hidden">
                 {isUploadingMedia && (
                   <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
                     <Loader2 className="size-8 text-white animate-spin" />
@@ -231,7 +217,7 @@ function NovoPostPage() {
                 <button
                   type="button"
                   onClick={removeMedia}
-                  className="absolute top-2 right-2 bg-ink text-paper p-1 hover:bg-ink/80 transition-colors"
+                  className="absolute top-2 right-2 bg-ink text-primary-foreground p-1 hover:bg-ink/80 transition-colors"
                   aria-label="Remover midia"
                 >
                   <X className="size-4" />
@@ -239,13 +225,11 @@ function NovoPostPage() {
               </div>
             ) : (
               <div
-                className="border-2 border-dashed border-ink/30 p-8 flex flex-col items-center justify-center text-ink/50 cursor-pointer hover:bg-ink/5 hover:border-ink/60 transition-colors"
+                className="border border-dashed border-border/30 p-8 flex flex-col items-center justify-center text-foreground/50 cursor-pointer hover:bg-ink/5 hover:border-border/60 transition-colors"
                 onClick={() => fileInputRef.current?.click()}
               >
                 <ImagePlus className="size-8 mb-2 opacity-50" />
-                <span className="font-mono text-xs uppercase font-bold">
-                  Anexar Arte / Foto
-                </span>
+                <span className="font-mono text-xs uppercase font-bold">Anexar Arte / Foto</span>
                 <span className="font-mono text-[10px] mt-1 opacity-60">
                   JPG, PNG, WebP, GIF, MP4 — max 20MB
                 </span>
@@ -264,7 +248,7 @@ function NovoPostPage() {
           <Button
             type="submit"
             disabled={isSubmitting || isUploadingMedia}
-            className="w-full font-bold font-display uppercase tracking-widest text-lg h-14 bg-ink text-paper border-2 border-ink shadow-hard hover:translate-y-1 hover:shadow-none transition-all disabled:opacity-50"
+            className="w-full font-bold font-display uppercase tracking-widest text-lg h-14 bg-ink text-primary-foreground border border-border shadow-sm hover:translate-y-1 hover:shadow-none transition-all disabled:opacity-50"
           >
             {isSubmitting ? (
               <>
@@ -279,7 +263,7 @@ function NovoPostPage() {
             )}
           </Button>
         </form>
-      </Surface>
+      </div>
     </div>
   );
 }

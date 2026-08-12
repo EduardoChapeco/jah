@@ -48,10 +48,10 @@ export const startMatchTimeSession = createServerFn({ method: "POST" }).handler(
 
     if (error) throw error;
     return { status: "success" as const, data: { sessionId: newSession.id } };
-  } catch (e: any) {
+  } catch (e: unknown) {
     if (e instanceof SupabaseUnconfiguredError)
       return { status: "unconfigured" as const, message: "Supabase não configurado." };
-    throw new Error(e.message || "Erro ao iniciar sessão.");
+    throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao iniciar sessão.");
   }
 });
 
@@ -68,10 +68,10 @@ export const endMatchTimeSession = createServerFn({ method: "POST" })
         .update({ ended_at: new Date().toISOString() })
         .eq("id", sessionId);
       return { status: "success" as const };
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError)
         return { status: "unconfigured" as const, message: "Supabase não configurado." };
-      throw new Error(e.message || "Erro ao encerrar sessão.");
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao encerrar sessão.");
     }
   });
 
@@ -125,10 +125,10 @@ export const getNextProductsForSwipe = createServerFn({ method: "GET" }).handler
 
     if (error) throw error;
     return products || [];
-  } catch (e: any) {
+  } catch (e: unknown) {
     if (e instanceof SupabaseUnconfiguredError)
       return { status: "unconfigured" as const, message: "Supabase não configurado." };
-    throw new Error(e.message || "Erro ao buscar produtos.");
+    throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao buscar produtos.");
   }
 });
 
@@ -189,8 +189,8 @@ export const generateMatchTimeOffer = createServerFn({ method: "POST" })
       }
 
       return { status: "success" as const, data: { offerId: offer.id, expiresAt } };
-    } catch (e: any) {
-      throw new Error(e.message || "Erro ao gerar oferta relâmpago.");
+    } catch (e: unknown) {
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao gerar oferta relâmpago.");
     }
   });
 
@@ -232,10 +232,10 @@ export const recordSwipe = createServerFn({ method: "POST" })
         throw error;
       }
       return { status: "success" as const };
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError)
         return { status: "unconfigured" as const, message: "Supabase não configurado." };
-      throw new Error(e.message || "Erro ao registrar swipe.");
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao registrar swipe.");
     }
   });
 
@@ -343,10 +343,10 @@ export const getCustomerAffinityRecommendations = createServerFn({ method: "GET"
           }),
         },
       };
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError)
         return { status: "unconfigured" as const, message: "Supabase não configurado." };
-      throw new Error(e.message || "Erro ao calcular recomendações.");
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao calcular recomendações.");
     }
   },
 );
@@ -458,9 +458,9 @@ export const getMatchTimeReport = createServerFn({ method: "GET" }).handler(asyn
         totalSwipes: swipes?.length || 0,
       },
     };
-  } catch (e: any) {
+  } catch (e: unknown) {
     if (e instanceof SupabaseUnconfiguredError)
       return { status: "unconfigured" as const, message: "Supabase não configurado." };
-    throw new Error(e.message || "Erro ao buscar relatório.");
+    throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao buscar relatório.");
   }
 });

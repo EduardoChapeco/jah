@@ -174,7 +174,7 @@ function AdminStockPage() {
       } else {
         toast.error((res as any).message || "Erro ao atualizar estoque.");
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       toast.error("Erro inesperado ao registrar estoque.");
     } finally {
       setIsUpdating(false);
@@ -186,7 +186,6 @@ function AdminStockPage() {
       <PageHeader
         eyebrow="Operação Comercial"
         title="Estoque Operacional"
-        description="Controle de saldos em mãos, reservas de checkout e movimentações imutáveis com rastreabilidade."
         actions={
           <div className="flex items-center gap-2">
             <Button asChild variant="outline" size="sm">
@@ -207,9 +206,7 @@ function AdminStockPage() {
 
       {/* Grid de KPIs de Estoque */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card
-          className="relative overflow-hidden border-border/60 from-card to-card/60 p-0"
-        >
+        <div className="relative overflow-hidden border border-border/60 bg-card rounded-md shadow-xs p-0">
           <div className="flex flex-row items-center justify-between p-4 pb-2 space-y-0">
             <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Total de SKUs
@@ -222,11 +219,9 @@ function AdminStockPage() {
             <div className="text-2xl font-bold text-foreground">{metrics.totalSKUs}</div>
             <p className="text-xs text-muted-foreground mt-1">Variações cadastradas</p>
           </div>
-        </Card>
+        </div>
 
-        <Card
-          className="relative overflow-hidden border-border/60 from-card to-card/60 p-0"
-        >
+        <div className="relative overflow-hidden border border-border/60 bg-card rounded-md shadow-xs p-0">
           <div className="flex flex-row items-center justify-between p-4 pb-2 space-y-0">
             <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Estoque em Mãos
@@ -239,11 +234,9 @@ function AdminStockPage() {
             <div className="text-2xl font-bold text-foreground">{metrics.totalOnHand} un.</div>
             <p className="text-xs text-muted-foreground mt-1">Físico em depósito</p>
           </div>
-        </Card>
+        </div>
 
-        <Card
-          className="relative overflow-hidden border-border/60 from-card to-card/60 p-0"
-        >
+        <div className="relative overflow-hidden border border-border/60 bg-card rounded-md shadow-xs p-0">
           <div className="flex flex-row items-center justify-between p-4 pb-2 space-y-0">
             <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Estoque Crítico
@@ -256,7 +249,7 @@ function AdminStockPage() {
             <div className="text-2xl font-bold text-foreground">{metrics.criticalCount}</div>
             <p className="text-xs text-muted-foreground mt-1">SKUs com 5 un. ou menos</p>
           </div>
-        </Card>
+        </div>
       </div>
 
       {/* Toolbar & Filtros por Status */}
@@ -297,10 +290,7 @@ function AdminStockPage() {
 
       {/* Tabela de Estoque */}
       {stock.length === 0 ? (
-        <EmptyState
-          title="Sem variações cadastradas"
-          description="O estoque é gerado automaticamente a partir das variações de SKUs cadastradas nos Produtos."
-        />
+        <EmptyState title="Sem variações cadastradas" />
       ) : (
         <div className="border border-border bg-card overflow-hidden shadow-xs">
           <Table>

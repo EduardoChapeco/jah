@@ -13,7 +13,7 @@ export function CommunityFeed({ content, resolvedClassifieds, isEditing }: any) 
   if (items.length === 0) {
     if (isEditing) {
       return (
-        <div className="p-12 text-center border-2 border-dashed border-border/50 bg-card/50">
+        <div className="p-12 text-center border border-dashed border-border/50 bg-card/50">
           <Newspaper className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
           <h3 className="text-lg font-medium">Zine Comunitário</h3>
           <p className="text-muted-foreground text-sm max-w-sm mx-auto mt-1">
@@ -60,12 +60,12 @@ export function CommunityFeed({ content, resolvedClassifieds, isEditing }: any) 
       >
         {items.map((item: any, i: number) => {
           // Slight random rotation for that messy Zine/Lambe-lambe feel
-          const rotation = i % 2 === 0 ? "rotate-1" : "-rotate-1";
+          const rotation = i % 2 === 0 ? "rotate-1" : "";
 
           return (
             <Surface
               key={item.id}
-              variant="zine"
+              variant="default"
               elevation="sm"
               padding="md"
               className={cn(
@@ -97,8 +97,8 @@ export function CommunityFeed({ content, resolvedClassifieds, isEditing }: any) 
                 {item.content}
               </p>
 
-              <div className="flex items-center gap-3 pt-4 border-t-2 border-black/10 dark:border-white/10 mt-auto">
-                <Avatar className="h-8 w-8 border-2 border-foreground">
+              <div className="flex items-center gap-3 pt-4 border-t border-black/10 dark:border-white/10 mt-auto">
+                <Avatar className="h-8 w-8 border border-foreground">
                   <AvatarImage src={item.avatar_url || ""} />
                   <AvatarFallback className="font-bold bg-muted text-foreground">
                     {item.author?.substring(0, 2).toUpperCase()}

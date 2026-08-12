@@ -4,10 +4,12 @@ import { z } from "zod";
 
 export const getPublicDirectory = createServerFn({ method: "GET" })
   .validator(
-    z.object({
-      limit: z.number().int().min(1).max(100).optional(),
-      category: z.string().optional(),
-    }).optional()
+    z
+      .object({
+        limit: z.number().int().min(1).max(100).optional(),
+        category: z.string().optional(),
+      })
+      .optional(),
   )
   .handler(async ({ data }) => {
     const supabase = getServerClient();
@@ -15,10 +17,12 @@ export const getPublicDirectory = createServerFn({ method: "GET" })
 
     let query = supabase
       .from("directory_listings")
-      .select(`
+      .select(
+        `
         id, category, address, latitude, longitude, contact_phone, working_hours, is_verified, status, created_at,
         stores ( name, type )
-      `)
+      `,
+      )
       .eq("status", "active")
       .order("created_at", { ascending: false })
       .limit(limit);

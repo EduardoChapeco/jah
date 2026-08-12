@@ -117,7 +117,7 @@ function AdminOrdersPage() {
       } else {
         toast.error((res as any).message || "Erro ao atualizar status.");
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       toast.error("Erro ao atualizar o pedido.");
     } finally {
       setIsProcessing(false);
@@ -138,7 +138,7 @@ function AdminOrdersPage() {
       } else {
         toast.error((res as any).message || "Erro ao aprovar pagamento.");
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       toast.error("Erro ao aprovar pagamento.");
     } finally {
       setIsProcessing(false);
@@ -147,11 +147,7 @@ function AdminOrdersPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        eyebrow="Gestão Comercial de Vendas"
-        title="Painel de Pedidos"
-        description="Acompanhe o ciclo de vida completo de cada pedido, da aprovação do pagamento até a entrega final ao cliente."
-      />
+      <PageHeader eyebrow="Gestão Comercial de Vendas" title="Painel de Pedidos" />
 
       {/* Toolbar & Filtros de Status */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
@@ -198,14 +194,7 @@ function AdminOrdersPage() {
 
       {/* Tabela de Pedidos */}
       {filteredOrders.length === 0 ? (
-        <EmptyState
-          title="Nenhum pedido encontrado"
-          description={
-            searchQuery || statusTab !== "all"
-              ? "Tente alterar os termos de busca ou filtros de status aplicados."
-              : "Quando suas clientes realizarem compras no e-commerce ou balcão, os pedidos aparecerão aqui."
-          }
-        />
+        <EmptyState title="Nenhum pedido encontrado" />
       ) : (
         <div className="border border-border bg-card overflow-hidden shadow-xs">
           <Table>
@@ -281,13 +270,16 @@ function AdminOrdersPage() {
                             Ações Operacionais
                           </DropdownMenuLabel>
                           <DropdownMenuItem asChild>
-                            <Link to={`/admin/pedidos/${order.id}` as never}>
+                            <Link to={`/workspace/pedidos/${order.id}` as never}>
                               <Eye className="size-3.5 mr-2" />
                               Ver Ficha 360 do Pedido
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
-                            <Link to={`/admin/pedidos/${order.id}/recibo` as never} target="_blank">
+                            <Link
+                              to={`/workspace/pedidos/${order.id}/recibo` as never}
+                              target="_blank"
+                            >
                               <ReceiptText className="size-3.5 mr-2" />
                               Imprimir Recibo / Comprovante
                             </Link>

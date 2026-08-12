@@ -275,7 +275,6 @@ function ProductPage() {
       <div className="mx-auto max-w-screen-xl px-4 py-20 md:px-6">
         <EmptyState
           title="Produto não encontrado"
-          description="Este produto não está disponível ou foi removido do catálogo."
           action={
             <Button asChild>
               <Link to="/mercado">Ver catálogo</Link>
@@ -440,7 +439,7 @@ function ProductContent({
       toast.success("Adicionado ao carrinho");
       setIsCartOpen(true);
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Erro ao adicionar ao carrinho.");
+      toast.error(error instanceof Error ? (error instanceof Error ? error.message : String(error)) : "Erro ao adicionar ao carrinho.");
     } finally {
       setIsAdding(false);
     }
@@ -498,8 +497,8 @@ function ProductContent({
       } else {
         toast.error("Erro ao enviar avaliação. Faça login primeiro.");
       }
-    } catch (err: any) {
-      toast.error(err.message || "Você precisa estar autenticado como cliente para avaliar.");
+    } catch (err: unknown) {
+      toast.error((err instanceof Error ? err.message : String(err)) || "Você precisa estar autenticado como cliente para avaliar.");
     } finally {
       setIsSubmittingReview(false);
     }
@@ -512,8 +511,8 @@ function ProductContent({
         res.following ? "Você agora está seguindo a loja!" : "Você deixou de seguir a loja.",
       );
       refetchFollowStatus();
-    } catch (err: any) {
-      toast.error(err.message || "Você precisa estar autenticado como cliente para seguir a loja.");
+    } catch (err: unknown) {
+      toast.error((err instanceof Error ? err.message : String(err)) || "Você precisa estar autenticado como cliente para seguir a loja.");
     }
   };
 
@@ -570,7 +569,7 @@ function ProductContent({
                     <button
                       key={m.id}
                       onClick={() => setActiveMedia(m)}
-                      className={`relative aspect-square w-14 shrink-0 overflow-hidden border-2 transition-all duration-200 ${active ? "border-primary scale-[1.03]" : "border-border/60 hover:border-primary/50 bg-secondary"}`}
+                      className={`relative aspect-square w-14 shrink-0 overflow-hidden border transition-all duration-200 ${active ? "border-primary scale-[1.03]" : "border-border/60 hover:border-primary/50 bg-secondary"}`}
                     >
                       {isVideo ? (
                         <div className="relative size-full bg-black/20 flex items-center justify-center">
@@ -601,7 +600,7 @@ function ProductContent({
 
             {/* Main Screen Viewport */}
             <Surface
-              variant="polaroid"
+              variant="default"
               padding="none"
               className="flex-1 relative aspect-square overflow-hidden bg-secondary"
             >
@@ -650,7 +649,7 @@ function ProductContent({
                   {product.brand}
                 </span>
               )}
-              <h1 className="text-editorial text-2xl font-bold leading-tight text-foreground sm:text-3xl">
+              <h1 className="font-semibold text-2xl font-bold leading-tight text-foreground sm:text-3xl">
                 {product.title}
               </h1>
 
@@ -948,7 +947,7 @@ function ProductContent({
             </div>
 
             {/* Card "Sobre a Loja" */}
-            <Surface variant="polaroid" padding="sm" className="flex items-center justify-between">
+            <Surface variant="default" padding="sm" className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="size-11 rounded bg-primary/10 flex items-center justify-center font-bold text-primary text-lg overflow-hidden border border-primary/20">
                   {product.brand ? product.brand.substring(0, 2).toUpperCase() : "J"}
@@ -985,7 +984,7 @@ function ProductContent({
 
             {/* Description */}
             {product.shortDescription && (
-              <p className="text-sm text-muted-foreground leading-relaxed border-l-2 border-primary/30 pl-3 italic">
+              <p className="text-sm text-muted-foreground leading-relaxed border-l border-primary/30 pl-3 italic">
                 {product.shortDescription}
               </p>
             )}
@@ -1032,129 +1031,134 @@ function ProductContent({
       </div>
 
       {/* Seção de Comentários e Avaliações Reais dos Clientes */}
-      <div className="border-t border-border bg-muted/20 py-12">
+      <div className="border-t border-border bg-secondary py-16 text-foreground">
         <div className="mx-auto max-w-screen-xl px-4 md:px-6">
           <div className="grid gap-10 md:grid-cols-12">
             {/* Esquerda: Média Geral das Notas */}
-            <div className="md:col-span-4 space-y-4 text-left">
-              <h2 className="text-xl font-bold uppercase tracking-tight text-foreground">
-                Comentários dos Clientes
+            <div className="md:col-span-4 space-y-6 text-left">
+              <h2 className="text-3xl font-semibold font-black uppercase tracking-tight flex items-center gap-2">
+                <MessageCircle className="size-8 text-primary" strokeWidth={3} />
+                Comentários
               </h2>
 
-              <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-extrabold text-foreground">
+              <div className="flex items-baseline gap-2 bg-background border border-border shadow-sm inline-flex p-4">
+                <span className="text-5xl font-semibold font-black text-primary">
                   {reviewStats.average_rating > 0 ? reviewStats.average_rating.toFixed(1) : "-"}
                 </span>
-                <span className="text-sm text-muted-foreground">/ 5.0</span>
+                <span className="text-xl font-bold">/ 5.0</span>
               </div>
 
-              <div className="flex items-center gap-0.5 text-amber-500">
+              <div className="flex items-center gap-1">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star
                     key={star}
-                    className={`size-5 ${star <= Math.round(reviewStats.average_rating) ? "fill-current" : "text-muted-foreground/30"}`}
+                    strokeWidth={star <= Math.round(reviewStats.average_rating) ? 2 : 1.5}
+                    className={`size-6 ${star <= Math.round(reviewStats.average_rating) ? "fill-ink text-foreground" : "text-foreground/30"}`}
                   />
                 ))}
               </div>
 
-              <p className="text-xs text-muted-foreground">
-                Baseado em {reviewStats.total_reviews} avaliações de clientes. Compartilhe sua
-                experiência de uso abaixo.
+              <p className="text-sm font-medium text-foreground/80 max-w-xs">
+                Baseado em <strong className="text-foreground">{reviewStats.total_reviews}</strong>{" "}
+                avaliações de clientes. Compartilhe sua experiência de uso abaixo.
               </p>
 
               {/* Formulário para Inserir Avaliação Real */}
               <form onSubmit={handleSubmitReview}>
-                <Surface variant="polaroid" padding="sm" className="space-y-3.5">
-                  <h3 className="font-bold text-xs uppercase text-muted-foreground">
+                <div className="border border-border shadow-sm p-5 space-y-5 bg-background">
+                  <h3 className="font-bold text-lg uppercase font-semibold border-b border-border pb-2">
                     Escrever uma Avaliação
                   </h3>
 
-                  <div className="space-y-1">
-                    <span className="text-[11px] font-bold text-foreground">Sua Nota:</span>
-                    <div className="flex gap-1">
+                  <div className="space-y-2">
+                    <span className="text-sm font-bold text-foreground">Sua Nota:</span>
+                    <div className="flex gap-2">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button
                           key={star}
                           type="button"
                           onClick={() => setNewRating(star)}
-                          className={`size-6 transition-colors ${star <= newRating ? "text-amber-500 fill-amber-500" : "text-border hover:text-amber-400"}`}
+                          className={`size-8 transition-transform hover:scale-110 ${star <= newRating ? "text-primary fill-poster-red" : "text-foreground/30 hover:text-foreground/60"}`}
                         >
-                          <Star className="size-5 fill-current" />
+                          <Star className="size-8" strokeWidth={star <= newRating ? 2 : 1.5} />
                         </button>
                       ))}
                     </div>
                   </div>
 
-                  <div className="space-y-1">
-                    <span className="text-[11px] font-bold text-foreground">Seu Comentário:</span>
+                  <div className="space-y-2">
+                    <span className="text-sm font-bold text-foreground">Seu Comentário:</span>
                     <textarea
                       placeholder="Conte sua opinião sobre conforto, tamanho e material..."
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
                       rows={3}
-                      className="w-full text-xs p-2 border rounded-md focus-visible:outline-primary focus-visible:ring-1 bg-muted/20"
+                      className="w-full text-sm p-3 border border-border focus-visible:outline-none focus-visible:ring-0 focus-visible:border-poster-red bg-white resize-none font-medium placeholder:text-foreground/40"
                     />
                   </div>
 
                   <Button
                     type="submit"
-                    size="sm"
-                    className="w-full font-bold text-xs"
+                    className="w-full font-black text-sm uppercase bg-primary text-primary-foreground rounded-md border border-border cursor-pointer"
                     disabled={isSubmittingReview}
                   >
                     {isSubmittingReview ? "Enviando..." : "Publicar Avaliação"}
                   </Button>
-                </Surface>
+                </div>
               </form>
             </div>
 
             {/* Direita: Lista de Comentários */}
-            <div className="md:col-span-8 flex flex-col gap-5 mt-8 md:mt-0">
+            <div className="md:col-span-8 flex flex-col gap-6 mt-8 md:mt-0">
               {reviewsList.length === 0 ? (
-                <div className="p-8 border border-dashed flex flex-col items-center justify-center text-center gap-3 bg-card/50">
-                  <MessageCircle className="size-10 text-muted-foreground/50" />
+                <div className="p-10 border border-dashed border-border bg-background flex flex-col items-center justify-center text-center gap-4">
+                  <MessageCircle className="size-12 text-foreground/40" />
                   <div>
-                    <h4 className="font-bold text-foreground">Nenhuma avaliação ainda</h4>
-                    <p className="text-xs text-muted-foreground max-w-sm mt-1">
+                    <h4 className="font-semibold text-2xl font-black">Nenhuma avaliação ainda</h4>
+                    <p className="text-sm text-foreground/70 max-w-sm mt-2 font-medium">
                       Seja o primeiro a compartilhar o que você achou deste produto.
                     </p>
                   </div>
                 </div>
               ) : (
                 reviewsList.map((review: any) => (
-                  <Surface key={review.id} variant="polaroid" padding="sm" className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs uppercase">
+                  <div
+                    key={review.id}
+                    className="border border-border shadow-[4px_4px_0px_rgba(0,0,0,1)] bg-background p-5 space-y-3"
+                  >
+                    <div className="flex items-center justify-between border-b border-border pb-3 mb-2">
+                      <div className="flex items-center gap-3">
+                        <div className="size-10 rounded-md bg-secondary border border-border flex items-center justify-center text-foreground font-black text-sm uppercase">
                           {review.userName.substring(0, 2)}
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                          <p className="text-base font-bold text-foreground flex items-center gap-2">
                             {review.userName}
-                            <Badge className="bg-success/10 text-success hover:bg-success/20 text-[9px] uppercase tracking-wider px-1.5 py-0 border-success/20">
+                            <span className="bg-success text-white text-[10px] uppercase font-black tracking-wider px-2 py-0.5 border border-border shadow-sm">
                               Verificado
-                            </Badge>
+                            </span>
                           </p>
-                          <p className="text-[10px] text-muted-foreground">
+                          <p className="text-xs text-foreground/60 font-mono mt-0.5 font-bold">
                             {formatDate(review.createdAt)}
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-0.5 text-amber-500">
+                      <div className="flex items-center gap-1">
                         {[1, 2, 3, 4, 5].map((star) => (
                           <Star
                             key={star}
-                            className={`size-3.5 ${star <= review.rating ? "fill-current" : "text-muted-foreground/30"}`}
+                            strokeWidth={star <= review.rating ? 2 : 1.5}
+                            className={`size-5 ${star <= review.rating ? "fill-poster-red text-primary" : "text-foreground/20"}`}
                           />
                         ))}
                       </div>
                     </div>
                     {review.comment && (
-                      <p className="text-sm text-foreground leading-relaxed pl-10.5">
+                      <p className="text-base font-medium text-foreground leading-relaxed">
                         "{review.comment}"
                       </p>
                     )}
-                  </Surface>
+                  </div>
                 ))
               )}
             </div>

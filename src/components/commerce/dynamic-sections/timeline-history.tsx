@@ -60,7 +60,7 @@ export function TimelineHistory({ content, design_tokens }: TimelineHistoryProps
                     )}
                   >
                     {/* Nó Central */}
-                    <div className="absolute left-4 @md:left-1/2 top-0 @md:top-1/2 w-8 h-8 -ml-4 @md:-ml-4 @md:-mt-4 rounded-full bg-background border-4 border-primary z-10 flex items-center justify-center shadow-sm">
+                    <div className="absolute left-4 @md:left-1/2 top-0 @md:top-1/2 w-8 h-8 -ml-4 @md:-ml-4 @md:-mt-4 rounded-full bg-background border border-primary z-10 flex items-center justify-center shadow-sm">
                       <div className="w-2 h-2 rounded-full bg-primary" />
                     </div>
 
@@ -106,7 +106,7 @@ export function TimelineHistory({ content, design_tokens }: TimelineHistoryProps
 
             {/* Bandeira Final */}
             <div className="relative mt-12 @md:mt-24 flex justify-start @md:justify-center">
-              <div className="w-12 h-12 rounded-full bg-muted border-2 border-border z-10 flex items-center justify-center text-muted-foreground ml-2 @md:ml-0">
+              <div className="w-12 h-12 rounded-full bg-muted border border-border z-10 flex items-center justify-center text-muted-foreground ml-2 @md:ml-0">
                 <Flag className="h-5 w-5" />
               </div>
             </div>

@@ -49,15 +49,17 @@ export class SupabaseUnconfiguredError extends Error {
       const gEnv = (globalThis as any).__env__;
       debugInfo += ` [__env__: ${gEnv ? Object.keys(gEnv).join(",") : "null"}]`;
       debugInfo += ` [process.env keys: ${typeof process !== "undefined" && process.env ? Object.keys(process.env).length : 0}]`;
-      
+
       // Additional debugging
-      debugInfo += ` [globalThis keys: ${Object.keys(globalThis).filter(k => k.includes('env') || k.includes('__')).join(",")}]`;
+      debugInfo += ` [globalThis keys: ${Object.keys(globalThis)
+        .filter((k) => k.includes("env") || k.includes("__"))
+        .join(",")}]`;
       try {
         const event = getEvent();
         debugInfo += ` [event ctx keys: ${event?.context ? Object.keys(event.context).join(",") : "none"}]`;
         if (event?.context?.cloudflare) {
-           debugInfo += ` [cf keys: ${Object.keys(event.context.cloudflare).join(",")}]`;
-           debugInfo += ` [cf.env keys: ${event.context.cloudflare.env ? Object.keys(event.context.cloudflare.env).join(",") : "none"}]`;
+          debugInfo += ` [cf keys: ${Object.keys(event.context.cloudflare).join(",")}]`;
+          debugInfo += ` [cf.env keys: ${event.context.cloudflare.env ? Object.keys(event.context.cloudflare.env).join(",") : "none"}]`;
         }
       } catch (e2) {
         debugInfo += ` [getEvent Error: ${e2}]`;

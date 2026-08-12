@@ -95,7 +95,6 @@ function EditCategoryPage() {
       <PageHeader
         eyebrow="Catálogo"
         title={`Editar Categoria: ${category.name}`}
-        description="Atualize os dados e a organização desta categoria."
         actions={
           <Button variant="outline" asChild>
             <Link to="/workspace/catalogo/categorias">
@@ -107,7 +106,7 @@ function EditCategoryPage() {
       />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <Surface variant="default" padding="md" className="space-y-6">
+        <div className="border border-border bg-card rounded-md shadow-xs p-6 space-y-6">
           <header className="space-y-1">
             <h2 className="font-bold text-lg">Dados Básicos</h2>
           </header>
@@ -184,7 +183,7 @@ function EditCategoryPage() {
               </div>
             </div>
           </div>
-        </Surface>
+        </div>
 
         <div className="flex justify-end gap-4">
           <Button type="button" variant="ghost" asChild>

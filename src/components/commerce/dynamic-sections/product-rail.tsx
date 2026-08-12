@@ -11,11 +11,13 @@ export function ProductRail({
   content,
   resolvedProducts,
   resolvedData,
+  layout_variant,
   isEditing,
 }: {
   content?: Record<string, unknown>;
   resolvedProducts?: any[];
   resolvedData?: any;
+  layout_variant?: string | null;
   node_id?: string;
   block_type?: string;
   isEditing?: boolean;
@@ -23,7 +25,7 @@ export function ProductRail({
   const safeContent = content || {};
   const title = String(safeContent.title || "Destaques");
   const slug = safeContent.collection_slug ? String(safeContent.collection_slug) : null;
-  const layout = String(safeContent.layout || "carousel");
+  const layout = layout_variant || "carousel";
 
   // resolvedProducts is the canonical prop from ExperienceRenderer;
   // resolvedData is accepted as legacy fallback
@@ -60,7 +62,7 @@ export function ProductRail({
 
   if (productsToDisplay.length === 0) {
     return isEditing ? (
-      <div className="p-8 text-center border-2 border-dashed border-border/50 text-muted-foreground text-sm">
+      <div className="p-8 text-center border border-dashed border-border/50 text-muted-foreground text-sm">
         [Product Rail] Fonte de dados não configurada ou vazia.
       </div>
     ) : null;
@@ -71,7 +73,7 @@ export function ProductRail({
       <section className="mx-auto max-w-screen-xl px-4 py-8 @md:px-6">
         <div className="mb-5 flex items-end justify-between gap-3">
           <div>
-            <h2 className="text-editorial mt-1 text-2xl text-foreground @sm:text-3xl">{title}</h2>
+            <h2 className="font-semibold mt-1 text-2xl text-foreground @sm:text-3xl">{title}</h2>
           </div>
           {slug && (
             <Button variant="ghost" size="sm" asChild>
@@ -95,7 +97,7 @@ export function ProductRail({
     <section className="mx-auto max-w-screen-xl px-4 py-8 @md:px-6">
       <div className="mb-5 flex items-end justify-between gap-3">
         <div>
-          <h2 className="text-editorial mt-1 text-2xl text-foreground @sm:text-3xl">{title}</h2>
+          <h2 className="font-semibold mt-1 text-2xl text-foreground @sm:text-3xl">{title}</h2>
         </div>
         <div className="flex items-center gap-2">
           {slug && (

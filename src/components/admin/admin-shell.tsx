@@ -349,8 +349,8 @@ export function AdminShell({
 
       toast.success("Sessão encerrada.");
       window.location.href = "/entrar";
-    } catch (e: any) {
-      toast.error(e.message || "Erro inesperado ao encerrar sessão.");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro inesperado ao encerrar sessão.");
     }
   };
 

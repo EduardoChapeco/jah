@@ -34,8 +34,8 @@ export function ReviewModal({
       const res = await createReview({ data: { productId, rating, comment } });
       toast.success("Avaliação enviada com sucesso!");
       setOpen(false);
-    } catch (e: any) {
-      toast.error(e.message || "Erro inesperado.");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro inesperado.");
     } finally {
       setLoading(false);
     }
@@ -44,20 +44,27 @@ export function ReviewModal({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="mt-2 text-xs h-7">
+        <Button
+          variant="outline"
+          size="sm"
+          className="mt-2 text-xs h-7 border border-border font-bold uppercase tracking-wide"
+        >
           Avaliar Produto
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="border border-border shadow-[8px_8px_0px_rgba(0,0,0,1)] bg-background rounded-md sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Avaliar {productName}</DialogTitle>
+          <DialogTitle className="font-semibold text-2xl font-black text-foreground">
+            Avaliar {productName}
+          </DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="flex gap-2 justify-center">
+        <div className="space-y-6 py-4">
+          <div className="flex gap-2 justify-center bg-secondary border border-border py-4">
             {[1, 2, 3, 4, 5].map((star) => (
               <Star
                 key={star}
-                className={`w-8 h-8 cursor-pointer ${star <= rating ? "fill-yellow-500 text-warning" : "text-gray-300"}`}
+                strokeWidth={star <= rating ? 2 : 1.5}
+                className={`w-10 h-10 cursor-pointer transition-transform hover:scale-110 ${star <= rating ? "fill-poster-red text-primary" : "text-foreground/30 hover:text-foreground/50"}`}
                 onClick={() => setRating(star)}
               />
             ))}
@@ -66,8 +73,13 @@ export function ReviewModal({
             placeholder="O que você achou do produto? (Opcional)"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
+            className="border border-border bg-background rounded-md focus-visible:ring-poster-red focus-visible:ring-offset-0 placeholder:text-foreground/50 resize-none font-medium h-32"
           />
-          <Button className="w-full" onClick={handleSubmit} disabled={loading}>
+          <Button
+            className="w-full border border-border shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-y-1 hover:translate-x-1 transition-all bg-primary text-primary-foreground font-black uppercase text-lg h-12 rounded-md cursor-pointer"
+            onClick={handleSubmit}
+            disabled={loading}
+          >
             {loading ? "Enviando..." : "Enviar Avaliação"}
           </Button>
         </div>

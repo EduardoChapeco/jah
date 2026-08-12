@@ -1,16 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { z } from "zod";
-import {
-  Search,
-  X,
-  Loader2,
-  ShoppingBag,
-  Calendar,
-  Tag,
-  Store,
-  ChevronRight,
-} from "lucide-react";
+import { Search, X, Loader2, ShoppingBag, Calendar, Tag, Store, ChevronRight } from "lucide-react";
 
 import {
   federatedSearch,
@@ -68,7 +59,11 @@ function getTotalCount(result: FederatedSearchResponse | null): number {
 
 function EventCard({ event }: { event: SearchResultEvent }) {
   const date = new Date(event.event_date);
-  const formatted = date.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
+  const formatted = date.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
   return (
     <Link
       to="/evento/$id"
@@ -87,7 +82,9 @@ function EventCard({ event }: { event: SearchResultEvent }) {
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <p className="font-semibold text-sm text-foreground truncate group-hover:text-primary">{event.title}</p>
+        <p className="font-semibold text-sm text-foreground truncate group-hover:text-primary">
+          {event.title}
+        </p>
         <p className="text-xs text-muted-foreground mt-0.5">{formatted}</p>
         {event.location && (
           <p className="text-xs text-muted-foreground truncate">{event.location}</p>
@@ -141,7 +138,9 @@ function ClassifiedCard({ classified }: { classified: SearchResultClassified }) 
             <span className="text-xs text-muted-foreground">À combinar</span>
           )}
           {classified.location_text && (
-            <span className="text-xs text-muted-foreground truncate">{classified.location_text}</span>
+            <span className="text-xs text-muted-foreground truncate">
+              {classified.location_text}
+            </span>
           )}
         </div>
       </div>
@@ -168,7 +167,9 @@ function StoreCard({ store }: { store: SearchResultStore }) {
         </div>
       )}
       <div className="flex-1 min-w-0 self-center">
-        <p className="font-semibold text-sm text-foreground group-hover:text-primary">{store.name}</p>
+        <p className="font-semibold text-sm text-foreground group-hover:text-primary">
+          {store.name}
+        </p>
         {store.description && (
           <p className="text-xs text-muted-foreground truncate">{store.description}</p>
         )}
@@ -197,7 +198,9 @@ function ResultSection({
       <div className="flex items-center gap-2 mb-3">
         <Icon className="size-4 text-muted-foreground" />
         <h2 className="text-sm font-semibold text-foreground">{title}</h2>
-        <Badge variant="secondary" className="chip-status">{count}</Badge>
+        <Badge variant="secondary" className="chip-status">
+          {count}
+        </Badge>
       </div>
       <div className="space-y-2">{children}</div>
     </section>
@@ -232,8 +235,8 @@ function SearchPage() {
     try {
       const res = await federatedSearch({ data: { query: trimmed } });
       setResult(res);
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao buscar. Tente novamente.");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao buscar. Tente novamente.");
       setResult(null);
     } finally {
       setIsSearching(false);
@@ -257,10 +260,11 @@ function SearchPage() {
   const hasResults = result !== null && total > 0;
 
   // Filtrar por tipo ativo
-  const filteredProducts = (!activeType || activeType === "product") ? (result?.products ?? []) : [];
-  const filteredEvents = (!activeType || activeType === "event") ? (result?.events ?? []) : [];
-  const filteredClassifieds = (!activeType || activeType === "classified") ? (result?.classifieds ?? []) : [];
-  const filteredStores = (!activeType || activeType === "store") ? (result?.stores ?? []) : [];
+  const filteredProducts = !activeType || activeType === "product" ? (result?.products ?? []) : [];
+  const filteredEvents = !activeType || activeType === "event" ? (result?.events ?? []) : [];
+  const filteredClassifieds =
+    !activeType || activeType === "classified" ? (result?.classifieds ?? []) : [];
+  const filteredStores = !activeType || activeType === "store" ? (result?.stores ?? []) : [];
 
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-10 md:px-6 md:py-16">
@@ -320,30 +324,25 @@ function SearchPage() {
         <div className="mx-auto max-w-2xl mb-8 flex flex-wrap gap-2 justify-center">
           <button
             onClick={() => setActiveType(null)}
-            className={`chip-status px-4 py-1.5 border transition-colors ${
-              !activeType
-                ? "bg-foreground text-background border-foreground"
-                : "bg-transparent text-muted-foreground border-border hover:border-foreground hover:text-foreground"
-            }`}
+            className={`chip-status px-4 py-1.5 border transition-colors ${!activeType ? "bg-foreground text-background border-foreground" : "bg-transparent text-muted-foreground border-border hover:border-foreground hover:text-foreground"}`}
           >
             Todos ({total})
           </button>
           {TYPE_FILTERS.map(({ key, label, icon: Icon }) => {
             const count =
-              key === "product" ? result?.products.length ?? 0
-              : key === "event" ? result?.events.length ?? 0
-              : key === "classified" ? result?.classifieds.length ?? 0
-              : result?.stores.length ?? 0;
+              key === "product"
+                ? (result?.products.length ?? 0)
+                : key === "event"
+                  ? (result?.events.length ?? 0)
+                  : key === "classified"
+                    ? (result?.classifieds.length ?? 0)
+                    : (result?.stores.length ?? 0);
             if (count === 0) return null;
             return (
               <button
                 key={key}
                 onClick={() => setActiveType(activeType === key ? null : key)}
-                className={`chip-status px-4 py-1.5 border transition-colors flex items-center gap-1.5 ${
-                  activeType === key
-                    ? "bg-foreground text-background border-foreground"
-                    : "bg-transparent text-muted-foreground border-border hover:border-foreground hover:text-foreground"
-                }`}
+                className={`chip-status px-4 py-1.5 border transition-colors flex items-center gap-1.5 ${activeType === key ? "bg-foreground text-background border-foreground" : "bg-transparent text-muted-foreground border-border hover:border-foreground hover:text-foreground"}`}
               >
                 <Icon className="size-3" />
                 {label} ({count})
@@ -361,10 +360,7 @@ function SearchPage() {
       )}
 
       {!isSearching && result !== null && !hasResults && (
-        <EmptyState
-          title="Nenhum resultado encontrado"
-          description={`Não encontramos nada para "${initialQuery}". Tente outros termos.`}
-        />
+        <EmptyState title="Nenhum resultado encontrado" />
       )}
 
       {/* Resultados por grupo */}
@@ -376,7 +372,9 @@ function SearchPage() {
               <div className="flex items-center gap-2 mb-3">
                 <ShoppingBag className="size-4 text-muted-foreground" />
                 <h2 className="text-sm font-semibold text-foreground">Produtos</h2>
-                <Badge variant="secondary" className="chip-status">{filteredProducts.length}</Badge>
+                <Badge variant="secondary" className="chip-status">
+                  {filteredProducts.length}
+                </Badge>
               </div>
               {/* Adaptar para ProductGrid que espera ProductCardDTO — passamos dados simplificados */}
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
@@ -393,7 +391,9 @@ function SearchPage() {
                     <p className="text-xs font-semibold text-foreground truncate group-hover:text-primary">
                       {p.title}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{formatMoney(p.price_cents)}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {formatMoney(p.price_cents)}
+                    </p>
                   </Link>
                 ))}
               </div>

@@ -5,8 +5,21 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Loader2 } from "lucide-react";
 import { CurrencyField } from "@/components/ui/currency-field";
 import { PhoneField } from "@/components/ui/phone-field";
@@ -56,11 +69,10 @@ export function ClassifiedForm({ defaultValues, onSubmit, isSubmitting }: Classi
     <div className="bg-background rounded-xl border border-border shadow-sm p-6 md:p-8">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          
           {/* Informações Principais */}
           <div className="space-y-4">
             <h2 className="text-lg font-semibold tracking-tight">Informações Principais</h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
@@ -109,10 +121,10 @@ export function ClassifiedForm({ defaultValues, onSubmit, isSubmitting }: Classi
                 <FormItem>
                   <FormLabel>Descrição</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Descreva o que você está anunciando em detalhes..." 
-                      className="min-h-[120px]" 
-                      {...field} 
+                    <Textarea
+                      placeholder="Descreva o que você está anunciando em detalhes..."
+                      className="min-h-[120px]"
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -144,7 +156,7 @@ export function ClassifiedForm({ defaultValues, onSubmit, isSubmitting }: Classi
                       <MediaUploader
                         value={mediaValues}
                         onChange={(val) => {
-                          field.onChange(val.map(m => m.url));
+                          field.onChange(val.map((m) => m.url));
                         }}
                         maxFiles={5}
                       />
@@ -169,10 +181,10 @@ export function ClassifiedForm({ defaultValues, onSubmit, isSubmitting }: Classi
                   <FormItem>
                     <FormLabel>Preço (Opcional)</FormLabel>
                     <FormControl>
-                      <CurrencyField 
-                        value={field.value ?? undefined} 
-                        onChange={field.onChange} 
-                        placeholder="0,00" 
+                      <CurrencyField
+                        value={field.value ?? undefined}
+                        onChange={field.onChange}
+                        placeholder="0,00"
                       />
                     </FormControl>
                     <FormMessage />
@@ -204,17 +216,14 @@ export function ClassifiedForm({ defaultValues, onSubmit, isSubmitting }: Classi
                 )}
               />
             </div>
-            
+
             <FormField
               control={form.control}
               name="negotiable"
               render={({ field }) => (
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-4 bg-muted/50 border border-border">
                   <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
+                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
                   <div className="space-y-1 leading-none">
                     <FormLabel>Preço negociável</FormLabel>
@@ -232,7 +241,7 @@ export function ClassifiedForm({ defaultValues, onSubmit, isSubmitting }: Classi
           {/* Contato e Localização */}
           <div className="space-y-4">
             <h2 className="text-lg font-semibold tracking-tight">Contato e Local</h2>
-            
+
             <FormField
               control={form.control}
               name="contact_whatsapp"
@@ -240,10 +249,7 @@ export function ClassifiedForm({ defaultValues, onSubmit, isSubmitting }: Classi
                 <FormItem>
                   <FormLabel>WhatsApp para Contato (Opcional)</FormLabel>
                   <FormControl>
-                    <PhoneField 
-                      value={field.value || undefined} 
-                      onChange={field.onChange} 
-                    />
+                    <PhoneField value={field.value || undefined} onChange={field.onChange} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -257,9 +263,9 @@ export function ClassifiedForm({ defaultValues, onSubmit, isSubmitting }: Classi
                 <FormItem>
                   <FormLabel>Localização Aproximada</FormLabel>
                   <FormControl>
-                    <AddressField 
-                      value={{ text: field.value || "" }} 
-                      onChange={(val) => field.onChange(val.text)} 
+                    <AddressField
+                      value={{ text: field.value || "" }}
+                      onChange={(val) => field.onChange(val.text)}
                     />
                   </FormControl>
                   <FormMessage />
@@ -278,7 +284,6 @@ export function ClassifiedForm({ defaultValues, onSubmit, isSubmitting }: Classi
               {isSubmitting ? "Salvando..." : "Publicar Anúncio"}
             </Button>
           </div>
-
         </form>
       </Form>
     </div>

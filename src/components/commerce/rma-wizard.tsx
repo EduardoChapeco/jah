@@ -140,8 +140,8 @@ export function RmaWizard({
       toast.success("Solicitação enviada com sucesso!");
       onSuccess();
       onClose();
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao solicitar");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao solicitar");
     } finally {
       setIsSubmitting(false);
     }

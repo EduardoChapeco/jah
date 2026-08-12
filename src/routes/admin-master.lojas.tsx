@@ -25,21 +25,27 @@ function MasterLojasPage() {
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredStores = stores.filter((s: any) =>
-    s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    s.slug.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredStores = stores.filter(
+    (s: any) =>
+      s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.slug.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const handleToggleStore = async (storeId: string, currentStatus: boolean) => {
-    if (!confirm(`Deseja realmente ${currentStatus ? "bloquear" : "desbloquear"} esta loja no ecossistema?`)) return;
-    
+    if (
+      !confirm(
+        `Deseja realmente ${currentStatus ? "bloquear" : "desbloquear"} esta loja no ecossistema?`,
+      )
+    )
+      return;
+
     setLoadingId(storeId);
     try {
       await toggleStoreStatus({ data: { storeId, isActive: !currentStatus } });
       toast.success("Status da loja alterado com sucesso.");
       router.invalidate();
-    } catch (e: any) {
-      toast.error(e.message);
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)));
     } finally {
       setLoadingId(null);
     }
@@ -59,12 +65,12 @@ function MasterLojasPage() {
         </div>
       </div>
 
-      <Surface variant="default" padding="none">
+      <div className="border border-border bg-card rounded-md shadow-xs overflow-hidden">
         <div className="p-4 border-b bg-muted/30 flex flex-col sm:flex-row gap-4 justify-between sm:items-center">
           <div className="relative max-w-sm w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <Input 
-              placeholder="Buscar por nome ou slug..." 
+            <Input
+              placeholder="Buscar por nome ou slug..."
               className="pl-9"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -77,7 +83,7 @@ function MasterLojasPage() {
             </Button>
           </div>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead className="bg-muted text-muted-foreground border-b font-medium uppercase text-[10px] tracking-wider">
@@ -92,9 +98,7 @@ function MasterLojasPage() {
             <tbody className="divide-y">
               {filteredStores.map((store: any) => (
                 <tr key={store.id} className="hover:bg-muted/30 transition-colors">
-                  <td className="px-6 py-4 font-bold text-ink">
-                    {store.name}
-                  </td>
+                  <td className="px-6 py-4 font-bold text-foreground">{store.name}</td>
                   <td className="px-6 py-4 font-mono text-xs text-muted-foreground">
                     /{store.slug}
                   </td>
@@ -103,9 +107,19 @@ function MasterLojasPage() {
                   </td>
                   <td className="px-6 py-4">
                     {store.is_active ? (
-                      <Badge variant="default" className="bg-success text-white uppercase text-[9px] tracking-wider font-bold">Operante</Badge>
+                      <Badge
+                        variant="default"
+                        className="bg-success text-white uppercase text-[9px] tracking-wider font-bold"
+                      >
+                        Operante
+                      </Badge>
                     ) : (
-                      <Badge variant="destructive" className="uppercase text-[9px] tracking-wider font-bold">Bloqueada</Badge>
+                      <Badge
+                        variant="destructive"
+                        className="uppercase text-[9px] tracking-wider font-bold"
+                      >
+                        Bloqueada
+                      </Badge>
                     )}
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -131,7 +145,7 @@ function MasterLojasPage() {
             </tbody>
           </table>
         </div>
-      </Surface>
+      </div>
     </div>
   );
 }

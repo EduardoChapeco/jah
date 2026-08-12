@@ -9,7 +9,7 @@ import { PublicFooter } from "@/components/commerce/public-footer";
 import { BottomNav } from "@/components/commerce/bottom-nav";
 import { GlobalPopupRenderer } from "@/components/commerce/global-popup-renderer";
 import { CartProvider, useCartContext } from "@/lib/cart-context";
-import { SlideOutCart } from "@/components/commerce/slide-out-cart";
+import { CartSheet } from "@/components/commerce/cart-sheet";
 import { ErrorState, UnconfiguredState } from "@/components/state/states";
 
 export const Route = createFileRoute("/_store")({
@@ -50,20 +50,14 @@ function StoreRouteError({ error }: { error: Error }) {
   if (isUnconfigured) {
     return (
       <div className="mx-auto max-w-xl px-4 py-20">
-        <UnconfiguredState
-          title="Loja em configuração"
-          description="A conexão com o backend ainda não foi configurada. Configure as credenciais do banco de dados para exibir esta página."
-        />
+        <UnconfiguredState title="Loja em configuração" />
       </div>
     );
   }
 
   return (
     <div className="mx-auto max-w-xl px-4 py-20">
-      <ErrorState
-        title="Erro inesperado"
-        description="Ocorreu um erro ao carregar esta seção da loja. Tente novamente em instantes."
-      />
+      <ErrorState title="Erro inesperado" />
     </div>
   );
 }
@@ -148,7 +142,7 @@ function StoreLayout() {
       <PublicFooter menuItems={footerMenu} store={storeData} />
       <BottomNav storeType={storeData?.type} />
       <GlobalPopupRenderer popups={popups} />
-      <SlideOutCart />
+      <CartSheet />
     </div>
   );
 }

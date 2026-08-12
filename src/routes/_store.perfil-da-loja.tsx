@@ -44,10 +44,7 @@ function StorePerfil() {
   if (data && "status" in data && data.status === "unconfigured") {
     return (
       <div className="mx-auto max-w-screen-xl px-4 py-12 md:px-6">
-        <UnconfiguredState
-          title="Perfil não disponível"
-          description="As informações da loja ainda não foram configuradas."
-        />
+        <UnconfiguredState title="Perfil não disponível" />
       </div>
     );
   }
@@ -99,7 +96,7 @@ function StorePerfil() {
             <img
               src={store.logo_url || settings.logoUrl}
               alt={store.name}
-              className={`size-24 rounded-full object-cover border-4 border-background shadow-md bg-background ${settings.cover_url ? "-mt-16 relative z-10" : ""}`}
+              className={`size-24 rounded-full object-cover border border-background shadow-md bg-background ${settings.cover_url ? "-mt-16 relative z-10" : ""}`}
             />
           )}
           <div>

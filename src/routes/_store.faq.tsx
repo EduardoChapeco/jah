@@ -25,17 +25,10 @@ function Page() {
 
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
-      <PageHeader
-        eyebrow="Ajuda"
-        title="Perguntas Frequentes"
-        description="Encontre respostas para as dúvidas mais comuns sobre compras, envios e trocas."
-      />
+      <PageHeader eyebrow="Ajuda" title="Perguntas Frequentes" />
       <div className="mt-8 max-w-3xl mx-auto">
         {!faqs || faqs.length === 0 ? (
-          <EmptyState
-            title="Nenhuma pergunta publicada"
-            description="A loja poderá publicar aqui as dúvidas mais frequentes."
-          />
+          <EmptyState title="Nenhuma pergunta publicada" />
         ) : (
           <Accordion type="single" collapsible className="w-full space-y-3">
             {faqs.map((faq, i) => {

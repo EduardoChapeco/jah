@@ -48,9 +48,9 @@ export const getStockLevels = createServerFn({ method: "GET" })
 
       const data = await _getStockLevels(params, identity.store_id);
       return data;
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[stock.functions] getStockLevels:", e.message);
+      console.error("[stock.functions] getStockLevels:", (e instanceof Error ? e.message : String(e)));
       throw new Error("Erro ao buscar estoque.");
     }
   });
@@ -105,10 +105,10 @@ export const adjustStock = createServerFn({ method: "POST" })
       if (!identity.store_id) throw new Error("Contexto de loja inválido");
 
       return await _adjustStock(params, identity.store_id);
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[stock.functions] adjustStock:", e.message);
-      throw new Error(e.message || "Erro ao ajustar estoque.");
+      console.error("[stock.functions] adjustStock:", (e instanceof Error ? e.message : String(e)));
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao ajustar estoque.");
     }
   });
 
@@ -158,9 +158,9 @@ export const getStockMovements = createServerFn({ method: "GET" })
 
       const data = await _getStockMovements(limit, identity.store_id);
       return data;
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[stock.functions] getStockMovements:", e.message);
+      console.error("[stock.functions] getStockMovements:", (e instanceof Error ? e.message : String(e)));
       throw new Error("Erro ao buscar ledger de estoque.");
     }
   });
@@ -205,8 +205,8 @@ export const performStockAudit = createServerFn({ method: "POST" })
 
       if (error) throw error;
       return data;
-    } catch (e: any) {
-      console.error("[stock.functions] performStockAudit:", e.message);
-      throw new Error(e.message || "Erro ao realizar auditoria.");
+    } catch (e: unknown) {
+      console.error("[stock.functions] performStockAudit:", (e instanceof Error ? e.message : String(e)));
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao realizar auditoria.");
     }
   });

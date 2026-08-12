@@ -12,7 +12,7 @@ export function EventRail({ content, resolvedEvents, isEditing }: any) {
   if (events.length === 0) {
     if (isEditing) {
       return (
-        <div className="p-12 text-center border-2 border-dashed border-border/50 bg-card/50">
+        <div className="p-12 text-center border border-dashed border-border/50 bg-card/50">
           <Calendar className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
           <h3 className="text-lg font-medium">Próximos Eventos</h3>
           <p className="text-muted-foreground text-sm max-w-sm mx-auto mt-1">

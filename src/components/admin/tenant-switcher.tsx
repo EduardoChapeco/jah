@@ -41,8 +41,8 @@ export function TenantSwitcher({ identity }: TenantSwitcherProps) {
     },
   });
 
-  // Mostramos o seletor mesmo se houver apenas 1 membership, porque ele agora pode alternar 
-  // entre o Perfil Pessoal e aquela 1 membership. 
+  // Mostramos o seletor mesmo se houver apenas 1 membership, porque ele agora pode alternar
+  // entre o Perfil Pessoal e aquela 1 membership.
   // Só bloqueamos se houver 0 memberships (não deveria estar no admin, mas apenas por segurança).
   if (identity.memberships.length === 0) {
     return (
@@ -80,7 +80,7 @@ export function TenantSwitcher({ identity }: TenantSwitcherProps) {
           <CommandInput placeholder="Buscar contexto..." />
           <CommandList>
             <CommandEmpty>Nenhum contexto encontrado.</CommandEmpty>
-            
+
             <CommandGroup heading="Identidade Base">
               <CommandItem
                 value="perfil pessoal"
@@ -94,15 +94,10 @@ export function TenantSwitcher({ identity }: TenantSwitcherProps) {
                 className="flex items-center justify-between font-bold text-primary"
               >
                 <div className="flex items-center gap-2 truncate">
-                   <Building className="h-4 w-4" />
-                   <span className="truncate">Perfil Pessoal (Física)</span>
+                  <Building className="h-4 w-4" />
+                  <span className="truncate">Perfil Pessoal (Física)</span>
                 </div>
-                <Check
-                  className={cn(
-                    "h-4 w-4",
-                    (!activeStoreId) ? "opacity-100" : "opacity-0",
-                  )}
-                />
+                <Check className={cn("h-4 w-4", !activeStoreId ? "opacity-100" : "opacity-0")} />
               </CommandItem>
             </CommandGroup>
 

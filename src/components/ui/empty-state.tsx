@@ -26,7 +26,7 @@ export function EmptyState({
     <div
       className={cn(
         "flex flex-col items-center justify-center text-center p-8 md:p-12 min-h-[300px] border border-dashed rounded-xl bg-muted/30",
-        className
+        className,
       )}
       {...props}
     >
@@ -35,21 +35,16 @@ export function EmptyState({
           <Icon className="size-6 text-muted-foreground" />
         </div>
       )}
-      <h3 className="text-xl font-semibold tracking-tight text-foreground mb-1">
-        {title}
-      </h3>
-      <p className="text-muted-foreground text-sm max-w-md mx-auto mb-6">
-        {description}
-      </p>
-      {action && (
-        action.href ? (
+      <h3 className="text-xl font-semibold tracking-tight text-foreground mb-1">{title}</h3>
+      <p className="text-muted-foreground text-sm max-w-md mx-auto mb-6">{description}</p>
+      {action &&
+        (action.href ? (
           <Button asChild>
             <a href={action.href}>{action.label}</a>
           </Button>
         ) : (
           <Button onClick={action.onClick}>{action.label}</Button>
-        )
-      )}
+        ))}
     </div>
   );
 }

@@ -5,13 +5,11 @@ import { cn } from "@/lib/utils";
 export function PageHeader({
   eyebrow,
   title,
-  description,
   actions,
   className,
 }: {
   eyebrow?: string;
   title: string;
-  description?: ReactNode;
   actions?: ReactNode;
   className?: string;
 }) {
@@ -23,11 +21,13 @@ export function PageHeader({
       )}
     >
       <div className="min-w-0 w-full sm:w-auto">
-        {eyebrow ? <p className="eyebrow mb-2 text-primary">{eyebrow}</p> : null}
-        <h1 className="text-editorial text-3xl text-foreground sm:text-4xl">{title}</h1>
-        {description ? (
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">{description}</p>
+        {eyebrow ? (
+          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">
+            {eyebrow}
+          </p>
         ) : null}
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
+        {/* Descrições explicativas longas foram abolidas da arquitetura Limpa Operacional */}
       </div>
       {actions ? <div className="flex shrink-0 gap-2">{actions}</div> : null}
     </header>

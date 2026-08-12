@@ -107,8 +107,8 @@ export function RmaRequestWizard({
       toast.success("Solicitação de devolução criada com sucesso! Aguardando inspeção na doca.");
       await onComplete();
       onOpenChange(false);
-    } catch (err: any) {
-      toast.error(err.message || "Erro ao solicitar devolução.");
+    } catch (err: unknown) {
+      toast.error((err instanceof Error ? err.message : String(err)) || "Erro ao solicitar devolução.");
     } finally {
       setIsSubmitting(false);
     }

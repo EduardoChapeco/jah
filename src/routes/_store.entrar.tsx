@@ -105,8 +105,8 @@ function LoginPage() {
       // Garante que o navegador envie imediatamente a nova requisição HTTP com o cookie recém-atribuído,
       // eliminando 100% dos conflitos e loops de cache no cliente ou na Cloudflare Pages.
       window.location.href = returnUrl || "/admin";
-    } catch (e: any) {
-      toast.error(e.message || "Erro inesperado ao fazer login");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro inesperado ao fazer login");
     }
   };
 
@@ -138,7 +138,7 @@ function LoginPage() {
       </nav>
 
       <div className="mx-auto max-w-md">
-        <PageHeader title="Bem-vinda de volta" description="Acesse sua conta para continuar." />
+        <PageHeader title="Bem-vinda de volta" />
 
         <div className="mt-8">
           <Form {...form}>

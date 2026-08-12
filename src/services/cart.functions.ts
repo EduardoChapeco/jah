@@ -306,16 +306,16 @@ export const getGlobalCarts = createServerFn({ method: "GET" }).handler(
       console.error("[CART] Error fetching global carts:", error);
       return [];
     }
-    
+
     if (!carts || carts.length === 0) return [];
 
     const mappedCarts: CartDTO[] = [];
     for (const cart of carts) {
       mappedCarts.push(await mapCartToDTO(cart));
     }
-    
+
     // Filter out empty carts just in case
-    return mappedCarts.filter(c => c.itemCount > 0);
+    return mappedCarts.filter((c) => c.itemCount > 0);
   },
 );
 
@@ -337,7 +337,7 @@ export const cancelCart = createServerFn({ method: "POST" })
     const { data: cart } = await query.single();
     if (!cart) throw new Error("Carrinho não encontrado ou acesso negado.");
 
-    // Update status to cancelled instead of deleting to keep history if needed, 
+    // Update status to cancelled instead of deleting to keep history if needed,
     // or just delete it. Let's delete it so it removes items and cleans up.
     const { error } = await supabase.from("carts").delete().eq("id", cartId);
     if (error) throw new Error("Falha ao cancelar pacote.");
@@ -349,60 +349,64 @@ const AddToCartSchema = z.object({
   productId: z.string().uuid().optional(),
   quantity: z.number().int().min(1),
   sellerId: z.string().uuid().optional(),
+  options: z.record(z.string()).optional(),
 });
 
 export const addToCart = createServerFn({ method: "POST" })
   .validator(AddToCartSchema)
-  .handler(async ({ data: { variantId: inputVariantId, productId, quantity, sellerId } }) => {
-    const supabase = getServerClient();
-    const identity = await getCurrentIdentity();
-    const activeSellerId = sellerId || getSellerRefCookie();
+  .handler(
+    async ({ data: { variantId: inputVariantId, productId, quantity, sellerId, options } }) => {
+      const supabase = getServerClient();
+      const identity = await getCurrentIdentity();
+      const activeSellerId = sellerId || getSellerRefCookie();
 
-    let targetVariantId = inputVariantId;
+      let targetVariantId = inputVariantId;
 
-    // If only productId provided, fetch first available variant
-    if (!targetVariantId && productId) {
-      const { data: firstVariant } = await supabase
-        .from("product_variants")
-        .select("id")
-        .eq("product_id", productId)
-        .order("created_at", { ascending: true })
-        .limit(1)
-        .single();
+      // If only productId provided, fetch first available variant
+      if (!targetVariantId && productId) {
+        const { data: firstVariant } = await supabase
+          .from("product_variants")
+          .select("id")
+          .eq("product_id", productId)
+          .order("created_at", { ascending: true })
+          .limit(1)
+          .single();
 
-      if (firstVariant) {
-        targetVariantId = firstVariant.id;
+        if (firstVariant) {
+          targetVariantId = firstVariant.id;
+        }
       }
-    }
 
-    if (!targetVariantId) {
-      throw new Error("Selecione uma opção de produto válida.");
-    }
-    const variantId = targetVariantId;
+      if (!targetVariantId) {
+        throw new Error("Selecione uma opção de produto válida.");
+      }
+      const variantId = targetVariantId;
 
-    // Resolve Store
-    const { resolveTenantStoreId } = await import("@/lib/tenant.server");
-    const storeId = await resolveTenantStoreId();
-    if (!storeId) throw new Error("Loja não configurada");
+      // Resolve Store
+      const { resolveTenantStoreId } = await import("@/lib/tenant.server");
+      const storeId = await resolveTenantStoreId();
+      if (!storeId) throw new Error("Loja não configurada");
 
-    // Atomic Insert via RPC (replaces the old 11-step waterfall)
-    const { data: cartId, error: rpcError } = await supabase.rpc("add_to_cart_atomic_v4", {
-      p_store_id: storeId,
-      p_customer_id: identity.customer_id,
-      p_session_token: identity.session_token,
-      p_seller_id: activeSellerId,
-      p_variant_id: variantId,
-      p_qty: quantity,
-    });
+      // Atomic Insert via RPC (replaces the old 11-step waterfall)
+      const { data: cartId, error: rpcError } = await supabase.rpc("add_to_cart_atomic_v5", {
+        p_store_id: storeId,
+        p_customer_id: identity.customer_id,
+        p_session_token: identity.session_token,
+        p_seller_id: activeSellerId,
+        p_variant_id: variantId,
+        p_qty: quantity,
+        p_options: options || {},
+      });
 
-    if (rpcError) {
-      throw new Error(rpcError.message || "Erro ao adicionar ao carrinho.");
-    }
+      if (rpcError) {
+        throw new Error(rpcError.message || "Erro ao adicionar ao carrinho.");
+      }
 
-    // Fetch and return the updated cart directly to bypass cookie race conditions on the frontend
-    const updatedCart = await fetchCartDTO(identity);
-    return { status: "success", cart: updatedCart, session_token: identity.session_token };
-  });
+      // Fetch and return the updated cart directly to bypass cookie race conditions on the frontend
+      const updatedCart = await fetchCartDTO(identity);
+      return { status: "success", cart: updatedCart, session_token: identity.session_token };
+    },
+  );
 
 export const removeFromCart = createServerFn({ method: "POST" })
   .validator(z.object({ itemId: z.string().uuid() }))
@@ -532,9 +536,7 @@ export const applyCouponToCart = createServerFn({ method: "POST" })
     }
 
     if (coupon.min_order_cents && cartDetails.subtotalCents < coupon.min_order_cents) {
-      throw new Error(
-        `Valor mínimo para este cupom é ${formatMoney(coupon.min_order_cents)}`,
-      );
+      throw new Error(`Valor mínimo para este cupom é ${formatMoney(coupon.min_order_cents)}`);
     }
 
     // Calculate discount
@@ -624,7 +626,7 @@ export const updateCartContact = createServerFn({ method: "POST" })
 
       if (error) throw error;
       return { success: true };
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[cart] updateCartContact error:", e);
       throw new Error("Falha ao atualizar contato do carrinho");
     }
@@ -637,7 +639,7 @@ export const triggerAbandonedCartsEngine = createServerFn({ method: "POST" }).ha
     const { error } = await db.rpc("process_abandoned_carts");
     if (error) throw error;
     return { success: true };
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("[cart] triggerAbandonedCartsEngine error:", e);
     throw new Error("Falha ao disparar motor de carrinhos abandonados");
   }

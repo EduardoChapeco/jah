@@ -48,12 +48,9 @@ function ShiftsPage() {
         <Link to="/workspace/financeiro/caixa">Voltar ao Caixa</Link>
       </div>
 
-      <PageHeader
-        title="Histórico de Turnos"
-        description="Consulte os caixas fechados e abertos da loja, com consolidação de entradas, saídas e discrepâncias."
-      />
+      <PageHeader title="Histórico de Turnos" />
 
-      <Card className="p-0">
+      <div className="border border-border bg-card rounded-md shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -126,7 +123,7 @@ function ShiftsPage() {
             </TableBody>
           </Table>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

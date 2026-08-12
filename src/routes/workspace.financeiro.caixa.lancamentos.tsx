@@ -78,14 +78,8 @@ function CaixaLancamentosPage() {
           <ArrowLeft className="size-4" />
           <Link to="/workspace/financeiro/caixa">Voltar ao Caixa</Link>
         </div>
-        <PageHeader
-          title="Lançamentos do Caixa"
-          description="Registre entradas e saídas manuais no caixa ativo."
-        />
-        <EmptyState
-          title="Nenhum caixa aberto"
-          description="Abra um caixa na página de Caixa antes de registrar lançamentos."
-        />
+        <PageHeader title="Lançamentos do Caixa" />
+        <EmptyState title="Nenhum caixa aberto" />
       </div>
     );
   }
@@ -126,10 +120,7 @@ function CaixaLancamentosPage() {
             <ArrowLeft className="size-4" />
             <Link to="/workspace/financeiro/caixa">Voltar ao Caixa</Link>
           </div>
-          <PageHeader
-            title="Lançamentos do Caixa"
-            description={`Caixa aberto em ${formatDate(register.opened_at)} — Saldo atual: ${formatMoney(register.currentBalanceCents)}`}
-          />
+          <PageHeader title="Lançamentos do Caixa" />
         </div>
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
@@ -212,25 +203,19 @@ function CaixaLancamentosPage() {
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        <Card
-          className="border border-border shadow-xs bg-card p-4"
-        >
+        <div className="border border-border rounded-md shadow-xs bg-card p-4">
           <p className="text-sm text-muted-foreground">Saldo Inicial</p>
           <p className="mt-1 text-2xl font-semibold">
             {formatMoney(register.initial_balance_cents)}
           </p>
-        </Card>
-        <Card
-          className="border border-border shadow-xs bg-card p-4"
-        >
+        </div>
+        <div className="border border-border rounded-md shadow-xs bg-card p-4">
           <p className="text-sm text-muted-foreground">Saldo Atual</p>
           <p className="mt-1 text-2xl font-semibold text-success">
             {formatMoney(register.currentBalanceCents)}
           </p>
-        </Card>
-        <Card
-          className="border border-border shadow-xs bg-card p-4 flex items-center gap-3"
-        >
+        </div>
+        <div className="border border-border rounded-md shadow-xs bg-card p-4 flex items-center gap-3">
           <Wallet className="h-8 w-8 text-muted-foreground" />
           <div>
             <p className="text-sm text-muted-foreground">Status</p>
@@ -238,11 +223,11 @@ function CaixaLancamentosPage() {
               Aberto
             </Badge>
           </div>
-        </Card>
+        </div>
       </div>
 
       {/* Lançamentos Table */}
-      <Card className="p-0">
+      <div className="border border-border bg-card rounded-md shadow-xs overflow-hidden">
         <div className="p-4 border-b border-border">
           <h3 className="font-semibold text-foreground">Extrato do Turno</h3>
         </div>
@@ -284,7 +269,7 @@ function CaixaLancamentosPage() {
             </TableBody>
           </Table>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

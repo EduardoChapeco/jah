@@ -64,8 +64,8 @@ function FretesCotacoesPage() {
       const res = await calculateShipping({ data: { zipcode } });
 
       setResults(Array.isArray(res) ? res : []);
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao calcular");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao calcular");
     } finally {
       setLoading(false);
     }
@@ -99,10 +99,7 @@ function FretesCotacoesPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        title="Cotações de Frete"
-        description="Aprove solicitações de frete pendentes e simule cálculos por CEP."
-      />
+      <PageHeader title="Cotações de Frete" />
 
       {/* Solicitações Pendentes */}
       <div className="border bg-card p-6">

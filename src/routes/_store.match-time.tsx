@@ -39,7 +39,7 @@ function MatchTimePage() {
         await addToCart({ data: { variantId: currentOffer.variantId, quantity: 1 } });
         await refreshCart();
         toast.success("Deu Match! Adicionado ao carrinho com desconto oculto.");
-      } catch (e: any) {
+      } catch (e: unknown) {
         toast.error("Erro ao adicionar oferta.");
       }
     }
@@ -94,7 +94,7 @@ function MatchTimePage() {
       <div className="relative w-full max-w-sm aspect-[3/4] mx-auto px-4 perspective-1000">
         {currentOffer && (
           <div
-            className={`absolute inset-0 px-4 transition-all duration-300 ease-out transform ${direction === "left" ? "-translate-x-full rotate-[-20deg] opacity-0" : direction === "right" ? "translate-x-full rotate-[20deg] opacity-0" : "translate-x-0 rotate-0 opacity-100"}`}
+            className={`absolute inset-0 px-4 transition-all duration-300 ease-out transform ${direction === "left" ? "-translate-x-full rotate-[-20deg] opacity-0" : direction === "right" ? "translate-x-full rotate-[20deg] opacity-0" : "translate-x-0  opacity-100"}`}
           >
             <div className="w-full h-full bg-card border overflow-hidden relative group">
               {/* Image */}
@@ -139,14 +139,14 @@ function MatchTimePage() {
               <div
                 className={`absolute inset-0 bg-destructive/20 transition-opacity flex items-center justify-center ${direction === "left" ? "opacity-100" : "opacity-0"}`}
               >
-                <div className="border-4 border-destructive text-destructive font-black text-5xl p-4 rotate-[-20deg] uppercase">
+                <div className="border border-destructive text-destructive font-black text-5xl p-4 rotate-[-20deg] uppercase">
                   Nope
                 </div>
               </div>
               <div
                 className={`absolute inset-0 bg-success/20 transition-opacity flex items-center justify-center ${direction === "right" ? "opacity-100" : "opacity-0"}`}
               >
-                <div className="border-4 border-success text-success font-black text-5xl p-4 rotate-[20deg] uppercase">
+                <div className="border border-success text-success font-black text-5xl p-4 rotate-[20deg] uppercase">
                   Match!
                 </div>
               </div>
@@ -160,7 +160,7 @@ function MatchTimePage() {
         <Button
           variant="outline"
           size="icon"
-          className="w-16 h-16 rounded-full border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all"
+          className="w-16 h-16 rounded-full border border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all"
           onClick={() => handleSwipe("left")}
           disabled={direction !== null || isCartUpdating}
         >
@@ -170,7 +170,7 @@ function MatchTimePage() {
         <Button
           variant="outline"
           size="icon"
-          className="w-16 h-16 rounded-full border-2 border-success text-success hover:bg-success hover:text-success-foreground transition-all shadow-[0_0_15px_rgba(34,197,94,0.3)]"
+          className="w-16 h-16 rounded-full border border-success text-success hover:bg-success hover:text-success-foreground transition-all shadow-[0_0_15px_rgba(34,197,94,0.3)]"
           onClick={() => handleSwipe("right")}
           disabled={direction !== null || isCartUpdating}
         >

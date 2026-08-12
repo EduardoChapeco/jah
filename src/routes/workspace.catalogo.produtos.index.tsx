@@ -253,7 +253,6 @@ function AdminProductsPage() {
       <PageHeader
         eyebrow="Catálogo Comercial"
         title="Gestão de Produtos"
-        description="Gerencie catálogo, variações de estoque, preços, publicações e ações em lote."
         actions={
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={handleExportJSON}>
@@ -362,24 +361,9 @@ function AdminProductsPage() {
 
       {/* Tabela de Produtos */}
       {filteredProducts.length === 0 ? (
-        <EmptyState
-          title="Nenhum produto encontrado"
-          description={
-            searchQuery || statusFilter !== "active"
-              ? "Tente alterar os termos de busca ou filtros aplicados."
-              : "Cadastre seu primeiro produto com fotos, variações e preços para vender."
-          }
-          action={
-            <Button asChild size="sm">
-              <Link to="/workspace/catalogo/produtos/novo">
-                <Plus className="mr-1.5 size-4" />
-                Cadastrar Primeiro Produto
-              </Link>
-            </Button>
-          }
-        />
+        <EmptyState title="Nenhum produto encontrado" />
       ) : (
-        <div className="border border-border bg-card shadow-xs">
+        <div className="border border-border rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -514,7 +498,10 @@ function AdminProductsPage() {
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem asChild>
-                              <Link to={`/workspace/estudio` as never} search={{ productId: product.id } as never}>
+                              <Link
+                                to={`/workspace/estudio` as never}
+                                search={{ productId: product.id } as never}
+                              >
                                 <Palette className="size-3.5 mr-2 text-indigo-500" />
                                 Criar Post (Estúdio)
                               </Link>

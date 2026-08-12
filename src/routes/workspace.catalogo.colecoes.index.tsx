@@ -88,7 +88,6 @@ function AdminCollectionsPage() {
       <PageHeader
         eyebrow="Catálogo"
         title="Coleções"
-        description="Agrupe produtos para campanhas, estações ou promoções especiais."
         actions={
           <Button asChild size="sm">
             <Link to="/workspace/catalogo/colecoes/novo">
@@ -132,26 +131,9 @@ function AdminCollectionsPage() {
               ? "Nenhuma coleção encontrada"
               : "Nenhuma coleção no arquivo morto"
           }
-          description={
-            searchQuery
-              ? "Tente alterar os termos da sua busca."
-              : statusFilter === "active"
-                ? "Crie coleções para agrupar produtos para vitrines e campanhas."
-                : "Coleções arquivadas aparecerão aqui."
-          }
-          action={
-            statusFilter === "active" ? (
-              <Button asChild size="sm">
-                <Link to="/workspace/catalogo/colecoes/novo">
-                  <Plus className="mr-1.5 size-4" />
-                  Nova Coleção
-                </Link>
-              </Button>
-            ) : undefined
-          }
         />
       ) : (
-        <div className="border border-border bg-card shadow-xs">
+        <div className="border border-border rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -200,7 +182,7 @@ function AdminCollectionsPage() {
                           {col.status !== "archived" ? (
                             <>
                               <DropdownMenuItem asChild>
-                                <Link to={`/admin/catalogo/colecoes/${col.id}` as any}>
+                                <Link to={`/workspace/catalogo/colecoes/${col.id}` as any}>
                                   <Edit className="mr-2 size-3.5" />
                                   Editar Coleção
                                 </Link>

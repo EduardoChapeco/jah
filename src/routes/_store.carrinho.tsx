@@ -34,15 +34,15 @@ function StoreCartPage() {
   const carts = Route.useLoaderData();
   const router = useRouter();
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(
-    (carts && carts.length > 0 && carts[0] && carts[0].storeId) ? carts[0].storeId : null
+    carts && carts.length > 0 && carts[0] && carts[0].storeId ? carts[0].storeId : null,
   );
 
   const handleRemove = async (itemId: string) => {
     try {
       await removeFromCart({ data: { itemId } });
       router.invalidate();
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao remover do carrinho.");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao remover do carrinho.");
     }
   };
 
@@ -50,8 +50,8 @@ function StoreCartPage() {
     try {
       await updateCartItemQty({ data: { variantId, delta } });
       router.invalidate();
-    } catch (e: any) {
-      toast.error(e.message || "Estoque insuficiente ou erro de validação.");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Estoque insuficiente ou erro de validação.");
     }
   };
 
@@ -59,16 +59,15 @@ function StoreCartPage() {
 
   return (
     <div className="container max-w-6xl py-12 mx-auto px-4">
-      <h1 className="text-3xl font-serif font-bold tracking-tight mb-8">Meu Carrinho</h1>
+      <h1 className="text-3xl font-sans text-muted-foreground font-bold tracking-tight mb-8">
+        Meu Carrinho
+      </h1>
 
       {!carts || carts.length === 0 ? (
         <EmptyState
           title="Seu carrinho está vazio"
-          description="Explore nossa coleção e encontre o seu próximo par de calçados favorito."
           action={
-            <Button onClick={() => router.navigate({ to: "/mercado" })}>
-              Continuar Comprando
-            </Button>
+            <Button onClick={() => router.navigate({ to: "/mercado" })}>Continuar Comprando</Button>
           }
         />
       ) : (
@@ -77,20 +76,22 @@ function StoreCartPage() {
           <div className="lg:col-span-2 space-y-12">
             {carts.map((cart: any) => (
               <div key={cart.id} className="border-b pb-12 last:border-0">
-                <div 
+                <div
                   className="flex items-center justify-between cursor-pointer group mb-6"
                   onClick={() => setSelectedStoreId(cart.storeId)}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={cn(
-                      "flex size-6 items-center justify-center rounded-full border shadow-sm transition-colors",
-                      selectedStoreId === cart.storeId 
-                        ? "bg-primary border-primary text-primary-foreground" 
-                        : "border-muted-foreground/30 text-transparent group-hover:border-primary/50"
-                    )}>
+                    <div
+                      className={cn(
+                        "flex size-6 items-center justify-center rounded-full border shadow-sm transition-colors",
+                        selectedStoreId === cart.storeId
+                          ? "bg-primary border-primary text-primary-foreground"
+                          : "border-muted-foreground/30 text-transparent group-hover:border-primary/50",
+                      )}
+                    >
                       <CheckCircle2 className="size-4" />
                     </div>
-                    <h2 className="text-xl font-bold">Loja {cart.storeId?.split('-')[0]}</h2>
+                    <h2 className="text-xl font-bold">Loja {cart.storeId?.split("-")[0]}</h2>
                   </div>
                 </div>
 
@@ -181,7 +182,11 @@ function StoreCartPage() {
 
           {/* Coluna Direita: Resumo Fixo (Apenas da loja selecionada) */}
           <div className="lg:col-span-1">
-            <Surface variant="zine" elevation="sm" className="bg-muted/50 p-6 h-fit sticky top-24">
+            <Surface
+              variant="default"
+              elevation="sm"
+              className="bg-muted/50 p-6 h-fit sticky top-24"
+            >
               <h2 className="text-xl font-semibold mb-4">Resumo da Compra</h2>
 
               {!selectedCart ? (
@@ -192,7 +197,9 @@ function StoreCartPage() {
                 <>
                   <div className="space-y-4 text-sm mb-6 border-b pb-6">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Subtotal ({selectedCart.itemCount} itens)</span>
+                      <span className="text-muted-foreground">
+                        Subtotal ({selectedCart.itemCount} itens)
+                      </span>
                       <span className="font-medium">{formatMoney(selectedCart.subtotalCents)}</span>
                     </div>
 
@@ -201,7 +208,9 @@ function StoreCartPage() {
                         <span className="flex items-center gap-1">
                           <Ticket className="h-4 w-4" /> Cupom ({selectedCart.couponCode})
                         </span>
-                        <span className="font-medium">-{formatMoney(selectedCart.discountCents)}</span>
+                        <span className="font-medium">
+                          -{formatMoney(selectedCart.discountCents)}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -218,9 +227,13 @@ function StoreCartPage() {
                       Remova itens sem estoque
                     </Button>
                   ) : (
-                    <Link to="/checkout" search={{ store: selectedCart.storeId }} className="w-full block">
+                    <Link
+                      to="/checkout"
+                      search={{ store: selectedCart.storeId }}
+                      className="w-full block"
+                    >
                       <Button size="lg" className="w-full font-semibold rounded-full shadow-md">
-                        Pagar Loja {selectedCart.storeId?.split('-')[0]}
+                        Pagar Loja {selectedCart.storeId?.split("-")[0]}
                         <ArrowRight className="ml-2 h-5 w-5" />
                       </Button>
                     </Link>

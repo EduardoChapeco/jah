@@ -55,7 +55,7 @@ export const createBusinessProfile = createServerFn({ method: "POST" })
       name: z.string().min(2, "O nome deve ter no mínimo 2 caracteres"),
       type: z.enum(["event_producer", "band", "creator", "ecommerce", "physical_store"]),
       document: z.string().optional(),
-    })
+    }),
   )
   .handler(async ({ data: { name, type, document } }) => {
     const identity = await getServerIdentity();
@@ -102,13 +102,11 @@ export const createBusinessProfile = createServerFn({ method: "POST" })
     }
 
     // 3. Vincular o usuário como dono (owner)
-    const { error: memberError } = await adminDb
-      .from("store_members")
-      .insert({
-        store_id: store.id,
-        profile_id: identity.id,
-        role: "owner",
-      });
+    const { error: memberError } = await adminDb.from("store_members").insert({
+      store_id: store.id,
+      profile_id: identity.id,
+      role: "owner",
+    });
 
     if (memberError) {
       console.error("[createBusinessProfile] Erro ao vincular owner", memberError);

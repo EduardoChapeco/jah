@@ -146,7 +146,6 @@ function EditProductPage() {
       <PageHeader
         eyebrow="Catálogo / Editor Avançado"
         title={liveTitle || "Editar Produto"}
-        description="Workspace duplo com preview em tempo real no lado esquerdo e formulário comercial no lado direito."
         actions={
           <div className="flex items-center gap-2">
             <Button variant="outline" asChild size="sm">
@@ -169,10 +168,10 @@ function EditProductPage() {
         preview={
           <div className="space-y-4">
             {/* The Truthful Preview Phone Mockup */}
-            <div className="mx-auto w-full max-w-[340px] rounded-[2.5rem] border-[10px] border-zinc-900 bg-background overflow-hidden shadow-2xl relative h-[650px] flex flex-col">
+            <div className="w-full max-w-[340px] rounded-[2.5rem] border-[4px] border-border bg-background overflow-hidden shadow-xl relative h-[650px] flex flex-col">
               {/* Notch */}
-              <div className="absolute top-0 inset-x-0 h-5 bg-zinc-900 rounded-b-xl w-32 mx-auto z-10" />
-              
+              <div className="absolute top-0 inset-x-0 h-5 bg-border rounded-b-xl w-32 z-10 mx-auto" />
+
               <div className="flex-1 overflow-y-auto no-scrollbar pt-8 pb-12 flex flex-col">
                 <div className="relative aspect-[4/5] bg-muted/30 overflow-hidden w-full flex items-center justify-center">
                   {coverImage ? (
@@ -197,7 +196,7 @@ function EditProductPage() {
                     </Badge>
                   </div>
                 </div>
-                
+
                 <div className="p-5 flex-1 flex flex-col">
                   {liveBrand && (
                     <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
@@ -207,7 +206,7 @@ function EditProductPage() {
                   <h3 className="text-xl font-black text-foreground uppercase tracking-tight leading-none mb-3">
                     {liveTitle || "Título do produto..."}
                   </h3>
-                  
+
                   <div className="mb-6">
                     <PriceDisplay
                       amountCents={livePriceCents}
@@ -295,7 +294,8 @@ function EditProductPage() {
               <Settings className="size-5 text-primary" /> Opções &amp; Adicionais
             </h2>
             <p className="text-sm text-muted-foreground">
-              Grupos de opções que o cliente escolhe ao adicionar ao carrinho (ex: sabor, adicional, personalização).
+              Grupos de opções que o cliente escolhe ao adicionar ao carrinho (ex: sabor, adicional,
+              personalização).
             </p>
           </div>
           <OptionGroupsManager productId={product.id} />
@@ -499,15 +499,15 @@ function GeneralForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Informações Comerciais Principais</CardTitle>
-          <CardDescription>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
+      <div>
+        <div className="mb-4">
+          <h3 className="text-lg font-bold text-foreground">Informações Comerciais Principais</h3>
+          <p className="text-sm text-muted-foreground">
             Defina o título, marca e descrição detalhada do produto.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+          </p>
+        </div>
+        <div className="space-y-4">
           <div className="space-y-2">
             <Label>Título do Produto *</Label>
             <Input {...register("title", { required: "Obrigatório" })} />
@@ -586,17 +586,17 @@ function GeneralForm({
               </Select>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Precificação & Lucratividade</CardTitle>
-          <CardDescription>
+      <div className="pt-6 border-t">
+        <div className="mb-4">
+          <h3 className="text-lg font-bold text-foreground">Precificação & Lucratividade</h3>
+          <p className="text-sm text-muted-foreground">
             Valores em Reais (R$). Cálculos de margem de lucro acontecem em tempo real.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="space-y-2">
             <Label>Preço de Venda (R$) *</Label>
             <Input step="0.01" type="number" {...register("price_cents", { required: true })} />
@@ -614,14 +614,14 @@ function GeneralForm({
             <Label>Custo por Item (R$)</Label>
             <Input step="0.01" type="number" placeholder="Ex: 80.00" {...register("cost_cents")} />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Publicação & Status</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="pt-6 border-t">
+        <div className="mb-4">
+          <h3 className="text-lg font-bold text-foreground">Publicação & Status</h3>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>Status de Visibilidade</Label>
             <Select defaultValue={product.status} onValueChange={(val) => setValue("status", val)}>
@@ -635,21 +635,21 @@ function GeneralForm({
               </SelectContent>
             </Select>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <LayoutList className="size-4" />
+      <div className="pt-6 border-t">
+        <div className="mb-4">
+          <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+            <LayoutList className="size-5 text-primary" />
             Ficha Técnica Dinâmica (Tipo de Produto)
-          </CardTitle>
-          <CardDescription>
+          </h3>
+          <p className="text-sm text-muted-foreground">
             Defina um tipo de produto para renderizar campos específicos (ex: Material, Voltagem,
             Indicação) de acordo com o seu nicho.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
+          </p>
+        </div>
+        <div className="space-y-6">
           <div className="space-y-2">
             <Label>Tipo de Produto</Label>
             <Select value={watchTypeId} onValueChange={(val) => setValue("type_id", val)}>
@@ -741,15 +741,17 @@ function GeneralForm({
                 </div>
               </div>
             )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Logística Avançada & Dimensões</CardTitle>
-          <CardDescription>Necessário para cálculo de frete e prazos.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="pt-6 border-t">
+        <div className="mb-4">
+          <h3 className="text-lg font-bold text-foreground">Logística Avançada & Dimensões</h3>
+          <p className="text-sm text-muted-foreground">
+            Necessário para cálculo de frete e prazos.
+          </p>
+        </div>
+        <div className="space-y-4">
           <div className="flex items-center space-x-2">
             <input
               type="checkbox"
@@ -810,15 +812,17 @@ function GeneralForm({
               </Select>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Identificadores & SEO</CardTitle>
-          <CardDescription>Otimização para busca e conformidade fiscal/EAN.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="pt-6 border-t">
+        <div className="mb-4">
+          <h3 className="text-lg font-bold text-foreground">Identificadores & SEO</h3>
+          <p className="text-sm text-muted-foreground">
+            Otimização para busca e conformidade fiscal/EAN.
+          </p>
+        </div>
+        <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Fabricante / Marca do Fornecedor</Label>
@@ -845,8 +849,8 @@ function GeneralForm({
             <Label>Meta Description (SEO)</Label>
             <Textarea {...register("meta_description")} className="min-h-16" />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <div className="flex justify-end pt-2">
         <Button type="submit" disabled={isSubmitting} size="lg" className="font-bold">
@@ -889,8 +893,8 @@ function VariantsManager({ product }: { product: any }) {
       });
       toast.success("Matriz salva com sucesso!");
       router.invalidate();
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao salvar matriz");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao salvar matriz");
     } finally {
       setIsSubmitting(false);
     }
@@ -918,16 +922,16 @@ function VariantsManager({ product }: { product: any }) {
         </AccordionItem>
       </Accordion>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
+      <div className="pt-6 border-t">
+        <div className="flex flex-row items-center justify-between mb-4">
           <div>
-            <CardTitle className="text-base flex items-center gap-2">
+            <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
               <LayoutList className="size-5" />
               Matriz de Variações e Estoque
-            </CardTitle>
-            <CardDescription>
+            </h3>
+            <p className="text-sm text-muted-foreground">
               Ajuste atributos, estoque, preços e SKUs diretamente na tabela.
-            </CardDescription>
+            </p>
           </div>
           <Button onClick={handleSaveMatrix} disabled={isSubmitting} size="sm">
             {isSubmitting ? (
@@ -937,15 +941,15 @@ function VariantsManager({ product }: { product: any }) {
             )}
             Salvar Alterações da Matriz
           </Button>
-        </CardHeader>
-        <CardContent>
+        </div>
+        <div>
           <VariantMatrixGrid
             variants={variants}
             onChange={setVariants}
             basePriceCents={product.price_cents || 0}
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1039,14 +1043,14 @@ function MediaManager({ product }: { product: any }) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">Galeria de Fotos do Produto</CardTitle>
-        <CardDescription>
+    <div>
+      <div className="mb-4">
+        <h3 className="text-lg font-bold text-foreground">Galeria de Fotos do Produto</h3>
+        <p className="text-sm text-muted-foreground">
           Fotos em alta qualidade aumentam a conversão de vendas. Limite de 5MB por arquivo.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
+        </p>
+      </div>
+      <div className="space-y-6">
         <div className="space-y-2">
           <Label>Fazer Upload de Imagem</Label>
           <div className="max-w-md">
@@ -1145,7 +1149,7 @@ function MediaManager({ product }: { product: any }) {
               );
             })}
         </div>
-      </CardContent>
+      </div>
 
       <Sheet open={!!editingMedia} onOpenChange={(open) => !open && setEditingMedia(null)}>
         {editingMedia && (
@@ -1214,7 +1218,7 @@ function MediaManager({ product }: { product: any }) {
           </SheetContent>
         )}
       </Sheet>
-    </Card>
+    </div>
   );
 }
 
@@ -1257,32 +1261,32 @@ function OptionGroupsManager({ productId }: { productId: string }) {
       .then((data) => {
         if (data && data.length > 0) {
           const mapped: any[] = data.map((g: any) => {
-              const og = g.option_groups;
-              if (!og) return null;
-              return {
-                id: og.id,
-                internal_name: og.internal_name,
-                display_name: og.display_name,
-                selection_type: og.selection_type,
-                min_selections: og.min_selections,
-                max_selections: og.max_selections,
-                franchise_included: og.franchise_included ?? 0,
-                is_required: og.is_required,
-                values: (og.option_values || []).map((v: any) => ({
-                  id: v.id,
-                  label: v.label,
-                  price_modifier_cents: v.price_modifier_cents,
-                  is_default: v.is_default,
-                  is_active: v.is_active,
-                  max_quantity: v.max_quantity ?? 1,
-                  sku_reference: v.sku_reference || null,
-                })),
-              };
-            });
+            const og = g.option_groups;
+            if (!og) return null;
+            return {
+              id: og.id,
+              internal_name: og.internal_name,
+              display_name: og.display_name,
+              selection_type: og.selection_type,
+              min_selections: og.min_selections,
+              max_selections: og.max_selections,
+              franchise_included: og.franchise_included ?? 0,
+              is_required: og.is_required,
+              values: (og.option_values || []).map((v: any) => ({
+                id: v.id,
+                label: v.label,
+                price_modifier_cents: v.price_modifier_cents,
+                is_default: v.is_default,
+                is_active: v.is_active,
+                max_quantity: v.max_quantity ?? 1,
+                sku_reference: v.sku_reference || null,
+              })),
+            };
+          });
           setGroups(mapped.filter(Boolean));
         }
       })
-      .catch((e) => toast.error("Erro ao carregar opções: " + e.message))
+      .catch((e) => toast.error("Erro ao carregar opções: " + (e instanceof Error ? e.message : String(e))))
       .finally(() => setIsLoading(false));
   }, [productId]);
 
@@ -1297,7 +1301,16 @@ function OptionGroupsManager({ productId }: { productId: string }) {
         max_selections: 1,
         franchise_included: 0,
         is_required: false,
-        values: [{ label: "", price_modifier_cents: 0, is_default: false, is_active: true, max_quantity: 1, sku_reference: null }],
+        values: [
+          {
+            label: "",
+            price_modifier_cents: 0,
+            is_default: false,
+            is_active: true,
+            max_quantity: 1,
+            sku_reference: null,
+          },
+        ],
       },
     ]);
   };
@@ -1307,9 +1320,7 @@ function OptionGroupsManager({ productId }: { productId: string }) {
   };
 
   const updateGroup = (idx: number, field: keyof LocalOptionGroup, value: any) => {
-    setGroups((prev) =>
-      prev.map((g, i) => (i === idx ? { ...g, [field]: value } : g)),
-    );
+    setGroups((prev) => prev.map((g, i) => (i === idx ? { ...g, [field]: value } : g)));
   };
 
   const addValue = (groupIdx: number) => {
@@ -1377,8 +1388,8 @@ function OptionGroupsManager({ productId }: { productId: string }) {
         },
       });
       toast.success("Opções salvas com sucesso!");
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao salvar opções.");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao salvar opções.");
     } finally {
       setIsSaving(false);
     }
@@ -1395,35 +1406,42 @@ function OptionGroupsManager({ productId }: { productId: string }) {
   return (
     <div className="space-y-4">
       {groups.length === 0 ? (
-        <Card className="border-dashed border-2 border-muted-foreground/20">
-          <CardContent className="py-10 flex flex-col items-center text-center gap-3">
+        <div className="border-dashed border border-border rounded-lg">
+          <div className="py-10 flex flex-col items-center text-center gap-3">
             <Settings className="size-10 text-muted-foreground/40" />
             <div>
               <p className="font-semibold text-foreground">Nenhum grupo de opções</p>
               <p className="text-sm text-muted-foreground mt-1">
-                Adicione grupos para que o cliente personalize o pedido (ex: ponto da carne, adicionais, tamanho de impressão).
+                Adicione grupos para que o cliente personalize o pedido (ex: ponto da carne,
+                adicionais, tamanho de impressão).
               </p>
             </div>
             <Button variant="outline" size="sm" onClick={addGroup}>
               <Plus className="size-4 mr-2" />
               Adicionar Grupo
             </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       ) : (
         <>
           {groups.map((group, gIdx) => (
-            <Card key={gIdx} className="border border-border">
-              <CardHeader className="pb-3">
+            <div
+              key={gIdx}
+              className="border border-border rounded-lg bg-card mb-4 overflow-hidden"
+            >
+              <div className="p-4 border-b">
                 <div className="flex items-start justify-between gap-3">
                   <div className="grid grid-cols-2 gap-3 flex-1">
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Nome de Exibição (cliente vê)</Label>
+                      <Label className="text-xs text-muted-foreground">
+                        Nome de Exibição (cliente vê)
+                      </Label>
                       <Input
                         value={group.display_name}
                         onChange={(e) => {
                           updateGroup(gIdx, "display_name", e.target.value);
-                          if (!group.internal_name) updateGroup(gIdx, "internal_name", e.target.value);
+                          if (!group.internal_name)
+                            updateGroup(gIdx, "internal_name", e.target.value);
                         }}
                         placeholder="Ex: Ponto da carne, Adicionais"
                         className="h-8 text-sm"
@@ -1471,7 +1489,9 @@ function OptionGroupsManager({ productId }: { productId: string }) {
                           type="number"
                           min={0}
                           value={group.min_selections}
-                          onChange={(e) => updateGroup(gIdx, "min_selections", Number(e.target.value))}
+                          onChange={(e) =>
+                            updateGroup(gIdx, "min_selections", Number(e.target.value))
+                          }
                           className="h-6 w-14 text-xs px-1"
                         />
                       </div>
@@ -1481,7 +1501,9 @@ function OptionGroupsManager({ productId }: { productId: string }) {
                           type="number"
                           min={1}
                           value={group.max_selections}
-                          onChange={(e) => updateGroup(gIdx, "max_selections", Number(e.target.value))}
+                          onChange={(e) =>
+                            updateGroup(gIdx, "max_selections", Number(e.target.value))
+                          }
                           className="h-6 w-14 text-xs px-1"
                         />
                       </div>
@@ -1491,16 +1513,18 @@ function OptionGroupsManager({ productId }: { productId: string }) {
                           type="number"
                           min={0}
                           value={group.franchise_included ?? 0}
-                          onChange={(e) => updateGroup(gIdx, "franchise_included", Number(e.target.value))}
+                          onChange={(e) =>
+                            updateGroup(gIdx, "franchise_included", Number(e.target.value))
+                          }
                           className="h-6 w-14 text-xs px-1"
                         />
                       </div>
                     </>
                   )}
                 </div>
-              </CardHeader>
+              </div>
 
-              <CardContent className="pt-0 pb-3">
+              <div className="p-4">
                 <div className="space-y-2 mb-3">
                   {group.values.map((val, vIdx) => (
                     <div key={vIdx} className="flex items-center gap-2">
@@ -1530,12 +1554,19 @@ function OptionGroupsManager({ productId }: { productId: string }) {
                         />
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
-                        <span className="text-xs text-muted-foreground" title="Máximo permitido desta opção">Max:</span>
+                        <span
+                          className="text-xs text-muted-foreground"
+                          title="Máximo permitido desta opção"
+                        >
+                          Max:
+                        </span>
                         <Input
                           type="number"
                           min={1}
                           value={val.max_quantity ?? 1}
-                          onChange={(e) => updateValue(gIdx, vIdx, "max_quantity", Number(e.target.value))}
+                          onChange={(e) =>
+                            updateValue(gIdx, vIdx, "max_quantity", Number(e.target.value))
+                          }
                           className="h-8 w-12 text-sm px-1"
                         />
                       </div>
@@ -1556,12 +1587,17 @@ function OptionGroupsManager({ productId }: { productId: string }) {
                     </div>
                   ))}
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => addValue(gIdx)} className="h-7 text-xs text-muted-foreground">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => addValue(gIdx)}
+                  className="h-7 text-xs text-muted-foreground"
+                >
                   <Plus className="size-3.5 mr-1" />
                   Adicionar opção
                 </Button>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))}
 
           <Button variant="outline" size="sm" onClick={addGroup} className="w-full border-dashed">

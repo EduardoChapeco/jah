@@ -252,10 +252,10 @@ export const getDashboardData = createServerFn({ method: "GET" }).handler(async 
   try {
     const data = await _getDashboardData();
     return data;
-  } catch (e: any) {
+  } catch (e: unknown) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
-    console.error("[dashboard.functions] getDashboardData error:", e?.message || e);
-    throw new Error(e?.message || "Erro ao carregar dados do painel.");
+    console.error("[dashboard.functions] getDashboardData error:", e);
+    throw new Error(e instanceof Error ? e.message : "Erro ao carregar dados do painel.");
   }
 });
 
@@ -292,9 +292,8 @@ export const getDashboardStats = createServerFn({ method: "GET" }).handler(async
       publishedProducts: productsRes.data?.filter((p) => p.status === "published").length || 0,
       totalCustomers: customersRes.data?.length || 0,
     };
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("[dashboard.functions] getDashboardStats:", e);
     throw new Error("Erro ao carregar estatísticas.");
   }
 });
-

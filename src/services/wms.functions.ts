@@ -28,10 +28,10 @@ export const startPickingSession = createServerFn({ method: "POST" })
       if (error) throw error;
 
       return { sessionId: data };
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[WMS] startPickingSession:", e.message);
-      throw new Error(e.message || "Erro ao iniciar sessão de separação.");
+      console.error("[WMS] startPickingSession:", (e instanceof Error ? e.message : String(e)));
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao iniciar sessão de separação.");
     }
   });
 
@@ -57,10 +57,10 @@ export const getPickingSessionItems = createServerFn({ method: "GET" })
 
       if (error) throw error;
       return data;
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[WMS] getPickingSessionItems:", e.message);
-      throw new Error(e.message || "Erro ao buscar itens da sessão.");
+      console.error("[WMS] getPickingSessionItems:", (e instanceof Error ? e.message : String(e)));
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao buscar itens da sessão.");
     }
   });
 
@@ -93,10 +93,10 @@ export const pickWmsItem = createServerFn({ method: "POST" })
 
       if (error) throw error;
       return { success: true };
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[WMS] pickWmsItem:", e.message);
-      throw new Error(e.message || "Erro ao registrar conferência do item.");
+      console.error("[WMS] pickWmsItem:", (e instanceof Error ? e.message : String(e)));
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao registrar conferência do item.");
     }
   });
 
@@ -122,11 +122,11 @@ export const completePickingSession = createServerFn({ method: "POST" })
 
       if (error) throw error;
       return { success: true };
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[WMS] completePickingSession:", e.message);
+      console.error("[WMS] completePickingSession:", (e instanceof Error ? e.message : String(e)));
       throw new Error(
-        e.message || "Erro ao finalizar separação. Verifique se todos os itens foram conferidos.",
+        (e instanceof Error ? e.message : String(e)) || "Erro ao finalizar separação. Verifique se todos os itens foram conferidos.",
       );
     }
   });

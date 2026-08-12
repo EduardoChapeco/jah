@@ -96,8 +96,8 @@ export function ImageUpload({
 
       onChange(res.publicUrl!);
       toast.success("Imagem enviada com sucesso!");
-    } catch (error: any) {
-      toast.error(error.message || "Erro ao fazer upload da imagem");
+    } catch (error: unknown) {
+      toast.error((error instanceof Error ? error.message : String(error)) || "Erro ao fazer upload da imagem");
     } finally {
       setIsUploading(false);
     }

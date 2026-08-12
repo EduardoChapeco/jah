@@ -139,8 +139,8 @@ export function VariantOptionsBuilder({ product, onClose }: VariantOptionsBuilde
       toast.success("Opções de produto salvas com sucesso!");
       router.invalidate();
       if (onClose) onClose();
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao salvar opções.");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao salvar opções.");
     } finally {
       setIsSubmitting(false);
     }

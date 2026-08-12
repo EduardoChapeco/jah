@@ -40,7 +40,7 @@ export function ImageHotspots({
   if (!displayImage) {
     return (
       <div className="w-full py-12 px-4 md:px-8 max-w-7xl mx-auto">
-        <div className="flex flex-col items-center justify-center py-16 text-center gap-4 text-muted-foreground border-2 border-dashed border-border">
+        <div className="flex flex-col items-center justify-center py-16 text-center gap-4 text-muted-foreground border border-dashed border-border">
           <span className="text-3xl opacity-40">&#127919;</span>
           <div>
             <p className="font-medium">Imagem não configurada</p>
@@ -97,7 +97,7 @@ export function ImageHotspots({
               {/* Outer pulsing ring */}
               <span className="absolute -inset-2 rounded-full bg-primary/40 animate-ping opacity-75" />
               {/* Inner pin */}
-              <span className="relative flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-primary text-primary-foreground font-bold text-xs md:text-sm border-2 border-background">
+              <span className="relative flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-primary text-primary-foreground font-bold text-xs md:text-sm border border-background">
                 {index + 1}
               </span>
             </button>

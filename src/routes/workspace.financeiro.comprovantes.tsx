@@ -93,19 +93,12 @@ function ReceiptsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        eyebrow="Vendas"
-        title="Comprovantes Pendentes"
-        description="Analise os comprovantes de pagamento enviados pelos clientes e confirme ou rejeite."
-      />
+      <PageHeader eyebrow="Vendas" title="Comprovantes Pendentes" />
 
       {receipts.length === 0 ? (
-        <EmptyState
-          title="Nenhum comprovante pendente"
-          description="Quando clientes enviarem comprovantes de pagamento, eles aparecerão aqui para revisão."
-        />
+        <EmptyState title="Nenhum comprovante pendente" />
       ) : (
-        <Card className="overflow-hidden">
+        <div className="border border-border bg-card rounded-md shadow-xs overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
@@ -179,7 +172,7 @@ function ReceiptsPage() {
               })}
             </TableBody>
           </Table>
-        </Card>
+        </div>
       )}
 
       {/* Reject Dialog */}

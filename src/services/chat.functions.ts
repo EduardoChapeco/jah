@@ -189,8 +189,8 @@ export const getCustomerChatThread = createServerFn({ method: "GET" })
           createdAt: m.created_at as string,
         })),
       };
-    } catch (e: any) {
-      throw new Error(e.message || "Erro ao buscar chat.");
+    } catch (e: unknown) {
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao buscar chat.");
     }
   });
 
@@ -228,7 +228,7 @@ export const sendCustomerChatMessage = createServerFn({ method: "POST" })
         sender_id: user.id,
       });
 
-      if (error) throw new Error(error.message);
+      if (error) throw new Error((error instanceof Error ? error.message : String(error)));
 
       await db
         .from("chat_threads")
@@ -236,8 +236,8 @@ export const sendCustomerChatMessage = createServerFn({ method: "POST" })
         .eq("id", threadId);
 
       return { status: "success" as const };
-    } catch (e: any) {
-      throw new Error(e.message || "Erro ao enviar mensagem.");
+    } catch (e: unknown) {
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao enviar mensagem.");
     }
   });
 
@@ -263,9 +263,9 @@ export const listCustomerChatThreads = createServerFn({ method: "GET" }).handler
 
     if (error) throw error;
     return data || [];
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("[chat] listCustomerChatThreads error:", e);
-    throw new Error(e.message || "Erro ao listar suas conversas.");
+    throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao listar suas conversas.");
   }
 });
 
@@ -315,9 +315,9 @@ export const startCustomerChatThread = createServerFn({ method: "POST" })
       if (msgErr) throw msgErr;
 
       return { status: "success" as const, threadId: thread.id };
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[chat] startCustomerChatThread error:", e);
-      throw new Error(e.message || "Erro ao iniciar conversa.");
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao iniciar conversa.");
     }
   });
 
@@ -342,8 +342,8 @@ export const updateChatThreadStatus = createServerFn({ method: "POST" })
 
       if (error) throw error;
       return { status: "success" as const };
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[chat] updateChatThreadStatus error:", e);
-      throw new Error(e.message || "Erro ao atualizar status da conversa.");
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao atualizar status da conversa.");
     }
   });

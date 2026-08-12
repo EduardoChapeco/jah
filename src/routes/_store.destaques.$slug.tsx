@@ -11,12 +11,9 @@ function Page() {
   const { slug } = Route.useParams();
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
-      <PageHeader eyebrow="Vitrine" title="Destaque" description={`Identificador: ${slug}`} />
+      <PageHeader eyebrow="Vitrine" title="Destaque" />
       <div className="mt-8">
-        <EmptyState
-          title="Destaque em preparação"
-          description="Os destaques permanentes serão publicados pela loja."
-        />
+        <EmptyState title="Destaque em preparação" />
       </div>
     </div>
   );

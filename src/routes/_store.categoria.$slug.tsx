@@ -99,17 +99,12 @@ function CategoryPage() {
         <span className="text-foreground">{category?.name ?? slug}</span>
       </nav>
 
-      <PageHeader
-        eyebrow="Categoria"
-        title={category?.name ?? slug}
-        description={`Produtos da categoria ${category?.name ?? slug}.`}
-      />
+      <PageHeader eyebrow="Categoria" title={category?.name ?? slug} />
 
       <div className="mt-8">
         {products.length === 0 ? (
           <EmptyState
             title="Nenhum produto nesta categoria"
-            description="Ainda não há produtos publicados nesta categoria."
             action={
               <Button asChild>
                 <Link to="/mercado">Ver todos os produtos</Link>

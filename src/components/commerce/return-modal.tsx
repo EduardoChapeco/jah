@@ -30,8 +30,8 @@ export function ReturnModal({ orderId }: { orderId: string }) {
       toast.success("Solicitação enviada com sucesso!");
       setOpen(false);
       router.invalidate();
-    } catch (e: any) {
-      toast.error(e.message || "Erro inesperado.");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro inesperado.");
     } finally {
       setLoading(false);
     }

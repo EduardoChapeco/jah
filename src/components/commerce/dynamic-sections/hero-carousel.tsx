@@ -126,7 +126,7 @@ export function HeroCarousel({
                     />
                   </picture>
                 ) : (
-                  <div className="absolute inset-0 w-full h-full from-[#1a1a2e] to-[#16213e] flex flex-col items-center justify-center border-2 border-dashed border-white/10 p-4">
+                  <div className="absolute inset-0 w-full h-full from-[#1a1a2e] to-[#16213e] flex flex-col items-center justify-center border border-dashed border-white/10 p-4">
                     <span className="text-white/60 text-sm font-semibold tracking-wide uppercase mb-1">
                       Banner Principal
                     </span>

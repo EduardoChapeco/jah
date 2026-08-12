@@ -118,17 +118,8 @@ const CloseRegisterSchema = z.object({
 function CashRegisterError({ error }: { error: Error }) {
   return (
     <div className="space-y-6">
-      <PageHeader
-        eyebrow="Operação Comercial"
-        title="Frente de Caixa (PDV)"
-        description="Erro no carregamento do caixa ou permissões insuficientes."
-      />
-      <ErrorState
-        title="Falha ao carregar caixa"
-        description={
-          error.message || "Verifique se sua conta de usuário está vinculada a uma loja ativa."
-        }
-      />
+      <PageHeader eyebrow="Operação Comercial" title="Frente de Caixa (PDV)" />
+      <ErrorState title="Falha ao carregar caixa" />
     </div>
   );
 }
@@ -210,8 +201,8 @@ function CashRegisterPage() {
       await fetchCustomers();
       setSelectedCustomerId(res.customerId);
       setCustomerNameInput(newCustomerForm.fullName);
-    } catch (e: any) {
-      toast.error(e.message || "Erro inesperado");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro inesperado");
     } finally {
       setIsSavingCustomer(false);
     }
@@ -361,8 +352,8 @@ function CashRegisterPage() {
       } else {
         toast.error("Erro ao registrar venda.");
       }
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao finalizar venda.");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao finalizar venda.");
     } finally {
       setIsProcessingSale(false);
     }
@@ -382,7 +373,7 @@ function CashRegisterPage() {
       openForm.reset();
       router.invalidate();
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Erro ao abrir caixa");
+      toast.error(e instanceof Error ? (e instanceof Error ? e.message : String(e)) : "Erro ao abrir caixa");
     } finally {
       setIsOpening(false);
     }
@@ -411,7 +402,7 @@ function CashRegisterPage() {
       closeForm.reset();
       router.invalidate();
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Erro ao fechar caixa");
+      toast.error(e instanceof Error ? (e instanceof Error ? e.message : String(e)) : "Erro ao fechar caixa");
     } finally {
       setIsClosing(false);
     }
@@ -420,24 +411,20 @@ function CashRegisterPage() {
   // If Register is Closed: Show Opening Card
   if (!register) {
     return (
-      <div className="space-y-6 max-w-4xl mx-auto">
-        <PageHeader
-          eyebrow="Frente de Loja / PDV"
-          title="Caixa Fechado"
-          description="Abra o turno informando o fundo de troco inicial para iniciar as vendas de balcão."
-        />
+      <div className="space-y-6">
+        <PageHeader eyebrow="Frente de Loja / PDV" title="Caixa Fechado" />
 
-        <Card className="border-warning/30 bg-warning/10 shadow-xs">
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
+        <div className="border border-warning/30 bg-warning/10 p-6 rounded-md">
+          <div className="mb-6">
+            <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
               <Lock className="size-5 text-warning-foreground" />
               Abertura Obrigatória de Turno
-            </CardTitle>
-            <CardDescription>
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1">
               Sem um caixa aberto, vendas de balcão e lançamentos financeiros permanecem bloqueados.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+            </p>
+          </div>
+          <div>
             <Form {...openForm}>
               <form onSubmit={openForm.handleSubmit(handleOpen)} className="space-y-4 max-w-md">
                 <FormField
@@ -472,8 +459,8 @@ function CashRegisterPage() {
                 </Button>
               </form>
             </Form>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     );
   }
@@ -484,7 +471,6 @@ function CashRegisterPage() {
       <PageHeader
         eyebrow={`Caixa Aberto • Turno #${register.id.slice(0, 8)}`}
         title="Frente de Caixa & PDV Balcão"
-        description={`Operador: ${register.opened_by_profile?.full_name || "Staff"} • Aberto às ${formatDateTime(register.opened_at)}`}
         actions={
           <div className="flex items-center gap-2">
             <Badge
@@ -577,17 +563,17 @@ function CashRegisterPage() {
 
             {/* LADO DIREITO: Carrinho do Balcão e Fechamento (5 Colunas) */}
             <div className="lg:col-span-5 space-y-4">
-              <Card className="border border-border bg-card shadow-xs">
-                <CardHeader className="py-3 px-4 border-b bg-muted/30 flex flex-row items-center justify-between">
-                  <CardTitle className="text-base flex items-center gap-2">
+              <div className="border border-border bg-card rounded-md overflow-hidden">
+                <div className="py-3 px-4 border-b bg-muted/30 flex flex-row items-center justify-between">
+                  <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
                     <ShoppingCart className="size-4 text-primary" />
                     Carrinho do Balcão
-                  </CardTitle>
+                  </h3>
                   <Badge variant="default" className="text-xs font-bold">
                     {cartItems.reduce((a, b) => a + b.qty, 0)} itens
                   </Badge>
-                </CardHeader>
-                <CardContent className="p-4 space-y-4">
+                </div>
+                <div className="p-4 space-y-4">
                   {/* Item List */}
                   {cartItems.length === 0 ? (
                     <div className="py-12 text-center text-xs text-muted-foreground">
@@ -773,27 +759,24 @@ function CashRegisterPage() {
                       {isProcessingSale ? "Finalizando..." : "Finalizar Venda de Balcão"}
                     </Button>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </div>
           </div>
         </TabsContent>
 
         {/* TAB 2: EXTRATO DE LANÇAMENTOS */}
         <TabsContent value="lancamentos" className="mt-6">
-          <Card className="border border-border shadow-xs">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-base">Extrato de Lançamentos do Turno</CardTitle>
-                <CardDescription>Vendas, reforços de troco e sangrias registradas.</CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent>
+          <div>
+            <div className="mb-4">
+              <h3 className="text-lg font-bold text-foreground">Extrato de Lançamentos do Turno</h3>
+              <p className="text-sm text-muted-foreground">
+                Vendas, reforços de troco e sangrias registradas.
+              </p>
+            </div>
+            <div className="border border-border rounded-md bg-card overflow-hidden">
               {!register.recentEntries || register.recentEntries.length === 0 ? (
-                <EmptyState
-                  title="Nenhum lançamento"
-                  description="Nenhuma movimentação realizada neste turno."
-                />
+                <EmptyState title="Nenhum lançamento" />
               ) : (
                 <Table>
                   <TableHeader>
@@ -829,20 +812,20 @@ function CashRegisterPage() {
                   </TableBody>
                 </Table>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
 
         {/* TAB 3: FECHAMENTO DE TURNO */}
         <TabsContent value="fechamento" className="mt-6">
-          <Card className="max-w-xl mx-auto border border-border shadow-xs">
-            <CardHeader>
-              <CardTitle className="text-base">Encerrar Turno de Caixa</CardTitle>
-              <CardDescription>
+          <div className="max-w-xl">
+            <div className="mb-4">
+              <h3 className="text-lg font-bold text-foreground">Encerrar Turno de Caixa</h3>
+              <p className="text-sm text-muted-foreground">
                 Efetue a contagem cega do dinheiro na gaveta para encerrar o caixa.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+              </p>
+            </div>
+            <div>
               <Form {...closeForm}>
                 <form onSubmit={closeForm.handleSubmit(handleClose)} className="space-y-4">
                   <FormField
@@ -881,8 +864,8 @@ function CashRegisterPage() {
                   </Button>
                 </form>
               </Form>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
 

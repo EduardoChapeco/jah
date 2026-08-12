@@ -30,8 +30,8 @@ export function WorkingHoursEditor({ initialData }: { initialData: WorkingHours 
     try {
       await saveWorkingHours({ data: schedule });
       toast.success("Horários salvos com sucesso!");
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao salvar horários");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao salvar horários");
     } finally {
       setIsSaving(false);
     }
@@ -40,9 +40,10 @@ export function WorkingHoursEditor({ initialData }: { initialData: WorkingHours 
   const toggleDay = (day: Weekday) => {
     setSchedule((prev) => {
       const open = !prev[day].open;
-      const intervals = open && prev[day].intervals.length === 0 
-        ? [{ from: "09:00", to: "18:00" }] 
-        : prev[day].intervals;
+      const intervals =
+        open && prev[day].intervals.length === 0
+          ? [{ from: "09:00", to: "18:00" }]
+          : prev[day].intervals;
       return { ...prev, [day]: { ...prev[day], open, intervals } };
     });
   };
@@ -67,7 +68,12 @@ export function WorkingHoursEditor({ initialData }: { initialData: WorkingHours 
     }));
   };
 
-  const updateInterval = (day: Weekday, index: number, field: keyof TimeInterval, value: string) => {
+  const updateInterval = (
+    day: Weekday,
+    index: number,
+    field: keyof TimeInterval,
+    value: string,
+  ) => {
     setSchedule((prev) => {
       const newIntervals = [...prev[day].intervals];
       newIntervals[index] = { ...newIntervals[index], [field]: value };
@@ -79,7 +85,7 @@ export function WorkingHoursEditor({ initialData }: { initialData: WorkingHours 
   };
 
   return (
-    <Surface padding="lg" variant="polaroid" className="space-y-6">
+    <div className="border border-border bg-card rounded-md shadow-xs p-8 space-y-6">
       <div className="flex items-center justify-between border-b border-border pb-4">
         <div>
           <h3 className="text-lg font-bold flex items-center gap-2">
@@ -99,13 +105,15 @@ export function WorkingHoursEditor({ initialData }: { initialData: WorkingHours 
         {DAYS_ORDER.map((day) => {
           const config = schedule[day];
           return (
-            <div key={day} className="flex flex-col sm:flex-row gap-4 items-start sm:items-center py-2">
+            <div
+              key={day}
+              className="flex flex-col sm:flex-row gap-4 items-start sm:items-center py-2"
+            >
               <div className="w-40 flex items-center gap-3">
-                <Switch
-                  checked={config.open}
-                  onCheckedChange={() => toggleDay(day)}
-                />
-                <Label className={`font-medium ${!config.open && "text-muted-foreground line-through"}`}>
+                <Switch checked={config.open} onCheckedChange={() => toggleDay(day)} />
+                <Label
+                  className={`font-medium ${!config.open && "text-muted-foreground line-through"}`}
+                >
                   {DAYS_MAP[day]}
                 </Label>
               </div>
@@ -158,6 +166,6 @@ export function WorkingHoursEditor({ initialData }: { initialData: WorkingHours 
           );
         })}
       </div>
-    </Surface>
+    </div>
   );
 }

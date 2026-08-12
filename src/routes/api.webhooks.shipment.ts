@@ -92,7 +92,7 @@ export const Route = createFileRoute("/api/webhooks/shipment")({
               headers: { "Content-Type": "application/json" },
             },
           );
-        } catch (e: any) {
+        } catch (e: unknown) {
           console.error("[shipment-webhook] Exception:", e);
           return new Response(JSON.stringify({ error: "Internal Server Error" }), {
             status: 500,

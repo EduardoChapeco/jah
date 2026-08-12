@@ -9,7 +9,13 @@ import { formatDateTime } from "@/lib/datetime";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 
@@ -18,10 +24,9 @@ export const Route = createFileRoute("/workspace/pdv/comandas")({
   loader: async () => {
     const orders = await listOrders().catch(() => []);
     // Filter active comandas
-    return orders.filter((o: any) => 
-      o.origin_type === "pdv" && 
-      o.table_identifier && 
-      o.status === "payment_processing"
+    return orders.filter(
+      (o: any) =>
+        o.origin_type === "pdv" && o.table_identifier && o.status === "payment_processing",
     );
   },
   component: PdvComandasPage,
@@ -32,27 +37,26 @@ function PdvComandasPage() {
   const queryClient = useQueryClient();
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
   const [selectedComanda, setSelectedComanda] = useState<any>(null);
-  const [paymentMethod, setPaymentMethod] = useState<"cash"|"pix"|"card">("cash");
+  const [paymentMethod, setPaymentMethod] = useState<"cash" | "pix" | "card">("cash");
 
   const { data: comandas } = useQuery({
     queryKey: ["pdv-comandas"],
     queryFn: async () => {
       const orders = await listOrders();
-      return orders.filter((o: any) => 
-        o.origin_type === "pdv" && 
-        o.table_identifier && 
-        o.status === "payment_processing"
+      return orders.filter(
+        (o: any) =>
+          o.origin_type === "pdv" && o.table_identifier && o.status === "payment_processing",
       );
     },
     initialData: initialComandas,
   });
 
-  // Idealmente teriamos uma mutation especifica 'closeComanda' no backend 
+  // Idealmente teriamos uma mutation especifica 'closeComanda' no backend
   // para lidar com a injeção no caixa caso seja 'cash'.
   // Por simplicidade, vamos usar updateOrderStatus para marcar como paid.
   // Em produção, isso deve chamar uma service function que faça ambas as coisas atomicamente.
   const payMutation = useMutation({
-    mutationFn: async ({ orderId, method }: { orderId: string, method: string }) => {
+    mutationFn: async ({ orderId, method }: { orderId: string; method: string }) => {
       // In a real scenario, call a closeComanda({ orderId, method }) here to ensure cash register gets updated.
       return await updateOrderStatus({ data: { orderId, status: "paid" } });
     },
@@ -63,7 +67,7 @@ function PdvComandasPage() {
     },
     onError: (error: any) => {
       toast.error(error.message || "Erro ao fechar comanda.");
-    }
+    },
   });
 
   const handleOpenCheckout = (comanda: any) => {
@@ -85,8 +89,10 @@ function PdvComandasPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-2xl font-display font-black text-ink">Comandas em Aberto</h1>
-          <p className="text-muted-foreground text-sm">Gerencie o fluxo de mesas e contas do salão.</p>
+          <h1 className="text-2xl font-display font-black text-foreground">Comandas em Aberto</h1>
+          <p className="text-muted-foreground text-sm">
+            Gerencie o fluxo de mesas e contas do salão.
+          </p>
         </div>
       </div>
 
@@ -99,34 +105,46 @@ function PdvComandasPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {comandas.map((comanda: any) => (
-            <Card key={comanda.id} className="overflow-hidden border-border hover:border-primary/40 transition-colors shadow-sm">
+            <div
+              key={comanda.id}
+              className="overflow-hidden bg-card rounded-md border border-border/80 hover:border-primary/40 transition-colors"
+            >
               <div className="bg-amber-100 dark:bg-amber-900/30 p-3 border-b border-amber-200 dark:border-amber-800/50 flex items-center justify-between">
                 <span className="font-black text-amber-900 dark:text-amber-100 text-lg uppercase tracking-wide">
                   {comanda.table_identifier}
                 </span>
-                <Badge variant="outline" className="bg-white/50 dark:bg-black/50 border-amber-300">
+                <Badge variant="outline" className="bg-background/50 border-amber-300">
                   {formatDateTime(comanda.created_at)}
                 </Badge>
               </div>
-              <CardContent className="p-4 flex flex-col gap-4">
+              <div className="p-4 flex flex-col gap-4">
                 <div className="space-y-1.5">
                   {comanda.order_items?.map((item: any) => (
                     <div key={item.id} className="flex justify-between text-sm">
-                      <span className="text-muted-foreground truncate mr-2">{item.qty}x {item.product_title}</span>
-                      <span className="font-medium whitespace-nowrap">{formatMoney(item.total_cents)}</span>
+                      <span className="text-muted-foreground truncate mr-2">
+                        {item.qty}x {item.product_title}
+                      </span>
+                      <span className="font-medium whitespace-nowrap">
+                        {formatMoney(item.total_cents)}
+                      </span>
                     </div>
                   ))}
                 </div>
                 <div className="pt-3 border-t border-dashed border-border flex items-end justify-between">
                   <span className="text-muted-foreground font-medium text-sm">Total</span>
-                  <span className="text-xl font-black text-ink">{formatMoney(comanda.total_cents)}</span>
+                  <span className="text-xl font-black text-foreground">
+                    {formatMoney(comanda.total_cents)}
+                  </span>
                 </div>
-                <Button className="w-full font-bold shadow-op-sm mt-2" onClick={() => handleOpenCheckout(comanda)}>
+                <Button
+                  className="w-full font-bold shadow-op-sm mt-2"
+                  onClick={() => handleOpenCheckout(comanda)}
+                >
                   <Check className="mr-2 h-4 w-4" />
                   Fechar Conta
                 </Button>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
       )}
@@ -135,42 +153,50 @@ function PdvComandasPage() {
       <Dialog open={checkoutModalOpen} onOpenChange={setCheckoutModalOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle className="font-display font-black text-2xl text-center">Fechar Comanda</DialogTitle>
+            <DialogTitle className="font-display font-black text-2xl text-center">
+              Fechar Comanda
+            </DialogTitle>
           </DialogHeader>
-          
+
           <div className="py-6 flex flex-col gap-6">
             <div className="text-center">
-              <p className="text-amber-600 font-bold mb-1 uppercase tracking-widest">{selectedComanda?.table_identifier}</p>
+              <p className="text-amber-600 font-bold mb-1 uppercase tracking-widest">
+                {selectedComanda?.table_identifier}
+              </p>
               <p className="text-muted-foreground text-sm">Total a pagar</p>
-              <div className="text-4xl font-black text-primary">{formatMoney(selectedComanda?.total_cents || 0)}</div>
+              <div className="text-4xl font-black text-primary">
+                {formatMoney(selectedComanda?.total_cents || 0)}
+              </div>
             </div>
 
             <div className="space-y-3">
-              <Label className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Forma de Pagamento</Label>
+              <Label className="text-xs uppercase tracking-wider font-bold text-muted-foreground">
+                Forma de Pagamento
+              </Label>
               <div className="grid grid-cols-3 gap-3">
-                <Button 
+                <Button
                   type="button"
-                  variant={paymentMethod === 'cash' ? "default" : "outline"}
-                  className="h-16 flex flex-col gap-1 border-2"
-                  onClick={() => setPaymentMethod('cash')}
+                  variant={paymentMethod === "cash" ? "default" : "outline"}
+                  className="h-16 flex flex-col gap-1 border"
+                  onClick={() => setPaymentMethod("cash")}
                 >
                   <Banknote className="h-5 w-5" />
                   Dinheiro
                 </Button>
-                <Button 
+                <Button
                   type="button"
-                  variant={paymentMethod === 'pix' ? "default" : "outline"}
-                  className="h-16 flex flex-col gap-1 border-2"
-                  onClick={() => setPaymentMethod('pix')}
+                  variant={paymentMethod === "pix" ? "default" : "outline"}
+                  className="h-16 flex flex-col gap-1 border"
+                  onClick={() => setPaymentMethod("pix")}
                 >
                   <QrCode className="h-5 w-5" />
                   PIX
                 </Button>
-                <Button 
+                <Button
                   type="button"
-                  variant={paymentMethod === 'card' ? "default" : "outline"}
-                  className="h-16 flex flex-col gap-1 border-2"
-                  onClick={() => setPaymentMethod('card')}
+                  variant={paymentMethod === "card" ? "default" : "outline"}
+                  className="h-16 flex flex-col gap-1 border"
+                  onClick={() => setPaymentMethod("card")}
                 >
                   <CreditCard className="h-5 w-5" />
                   Cartão
@@ -180,7 +206,9 @@ function PdvComandasPage() {
           </div>
 
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setCheckoutModalOpen(false)}>Cancelar</Button>
+            <Button variant="ghost" onClick={() => setCheckoutModalOpen(false)}>
+              Cancelar
+            </Button>
             <Button size="lg" onClick={handleConfirmPayment} disabled={payMutation.isPending}>
               {payMutation.isPending ? "Processando..." : "Confirmar Pagamento"}
             </Button>

@@ -104,18 +104,11 @@ function Page() {
 
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12 min-h-[70vh]">
-      <PageHeader
-        eyebrow="Confira as novidades"
-        title="Stories da Loja"
-        description="Fique por dentro das últimas coleções, looks exclusivos e dicas de moda."
-      />
+      <PageHeader eyebrow="Confira as novidades" title="Stories da Loja" />
 
       {stories.length === 0 ? (
         <div className="mt-8">
-          <EmptyState
-            title="Nenhum story ativo"
-            description="Acompanhe nosso perfil administrativo para ver novas publicações em breve!"
-          />
+          <EmptyState title="Nenhum story ativo" />
         </div>
       ) : (
         <div className="mt-10">
@@ -130,7 +123,7 @@ function Page() {
                 }}
                 className="group flex flex-col items-center gap-2 focus:outline-none transition-transform active:scale-95"
               >
-                <div className="relative p-0.5 rounded-full from-primary group-hover:rotate-6 transition-transform duration-300">
+                <div className="relative p-0.5 rounded-full from-primary group-hover: transition-transform duration-300">
                   <div className="p-1 bg-background rounded-full">
                     {isVideo(story.media_url) ? (
                       <div className="size-20 sm:size-24 rounded-full bg-muted flex items-center justify-center overflow-hidden border relative">

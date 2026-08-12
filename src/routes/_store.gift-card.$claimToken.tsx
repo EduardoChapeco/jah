@@ -22,12 +22,12 @@ export const Route = createFileRoute("/_store/gift-card/$claimToken")({
         user,
         error: null,
       };
-    } catch (e: any) {
+    } catch (e: unknown) {
       return {
         code: claimToken,
         card: null,
         user,
-        error: e.message || "Cartão-presente inválido.",
+        error: (e instanceof Error ? e.message : String(e)) || "Cartão-presente inválido.",
       };
     }
   },
@@ -62,8 +62,8 @@ function ClaimGiftCardPage() {
       } else {
         toast.error("Erro ao vincular vale-presente.");
       }
-    } catch (err: any) {
-      toast.error(err.message || "Erro inesperado.");
+    } catch (err: unknown) {
+      toast.error((err instanceof Error ? err.message : String(err)) || "Erro inesperado.");
     } finally {
       setIsRedeeming(false);
     }
@@ -75,7 +75,9 @@ function ClaimGiftCardPage() {
         <div className="size-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-6">
           <Lock className="size-8 text-destructive" />
         </div>
-        <h1 className="text-2xl font-serif font-bold mb-3">Cartão Indisponível</h1>
+        <h1 className="text-2xl font-sans text-muted-foreground font-bold mb-3">
+          Cartão Indisponível
+        </h1>
         <p className="text-muted-foreground mb-8">
           {error ||
             "Este vale-presente não foi encontrado, já foi totalmente utilizado ou foi cancelado pela administração da loja."}
@@ -93,7 +95,7 @@ function ClaimGiftCardPage() {
         {/* Left Side: Premium Glowing Gift Card Reveal */}
         <div className="flex justify-center items-center">
           <div
-            className={`relative w-80 h-48 p-6 flex flex-col justify-between overflow-hidden transition-all duration-700 transform ${showAnimation ? "scale-100 rotate-0 translate-y-0" : "scale-75 rotate-3 translate-y-8"} hover:scale-105 hover:-rotate-1 cursor-pointer group`}
+            className={`relative w-80 h-48 p-6 flex flex-col justify-between overflow-hidden transition-all duration-700 transform ${showAnimation ? "scale-100  translate-y-0" : "scale-75 rotate-3 translate-y-8"} hover:scale-105 hover: cursor-pointer group`}
           >
             {/* Sparkle effects overlay */}
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] pointer-events-none" />
@@ -104,7 +106,9 @@ function ClaimGiftCardPage() {
                 <span className="text-xs font-semibold uppercase tracking-wider text-accent">
                   VALE-PRESENTE
                 </span>
-                <h3 className="font-serif font-bold text-white text-xl mt-1">Jah</h3>
+                <h3 className="font-sans text-muted-foreground font-bold text-white text-xl mt-1">
+                  Jah
+                </h3>
               </div>
               <div className="size-10 rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20">
                 <Gift className="size-5 text-white" />
@@ -138,7 +142,7 @@ function ClaimGiftCardPage() {
           <span className="text-xs font-semibold text-primary uppercase tracking-widest block">
             VOCÊ GANHOU UM PRESENTE!
           </span>
-          <h1 className="text-3xl md:text-4xl font-serif font-bold tracking-tight">
+          <h1 className="text-3xl md:text-4xl font-sans text-muted-foreground font-bold tracking-tight">
             Resgatar Vale-Presente de {formatMoney(card.balanceCents)}
           </h1>
           <p className="text-muted-foreground">

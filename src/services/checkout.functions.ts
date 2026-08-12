@@ -106,10 +106,12 @@ export const processCheckout = createServerFn({ method: "POST" })
 
       if (cartValidation && cartValidation.shipping_method) {
         const { calculateShipping } = await import("@/services/shipping.functions");
-        const currentRates = await calculateShipping({ data: {
-          zipcode: cartValidation.shipping_zipcode || "",
-          cartId: params.cartId,
-        }} as any);
+        const currentRates = await calculateShipping({
+          data: {
+            zipcode: cartValidation.shipping_zipcode || "",
+            cartId: params.cartId,
+          },
+        } as any);
         const matchedRate = currentRates.find(
           (r) =>
             r.service_name === cartValidation.shipping_method ||
@@ -138,7 +140,7 @@ export const processCheckout = createServerFn({ method: "POST" })
         p_affiliate_id: affiliateId || null,
       });
 
-      if (error) throw new Error("Erro ao processar pedido: " + error.message);
+      if (error) throw new Error("Erro ao processar pedido: " + (error instanceof Error ? error.message : String(error)));
 
       const result = data as {
         status: string;
@@ -156,8 +158,8 @@ export const processCheckout = createServerFn({ method: "POST" })
         orderId: result.orderId,
         orderToken: result.orderToken,
       };
-    } catch (e: any) {
-      console.error("[checkout.functions] processCheckout:", e.message);
-      throw new Error(e.message || "Erro no checkout");
+    } catch (e: unknown) {
+      console.error("[checkout.functions] processCheckout:", (e instanceof Error ? e.message : String(e)));
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro no checkout");
     }
   });

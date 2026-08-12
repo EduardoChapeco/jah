@@ -42,8 +42,8 @@ export async function directUploadMedia({
 
     // 3. Retorna a URL pública ou caminho
     return { url: res.publicUrl || res.path };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[directUploadMedia]", err);
-    throw new Error(err.message || "Erro no upload direto");
+    throw new Error((err instanceof Error ? err.message : String(err)) || "Erro no upload direto");
   }
 }

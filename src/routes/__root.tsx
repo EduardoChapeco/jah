@@ -183,7 +183,7 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
         {/* Script anti-FOUC: aplica classe .dark/.light antes do primeiro paint */}
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-        
+
         {/* Inject Google Analytics if configured */}
         {gaPixel && (
           <>

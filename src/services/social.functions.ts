@@ -99,7 +99,7 @@ export const submitProductReview = createServerFn({ method: "POST" })
     });
 
     if (error) {
-      throw new Error("Falha ao enviar avaliação: " + error.message);
+      throw new Error("Falha ao enviar avaliação: " + (error instanceof Error ? error.message : String(error)));
     }
 
     return { success: true };
@@ -170,7 +170,7 @@ export const listStoreFollowers = createServerFn({ method: "GET" }).handler(asyn
     if (error) throw error;
 
     return data || [];
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("[social.functions] listStoreFollowers:", e);
     return [];
   }
@@ -234,12 +234,14 @@ export const getMuralFeed = createServerFn({ method: "GET" })
     // ── 1. Fetch posts (single query with joined author info) ──────────────
     const { data: postsData, error } = await db
       .from("posts")
-      .select(`
+      .select(
+        `
         id, content_text, media_urls, reference_type, reference_id, created_at,
         author_profile_id, author_store_id,
         profiles!posts_author_profile_id_fkey(first_name, last_name, avatar_url),
         stores!posts_author_store_id_fkey(name, logo_url)
-      `)
+      `,
+      )
       .eq("status", "active")
       .lt("created_at", cursorDate)
       .order("created_at", { ascending: false })
@@ -336,7 +338,7 @@ export const getMuralFeed = createServerFn({ method: "GET" })
         author: {
           id: p.author_store_id || p.author_profile_id,
           name: is_store ? store.name : `${prof?.first_name ?? ""} ${prof?.last_name ?? ""}`.trim(),
-          avatar_url: is_store ? store.logo_url : prof?.avatar_url ?? null,
+          avatar_url: is_store ? store.logo_url : (prof?.avatar_url ?? null),
           is_store,
         },
         content_text: p.content_text,
@@ -352,7 +354,7 @@ export const getMuralFeed = createServerFn({ method: "GET" })
 
     const hasMore = items.length > limit;
     if (hasMore) items.pop();
-    const nextCursor = hasMore ? items[items.length - 1]?.created_at ?? null : null;
+    const nextCursor = hasMore ? (items[items.length - 1]?.created_at ?? null) : null;
 
     return { items, hasMore, nextCursor } as MuralFeedResponse;
   });
@@ -362,7 +364,9 @@ export const createPost = createServerFn({ method: "POST" })
     z.object({
       content_text: z.string().min(1, "Escreva algo para publicar.").optional(),
       media_urls: z.array(z.string().url()).optional(),
-      reference_type: z.enum(["product", "event", "classified", "ad", "job", "none"]).default("none"),
+      reference_type: z
+        .enum(["product", "event", "classified", "ad", "job", "none"])
+        .default("none"),
       reference_id: z.string().uuid().optional().nullable(),
       as_store: z.boolean().default(false),
     }),
@@ -433,4 +437,3 @@ export const togglePostLike = createServerFn({ method: "POST" })
       return { liked: true };
     }
   });
-

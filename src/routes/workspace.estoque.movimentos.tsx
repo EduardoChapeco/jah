@@ -48,16 +48,10 @@ function MovementsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Movimentações de Estoque"
-        description="Histórico imutável de todas as entradas, saídas, reservas e ajustes."
-      />
+      <PageHeader title="Movimentações de Estoque" />
 
       {movements.length === 0 ? (
-        <EmptyState
-          title="Nenhum movimento"
-          description="Nenhuma alteração de estoque foi registrada ainda."
-        />
+        <EmptyState title="Nenhum movimento" />
       ) : (
         <div className="rounded-md border bg-card overflow-hidden">
           <Table>

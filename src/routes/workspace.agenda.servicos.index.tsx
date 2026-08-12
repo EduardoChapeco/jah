@@ -26,7 +26,11 @@ export const Route = createFileRoute("/workspace/agenda/servicos/")({
 
 function ServicesIndexPage() {
   const navigate = useNavigate();
-  const { data: res, isLoading, refetch } = useQuery({
+  const {
+    data: res,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["booking-services"],
     queryFn: () => listBookingServices(),
   });
@@ -39,8 +43,8 @@ function ServicesIndexPage() {
       await deleteBookingService({ data: { id } });
       toast.success("Serviço removido com sucesso.");
       refetch();
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao remover serviço.");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao remover serviço.");
     }
   };
 
@@ -49,7 +53,6 @@ function ServicesIndexPage() {
       <PageHeader
         eyebrow="Configurações de Agendamento"
         title="Serviços"
-        description="Defina quais serviços os seus clientes podem agendar, o preço e a duração de cada um."
         actions={
           <Button asChild>
             <Link to="/workspace/agenda/servicos">
@@ -65,7 +68,6 @@ function ServicesIndexPage() {
       ) : services.length === 0 ? (
         <EmptyState
           title="Nenhum Serviço Cadastrado"
-          description="Você ainda não cadastrou os serviços que serão oferecidos para agendamento."
           action={
             <Button asChild>
               <Link to="/workspace/agenda/servicos">Cadastrar Primeiro Serviço</Link>
@@ -73,7 +75,7 @@ function ServicesIndexPage() {
           }
         />
       ) : (
-        <Card className="overflow-hidden">
+        <div className="border border-border bg-card rounded-md shadow-xs overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
@@ -133,7 +135,7 @@ function ServicesIndexPage() {
               ))}
             </TableBody>
           </Table>
-        </Card>
+        </div>
       )}
     </div>
   );

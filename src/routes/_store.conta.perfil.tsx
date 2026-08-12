@@ -78,10 +78,10 @@ function AvatarSection({
           <img
             src={currentUrl}
             alt={name}
-            className="size-20 rounded-full object-cover border-2 border-border"
+            className="size-20 rounded-full object-cover border border-border"
           />
         ) : (
-          <div className="size-20 rounded-full bg-primary/10 flex items-center justify-center border-2 border-border">
+          <div className="size-20 rounded-full bg-primary/10 flex items-center justify-center border border-border">
             <span className="text-xl font-semibold text-primary">{initials || "?"}</span>
           </div>
         )}
@@ -186,7 +186,7 @@ function ProfilePage() {
   return (
     <section className="space-y-8 max-w-2xl">
       <div>
-        <h2 className="text-editorial text-2xl text-foreground">Meu Perfil</h2>
+        <h2 className="font-semibold text-2xl text-foreground">Meu Perfil</h2>
         <p className="text-sm text-muted-foreground mt-1">
           Gerencie seus dados pessoais e preferências.
         </p>

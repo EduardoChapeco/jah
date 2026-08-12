@@ -73,12 +73,16 @@ async function _upsertEvent(data: Partial<z.infer<typeof eventSchema>>) {
 }
 
 export const upsertEvent = createServerFn({ method: "POST" })
-  .validator(eventSchema.omit({ created_at: true, updated_at: true }).partial().extend({
-    title: z.string().min(1),
-    event_date: z.string(),
-  }))
+  .validator(
+    eventSchema
+      .omit({ created_at: true, updated_at: true })
+      .partial()
+      .extend({
+        title: z.string().min(1),
+        event_date: z.string(),
+      }),
+  )
   .handler(async ({ data }) => _upsertEvent(data));
-
 
 // ---------------------------------------------------------------------------
 // TICKET LOTS
@@ -274,7 +278,7 @@ async function _getPublicEvents(opts: { limit?: number } = {}) {
   const { data: events, error } = await supabase
     .from("events")
     .select(
-      "id, store_id, title, description, event_date, location, cover_image, status, created_at"
+      "id, store_id, title, description, event_date, location, cover_image, status, created_at",
     )
     .eq("status", "published")
     .order("event_date", { ascending: true })
@@ -289,8 +293,5 @@ async function _getPublicEvents(opts: { limit?: number } = {}) {
 }
 
 export const getPublicEvents = createServerFn({ method: "GET" })
-  .validator(
-    z.object({ limit: z.number().int().min(1).max(100).optional() }).optional()
-  )
+  .validator(z.object({ limit: z.number().int().min(1).max(100).optional() }).optional())
   .handler(async ({ data }) => _getPublicEvents(data || {}));
-

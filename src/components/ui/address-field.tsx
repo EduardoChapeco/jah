@@ -52,7 +52,7 @@ export const AddressField: React.FC<AddressFieldProps> = ({ value, onChange }) =
         // Reverse geocoding (Nominatim)
         try {
           const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lngLat.lat}&lon=${lngLat.lng}`
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lngLat.lat}&lon=${lngLat.lng}`,
           );
           const data = await res.json();
           const newText = data.display_name || query;
@@ -76,7 +76,7 @@ export const AddressField: React.FC<AddressFieldProps> = ({ value, onChange }) =
     try {
       // Forward geocoding (Nominatim)
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`,
       );
       const data = await res.json();
       if (data && data.length > 0) {

@@ -98,7 +98,7 @@ function RegisterPage() {
 
       await router.invalidate();
       navigate({ to: returnUrl });
-    } catch (e: any) {
+    } catch (e: unknown) {
       const correlationId = Math.random().toString(36).substring(2, 10).toUpperCase();
       console.error(`[cadastro] Error ID: ${correlationId}`, e);
       toast.error(`Erro no cadastro. Código: ${e?.code || "ERR_SIGNUP"} | ID: ${correlationId}`);
@@ -133,7 +133,7 @@ function RegisterPage() {
       </nav>
 
       <div className="mx-auto max-w-md">
-        <PageHeader title="Criar conta" description="Preencha os dados abaixo para se cadastrar." />
+        <PageHeader title="Criar conta" />
 
         <div className="mt-8">
           <Form {...form}>

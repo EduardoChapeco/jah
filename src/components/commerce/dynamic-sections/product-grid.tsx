@@ -82,7 +82,7 @@ export function ProductGrid({
         </div>
 
         {products.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center gap-4 text-muted-foreground border-2 border-dashed border-border">
+          <div className="flex flex-col items-center justify-center py-16 text-center gap-4 text-muted-foreground border border-dashed border-border">
             <ShoppingBag className="h-10 w-10 opacity-30" />
             <div>
               <p className="font-medium">Nenhum produto disponível</p>

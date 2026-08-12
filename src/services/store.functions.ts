@@ -264,7 +264,7 @@ export async function _getPaymentSettings() {
 }
 
 export const getPaymentSettings = createServerFn({ method: "GET" }).handler(
-  _getPaymentSettings as any
+  _getPaymentSettings as any,
 );
 
 export const savePaymentSettingsSchema = z.object({
@@ -474,11 +474,7 @@ export async function getWorkingIntervalsForDate(
   date: string, // "YYYY-MM-DD"
 ): Promise<TimeInterval[]> {
   const db = getServerClient();
-  const { data: store } = await db
-    .from("stores")
-    .select("settings")
-    .eq("id", storeId)
-    .single();
+  const { data: store } = await db.from("stores").select("settings").eq("id", storeId).single();
 
   const raw = (store?.settings as any)?.working_hours as WorkingHours | undefined;
   if (!raw) return [{ from: "09:00", to: "18:00" }]; // fallback seguro
@@ -500,4 +496,3 @@ export async function getWorkingIntervalsForDate(
   if (!schedule?.open || !schedule.intervals?.length) return [];
   return schedule.intervals;
 }
-

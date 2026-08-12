@@ -11,16 +11,9 @@ export const Route = createFileRoute("/_store/contato")({
 function Page() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 md:px-6 md:py-12">
-      <PageHeader
-        eyebrow="Fale conosco"
-        title="Contato"
-        description="Canais de atendimento da Jah."
-      />
+      <PageHeader eyebrow="Fale conosco" title="Contato" />
       <div className="mt-8">
-        <EmptyState
-          title="Canais de contato em configuração"
-          description="A loja poderá publicar aqui telefone, e-mail, redes sociais e horário de atendimento."
-        />
+        <EmptyState title="Canais de contato em configuração" />
       </div>
     </div>
   );

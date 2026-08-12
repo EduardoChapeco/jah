@@ -42,10 +42,10 @@ export const requestOrderReturn = createServerFn({ method: "POST" })
 
       if (error) throw error;
       return { rmaId: data };
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[RMA] requestOrderReturn:", e.message);
-      throw new Error(e.message || "Erro ao solicitar devolução.");
+      console.error("[RMA] requestOrderReturn:", (e instanceof Error ? e.message : String(e)));
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao solicitar devolução.");
     }
   });
 
@@ -83,17 +83,20 @@ export const requestCustomerRma = createServerFn({ method: "POST" })
       // (Se for 'shipped', ainda não chegou; se for 'pending', não saiu da loja).
       const validStatuses = ["delivered", "completed", "shipped"];
       if (!validStatuses.includes(order.status)) {
-         throw new Error(`Não é possível solicitar devolução para um pedido com status: ${order.status}`);
+        throw new Error(
+          `Não é possível solicitar devolução para um pedido com status: ${order.status}`,
+        );
       }
 
       // Validação Real: Prazo legal de 7 dias de arrependimento (baseado em quando foi entregue,
       // aqui usamos o updated_at como aproximação por segurança se não houver delivered_at explícito).
       const deliveredDate = new Date(order.updated_at || order.created_at);
-      const daysSinceDelivery = (new Date().getTime() - deliveredDate.getTime()) / (1000 * 3600 * 24);
-      
+      const daysSinceDelivery =
+        (new Date().getTime() - deliveredDate.getTime()) / (1000 * 3600 * 24);
+
       // Permitimos uma gordura técnica de 8 dias para evitar fusos de relógio.
       if (daysSinceDelivery > 8) {
-         throw new Error("O prazo legal de 7 dias para devolução expirou.");
+        throw new Error("O prazo legal de 7 dias para devolução expirou.");
       }
 
       const { data, error } = await db.rpc("request_order_return", {
@@ -106,10 +109,10 @@ export const requestCustomerRma = createServerFn({ method: "POST" })
 
       if (error) throw error;
       return { rmaId: data };
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[RMA] requestCustomerRma:", e.message);
-      throw new Error(e.message || "Erro ao solicitar devolução.");
+      console.error("[RMA] requestCustomerRma:", (e instanceof Error ? e.message : String(e)));
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao solicitar devolução.");
     }
   });
 
@@ -140,18 +143,17 @@ export const inspectRmaItem = createServerFn({ method: "POST" })
 
       if (error) throw error;
       return { success: true };
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[RMA] inspectRmaItem:", e.message);
-      throw new Error(e.message || "Erro ao registrar inspeção do item.");
+      console.error("[RMA] inspectRmaItem:", (e instanceof Error ? e.message : String(e)));
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao registrar inspeção do item.");
     }
   });
 
-// Advanced Refactoring of admin.pedidos.trocas.tsx
 export const listAdminRmas = createServerFn({ method: "GET" }).handler(async () => {
   try {
     const identity = await getServerIdentity();
-    await assertStoreAccess(identity, ["owner", "admin", "manager", "seller", "finance"]);
+    await assertStoreAccess(identity, ["owner", "admin", "manager", "seller", "finance", "logistics", "stock"]);
 
     const db = getServerClient();
     const { data, error } = await db
@@ -167,7 +169,22 @@ export const listAdminRmas = createServerFn({ method: "GET" }).handler(async () 
           return_label_url,
           return_carrier,
           orders:order_id ( public_token ),
-          profiles:customer_id ( full_name )
+          profiles:customer_id ( full_name ),
+          rma_items (
+            id,
+            qty,
+            qty_received,
+            reason,
+            destination,
+            order_items (
+              id,
+              unit_price_cents,
+              product_variants (
+                id,
+                products ( name )
+              )
+            )
+          )
         `,
       )
       .eq("store_id", identity.store_id)
@@ -185,10 +202,11 @@ export const listAdminRmas = createServerFn({ method: "GET" }).handler(async () 
       trackingCode: rma.return_tracking_code,
       labelUrl: rma.return_label_url,
       carrier: rma.return_carrier,
+      items: rma.rma_items || [],
     }));
-  } catch (e: any) {
+  } catch (e: unknown) {
     if (e instanceof SupabaseUnconfiguredError) return [];
-    console.error("[RMA] listAdminRmas:", e.message);
+    console.error("[RMA] listAdminRmas:", (e instanceof Error ? e.message : String(e)));
     return [];
   }
 });
@@ -224,10 +242,10 @@ export const updateRmaStatus = createServerFn({ method: "POST" })
 
       if (error) throw error;
       return { success: true };
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[RMA] updateRmaStatus:", e.message);
-      throw new Error(e.message || "Erro ao atualizar status do RMA.");
+      console.error("[RMA] updateRmaStatus:", (e instanceof Error ? e.message : String(e)));
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao atualizar status do RMA.");
     }
   });
 
@@ -247,14 +265,16 @@ export const resolveRmaWithCredit = createServerFn({ method: "POST" })
       // 1. Fetch RMA and calculate total amount
       const { data: rma, error: fetchError } = await db
         .from("rma_requests")
-        .select(`
+        .select(
+          `
           id,
           customer_id,
           rma_items (
             qty,
             order_items ( unit_price_cents )
           )
-        `)
+        `,
+        )
         .eq("id", data.rmaId)
         .eq("store_id", identity.store_id)
         .single();
@@ -263,7 +283,8 @@ export const resolveRmaWithCredit = createServerFn({ method: "POST" })
 
       let totalRefundCents = 0;
       for (const item of rma.rma_items || []) {
-        const price = item.order_items?.unit_price_cents || 0;
+        const orderItem = Array.isArray(item.order_items) ? item.order_items[0] : item.order_items;
+        const price = (orderItem as any)?.unit_price_cents || 0;
         totalRefundCents += item.qty * price;
       }
 
@@ -288,17 +309,17 @@ export const resolveRmaWithCredit = createServerFn({ method: "POST" })
         .update({
           status: "resolved",
           refund_amount_cents: totalRefundCents,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq("id", data.rmaId);
 
       if (rmaError) throw rmaError;
 
       return { success: true, creditAmount: totalRefundCents };
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[RMA] resolveRmaWithCredit:", e.message);
-      throw new Error(e.message || "Erro ao resolver RMA com crédito.");
+      console.error("[RMA] resolveRmaWithCredit:", (e instanceof Error ? e.message : String(e)));
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao resolver RMA com crédito.");
     }
   });
 
@@ -311,12 +332,12 @@ export const listCustomerRmas = createServerFn({ method: "GET" }).handler(async 
     const { data, error } = await db
       .from("rma_requests")
       .select(
-        "id, status, type, notes, created_at, return_tracking_code, return_label_url, return_carrier, orders(public_token, total_cents)"
+        "id, status, type, notes, created_at, return_tracking_code, return_label_url, return_carrier, orders(public_token, total_cents)",
       )
       .eq("customer_id", identity.id)
       .order("created_at", { ascending: false });
 
-    if (error) throw new Error(error.message);
+    if (error) throw new Error((error instanceof Error ? error.message : String(error)));
 
     return (data || []).map((rma: any) => ({
       id: rma.id,
@@ -330,9 +351,9 @@ export const listCustomerRmas = createServerFn({ method: "GET" }).handler(async 
       orderToken: rma.orders?.public_token as string | null,
       orderTotal: rma.orders?.total_cents as number | null,
     }));
-  } catch (e: any) {
+  } catch (e: unknown) {
     if (e instanceof SupabaseUnconfiguredError) return [];
-    console.error("[RMA] listCustomerRmas:", e.message);
-    throw new Error(e.message || "Erro ao buscar RMA.");
+    console.error("[RMA] listCustomerRmas:", (e instanceof Error ? e.message : String(e)));
+    throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao buscar RMA.");
   }
 });

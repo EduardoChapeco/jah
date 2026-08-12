@@ -29,8 +29,8 @@ function Page() {
       });
 
       setSuccess(true);
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao solicitar recuperação de senha.");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao solicitar recuperação de senha.");
     } finally {
       setIsSubmitting(false);
     }
@@ -39,7 +39,7 @@ function Page() {
   return (
     <div className="mx-auto max-w-md px-4 py-16">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-editorial">Recuperar senha</h1>
+        <h1 className="text-3xl font-semibold">Recuperar senha</h1>
         <p className="text-muted-foreground mt-2">
           Digite seu e-mail para receber um link de redefinição de senha.
         </p>

@@ -150,31 +150,49 @@ export type UpsertClassifiedInput = z.infer<typeof upsertClassifiedSchema>;
  */
 export const CLASSIFIED_ATTRIBUTE_BLUEPRINTS: Record<
   ClassifiedCategory,
-  Array<{ key: string; label: string; type: "text" | "number" | "select" | "boolean"; options?: string[] }>
+  Array<{
+    key: string;
+    label: string;
+    type: "text" | "number" | "select" | "boolean";
+    options?: string[];
+  }>
 > = {
   job: [
     { key: "company", label: "Empresa", type: "text" },
-    { key: "work_model", label: "Modelo", type: "select", options: ["Presencial", "Remoto", "Híbrido"] },
+    {
+      key: "work_model",
+      label: "Modelo",
+      type: "select",
+      options: ["Presencial", "Remoto", "Híbrido"],
+    },
     { key: "salary_range", label: "Faixa Salarial", type: "text" },
   ],
   job_offer: [
     { key: "company", label: "Empresa Ofertante", type: "text" },
-    { key: "work_model", label: "Modelo", type: "select", options: ["Presencial", "Remoto", "Híbrido"] },
+    {
+      key: "work_model",
+      label: "Modelo",
+      type: "select",
+      options: ["Presencial", "Remoto", "Híbrido"],
+    },
     { key: "deadline", label: "Prazo para Candidatura", type: "text" },
   ],
   sale: [
     { key: "brand", label: "Marca", type: "text" },
     { key: "model", label: "Modelo", type: "text" },
   ],
-  trade: [
-    { key: "interested_in", label: "Aceito em Troca", type: "text" },
-  ],
+  trade: [{ key: "interested_in", label: "Aceito em Troca", type: "text" }],
   service: [
     { key: "specialty", label: "Especialidade", type: "text" },
     { key: "availability", label: "Disponibilidade", type: "text" },
   ],
   real_estate: [
-    { key: "property_type", label: "Tipo", type: "select", options: ["Apartamento", "Casa", "Comercial", "Terreno", "Sítio"] },
+    {
+      key: "property_type",
+      label: "Tipo",
+      type: "select",
+      options: ["Apartamento", "Casa", "Comercial", "Terreno", "Sítio"],
+    },
     { key: "bedrooms", label: "Quartos", type: "number" },
     { key: "area_m2", label: "Área (m²)", type: "number" },
     { key: "is_furnished", label: "Mobiliado", type: "boolean" },
@@ -189,9 +207,7 @@ export const CLASSIFIED_ATTRIBUTE_BLUEPRINTS: Record<
     { key: "event_date", label: "Data do Evento", type: "text" },
     { key: "venue", label: "Local", type: "text" },
   ],
-  donation: [
-    { key: "pickup_location", label: "Local de Retirada", type: "text" },
-  ],
+  donation: [{ key: "pickup_location", label: "Local de Retirada", type: "text" }],
 };
 
 // ==========================================
@@ -214,5 +230,3 @@ export const directoryListingSchema = z.object({
 });
 
 export type DirectoryListing = z.infer<typeof directoryListingSchema>;
-
-

@@ -58,9 +58,9 @@ export const getSignedUploadUrl = createServerFn({ method: "POST" })
         publicUrl:
           bucket !== "payment-proofs" && bucket !== "rma-proofs" ? urlData.publicUrl : null,
       };
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("[storage.functions] getSignedUploadUrl error:", e);
-      throw new Error(e.message || "Erro ao gerar URL");
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao gerar URL");
     }
   });
 
@@ -79,13 +79,7 @@ export const getPostMediaSignedUrl = createServerFn({ method: "POST" })
   .validator(
     z.object({
       fileName: z.string().min(1).max(256),
-      contentType: z.enum([
-        "image/jpeg",
-        "image/png",
-        "image/webp",
-        "image/gif",
-        "video/mp4",
-      ]),
+      contentType: z.enum(["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4"]),
     }),
   )
   .handler(async ({ data: { fileName, contentType } }) => {
@@ -124,7 +118,6 @@ export const getPostMediaSignedUrl = createServerFn({ method: "POST" })
       publicUrl: urlData.publicUrl,
     };
   });
-
 
 /**
  * Retorna uma URL assinada para que o cliente faça o upload diretamente para o Supabase Storage,

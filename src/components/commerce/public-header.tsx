@@ -55,7 +55,7 @@ export function PublicHeader({
   const totalItemCount = contextCart?.itemCount || 0;
 
   return (
-    <header className="sticky top-0 z-50 border-b-4 border-ink bg-paper pt-safe">
+    <header className="sticky top-0 z-50 border-b border-border bg-background pt-safe">
       <div className="mx-auto flex h-20 max-w-screen-xl items-center gap-4 px-4 md:px-6">
         {/* Mobile menu */}
         <Sheet>
@@ -63,14 +63,14 @@ export function PublicHeader({
             <Button
               variant="outline"
               size="icon"
-              className="md:hidden shrink-0 border-2 border-ink shadow-hard hover-lift"
+              className="md:hidden shrink-0 border border-border shadow-sm"
               aria-label="Abrir menu"
             >
-              <Menu className="size-6 text-ink" aria-hidden />
+              <Menu className="size-6 text-foreground" aria-hidden />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-80 bg-paper border-r-4 border-ink p-6">
-            <SheetHeader className="border-b-4 border-ink pb-4 mb-4">
+          <SheetContent side="left" className="w-80 bg-background border-r border-border p-6">
+            <SheetHeader className="border-b border-border pb-4 mb-4">
               <SheetTitle className="sr-only">Menu</SheetTitle>
               <Logo src={logoUrl} className="h-10" />
             </SheetHeader>
@@ -79,8 +79,8 @@ export function PublicHeader({
                 <Link
                   key={item.url}
                   to={item.url}
-                  className="px-4 py-3 text-lg font-display uppercase tracking-wider text-ink border-2 border-transparent hover:border-ink hover:shadow-hard hover-lift transition-all"
-                  activeProps={{ className: "bg-directory-yellow border-ink shadow-hard font-bold" }}
+                  className="px-4 py-3 text-lg font-semibold text-foreground hover:bg-muted/50 transition-colors rounded-md"
+                  activeProps={{ className: "bg-secondary text-primary font-bold" }}
                 >
                   {item.label}
                 </Link>
@@ -91,12 +91,12 @@ export function PublicHeader({
 
         <Link
           to="/"
-          className="flex items-center gap-3 shrink-0 hover-lift"
+          className="flex items-center gap-3 shrink-0"
           aria-label={`${storeName || "Jah"} — início`}
         >
           <Logo src={logoUrl} className="max-h-12 w-auto h-auto" />
           {logoUrl && storeName && !hideNameWithLogo && (
-            <span className="font-display font-bold text-2xl tracking-tighter uppercase text-ink hidden lg:inline-block">
+            <span className="font-display font-bold text-2xl tracking-tighter uppercase text-foreground hidden lg:inline-block">
               {storeName}
             </span>
           )}
@@ -108,8 +108,8 @@ export function PublicHeader({
             <Link
               key={item.url}
               to={item.url}
-              className="px-4 py-2 text-sm font-bold font-display uppercase tracking-wider text-ink border-2 border-transparent hover:border-ink hover:bg-paper hover:shadow-[2px_2px_0px_0px_#121212] transition-all -rotate-1 hover:rotate-0"
-              activeProps={{ className: "bg-directory-yellow border-ink shadow-[2px_2px_0px_0px_#121212] rotate-0" }}
+              className="px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted/50 transition-colors rounded-md"
+              activeProps={{ className: "bg-secondary text-primary" }}
             >
               {item.label}
             </Link>
@@ -148,17 +148,23 @@ export function PublicHeader({
               size="icon"
               onClick={() => setIsSearchOpen(true)}
               aria-label="Buscar"
-              className="shrink-0 border-2 border-ink shadow-sm hover-lift"
+              className="shrink-0 border border-border shadow-sm"
             >
-              <Search className="size-5 text-ink" aria-hidden />
+              <Search className="size-5 text-foreground" aria-hidden />
             </Button>
           )}
 
-          <ThemeToggle className="shrink-0 border-2 border-ink shadow-sm hover-lift" />
+          <ThemeToggle className="shrink-0 border border-border shadow-sm" />
 
-          <Button variant="outline" size="icon" asChild aria-label="Minha conta" className="shrink-0 border-2 border-ink shadow-sm hover-lift">
+          <Button
+            variant="outline"
+            size="icon"
+            asChild
+            aria-label="Minha conta"
+            className="shrink-0 border border-border shadow-sm"
+          >
             <Link to="/conta">
-              <User className="size-5 text-ink" aria-hidden />
+              <User className="size-5 text-foreground" aria-hidden />
             </Link>
           </Button>
 
@@ -167,11 +173,11 @@ export function PublicHeader({
             size="icon"
             onClick={() => setIsCartOpen(true)}
             aria-label="Carrinho"
-            className="relative shrink-0 border-2 border-ink shadow-sm hover-lift bg-directory-yellow text-ink"
+            className="relative shrink-0 border border-border shadow-sm bg-secondary text-foreground"
           >
             <ShoppingBag className="size-5" aria-hidden />
             {totalItemCount > 0 && (
-              <span className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-none border-2 border-ink bg-poster-red text-xs font-bold text-ivory shadow-[2px_2px_0px_0px_#121212] rotate-6">
+              <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
                 {totalItemCount}
               </span>
             )}
