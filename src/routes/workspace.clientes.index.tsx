@@ -17,6 +17,9 @@ import {
   ChevronLeft,
   FileText,
   ShieldCheck,
+  Calendar,
+  DollarSign,
+  AlignLeft,
 } from "lucide-react";
 
 import { Checkbox } from "@/components/ui/checkbox";
@@ -25,6 +28,8 @@ import { PageHeader } from "@/components/commerce/page-header";
 import { formatDateTime } from "@/lib/datetime";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import {
   Table,
@@ -53,30 +58,35 @@ import {
   listLeads,
   updateLeadStatus,
   promoteLeadToCustomer,
+  updateLeadDetails,
 } from "@/services/crm.functions";
+import { listTeamMembers } from "@/services/admin-team.functions";
 import { formatMoney } from "@/lib/money";
 import { formatDate } from "../lib/datetime";
 
 export const Route = createFileRoute("/workspace/clientes/")({
   head: () => ({ meta: [{ title: "Clientes & Leads" }] }),
   loader: async () => {
-    const [customers, leadsRes] = await Promise.all([listCustomers(), listLeads()]);
+    const [customers, leadsRes, teamRes] = await Promise.all([listCustomers(), listLeads(), listTeamMembers()]);
     return {
       customers,
       leads: leadsRes || [],
+      team: teamRes || [],
     };
   },
   component: CustomersPage,
 });
 
 function CustomersPage() {
-  const { customers, leads } = Route.useLoaderData();
+  const { customers, leads, team } = Route.useLoaderData();
   const router = useRouter();
 
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("customers");
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
+  const selectedLead = leads.find((l: any) => l.id === selectedLeadId);
 
   const [form, setForm] = useState({
     fullName: "",
@@ -355,6 +365,17 @@ function CustomersPage() {
         </SheetContent>
       </Sheet>
 
+
+      <Sheet open={!!selectedLeadId} onOpenChange={(open) => !open && setSelectedLeadId(null)}>
+        {selectedLead && (
+          <LeadDetailsSheetContent
+            lead={selectedLead}
+            team={team}
+            onClose={() => setSelectedLeadId(null)}
+          />
+        )}
+      </Sheet>
+
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
           <TabsList className="grid grid-cols-3 h-9">
@@ -491,8 +512,10 @@ function CustomersPage() {
                   <LeadCard
                     key={l.id}
                     lead={l}
+                    team={team}
                     onStatusChange={handleStatusChange}
                     onPromote={handlePromote}
+                    onClick={() => setSelectedLeadId(l.id)}
                   />
                 ))}
                 {leadsNew.length === 0 && (
@@ -521,8 +544,10 @@ function CustomersPage() {
                   <LeadCard
                     key={l.id}
                     lead={l}
+                    team={team}
                     onStatusChange={handleStatusChange}
                     onPromote={handlePromote}
+                    onClick={() => setSelectedLeadId(l.id)}
                   />
                 ))}
                 {leadsContacted.length === 0 && (
@@ -551,8 +576,10 @@ function CustomersPage() {
                   <LeadCard
                     key={l.id}
                     lead={l}
+                    team={team}
                     onStatusChange={handleStatusChange}
                     onPromote={handlePromote}
+                    onClick={() => setSelectedLeadId(l.id)}
                   />
                 ))}
                 {leadsConverted.length === 0 && (
@@ -580,8 +607,10 @@ function CustomersPage() {
                   <LeadCard
                     key={l.id}
                     lead={l}
+                    team={team}
                     onStatusChange={handleStatusChange}
                     onPromote={handlePromote}
+                    onClick={() => setSelectedLeadId(l.id)}
                   />
                 ))}
                 {leadsLost.length === 0 && (
@@ -763,5 +792,145 @@ function LeadCard({ lead, onStatusChange, onPromote }: LeadCardProps) {
         </div>
       </div>
     </div>
+  );
+}
+
+
+function LeadDetailsSheetContent({ lead, team, onClose }: { lead: any, team: any[], onClose: () => void }) {
+  const router = useRouter();
+  const [isSaving, setIsSaving] = useState(false);
+  const [form, setForm] = useState({
+    notes: lead.notes || "",
+    source: lead.source || "",
+    estimated_value_cents: (lead.estimated_value_cents / 100).toFixed(2) || "",
+    follow_up_at: lead.follow_up_at ? new Date(lead.follow_up_at).toISOString().split('T')[0] : "",
+    assigned_to: lead.assigned_to || "unassigned",
+  });
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    try {
+      await updateLeadDetails({
+        data: {
+          leadId: lead.id,
+          notes: form.notes || null,
+          source: form.source || null,
+          estimated_value_cents: form.estimated_value_cents ? Math.round(parseFloat(form.estimated_value_cents) * 100) : null,
+          follow_up_at: form.follow_up_at ? new Date(form.follow_up_at).toISOString() : null,
+          assigned_to: form.assigned_to === "unassigned" ? null : form.assigned_to,
+        },
+      });
+      toast.success("Lead atualizado");
+      router.invalidate();
+      onClose();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Erro ao atualizar");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <SheetContent side="right" className="sm:max-w-md p-0 overflow-y-auto">
+      <SheetHeader className="px-6 py-4 border-b border-border/10 bg-muted/30">
+        <SheetTitle className="flex items-center gap-2 text-xl font-display font-bold">
+          <UserCheck className="size-5 text-primary" />
+          Detalhes do Lead
+        </SheetTitle>
+        <SheetDescription>
+          {lead.full_name}
+        </SheetDescription>
+      </SheetHeader>
+      
+      <form onSubmit={handleSave} className="p-6 space-y-6">
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-1.5">
+              <Users className="size-3.5" /> Responsável
+            </Label>
+            <Select 
+              value={form.assigned_to} 
+              onValueChange={(v) => setForm({...form, assigned_to: v})}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Sem responsável" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="unassigned">Sem responsável</SelectItem>
+                {team.map(member => (
+                  <SelectItem key={member.id} value={member.id}>{member.full_name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-1.5">
+              <DollarSign className="size-3.5" /> Valor Estimado (R$)
+            </Label>
+            <Input 
+              type="number" 
+              step="0.01" 
+              min="0"
+              placeholder="0.00"
+              value={form.estimated_value_cents}
+              onChange={(e) => setForm({...form, estimated_value_cents: e.target.value})}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-1.5">
+              <Calendar className="size-3.5" /> Agendar Follow-up
+            </Label>
+            <Input 
+              type="date"
+              value={form.follow_up_at}
+              onChange={(e) => setForm({...form, follow_up_at: e.target.value})}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-1.5">
+              <Search className="size-3.5" /> Origem / Source
+            </Label>
+            <Input 
+              type="text"
+              placeholder="Ex: Instagram, Indicação, Feira..."
+              value={form.source}
+              onChange={(e) => setForm({...form, source: e.target.value})}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-1.5">
+              <AlignLeft className="size-3.5" /> Anotações do Vendedor
+            </Label>
+            <Textarea 
+              placeholder="Preferências, dores, próximas etapas..."
+              className="min-h-[100px]"
+              value={form.notes}
+              onChange={(e) => setForm({...form, notes: e.target.value})}
+            />
+          </div>
+
+          {lead.message && (
+            <div className="space-y-1 pt-4 border-t border-border/50">
+              <Label className="text-[10px] uppercase text-muted-foreground">Mensagem Original (Contato)</Label>
+              <div className="text-sm p-3 bg-muted/30 rounded-md border border-border/50 text-foreground/80 whitespace-pre-wrap">
+                {lead.message}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <SheetFooter className="pt-4 border-t border-border/50">
+          <Button type="button" variant="ghost" onClick={onClose}>Cancelar</Button>
+          <Button type="submit" disabled={isSaving}>
+            {isSaving ? "Salvando..." : "Salvar Alterações"}
+          </Button>
+        </SheetFooter>
+      </form>
+    </SheetContent>
   );
 }

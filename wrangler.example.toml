@@ -1,0 +1,10 @@
+name = "jah"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-06-18"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+VITE_SITE_URL = "http://localhost:3000"
+VITE_SUPABASE_URL = ""
+VITE_SUPABASE_ANON_KEY = ""
+SUPABASE_SERVICE_ROLE_KEY = ""
