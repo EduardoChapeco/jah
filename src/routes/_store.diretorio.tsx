@@ -1,16 +1,47 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Loader2, AlertCircle, Phone, CheckCircle, Store } from "lucide-react";
+import {
+  BookOpen,
+  Loader2,
+  AlertCircle,
+  Phone,
+  CheckCircle,
+  Store,
+  MapPin,
+  Clock,
+  Search,
+  ExternalLink,
+  MessageCircle,
+} from "lucide-react";
 import { getPublicDirectory } from "@/services/directory.functions";
 import { listHotpages } from "@/services/hotpage.functions";
 import { listActiveBanners } from "@/services/banner.functions";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
 import { HotpagesRail } from "@/components/commerce/hotpages-rail";
 
+const DIRECTORY_CATEGORIES = [
+  { id: "todos", label: "Todos os Negócios" },
+  { id: "saude", label: "Saúde & Bem-Estar" },
+  { id: "reformas", label: "Reformas & Obras" },
+  { id: "auto", label: "Auto & Mecânica" },
+  { id: "pet", label: "Pet & Veterinária" },
+  { id: "servicos", label: "Serviços Profissionais" },
+];
+
 export const Route = createFileRoute("/_store/diretorio")({
-  head: () => ({ meta: [{ title: "Diretório de Membros & Negócios — JAH" }] }),
+  head: () => ({
+    meta: [
+      { title: "Guia & Diretório de Serviços — JAH" },
+      {
+        name: "description",
+        content: "Encontre especialistas, clínicas, oficinas, prestadores de serviços e comércios locais na sua região.",
+      },
+    ],
+  }),
   loader: async () => {
     const [banners, hotpages] = await Promise.all([
       listActiveBanners({ data: { placement: "diretorio" } }).catch(() => []),
@@ -23,14 +54,32 @@ export const Route = createFileRoute("/_store/diretorio")({
 
 function DirectoryPage() {
   const { banners, hotpages } = Route.useLoaderData();
+  const [selectedCategory, setSelectedCategory] = useState("todos");
+  const [searchQuery, setSearchQuery] = useState("");
+
   const {
     data: listings,
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["public-directory"],
-    queryFn: () => getPublicDirectory({ data: { limit: 50 } }),
+    queryKey: ["public-directory", selectedCategory],
+    queryFn: () =>
+      getPublicDirectory({
+        data: {
+          limit: 50,
+          category: selectedCategory === "todos" ? undefined : selectedCategory,
+        },
+      }),
     staleTime: 60_000,
+  });
+
+  const filteredListings = (listings || []).filter((item) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    const storeName = (item.stores as any)?.name?.toLowerCase() || "";
+    const description = (item.stores as any)?.description?.toLowerCase() || "";
+    const address = item.address?.toLowerCase() || "";
+    return storeName.includes(q) || description.includes(q) || address.includes(q);
   });
 
   return (
@@ -47,6 +96,49 @@ function DirectoryPage() {
         </section>
       )}
 
+      {/* ── Barra Superior de Filtros & Busca ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-primary text-primary-foreground">
+            Diretório de Membros
+          </span>
+          <span className="text-xs text-muted-foreground font-mono">Guia Local Verificado</span>
+        </div>
+
+        {/* Busca no Guia */}
+        <div className="flex gap-2 w-full sm:w-72">
+          <Input
+            placeholder="Buscar por especialista, serviço..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="rounded-2xl h-10 bg-card text-xs"
+          />
+          <Button size="icon" className="h-10 w-10 rounded-2xl shrink-0 font-bold">
+            <Search className="size-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* ── Chips de Categorias de Serviços ── */}
+      <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1">
+        {DIRECTORY_CATEGORIES.map((cat) => {
+          const isSelected = selectedCategory === cat.id;
+          return (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all border cursor-pointer ${
+                isSelected
+                  ? "bg-primary text-primary-foreground border-primary shadow-xs scale-105"
+                  : "bg-card text-muted-foreground border-border/80 hover:bg-muted hover:text-foreground"
+              }`}
+            >
+              {cat.label}
+            </button>
+          );
+        })}
+      </div>
+
       {isLoading && (
         <div className="flex justify-center py-24">
           <Loader2 className="size-8 animate-spin text-primary" />
@@ -60,75 +152,119 @@ function DirectoryPage() {
         </div>
       )}
 
-      {!isLoading && !isError && listings?.length === 0 && (
+      {!isLoading && !isError && filteredListings.length === 0 && (
         <div className="py-24 text-center space-y-3 bg-muted/10 rounded-3xl border border-border p-8">
           <BookOpen className="size-10 text-muted-foreground/40 mx-auto" />
-          <h2 className="text-base font-bold text-foreground">Diretório em Formação</h2>
+          <h2 className="text-base font-bold text-foreground">
+            Nenhum negócio encontrado nesta categoria
+          </h2>
           <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-            Seja o primeiro a cadastrar seu coletivo, ateliê ou negócio na comunidade!
+            Tente selecionar outra categoria ou utilizar outro termo na busca.
           </p>
         </div>
       )}
 
-      {!isLoading && !isError && listings && listings.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 w-full">
-          {listings.map((listing) => (
-            <div
-              key={listing.id}
-              className="flex flex-col justify-between rounded-2xl border border-border bg-card p-5 shadow-xs hover:border-primary/50 transition-colors space-y-4"
-            >
-              <div className="space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <Badge variant="outline" className="text-[10px] uppercase font-mono">
-                    {listing.category || "Geral"}
-                  </Badge>
-                  {listing.is_verified && (
-                    <span className="flex items-center gap-1 text-[10px] font-mono text-emerald-600 font-bold">
-                      <CheckCircle className="size-3" /> Verificado
-                    </span>
+      {!isLoading && !isError && filteredListings.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+          {filteredListings.map((listing) => {
+            const storeData = listing.stores as any;
+            const phoneDigits = listing.contact_phone ? listing.contact_phone.replace(/\D/g, "") : "";
+
+            return (
+              <div
+                key={listing.id}
+                className="flex flex-col justify-between rounded-3xl border border-border/80 bg-card p-6 shadow-xs hover-elevate transition-all space-y-5"
+              >
+                <div className="space-y-4">
+                  {/* Top Header */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      {storeData?.avatar_url ? (
+                        <img
+                          src={storeData.avatar_url}
+                          alt={storeData.name}
+                          className="size-12 rounded-2xl object-cover border border-border shadow-xs shrink-0"
+                        />
+                      ) : (
+                        <div className="size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold text-base border border-primary/20 shrink-0">
+                          {storeData?.name?.charAt(0) || "J"}
+                        </div>
+                      )}
+                      <div>
+                        <h3 className="text-base font-black text-foreground leading-tight line-clamp-1">
+                          {storeData?.name || "Negócio Comunitário"}
+                        </h3>
+                        <Badge variant="outline" className="text-[10px] uppercase font-mono mt-1">
+                          {listing.category || "Serviços"}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    {listing.is_verified && (
+                      <span className="flex items-center gap-1 text-[10px] font-mono text-emerald-600 font-bold bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full shrink-0">
+                        <CheckCircle className="size-3" /> Verificado
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Description */}
+                  {storeData?.description && (
+                    <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
+                      {storeData.description}
+                    </p>
                   )}
+
+                  {/* Address & Hours */}
+                  <div className="space-y-1.5 pt-2 border-t border-border/50 text-xs text-muted-foreground font-medium">
+                    {listing.address && (
+                      <p className="flex items-center gap-2">
+                        <MapPin className="size-3.5 text-primary shrink-0" />
+                        <span className="truncate">{listing.address}</span>
+                      </p>
+                    )}
+                    {listing.working_hours && (
+                      <p className="flex items-center gap-2">
+                        <Clock className="size-3.5 text-muted-foreground/70 shrink-0" />
+                        <span className="truncate">{listing.working_hours}</span>
+                      </p>
+                    )}
+                  </div>
                 </div>
 
-                <div>
-                  <h3 className="text-lg font-bold text-foreground leading-snug">
-                    {(listing.stores as any)?.name || "Negócio Comunitário"}
-                  </h3>
-                  <p className="text-xs text-muted-foreground">
-                    {(listing.stores as any)?.type === "event_producer"
-                      ? "Produtor de Eventos"
-                      : (listing.stores as any)?.type === "band"
-                        ? "Banda / Artista"
-                        : (listing.stores as any)?.type === "ecommerce"
-                          ? "Loja Virtual"
-                          : (listing.stores as any)?.type === "physical_store"
-                            ? "Loja Física"
-                            : "Coletivo"}
-                  </p>
+                {/* Actions */}
+                <div className="pt-3 border-t border-border/60 flex items-center gap-2">
+                  {listing.contact_phone && (
+                    <Button
+                      asChild
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 rounded-xl text-xs font-bold gap-1.5 h-10 border-emerald-500/30 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/20"
+                    >
+                      <a
+                        href={`https://wa.me/55${phoneDigits}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <MessageCircle className="size-3.5 text-emerald-600" />
+                        <span>WhatsApp</span>
+                      </a>
+                    </Button>
+                  )}
+
+                  <Button
+                    asChild
+                    size="sm"
+                    className="flex-1 rounded-xl text-xs font-bold gap-1.5 h-10 bg-primary text-primary-foreground"
+                  >
+                    <Link to="/mercado">
+                      <Store className="size-3.5" />
+                      <span>Ver Vitrine</span>
+                    </Link>
+                  </Button>
                 </div>
               </div>
-
-              {listing.contact_phone && (
-                <p className="flex items-center gap-2 font-mono text-xs text-muted-foreground bg-muted/40 p-2.5 rounded-xl border border-border/40">
-                  <Phone className="size-3.5 shrink-0" />
-                  <span>{listing.contact_phone}</span>
-                </p>
-              )}
-
-              <div className="pt-2 border-t border-border/40">
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className="w-full rounded-xl text-xs font-semibold"
-                >
-                  <Link to="/mercado">
-                    <Store className="size-3.5 mr-1.5" />
-                    <span>Ver Produtos & Perfil</span>
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

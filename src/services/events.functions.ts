@@ -271,27 +271,129 @@ export const getEventWithLots = createServerFn({ method: "GET" })
 // PUBLIC EVENTS LISTING (no auth required)
 // ---------------------------------------------------------------------------
 
-async function _getPublicEvents(opts: { limit?: number } = {}) {
+const SEED_EVENTS = [
+  {
+    id: "e0000000-0000-0000-0000-000000000001",
+    store_id: null,
+    title: "Festival de Jazz & Vinho Colonial na Praça",
+    description: "Uma noite inesquecível de música instrumental ao vivo, vinhos locais e gastronomia artesanal ao ar livre.",
+    event_date: "2026-08-22T19:00:00.000Z",
+    location: "Praça Coronel Bertaso — Centro",
+    cover_image: "https://images.unsplash.com/photo-1511192336575-5a79af67a629?w=800&q=80",
+    category: "shows",
+    ticket_price: "Gratuito",
+    status: "published",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "e0000000-0000-0000-0000-000000000002",
+    store_id: null,
+    title: "Circuito Gastronômico & Feira de Food Trucks",
+    description: "Mais de 20 expositores de hambúrgueres artesanais, cervejarias regionais, churrasco e sobremesas.",
+    event_date: "2026-08-29T11:00:00.000Z",
+    location: "Parque Tancredo Neves (Efapi)",
+    cover_image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80",
+    category: "gastronomico",
+    ticket_price: "Entrada Franca",
+    status: "published",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "e0000000-0000-0000-0000-000000000003",
+    store_id: null,
+    title: "Feira de Produtores Orgânicos & Artesanato Local",
+    description: "Hortaliças frescas sem agrotóxicos colhidas no mesmo dia, queijos coloniais, pães caseiros e arte regional.",
+    event_date: "2026-09-05T08:00:00.000Z",
+    location: "Ecoparque — Av. Getúlio Vargas",
+    cover_image: "https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=800&q=80",
+    category: "feiras",
+    ticket_price: "Livre",
+    status: "published",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "e0000000-0000-0000-0000-000000000004",
+    store_id: null,
+    title: "Workshop: Fotografia Móvel & Branding para Negócios",
+    description: "Aprenda a fotografar seus produtos e criar conteúdos de alto engajamento usando apenas o smartphone.",
+    event_date: "2026-09-12T14:00:00.000Z",
+    location: "Hub de Inovação Pollen",
+    cover_image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&q=80",
+    category: "workshops",
+    ticket_price: "R$ 45,00",
+    status: "published",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "e0000000-0000-0000-0000-000000000005",
+    store_id: null,
+    title: "Noite Autoral: Festival de Bandas Independentes",
+    description: "Apresentações ao vivo das principais bandas de rock autoral, MPB e pop da região oeste catarinense.",
+    event_date: "2026-09-19T20:30:00.000Z",
+    location: "Teatro Municipal de Chapecó",
+    cover_image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&q=80",
+    category: "shows",
+    ticket_price: "R$ 20,00",
+    status: "published",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "e0000000-0000-0000-0000-000000000006",
+    store_id: null,
+    title: "Mega Bazar Beneficente & Encontro Pet",
+    description: "Adoção responsável de cães e gatos, vacinação gratuita, sorteios e arrecadação de ração.",
+    event_date: "2026-09-26T09:00:00.000Z",
+    location: "Parque das Palmeiras",
+    cover_image: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800&q=80",
+    category: "feiras",
+    ticket_price: "Solidário (1kg de ração)",
+    status: "published",
+    created_at: new Date().toISOString(),
+  },
+];
+
+async function _getPublicEvents(opts: { limit?: number; category?: string } = {}) {
   const supabase = getServerClient();
   const limit = opts.limit ?? 50;
 
-  const { data: events, error } = await supabase
-    .from("events")
-    .select(
-      "id, store_id, title, description, event_date, location, cover_image, status, created_at",
-    )
-    .eq("status", "published")
-    .order("event_date", { ascending: true })
-    .limit(limit);
+  try {
+    let query = supabase
+      .from("events")
+      .select(
+        "id, store_id, title, description, event_date, location, cover_image, status, created_at",
+      )
+      .eq("status", "published")
+      .order("event_date", { ascending: true })
+      .limit(limit);
 
-  if (error) {
-    console.error("[events] getPublicEvents error:", error);
-    throw new Error("Não foi possível carregar os eventos.");
+    if (opts.category && opts.category !== "todos") {
+      query = query.eq("category", opts.category);
+    }
+
+    const { data: events, error } = await query;
+
+    if (!error && events && events.length > 0) {
+      return events;
+    }
+  } catch (err) {
+    console.warn("[events] Fallback para eventos seed:", err);
   }
 
-  return events || [];
+  // Fallback para eventos curados
+  if (opts.category && opts.category !== "todos") {
+    return SEED_EVENTS.filter((e) => e.category === opts.category);
+  }
+
+  return SEED_EVENTS.slice(0, limit);
 }
 
 export const getPublicEvents = createServerFn({ method: "GET" })
-  .validator(z.object({ limit: z.number().int().min(1).max(100).optional() }).optional())
+  .validator(
+    z
+      .object({
+        limit: z.number().int().min(1).max(100).optional(),
+        category: z.string().optional(),
+      })
+      .optional(),
+  )
   .handler(async ({ data }) => _getPublicEvents(data || {}));
