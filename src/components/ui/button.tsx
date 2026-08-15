@@ -5,32 +5,32 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  // Base: squircle-action por padrão — geometria pill orgânica em todo o sistema
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl text-sm font-semibold transition-all duration-200 cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.98]",
+  // Base: squircle-action por padrão — geometria retangular inflada com cantos suavemente arredondados em todo o sistema
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.98]",
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground hover:opacity-90 shadow-2xs font-bold border border-primary/20",
+          "bg-foreground text-background hover:opacity-90 shadow-2xs font-bold border border-border/20",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-2xs font-bold",
         outline:
-          "border border-border/90 bg-background hover:bg-muted text-foreground hover:border-border font-semibold shadow-2xs",
+          "border border-border bg-background hover:bg-muted text-foreground hover:border-foreground/30 font-semibold shadow-2xs",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80 font-semibold border border-border/40 shadow-2xs",
         ghost: "hover:bg-muted hover:text-foreground text-muted-foreground",
         link: "text-primary underline-offset-4 hover:underline font-semibold",
         pillow:
-          "rounded-full bg-primary text-primary-foreground font-bold shadow-xs hover:opacity-90 hover:scale-[1.02] active:scale-[0.97]",
+          "rounded-xl bg-foreground text-background font-bold shadow-xs hover:opacity-90 hover:scale-[1.02] active:scale-[0.97]",
         pillowOutline:
-          "rounded-full border border-border/80 bg-card hover:bg-muted text-foreground font-bold shadow-2xs hover:scale-[1.02] active:scale-[0.97]",
+          "rounded-xl border border-border bg-card hover:bg-muted text-foreground font-bold shadow-2xs hover:scale-[1.02] active:scale-[0.97]",
         heroAction:
-          "rounded-2xl bg-linear-to-r from-primary via-primary/90 to-primary text-primary-foreground font-black shadow-md hover:scale-[1.02] hover:shadow-lg active:scale-[0.97] border border-white/15",
+          "rounded-2xl bg-foreground text-background font-black shadow-md hover:scale-[1.02] hover:shadow-lg active:scale-[0.97] border border-border/30",
       },
       size: {
-        default: "h-11 px-5 py-2", /* 44px — padrão ergonômico Apple */
-        sm: "h-8 px-3.5 text-xs rounded-xl", /* 32px — compacto */
-        lg: "h-13 px-7 text-base font-bold rounded-2xl", /* 52px — destaque */
+        default: "h-11 px-5.5 py-2.5", /* 44px — padrão ergonômico Apple Squircle */
+        sm: "h-9 px-4 text-xs rounded-lg", /* 36px — compacto squircle */
+        lg: "h-13 px-8 text-base font-bold rounded-2xl", /* 52px — destaque */
         icon: "size-10 rounded-xl",
         iconSm: "size-8 rounded-lg",
       },
@@ -67,49 +67,51 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref,
   ) => {
     const Comp = asChild ? Slot : "button";
-    const isDisabled = disabled || isLoading;
+
+    // Se estiver carregando, bloqueia cliques e renderiza spinner de feedback
+    if (isLoading) {
+      return (
+        <button
+          ref={ref}
+          disabled
+          aria-busy="true"
+          className={cn(buttonVariants({ variant, size }), "pointer-events-none opacity-80", className)}
+          {...props}
+        >
+          <svg
+            className="animate-spin size-4 shrink-0"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            />
+          </svg>
+          {loadingText ?? children}
+        </button>
+      );
+    }
 
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
-        disabled={isDisabled}
-        aria-busy={isLoading}
-        aria-disabled={isDisabled}
+        disabled={disabled}
+        className={cn(buttonVariants({ variant, size, className }))}
         {...props}
       >
-        {isLoading ? (
-          <>
-            {/* Spinner canônico Jah */}
-            <svg
-              className="size-4 animate-spin shrink-0"
-              viewBox="0 0 24 24"
-              fill="none"
-              aria-hidden="true"
-            >
-              <circle
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeDasharray="31.416"
-                strokeDashoffset="10"
-                opacity="0.35"
-              />
-              <path
-                d="M12 2a10 10 0 0 1 10 10"
-                stroke="currentColor"
-                strokeWidth="3"
-                strokeLinecap="round"
-              />
-            </svg>
-            <span>{loadingText ?? children}</span>
-          </>
-        ) : (
-          children
-        )}
+        {children}
       </Comp>
     );
   },

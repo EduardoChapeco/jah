@@ -131,10 +131,10 @@ function DirectoryPage() {
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors border cursor-pointer ${
+              className={`h-11 px-5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all border cursor-pointer shrink-0 flex items-center justify-center ${
                 isSelected
-                  ? "bg-foreground text-background border-foreground font-semibold shadow-xs"
-                  : "bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground"
+                  ? "bg-foreground text-background border-foreground font-semibold shadow-xs scale-102"
+                  : "bg-card text-muted-foreground border-border hover:bg-muted/70 hover:text-foreground hover:border-foreground/20"
               }`}
             >
               {cat.label}

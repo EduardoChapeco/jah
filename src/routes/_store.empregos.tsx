@@ -145,10 +145,10 @@ function JobsMasterPage() {
               <button
                 key={chip.id}
                 onClick={() => setSelectedCategory(chip.id)}
-                className={`px-4 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all select-none ${
+                className={`h-11 px-5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all border cursor-pointer shrink-0 flex items-center justify-center ${
                   isActive
-                    ? "bg-foreground text-background shadow-xs"
-                    : "bg-card border border-border/80 text-muted-foreground hover:text-foreground hover:bg-muted"
+                    ? "bg-foreground text-background border-foreground font-semibold shadow-xs scale-102"
+                    : "bg-card text-muted-foreground border-border hover:bg-muted/70 hover:text-foreground hover:border-foreground/20"
                 }`}
               >
                 {chip.label}

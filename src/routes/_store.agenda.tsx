@@ -236,7 +236,7 @@ function AgendaPage() {
           </div>
 
           {/* Presets Rápidos */}
-          <div className="hidden sm:flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+          <div className="hidden sm:flex items-center gap-2 overflow-x-auto scrollbar-none">
             {PRESET_DATE_FILTERS.map((preset) => {
               const isSelected = selectedDateFilter === preset.id;
               return (
@@ -244,7 +244,7 @@ function AgendaPage() {
                   key={preset.id}
                   type="button"
                   onClick={() => setSelectedDateFilter(preset.id)}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${
+                  className={`h-9 px-4 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                     isSelected
                       ? "bg-foreground text-background shadow-xs"
                       : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -257,19 +257,19 @@ function AgendaPage() {
           </div>
         </div>
 
-        {/* ── Trilho Panorâmico de Cards de Dias Grandes ── */}
-        <div className="flex items-center gap-2.5 overflow-x-auto pb-2 pt-1 scrollbar-none">
+        {/* ── Trilho Panorâmico de Cards de Dias Grandes (Squircle Inflado) ── */}
+        <div className="flex items-center gap-3 overflow-x-auto pb-2 pt-1 scrollbar-none">
           {/* Card 'Todos os Dias' */}
           <button
             type="button"
             onClick={() => setSelectedDateFilter("all")}
-            className={`min-w-[84px] sm:min-w-[94px] h-[92px] sm:h-[100px] p-2.5 rounded-2xl flex flex-col items-center justify-between border cursor-pointer select-none shrink-0 transition-all ${
+            className={`min-w-[96px] sm:min-w-[104px] h-[100px] sm:h-[108px] p-3 rounded-2xl flex flex-col items-center justify-between border cursor-pointer select-none shrink-0 transition-all ${
               selectedDateFilter === "all"
                 ? "bg-foreground text-background border-foreground shadow-md scale-102 font-bold"
                 : "bg-card border-border text-foreground hover:bg-muted/60 hover:border-foreground/30"
             }`}
           >
-            <span className="text-[10px] font-mono uppercase tracking-wider opacity-80">
+            <span className="text-[11px] font-mono uppercase tracking-wider opacity-80">
               Geral
             </span>
             <CalendarIcon className="size-5 my-0.5" />
@@ -286,28 +286,28 @@ function AgendaPage() {
                 key={day.dateKey}
                 type="button"
                 onClick={() => setSelectedDateFilter(day.dateKey)}
-                className={`min-w-[80px] sm:min-w-[90px] h-[92px] sm:h-[100px] p-2.5 rounded-2xl flex flex-col items-center justify-between border cursor-pointer select-none shrink-0 transition-all ${
+                className={`min-w-[92px] sm:min-w-[100px] h-[100px] sm:h-[108px] p-3 rounded-2xl flex flex-col items-center justify-between border cursor-pointer select-none shrink-0 transition-all ${
                   isSelected
                     ? "bg-foreground text-background border-foreground shadow-md scale-102 font-bold"
                     : "bg-card border-border text-foreground hover:bg-muted/60 hover:border-foreground/30"
                 }`}
               >
                 {/* Header: Dia da Semana ou Badge 'Hoje' / 'Amanhã' */}
-                <span className="text-[10px] font-mono font-bold tracking-wider uppercase opacity-80">
+                <span className="text-[11px] font-mono font-bold tracking-wider uppercase opacity-80">
                   {day.isToday ? "HOJE" : day.isTomorrow ? "AMANHÃ" : day.weekday}
                 </span>
 
                 {/* Número do Dia Bem Grande */}
-                <span className="text-xl sm:text-2xl font-black leading-none my-0.5">
+                <span className="text-2xl sm:text-3xl font-black leading-none my-0.5">
                   {day.dayNumber}
                 </span>
 
                 {/* Footer: Mês e Indicador de Eventos */}
-                <div className="flex items-center gap-1 text-[10px] font-mono font-medium">
+                <div className="flex items-center gap-1.5 text-[11px] font-mono font-medium">
                   <span>{day.monthName}</span>
                   {count > 0 && (
                     <span
-                      className={`size-1.5 rounded-full ${
+                      className={`size-2 rounded-full ${
                         isSelected ? "bg-background" : "bg-foreground"
                       }`}
                     />
@@ -322,8 +322,8 @@ function AgendaPage() {
       {/* ── 4. BARRA DE CATEGORIAS & BUSCA ── */}
       <div className="space-y-3 pt-2 border-t border-border">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          {/* Categorias Chips */}
-          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1">
+          {/* Categorias Chips — Squircle Retangular Gordinho */}
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1">
             {EVENT_CATEGORIES.map((cat) => {
               const isSelected = selectedCategory === cat.id;
               return (
@@ -331,10 +331,10 @@ function AgendaPage() {
                   key={cat.id}
                   type="button"
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors border cursor-pointer shrink-0 ${
+                  className={`h-11 px-5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all border cursor-pointer shrink-0 flex items-center justify-center ${
                     isSelected
-                      ? "bg-foreground text-background border-foreground font-semibold shadow-xs"
-                      : "bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground"
+                      ? "bg-foreground text-background border-foreground font-semibold shadow-xs scale-102"
+                      : "bg-card text-muted-foreground border-border hover:bg-muted/70 hover:text-foreground hover:border-foreground/20"
                   }`}
                 >
                   {cat.label}

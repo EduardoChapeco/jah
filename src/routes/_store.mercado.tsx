@@ -171,13 +171,13 @@ function MarketplacePage() {
                   }),
                 })
               }
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold shrink-0 transition-all border ${
+              className={`flex items-center gap-2.5 h-11 px-5 rounded-xl text-xs sm:text-sm font-semibold shrink-0 transition-all border cursor-pointer ${
                 isSelected
-                  ? "bg-foreground text-background border-foreground shadow-xs"
-                  : "bg-card text-muted-foreground border-border/80 hover:text-foreground hover:bg-muted/40"
+                  ? "bg-foreground text-background border-foreground font-semibold shadow-xs scale-102"
+                  : "bg-card text-muted-foreground border-border hover:bg-muted/70 hover:text-foreground hover:border-foreground/20"
               }`}
             >
-              <Icon className="size-3.5" />
+              <Icon className="size-4" />
               <span>{item.label}</span>
             </button>
           );

@@ -172,8 +172,8 @@ function MapaPage() {
           )}
         </div>
 
-        {/* ── CATEGORIAS COM SCROLL INVISÍVEL (SCROLLBAR-NONE) ── */}
-        <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+        {/* ── CATEGORIAS COM SCROLL INVISÍVEL (SCROLLBAR-NONE — SQUIRCLE) ── */}
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
           {CATEGORY_CHIPS.map((chip) => {
             const isSelected = activeCategory === chip.id;
             return (
@@ -181,10 +181,10 @@ function MapaPage() {
                 key={chip.id}
                 type="button"
                 onClick={() => setActiveCategory(chip.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 transition-colors ${
+                className={`h-9.5 px-4 rounded-xl text-xs font-semibold shrink-0 transition-all border cursor-pointer flex items-center justify-center ${
                   isSelected
-                    ? "bg-foreground text-background font-semibold"
-                    : "bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted"
+                    ? "bg-foreground text-background border-foreground font-semibold shadow-xs"
+                    : "bg-card border-border text-muted-foreground hover:text-foreground hover:bg-muted/70"
                 }`}
               >
                 {chip.label}
