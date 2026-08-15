@@ -64,6 +64,7 @@ import { Route as StoreContaSalvosRouteImport } from './routes/_store.conta.salv
 import { Route as StoreContaSuporteRouteImport } from './routes/_store.conta.suporte'
 import { Route as StoreContaTrocasRouteImport } from './routes/_store.conta.trocas'
 import { Route as StoreDestaquesSlugRouteImport } from './routes/_store.destaques.$slug'
+import { Route as StoreDiretorioIdRouteImport } from './routes/_store.diretorio.$id'
 import { Route as StoreEmpregosIdRouteImport } from './routes/_store.empregos.$id'
 import { Route as StoreEntregaTokenRouteImport } from './routes/_store.entrega.$token'
 import { Route as StoreEventoIdRouteImport } from './routes/_store.evento.$id'
@@ -430,6 +431,11 @@ const StoreDestaquesSlugRoute = StoreDestaquesSlugRouteImport.update({
   id: '/destaques/$slug',
   path: '/destaques/$slug',
   getParentRoute: () => StoreRoute,
+} as any)
+const StoreDiretorioIdRoute = StoreDiretorioIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => StoreDiretorioRoute,
 } as any)
 const StoreEmpregosIdRoute = StoreEmpregosIdRouteImport.update({
   id: '/$id',
@@ -952,7 +958,7 @@ export interface FileRoutesByFullPath {
   '/conta': typeof StoreContaRouteWithChildren
   '/contato': typeof StoreContatoRoute
   '/criar-negocio': typeof StoreCriarNegocioRoute
-  '/diretorio': typeof StoreDiretorioRoute
+  '/diretorio': typeof StoreDiretorioRouteWithChildren
   '/empregos': typeof StoreEmpregosRouteWithChildren
   '/entrar': typeof StoreEntrarRoute
   '/faq': typeof StoreFaqRoute
@@ -990,6 +996,7 @@ export interface FileRoutesByFullPath {
   '/conta/suporte': typeof StoreContaSuporteRoute
   '/conta/trocas': typeof StoreContaTrocasRoute
   '/destaques/$slug': typeof StoreDestaquesSlugRoute
+  '/diretorio/$id': typeof StoreDiretorioIdRoute
   '/empregos/$id': typeof StoreEmpregosIdRoute
   '/entrega/$token': typeof StoreEntregaTokenRoute
   '/evento/$id': typeof StoreEventoIdRoute
@@ -1095,7 +1102,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof StoreCheckoutRoute
   '/contato': typeof StoreContatoRoute
   '/criar-negocio': typeof StoreCriarNegocioRoute
-  '/diretorio': typeof StoreDiretorioRoute
+  '/diretorio': typeof StoreDiretorioRouteWithChildren
   '/empregos': typeof StoreEmpregosRouteWithChildren
   '/entrar': typeof StoreEntrarRoute
   '/faq': typeof StoreFaqRoute
@@ -1134,6 +1141,7 @@ export interface FileRoutesByTo {
   '/conta/suporte': typeof StoreContaSuporteRoute
   '/conta/trocas': typeof StoreContaTrocasRoute
   '/destaques/$slug': typeof StoreDestaquesSlugRoute
+  '/diretorio/$id': typeof StoreDiretorioIdRoute
   '/empregos/$id': typeof StoreEmpregosIdRoute
   '/entrega/$token': typeof StoreEntregaTokenRoute
   '/evento/$id': typeof StoreEventoIdRoute
@@ -1245,7 +1253,7 @@ export interface FileRoutesById {
   '/_store/conta': typeof StoreContaRouteWithChildren
   '/_store/contato': typeof StoreContatoRoute
   '/_store/criar-negocio': typeof StoreCriarNegocioRoute
-  '/_store/diretorio': typeof StoreDiretorioRoute
+  '/_store/diretorio': typeof StoreDiretorioRouteWithChildren
   '/_store/empregos': typeof StoreEmpregosRouteWithChildren
   '/_store/entrar': typeof StoreEntrarRoute
   '/_store/faq': typeof StoreFaqRoute
@@ -1284,6 +1292,7 @@ export interface FileRoutesById {
   '/_store/conta/suporte': typeof StoreContaSuporteRoute
   '/_store/conta/trocas': typeof StoreContaTrocasRoute
   '/_store/destaques/$slug': typeof StoreDestaquesSlugRoute
+  '/_store/diretorio/$id': typeof StoreDiretorioIdRoute
   '/_store/empregos/$id': typeof StoreEmpregosIdRoute
   '/_store/entrega/$token': typeof StoreEntregaTokenRoute
   '/_store/evento/$id': typeof StoreEventoIdRoute
@@ -1434,6 +1443,7 @@ export interface FileRouteTypes {
     | '/conta/suporte'
     | '/conta/trocas'
     | '/destaques/$slug'
+    | '/diretorio/$id'
     | '/empregos/$id'
     | '/entrega/$token'
     | '/evento/$id'
@@ -1578,6 +1588,7 @@ export interface FileRouteTypes {
     | '/conta/suporte'
     | '/conta/trocas'
     | '/destaques/$slug'
+    | '/diretorio/$id'
     | '/empregos/$id'
     | '/entrega/$token'
     | '/evento/$id'
@@ -1727,6 +1738,7 @@ export interface FileRouteTypes {
     | '/_store/conta/suporte'
     | '/_store/conta/trocas'
     | '/_store/destaques/$slug'
+    | '/_store/diretorio/$id'
     | '/_store/empregos/$id'
     | '/_store/entrega/$token'
     | '/_store/evento/$id'
@@ -2224,6 +2236,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/destaques/$slug'
       preLoaderRoute: typeof StoreDestaquesSlugRouteImport
       parentRoute: typeof StoreRoute
+    }
+    '/_store/diretorio/$id': {
+      id: '/_store/diretorio/$id'
+      path: '/$id'
+      fullPath: '/diretorio/$id'
+      preLoaderRoute: typeof StoreDiretorioIdRouteImport
+      parentRoute: typeof StoreDiretorioRoute
     }
     '/_store/empregos/$id': {
       id: '/_store/empregos/$id'
@@ -2928,6 +2947,18 @@ const StoreContaRouteWithChildren = StoreContaRoute._addFileChildren(
   StoreContaRouteChildren,
 )
 
+interface StoreDiretorioRouteChildren {
+  StoreDiretorioIdRoute: typeof StoreDiretorioIdRoute
+}
+
+const StoreDiretorioRouteChildren: StoreDiretorioRouteChildren = {
+  StoreDiretorioIdRoute: StoreDiretorioIdRoute,
+}
+
+const StoreDiretorioRouteWithChildren = StoreDiretorioRoute._addFileChildren(
+  StoreDiretorioRouteChildren,
+)
+
 interface StoreEmpregosRouteChildren {
   StoreEmpregosIdRoute: typeof StoreEmpregosIdRoute
 }
@@ -2962,7 +2993,7 @@ interface StoreRouteChildren {
   StoreContaRoute: typeof StoreContaRouteWithChildren
   StoreContatoRoute: typeof StoreContatoRoute
   StoreCriarNegocioRoute: typeof StoreCriarNegocioRoute
-  StoreDiretorioRoute: typeof StoreDiretorioRoute
+  StoreDiretorioRoute: typeof StoreDiretorioRouteWithChildren
   StoreEmpregosRoute: typeof StoreEmpregosRouteWithChildren
   StoreEntrarRoute: typeof StoreEntrarRoute
   StoreFaqRoute: typeof StoreFaqRoute
@@ -3009,7 +3040,7 @@ const StoreRouteChildren: StoreRouteChildren = {
   StoreContaRoute: StoreContaRouteWithChildren,
   StoreContatoRoute: StoreContatoRoute,
   StoreCriarNegocioRoute: StoreCriarNegocioRoute,
-  StoreDiretorioRoute: StoreDiretorioRoute,
+  StoreDiretorioRoute: StoreDiretorioRouteWithChildren,
   StoreEmpregosRoute: StoreEmpregosRouteWithChildren,
   StoreEntrarRoute: StoreEntrarRoute,
   StoreFaqRoute: StoreFaqRoute,

@@ -6,13 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
   Compass,
-  Phone,
   CheckCircle,
-  Storefront,
   MapPin,
   Clock,
   MagnifyingGlass,
-  ArrowSquareOut,
   WhatsappLogo,
   Sparkle,
   Heartbeat,
@@ -21,9 +18,11 @@ import {
   Tag,
   Briefcase,
   CircleNotch,
-  WarningCircle,
+  Star,
+  ArrowRight,
+  Buildings,
 } from "@phosphor-icons/react";
-import { getPublicDirectory } from "@/services/directory.functions";
+import { getPublicDirectory, type DirectoryListingDTO } from "@/services/directory.functions";
 import { listHotpages } from "@/services/hotpage.functions";
 import { listActiveBanners } from "@/services/banner.functions";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
@@ -68,28 +67,22 @@ function DirectoryPage() {
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["public-directory", selectedCategory],
+    queryKey: ["public-directory", selectedCategory, searchQuery],
     queryFn: () =>
       getPublicDirectory({
         data: {
           limit: 50,
           category: selectedCategory === "todos" ? undefined : selectedCategory,
+          search: searchQuery || undefined,
         },
       }),
     staleTime: 60_000,
   });
 
-  const filteredListings = (listings || []).filter((item) => {
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    const storeName = (item.stores as any)?.name?.toLowerCase() || "";
-    const description = (item.stores as any)?.description?.toLowerCase() || "";
-    const address = item.address?.toLowerCase() || "";
-    return storeName.includes(q) || description.includes(q) || address.includes(q);
-  });
+  const filteredListings = listings || [];
 
   return (
-    <div className="w-full space-y-8">
+    <div className="w-full space-y-8 pb-20">
       {/* ── Banners Hero ── */}
       {banners && banners.length > 0 && (
         <BannerHeroCarousel banners={banners} className="w-full" />
@@ -97,52 +90,54 @@ function DirectoryPage() {
 
       {/* ── Hotpages & Categorias ── */}
       {hotpages && hotpages.length > 0 && (
-        <section aria-label="Categorias">
-          <HotpagesRail
-            hotpages={hotpages}
-            activeSlug={selectedCategory}
-            onSelect={(slug) => setSelectedCategory(slug)}
-          />
+        <section aria-label="Destaques">
+          <HotpagesRail hotpages={hotpages} title="Especialistas em Destaque" />
         </section>
       )}
 
-      {/* ── Barra Superior de Filtros & Busca ── */}
-      {/* ── 2. Barra Superior & Busca ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* ── Header ── */}
+      <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider bg-foreground text-background">
-            Diretório
-          </span>
-          <span className="text-xs text-muted-foreground font-mono">Guia Local Verificado</span>
+          <Badge variant="outline" className="font-mono text-[10px] uppercase font-bold px-2.5 py-0.5">
+            Guia Comercial & Profissional
+          </Badge>
+          <span className="text-xs text-muted-foreground font-mono">Chapecó & Região Oeste</span>
         </div>
-
-        {/* Busca no Guia */}
-        <div className="flex gap-2 w-full sm:w-72">
-          <Input
-            placeholder="Buscar por especialista, serviço..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="rounded-xl h-10 bg-card text-xs border-border"
-          />
-          <Button size="icon" className="h-10 w-10 rounded-xl shrink-0 font-bold">
-            <MagnifyingGlass size={16} weight="bold" />
-          </Button>
-        </div>
+        <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">
+          Guia & Diretório de Especialistas
+        </h1>
+        <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl">
+          Descubra prestadores de serviço, clínicas, mecânicas, arquitetos, advogados e comércios locais referenciados pela comunidade.
+        </p>
       </div>
 
-      {/* ── Cards Gordinhos de Categorias de Serviços ── */}
+      {/* ── Filtros e Busca ── */}
       <section className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Compass size={16} weight="bold" className="text-foreground" />
-          <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground font-mono">
-            Categorias de Especialistas
-          </h3>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <Compass size={16} weight="bold" className="text-foreground" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground font-mono">
+              Categorias do Guia
+            </h3>
+          </div>
+
+          <div className="relative w-full sm:w-72">
+            <MagnifyingGlass size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Buscar clínica, oficina, advogado..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 h-10 rounded-xl text-xs bg-card"
+            />
+          </div>
         </div>
 
+        {/* Squircle Categories */}
         <div className="flex items-center gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 w-full px-0.5">
           {DIRECTORY_CATEGORIES.map((cat) => {
             const isSelected = selectedCategory === cat.id;
             const Icon = cat.icon;
+
             return (
               <button
                 key={cat.id}
@@ -170,6 +165,7 @@ function DirectoryPage() {
         </div>
       </section>
 
+      {/* ── Grid de Negócios ── */}
       {isLoading && (
         <div className="flex justify-center py-24">
           <CircleNotch size={32} className="animate-spin text-muted-foreground" />
@@ -177,9 +173,14 @@ function DirectoryPage() {
       )}
 
       {isError && (
-        <div className="py-12 px-6 rounded-2xl border border-destructive/20 bg-destructive/5 text-center space-y-3">
-          <WarningCircle size={32} className="text-destructive mx-auto" />
-          <p className="font-bold text-foreground text-sm">Erro ao carregar o Diretório</p>
+        <div className="py-24 text-center space-y-3 bg-muted/10 rounded-3xl border border-border p-8">
+          <Compass size={40} className="text-muted-foreground/40 mx-auto" />
+          <h2 className="text-base font-bold text-foreground">
+            Erro ao carregar o diretório
+          </h2>
+          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+            Não foi possível carregar os negócios no momento. Tente novamente mais tarde.
+          </p>
         </div>
       )}
 
@@ -197,39 +198,48 @@ function DirectoryPage() {
 
       {!isLoading && !isError && filteredListings.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-          {filteredListings.map((listing) => {
-            const storeData = listing.stores as any;
-            const phoneDigits = listing.contact_phone ? listing.contact_phone.replace(/\D/g, "") : "";
+          {filteredListings.map((listing: DirectoryListingDTO) => {
+            const cleanPhone = listing.contact_whatsapp?.replace(/\D/g, "") || listing.contact_phone?.replace(/\D/g, "") || "";
 
             return (
               <div
                 key={listing.id}
-                className="flex flex-col justify-between rounded-3xl border border-border bg-card p-6 shadow-2xs hover-elevate transition-all space-y-5"
+                className="flex flex-col justify-between rounded-3xl border border-border bg-card p-6 shadow-2xs hover:border-foreground/30 transition-all space-y-5 group"
               >
                 <div className="space-y-4">
                   {/* Top Header */}
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      {storeData?.avatar_url ? (
+                    <Link
+                      to="/diretorio/$id"
+                      params={{ id: listing.id }}
+                      className="flex items-center gap-3 group-hover:opacity-90 transition-opacity"
+                    >
+                      {listing.avatar_url ? (
                         <img
-                          src={storeData.avatar_url}
-                          alt={storeData.name}
+                          src={listing.avatar_url}
+                          alt={listing.business_name}
                           className="size-12 rounded-2xl object-cover border border-border shadow-xs shrink-0"
                         />
                       ) : (
                         <div className="size-12 rounded-2xl bg-muted text-foreground flex items-center justify-center font-bold text-base border border-border shrink-0">
-                          {storeData?.name?.charAt(0) || "J"}
+                          {listing.business_name?.charAt(0) || "J"}
                         </div>
                       )}
                       <div>
-                        <h3 className="text-base font-black text-foreground leading-tight line-clamp-1">
-                          {storeData?.name || "Negócio Comunitário"}
+                        <h3 className="text-base font-black text-foreground leading-tight line-clamp-1 group-hover:underline">
+                          {listing.business_name}
                         </h3>
-                        <Badge variant="outline" className="text-[10px] uppercase font-mono mt-1">
-                          {listing.category || "Serviços"}
-                        </Badge>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="outline" className="text-[10px] uppercase font-mono px-1.5 py-0">
+                            {listing.category}
+                          </Badge>
+                          <span className="flex items-center gap-1 text-[11px] font-bold text-foreground font-mono">
+                            <Star size={12} weight="fill" className="text-amber-500" />
+                            {listing.rating.toFixed(1)}
+                          </span>
+                        </div>
                       </div>
-                    </div>
+                    </Link>
 
                     {listing.is_verified && (
                       <span className="flex items-center gap-1 text-[10px] font-mono text-emerald-600 font-bold bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full shrink-0">
@@ -239,10 +249,29 @@ function DirectoryPage() {
                   </div>
 
                   {/* Description */}
-                  {storeData?.description && (
+                  {listing.description && (
                     <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
-                      {storeData.description}
+                      {listing.description}
                     </p>
+                  )}
+
+                  {/* Specialties Preview */}
+                  {listing.specialties && listing.specialties.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {listing.specialties.slice(0, 2).map((spec, i) => (
+                        <span
+                          key={i}
+                          className="text-[10px] bg-muted/60 text-foreground font-semibold px-2 py-0.5 rounded-lg truncate max-w-[180px]"
+                        >
+                          {spec}
+                        </span>
+                      ))}
+                      {listing.specialties.length > 2 && (
+                        <span className="text-[10px] text-muted-foreground font-mono">
+                          +{listing.specialties.length - 2}
+                        </span>
+                      )}
+                    </div>
                   )}
 
                   {/* Address & Hours */}
@@ -264,15 +293,15 @@ function DirectoryPage() {
 
                 {/* Actions */}
                 <div className="pt-3 border-t border-border/60 flex items-center gap-2">
-                  {listing.contact_phone && (
+                  {cleanPhone && (
                     <Button
                       asChild
                       size="sm"
                       variant="outline"
-                      className="flex-1 rounded-xl text-xs font-bold gap-1.5 h-10 border-emerald-500/30 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/20"
+                      className="rounded-xl text-xs font-bold gap-1.5 h-10 px-3 border-emerald-500/30 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 shrink-0"
                     >
                       <a
-                        href={`https://wa.me/55${phoneDigits}`}
+                        href={`https://wa.me/55${cleanPhone}?text=Ol%C3%A1!%20Vi%20seu%20perfil%20no%20Guia%20JAH%20e%20gostaria%20de%20informa%C3%A7%C3%B5es.`}
                         target="_blank"
                         rel="noreferrer"
                       >
@@ -287,9 +316,9 @@ function DirectoryPage() {
                     size="sm"
                     className="flex-1 rounded-xl text-xs font-bold gap-1.5 h-10 bg-foreground text-background"
                   >
-                    <Link to="/mercado">
-                      <Storefront size={16} weight="bold" />
-                      <span>Ver Vitrine</span>
+                    <Link to="/diretorio/$id" params={{ id: listing.id }}>
+                      <span>Ver Perfil & Orçamento</span>
+                      <ArrowRight size={14} weight="bold" />
                     </Link>
                   </Button>
                 </div>
