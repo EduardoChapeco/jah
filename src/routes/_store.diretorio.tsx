@@ -13,8 +13,8 @@ export const Route = createFileRoute("/_store/diretorio")({
   head: () => ({ meta: [{ title: "Diretório de Membros & Negócios — JAH" }] }),
   loader: async () => {
     const [banners, hotpages] = await Promise.all([
-      listActiveBanners({ data: { placement: "all" } }).catch(() => []),
-      listHotpages().catch(() => []),
+      listActiveBanners({ data: { placement: "diretorio" } }).catch(() => []),
+      listHotpages({ data: { module: "diretorio" } }).catch(() => []),
     ]);
     return { banners, hotpages };
   },

@@ -31,8 +31,8 @@ export const Route = createFileRoute("/_store/noticias/")({
   loader: async () => {
     const [articles, banners, hotpages] = await Promise.all([
       listPublicArticles({ data: { limit: 30 } }).catch(() => []),
-      listActiveBanners({ data: { placement: "all" } }).catch(() => []),
-      listHotpages().catch(() => []),
+      listActiveBanners({ data: { placement: "noticias" } }).catch(() => []),
+      listHotpages({ data: { module: "noticias" } }).catch(() => []),
     ]);
     return { articles, banners, hotpages };
   },

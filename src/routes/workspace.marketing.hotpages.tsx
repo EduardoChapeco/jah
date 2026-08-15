@@ -53,6 +53,9 @@ function WorkspaceHotpagesPage() {
   const [badgeLabel, setBadgeLabel] = useState("");
   const [description, setDescription] = useState("");
   const [coverImageUrl, setCoverImageUrl] = useState("");
+  const [module, setModule] = useState<
+    "home" | "mercado" | "marketplace" | "noticias" | "agenda" | "events" | "diretorio" | "all"
+  >("home");
   const [sortOrder, setSortOrder] = useState(0);
 
   // Customization Switches (Clean Media Mode)
@@ -62,7 +65,7 @@ function WorkspaceHotpagesPage() {
   const [showBadge, setShowBadge] = useState(true);
 
   const refreshHotpages = async () => {
-    const updated = await listHotpages().catch(() => []);
+    const updated = await listHotpages({ data: { module: "all" } }).catch(() => []);
     setHotpages(updated);
   };
 
@@ -73,6 +76,7 @@ function WorkspaceHotpagesPage() {
     setBadgeLabel("Destaque");
     setDescription("");
     setCoverImageUrl("");
+    setModule("home");
     setSortOrder(hotpages.length);
     setShowTitle(true);
     setShowDescription(true);
@@ -88,6 +92,7 @@ function WorkspaceHotpagesPage() {
     setBadgeLabel(hp.badge_label || "");
     setDescription(hp.description || "");
     setCoverImageUrl(hp.cover_image_url || "");
+    setModule(hp.module || "home");
     setSortOrder(hp.sort_order || 0);
     setShowTitle(hp.show_title !== false);
     setShowDescription(hp.show_description !== false);
@@ -118,6 +123,7 @@ function WorkspaceHotpagesPage() {
             badge_label: badgeLabel || null,
             description: description || null,
             cover_image_url: coverImageUrl || null,
+            module,
             sort_order: sortOrder,
             show_title: showTitle,
             show_description: showDescription,
@@ -134,6 +140,7 @@ function WorkspaceHotpagesPage() {
             badge_label: badgeLabel || undefined,
             description: description || undefined,
             cover_image_url: coverImageUrl || undefined,
+            module,
             sort_order: sortOrder,
             show_title: showTitle,
             show_description: showDescription,
@@ -141,7 +148,7 @@ function WorkspaceHotpagesPage() {
             show_badge: showBadge,
           },
         });
-        toast.success("Nova categoria/hotpage criada com sucesso!");
+        toast.success("Card de categoria criado com sucesso!");
       }
       setIsModalOpen(false);
       await refreshHotpages();
@@ -360,7 +367,7 @@ function WorkspaceHotpagesPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="badge" className="text-xs font-bold">
                   Texto do Badge
@@ -372,6 +379,25 @@ function WorkspaceHotpagesPage() {
                   onChange={(e) => setBadgeLabel(e.target.value)}
                   className="rounded-xl h-10"
                 />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="module" className="text-xs font-bold">
+                  Módulo / Seção
+                </Label>
+                <select
+                  id="module"
+                  value={module}
+                  onChange={(e) => setModule(e.target.value as any)}
+                  className="w-full h-10 px-3 rounded-xl border border-border bg-card text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-primary"
+                >
+                  <option value="home">Home Principal (/)</option>
+                  <option value="mercado">Mercado & Produtos (/mercado)</option>
+                  <option value="noticias">Portal de Notícias (/noticias)</option>
+                  <option value="agenda">Agenda Cultural & Eventos (/agenda)</option>
+                  <option value="diretorio">Guia & Diretório de Serviços (/diretorio)</option>
+                  <option value="all">Todas as Páginas</option>
+                </select>
               </div>
 
               <div className="space-y-1.5">

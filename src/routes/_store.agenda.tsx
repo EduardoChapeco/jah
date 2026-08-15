@@ -14,8 +14,8 @@ export const Route = createFileRoute("/_store/agenda")({
   head: () => ({ meta: [{ title: "Agenda Cultural — JAH" }] }),
   loader: async () => {
     const [banners, hotpages] = await Promise.all([
-      listActiveBanners({ data: { placement: "events" } }).catch(() => []),
-      listHotpages().catch(() => []),
+      listActiveBanners({ data: { placement: "agenda" } }).catch(() => []),
+      listHotpages({ data: { module: "agenda" } }).catch(() => []),
     ]);
     return { banners, hotpages };
   },

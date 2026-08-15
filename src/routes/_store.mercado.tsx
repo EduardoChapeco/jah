@@ -99,8 +99,8 @@ export const Route = createFileRoute("/_store/mercado")({
       listPublishedCategories(),
       listAvailableAttributes(),
       getMarketplaceFeed(),
-      listActiveBanners({ data: { placement: "marketplace" } }).catch(() => []),
-      listHotpages().catch(() => []),
+      listActiveBanners({ data: { placement: "mercado" } }).catch(() => []),
+      listHotpages({ data: { module: "mercado" } }).catch(() => []),
     ]);
 
     return {

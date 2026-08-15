@@ -402,18 +402,20 @@ function WorkspaceBannersPage() {
 
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Onde Exibir (Placement)
+                  Onde Exibir (Placement / Módulo)
                 </Label>
                 <select
                   value={placement}
                   onChange={(e) => setPlacement(e.target.value as any)}
                   className="w-full h-11 px-3 rounded-xl border border-border bg-card text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-primary"
                 >
-                  <option value="home">Home Principal</option>
-                  <option value="marketplace">Mercado & Produtos</option>
-                  <option value="events">Agenda Cultural & Eventos</option>
-                  <option value="classifieds">Classificados</option>
-                  <option value="all">Todas as Páginas</option>
+                  <option value="home">Home Principal (/)</option>
+                  <option value="mercado">Mercado & Produtos (/mercado)</option>
+                  <option value="noticias">Portal de Notícias (/noticias)</option>
+                  <option value="agenda">Agenda Cultural & Eventos (/agenda)</option>
+                  <option value="diretorio">Guia & Diretório de Serviços (/diretorio)</option>
+                  <option value="classifieds">Classificados (/classificados)</option>
+                  <option value="all">Todas as Páginas de Descoberta</option>
                 </select>
               </div>
             </div>
