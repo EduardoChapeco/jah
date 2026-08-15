@@ -58,6 +58,107 @@ export interface NewsCommentDTO {
   created_at: string;
 }
 
+export const SEED_ARTICLES: NewsArticleDTO[] = [
+  {
+    id: "n0000000-0000-0000-0000-000000000001",
+    store_id: "s0000000-0000-0000-0000-000000000001",
+    store_name: "JAH Notícias & Redação Regional",
+    store_avatar: "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=200&q=80",
+    author_name: "Redação JAH",
+    title: "Festival de Inovação e Ecoturismo reúne empreendedores no Oeste",
+    slug: "festival-inovacao-ecoturismo-oeste",
+    kicker: "DESENVOLVIMENTO REGIONAL",
+    subtitle: "Evento debate soluções sustentáveis, circuitos turísticos do Rio Uruguai e atração de novos investimentos para Chapecó.",
+    content_sections: [
+      {
+        type: "paragraph",
+        content: "A região Oeste catarinense vive um momento de forte expansão no turismo de experiência e na integração entre o agronegócio e a tecnologia. Durante três dias de programação intensa, líderes empresariais e produtores locais debateram novos modelos de negócios cooperativos.",
+      },
+      {
+        type: "heading",
+        content: "Valorização da Produção Local e Roteiros Turísticos",
+      },
+      {
+        type: "paragraph",
+        content: "O destaque da feira foi a apresentação das novas rotas gastronômicas que conectam vinícolas coloniais, queijarias premiadas e cabanas de montanha na bacia do Rio Uruguai. A iniciativa promete ampliar o fluxo de visitantes em todas as estações do ano.",
+      },
+      {
+        type: "quote",
+        content: "Nosso objetivo é transformar o potencial natural e a força do nosso povo em valor compartilhado para toda a comunidade.",
+        caption: "Coordenação do Fórum Regional de Turismo",
+      },
+    ],
+    cover_media_url: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1200&q=80",
+    cover_media_type: "image",
+    category: "cidade",
+    tags: ["Turismo", "Economia", "Oeste SC", "Inovação"],
+    reading_time_minutes: 4,
+    views_count: 1420,
+    unique_views_count: 980,
+    status: "published",
+    published_at: new Date(Date.now() - 3600000 * 5).toISOString(),
+    created_at: new Date(Date.now() - 3600000 * 5).toISOString(),
+  },
+  {
+    id: "n0000000-0000-0000-0000-000000000002",
+    store_id: "s0000000-0000-0000-0000-000000000001",
+    store_name: "JAH Notícias & Redação Regional",
+    store_avatar: "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=200&q=80",
+    author_name: "Ana Silveira",
+    title: "Comércio Local bate recorde de vendas com programas de fidelidade comunitários",
+    slug: "comercio-local-bate-recorde-vendas",
+    kicker: "ECONOMIA LOCAL",
+    subtitle: "Lojistas apontam aumento de 35% na retenção de clientes após adoção de cashback unificado e vitrines digitais.",
+    content_sections: [
+      {
+        type: "paragraph",
+        content: "Pequenos e médios comerciantes de Chapecó estão colhendo os frutos da digitalização cooperativa. A integração de catálogos com sistemas de fidelização permitiu que consumidores concentrassem suas compras nos bairros da cidade.",
+      },
+      {
+        type: "paragraph",
+        content: "Os setores de alimentação, vestuário e produtos agroecológicos foram os que apresentaram o maior índice de recompra ao longo do último trimestre.",
+      },
+    ],
+    cover_media_url: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&q=80",
+    cover_media_type: "image",
+    category: "economia",
+    tags: ["Comércio", "Varejo", "Fidelidade", "Chapecó"],
+    reading_time_minutes: 3,
+    views_count: 870,
+    unique_views_count: 620,
+    status: "published",
+    published_at: new Date(Date.now() - 3600000 * 18).toISOString(),
+    created_at: new Date(Date.now() - 3600000 * 18).toISOString(),
+  },
+  {
+    id: "n0000000-0000-0000-0000-000000000003",
+    store_id: "s0000000-0000-0000-0000-000000000001",
+    store_name: "JAH Notícias & Redação Regional",
+    store_avatar: "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=200&q=80",
+    author_name: "Carlos Mendes",
+    title: "Novas conexões de transporte e logística expressa fortalecem entregadores autônomos",
+    slug: "logistica-expressa-entregadores-autonomos",
+    kicker: "LOGÍSTICA & MOBILIDADE",
+    subtitle: "Plataforma conecta frotas locais e motoristas autônomos sem taxas abusivas de intermediação.",
+    content_sections: [
+      {
+        type: "paragraph",
+        content: "O ecossistema de mobilidade urbana da JAH expandiu sua cobertura com a implementação da central de despacho de fretes e entregas rápidas na região.",
+      },
+    ],
+    cover_media_url: "https://images.unsplash.com/photo-1580674684081-7617fbf3d745?w=1200&q=80",
+    cover_media_type: "image",
+    category: "tecnologia",
+    tags: ["Logística", "Mobilidade", "Entregas", "Tecnologia"],
+    reading_time_minutes: 3,
+    views_count: 650,
+    unique_views_count: 490,
+    status: "published",
+    published_at: new Date(Date.now() - 3600000 * 28).toISOString(),
+    created_at: new Date(Date.now() - 3600000 * 28).toISOString(),
+  },
+];
+
 // ── 1. Leitura Pública de Notícias ──────────────────────────────────────────
 
 export const listPublicArticles = createServerFn({ method: "GET" })
@@ -75,59 +176,78 @@ export const listPublicArticles = createServerFn({ method: "GET" })
     const supabase = getAnonServerClient();
     const limit = data?.limit ?? 20;
 
-    let q = supabase
-      .from("news_articles")
-      .select(
-        `
-        id, store_id, author_profile_id, title, slug, kicker, subtitle, content_sections,
-        cover_media_url, cover_media_type, category, tags, reading_time_minutes,
-        views_count, unique_views_count, status, published_at, created_at,
-        stores ( name, avatar_url ),
-        profiles ( full_name )
-      `,
-      )
-      .eq("status", "published")
-      .order("published_at", { ascending: false })
-      .limit(limit);
+    try {
+      let q = supabase
+        .from("news_articles")
+        .select(
+          `
+          id, store_id, author_profile_id, title, slug, kicker, subtitle, content_sections,
+          cover_media_url, cover_media_type, category, tags, reading_time_minutes,
+          views_count, unique_views_count, status, published_at, created_at,
+          stores ( name, avatar_url ),
+          profiles ( full_name )
+        `,
+        )
+        .eq("status", "published")
+        .order("published_at", { ascending: false })
+        .limit(limit);
 
+      if (data?.category && data.category !== "todas") {
+        q = q.eq("category", data.category);
+      }
+
+      if (data?.storeId) {
+        q = q.eq("store_id", data.storeId);
+      }
+
+      if (data?.query) {
+        q = q.ilike("title", `%${data.query}%`);
+      }
+
+      const { data: articles, error } = await q;
+      if (!error && articles && articles.length > 0) {
+        return articles.map((a: any) => ({
+          id: a.id,
+          store_id: a.store_id,
+          store_name: a.stores?.name || "Portal de Notícias",
+          store_avatar: a.stores?.avatar_url || null,
+          author_profile_id: a.author_profile_id,
+          author_name: a.profiles?.full_name || "Redação",
+          title: a.title,
+          slug: a.slug,
+          kicker: a.kicker,
+          subtitle: a.subtitle,
+          content_sections: a.content_sections || [],
+          cover_media_url: a.cover_media_url,
+          cover_media_type: a.cover_media_type || "image",
+          category: a.category,
+          tags: a.tags || [],
+          reading_time_minutes: a.reading_time_minutes || 3,
+          views_count: a.views_count || 0,
+          unique_views_count: a.unique_views_count || 0,
+          status: a.status,
+          published_at: a.published_at,
+          created_at: a.created_at,
+        }));
+      }
+    } catch (err) {
+      console.warn("[news] Erro ao buscar artigos no banco, usando fallback seed:", err);
+    }
+
+    let items = [...SEED_ARTICLES];
     if (data?.category && data.category !== "todas") {
-      q = q.eq("category", data.category);
+      items = items.filter((a) => a.category === data.category);
     }
-
-    if (data?.storeId) {
-      q = q.eq("store_id", data.storeId);
-    }
-
     if (data?.query) {
-      q = q.ilike("title", `%${data.query}%`);
+      const q = data.query.toLowerCase();
+      items = items.filter(
+        (a) =>
+          a.title.toLowerCase().includes(q) ||
+          (a.subtitle && a.subtitle.toLowerCase().includes(q)) ||
+          a.tags.some((t) => t.toLowerCase().includes(q)),
+      );
     }
-
-    const { data: articles, error } = await q;
-    if (error || !articles) return [];
-
-    return articles.map((a: any) => ({
-      id: a.id,
-      store_id: a.store_id,
-      store_name: a.stores?.name || "Portal de Notícias",
-      store_avatar: a.stores?.avatar_url || null,
-      author_profile_id: a.author_profile_id,
-      author_name: a.profiles?.full_name || "Redação",
-      title: a.title,
-      slug: a.slug,
-      kicker: a.kicker,
-      subtitle: a.subtitle,
-      content_sections: a.content_sections || [],
-      cover_media_url: a.cover_media_url,
-      cover_media_type: a.cover_media_type || "image",
-      category: a.category,
-      tags: a.tags || [],
-      reading_time_minutes: a.reading_time_minutes || 3,
-      views_count: a.views_count || 0,
-      unique_views_count: a.unique_views_count || 0,
-      status: a.status,
-      published_at: a.published_at,
-      created_at: a.created_at,
-    }));
+    return items.slice(0, limit);
   });
 
 export const getArticleDetail = createServerFn({ method: "GET" })
@@ -142,73 +262,77 @@ export const getArticleDetail = createServerFn({ method: "GET" })
     }> => {
       const supabase = getAnonServerClient();
 
-      const { data: articleData, error } = await supabase
-        .from("news_articles")
-        .select(
-          `
-          id, store_id, author_profile_id, title, slug, kicker, subtitle, content_sections,
-          cover_media_url, cover_media_type, category, tags, reading_time_minutes,
-          views_count, unique_views_count, status, published_at, created_at,
-          stores ( name, avatar_url, slug ),
-          profiles ( full_name )
-        `,
-        )
-        .eq("slug", slug)
-        .eq("status", "published")
-        .limit(1)
-        .maybeSingle();
+      try {
+        const { data: articleData, error } = await supabase
+          .from("news_articles")
+          .select(
+            `
+            id, store_id, author_profile_id, title, slug, kicker, subtitle, content_sections,
+            cover_media_url, cover_media_type, category, tags, reading_time_minutes,
+            views_count, unique_views_count, status, published_at, created_at,
+            stores ( name, avatar_url, slug ),
+            profiles ( full_name )
+          `,
+          )
+          .eq("slug", slug)
+          .eq("status", "published")
+          .limit(1)
+          .maybeSingle();
 
-      if (error || !articleData) {
-        return { article: null, sponsors: [], related: [] };
+        if (!error && articleData) {
+          const [sponsorsRes, relatedRes] = await Promise.all([
+            supabase
+              .from("sponsors")
+              .select("*")
+              .eq("store_id", articleData.store_id)
+              .eq("active", true)
+              .limit(6),
+            supabase
+              .from("news_articles")
+              .select("id, title, slug, kicker, cover_media_url, category, published_at, created_at")
+              .eq("status", "published")
+              .eq("category", articleData.category)
+              .neq("id", articleData.id)
+              .order("published_at", { ascending: false })
+              .limit(4),
+          ]);
+
+          return {
+            article: articleData as any,
+            sponsors: (sponsorsRes.data || []) as SponsorDTO[],
+            related: (relatedRes.data || []) as NewsArticleDTO[],
+          };
+        }
+      } catch (err) {
+        console.warn("[news] Erro ao buscar detalhe do artigo no banco:", err);
       }
 
-      // Busca patrocinadores da loja/jornal
-      const [sponsorsRes, relatedRes] = await Promise.all([
-        supabase
-          .from("sponsors")
-          .select("*")
-          .eq("store_id", articleData.store_id)
-          .eq("active", true)
-          .limit(6),
-        supabase
-          .from("news_articles")
-          .select("id, title, slug, kicker, cover_media_url, category, published_at, created_at")
-          .eq("status", "published")
-          .eq("category", articleData.category)
-          .neq("id", articleData.id)
-          .order("published_at", { ascending: false })
-          .limit(4),
-      ]);
+      // Fallback para SEED_ARTICLES
+      const seed = SEED_ARTICLES.find((a) => a.slug === slug);
+      if (seed) {
+        const related = SEED_ARTICLES.filter((a) => a.id !== seed.id);
+        return {
+          article: seed,
+          sponsors: [
+            {
+              id: "sp-seed-1",
+              store_id: seed.store_id,
+              name: "Excelência Negócios & Turismo",
+              logo_url: "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=200&q=80",
+              banner_url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
+              tier: "gold",
+              active: true,
+              cta_label: "Conhecer Soluções",
+              website_url: "https://jah.social",
+              description: "Apoio ao jornalismo comunitário e expansão comercial do Oeste.",
+              created_at: new Date().toISOString(),
+            },
+          ],
+          related,
+        };
+      }
 
-      const article: NewsArticleDTO = {
-        id: articleData.id,
-        store_id: articleData.store_id,
-        store_name: (articleData as any).stores?.name || "Jornal Local",
-        store_avatar: (articleData as any).stores?.avatar_url || null,
-        author_profile_id: articleData.author_profile_id,
-        author_name: (articleData as any).profiles?.full_name || "Redação",
-        title: articleData.title,
-        slug: articleData.slug,
-        kicker: articleData.kicker,
-        subtitle: articleData.subtitle,
-        content_sections: articleData.content_sections || [],
-        cover_media_url: articleData.cover_media_url,
-        cover_media_type: articleData.cover_media_type,
-        category: articleData.category,
-        tags: articleData.tags || [],
-        reading_time_minutes: articleData.reading_time_minutes || 3,
-        views_count: articleData.views_count || 0,
-        unique_views_count: articleData.unique_views_count || 0,
-        status: articleData.status,
-        published_at: articleData.published_at,
-        created_at: articleData.created_at,
-      };
-
-      return {
-        article,
-        sponsors: (sponsorsRes.data as SponsorDTO[]) || [],
-        related: (relatedRes.data as any[]) || [],
-      };
+      return { article: null, sponsors: [], related: [] };
     },
   );
 
