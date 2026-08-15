@@ -15,6 +15,8 @@ import {
   Utensils,
   Navigation,
   Tag,
+  Newspaper,
+  ArrowRight,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -51,6 +53,7 @@ export function PostCard({ item, queryKey = ["mural-feed"] }: PostCardProps) {
   const qc = useQueryClient();
   const [activeSlide, setActiveSlide] = useState(0);
   const [isSaved, setIsSaved] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const toggleLike = useMutation({
     mutationFn: () => togglePostLike({ data: { post_id: item.id } }),
@@ -177,9 +180,23 @@ export function PostCard({ item, queryKey = ["mural-feed"] }: PostCardProps) {
 
       {/* ── 2. Conteúdo de Texto ─────────────────────────────────────── */}
       {item.content_text && (
-        <p className="text-sm sm:text-base text-foreground whitespace-pre-wrap leading-relaxed mb-3">
-          {item.content_text}
-        </p>
+        <div className="mb-3 text-sm sm:text-base text-foreground leading-relaxed">
+          <p
+            className={`whitespace-pre-wrap ${
+              !isExpanded && item.content_text.length > 200 ? "line-clamp-3" : ""
+            }`}
+          >
+            {item.content_text}
+          </p>
+          {item.content_text.length > 200 && (
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="mt-1 text-xs font-bold text-primary hover:underline"
+            >
+              {isExpanded ? "Ver menos" : "Ver mais"}
+            </button>
+          )}
+        </div>
       )}
 
       {/* ── 3. Renderização Específica por Tipo de Post ─────────────────── */}
@@ -445,6 +462,64 @@ export function PostCard({ item, queryKey = ["mural-feed"] }: PostCardProps) {
             </p>
           </div>
           <ExternalLink className="size-4 text-muted-foreground group-hover:text-foreground shrink-0 mr-1" />
+        </Link>
+      )}
+
+      {/* Referência: Notícia / Matéria Editorial do Jornal */}
+      {(item.reference_type === "news" ||
+        item.reference_type === "article" ||
+        (item.metadata as any)?.news_slug) && (
+        <Link
+          to="/noticias/$slug"
+          params={{
+            slug: (item.reference_data?.slug ||
+              (item.metadata as any)?.news_slug ||
+              item.reference_id ||
+              "noticia") as any,
+          }}
+          className="mb-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-3.5 rounded-2xl border border-border/80 bg-card hover:border-primary/50 transition-all group shadow-2xs"
+        >
+          {item.reference_data?.cover_media_url ? (
+            <div className="aspect-video sm:w-28 sm:h-20 rounded-xl overflow-hidden bg-muted shrink-0">
+              <img
+                src={item.reference_data.cover_media_url}
+                alt={item.reference_data.title || "Notícia"}
+                className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+          ) : (
+            <div className="size-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <Newspaper className="size-6" />
+            </div>
+          )}
+          <div className="min-w-0 flex-1 space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black uppercase text-primary tracking-wider">
+                {item.reference_data?.kicker || item.reference_data?.category || "Notícia da Comunidade"}
+              </span>
+              {item.reference_data?.reading_time_minutes && (
+                <span className="text-[10px] text-muted-foreground font-mono">
+                  • {item.reference_data.reading_time_minutes} min de leitura
+                </span>
+              )}
+            </div>
+            <h4 className="text-sm font-black text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-snug">
+              {item.reference_data?.title || "Ler matéria completa"}
+            </h4>
+            {item.reference_data?.subtitle && (
+              <p className="text-xs text-muted-foreground line-clamp-1 font-serif">
+                {item.reference_data.subtitle}
+              </p>
+            )}
+          </div>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="rounded-xl shrink-0 text-xs font-bold gap-1 self-end sm:self-center"
+          >
+            <span>Ler notícia</span>
+            <ArrowRight className="size-3.5" />
+          </Button>
         </Link>
       )}
 

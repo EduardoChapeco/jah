@@ -193,7 +193,7 @@ export const listStoreFollowers = createServerFn({ method: "GET" }).handler(asyn
 // MURAL FEED & POSTS
 // ---------------------------------------------------------------------------
 
-export type PostReferenceType = "product" | "event" | "classified" | "ad" | "job" | "none";
+export type PostReferenceType = "product" | "event" | "classified" | "ad" | "job" | "news" | "article" | "none";
 
 export type PostType =
   "simple" | "carousel" | "grid" | "moment" | "destination" | "food" | "banner" | "event";
