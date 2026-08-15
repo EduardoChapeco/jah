@@ -66,7 +66,7 @@ function ConfirmationPage() {
           </div>
           <PageHeader title="Pedido Realizado com Sucesso!" />
           <p className="mt-2 text-sm text-muted-foreground">
-            Código do pedido:{" "}
+            Código do pedido:{""}
             <span className="font-mono font-medium text-foreground">{order.public_token}</span>
           </p>
         </div>
@@ -155,7 +155,7 @@ function ConfirmationPage() {
         )}
 
         {/* Order summary */}
-        <div className="overflow-hidden border border-border bg-card shadow-sm">
+        <div className="overflow-hidden border border-border bg-card ">
           <div className="border-b border-border bg-muted/30 px-6 py-4">
             <h2 className="flex items-center text-sm font-semibold text-foreground">
               <Package className="mr-2 size-4" /> Resumo da Compra

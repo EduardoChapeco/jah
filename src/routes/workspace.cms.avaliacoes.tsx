@@ -33,14 +33,16 @@ function CmsAvaliacoesPage() {
 
   const [filterStatus, setFilterStatus] = useState<string>("all");
 
-  const filteredReviews = reviews.filter((r: any) => 
-    filterStatus === "all" ? true : r.status === filterStatus
+  const filteredReviews = reviews.filter((r: any) =>
+    filterStatus === "all" ? true : r.status === filterStatus,
   );
 
   const handleUpdateStatus = async (id: string, status: "approved" | "rejected" | "pending") => {
     try {
       await updateReviewStatus({ data: { id, status } });
-      toast.success(`Avaliação atualizada para: ${status === 'approved' ? 'Aprovada' : status === 'rejected' ? 'Rejeitada' : 'Pendente'}`);
+      toast.success(
+        `Avaliação atualizada para: ${status === "approved" ? "Aprovada" : status === "rejected" ? "Rejeitada" : "Pendente"}`,
+      );
       router.invalidate();
     } catch (error: any) {
       toast.error(error.message || "Erro ao atualizar status");
@@ -48,48 +50,61 @@ function CmsAvaliacoesPage() {
   };
 
   const getStatusBadge = (status: string) => {
-    switch(status) {
-      case "approved": return <Badge className="bg-success/10 text-success border-success/20">Aprovada</Badge>;
-      case "rejected": return <Badge variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20">Rejeitada</Badge>;
-      case "pending": return <Badge variant="outline" className="text-warning border-warning/50 bg-warning/10">Pendente</Badge>;
-      default: return <Badge variant="secondary">{status}</Badge>;
+    switch (status) {
+      case "approved":
+        return <Badge className="bg-success/10 text-success border-success/20">Aprovada</Badge>;
+      case "rejected":
+        return (
+          <Badge
+            variant="destructive"
+            className="bg-destructive/10 text-destructive border-destructive/20"
+          >
+            Rejeitada
+          </Badge>
+        );
+      case "pending":
+        return (
+          <Badge variant="outline" className="text-warning border-warning/50 bg-warning/10">
+            Pendente
+          </Badge>
+        );
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
     }
   };
 
   return (
     <div className="flex flex-col h-full bg-background">
-      <PageHeader
-        title="Moderação de Avaliações"
-      />
+      <PageHeader title="Moderação de Avaliações" />
 
       <div className="flex-1 p-6">
         <div className="space-y-6">
           <div className="flex gap-2">
-            <Button 
-              variant={filterStatus === "all" ? "default" : "outline"} 
+            <Button
+              variant={filterStatus === "all" ? "default" : "outline"}
               size="sm"
               onClick={() => setFilterStatus("all")}
             >
               Todas
             </Button>
-            <Button 
-              variant={filterStatus === "pending" ? "default" : "outline"} 
+            <Button
+              variant={filterStatus === "pending" ? "default" : "outline"}
               size="sm"
               onClick={() => setFilterStatus("pending")}
             >
               <Clock className="size-4 mr-2" />
               Pendentes
             </Button>
-            <Button 
-              variant={filterStatus === "approved" ? "default" : "outline"} 
+            <Button
+              variant={filterStatus === "approved" ? "default" : "outline"}
               size="sm"
               onClick={() => setFilterStatus("approved")}
             >
               <CheckCircle className="size-4 mr-2" />
               Aprovadas
             </Button>
-            <Button 
-              variant={filterStatus === "rejected" ? "default" : "outline"} 
+            <Button
+              variant={filterStatus === "rejected" ? "default" : "outline"}
               size="sm"
               onClick={() => setFilterStatus("rejected")}
             >
@@ -125,24 +140,24 @@ function CmsAvaliacoesPage() {
                       <TableCell>
                         <div className="flex text-warning">
                           {Array.from({ length: 5 }).map((_, i) => (
-                            <Star 
-                              key={i} 
-                              className={`size-4 ${i < review.rating ? "fill-current" : "text-muted-foreground/30"}`} 
+                            <Star
+                              key={i}
+                              className={`size-4 ${i < review.rating ? "fill-current" : "text-muted-foreground/30"}`}
                             />
                           ))}
                         </div>
                       </TableCell>
                       <TableCell className="max-w-[300px] truncate">
-                        {review.comment || <span className="text-muted-foreground italic">Sem comentário</span>}
+                        {review.comment || (
+                          <span className="text-muted-foreground italic">Sem comentário</span>
+                        )}
                       </TableCell>
-                      <TableCell>
-                        {getStatusBadge(review.status)}
-                      </TableCell>
+                      <TableCell>{getStatusBadge(review.status)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           {review.status !== "approved" && (
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               size="sm"
                               className="text-success border-success/20 hover:bg-success/10"
                               onClick={() => handleUpdateStatus(review.id, "approved")}
@@ -151,8 +166,8 @@ function CmsAvaliacoesPage() {
                             </Button>
                           )}
                           {review.status !== "rejected" && (
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               size="sm"
                               className="text-destructive border-destructive/20 hover:bg-destructive/10"
                               onClick={() => handleUpdateStatus(review.id, "rejected")}

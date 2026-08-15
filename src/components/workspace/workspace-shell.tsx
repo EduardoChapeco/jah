@@ -1,160 +1,265 @@
-import { type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   Package,
   Tags,
+  Tag,
   Store,
   LayoutDashboard,
-  LogOut,
   Settings,
-  Menu,
   Calendar,
   Users,
-  Briefcase,
   ShoppingBag,
   UserCircle,
   Truck,
   Boxes,
-  MapPin,
   Banknote,
   FileText,
   LayoutTemplate,
-  Star,
   Link2,
-  Image as ImageIcon
+  Image as ImageIcon,
+  ChevronDown,
+  ChevronRight,
+  ClipboardList,
+  ShieldAlert,
+  Sparkles,
+  Megaphone,
+  Flame,
 } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 import { signOut } from "@/services/auth.functions";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Logo } from "@/components/commerce/logo";
+import {
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { GlobalRail } from "@/components/shell/global-rail";
+import { UtilityCluster } from "@/components/shell/utility-cluster";
 
-const WORKSPACE_NAV = [
-  { path: "/workspace", label: "Dashboard", icon: LayoutDashboard },
-  { path: "/workspace/pdv", label: "Frente de Caixa", icon: Store },
-  { path: "/workspace/pedidos", label: "Pedidos", icon: ShoppingBag },
-  { path: "/workspace/pedidos/trocas", label: "Trocas", icon: ShoppingBag },
-  { path: "/workspace/pedidos/frota", label: "Frota", icon: Truck },
-  { path: "/workspace/clientes", label: "Clientes", icon: UserCircle },
-  { path: "/workspace/agenda", label: "Agenda", icon: Calendar },
-  { path: "/workspace/agenda/recursos", label: "Recursos", icon: Users },
-  { path: "/workspace/agenda/servicos", label: "Serviços", icon: Briefcase },
-  { path: "/workspace/catalogo/produtos", label: "Produtos", icon: Package },
-  { path: "/workspace/catalogo/categorias", label: "Categorias", icon: Tags },
-  { path: "/workspace/catalogo/colecoes", label: "Coleções", icon: Package },
-  { path: "/workspace/estoque", label: "Estoque", icon: Boxes },
-  { path: "/workspace/financeiro/caixa", label: "Caixa", icon: Banknote },
-  { path: "/workspace/mural/novo", label: "Novo Post", icon: LayoutDashboard },
-  { path: "/workspace/cms/paginas", label: "Páginas", icon: FileText },
-  { path: "/workspace/cms/navegacao", label: "Navegação", icon: LayoutTemplate },
-  { path: "/workspace/cms/stories", label: "Stories", icon: ImageIcon },
-  { path: "/workspace/cms/bio", label: "Link-in-Bio", icon: Link2 },
-  { path: "/workspace/cms/avaliacoes", label: "Avaliações", icon: Star },
-  { path: "/workspace/configuracoes/fretes", label: "Fretes", icon: MapPin },
-  { path: "/workspace/configuracoes/loja", label: "Configurações", icon: Settings },
+type NavItem = {
+  path: string;
+  label: string;
+  icon?: any;
+};
+
+type NavGroup = {
+  id: string;
+  label: string;
+  icon: any;
+  items: NavItem[];
+};
+
+const WORKSPACE_MODULES: NavGroup[] = [
+  {
+    id: "overview",
+    label: "Geral",
+    icon: LayoutDashboard,
+    items: [
+      { path: "/workspace", label: "Visão Geral", icon: LayoutDashboard },
+      { path: "/workspace/simulacao", label: "SimLab (Enxame IA)", icon: Sparkles },
+    ],
+  },
+
+  {
+    id: "catalog",
+    label: "Catálogo",
+    icon: Package,
+    items: [
+      { path: "/workspace/catalogo/produtos", label: "Produtos", icon: Package },
+      { path: "/workspace/catalogo/categorias", label: "Categorias", icon: Tags },
+      { path: "/workspace/catalogo/atributos", label: "Atributos", icon: Boxes },
+      { path: "/workspace/estoque", label: "Estoque", icon: Boxes },
+    ],
+  },
+  {
+    id: "sales",
+    label: "Vendas & Logística",
+    icon: ShoppingBag,
+    items: [
+      { path: "/workspace/pedidos", label: "Todos os Pedidos", icon: ShoppingBag },
+      { path: "/workspace/pedidos/gestor", label: "Gestor (Kanban)", icon: ClipboardList },
+      { path: "/workspace/pedidos/frota", label: "Frota & Despacho", icon: Truck },
+      { path: "/workspace/pdv", label: "PDV (Frente de Caixa)", icon: Store },
+      { path: "/workspace/clientes", label: "Clientes / CRM", icon: Users },
+      { path: "/workspace/orcamentos", label: "Orçamentos", icon: FileText },
+    ],
+  },
+  {
+    id: "marketing",
+    label: "Marketing & Descoberta",
+    icon: Megaphone,
+    items: [
+      { path: "/workspace/marketing/promocoes", label: "Promoções & Ofertas", icon: Flame },
+      { path: "/workspace/marketing/anuncios", label: "Campanhas (Ads)", icon: Megaphone },
+      { path: "/workspace/marketing/gift-cards", label: "Gift Cards", icon: Tag },
+    ],
+  },
+  {
+    id: "financial",
+    label: "Financeiro",
+    icon: Banknote,
+    items: [{ path: "/workspace/financeiro/caixa", label: "Caixa", icon: Banknote }],
+  },
+  {
+    id: "cultural",
+    label: "Cultural & CMS",
+    icon: Calendar,
+    items: [
+      { path: "/workspace/cms/calendario", label: "Calendário Editorial", icon: Calendar },
+      { path: "/workspace/cms/stories", label: "Stories", icon: ImageIcon },
+      { path: "/workspace/cms/bio", label: "Bio Link", icon: Link2 },
+      { path: "/workspace/estudio", label: "Estúdio / Builder", icon: LayoutTemplate },
+      { path: "/workspace/moderacao", label: "Moderação", icon: ShieldAlert },
+    ],
+  },
+  {
+    id: "settings",
+    label: "Configurações",
+    icon: Settings,
+    items: [
+      { path: "/workspace/configuracoes/integracoes", label: "Integrações", icon: Link2 },
+      { path: "/workspace/configuracoes/fretes/cotacoes", label: "Fretes", icon: Truck },
+    ],
+  },
 ];
 
-export function WorkspaceShell({ session, children }: { session: any; children: ReactNode }) {
+export function WorkspaceShell({ children, session }: { children: ReactNode; session?: any }) {
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
 
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = { overview: true };
+    for (const group of WORKSPACE_MODULES) {
+      if (group.items.some((item) => currentPath.startsWith(item.path))) {
+        initial[group.id] = true;
+      }
+    }
+    return initial;
+  });
+
+  const toggleGroup = (groupId: string) => {
+    setExpandedGroups((prev) => ({
+      ...prev,
+      [groupId]: !prev[groupId],
+    }));
+  };
+
   const handleLogout = async () => {
-    await signOut();
-    window.location.href = "/";
+    try {
+      await signOut();
+      window.location.href = "/entrar";
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const NavLinks = () => (
-    <div className="space-y-1">
-      {WORKSPACE_NAV.map((item) => {
-        const isActive = currentPath === item.path || currentPath.startsWith(`${item.path}/`);
-        const Icon = item.icon;
+    <div className="flex flex-col space-y-1 select-none">
+      {WORKSPACE_MODULES.map((group) => {
+        const isGroupActive = group.items.some((item) =>
+          item.path === "/workspace"
+            ? currentPath === "/workspace"
+            : currentPath.startsWith(item.path),
+        );
+        const isExpanded = expandedGroups[group.id] ?? isGroupActive;
+        const Icon = group.icon;
 
         return (
-          <Link
-            key={item.path}
-            to={item.path}
-            className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-              isActive
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground",
+          <div key={group.id} className="space-y-0.5">
+            <button
+              onClick={() => toggleGroup(group.id)}
+              className={cn(
+                "flex w-full items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-bold transition-colors",
+                isGroupActive
+                  ? "text-primary bg-primary/5"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/60",
+              )}
+            >
+              <div className="flex items-center gap-2">
+                <Icon className="size-4 shrink-0 text-muted-foreground" />
+                <span>{group.label}</span>
+              </div>
+              {isExpanded ? (
+                <ChevronDown className="size-3 text-muted-foreground" />
+              ) : (
+                <ChevronRight className="size-3 text-muted-foreground" />
+              )}
+            </button>
+
+            {isExpanded && (
+              <div className="ml-3 pl-2.5 border-l border-border/60 space-y-0.5 pt-0.5">
+                {group.items.map((item) => {
+                  const isItemActive =
+                    item.path === "/workspace"
+                      ? currentPath === "/workspace"
+                      : currentPath.startsWith(item.path);
+
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={cn(
+                        "flex items-center px-2.5 py-1.5 rounded-xl text-xs font-medium transition-colors",
+                        isItemActive
+                          ? "bg-primary text-primary-foreground font-bold shadow-xs"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/70",
+                      )}
+                    >
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
             )}
-          >
-            <Icon className="size-4" />
-            {item.label}
-          </Link>
+          </div>
         );
       })}
     </div>
   );
 
   return (
-    <div className="grid min-h-screen w-full md:grid-cols-[240px_1fr] bg-muted/20">
-      {/* Sidebar Desktop */}
-      <div className="hidden md:flex flex-col gap-2 border-r border-border bg-card">
-        <div className="flex h-14 items-center border-b border-border px-4 lg:h-[60px] lg:px-6">
-          <Link to="/" className="flex items-center gap-2 font-semibold">
-            <Store className="size-6 text-primary" />
-            <span className="tracking-tight">Workspace</span>
-          </Link>
+    <div className="flex min-h-screen bg-background text-foreground selection:bg-primary selection:text-primary-foreground font-sans relative">
+      <GlobalRail session={session} />
+
+      <aside className="hidden lg:flex flex-col w-[240px] shrink-0 h-screen sticky top-0 border-r border-border/70 bg-background py-5 px-3 justify-between select-none">
+        <div className="space-y-4">
+          <div className="px-2 space-y-0.5">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary">
+              Workspace
+            </span>
+            <h2 className="text-sm font-bold text-foreground">Gestão Operacional</h2>
+          </div>
+
+          <ScrollArea className="h-[calc(100vh-140px)] pr-2">
+            <NavLinks />
+          </ScrollArea>
         </div>
 
-        <ScrollArea className="flex-1 px-4 py-4">
-          <nav className="grid items-start gap-2">
-            <NavLinks />
-          </nav>
-        </ScrollArea>
-
-        <div className="mt-auto p-4 border-t border-border">
+        <div className="pt-3 border-t border-border/60">
           <Button
+            asChild
             variant="ghost"
-            className="w-full justify-start text-muted-foreground"
-            onClick={handleLogout}
+            size="sm"
+            className="w-full justify-start text-xs font-semibold text-muted-foreground hover:text-foreground rounded-xl"
           >
-            <LogOut className="size-4 mr-2" />
-            Sair
+            <Link to="/conta">
+              <UserCircle className="size-4 mr-2 text-muted-foreground" />
+              <span>Voltar à Área Pessoal</span>
+            </Link>
           </Button>
         </div>
-      </div>
+      </aside>
 
-      {/* Main Content Area */}
-      <div className="flex flex-col">
-        {/* Header Mobile */}
-        <header className="flex h-14 md:hidden items-center gap-4 border-b border-border bg-card px-4 lg:h-[60px] lg:px-6">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="icon" className="shrink-0 md:hidden">
-                <Menu className="size-5" />
-                <span className="sr-only">Toggle navigation menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="flex flex-col w-[280px]">
-              <div className="flex h-14 items-center border-b px-4 mb-4">
-                <Link to="/" className="flex items-center gap-2 font-semibold">
-                  <Store className="size-5 text-primary" />
-                  <span className="tracking-tight">Workspace</span>
-                </Link>
-              </div>
-              <nav className="grid gap-2">
-                <NavLinks />
-              </nav>
-              <div className="mt-auto">
-                <Button variant="ghost" className="w-full justify-start" onClick={handleLogout}>
-                  <LogOut className="size-4 mr-2" />
-                  Sair
-                </Button>
-              </div>
-            </SheetContent>
-          </Sheet>
-          <div className="flex-1 flex justify-end">
-            {/* Pode-se colocar avatar do usuário logado aqui */}
-          </div>
-        </header>
+      <UtilityCluster session={session} />
 
-        {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">{children}</main>
-      </div>
+      <main className="flex-1 flex flex-col min-w-0 min-h-screen overflow-y-auto px-4 md:px-6 lg:px-8 py-6 w-full pb-20 md:pb-8">
+        {children}
+      </main>
     </div>
   );
 }

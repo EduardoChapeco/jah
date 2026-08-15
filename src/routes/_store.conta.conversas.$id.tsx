@@ -114,7 +114,7 @@ function Page() {
       <div className="flex items-center gap-4 mb-6 border-b border-border pb-4">
         <Button
           variant="ghost"
-          className="rounded-md border border-border bg-white h-10 w-10 p-0 flex items-center justify-center text-foreground"
+          className="rounded-xl border border-border bg-white h-10 w-10 p-0 flex items-center justify-center text-foreground"
           asChild
         >
           <Link to="/conta/suporte" aria-label="Voltar">
@@ -130,7 +130,7 @@ function Page() {
           </p>
         </div>
         <span
-          className={`px-3 py-1 font-black text-sm uppercase tracking-widest border border-border shadow-sm ${isClosed ? "bg-muted/30 text-foreground" : "bg-success text-white"}`}
+          className={`px-3 py-1 font-black text-sm border border-border ${isClosed ? "bg-muted/30 text-foreground" : "bg-success text-white"}`}
         >
           {STATUS_LABELS[thread.status] ?? thread.status}
         </span>
@@ -152,7 +152,7 @@ function Page() {
             className={`flex ${msg.isStaffReply ? "justify-start" : "justify-end"}`}
           >
             <div
-              className={`max-w-[85%] px-5 py-3 border border-border shadow-sm ${msg.isStaffReply ? "bg-background rounded-md rounded-br-2xl text-foreground" : "bg-primary text-primary-foreground rounded-md rounded-bl-2xl"}`}
+              className={`max-w-[85%] px-5 py-3 border border-border ${msg.isStaffReply ? "bg-background rounded-xl rounded-br-2xl text-foreground" : "bg-primary text-primary-foreground rounded-xl rounded-bl-2xl"}`}
             >
               <p className="text-base font-medium leading-relaxed">{msg.message}</p>
               <p
@@ -186,12 +186,12 @@ function Page() {
             onChange={(e) => setText(e.target.value)}
             placeholder="Escreva sua mensagem..."
             disabled={isSending}
-            className="flex-1 h-14 border border-border rounded-md bg-background font-medium focus-visible:ring-0 focus-visible:border-poster-red placeholder:text-foreground/40"
+            className="flex-1 h-14 border border-border rounded-xl bg-background font-medium focus-visible:ring-0 focus-visible:border-poster-red placeholder:text-foreground/40"
           />
           <Button
             type="submit"
             disabled={!text.trim() || isSending}
-            className="h-14 w-14 rounded-md bg-primary text-primary-foreground border border-border p-0 flex items-center justify-center cursor-pointer disabled:opacity-50 disabled:-none"
+            className="h-14 w-14 rounded-xl bg-primary text-primary-foreground border border-border p-0 flex items-center justify-center cursor-pointer disabled:opacity-50 disabled:-none"
             aria-label="Enviar"
           >
             <Send className="size-6" aria-hidden />

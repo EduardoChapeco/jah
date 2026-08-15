@@ -339,7 +339,9 @@ export const rejectPayment = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[payment] rejectPayment error:", e);
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao rejeitar comprovante.");
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao rejeitar comprovante.",
+      );
     }
   });
 
@@ -364,7 +366,9 @@ export const listPendingManualPayments = createServerFn({ method: "GET" }).handl
     return data || [];
   } catch (e: unknown) {
     console.error("[payment] listPendingManualPayments error:", e);
-    throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao buscar comprovantes pendentes.");
+    throw new Error(
+      (e instanceof Error ? e.message : String(e)) || "Erro ao buscar comprovantes pendentes.",
+    );
   }
 });
 
@@ -480,7 +484,9 @@ export const uploadPaymentReceipt = createServerFn({ method: "POST" })
         return { status: "success" as const };
       } catch (e: unknown) {
         console.error("[payment] uploadPaymentReceipt error:", e);
-        throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao enviar comprovante.");
+        throw new Error(
+          (e instanceof Error ? e.message : String(e)) || "Erro ao enviar comprovante.",
+        );
       }
     },
   );
@@ -527,7 +533,9 @@ export const listManualPaymentMethods = createServerFn({ method: "GET" }).handle
     return data || [];
   } catch (e: unknown) {
     console.error("[payment] listManualPaymentMethods error:", e);
-    throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao listar métodos de pagamento manual.");
+    throw new Error(
+      (e instanceof Error ? e.message : String(e)) || "Erro ao listar métodos de pagamento manual.",
+    );
   }
 });
 
@@ -564,7 +572,9 @@ export const saveManualPaymentMethod = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: unknown) {
       console.error("[payment] saveManualPaymentMethod error:", e);
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao salvar método de pagamento.");
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao salvar método de pagamento.",
+      );
     }
   });
 
@@ -585,7 +595,9 @@ export const deleteManualPaymentMethod = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: unknown) {
       console.error("[payment] deleteManualPaymentMethod error:", e);
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao excluir método de pagamento.");
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao excluir método de pagamento.",
+      );
     }
   });
 
@@ -611,7 +623,10 @@ export const getPublicPaymentMethods = createServerFn({ method: "GET" })
       return data || [];
     } catch (e: unknown) {
       console.error("[payment] getPublicPaymentMethods error:", e);
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao obter métodos de pagamento públicos.");
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) ||
+          "Erro ao obter métodos de pagamento públicos.",
+      );
     }
   });
 

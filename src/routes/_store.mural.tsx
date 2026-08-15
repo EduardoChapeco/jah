@@ -1,16 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { Loader2, AlertCircle, ChevronDown, MessageSquare, PenTool } from "lucide-react";
+import { Loader2, AlertCircle, ChevronDown, MessageSquare, PenSquare } from "lucide-react";
 
-import { PageHeader } from "@/components/commerce/page-header";
-import { Surface } from "@/components/ui/surface";
 import { Button } from "@/components/ui/button";
 import { PostCard } from "@/components/community/post-card";
 import { getMuralFeed, type MuralFeedItem } from "@/services/social.functions";
 
 export const Route = createFileRoute("/_store/mural")({
-  head: () => ({ meta: [{ title: "Mural — JAH Comunidade" }] }),
-  // SSR loader: primeira página vem do servidor para que o Google indexe conteúdo real
+  head: () => ({ meta: [{ title: "Mural — JAH" }] }),
   loader: async () => {
     const firstPage = await getMuralFeed({ data: { limit: 18 } });
     return { firstPage };
@@ -26,7 +23,6 @@ function MuralPage() {
       queryFn: ({ pageParam }) =>
         getMuralFeed({ data: { limit: 18, cursor: pageParam as string | undefined } }),
       initialPageParam: undefined as string | undefined,
-      // Popula a primeira página com os dados do loader SSR (sem segunda fetch)
       initialData: firstPage ? { pages: [firstPage], pageParams: [undefined] } : undefined,
       getNextPageParam: (lastPage) =>
         lastPage.hasMore ? (lastPage.nextCursor ?? undefined) : undefined,
@@ -36,88 +32,69 @@ function MuralPage() {
   const allItems = data?.pages.flatMap((p) => p.items) ?? [];
 
   return (
-    <div className="container max-w-2xl mx-auto px-4 md:px-8 py-12 md:py-20 space-y-10">
-      <PageHeader
-        eyebrow="Comunidade"
-        title="Mural"
-        actions={
-          <Button
-            asChild
-            className="bg-primary text-primary-foreground rounded-md font-bold font-mono tracking-wider shadow-sm"
-          >
-            <Link to="/workspace/mural/novo">
-              <PenTool className="size-4 mr-2" />
-              Novo Post
-            </Link>
-          </Button>
-        }
-      />
+    <div className="w-full max-w-2xl mx-auto px-4 pb-24">
+      {/* Barra de ação compacta — sem título editorial */}
+      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border py-3 flex items-center justify-between mb-6">
+        <span className="text-sm font-medium text-muted-foreground">Feed</span>
+        <Button size="sm" variant="default" onClick={() => alert("Modal de publicação em breve")}>
+          <PenSquare className="size-4 mr-2" />
+          Publicar
+        </Button>
+      </div>
 
       {/* Loading */}
       {isLoading && (
-        <div className="flex justify-center py-20">
-          <Loader2 className="size-10 animate-spin text-foreground/30" />
+        <div className="flex justify-center py-16">
+          <Loader2 className="size-8 animate-spin text-muted-foreground/40" />
         </div>
       )}
 
-      {/* Erro */}
+      {/* Erro real — não converte em empty state */}
       {isError && (
-        <Surface variant="default" padding="lg" className="flex items-center gap-4 text-primary">
-          <AlertCircle className="size-8 shrink-0" />
+        <div className="flex items-center gap-3 p-4 rounded-lg border border-destructive/30 bg-destructive/5 text-destructive text-sm">
+          <AlertCircle className="size-5 shrink-0" />
           <div>
-            <p className="font-display text-xl uppercase font-bold">Erro ao carregar o Mural</p>
-            <p className="font-sans text-muted-foreground text-sm text-foreground/70">
-              Tente novamente em instantes.
+            <p className="font-medium">Não foi possível carregar o feed.</p>
+            <p className="text-muted-foreground text-xs mt-0.5">
+              Verifique sua conexão e tente novamente.
             </p>
           </div>
-        </Surface>
+        </div>
       )}
 
-      {/* Vazio */}
+      {/* Empty state simples — sem cartaz, sem retórica */}
       {!isLoading && !isError && allItems.length === 0 && (
-        <div className="relative rotate-1 transition-all duration-300">
-          <Surface
-            variant="default"
-            padding="lg"
-            className="text-center py-20 flex flex-col items-center justify-center"
-          >
-            <div className="size-20 rounded-full border border-border border-dashed flex items-center justify-center mb-6">
-              <MessageSquare className="size-10 text-foreground/30" />
-            </div>
-            <h2 className="font-display text-4xl uppercase tracking-tighter mb-3">Muro Limpo</h2>
-            <p className="font-sans text-muted-foreground text-foreground/70 max-w-md mx-auto mb-6">
-              O feed está vazio. Seja o primeiro a publicar algo interessante!
-            </p>
-            <Button
-              asChild
-              variant="default"
-              className="bg-primary text-primary-foreground border border-border shadow-sm"
-            >
-              <Link to="/workspace/mural/novo">Criar Publicação</Link>
-            </Button>
-          </Surface>
+        <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
+          <div className="size-12 rounded-full bg-muted flex items-center justify-center">
+            <MessageSquare className="size-6 text-muted-foreground" />
+          </div>
+          <p className="text-sm text-muted-foreground">Nenhuma publicação ainda.</p>
+          <Button size="sm" variant="outline" onClick={() => alert("Modal de publicação em breve")}>
+            Criar primeira publicação
+          </Button>
         </div>
       )}
 
       {/* Feed */}
       {!isLoading && !isError && allItems.length > 0 && (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {allItems.map((item: MuralFeedItem) => (
             <PostCard key={item.id} item={item} queryKey={["mural-feed"]} />
           ))}
 
           {hasNextPage && (
-            <div className="flex justify-center pt-8 pb-10">
+            <div className="flex justify-center pt-6">
               <Button
-                variant="outline"
+                variant="ghost"
+                size="sm"
                 onClick={() => fetchNextPage()}
                 disabled={isFetchingNextPage}
-                className="border border-border font-mono uppercase text-xs tracking-wider"
+                className="text-muted-foreground text-xs"
               >
                 {isFetchingNextPage ? (
-                  <Loader2 className="size-4 animate-spin mr-2" />
+                  <Loader2 className="size-3 animate-spin mr-2" />
                 ) : (
-                  <ChevronDown className="size-4 mr-2" />
+                  <ChevronDown className="size-3 mr-2" />
                 )}
                 Carregar mais
               </Button>

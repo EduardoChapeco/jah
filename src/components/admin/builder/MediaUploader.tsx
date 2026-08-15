@@ -80,7 +80,13 @@ export function MediaUploader({
       };
       reader.readAsDataURL(file);
     } catch (error: unknown) {
-      toast.error((error instanceof Error ? (error instanceof Error ? error.message : String(error)) : String(error)) || "Erro ao iniciar upload");
+      toast.error(
+        (error instanceof Error
+          ? error instanceof Error
+            ? error.message
+            : String(error)
+          : String(error)) || "Erro ao iniciar upload",
+      );
       setIsUploading(false);
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -109,7 +115,13 @@ export function MediaUploader({
       onChange(res.url);
       toast.success("Imagem enviada com sucesso");
     } catch (error: unknown) {
-      toast.error((error instanceof Error ? (error instanceof Error ? error.message : String(error)) : String(error)) || "Erro ao fazer upload da imagem");
+      toast.error(
+        (error instanceof Error
+          ? error instanceof Error
+            ? error.message
+            : String(error)
+          : String(error)) || "Erro ao fazer upload da imagem",
+      );
     } finally {
       setIsUploading(false);
     }
@@ -122,7 +134,7 @@ export function MediaUploader({
       {label && <label className="text-xs font-medium">{label}</label>}
 
       {value ? (
-        <div className="relative rounded-md overflow-hidden border group p-2 bg-[linear-gradient(45deg,#e2e8f0_25%,transparent_25%),linear-gradient(-45deg,#e2e8f0_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e2e8f0_75%),linear-gradient(-45deg,transparent_75%,#e2e8f0_75%)] bg-[length:16px_16px] bg-[position:0_0,0_8px,8px_-8px,-8px_0px] bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+        <div className="relative rounded-xl overflow-hidden border border-border group p-2 bg-[linear-gradient(45deg,#e2e8f0_25%,transparent_25%),linear-gradient(-45deg,#e2e8f0_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e2e8f0_75%),linear-gradient(-45deg,transparent_75%,#e2e8f0_75%)] bg-[length:16px_16px] bg-[position:0_0,0_8px,8px_-8px,-8px_0px] bg-muted/30 flex items-center justify-center">
           {isVideo ? (
             <video src={value} className="w-full h-32 object-cover" muted />
           ) : (
@@ -145,7 +157,7 @@ export function MediaUploader({
         </div>
       ) : (
         <div
-          className="h-32 rounded-md border border-dashed flex flex-col items-center justify-center gap-2 text-muted-foreground bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+          className="h-32 rounded-xl border border-dashed flex flex-col items-center justify-center gap-2 text-muted-foreground bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
           onClick={() => fileInputRef.current?.click()}
         >
           {isUploading ? (

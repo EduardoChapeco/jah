@@ -74,7 +74,7 @@ export function ImageCropperDialog({
         {imageSrc ? (
           <div className="space-y-4 pt-2">
             {/* Checkerboard pattern background for transparency preview */}
-            <div className="relative w-full h-[360px] overflow-hidden border border-border bg-[linear-gradient(45deg,#e2e8f0_25%,transparent_25%),linear-gradient(-45deg,#e2e8f0_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e2e8f0_75%),linear-gradient(-45deg,transparent_75%,#e2e8f0_75%)] bg-[length:20px_20px] bg-[position:0_0,0_10px,10px_-10px,-10px_0px] bg-slate-100 dark:bg-slate-900">
+            <div className="relative w-full h-[360px] overflow-hidden border border-border rounded-xl bg-[linear-gradient(45deg,#e2e8f0_25%,transparent_25%),linear-gradient(-45deg,#e2e8f0_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e2e8f0_75%),linear-gradient(-45deg,transparent_75%,#e2e8f0_75%)] bg-[length:20px_20px] bg-[position:0_0,0_10px,10px_-10px,-10px_0px] bg-muted/30">
               <Cropper
                 image={imageSrc}
                 crop={crop}
@@ -86,7 +86,7 @@ export function ImageCropperDialog({
                 style={{
                   containerStyle: { background: "transparent" },
                   cropAreaStyle: {
-                    border: "2px solid #FF4FB8",
+                    border: "2px solid var(--color-primary)",
                     boxShadow: "0 0 0 9999px rgba(0,0,0,0.5)",
                   },
                 }}

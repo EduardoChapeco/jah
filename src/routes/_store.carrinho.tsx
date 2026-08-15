@@ -51,14 +51,17 @@ function StoreCartPage() {
       await updateCartItemQty({ data: { variantId, delta } });
       router.invalidate();
     } catch (e: unknown) {
-      toast.error((e instanceof Error ? e.message : String(e)) || "Estoque insuficiente ou erro de validação.");
+      toast.error(
+        (e instanceof Error ? e.message : String(e)) ||
+          "Estoque insuficiente ou erro de validação.",
+      );
     }
   };
 
   const selectedCart = carts?.find((c: any) => c.storeId === selectedStoreId);
 
   return (
-    <div className="container max-w-6xl py-12 mx-auto px-4">
+    <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
       <h1 className="text-3xl font-sans text-muted-foreground font-bold tracking-tight mb-8">
         Meu Carrinho
       </h1>
@@ -83,7 +86,7 @@ function StoreCartPage() {
                   <div className="flex items-center gap-3">
                     <div
                       className={cn(
-                        "flex size-6 items-center justify-center rounded-full border shadow-sm transition-colors",
+                        "flex size-6 items-center justify-center rounded-full border transition-colors",
                         selectedStoreId === cart.storeId
                           ? "bg-primary border-primary text-primary-foreground"
                           : "border-muted-foreground/30 text-transparent group-hover:border-primary/50",
@@ -98,7 +101,7 @@ function StoreCartPage() {
                 <div className={cn("space-y-6", selectedStoreId !== cart.storeId && "opacity-60")}>
                   {cart.items.map((item: any) => (
                     <div key={item.id} className="flex gap-6 py-6 border-b last:border-0">
-                      <div className="h-32 w-24 flex-shrink-0 overflow-hidden rounded-md border border-muted bg-muted">
+                      <div className="h-32 w-24 flex-shrink-0 overflow-hidden rounded-xl border border-muted bg-muted">
                         {item.coverUrl ? (
                           <img
                             src={item.coverUrl}
@@ -112,21 +115,21 @@ function StoreCartPage() {
                       <div className="flex flex-1 flex-col justify-between">
                         <div className="flex justify-between">
                           <div>
-                            <h3
-                              className={cn(
-                                "font-semibold text-base",
-                                item.isOutOfStock && "text-destructive line-through",
-                              )}
-                            >
-                              {item.productTitle}
-                            </h3>
+                            <h3 className={cn("font-semibold text-base")}>{item.productTitle}</h3>
                             <p className="text-sm text-muted-foreground mt-1">
                               {Object.entries(item.variantAttributes || {}).length > 0
                                 ? Object.entries(item.variantAttributes || {})
                                     .map(([k, v]) => `${k}: ${v}`)
-                                    .join(" | ")
+                                    .join(" |")
                                 : "Padrão"}
                             </p>
+                            {item.selectedOptionsLabels &&
+                              item.selectedOptionsLabels.length > 0 && (
+                                <p className="text-xs text-muted-foreground mt-0.5 font-medium flex items-center gap-1 flex-wrap">
+                                  <span className="opacity-60">+</span>
+                                  {item.selectedOptionsLabels.join(",")}
+                                </p>
+                              )}
                             {item.isOutOfStock && (
                               <p className="text-xs font-bold text-destructive mt-1 bg-destructive/10 inline-block px-2 py-0.5 rounded-full">
                                 Sem estoque disponível
@@ -143,7 +146,7 @@ function StoreCartPage() {
                           </p>
                         </div>
                         <div className="flex items-center justify-between mt-4">
-                          <div className="flex items-center border rounded-md">
+                          <div className="flex items-center border rounded-xl">
                             <Button
                               variant="ghost"
                               size="icon"

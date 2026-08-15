@@ -96,7 +96,7 @@ function CustomerDetailPage() {
     resolver: zodResolver(CrmSchema),
     defaultValues: {
       notes: data.crm.notes || "",
-      tags: data.crm.tags ? data.crm.tags.join(", ") : "",
+      tags: data.crm.tags ? data.crm.tags.join(",") : "",
     },
   });
 
@@ -118,7 +118,9 @@ function CustomerDetailPage() {
       toast.success("Ficha do cliente atualizada.");
       router.invalidate();
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? (e instanceof Error ? e.message : String(e)) : "Erro ao salvar");
+      toast.error(
+        e instanceof Error ? (e instanceof Error ? e.message : String(e)) : "Erro ao salvar",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -250,11 +252,11 @@ function CustomerDetailPage() {
         </Link>
       </nav>
 
-      {/* Identidade Resumida */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 py-2">
+      {/* Identidade Resumida & LTV */}
+      <div className="squircle-soft border border-border bg-card p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
         <div className="flex items-center gap-4">
-          <div className="size-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
-            <User className="size-6" />
+          <div className="size-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-bold text-xl">
+            {data.profile.name.charAt(0).toUpperCase()}
           </div>
           <div className="space-y-1">
             <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
@@ -262,7 +264,7 @@ function CustomerDetailPage() {
               {data.profile.isConsentLgpd && (
                 <Badge
                   variant="outline"
-                  className="text-[10px] text-emerald-600 border-emerald-600 bg-emerald-50/50 hover:bg-emerald-50/50 h-5 px-1.5"
+                  className="text-[10px] text-emerald-600 border-emerald-500/40 bg-emerald-500/10 h-5 px-1.5"
                 >
                   LGPD Consentido
                 </Badge>
@@ -273,24 +275,121 @@ function CustomerDetailPage() {
                 <FileText className="size-3.5" /> {data.profile.taxId || "CPF/CNPJ não informado"}
               </span>
               <span>•</span>
-              <span>Cadastro em {formatDate(data.profile.joinedAt)}</span>
+              <span>Cliente desde {formatDate(data.profile.joinedAt)}</span>
             </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-6 border-t sm:border-t-0 sm:border-l border-border pt-3 sm:pt-0 sm:pl-6">
+          <div>
+            <span className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">
+              LTV Total
+            </span>
+            <p className="text-xl font-bold text-primary">
+              {formatMoney((data as any).totalLtvCents || 0)}
+            </p>
+          </div>
+          <div>
+            <span className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">
+              Pedidos
+            </span>
+            <p className="text-xl font-bold text-foreground">{data.orders.length}</p>
           </div>
         </div>
       </div>
 
-      <Tabs defaultValue="crm" className="w-full">
-        <TabsList className="grid grid-cols-3 max-w-md mb-6 h-9">
-          <TabsTrigger value="crm" className="text-xs">
+      <Tabs defaultValue="timeline" className="w-full">
+        <TabsList className="grid grid-cols-5 max-w-2xl mb-6 h-10 p-1 bg-muted rounded-xl">
+          <TabsTrigger value="timeline" className="text-xs font-bold rounded-lg">
+            Timeline 360
+          </TabsTrigger>
+          <TabsTrigger value="crm" className="text-xs font-bold rounded-lg">
             Ficha CRM
           </TabsTrigger>
-          <TabsTrigger value="enderecos" className="text-xs">
-            Endereços ({data.addresses.length})
-          </TabsTrigger>
-          <TabsTrigger value="pedidos" className="text-xs">
+          <TabsTrigger value="pedidos" className="text-xs font-bold rounded-lg">
             Pedidos ({data.orders.length})
           </TabsTrigger>
+          <TabsTrigger value="orcamentos" className="text-xs font-bold rounded-lg">
+            Orçamentos ({(data as any).quotations?.length || 0})
+          </TabsTrigger>
+          <TabsTrigger value="enderecos" className="text-xs font-bold rounded-lg">
+            Endereços ({data.addresses.length})
+          </TabsTrigger>
         </TabsList>
+
+        {/* Tab 1: Timeline 360 */}
+        <TabsContent value="timeline" className="space-y-4">
+          <div className="squircle-soft border border-border bg-card p-6 shadow-xs">
+            <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+              <Sparkles className="size-4 text-primary" />
+              Linha do Tempo de Interações (Timeline 360)
+            </h3>
+
+            {!(data as any).timeline || (data as any).timeline.length === 0 ? (
+              <p className="text-xs text-muted-foreground text-center py-8">
+                Nenhuma interação registrada ainda para este cliente.
+              </p>
+            ) : (
+              <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-border">
+                {(data as any).timeline.map((event: any) => (
+                  <div key={event.id} className="relative flex items-start gap-4">
+                    <div className="absolute -left-6 top-1 size-3 rounded-full bg-primary ring-4 ring-card" />
+                    <div className="flex-1 bg-background border border-border/80 rounded-xl p-3.5 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-bold text-foreground">{event.title}</p>
+                        <span className="text-[10px] text-muted-foreground">
+                          {formatDate(event.timestamp)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{event.description}</p>
+                      <Badge variant="outline" className="text-[10px] rounded-full uppercase mt-1">
+                        {event.status}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
+        {/* Tab: Orçamentos */}
+        <TabsContent value="orcamentos" className="space-y-4">
+          <div className="squircle-soft border border-border bg-card p-6 shadow-xs space-y-4">
+            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+              <FileText className="size-4 text-primary" />
+              Histórico de Orçamentos
+            </h3>
+            {!(data as any).quotations || (data as any).quotations.length === 0 ? (
+              <p className="text-xs text-muted-foreground text-center py-8">
+                Nenhum orçamento emitido para este cliente.
+              </p>
+            ) : (
+              <div className="divide-y divide-border/60">
+                {(data as any).quotations.map((q: any) => (
+                  <div key={q.id} className="py-3 flex items-center justify-between text-xs">
+                    <div>
+                      <p className="font-bold text-foreground">
+                        {q.title || `Orçamento #${q.code}`}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {formatDate(q.created_at)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="font-bold text-primary">
+                        {formatMoney(q.total_cents || 0)}
+                      </span>
+                      <Badge variant="outline" className="text-[10px] uppercase">
+                        {q.status}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
 
         <TabsContent value="crm" className="space-y-4">
           <div className="max-w-2xl pt-2">
@@ -301,7 +400,7 @@ function CustomerDetailPage() {
                   name="tags"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                      <FormLabel className="text-xs font-bold text-muted-foreground">
                         Tags (separadas por vírgula)
                       </FormLabel>
                       <FormControl>
@@ -321,7 +420,7 @@ function CustomerDetailPage() {
                   name="notes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                      <FormLabel className="text-xs font-bold text-muted-foreground">
                         Anotações Internas do CRM
                       </FormLabel>
                       <FormControl>
@@ -349,9 +448,7 @@ function CustomerDetailPage() {
         <TabsContent value="enderecos" className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">
-                Endereços Cadastrados
-              </h3>
+              <h3 className="text-sm font-bold text-foreground">Endereços Cadastrados</h3>
               <p className="text-xs text-muted-foreground">
                 Gerencie múltiplos endereços de envio do cliente.
               </p>
@@ -452,8 +549,8 @@ function CustomerDetailPage() {
             ))}
 
             {data.addresses.length === 0 && (
-              <div className="col-span-full border border-dashed border-border p-8 text-center text-xs text-muted-foreground flex flex-col items-center justify-center gap-2">
-                <AlertTriangle className="size-5 text-amber-500" />
+              <div className="col-span-full border border-dashed border-border rounded-xl p-8 text-center text-xs text-muted-foreground flex flex-col items-center justify-center gap-2">
+                <AlertTriangle className="size-5 text-warning" />
                 Nenhum endereço de entrega cadastrado para este cliente.
               </div>
             )}

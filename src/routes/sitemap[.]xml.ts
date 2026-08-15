@@ -52,7 +52,7 @@ export const Route = createFileRoute("/sitemap.xml")({
         const urls = allPaths
           .map(
             (path) =>
-              `  <url>\n    <loc>${BASE_URL}${path}</loc>\n    <changefreq>weekly</changefreq>\n  </url>`,
+              ` <url>\n <loc>${BASE_URL}${path}</loc>\n <changefreq>weekly</changefreq>\n </url>`,
           )
           .join("\n");
 
@@ -64,10 +64,7 @@ export const Route = createFileRoute("/sitemap.xml")({
         ].join("\n");
 
         return new Response(xml, {
-          headers: {
-            "Content-Type": "application/xml",
-            "Cache-Control": "public, max-age=3600",
-          },
+          headers: { "Content-Type": "application/xml", "Cache-Control": "public, max-age=3600" },
         });
       },
     },

@@ -106,7 +106,7 @@ function EditCategoryPage() {
       />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="border border-border bg-card rounded-md shadow-xs p-6 space-y-6">
+        <div className="border border-border bg-card rounded-xl p-6 space-y-6">
           <header className="space-y-1">
             <h2 className="font-bold text-lg">Dados Básicos</h2>
           </header>

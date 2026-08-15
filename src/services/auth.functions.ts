@@ -90,6 +90,8 @@ export const getUserSession = createServerFn({ method: "GET" }).handler(async ()
       id: user.id,
       email: user.email!,
       role: identity.role,
+      store_id: identity.store_id,
+      memberships: identity.memberships,
     };
   } catch {
     return null;

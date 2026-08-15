@@ -86,8 +86,6 @@ import {
   createCategory,
   listProductOptionGroups,
   batchSaveOptionGroups,
-  deleteOptionGroup,
-  deleteOptionValue,
 } from "@/services/admin-catalog.functions";
 import { formatMoney } from "@/lib/money";
 import { adjustStock } from "@/services/stock.functions";
@@ -186,7 +184,7 @@ function EditProductPage() {
                   <div className="absolute top-4 left-4 z-10">
                     <Badge
                       variant={liveStatus === "published" ? "default" : "secondary"}
-                      className="shadow-md bg-background text-foreground"
+                      className="shadow-sm bg-background text-foreground"
                     >
                       {liveStatus === "published"
                         ? "Publicado"
@@ -234,7 +232,7 @@ function EditProductPage() {
               <div className="text-center">
                 <Badge
                   variant="outline"
-                  className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 px-3 py-1 text-xs gap-1.5 font-mono"
+                  className="bg-success/10 text-success border-success/20 px-3 py-1 text-xs gap-1.5 font-mono"
                 >
                   <TrendingUp className="size-3.5" /> Margem Estimada: {profitMarginPercent}%
                 </Badge>
@@ -363,6 +361,7 @@ function GeneralForm({
       height_cm: product.height_cm || "",
       length_cm: product.length_cm || "",
       preparation_time_days: product.preparation_time_days || 0,
+      preparation_time_minutes: (product as any).preparation_time_minutes || "",
       type_id: product.type_id || "none",
       attributes: product.attributes || {},
     },
@@ -428,7 +427,7 @@ function GeneralForm({
         data: {
           id: product.id,
           title: values.title,
-          description: values.description,
+          description: values.description || null,
           brand: values.brand,
           status: values.status,
           price_cents,
@@ -447,6 +446,9 @@ function GeneralForm({
           preparation_time_days: values.preparation_time_days
             ? parseInt(values.preparation_time_days, 10)
             : 0,
+          preparation_time_minutes: values.preparation_time_minutes
+            ? parseInt(values.preparation_time_minutes, 10)
+            : null,
           category_ids: selectedCategory ? [selectedCategory] : [],
           type_id: values.type_id !== "none" ? values.type_id : null,
           attributes: values.attributes,
@@ -786,10 +788,14 @@ function GeneralForm({
               <Input {...register("length_cm")} type="number" step="0.01" placeholder="Ex: 30" />
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Prazo de Preparação (dias)</Label>
               <Input {...register("preparation_time_days")} type="number" placeholder="Ex: 0" />
+            </div>
+            <div className="space-y-2">
+              <Label>Preparo Imediato / Lanches (minutos)</Label>
+              <Input {...register("preparation_time_minutes")} type="number" placeholder="Ex: 25" />
             </div>
             <div className="space-y-2">
               <Label>Origem de Envio</Label>
@@ -903,15 +909,15 @@ function VariantsManager({ product }: { product: any }) {
   return (
     <div className="space-y-6">
       <Accordion type="single" collapsible className="w-full">
-        <AccordionItem value="builder" className="border bg-card px-4">
+        <AccordionItem value="builder" className="border border-border bg-card rounded-xl px-4">
           <AccordionTrigger className="hover:no-underline text-base font-semibold">
             <div className="flex items-center gap-2">
-              <Sparkles className="size-5 text-amber-500" />
+              <Sparkles className="size-5 text-warning" />
               Gerador em Lote (Usar apenas para setup inicial)
             </div>
           </AccordionTrigger>
           <AccordionContent className="pt-4 pb-6">
-            <div className="mb-4 p-3 bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 rounded-md text-sm">
+            <div className="mb-4 p-3 bg-warning/10 text-warning border border-warning/20 rounded-xl text-sm">
               <strong>Atenção:</strong> Usar o gerador recriará a matriz baseada nas opções
               fornecidas. Se você já tem variações com fotos e histórico de vendas, use o botão{" "}
               <strong>"+ Adicionar sub-variação"</strong> diretamente na tabela abaixo para não
@@ -1070,7 +1076,7 @@ function MediaManager({ product }: { product: any }) {
               return (
                 <div
                   key={m.id || idx}
-                  className="relative group border overflow-hidden bg-card shadow-sm flex flex-col justify-between"
+                  className="relative group border overflow-hidden bg-card  flex flex-col justify-between"
                 >
                   <div className="relative aspect-[4/3] bg-muted overflow-hidden flex items-center justify-center">
                     {m.media_type === "video" ? (
@@ -1286,7 +1292,9 @@ function OptionGroupsManager({ productId }: { productId: string }) {
           setGroups(mapped.filter(Boolean));
         }
       })
-      .catch((e) => toast.error("Erro ao carregar opções: " + (e instanceof Error ? e.message : String(e))))
+      .catch((e) =>
+        toast.error("Erro ao carregar opções: " + (e instanceof Error ? e.message : String(e))),
+      )
       .finally(() => setIsLoading(false));
   }, [productId]);
 
@@ -1406,7 +1414,7 @@ function OptionGroupsManager({ productId }: { productId: string }) {
   return (
     <div className="space-y-4">
       {groups.length === 0 ? (
-        <div className="border-dashed border border-border rounded-lg">
+        <div className="border-dashed border border-border rounded-xl">
           <div className="py-10 flex flex-col items-center text-center gap-3">
             <Settings className="size-10 text-muted-foreground/40" />
             <div>
@@ -1427,7 +1435,7 @@ function OptionGroupsManager({ productId }: { productId: string }) {
           {groups.map((group, gIdx) => (
             <div
               key={gIdx}
-              className="border border-border rounded-lg bg-card mb-4 overflow-hidden"
+              className="border border-border rounded-xl bg-card mb-4 overflow-hidden"
             >
               <div className="p-4 border-b">
                 <div className="flex items-start justify-between gap-3">

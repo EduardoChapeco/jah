@@ -87,7 +87,7 @@ function CommissionsPage() {
           {commissions.length === 0 ? (
             <EmptyState title="Sem comissões" />
           ) : (
-            <div className="border border-border bg-card rounded-md shadow-xs overflow-hidden">
+            <div className="border border-border bg-card rounded-xl overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -117,7 +117,7 @@ function CommissionsPage() {
                       </TableCell>
                       <TableCell>
                         {c.status === "paid" ? (
-                          <Badge variant="success">Paga</Badge>
+                          <Badge variant="default">Paga</Badge>
                         ) : c.status === "cancelled" ? (
                           <Badge variant="destructive">Cancelada (Pedido estornado)</Badge>
                         ) : c.amountCents < 0 ? (
@@ -145,7 +145,7 @@ function CommissionsPage() {
         </TabsContent>
 
         <TabsContent value="equipe" className="mt-0">
-          <div className="border border-border bg-card rounded-md shadow-xs overflow-hidden">
+          <div className="border border-border bg-card rounded-xl overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -190,7 +190,8 @@ function CommissionsPage() {
                           </div>
                         ) : (
                           <div className="font-semibold text-lg flex items-center gap-1">
-                            {seller.commission_rate ?? 5}{" "}
+                            {seller.commission_rate ?? 5}
+                            {""}
                             <Percent className="h-4 w-4 text-muted-foreground" />
                           </div>
                         )}

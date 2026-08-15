@@ -53,7 +53,7 @@ function MovementsPage() {
       {movements.length === 0 ? (
         <EmptyState title="Nenhum movimento" />
       ) : (
-        <div className="rounded-md border bg-card overflow-hidden">
+        <div className="rounded-xl border bg-card overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>

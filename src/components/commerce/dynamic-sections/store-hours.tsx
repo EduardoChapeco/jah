@@ -90,14 +90,14 @@ export function StoreHours({
               className={cn(
                 "shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider",
                 storeHours.is_open
-                  ? "bg-emerald-500/15 text-emerald-700"
+                  ? "bg-success/15 text-success"
                   : "bg-destructive/15 text-destructive",
               )}
             >
               <span
                 className={cn(
                   "size-2 rounded-full",
-                  storeHours.is_open ? "bg-emerald-500" : "bg-destructive",
+                  storeHours.is_open ? "bg-success" : "bg-destructive",
                 )}
               />
               {storeHours.status_text}
@@ -105,7 +105,7 @@ export function StoreHours({
           )}
         </div>
 
-        <div className="divide-y divide-border border overflow-hidden">
+        <div className="divide-y divide-border border border-border rounded-xl overflow-hidden">
           {storeHours.hours.map((day) => (
             <div
               key={day.day}

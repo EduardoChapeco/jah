@@ -36,12 +36,12 @@ export function DynamicProductCard({ product }: DynamicProductCardProps) {
       to="/produto/$slug"
       params={{ slug: product.slug }}
       className={cn(
-        "group flex flex-col h-full rounded-lg overflow-hidden border bg-card transition-all duration-300 hover:shadow-md hover:border-border/50 hover:-translate-y-1",
+        "group flex flex-col h-full squircle squircle-hover overflow-hidden border bg-card transition-all duration-300",
         product.isBoosted &&
           "border-warning/50 shadow-glow ring-1 ring-warning/30 bg-warning/5 backdrop-blur-md",
       )}
     >
-      <div className="relative aspect-square w-full overflow-hidden bg-muted/50">
+      <div className="relative aspect-square w-full squircle-media bg-muted/50">
         {product.coverUrl ? (
           <img
             src={product.coverUrl}
@@ -62,17 +62,17 @@ export function DynamicProductCard({ product }: DynamicProductCardProps) {
         {/* Top Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
           {product.isBoosted && (
-            <Badge className="bg-warning hover:bg-warning/90 text-warning-foreground font-black uppercase shadow-sm">
+            <Badge className="bg-warning hover:bg-warning/90 text-warning-foreground font-black uppercase ">
               Patrocinado
             </Badge>
           )}
           {tipo === "event_producer" && (
-            <Badge className="bg-primary hover:bg-primary/90 text-white font-black uppercase shadow-sm">
+            <Badge className="bg-primary hover:bg-primary/90 text-white font-black uppercase ">
               Ingresso
             </Badge>
           )}
           {tipo === "creator" && (
-            <Badge variant="secondary" className="bg-primary text-white font-bold shadow-sm">
+            <Badge variant="secondary" className="bg-primary text-white font-bold ">
               Serviço
             </Badge>
           )}

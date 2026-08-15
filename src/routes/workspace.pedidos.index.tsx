@@ -196,7 +196,7 @@ function AdminOrdersPage() {
       {filteredOrders.length === 0 ? (
         <EmptyState title="Nenhum pedido encontrado" />
       ) : (
-        <div className="border border-border bg-card overflow-hidden shadow-xs">
+        <div className="border border-border bg-card overflow-hidden ">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/40">
@@ -250,10 +250,7 @@ function AdminOrdersPage() {
                     </TableCell>
 
                     <TableCell className="text-center">
-                      <Badge
-                        variant={badgeInfo.variant}
-                        className="text-[10px] uppercase tracking-wider"
-                      >
+                      <Badge variant={badgeInfo.variant} className="text-[10px]">
                         {badgeInfo.label}
                       </Badge>
                     </TableCell>
@@ -288,7 +285,7 @@ function AdminOrdersPage() {
 
                           {order.status === "awaiting_payment" && (
                             <DropdownMenuItem onClick={() => handleQuickApprove(order.id)}>
-                              <CheckCircle2 className="size-3.5 mr-2 text-emerald-600" />
+                              <CheckCircle2 className="size-3.5 mr-2 text-success" />
                               Aprovar Pagamento
                             </DropdownMenuItem>
                           )}
@@ -315,7 +312,7 @@ function AdminOrdersPage() {
                             <DropdownMenuItem
                               onClick={() => handleStatusChange(order.id, "delivered")}
                             >
-                              <PackageCheck className="size-3.5 mr-2 text-emerald-600" />
+                              <PackageCheck className="size-3.5 mr-2 text-success" />
                               Confirmar Entrega ao Cliente
                             </DropdownMenuItem>
                           )}

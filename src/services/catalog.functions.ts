@@ -58,19 +58,37 @@ function explodeProductToCards(row: any): ProductCardDTO[] {
     variantName?: string,
   ): ProductCardDTO => {
     let isOutOfStock = true;
+    let isBackorderAvailable = false;
+    let backorderLeadTimeDays: number | undefined;
     let displayPrice = basePrice;
 
     if (variantsToConsider.length > 0) {
-      const hasAvailable = variantsToConsider.some(
-        (v: any) => Math.max(0, v.stock_on_hand || 0) > 0 || v.allow_backorder === true,
+      const hasRealStock = variantsToConsider.some(
+        (v: any) => Math.max(0, v.stock_on_hand || 0) > 0,
       );
-      isOutOfStock = !hasAvailable;
+      const hasBackorder = variantsToConsider.some(
+        (v: any) => Math.max(0, v.stock_on_hand || 0) <= 0 && v.allow_backorder === true,
+      );
 
-      const variantsForPrice = hasAvailable
-        ? variantsToConsider.filter(
-            (v: any) => Math.max(0, v.stock_on_hand || 0) > 0 || v.allow_backorder === true,
-          )
-        : variantsToConsider;
+      isOutOfStock = !hasRealStock && !hasBackorder;
+      // Only flag backorder when truly out of real stock but backorder is possible
+      isBackorderAvailable = !hasRealStock && hasBackorder;
+
+      if (isBackorderAvailable) {
+        // Use the lowest lead time among backorder variants to surface to the user
+        const leadTimes = variantsToConsider
+          .filter((v: any) => v.allow_backorder === true && (v.backorder_lead_time_days ?? 0) > 0)
+          .map((v: any) => v.backorder_lead_time_days as number);
+        if (leadTimes.length > 0) {
+          backorderLeadTimeDays = Math.min(...leadTimes);
+        }
+      }
+
+      const variantsForPrice = hasRealStock
+        ? variantsToConsider.filter((v: any) => Math.max(0, v.stock_on_hand || 0) > 0)
+        : hasBackorder
+          ? variantsToConsider.filter((v: any) => v.allow_backorder === true)
+          : variantsToConsider;
 
       if (variantsForPrice.length > 0) {
         const minPrice = Math.min(
@@ -93,6 +111,8 @@ function explodeProductToCards(row: any): ProductCardDTO[] {
       coverAlt: cover?.alt ?? null,
       hoverUrl: hover?.url ?? null,
       isOutOfStock,
+      isBackorderAvailable,
+      backorderLeadTimeDays,
       publishedAt: row.published_at ?? null,
       variantId,
       variantName,
@@ -183,10 +203,10 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
         ? `id, slug, title, brand, price_cents, compare_at_cents, published_at, attributes,
            product_media(url, alt, sort_order),
            product_categories!inner(categories!inner(slug)),
-           product_variants!inner(status, price_override_cents, stock_on_hand, attributes, allow_backorder)`
+           product_variants!inner(status, price_override_cents, stock_on_hand, attributes, allow_backorder, backorder_lead_time_days)`
         : `id, slug, title, brand, price_cents, compare_at_cents, published_at, attributes,
            product_media(url, alt, sort_order),
-           product_variants!inner(status, price_override_cents, stock_on_hand, attributes, allow_backorder)`;
+           product_variants!inner(status, price_override_cents, stock_on_hand, attributes, allow_backorder, backorder_lead_time_days)`;
 
       // Determine sort order — price sorting must be done post-fetch since effective price
       // depends on variant override logic (server-calculated, never trusted from client)
@@ -240,7 +260,10 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
       const { data, error } = await query;
 
       if (error) {
-        console.error("[catalog.functions] listPublishedProducts:", (error instanceof Error ? error.message : String(error)));
+        console.error(
+          "[catalog.functions] listPublishedProducts:",
+          error instanceof Error ? error.message : String(error),
+        );
         throw new Error("Não foi possível carregar os produtos.");
       }
 
@@ -299,7 +322,12 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
       console.error("[catalog.functions] unexpected error:", e);
       return {
         status: "error",
-        message: e instanceof Error ? (e instanceof Error ? e.message : String(e)) : "Erro inesperado ao carregar produtos.",
+        message:
+          e instanceof Error
+            ? e instanceof Error
+              ? e.message
+              : String(e)
+            : "Erro inesperado ao carregar produtos.",
       };
     }
   });
@@ -329,7 +357,10 @@ export const listPublishedCategories = createServerFn({ method: "GET" }).handler
       .order("sort_order", { ascending: true });
 
     if (error) {
-      console.error("[catalog.functions] listPublishedCategories:", (error instanceof Error ? error.message : String(error)));
+      console.error(
+        "[catalog.functions] listPublishedCategories:",
+        error instanceof Error ? error.message : String(error),
+      );
       throw new Error("Não foi possível carregar as categorias.");
     }
 
@@ -349,7 +380,7 @@ export const listPublishedCategories = createServerFn({ method: "GET" }).handler
     if (e instanceof SupabaseUnconfiguredError) {
       return {
         status: "unconfigured",
-        reason: "Nossas categorias de calçados estão em manutenção temporária.",
+        reason: "As categorias do catálogo estão sendo atualizadas.",
       };
     }
     console.error("[catalog.functions] listPublishedCategories unexpected error:", e);
@@ -375,7 +406,10 @@ export const listAvailableAttributes = createServerFn({ method: "GET" }).handler
     });
 
     if (error) {
-      console.error("[catalog.functions] listAvailableAttributes RPC error:", (error instanceof Error ? error.message : String(error)));
+      console.error(
+        "[catalog.functions] listAvailableAttributes RPC error:",
+        error instanceof Error ? error.message : String(error),
+      );
       return [];
     }
 
@@ -597,7 +631,7 @@ export const getProductsByCollection = createServerFn({ method: "GET" })
         .in("id", productIds)
         .order("created_at", { ascending: false });
 
-      if (error) throw new Error((error instanceof Error ? error.message : String(error)));
+      if (error) throw new Error(error instanceof Error ? error.message : String(error));
       if (!data || data.length === 0) return [];
 
       const mapped: ProductCardDTO[] = data.flatMap(explodeProductToCards);
@@ -629,7 +663,7 @@ export const getPromotionalProducts = createServerFn({ method: "GET" }).handler(
       .order("created_at", { ascending: false })
       .limit(20);
 
-    if (error) throw new Error((error instanceof Error ? error.message : String(error)));
+    if (error) throw new Error(error instanceof Error ? error.message : String(error));
     if (!data || data.length === 0) return [];
 
     // Filter natively to ensure only actual discounts are returned (compare > price)

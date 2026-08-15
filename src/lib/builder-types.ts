@@ -72,7 +72,7 @@ export const DataBindingSchema = z
     limit: z.number().optional(),
     collection_slug: z.string().optional(),
   })
-  .catchall(z.any());
+  .catchall(z.unknown());
 
 export const ExperienceNodeSchema = z.object({
   id: z.string().uuid().or(z.string()), // Accept both for now as some UI generators use non-uuids initially
@@ -81,15 +81,15 @@ export const ExperienceNodeSchema = z.object({
   node_type: z.enum(["section", "container", "element", "composition"]),
   block_type: z.string(),
   layout_variant: z.string().nullable().optional(),
-  content: z.record(z.any()).default({}),
-  design_tokens: z.record(z.any()).default({}),
-  layout_rules: z.record(z.any()).default({}),
-  responsive_overrides: z.record(z.any()).default({}),
+  content: z.record(z.unknown()).default({}),
+  design_tokens: z.record(z.unknown()).default({}),
+  layout_rules: z.record(z.unknown()).default({}),
+  responsive_overrides: z.record(z.unknown()).default({}),
   data_bindings: DataBindingSchema.default({}),
-  action_bindings: z.record(z.any()).default({}),
+  action_bindings: z.record(z.unknown()).default({}),
   sort_order: z.number().default(0),
   is_hidden: z.boolean().default(false),
-  children: z.array(z.any()).optional(),
+  children: z.array(z.unknown()).optional(),
 });
 
 export interface ExperienceNode {

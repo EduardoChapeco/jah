@@ -469,7 +469,9 @@ function CheckoutPage() {
 
       toast.error("Cupom ou Vale-presente inválido ou expirado.");
     } catch (err: unknown) {
-      toast.error((err instanceof Error ? err.message : String(err)) || "Código inválido ou expirado.");
+      toast.error(
+        (err instanceof Error ? err.message : String(err)) || "Código inválido ou expirado.",
+      );
     } finally {
       setIsApplyingPromo(false);
     }
@@ -572,12 +574,18 @@ function CheckoutPage() {
         });
       }
     } catch (err: unknown) {
-      if ((err instanceof Error ? err.message : String(err)) && (err instanceof Error ? err.message : String(err)).includes("unconfigured_integration")) {
+      if (
+        (err instanceof Error ? err.message : String(err)) &&
+        (err instanceof Error ? err.message : String(err)).includes("unconfigured_integration")
+      ) {
         toast.error(
           "Integração de pagamento não configurada. A compra não pode ser concluída no momento.",
         );
       } else {
-        toast.error((err instanceof Error ? err.message : String(err)) || "Erro inesperado ao finalizar compra.");
+        toast.error(
+          (err instanceof Error ? err.message : String(err)) ||
+            "Erro inesperado ao finalizar compra.",
+        );
       }
     } finally {
       setIsSubmitting(false);
@@ -595,14 +603,16 @@ function CheckoutPage() {
         toast.success("Pacote removido com sucesso.");
         navigate({ to: "/checkout" });
       } catch (err: unknown) {
-        toast.error((err instanceof Error ? err.message : String(err)) || "Erro ao remover pacote.");
+        toast.error(
+          (err instanceof Error ? err.message : String(err)) || "Erro ao remover pacote.",
+        );
       }
     }
   };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="container max-w-5xl py-12 mx-auto px-4">
+      <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 border-b border-border pb-6">
           <h1 className="text-4xl font-semibold text-foreground tracking-tight flex items-center gap-3">
             <ShoppingBag className="size-8 text-primary" strokeWidth={3} />
@@ -610,7 +620,7 @@ function CheckoutPage() {
           </h1>
           <Button
             variant="outline"
-            className="border border-border bg-muted/30 text-foreground rounded-md font-bold shadow-sm"
+            className="border border-border bg-muted/30 text-foreground rounded-xl font-bold "
             onClick={handleCancelThisCart}
           >
             Desistir desta compra
@@ -624,7 +634,7 @@ function CheckoutPage() {
             <Surface
               variant="default"
               padding="none"
-              className="overflow-hidden border border-border shadow-sm mb-4"
+              className="overflow-hidden border border-border mb-4"
             >
               <button
                 onClick={() => setActiveStep(1)}
@@ -638,7 +648,7 @@ function CheckoutPage() {
                 <span className="flex items-center gap-3">
                   <span
                     className={cn(
-                      "size-8 rounded-md border border-current flex items-center justify-center text-sm font-mono font-black",
+                      "size-8 rounded-xl border border-current flex items-center justify-center text-sm font-mono font-black",
                       activeStep > 1
                         ? "bg-secondary text-foreground"
                         : activeStep === 1
@@ -651,7 +661,7 @@ function CheckoutPage() {
                   Identificação
                 </span>
                 {activeStep > 1 && (
-                  <span className="text-xs font-mono uppercase font-black bg-primary text-primary-foreground px-2 py-1 shadow-sm">
+                  <span className="text-xs font-medium bg-secondary text-secondary-foreground px-2 py-1 rounded">
                     Editar
                   </span>
                 )}
@@ -715,7 +725,7 @@ function CheckoutPage() {
                   </div>
                   <div className="flex justify-end pt-4 border-t border-border gap-4 mt-6">
                     <Button
-                      className="bg-primary text-primary-foreground border border-border font-bold rounded-md px-6 shadow-sm"
+                      className="bg-primary text-primary-foreground border border-border font-bold rounded-xl px-6 "
                       disabled={
                         !formData.customerName || !formData.customerEmail || !formData.customerPhone
                       }
@@ -733,7 +743,7 @@ function CheckoutPage() {
               variant="default"
               padding="none"
               className={cn(
-                "overflow-hidden border border-border shadow-sm mb-4 transition-opacity",
+                "overflow-hidden border border-border mb-4 transition-opacity",
                 activeStep < 2 && !formData.customerName && "opacity-50",
               )}
             >
@@ -750,7 +760,7 @@ function CheckoutPage() {
                 <span className="flex items-center gap-3">
                   <span
                     className={cn(
-                      "size-8 rounded-md border border-current flex items-center justify-center text-sm font-mono font-black",
+                      "size-8 rounded-xl border border-current flex items-center justify-center text-sm font-mono font-black",
                       activeStep > 2
                         ? "bg-secondary text-foreground"
                         : activeStep === 2
@@ -763,7 +773,7 @@ function CheckoutPage() {
                   Entrega ou Retirada
                 </span>
                 {activeStep > 2 && (
-                  <span className="text-xs font-mono uppercase font-black bg-primary text-primary-foreground px-2 py-1 shadow-sm">
+                  <span className="text-xs font-mono uppercase font-black bg-primary text-primary-foreground px-2 py-1 ">
                     Editar
                   </span>
                 )}
@@ -794,7 +804,7 @@ function CheckoutPage() {
                     <div className="space-y-4">
                       {userAddresses && userAddresses.length > 0 && (
                         <div className="space-y-3 bg-muted/20 p-4 border mb-4">
-                          <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                          <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
                             <MapPin className="size-3.5 text-primary" /> Meus Endereços Cadastrados
                           </Label>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -1037,10 +1047,10 @@ function CheckoutPage() {
                             ))}
                           </div>
                         ) : noShippingRatesFound && formData.shippingAddress.zipcode ? (
-                          <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/30 p-4 space-y-3">
+                          <div className="bg-warning/15 border border-warning/30 rounded-xl p-4 space-y-3">
                             <div className="flex gap-2">
-                              <AlertCircle className="size-5 text-amber-600 dark:text-amber-500 shrink-0" />
-                              <div className="text-sm text-amber-800 dark:text-amber-300 font-normal">
+                              <AlertCircle className="size-5 text-warning shrink-0" />
+                              <div className="text-sm text-warning font-normal">
                                 <p className="font-semibold">
                                   Nenhum frete automático cadastrado para este bairro.
                                 </p>
@@ -1054,7 +1064,7 @@ function CheckoutPage() {
                             <Button
                               type="button"
                               variant="outline"
-                              className="bg-background text-foreground border-amber-300 hover:bg-amber-100"
+                              className="bg-background text-foreground border-warning/40 hover:bg-warning/20 rounded-xl"
                               onClick={handleRequestQuote}
                             >
                               Solicitar Cotação de Frete
@@ -1068,7 +1078,7 @@ function CheckoutPage() {
                       </div>
                     </div>
                   ) : (
-                    <div className="p-4 bg-muted/30 border space-y-1">
+                    <div className="p-4 bg-muted/30 border border-border rounded-xl space-y-1">
                       <p className="font-semibold text-sm">Retirada na Jah</p>
                       <p className="text-xs text-muted-foreground font-normal">
                         Rua Principal, Chapecó - SC. Horário: Seg a Sex 09h às 18h.
@@ -1079,13 +1089,13 @@ function CheckoutPage() {
                   <div className="flex justify-end pt-6 border-t border-border gap-4 mt-6">
                     <Button
                       variant="outline"
-                      className="border border-border text-foreground font-bold rounded-md px-6"
+                      className="border border-border text-foreground font-bold rounded-xl px-6"
                       onClick={() => setActiveStep(1)}
                     >
                       Voltar
                     </Button>
                     <Button
-                      className="bg-primary text-primary-foreground border border-border font-bold rounded-md px-6 shadow-sm"
+                      className="bg-primary text-primary-foreground border border-border font-bold rounded-xl px-6 "
                       disabled={
                         formData.shippingMethod !== "pickup" &&
                         (!formData.shippingAddress.zipcode ||
@@ -1106,7 +1116,7 @@ function CheckoutPage() {
               variant="default"
               padding="none"
               className={cn(
-                "overflow-hidden border border-border shadow-sm mb-4 transition-opacity",
+                "overflow-hidden border border-border mb-4 transition-opacity",
                 activeStep < 3 && "opacity-50",
               )}
             >
@@ -1123,7 +1133,7 @@ function CheckoutPage() {
                 <span className="flex items-center gap-3">
                   <span
                     className={cn(
-                      "size-8 rounded-md border border-current flex items-center justify-center text-sm font-mono font-black",
+                      "size-8 rounded-xl border border-current flex items-center justify-center text-sm font-mono font-black",
                       activeStep > 3
                         ? "bg-secondary text-foreground"
                         : activeStep === 3
@@ -1136,7 +1146,7 @@ function CheckoutPage() {
                   Forma de Pagamento
                 </span>
                 {activeStep > 3 && (
-                  <span className="text-xs font-mono uppercase font-black bg-primary text-primary-foreground px-2 py-1 shadow-sm">
+                  <span className="text-xs font-mono uppercase font-black bg-primary text-primary-foreground px-2 py-1 ">
                     Editar
                   </span>
                 )}
@@ -1146,9 +1156,9 @@ function CheckoutPage() {
                 <div className="p-6 space-y-6">
                   <div>
                     {!isGatewayConfigured && paymentMethods.length === 0 && (
-                      <div className="bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-900/30 p-5 space-y-4 mb-6">
+                      <div className="bg-warning/15 text-warning border border-warning/30 rounded-xl p-5 space-y-4 mb-6">
                         <div className="flex items-center gap-3">
-                          <AlertCircle className="size-5 shrink-0 text-amber-600 dark:text-amber-500" />
+                          <AlertCircle className="size-5 shrink-0 text-warning" />
                           <p className="text-sm font-semibold">
                             Esta loja ainda não aceita pagamentos automáticos pelo site.
                           </p>
@@ -1261,7 +1271,7 @@ function CheckoutPage() {
                               onChange={(e) => {
                                 const val = e.target.value
                                   .replace(/\D/g, "")
-                                  .replace(/(.{4})/g, "$1 ")
+                                  .replace(/(.{4})/g, "$1")
                                   .trim();
                                 setCreditCardData({
                                   ...creditCardData,
@@ -1378,14 +1388,14 @@ function CheckoutPage() {
                   <div className="flex justify-end pt-6 border-t border-border gap-4 mt-6">
                     <Button
                       variant="outline"
-                      className="border border-border text-foreground font-bold rounded-md px-6"
+                      className="border border-border text-foreground font-bold rounded-xl px-6"
                       onClick={() => setActiveStep(2)}
                     >
                       Voltar
                     </Button>
                     <Button
                       onClick={() => setActiveStep(4)}
-                      className="bg-primary text-primary-foreground border border-border font-bold rounded-md px-6 shadow-sm"
+                      className="bg-primary text-primary-foreground border border-border font-bold rounded-xl px-6 "
                     >
                       Continuar para Resumo
                     </Button>
@@ -1399,7 +1409,7 @@ function CheckoutPage() {
               variant="default"
               padding="none"
               className={cn(
-                "overflow-hidden border border-border shadow-sm mb-4 transition-opacity",
+                "overflow-hidden border border-border mb-4 transition-opacity",
                 activeStep < 4 && "opacity-50",
               )}
             >
@@ -1414,7 +1424,7 @@ function CheckoutPage() {
                 <span className="flex items-center gap-3">
                   <span
                     className={cn(
-                      "size-8 rounded-md border border-current flex items-center justify-center text-sm font-mono font-black",
+                      "size-8 rounded-xl border border-current flex items-center justify-center text-sm font-mono font-black",
                       activeStep === 4
                         ? "bg-background text-foreground"
                         : "bg-primary text-primary-foreground",
@@ -1447,16 +1457,17 @@ function CheckoutPage() {
                       ) : (
                         <>
                           <p className="font-medium text-foreground">
-                            Entrega:{" "}
+                            Entrega:{""}
                             {cart.shippingMethod === "manual_quote"
                               ? "Cotação de Frete"
                               : cart.shippingMethod || "Entrega Normal"}
                           </p>
                           <p className="text-muted-foreground font-normal">
-                            {formData.shippingAddress.street}, {formData.shippingAddress.number}{" "}
+                            {formData.shippingAddress.street}, {formData.shippingAddress.number}
+                            {""}
                             {formData.shippingAddress.complement &&
-                              `(${formData.shippingAddress.complement})`}{" "}
-                            - {formData.shippingAddress.neighborhood},{" "}
+                              `(${formData.shippingAddress.complement})`}
+                            {""}- {formData.shippingAddress.neighborhood},{""}
                             {formData.shippingAddress.city} - {formData.shippingAddress.state}
                           </p>
                         </>
@@ -1470,7 +1481,7 @@ function CheckoutPage() {
                         {formData.paymentMethod === "pix" && "PIX"}
                         {formData.paymentMethod === "credit_card" && (
                           <>
-                            Cartão de Crédito ({selectedInstallment}x de{" "}
+                            Cartão de Crédito ({selectedInstallment}x de{""}
                             {formatMoney(
                               installmentOptions.find((o) => o.number === selectedInstallment)
                                 ?.valueCents || 0,
@@ -1486,7 +1497,7 @@ function CheckoutPage() {
                   <div className="flex justify-end pt-6 border-t border-border gap-4 mt-6">
                     <Button
                       variant="outline"
-                      className="border border-border text-foreground font-bold rounded-md px-6"
+                      className="border border-border text-foreground font-bold rounded-xl px-6"
                       onClick={() => setActiveStep(3)}
                     >
                       Voltar
@@ -1494,7 +1505,7 @@ function CheckoutPage() {
                     <Button
                       disabled={isSubmitting}
                       onClick={handleSubmitOrder}
-                      className="px-8 font-black bg-primary text-primary-foreground border border-border rounded-md shadow-sm text-lg"
+                      className="px-8 font-black bg-primary text-primary-foreground border border-border rounded-xl text-lg"
                     >
                       {isSubmitting ? "Finalizando..." : "Confirmar e Pagar"}
                     </Button>
@@ -1509,7 +1520,7 @@ function CheckoutPage() {
             <Surface
               variant="default"
               elevation="none"
-              className="bg-secondary border border-border shadow-sm p-6 h-fit sticky top-24 rounded-md text-foreground"
+              className="bg-secondary border border-border p-6 h-fit sticky top-24 rounded-xl text-foreground"
             >
               <h2 className="text-2xl font-semibold font-bold mb-6 flex items-center gap-2">
                 <ShoppingBag className="size-6 text-primary" strokeWidth={3} />
@@ -1531,7 +1542,7 @@ function CheckoutPage() {
                       <span className="text-xs text-muted-foreground mt-0.5 font-normal">
                         {Object.entries(item.variantAttributes || {})
                           .map(([k, v]) => `${k}: ${v}`)
-                          .join(" | ")}
+                          .join(" |")}
                       </span>
                     )}
                   </div>
@@ -1605,7 +1616,7 @@ function CheckoutPage() {
 
               {/* Promo code apply input */}
               <div className="border-t border-border pt-6 mb-4 mt-6">
-                <Label className="text-sm font-bold text-foreground uppercase tracking-wider block mb-3 font-semibold">
+                <Label className="text-sm font-bold text-foreground block mb-3 font-semibold">
                   Cupom ou Vale-Presente
                 </Label>
                 <div className="flex gap-2">
@@ -1614,13 +1625,13 @@ function CheckoutPage() {
                     value={promoCode}
                     onChange={(e) => setPromoCode(e.target.value)}
                     disabled={isApplyingPromo}
-                    className="h-10 font-mono uppercase text-sm border border-border bg-background rounded-md focus-visible:ring-poster-red text-foreground font-bold"
+                    className="h-10 font-mono uppercase text-sm border border-border bg-background rounded-xl focus-visible:ring-poster-red text-foreground font-bold"
                   />
                   <Button
                     type="button"
                     onClick={handleApplyPromo}
                     disabled={isApplyingPromo || !promoCode}
-                    className="h-10 font-black bg-primary text-primary-foreground border border-border rounded-md shadow-sm px-6"
+                    className="h-10 font-black bg-primary text-primary-foreground border border-border rounded-xl px-6"
                   >
                     {isApplyingPromo ? "..." : "Aplicar"}
                   </Button>
@@ -1629,7 +1640,7 @@ function CheckoutPage() {
 
               <div className="flex justify-between items-end border-t border-border pt-6 mb-4 mt-2">
                 <span className="font-bold text-foreground text-xl font-semibold">Total</span>
-                <span className="font-black text-4xl text-primary font-semibold tracking-tight drop-shadow-sm">
+                <span className="font-black text-4xl text-primary font-semibold tracking-tight drop-">
                   {formatMoney(checkoutTotalCents)}
                 </span>
               </div>

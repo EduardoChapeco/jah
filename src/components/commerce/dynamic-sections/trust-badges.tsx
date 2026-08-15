@@ -65,7 +65,7 @@ export function TrustBadges({ content, design_tokens }: TrustBadgesProps) {
           key={idx}
           className="group flex flex-col items-center text-center gap-4 transition-transform duration-300 hover:-translate-y-1"
         >
-          <div className="p-4 bg-background shadow-sm border border-border/50 group-hover:shadow-md transition-shadow duration-300 group-hover:border-primary/20">
+          <div className="p-4 bg-background border border-border/50 group-hover:shadow-md transition-shadow duration-300 group-hover:border-primary/20">
             {getIcon(badge.icon)}
           </div>
           <div>

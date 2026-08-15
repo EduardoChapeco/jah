@@ -29,7 +29,13 @@ import { formatDateTime } from "@/lib/datetime";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import {
   Table,
@@ -67,7 +73,11 @@ import { formatDate } from "../lib/datetime";
 export const Route = createFileRoute("/workspace/clientes/")({
   head: () => ({ meta: [{ title: "Clientes & Leads" }] }),
   loader: async () => {
-    const [customers, leadsRes, teamRes] = await Promise.all([listCustomers(), listLeads(), listTeamMembers()]);
+    const [customers, leadsRes, teamRes] = await Promise.all([
+      listCustomers(),
+      listLeads(),
+      listTeamMembers(),
+    ]);
     return {
       customers,
       leads: leadsRes || [],
@@ -185,7 +195,7 @@ function CustomersPage() {
         eyebrow="CRM"
         title="Clientes & Leads"
         actions={
-          <Button onClick={() => setIsOpen(true)} size="sm">
+          <Button size="sm">
             <Plus className="mr-1.5 size-4" aria-hidden />
             Cadastrar Cliente
           </Button>
@@ -195,7 +205,7 @@ function CustomersPage() {
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetContent side="right" className="sm:max-w-2xl p-0 overflow-y-auto">
           <SheetHeader className="px-6 py-4 border-b border-border/10 bg-muted/30">
-            <SheetTitle className="flex items-center gap-2 text-xl font-display font-bold">
+            <SheetTitle className="flex items-center gap-2 text-xl font-semibold">
               <UserCheck className="size-5 text-primary" />
               Cadastrar Novo Cliente
             </SheetTitle>
@@ -209,10 +219,7 @@ function CustomersPage() {
               {/* Coluna 1: Dados Pessoais e Contato */}
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="cli-name"
-                    className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
-                  >
+                  <Label htmlFor="cli-name" className="text-sm font-medium text-foreground">
                     Nome Completo *
                   </Label>
                   <Input
@@ -225,10 +232,7 @@ function CustomersPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="cli-tax"
-                    className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
-                  >
+                  <Label htmlFor="cli-tax" className="text-sm font-medium text-foreground">
                     CPF ou CNPJ
                   </Label>
                   <div className="relative">
@@ -243,10 +247,7 @@ function CustomersPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="cli-email"
-                    className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
-                  >
+                  <Label htmlFor="cli-email" className="text-sm font-medium text-foreground">
                     E-mail *
                   </Label>
                   <div className="relative">
@@ -263,10 +264,7 @@ function CustomersPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="cli-phone"
-                    className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
-                  >
+                  <Label htmlFor="cli-phone" className="text-xs font-bold text-muted-foreground">
                     Telefone / WhatsApp
                   </Label>
                   <div className="relative">
@@ -286,10 +284,7 @@ function CustomersPage() {
               {/* Coluna 2: Segmentação e Notas CRM */}
               <div className="space-y-4 md:border-l md:pl-6">
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="cli-tags"
-                    className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
-                  >
+                  <Label htmlFor="cli-tags" className="text-xs font-bold text-muted-foreground">
                     Tags de Segmentação
                   </Label>
                   <Input
@@ -310,9 +305,9 @@ function CustomersPage() {
                   <div className="grid gap-1.5 leading-none">
                     <label
                       htmlFor="cli-consent-lgpd"
-                      className="text-xs font-bold uppercase tracking-wider text-muted-foreground cursor-pointer flex items-center gap-1"
+                      className="text-xs font-bold text-muted-foreground cursor-pointer flex items-center gap-1"
                     >
-                      <ShieldCheck className="size-3.5 text-emerald-500" /> Consentimento LGPD
+                      <ShieldCheck className="size-3.5 text-success" /> Consentimento LGPD
                     </label>
                     <p className="text-[10px] text-muted-foreground leading-snug">
                       O cliente autoriza expressamente a coleta e o processamento de seus dados
@@ -323,7 +318,7 @@ function CustomersPage() {
                 <div className="space-y-2 h-full flex flex-col">
                   <Label
                     htmlFor="cli-notes"
-                    className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5"
+                    className="text-xs font-bold text-muted-foreground flex items-center gap-1.5"
                   >
                     <MessageSquare className="size-3.5" /> Notas Internas do CRM
                   </Label>
@@ -332,19 +327,14 @@ function CustomersPage() {
                     value={form.notes}
                     onChange={(e) => setForm({ ...form, notes: e.target.value })}
                     placeholder="Observações importantes sobre preferências ou negociações..."
-                    className="flex min-h-[80px] w-full flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex min-h-[80px] w-full flex-1 rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   />
                 </div>
               </div>
             </div>
 
             <SheetFooter className="pt-6 mt-4 border-t border-border/50 px-6 pb-6">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setIsOpen(false)}
-                className="h-10"
-              >
+              <Button type="button" variant="ghost" className="h-10">
                 Cancelar
               </Button>
               <Button
@@ -365,12 +355,11 @@ function CustomersPage() {
         </SheetContent>
       </Sheet>
 
-
       <Sheet open={!!selectedLeadId} onOpenChange={(open) => !open && setSelectedLeadId(null)}>
         {selectedLead && (
           <LeadDetailsSheetContent
             lead={selectedLead}
-            team={team}
+
             onClose={() => setSelectedLeadId(null)}
           />
         )}
@@ -412,7 +401,7 @@ function CustomersPage() {
           {filteredCustomers.length === 0 ? (
             <EmptyState title="Nenhum cliente encontrado" />
           ) : (
-            <div className="border border-border bg-card rounded-md shadow-xs overflow-hidden">
+            <div className="bg-surface-paper shadow-sm rounded-xl border border-border overflow-hidden">
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -434,7 +423,7 @@ function CustomersPage() {
                             {c.isConsentLgpd && (
                               <Badge
                                 variant="outline"
-                                className="text-[9px] text-emerald-600 border-emerald-600 bg-emerald-50/50 hover:bg-emerald-50/50 h-4 px-1"
+                                className="text-[9px] text-success border-success/40 bg-success/10 hover:bg-success/15 h-4 px-1"
                               >
                                 LGPD
                               </Badge>
@@ -498,7 +487,7 @@ function CustomersPage() {
         <TabsContent value="kanban" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
             {/* Column 1: New */}
-            <div className="bg-muted/30 border border-border rounded-md shadow-xs overflow-hidden">
+            <div className="bg-surface-paper shadow-sm border border-border rounded-xl overflow-hidden">
               <div className="p-3 pb-2 border-b border-border/50 bg-muted/50">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black uppercase text-foreground">Novos Leads</span>
@@ -512,10 +501,9 @@ function CustomersPage() {
                   <LeadCard
                     key={l.id}
                     lead={l}
-                    team={team}
+
                     onStatusChange={handleStatusChange}
                     onPromote={handlePromote}
-                    onClick={() => setSelectedLeadId(l.id)}
                   />
                 ))}
                 {leadsNew.length === 0 && (
@@ -527,13 +515,13 @@ function CustomersPage() {
             </div>
 
             {/* Column 2: Contacted */}
-            <div className="bg-muted/30 border border-border rounded-md shadow-xs overflow-hidden">
+            <div className="bg-surface-paper shadow-sm border border-border rounded-xl overflow-hidden">
               <div className="p-3 pb-2 border-b border-border/50 bg-muted/50">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-black uppercase text-amber-600">Em Contato</span>
+                  <span className="text-xs font-black uppercase text-warning">Em Contato</span>
                   <Badge
                     variant="warning"
-                    className="h-5 text-[10px] bg-amber-100 text-amber-800 border-transparent"
+                    className="h-5 text-[10px] bg-warning/15 text-warning border-warning/30"
                   >
                     {leadsContacted.length}
                   </Badge>
@@ -544,10 +532,9 @@ function CustomersPage() {
                   <LeadCard
                     key={l.id}
                     lead={l}
-                    team={team}
+
                     onStatusChange={handleStatusChange}
                     onPromote={handlePromote}
-                    onClick={() => setSelectedLeadId(l.id)}
                   />
                 ))}
                 {leadsContacted.length === 0 && (
@@ -559,13 +546,13 @@ function CustomersPage() {
             </div>
 
             {/* Column 3: Converted */}
-            <div className="bg-muted/30 border border-border rounded-md shadow-xs overflow-hidden">
+            <div className="bg-surface-paper shadow-sm border border-border rounded-xl overflow-hidden">
               <div className="p-3 pb-2 border-b border-border/50 bg-muted/50">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-black uppercase text-emerald-600">Convertidos</span>
+                  <span className="text-xs font-black uppercase text-success">Convertidos</span>
                   <Badge
                     variant="outline"
-                    className="h-5 text-[10px] bg-emerald-100 text-emerald-800 border-transparent"
+                    className="h-5 text-[10px] bg-success/15 text-success border-success/30"
                   >
                     {leadsConverted.length}
                   </Badge>
@@ -576,10 +563,9 @@ function CustomersPage() {
                   <LeadCard
                     key={l.id}
                     lead={l}
-                    team={team}
+
                     onStatusChange={handleStatusChange}
                     onPromote={handlePromote}
-                    onClick={() => setSelectedLeadId(l.id)}
                   />
                 ))}
                 {leadsConverted.length === 0 && (
@@ -591,7 +577,7 @@ function CustomersPage() {
             </div>
 
             {/* Column 4: Lost */}
-            <div className="bg-muted/30 border border-border rounded-md shadow-xs overflow-hidden">
+            <div className="bg-surface-paper shadow-sm border border-border rounded-xl overflow-hidden">
               <div className="p-3 pb-2 border-b border-border/50 bg-muted/50">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black uppercase text-muted-foreground">
@@ -607,10 +593,9 @@ function CustomersPage() {
                   <LeadCard
                     key={l.id}
                     lead={l}
-                    team={team}
+
                     onStatusChange={handleStatusChange}
                     onPromote={handlePromote}
-                    onClick={() => setSelectedLeadId(l.id)}
                   />
                 ))}
                 {leadsLost.length === 0 && (
@@ -628,7 +613,7 @@ function CustomersPage() {
           {leads.length === 0 ? (
             <EmptyState title="Nenhuma mensagem registrada" />
           ) : (
-            <div className="border border-border bg-card rounded-md shadow-xs overflow-hidden">
+            <div className="bg-surface-paper shadow-sm rounded-xl border border-border overflow-hidden">
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -704,7 +689,7 @@ interface LeadCardProps {
 
 function LeadCard({ lead, onStatusChange, onPromote }: LeadCardProps) {
   return (
-    <div className="border border-border/80 bg-card hover:border-primary/50 transition-colors rounded-md p-3 space-y-3 relative group">
+    <div className="bg-background shadow-sm border border-border hover:border-primary/50 transition-colors rounded-xl p-3 space-y-3 relative group">
       <div className="space-y-1">
         <h4 className="text-xs font-black tracking-tight text-foreground truncate">
           {lead.full_name}
@@ -773,7 +758,6 @@ function LeadCard({ lead, onStatusChange, onPromote }: LeadCardProps) {
                 variant="ghost"
                 size="icon"
                 className="size-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                onClick={() => onStatusChange(lead.id, "lost")}
                 title="Arquivar Lead"
               >
                 <Archive className="size-3.5" />
@@ -782,7 +766,6 @@ function LeadCard({ lead, onStatusChange, onPromote }: LeadCardProps) {
                 variant="ghost"
                 size="icon"
                 className="size-6 text-primary hover:bg-primary/10"
-                onClick={() => onPromote(lead.id)}
                 title="Promover a Cliente"
               >
                 <UserCheck className="size-3.5" />
@@ -795,15 +778,22 @@ function LeadCard({ lead, onStatusChange, onPromote }: LeadCardProps) {
   );
 }
 
-
-function LeadDetailsSheetContent({ lead, team, onClose }: { lead: any, team: any[], onClose: () => void }) {
+function LeadDetailsSheetContent({
+  lead,
+  team = [],
+  onClose,
+}: {
+  lead: any;
+  team?: any[];
+  onClose: () => void;
+}) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [form, setForm] = useState({
     notes: lead.notes || "",
     source: lead.source || "",
     estimated_value_cents: (lead.estimated_value_cents / 100).toFixed(2) || "",
-    follow_up_at: lead.follow_up_at ? new Date(lead.follow_up_at).toISOString().split('T')[0] : "",
+    follow_up_at: lead.follow_up_at ? new Date(lead.follow_up_at).toISOString().split("T")[0] : "",
     assigned_to: lead.assigned_to || "unassigned",
   });
 
@@ -816,7 +806,9 @@ function LeadDetailsSheetContent({ lead, team, onClose }: { lead: any, team: any
           leadId: lead.id,
           notes: form.notes || null,
           source: form.source || null,
-          estimated_value_cents: form.estimated_value_cents ? Math.round(parseFloat(form.estimated_value_cents) * 100) : null,
+          estimated_value_cents: form.estimated_value_cents
+            ? Math.round(parseFloat(form.estimated_value_cents) * 100)
+            : null,
           follow_up_at: form.follow_up_at ? new Date(form.follow_up_at).toISOString() : null,
           assigned_to: form.assigned_to === "unassigned" ? null : form.assigned_to,
         },
@@ -834,32 +826,32 @@ function LeadDetailsSheetContent({ lead, team, onClose }: { lead: any, team: any
   return (
     <SheetContent side="right" className="sm:max-w-md p-0 overflow-y-auto">
       <SheetHeader className="px-6 py-4 border-b border-border/10 bg-muted/30">
-        <SheetTitle className="flex items-center gap-2 text-xl font-display font-bold">
+        <SheetTitle className="flex items-center gap-2 text-xl font-bold">
           <UserCheck className="size-5 text-primary" />
           Detalhes do Lead
         </SheetTitle>
-        <SheetDescription>
-          {lead.full_name}
-        </SheetDescription>
+        <SheetDescription>{lead.full_name}</SheetDescription>
       </SheetHeader>
-      
+
       <form onSubmit={handleSave} className="p-6 space-y-6">
         <div className="space-y-4">
           <div className="space-y-2">
             <Label className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-1.5">
               <Users className="size-3.5" /> Responsável
             </Label>
-            <Select 
-              value={form.assigned_to} 
-              onValueChange={(v) => setForm({...form, assigned_to: v})}
+            <Select
+              value={form.assigned_to}
+              onValueChange={(v) => setForm({ ...form, assigned_to: v })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Sem responsável" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="unassigned">Sem responsável</SelectItem>
-                {team.map(member => (
-                  <SelectItem key={member.id} value={member.id}>{member.full_name}</SelectItem>
+                {team.map((member) => (
+                  <SelectItem key={member.id} value={member.id}>
+                    {member.full_name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -869,13 +861,13 @@ function LeadDetailsSheetContent({ lead, team, onClose }: { lead: any, team: any
             <Label className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-1.5">
               <DollarSign className="size-3.5" /> Valor Estimado (R$)
             </Label>
-            <Input 
-              type="number" 
-              step="0.01" 
+            <Input
+              type="number"
+              step="0.01"
               min="0"
               placeholder="0.00"
               value={form.estimated_value_cents}
-              onChange={(e) => setForm({...form, estimated_value_cents: e.target.value})}
+              onChange={(e) => setForm({ ...form, estimated_value_cents: e.target.value })}
             />
           </div>
 
@@ -883,10 +875,10 @@ function LeadDetailsSheetContent({ lead, team, onClose }: { lead: any, team: any
             <Label className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-1.5">
               <Calendar className="size-3.5" /> Agendar Follow-up
             </Label>
-            <Input 
+            <Input
               type="date"
               value={form.follow_up_at}
-              onChange={(e) => setForm({...form, follow_up_at: e.target.value})}
+              onChange={(e) => setForm({ ...form, follow_up_at: e.target.value })}
             />
           </div>
 
@@ -894,11 +886,11 @@ function LeadDetailsSheetContent({ lead, team, onClose }: { lead: any, team: any
             <Label className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-1.5">
               <Search className="size-3.5" /> Origem / Source
             </Label>
-            <Input 
+            <Input
               type="text"
               placeholder="Ex: Instagram, Indicação, Feira..."
               value={form.source}
-              onChange={(e) => setForm({...form, source: e.target.value})}
+              onChange={(e) => setForm({ ...form, source: e.target.value })}
             />
           </div>
 
@@ -906,18 +898,20 @@ function LeadDetailsSheetContent({ lead, team, onClose }: { lead: any, team: any
             <Label className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-1.5">
               <AlignLeft className="size-3.5" /> Anotações do Vendedor
             </Label>
-            <Textarea 
+            <Textarea
               placeholder="Preferências, dores, próximas etapas..."
               className="min-h-[100px]"
               value={form.notes}
-              onChange={(e) => setForm({...form, notes: e.target.value})}
+              onChange={(e) => setForm({ ...form, notes: e.target.value })}
             />
           </div>
 
           {lead.message && (
             <div className="space-y-1 pt-4 border-t border-border/50">
-              <Label className="text-[10px] uppercase text-muted-foreground">Mensagem Original (Contato)</Label>
-              <div className="text-sm p-3 bg-muted/30 rounded-md border border-border/50 text-foreground/80 whitespace-pre-wrap">
+              <Label className="text-[10px] uppercase text-muted-foreground">
+                Mensagem Original (Contato)
+              </Label>
+              <div className="text-sm p-3 bg-muted/30 rounded-xl border border-border/50 text-foreground/80 whitespace-pre-wrap">
                 {lead.message}
               </div>
             </div>
@@ -925,7 +919,9 @@ function LeadDetailsSheetContent({ lead, team, onClose }: { lead: any, team: any
         </div>
 
         <SheetFooter className="pt-4 border-t border-border/50">
-          <Button type="button" variant="ghost" onClick={onClose}>Cancelar</Button>
+          <Button type="button" variant="ghost">
+            Cancelar
+          </Button>
           <Button type="submit" disabled={isSaving}>
             {isSaving ? "Salvando..." : "Salvar Alterações"}
           </Button>

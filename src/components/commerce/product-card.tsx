@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ImageOff, ShoppingBag } from "lucide-react";
+import { ImageOff, ShoppingBag, Clock } from "lucide-react";
 import { formatDistanceToNowStrict } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -24,15 +24,20 @@ export function ProductCard({
     product.publishedAt &&
     (new Date().getTime() - new Date(product.publishedAt).getTime()) / (1000 * 3600 * 24) <= 7;
 
+  const isHardOutOfStock = product.isOutOfStock && !product.isBackorderAvailable;
+
   return (
     <Link
       to="/produto/$slug"
       params={{ slug: product.slug }}
       search={product.variantId ? { v: product.variantId } : undefined}
-      className={cn("group flex flex-col gap-3 rounded-sm focus-visible:outline-none", className)}
+      className={cn(
+        "group flex flex-col gap-3 rounded-2xl focus-visible:outline-none transition-all",
+        className,
+      )}
     >
       {/* Image Container */}
-      <div className="relative aspect-[4/5] overflow-hidden rounded-sm bg-secondary">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-secondary border border-border/60">
         {product.coverUrl ? (
           <>
             <img
@@ -61,24 +66,33 @@ export function ProductCard({
           </div>
         )}
 
-        {/* Quick Add Overlay (Desktop only) */}
-        {!product.isOutOfStock && (
+        {/* Quick Add Overlay (Desktop only) — shown if product has real stock */}
+        {!product.isOutOfStock && !product.isBackorderAvailable && (
           <div className="absolute inset-x-2 bottom-2 translate-y-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 hidden @md:block">
-            <div className="w-full rounded-sm bg-white text-black border border-black/10 py-2.5 text-center text-xs font-medium uppercase tracking-wider hover:bg-black hover:text-white transition-colors">
+            <div className="w-full rounded-lg bg-white text-black border border-black/10 py-2.5 text-center text-xs font-medium uppercase tracking-wider hover:bg-black hover:text-white transition-colors">
               Ver Opções
             </div>
           </div>
         )}
 
-        {/* Mobile quick-add bag icon */}
-        {!product.isOutOfStock && (
-          <div className="absolute bottom-2 right-2 rounded-sm bg-white p-2 border border-black/10 hover:bg-black hover:text-white transition-colors group @md:hidden">
+        {/* Backorder quick-action overlay */}
+        {product.isBackorderAvailable && (
+          <div className="absolute inset-x-2 bottom-2 translate-y-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 hidden @md:block">
+            <div className="w-full rounded-lg bg-foreground text-background py-2.5 text-center text-xs font-medium uppercase tracking-wider hover:bg-foreground/90 transition-colors">
+              Encomendar
+            </div>
+          </div>
+        )}
+
+        {/* Mobile quick-add bag icon — only for in-stock */}
+        {!product.isOutOfStock && !product.isBackorderAvailable && (
+          <div className="absolute bottom-2 right-2 rounded-lg bg-white p-2 border border-black/10 hover:bg-black hover:text-white transition-colors group @md:hidden">
             <ShoppingBag className="size-4 text-black group-hover:text-white" aria-hidden />
           </div>
         )}
 
-        {/* Out of stock overlay */}
-        {product.isOutOfStock && (
+        {/* Hard out of stock overlay — no backorder option */}
+        {isHardOutOfStock && (
           <div className="absolute inset-0 flex items-end bg-foreground/30">
             <span className="w-full bg-foreground/80 py-1.5 text-center text-xs font-medium text-background">
               Sem estoque
@@ -86,10 +100,23 @@ export function ProductCard({
           </div>
         )}
 
+        {/* Backorder overlay — shows "Sob Encomenda" */}
+        {product.isBackorderAvailable && (
+          <div className="absolute inset-0 flex items-end pointer-events-none">
+            <span className="w-full bg-foreground/70 py-1.5 text-center text-xs font-medium text-background flex items-center justify-center gap-1.5">
+              <Clock className="size-3 shrink-0" aria-hidden />
+              Sob Encomenda
+              {product.backorderLeadTimeDays && product.backorderLeadTimeDays > 0
+                ? ` · ${product.backorderLeadTimeDays}d`
+                : ""}
+            </span>
+          </div>
+        )}
+
         {/* Badges container */}
         <div className="absolute left-2 top-2 flex flex-col gap-1.5 items-start">
           {product.compareAtCents && product.compareAtCents > product.priceCents && (
-            <div className="rounded-sm bg-destructive px-2 py-0.5 text-[0.65rem] font-bold tracking-wide text-destructive-foreground">
+            <div className="rounded-lg bg-destructive px-2 py-0.5 text-[0.65rem] font-bold tracking-wide text-destructive-foreground">
               {Math.round(
                 ((product.compareAtCents - product.priceCents) / product.compareAtCents) * 100,
               )}
@@ -97,7 +124,7 @@ export function ProductCard({
             </div>
           )}
           {isNew && (
-            <div className="rounded-sm bg-primary px-2 py-0.5 text-[0.65rem] font-bold tracking-wide text-primary-foreground">
+            <div className="rounded-lg bg-primary px-2 py-0.5 text-[0.65rem] font-bold tracking-wide text-primary-foreground">
               NOVO
             </div>
           )}
@@ -115,6 +142,15 @@ export function ProductCard({
           compareAtCents={product.compareAtCents}
           size="sm"
         />
+        {product.isBackorderAvailable && (
+          <p className="text-[10px] text-muted-foreground font-medium flex items-center gap-1">
+            <Clock className="size-3 shrink-0" aria-hidden />
+            Encomenda
+            {product.backorderLeadTimeDays && product.backorderLeadTimeDays > 0
+              ? ` · prazo: ${product.backorderLeadTimeDays} dias úteis`
+              : ""}
+          </p>
+        )}
       </div>
     </Link>
   );

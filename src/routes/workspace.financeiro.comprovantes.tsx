@@ -98,7 +98,7 @@ function ReceiptsPage() {
       {receipts.length === 0 ? (
         <EmptyState title="Nenhum comprovante pendente" />
       ) : (
-        <div className="border border-border bg-card rounded-md shadow-xs overflow-hidden">
+        <div className="border border-border bg-card rounded-xl overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
@@ -184,7 +184,7 @@ function ReceiptsPage() {
               Rejeitar Comprovante
             </SheetTitle>
             <SheetDescription>
-              Informe o motivo da rejeição. O pedido voltará para "Aguardando Pagamento" e o cliente
+              Informe o motivo da rejeição. O pedido voltará para"Aguardando Pagamento" e o cliente
               poderá enviar um novo comprovante.
             </SheetDescription>
           </SheetHeader>

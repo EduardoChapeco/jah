@@ -177,13 +177,13 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
           variant="outline"
           size="sm"
           onClick={handleAddDimension}
-          className="border-dashed text-primary hover:text-primary font-bold shadow-sm"
+          className="border-dashed text-primary hover:text-primary font-bold "
         >
           <Plus className="size-4 mr-2" /> Adicionar Coluna de Propriedade
         </Button>
       </div>
 
-      <div className="border overflow-x-auto bg-card shadow-sm mb-4">
+      <div className="border overflow-x-auto bg-card mb-4">
         <table className="w-full text-sm text-left">
           <thead className="bg-muted/40 text-muted-foreground text-xs uppercase font-semibold">
             <tr>
@@ -236,12 +236,12 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
                       {/* Célula Agrupada (Matriz Mãe) */}
                       {localIdx === 0 && (
                         <td
-                          className="px-4 py-3 w-56 align-top border-r bg-muted/5 shadow-[1px_0_0_0_rgba(0,0,0,0.05)]"
+                          className="px-4 py-3 w-56 align-top border-r bg-muted/5 "
                           rowSpan={gData.variants.length + 1}
                         >
                           <div className="flex flex-col gap-3">
                             <Input
-                              className="h-9 font-bold text-sm w-full bg-card shadow-sm"
+                              className="h-9 font-bold text-sm w-full bg-card "
                               value={gName}
                               onChange={(e) => {
                                 const newName = e.target.value;
@@ -259,7 +259,7 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
                               }}
                             />
                             {sharedImage ? (
-                              <div className="relative group w-full aspect-square rounded-md overflow-hidden border bg-card shadow-sm">
+                              <div className="relative group w-full aspect-square rounded-xl overflow-hidden border bg-card ">
                                 <img
                                   src={sharedImage}
                                   alt={gName}
@@ -279,7 +279,7 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
                                   onChange={(url) => handleGroupImageUpdate(gName, url)}
                                   bucket="product-media"
                                   variant="minimal"
-                                  className="h-full w-full p-0 min-h-[80px] rounded-md border-dashed bg-card"
+                                  className="h-full w-full p-0 min-h-[80px] rounded-xl border-dashed bg-card"
                                 />
                               </div>
                             )}
@@ -293,7 +293,7 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
                           {displayColKeys.map((k, colIdx) => (
                             <Input
                               key={`cell-${colIdx}`}
-                              className="h-9 text-xs w-32 px-3 bg-card shadow-sm focus:ring-primary focus:border-primary transition-all"
+                              className="h-9 text-xs w-32 px-3 bg-card focus:ring-primary focus:border-primary transition-all"
                               placeholder={`Ex: Rosa 36`}
                               value={variant.attributes[k] || ""}
                               onChange={(e) => {
@@ -335,7 +335,7 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
                             newVariants[globalIdx] = { ...variant, sku: e.target.value };
                             onChange(newVariants);
                           }}
-                          className="h-9 font-mono text-xs bg-muted/20 hover:bg-muted/40 focus:bg-background transition-colors shadow-sm"
+                          className="h-9 font-mono text-xs bg-muted/20 hover:bg-muted/40 focus:bg-background transition-colors "
                         />
                       </td>
 
@@ -413,7 +413,7 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
 
       <Button
         variant="outline"
-        className="w-full border-dashed bg-card/50 hover:bg-card text-foreground font-semibold h-12 shadow-sm"
+        className="w-full border-dashed bg-card/50 hover:bg-card text-foreground font-semibold h-12 "
         onClick={handleAddEmptyVariant}
       >
         <Plus className="size-5 mr-2" /> Adicionar Nova Matriz Mãe (Ex: Nova Cor)
@@ -482,7 +482,7 @@ function PriceInput({
         }
       }}
       onBlur={handleBlur}
-      className={`h-9 font-mono text-xs shadow-sm transition-colors ${valueCents != null ? "bg-amber-500/10 text-amber-700 font-bold border-amber-500/30" : "bg-muted/20 hover:bg-muted/40 focus:bg-background"}`}
+      className={`h-9 font-mono text-xs transition-colors ${valueCents != null ? "bg-warning/10 text-warning font-bold border-warning/30" : "bg-muted/20 hover:bg-muted/40 focus:bg-background"}`}
     />
   );
 }
@@ -527,7 +527,7 @@ function StockInput({ value, onChange }: { value: number; onChange: (v: number) 
         }
       }}
       onBlur={handleBlur}
-      className="h-9 font-mono text-center bg-muted/20 hover:bg-muted/40 focus:bg-background transition-colors shadow-sm"
+      className="h-9 font-mono text-center bg-muted/20 hover:bg-muted/40 focus:bg-background transition-colors "
     />
   );
 }

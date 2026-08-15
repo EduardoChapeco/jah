@@ -1,0 +1,240 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { toast } from "sonner";
+import {
+  Truck,
+  MapPin,
+  Phone,
+  CheckCircle2,
+  Navigation,
+  KeyRound,
+  Loader2,
+  DollarSign,
+  Package,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { getDeliveryByToken, confirmDeliveryByPin } from "@/services/dispatch.functions";
+import { formatMoney } from "@/lib/money";
+
+export const Route = createFileRoute("/_store/entrega/$token")({
+  head: () => ({ meta: [{ title: "Painel do Entregador | JAH Delivery" }] }),
+  loader: async ({ params }) => {
+    return await getDeliveryByToken({ data: { token: params.token } });
+  },
+  component: DeliveryCourierPage,
+});
+
+function DeliveryCourierPage() {
+  const delivery = Route.useLoaderData();
+  const { token } = Route.useParams();
+
+  const [pin, setPin] = useState("");
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [isDelivered, setIsDelivered] = useState(delivery.status === "delivered");
+  const [deliveredAt, setDeliveredAt] = useState((delivery as any).delivered_at);
+
+  const handleOpenMaps = () => {
+    const encodedAddress = encodeURIComponent(delivery.delivery_address);
+    window.open(`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`, "_blank");
+  };
+
+  const handleOpenWaze = () => {
+    const encodedAddress = encodeURIComponent(delivery.delivery_address);
+    window.open(`https://waze.com/ul?q=${encodedAddress}`, "_blank");
+  };
+
+  const handleCallRecipient = () => {
+    if (delivery.recipient_phone) {
+      window.location.href = `tel:${delivery.recipient_phone.replace(/\D/g, "")}`;
+    }
+  };
+
+  const handleConfirmDelivery = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pin.length !== 4) {
+      toast.error("O código PIN deve conter 4 dígitos.");
+      return;
+    }
+
+    setIsConfirming(true);
+    try {
+      const res = await confirmDeliveryByPin({
+        data: {
+          token,
+          pin,
+        },
+      });
+
+      if (res.success) {
+        setIsDelivered(true);
+        setDeliveredAt(res.deliveredAt);
+        toast.success("Entrega confirmada com sucesso!");
+      }
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao confirmar entrega.");
+    } finally {
+      setIsConfirming(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-muted/20 flex flex-col justify-between p-4 max-w-lg mx-auto">
+      <div className="space-y-4">
+        {/* Header da Corrida */}
+        <div className="squircle-soft bg-card border border-border p-4 flex items-center justify-between shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-primary/10 text-primary rounded-xl">
+              <Truck className="size-6" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground font-semibold">Painel do Entregador</p>
+              <h1 className="text-base font-bold text-foreground">
+                Pedido #{delivery.order_number}
+              </h1>
+            </div>
+          </div>
+          <Badge
+            variant={isDelivered ? "default" : "secondary"}
+            className="rounded-full text-xs font-bold px-2.5 py-0.5"
+          >
+            {isDelivered ? "Entregue" : "Em Trânsito"}
+          </Badge>
+        </div>
+
+        {/* Taxa da Corrida */}
+        <div className="squircle-soft bg-card border border-border p-4 flex items-center justify-between shadow-xs">
+          <div>
+            <span className="text-xs text-muted-foreground">Sua Taxa de Entrega</span>
+            <p className="text-xl font-black text-primary">
+              {formatMoney(delivery.delivery_fee_cents || 0)}
+            </p>
+          </div>
+          <span className="text-xs bg-muted px-2.5 py-1 rounded-lg font-medium text-foreground">
+            {delivery.courier_name}
+          </span>
+        </div>
+
+        {/* Dados do Destinatário & Endereço */}
+        <div className="squircle-soft bg-card border border-border p-4 space-y-4 shadow-xs">
+          <div className="space-y-1">
+            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+              Cliente / Destinatário
+            </span>
+            <p className="text-sm font-bold text-foreground">{delivery.recipient_name}</p>
+            {delivery.recipient_phone && (
+              <p className="text-xs text-muted-foreground">{delivery.recipient_phone}</p>
+            )}
+          </div>
+
+          <div className="space-y-1 pt-2 border-t border-border/60">
+            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+              <MapPin className="size-3 text-primary" /> Endereço de Entrega
+            </span>
+            <p className="text-xs text-foreground font-medium leading-relaxed">
+              {delivery.delivery_address}
+            </p>
+          </div>
+
+          {/* Ações Rápidas de Navegação & Contato */}
+          <div className="grid grid-cols-3 gap-2 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleOpenMaps}
+              className="rounded-xl text-xs font-semibold gap-1.5 h-9"
+            >
+              <Navigation className="size-3.5 text-primary" />
+              Maps
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleOpenWaze}
+              className="rounded-xl text-xs font-semibold gap-1.5 h-9"
+            >
+              <Navigation className="size-3.5 text-blue-500" />
+              Waze
+            </Button>
+            {delivery.recipient_phone && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleCallRecipient}
+                className="rounded-xl text-xs font-semibold gap-1.5 h-9"
+              >
+                <Phone className="size-3.5 text-emerald-600" />
+                Ligar
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Confirmação de Entrega por PIN */}
+        <div className="squircle-soft bg-card border border-border p-5 space-y-4 shadow-xs">
+          {isDelivered ? (
+            <div className="text-center py-4 space-y-2">
+              <div className="size-12 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center mx-auto">
+                <CheckCircle2 className="size-7" />
+              </div>
+              <h2 className="text-base font-bold text-foreground">Entrega Finalizada!</h2>
+              <p className="text-xs text-muted-foreground">
+                Código PIN validado com sucesso. Obrigado pelo serviço!
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={handleConfirmDelivery} className="space-y-4">
+              <div className="space-y-1.5 text-center">
+                <div className="inline-flex items-center gap-1.5 text-xs font-bold text-foreground">
+                  <KeyRound className="size-4 text-primary" />
+                  Código PIN de Confirmação
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Solicite o código de 4 dígitos para o cliente ao entregar o pedido.
+                </p>
+              </div>
+
+              <Input
+                type="text"
+                pattern="[0-9]*"
+                inputMode="numeric"
+                maxLength={4}
+                value={pin}
+                onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
+                placeholder="Ex: 8492"
+                className="h-12 text-center text-xl font-mono font-bold tracking-widest rounded-xl"
+                required
+              />
+
+              <Button
+                type="submit"
+                disabled={isConfirming || pin.length !== 4}
+                className="w-full h-11 rounded-xl font-bold gap-2 text-sm shadow-xs"
+              >
+                {isConfirming ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    Validando Código...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="size-4" />
+                    Confirmar Entrega
+                  </>
+                )}
+              </Button>
+            </form>
+          )}
+        </div>
+      </div>
+
+      <div className="py-4 text-center text-[10px] text-muted-foreground">
+        JAH Delivery Network • Despacho Seguro em Tempo Real
+      </div>
+    </div>
+  );
+}

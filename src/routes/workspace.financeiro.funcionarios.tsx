@@ -104,14 +104,14 @@ function HrFinancePage() {
           {staffBalances.map((emp: any) => (
             <div
               key={emp.id}
-              className="border border-border bg-card rounded-md shadow-xs p-6 flex flex-col md:flex-row md:items-center justify-between gap-4"
+              className="border border-border bg-card rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4"
             >
               <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-display font-bold text-lg shrink-0 border border-primary/20">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg shrink-0 border border-primary/20">
                   {emp.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="font-display font-bold text-lg">{emp.name}</h3>
+                  <h3 className="font-bold text-lg">{emp.name}</h3>
                   <Badge variant="outline" className="mt-1 border-border/30">
                     {emp.role}
                   </Badge>
@@ -122,7 +122,7 @@ function HrFinancePage() {
                 <div className="text-right">
                   <p className="text-sm text-muted-foreground font-semibold">Saldo a Receber</p>
                   <p
-                    className={`text-2xl font-bold font-display ${emp.balanceCents < 0 ? "text-destructive" : "text-emerald-600"}`}
+                    className={`text-2xl font-bold ${emp.balanceCents < 0 ? "text-destructive" : "text-success"}`}
                   >
                     {formatMoney(emp.balanceCents)}
                   </p>
@@ -161,7 +161,7 @@ function HrFinancePage() {
                     </div>
                   </SelectItem>
                   <SelectItem value="adjustment">
-                    <div className="flex items-center text-emerald-600">
+                    <div className="flex items-center text-success">
                       <ArrowUpRight className="w-4 h-4 mr-2" /> Bônus / Ajuste (Crédito)
                     </div>
                   </SelectItem>

@@ -2,25 +2,24 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { getNavigationMenus, getPublicStoreSettings } from "@/services/cms.functions";
 import { getCart, getGlobalCarts } from "@/services/cart.functions";
 import { getActiveGlobalPopups } from "@/services/builder.functions";
+import { getUserSession } from "@/services/auth.functions";
 import { useEffect } from "react";
 
-import { PublicHeader } from "@/components/commerce/public-header";
-import { PublicFooter } from "@/components/commerce/public-footer";
-import { BottomNav } from "@/components/commerce/bottom-nav";
+import { AppShell } from "@/components/shell/app-shell";
 import { GlobalPopupRenderer } from "@/components/commerce/global-popup-renderer";
 import { CartProvider, useCartContext } from "@/lib/cart-context";
-import { CartSheet } from "@/components/commerce/cart-sheet";
 import { ErrorState, UnconfiguredState } from "@/components/state/states";
 
 export const Route = createFileRoute("/_store")({
   loader: async () => {
     try {
-      const [menusRes, storeRes, carts, globalCarts, popupsRes] = await Promise.all([
+      const [menusRes, storeRes, carts, globalCarts, popupsRes, sessionRes] = await Promise.all([
         getNavigationMenus().catch(() => []),
         getPublicStoreSettings().catch(() => null),
         getCart().catch(() => null),
         getGlobalCarts().catch(() => []),
         getActiveGlobalPopups().catch(() => []),
+        getUserSession().catch(() => null),
       ]);
       return {
         menus: menusRes || [],
@@ -28,6 +27,7 @@ export const Route = createFileRoute("/_store")({
         carts,
         globalCarts: globalCarts || [],
         popups: popupsRes || [],
+        session: sessionRes || null,
       };
     } catch {
       return {
@@ -36,6 +36,7 @@ export const Route = createFileRoute("/_store")({
         carts: null,
         globalCarts: [],
         popups: [],
+        session: null,
       };
     }
   },
@@ -71,16 +72,12 @@ function StoreLayoutWrapper() {
 }
 
 function StoreLayout() {
-  const { menus, store, carts, globalCarts, popups } = Route.useLoaderData() as any;
+  const { store, carts, globalCarts, popups, session } = Route.useLoaderData() as any;
   const { initCart } = useCartContext();
 
   useEffect(() => {
     initCart(carts, globalCarts);
   }, [carts, globalCarts, initCart]);
-
-  // Extract header and footer menus
-  const headerMenu = menus.find((m: any) => m.handle === "header")?.items || [];
-  const footerMenu = menus.find((m: any) => m.handle === "footer")?.items || [];
 
   const storeData = store?.data || store;
   const storeName = storeData?.name || "Jah";
@@ -125,24 +122,13 @@ function StoreLayout() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-background font-sans text-foreground selection:bg-primary selection:text-primary-foreground">
+    <AppShell session={session}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <PublicHeader
-        menuItems={headerMenu}
-        storeName={storeName}
-        logoUrl={logoUrl}
-        hideNameWithLogo={storeData?.settings?.hideNameWithLogo === true}
-      />
-      <main className="@container flex-1 pb-20 md:pb-0">
-        <Outlet />
-      </main>
-      <PublicFooter menuItems={footerMenu} store={storeData} />
-      <BottomNav storeType={storeData?.type} />
+      <Outlet />
       <GlobalPopupRenderer popups={popups} />
-      <CartSheet />
-    </div>
+    </AppShell>
   );
 }

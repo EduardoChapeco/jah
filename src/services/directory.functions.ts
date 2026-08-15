@@ -35,7 +35,7 @@ export const getPublicDirectory = createServerFn({ method: "GET" })
 
     if (error) {
       console.error("[directory] getPublicDirectory error:", error);
-      throw new Error("Não foi possível carregar o diretório.");
+      return []; // Retorna array vazio em vez de throw Error para evitar quebra 500 no SSR
     }
 
     return listings || [];

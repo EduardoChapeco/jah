@@ -10,7 +10,7 @@
 
 import { getSSRClient } from "@/lib/supabase-ssr.server";
 import { getServerClient } from "@/lib/supabase";
-import type { ServerIdentity } from "@/lib/identity-core";
+import { type ServerIdentity, STAFF_ROLES } from "@/lib/identity-core";
 
 export type { ServerIdentity };
 export { assertStoreAccess, STAFF_ROLES } from "@/lib/identity-core";
@@ -50,6 +50,15 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
     activeStoreId = (await resolveTenantStoreId()) ?? null;
   } catch {
     /* ignored */
+  }
+
+  // Fallback seguro: se não houver cookie mas o usuário for membro de staff de alguma store,
+  // assume o contexto da sua primeira store de staff como default ativo.
+  if (!activeStoreId && memberships.length > 0) {
+    const primaryStaff = memberships.find((m) => STAFF_ROLES.includes(m.role as any));
+    if (primaryStaff) {
+      activeStoreId = primaryStaff.store_id;
+    }
   }
 
   // Determine role in the active context

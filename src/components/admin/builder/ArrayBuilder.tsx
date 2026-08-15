@@ -74,7 +74,7 @@ export function ArrayBuilder({ value = [], onChange, label, arrayFields = [] }: 
       )}
 
       {items.length === 0 ? (
-        <div className="text-xs text-center py-4 bg-muted/50 rounded-md text-muted-foreground border border-dashed">
+        <div className="text-xs text-center py-4 bg-muted/50 rounded-xl text-muted-foreground border border-dashed">
           Nenhum item adicionado
         </div>
       ) : (
@@ -87,7 +87,7 @@ export function ArrayBuilder({ value = [], onChange, label, arrayFields = [] }: 
               <AccordionItem
                 key={item._id || index}
                 value={`item-${index}`}
-                className={`border rounded-md overflow-hidden transition-all ${isDragged ? "opacity-50" : "bg-card"} ${isDragOver ? "border-primary border-t-2" : ""}`}
+                className={`border rounded-xl overflow-hidden transition-all ${isDragged ? "opacity-50" : "bg-card"} ${isDragOver ? "border-primary border-t-2" : ""}`}
                 draggable
                 onDragStart={(e) => {
                   setDraggedIndex(index);
@@ -176,7 +176,7 @@ export function ArrayBuilder({ value = [], onChange, label, arrayFields = [] }: 
                         </div>
                       ) : field.type === "textarea" ? (
                         <textarea
-                          className="w-full text-sm p-2 border rounded-md bg-background min-h-[80px]"
+                          className="w-full text-sm p-2 border rounded-xl bg-background min-h-[80px]"
                           placeholder={field.label}
                           value={item[field.name] || ""}
                           onChange={(e) => handleUpdateItem(index, field.name, e.target.value)}

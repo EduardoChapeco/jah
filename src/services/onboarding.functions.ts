@@ -57,10 +57,17 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
         .eq("store_id", storeId)
         .maybeSingle();
 
-      if (error) return { status: "error" as const, error: (error instanceof Error ? error.message : String(error)) };
+      if (error)
+        return {
+          status: "error" as const,
+          error: error instanceof Error ? error.message : String(error),
+        };
       return { status: "ok" as const, data: { ...data, theme_settings: theme } };
     } catch (e: unknown) {
-      return { status: "error" as const, error: (e instanceof Error ? e.message : String(e)) || "Erro de banco" };
+      return {
+        status: "error" as const,
+        error: (e instanceof Error ? e.message : String(e)) || "Erro de banco",
+      };
     }
   };
 
@@ -74,7 +81,11 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
         query = query.eq(filterColumn, filterValue);
       }
       const { count, error } = await query;
-      if (error) return { status: "error" as const, error: (error instanceof Error ? error.message : String(error)) };
+      if (error)
+        return {
+          status: "error" as const,
+          error: error instanceof Error ? error.message : String(error),
+        };
       return { status: "ok" as const, count: count ?? 0 };
     } catch (e: unknown) {
       const err = e as Error;
@@ -89,7 +100,11 @@ export async function _getOnboardingStatus(): Promise<OnboardingOverview> {
         .select("id, products!inner(store_id)", { count: "exact", head: true })
         .eq("products.store_id", storeId)
         .gt("stock_on_hand", 0);
-      if (error) return { status: "error" as const, error: (error instanceof Error ? error.message : String(error)) };
+      if (error)
+        return {
+          status: "error" as const,
+          error: error instanceof Error ? error.message : String(error),
+        };
       return { status: "ok" as const, count: count ?? 0 };
     } catch (e: unknown) {
       const err = e as Error;
@@ -468,3 +483,69 @@ export const getOnboardingStatus = createServerFn({ method: "GET" }).handler(asy
   const data = await _getOnboardingStatus();
   return data;
 });
+
+import { z } from "zod";
+import { getSSRClient } from "@/lib/supabase-ssr.server";
+
+function generateSlug(text: string) {
+  return text
+    .toString()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9 -]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+/, "")
+    .replace(/-+$/, "");
+}
+
+const ProvisionBusinessSchema = z.object({
+  name: z.string().min(2, "Nome muito curto"),
+  type: z.string().optional(),
+  document: z.string().optional(),
+});
+
+export const provisionBusiness = createServerFn({ method: "POST" })
+  .validator(ProvisionBusinessSchema)
+  .handler(async ({ data }) => {
+    const ssrClient = await getSSRClient();
+    const {
+      data: { user },
+    } = await ssrClient.auth.getUser();
+    if (!user) throw new Error("Não autorizado");
+
+    const db = getServerClient(); // Bypass RLS para provisionamento
+
+    // 1. Criar Organização
+    const orgSlug = generateSlug(data.name) + "-" + Math.floor(1000 + Math.random() * 9000);
+    const { data: org, error: orgError } = await db
+      .from("organizations")
+      .insert({ name: data.name, slug: orgSlug })
+      .select("id")
+      .single();
+    if (orgError) throw new Error("Erro ao criar organização: " + orgError.message);
+
+    // 2. Criar Loja
+    const { data: store, error: storeError } = await db
+      .from("stores")
+      .insert({
+        organization_id: org.id,
+        name: data.name,
+        slug: orgSlug,
+        cnpj: data.document || null,
+      })
+      .select("id")
+      .single();
+    if (storeError) throw new Error("Erro ao criar loja: " + storeError.message);
+
+    // 3. Vincular Usuário como Owner
+    const { error: memberError } = await db.from("workspace_members").insert({
+      profile_id: user.id,
+      store_id: store.id,
+      role: "owner",
+    });
+    if (memberError) throw new Error("Erro ao vincular membro: " + memberError.message);
+
+    return { status: "success" as const, storeId: store.id };
+  });

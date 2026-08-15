@@ -283,7 +283,7 @@ export const listShipments = createServerFn({ method: "GET" })
       return await _listShipments(filters ?? undefined);
     } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[fulfillment] listShipments:", (e instanceof Error ? e.message : String(e)));
+      console.error("[fulfillment] listShipments:", e instanceof Error ? e.message : String(e));
       throw new Error("Erro ao listar envios.");
     }
   });
@@ -295,7 +295,7 @@ export const getShipmentById = createServerFn({ method: "GET" })
       return await _getShipmentById(id);
     } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[fulfillment] getShipmentById:", (e instanceof Error ? e.message : String(e)));
+      console.error("[fulfillment] getShipmentById:", e instanceof Error ? e.message : String(e));
       throw new Error((e instanceof Error ? e.message : String(e)) || "Envio não encontrado.");
     }
   });
@@ -318,7 +318,7 @@ export const createShipment = createServerFn({ method: "POST" })
       return await _createShipment(input);
     } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[fulfillment] createShipment:", (e instanceof Error ? e.message : String(e)));
+      console.error("[fulfillment] createShipment:", e instanceof Error ? e.message : String(e));
       throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao criar envio.");
     }
   });
@@ -342,8 +342,13 @@ export const updateShipmentTracking = createServerFn({ method: "POST" })
       return await _updateShipmentTracking(input);
     } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[fulfillment] updateShipmentTracking:", (e instanceof Error ? e.message : String(e)));
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao atualizar rastreamento.");
+      console.error(
+        "[fulfillment] updateShipmentTracking:",
+        e instanceof Error ? e.message : String(e),
+      );
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao atualizar rastreamento.",
+      );
     }
   });
 
@@ -352,7 +357,10 @@ export const listPendingFulfillment = createServerFn({ method: "GET" }).handler(
     return await _listPendingFulfillment();
   } catch (e: unknown) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
-    console.error("[fulfillment] listPendingFulfillment:", (e instanceof Error ? e.message : String(e)));
+    console.error(
+      "[fulfillment] listPendingFulfillment:",
+      e instanceof Error ? e.message : String(e),
+    );
     throw new Error("Erro ao buscar pedidos pendentes de separação.");
   }
 });

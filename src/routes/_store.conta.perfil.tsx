@@ -65,7 +65,7 @@ function AvatarSection({
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const initials = name
-    .split(" ")
+    .split("")
     .slice(0, 2)
     .map((n) => n[0])
     .join("")
@@ -184,7 +184,7 @@ function ProfilePage() {
   };
 
   return (
-    <section className="space-y-8 max-w-2xl">
+    <section className="space-y-8 w-full">
       <div>
         <h2 className="font-semibold text-2xl text-foreground">Meu Perfil</h2>
         <p className="text-sm text-muted-foreground mt-1">
@@ -193,7 +193,7 @@ function ProfilePage() {
       </div>
 
       {/* ── Avatar ── */}
-      <div className="border border-border bg-card p-6">
+      <div className="border border-border bg-card p-6 rounded-xl">
         <AvatarSection
           currentUrl={formData.avatarUrl || null}
           name={formData.fullName}
@@ -204,7 +204,7 @@ function ProfilePage() {
       {/* ── Form ── */}
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Dados básicos */}
-        <div className="border border-border bg-card p-6 space-y-4">
+        <div className="border border-border bg-card p-6 space-y-4 rounded-xl">
           <div className="flex items-center gap-2 mb-2">
             <User className="size-4 text-primary" aria-hidden />
             <h3 className="text-sm font-semibold text-foreground">Dados pessoais</h3>
@@ -319,7 +319,7 @@ function ProfilePage() {
         </div>
 
         {/* ── Preferências ── */}
-        <div className="border border-border bg-card p-6 space-y-4">
+        <div className="border border-border bg-card p-6 space-y-4 rounded-xl">
           <div className="flex items-center gap-2 mb-2">
             <Bell className="size-4 text-primary" aria-hidden />
             <h3 className="text-sm font-semibold text-foreground">Preferências</h3>
@@ -355,7 +355,7 @@ function ProfilePage() {
       {/* ── Privacidade & LGPD ── */}
       <Separator />
 
-      <div className="border border-destructive/30 bg-destructive/5 p-6 space-y-4">
+      <div className="border border-destructive/30 bg-destructive/5 p-6 space-y-4 rounded-xl">
         <div className="flex items-start gap-3">
           <ShieldCheck className="size-5 text-destructive mt-0.5 shrink-0" aria-hidden />
           <div>
@@ -388,10 +388,11 @@ function ProfilePage() {
                   desvinculado dos seus dados de identificação.
                 </span>
                 <span className="block mt-3 font-medium text-foreground">
-                  Para confirmar, digite{" "}
+                  Para confirmar, digite{""}
                   <code className="text-destructive font-bold bg-destructive/10 px-1 rounded">
                     EXCLUIR
-                  </code>{" "}
+                  </code>
+                  {""}
                   abaixo:
                 </span>
                 <Input

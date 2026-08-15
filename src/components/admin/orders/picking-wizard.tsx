@@ -55,7 +55,13 @@ export function PickingWizard({ order, isOpen, onOpenChange, onComplete }: Picki
         }
         setPickedState(newPicked);
       } catch (err: unknown) {
-        toast.error((err instanceof Error ? (err instanceof Error ? err.message : String(err)) : String(err)) || "Erro ao iniciar sessão no WMS.");
+        toast.error(
+          (err instanceof Error
+            ? err instanceof Error
+              ? err.message
+              : String(err)
+            : String(err)) || "Erro ao iniciar sessão no WMS.",
+        );
         onOpenChange(false);
       } finally {
         setIsLoadingSession(false);
@@ -99,7 +105,10 @@ export function PickingWizard({ order, isOpen, onOpenChange, onComplete }: Picki
       }));
       toast.success(`${item.product_title} conferido!`);
     } catch (err: unknown) {
-      toast.error((err instanceof Error ? (err instanceof Error ? err.message : String(err)) : String(err)) || "Erro ao registrar conferência no WMS.");
+      toast.error(
+        (err instanceof Error ? (err instanceof Error ? err.message : String(err)) : String(err)) ||
+          "Erro ao registrar conferência no WMS.",
+      );
     } finally {
       setProcessingItems((prev) => {
         const next = new Set(prev);
@@ -120,7 +129,8 @@ export function PickingWizard({ order, isOpen, onOpenChange, onComplete }: Picki
       onOpenChange(false);
     } catch (e: unknown) {
       toast.error(
-        (e instanceof Error ? e.message : String(e)) || "Erro ao finalizar separação. O servidor rejeitou a integridade da remessa.",
+        (e instanceof Error ? e.message : String(e)) ||
+          "Erro ao finalizar separação. O servidor rejeitou a integridade da remessa.",
       );
     } finally {
       setIsSubmitting(false);
@@ -199,7 +209,7 @@ export function PickingWizard({ order, isOpen, onOpenChange, onComplete }: Picki
                     </div>
 
                     {item.image_url ? (
-                      <div className="h-16 w-16 shrink-0 rounded-md overflow-hidden border bg-background">
+                      <div className="h-16 w-16 shrink-0 rounded-xl overflow-hidden border bg-background">
                         <img
                           src={item.image_url}
                           alt={item.product_title}
@@ -207,7 +217,7 @@ export function PickingWizard({ order, isOpen, onOpenChange, onComplete }: Picki
                         />
                       </div>
                     ) : (
-                      <div className="h-16 w-16 shrink-0 rounded-md overflow-hidden border bg-muted flex items-center justify-center">
+                      <div className="h-16 w-16 shrink-0 rounded-xl overflow-hidden border bg-muted flex items-center justify-center">
                         <Box className="h-6 w-6 text-muted-foreground/50" />
                       </div>
                     )}
@@ -241,8 +251,8 @@ export function PickingWizard({ order, isOpen, onOpenChange, onComplete }: Picki
             </div>
 
             {!allItemsChecked && (
-              <div className="flex items-start gap-3 p-3 bg-primary/10 text-primary dark:text-primary border border-blue-500/20 text-sm mt-4">
-                <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+              <div className="flex items-start gap-3 p-3 bg-muted/40 text-foreground border border-border rounded-xl text-sm mt-4">
+                <AlertCircle className="h-5 w-5 shrink-0 mt-0.5 text-muted-foreground" />
                 <p>
                   A transação de expedição está protegida via RLS/RPC. O servidor exige integridade
                   total antes de permitir o despacho.

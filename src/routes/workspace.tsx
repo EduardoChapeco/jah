@@ -15,35 +15,35 @@ export const Route = createFileRoute("/workspace")({
       });
     }
 
-    // Apenas donos, gerentes ou staff podem acessar o workspace B2B.
-    // Se o role é "customer", verificamos se o usuário tem memberships (negócios)
-    // mas está sem contexto de loja ativo — nesse caso redireciona para criar negócio,
-    // não para /conta (que é o destino para clientes sem nenhum negócio).
-    if (session.role === "customer" || !session.role) {
-      // Verificar se o usuário tem memberships de negócio (é produtor mas sem contexto ativo)
-      let hasMemberships = false;
-      try {
-        const identity = await getIdentity();
-        hasMemberships = !!(identity?.memberships && identity.memberships.length > 0);
-      } catch {
-        /* ignored */
-      }
+    // Apenas membros com role de staff podem acessar o workspace B2B.
+    // Role de 'customer' — mesmo que haja um workspace_member — não concede acesso.
+    // Referência: INCIDENT-IDENTITY-001 — todo signup criava workspace_member
+    // com role='customer' na store padrão. Isso foi corrigido no trigger,
+    // mas o guard também precisa ser explícito e seguro.
 
-      if (hasMemberships) {
-        // Produtor sem contexto de loja ativo: redireciona para página inicial do workspace
-        // onde poderá selecionar o contexto correto via menu
-        // (O shell irá exibir o seletor de negócio)
-        // Permitir acesso mas com role indicando que está sem contexto
-        return { session: { ...session, hasMemberships: true } };
-      }
+    const STAFF_ROLES = [
+      "owner",
+      "admin",
+      "manager",
+      "seller",
+      "finance",
+      "content",
+      "support",
+      "stock",
+    ];
 
-      // Cliente puro sem nenhum negócio: redireciona para /conta
+    if (session.role === "customer" || !session.role || !STAFF_ROLES.includes(session.role)) {
+      // Bloqueio rigoroso: se o contexto ativo não é de staff, ele não pode renderizar
+      // o WorkspaceShell. O usuário deve trocar o tenant na área "/conta" antes de acessar.
       throw redirect({
-        to: "/conta",
+        to: "/criar-negocio",
+        search: {
+          error: "unauthorized",
+        },
       });
     }
 
-    return { session: { ...session, hasMemberships: true } };
+    return { session: { ...session, hasMemberships: true, hasStaffMembership: true } };
   },
   component: WorkspaceLayout,
 });

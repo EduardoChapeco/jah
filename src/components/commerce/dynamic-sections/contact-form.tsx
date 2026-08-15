@@ -59,7 +59,10 @@ export function ContactForm({ storeId, content }: ContactFormProps) {
       setPhone("");
       setMessage("");
     } catch (err: unknown) {
-      toast.error((err instanceof Error ? err.message : String(err)) || "Erro ao enviar mensagem. Tente novamente.");
+      toast.error(
+        (err instanceof Error ? err.message : String(err)) ||
+          "Erro ao enviar mensagem. Tente novamente.",
+      );
     } finally {
       setIsSubmitting(false);
     }

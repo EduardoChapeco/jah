@@ -102,7 +102,7 @@ function FretesCotacoesPage() {
       <PageHeader title="Cotações de Frete" />
 
       {/* Solicitações Pendentes */}
-      <div className="border bg-card p-6">
+      <div className="bg-surface-paper shadow-sm rounded-xl border border-border p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-lg flex items-center gap-2">
             Solicitações Pendentes
@@ -119,7 +119,7 @@ function FretesCotacoesPage() {
             </p>
           </div>
         ) : (
-          <div className="rounded-md border bg-card overflow-hidden">
+          <div className="rounded-xl border border-border bg-surface-paper shadow-sm overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -224,7 +224,7 @@ function FretesCotacoesPage() {
       </div>
 
       {/* Simulador de Cotações */}
-      <div className="border bg-card p-6">
+      <div className="bg-surface-paper shadow-sm rounded-xl border border-border p-6">
         <h3 className="font-semibold mb-4 text-lg">Simular Frete por CEP</h3>
         <form onSubmit={handleSimulate} className="flex gap-3 max-w-sm">
           <Input
@@ -287,13 +287,10 @@ function FretesCotacoesPage() {
       </div>
 
       {/* Zonas Ativas */}
-      <div className="border bg-card p-6">
+      <div className="bg-surface-paper shadow-sm rounded-xl border border-border p-6">
         <h3 className="font-semibold mb-4 text-lg">Zonas Ativas ({zones.length})</h3>
         {zones.length === 0 ? (
-          <EmptyState
-            title="Nenhuma zona configurada"
-            description='Crie zonas de frete em "Tabelas" para que os cálculos funcionem.'
-          />
+          <EmptyState title="Nenhuma zona configurada" />
         ) : (
           <div className="flex flex-wrap gap-2">
             {zones.map((z: any) => (
@@ -303,7 +300,7 @@ function FretesCotacoesPage() {
               >
                 <span className="font-medium">{z.name}</span>
                 <span className="text-muted-foreground font-normal">
-                  ({(z.regions || []).join(", ")})
+                  ({(z.regions || []).join(",")})
                 </span>
                 <Badge
                   variant={z.is_active ? "secondary" : "outline"}

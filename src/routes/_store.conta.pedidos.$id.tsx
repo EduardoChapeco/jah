@@ -127,7 +127,9 @@ function CustomerOrderDetailPage() {
         toast.success("Comprovante enviado! Aguardando confirmação da loja.");
         router.invalidate();
       } catch (err: unknown) {
-        toast.error((err instanceof Error ? err.message : String(err)) || "Erro ao enviar comprovante.");
+        toast.error(
+          (err instanceof Error ? err.message : String(err)) || "Erro ao enviar comprovante.",
+        );
       } finally {
         setUploading(false);
       }
@@ -144,7 +146,7 @@ function CustomerOrderDetailPage() {
         >
           <ChevronLeft className="h-4 w-4" /> Voltar para pedidos
         </Link>
-        <span className="px-3 py-1 font-mono text-xs font-black uppercase border border-border bg-secondary shadow-sm">
+        <span className="px-3 py-1 font-mono text-xs font-black uppercase border border-border bg-secondary ">
           {translateStatus(order.status)}
         </span>
       </div>
@@ -154,7 +156,7 @@ function CustomerOrderDetailPage() {
           <Package className="size-8 text-primary" strokeWidth={3} />
           Pedido #{order.public_token}
         </h1>
-        <p className="text-sm font-mono mt-2 bg-primary text-primary-foreground inline-block px-2 py-1 shadow-sm">
+        <p className="text-sm font-mono mt-2 bg-primary text-primary-foreground inline-block px-2 py-1 ">
           Realizado em {formatDate(order.created_at)}
         </p>
       </div>
@@ -163,43 +165,59 @@ function CustomerOrderDetailPage() {
         {/* Left: items + shipping */}
         <div className="md:col-span-2 space-y-6">
           {/* Order items */}
-          <div className="border border-border bg-background shadow-sm p-5 space-y-4 mb-6">
+          <div className="border border-border bg-background p-5 space-y-4 mb-6">
             <h3 className="font-semibold text-xl font-bold flex items-center gap-2 border-b border-border pb-3">
               <Package className="h-6 w-6 text-primary" strokeWidth={2.5} />
               Itens do Pedido
             </h3>
             <div className="divide-y">
-              {items.map((item: any) => (
-                <div
-                  key={item.id}
-                  className="flex justify-between py-4 first:pt-0 last:pb-0 text-sm"
-                >
-                  <div>
-                    <p className="font-bold text-lg">{item.product_title}</p>
-                    <p className="text-xs text-foreground/70 font-mono mt-0.5">
-                      SKU: {item.variant_sku}
-                    </p>
+              {items.map((item: any) => {
+                const isBackorderItem = item.metadata?.is_backorder === true;
+                return (
+                  <div
+                    key={item.id}
+                    className="flex justify-between py-4 first:pt-0 last:pb-0 text-sm"
+                  >
+                    <div>
+                      <p className="font-bold text-lg flex items-center gap-2 flex-wrap">
+                        {item.product_title}
+                        {isBackorderItem && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 bg-warning/15 text-warning border border-warning/30 rounded-md">
+                            ⏱ Sob Encomenda
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-xs text-foreground/70 font-mono mt-0.5">
+                        SKU: {item.variant_sku}
+                      </p>
+                      {isBackorderItem && (
+                        <p className="text-xs text-warning mt-1">
+                          Este item será produzido sob encomenda. O prazo de envio será comunicado
+                          em breve.
+                        </p>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      {/* Canonical DB field: total_cents (not total_price_cents) */}
+                      <p className="font-black font-semibold text-lg">
+                        {formatMoney(item.total_cents)}
+                      </p>
+                      {/* Canonical DB field: qty (not quantity) */}
+                      <p className="text-xs text-foreground/70">
+                        {item.qty}x {formatMoney(item.unit_price_cents)}
+                      </p>
+                      {order.status === "delivered" && (
+                        <ReviewModal productId={item.product_id} productName={item.product_title} />
+                      )}
+                    </div>
                   </div>
-                  <div className="text-right">
-                    {/* Canonical DB field: total_cents (not total_price_cents) */}
-                    <p className="font-black font-semibold text-lg">
-                      {formatMoney(item.total_cents)}
-                    </p>
-                    {/* Canonical DB field: qty (not quantity) */}
-                    <p className="text-xs text-foreground/70">
-                      {item.qty}x {formatMoney(item.unit_price_cents)}
-                    </p>
-                    {order.status === "delivered" && (
-                      <ReviewModal productId={item.product_id} productName={item.product_title} />
-                    )}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
           {/* Delivery & Shipping Address */}
-          <div className="border border-border bg-background shadow-sm p-5 space-y-3 mb-6">
+          <div className="border border-border bg-background p-5 space-y-3 mb-6">
             <h3 className="font-semibold text-xl font-bold flex items-center gap-2 border-b border-border pb-3">
               <MapPin className="h-6 w-6 text-primary" strokeWidth={2.5} />
               Entrega / Retirada
@@ -237,7 +255,7 @@ function CustomerOrderDetailPage() {
         {/* Right: totals + payment */}
         <div className="space-y-6">
           {/* Summary totals */}
-          <div className="border border-border bg-secondary shadow-sm p-6 space-y-4 mb-6 text-foreground">
+          <div className="border border-border bg-secondary p-6 space-y-4 mb-6 text-foreground">
             <h3 className="font-semibold text-2xl font-bold border-b border-border pb-3 flex items-center gap-2">
               <CreditCard className="size-6 text-primary" strokeWidth={2.5} />
               Resumo Financeiro
@@ -254,14 +272,14 @@ function CustomerOrderDetailPage() {
                 </span>
               </div>
               {order.discount_cents > 0 && (
-                <div className="flex justify-between text-success font-black border border-success bg-white px-2 py-1 shadow-sm mt-1">
+                <div className="flex justify-between text-success font-black border border-success bg-white px-2 py-1 mt-1">
                   <span>Desconto</span>
                   <span>-{formatMoney(order.discount_cents)}</span>
                 </div>
               )}
               <div className="flex justify-between items-end border-t border-border pt-4 mt-4">
                 <span className="font-bold text-xl font-semibold">Total</span>
-                <span className="font-black text-4xl text-primary font-semibold tracking-tight drop-shadow-sm">
+                <span className="font-black text-4xl text-primary font-semibold tracking-tight drop-">
                   {formatMoney(order.total_cents)}
                 </span>
               </div>
@@ -270,7 +288,7 @@ function CustomerOrderDetailPage() {
 
           {/* Payment instructions & Upload */}
           {order.status === "awaiting_payment" && (
-            <div className="border border-border bg-background shadow-sm p-5 space-y-5 text-foreground">
+            <div className="border border-border bg-background p-5 space-y-5 text-foreground">
               <h3 className="font-semibold text-xl font-bold flex items-center gap-2 border-b border-border pb-3">
                 <CreditCard className="h-6 w-6 text-primary" strokeWidth={2.5} />
                 Como Pagar
@@ -290,7 +308,7 @@ function CustomerOrderDetailPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="w-full border border-border font-bold rounded-md bg-white text-foreground"
+                    className="w-full border border-border font-bold rounded-xl bg-white text-foreground"
                     onClick={handleCopyPix}
                   >
                     <Copy className="h-3.5 w-3.5 mr-2" /> Copiar Chave PIX
@@ -326,7 +344,7 @@ function CustomerOrderDetailPage() {
                 <Button
                   asChild
                   size="sm"
-                  className="w-full bg-primary text-primary-foreground border border-border rounded-md font-bold cursor-pointer"
+                  className="w-full bg-primary text-primary-foreground border border-border rounded-xl font-bold cursor-pointer"
                   disabled={uploading}
                 >
                   <label htmlFor="receipt-file">
@@ -339,7 +357,7 @@ function CustomerOrderDetailPage() {
 
           {/* Payment status messages */}
           {order.status === "payment_processing" && (
-            <div className="flex items-start gap-3 bg-secondary text-foreground text-sm p-4 border border-border shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+            <div className="flex items-start gap-3 bg-secondary text-foreground text-sm p-4 border border-border ">
               <Info className="h-5 w-5 shrink-0 mt-0.5 text-foreground" strokeWidth={2.5} />
               <div>
                 <p className="font-black font-semibold uppercase">Comprovante em análise</p>
@@ -351,7 +369,7 @@ function CustomerOrderDetailPage() {
           )}
 
           {payment?.receipt_status === "rejected" && (
-            <div className="flex items-start gap-3 bg-primary text-primary-foreground text-sm p-4 border border-border shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+            <div className="flex items-start gap-3 bg-primary text-primary-foreground text-sm p-4 border border-border ">
               <AlertTriangle
                 className="h-5 w-5 shrink-0 mt-0.5 text-primary-foreground"
                 strokeWidth={2.5}
@@ -366,7 +384,7 @@ function CustomerOrderDetailPage() {
           )}
 
           {["paid", "processing", "completed"].includes(order.status) && (
-            <div className="flex items-start gap-3 bg-success text-white text-sm p-4 border border-border shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+            <div className="flex items-start gap-3 bg-success text-white text-sm p-4 border border-border ">
               <Info className="h-5 w-5 shrink-0 mt-0.5 text-white" strokeWidth={2.5} />
               <div>
                 <p className="font-black font-semibold uppercase">Pagamento Confirmado</p>
@@ -381,7 +399,7 @@ function CustomerOrderDetailPage() {
             <>
               <Button
                 variant="outline"
-                className="w-full mt-6 bg-background text-primary border border-border rounded-md font-black uppercase tracking-wider"
+                className="w-full mt-6 bg-background text-primary border border-border rounded-xl font-black"
                 onClick={() => setRmaWizardOpen(true)}
               >
                 Solicitar Devolução / Troca

@@ -61,7 +61,7 @@ function MasterFaturasPage() {
       toast.success("Status atualizado com sucesso.");
       router.invalidate();
     } catch (e: unknown) {
-      toast.error((e instanceof Error ? e.message : String(e)));
+      toast.error(e instanceof Error ? e.message : String(e));
     } finally {
       setLoadingAction(null);
     }
@@ -98,7 +98,7 @@ function MasterFaturasPage() {
       setDueDate("");
       router.invalidate();
     } catch (e: unknown) {
-      toast.error((e instanceof Error ? e.message : String(e)));
+      toast.error(e instanceof Error ? e.message : String(e));
     } finally {
       setLoadingAction(null);
     }
@@ -128,7 +128,7 @@ function MasterFaturasPage() {
       </div>
 
       {isCreating && (
-        <div className="border border-border bg-card rounded-md shadow-xs p-6 bg-muted/20 border-primary/20">
+        <div className="border border-border bg-card rounded-xl p-6 bg-muted/20 border-primary/20">
           <h2 className="text-lg font-bold flex items-center gap-2 mb-4">
             <Receipt className="size-5 text-primary" />
             Emitir Fatura Avulsa
@@ -187,7 +187,7 @@ function MasterFaturasPage() {
         </div>
       )}
 
-      <div className="border border-border bg-card rounded-md shadow-xs overflow-hidden">
+      <div className="border border-border bg-card rounded-xl overflow-hidden">
         <div className="p-4 border-b bg-muted/30">
           <h3 className="font-bold flex items-center gap-2">
             <FileText className="size-4 text-primary" /> Histórico de Faturas
@@ -217,7 +217,8 @@ function MasterFaturasPage() {
                   <tr key={inv.id} className="hover:bg-muted/30 transition-colors">
                     <td className="px-6 py-4 font-semibold text-foreground">{inv.description}</td>
                     <td className="px-6 py-4 text-muted-foreground">
-                      {inv.stores?.name}{" "}
+                      {inv.stores?.name}
+                      {""}
                       <span className="text-[10px] block opacity-70">/{inv.stores?.slug}</span>
                     </td>
                     <td className="px-6 py-4 text-muted-foreground text-xs">

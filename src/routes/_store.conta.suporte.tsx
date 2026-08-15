@@ -71,14 +71,7 @@ function CustomerSupportPage() {
 
   return (
     <div className="space-y-6 flex flex-col h-[70vh]">
-      <div className="flex items-center gap-2">
-        <Link to="/conta" className="text-muted-foreground hover:text-foreground">
-          <ChevronLeft className="w-5 h-5" />
-        </Link>
-        <PageHeader title="Meus Atendimentos" />
-      </div>
-
-      <div className="flex-1 bg-card border overflow-hidden flex flex-col md:flex-row">
+      <div className="flex-1 bg-card border border-border rounded-xl overflow-hidden flex flex-col md:flex-row">
         {/* Ticket List - Responsive hide when a ticket is selected on mobile */}
         <div
           className={`w-full md:w-80 border-r bg-muted/10 flex flex-col ${selectedTicketId ? "hidden md:flex" : "flex"}`}

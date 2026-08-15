@@ -190,7 +190,7 @@ function AdminStockPage() {
           <div className="flex items-center gap-2">
             <Button asChild variant="outline" size="sm">
               <Link to="/workspace/estoque/alertas">
-                <AlertTriangle className="mr-1.5 size-4 text-amber-600" />
+                <AlertTriangle className="mr-1.5 size-4 text-warning" />
                 Alertas ({metrics.criticalCount})
               </Link>
             </Button>
@@ -206,11 +206,9 @@ function AdminStockPage() {
 
       {/* Grid de KPIs de Estoque */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="relative overflow-hidden border border-border/60 bg-card rounded-md shadow-xs p-0">
+        <div className="relative overflow-hidden border border-border bg-surface-paper shadow-sm rounded-xl p-0">
           <div className="flex flex-row items-center justify-between p-4 pb-2 space-y-0">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Total de SKUs
-            </h4>
+            <h4 className="text-xs font-semibold text-muted-foreground">Total de SKUs</h4>
             <div className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary">
               <Boxes className="size-4" aria-hidden />
             </div>
@@ -221,11 +219,9 @@ function AdminStockPage() {
           </div>
         </div>
 
-        <div className="relative overflow-hidden border border-border/60 bg-card rounded-md shadow-xs p-0">
+        <div className="relative overflow-hidden border border-border bg-surface-paper shadow-sm rounded-xl p-0">
           <div className="flex flex-row items-center justify-between p-4 pb-2 space-y-0">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Estoque em Mãos
-            </h4>
+            <h4 className="text-xs font-semibold text-muted-foreground">Estoque em Mãos</h4>
             <div className="flex size-8 items-center justify-center rounded-full bg-success/15 text-success">
               <PackageCheck className="size-4" aria-hidden />
             </div>
@@ -236,11 +232,9 @@ function AdminStockPage() {
           </div>
         </div>
 
-        <div className="relative overflow-hidden border border-border/60 bg-card rounded-md shadow-xs p-0">
+        <div className="relative overflow-hidden border border-border bg-surface-paper shadow-sm rounded-xl p-0">
           <div className="flex flex-row items-center justify-between p-4 pb-2 space-y-0">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Estoque Crítico
-            </h4>
+            <h4 className="text-xs font-semibold text-muted-foreground">Estoque Crítico</h4>
             <div className="flex size-8 items-center justify-center rounded-full bg-warning/15 text-warning-foreground">
               <ShieldAlert className="size-4" aria-hidden />
             </div>
@@ -292,7 +286,7 @@ function AdminStockPage() {
       {stock.length === 0 ? (
         <EmptyState title="Sem variações cadastradas" />
       ) : (
-        <div className="border border-border bg-card overflow-hidden shadow-xs">
+        <div className="border border-border bg-surface-paper shadow-sm rounded-xl overflow-hidden mb-6">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/40">
@@ -329,18 +323,15 @@ function AdminStockPage() {
 
                     <TableCell className="text-center">
                       {available <= 0 ? (
-                        <Badge
-                          variant="destructive"
-                          className="text-[10px] uppercase tracking-wider"
-                        >
+                        <Badge variant="destructive" className="text-[10px]">
                           Esgotado
                         </Badge>
                       ) : available <= 5 ? (
-                        <Badge variant="warning" className="text-[10px] uppercase tracking-wider">
+                        <Badge variant="warning" className="text-[10px]">
                           Crítico
                         </Badge>
                       ) : (
-                        <Badge variant="success" className="text-[10px] uppercase tracking-wider">
+                        <Badge variant="default" className="text-[10px]">
                           Regular
                         </Badge>
                       )}
@@ -432,7 +423,7 @@ function AdminStockPage() {
 
             <div className="space-y-2">
               <Label>
-                Justificativa / Observação{" "}
+                Justificativa / Observação{""}
                 {(movementType === "damage" || movementType === "transfer") && "*"}
               </Label>
               <Input

@@ -38,7 +38,7 @@ export async function _listOrders(store_id: string) {
     .select(
       `
         id, public_token, status, total_cents, customer_snapshot, created_at, shipping_method,
-        order_items ( id, product_title, variant_sku, qty, unit_price_cents, total_cents )
+        order_items ( id, product_title, variant_sku, qty, unit_price_cents, total_cents, metadata )
       `,
     )
     .eq("store_id", store_id)
@@ -55,10 +55,11 @@ export async function _getOrderById(orderId: string, store_id: string) {
     .from("orders")
     .select(
       `
-      id, public_token, status, total_cents, subtotal_cents, shipping_cents,
+      id, public_token, status, total_cents, subtotal_cents, shipping_cents, discount_cents,
       customer_snapshot, created_at, shipping_method, shipping_address,
-      tracking_code, carrier_name, tracking_url, shipped_at, delivered_at,
-      order_items ( id, product_title, variant_sku, qty, unit_price_cents, total_cents )
+      shipped_at, delivered_at,
+      order_items ( id, product_title, variant_sku, qty, unit_price_cents, total_cents, metadata, selected_options ),
+      shipments ( id, tracking_code, carrier_name, tracking_url, status, shipped_at, delivered_at )
     `,
     )
     .eq("id", orderId)
@@ -123,7 +124,7 @@ export const listOrders = createServerFn({ method: "GET" }).handler(async () => 
     return data;
   } catch (e: unknown) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
-    console.error("[order.functions] listOrders:", (e instanceof Error ? e.message : String(e)));
+    console.error("[order.functions] listOrders:", e instanceof Error ? e.message : String(e));
     throw new Error("Erro ao buscar pedidos.");
   }
 });
@@ -141,7 +142,7 @@ export const getOrderById = createServerFn({ method: "GET" })
       return data;
     } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[order.functions] getOrderById:", (e instanceof Error ? e.message : String(e)));
+      console.error("[order.functions] getOrderById:", e instanceof Error ? e.message : String(e));
       throw new Error((e instanceof Error ? e.message : String(e)) || "Pedido não encontrado.");
     }
   });
@@ -163,7 +164,10 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
       return await _updateOrderStatus(params.orderId, params.status, identity.store_id);
     } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[order.functions] updateOrderStatus:", (e instanceof Error ? e.message : String(e)));
+      console.error(
+        "[order.functions] updateOrderStatus:",
+        e instanceof Error ? e.message : String(e),
+      );
       throw new Error("Erro ao atualizar pedido.");
     }
   });
@@ -193,7 +197,7 @@ export const listPayments = createServerFn({ method: "GET" }).handler(async () =
     return data || [];
   } catch (e: unknown) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
-    console.error("[order.functions] listPayments:", (e instanceof Error ? e.message : String(e)));
+    console.error("[order.functions] listPayments:", e instanceof Error ? e.message : String(e));
     throw new Error("Erro ao buscar pagamentos.");
   }
 });
@@ -236,7 +240,10 @@ export const listCustomerOrders = createServerFn({ method: "GET" }).handler(asyn
         })) || [],
     }));
   } catch (e: unknown) {
-    console.error("[order.functions] listCustomerOrders:", (e instanceof Error ? e.message : String(e)));
+    console.error(
+      "[order.functions] listCustomerOrders:",
+      e instanceof Error ? e.message : String(e),
+    );
     throw new Error("Erro ao buscar seus pedidos.");
   }
 });
@@ -280,8 +287,13 @@ export const getCustomerOrder = createServerFn({ method: "GET" })
           })) || [],
       };
     } catch (e: unknown) {
-      console.error("[order.functions] getCustomerOrder:", (e instanceof Error ? e.message : String(e)));
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao buscar detalhes do pedido.");
+      console.error(
+        "[order.functions] getCustomerOrder:",
+        e instanceof Error ? e.message : String(e),
+      );
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao buscar detalhes do pedido.",
+      );
     }
   });
 
@@ -309,7 +321,9 @@ export const listOrdersAwaitingShippingQuote = createServerFn({ method: "GET" })
       return data || [];
     } catch (e: unknown) {
       console.error("[order.functions] listOrdersAwaitingShippingQuote error:", e);
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao buscar solicitações de frete.");
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao buscar solicitações de frete.",
+      );
     }
   },
 );
@@ -367,7 +381,9 @@ export const updateOrderShippingQuote = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: unknown) {
       console.error("[order.functions] updateOrderShippingQuote error:", e);
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao atualizar frete do pedido.");
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao atualizar frete do pedido.",
+      );
     }
   });
 
@@ -415,7 +431,9 @@ export const getOrderPaymentInstructions = createServerFn({ method: "GET" })
       };
     } catch (e: unknown) {
       console.error("[order.functions] getOrderPaymentInstructions:", e);
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao buscar instruções de pagamento.");
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao buscar instruções de pagamento.",
+      );
     }
   });
 export const requestOrderReturn = createServerFn({ method: "POST" })
@@ -460,7 +478,9 @@ export const requestOrderReturn = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: unknown) {
       console.error("[order.functions] requestOrderReturn:", e);
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao solicitar devolução.");
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao solicitar devolução.",
+      );
     }
   });
 
@@ -493,17 +513,32 @@ export const updateOrderShipment = createServerFn({ method: "POST" })
         throw new Error("Acesso negado");
       }
 
-      const generatedUrl = trackingUrl || "";
-
       const statusToApply = newStatus || "shipped";
+      const shipmentStatus = statusToApply === "delivered" ? "delivered" : "in_transit";
+
+      // 1. Insert into shipments table
+      const { data: shipment, error: shipmentError } = await db
+        .from("shipments")
+        .insert({
+          store_id: identity.store_id,
+          order_id: orderId,
+          tracking_code: trackingCode,
+          carrier_name: carrierName || "Transportadora",
+          tracking_url: trackingUrl || "",
+          status: shipmentStatus,
+          shipped_at: new Date().toISOString(),
+          delivered_at: statusToApply === "delivered" ? new Date().toISOString() : null,
+        })
+        .select()
+        .single();
+
+      if (shipmentError) throw shipmentError;
+
+      // 2. Update order status
       const updateData: Record<string, any> = {
-        tracking_code: trackingCode,
-        carrier_name: carrierName || "Transportadora",
-        tracking_url: generatedUrl,
         status: statusToApply,
         updated_at: new Date().toISOString(),
       };
-
       if (statusToApply === "shipped") updateData.shipped_at = new Date().toISOString();
       if (statusToApply === "delivered") updateData.delivered_at = new Date().toISOString();
 
@@ -519,7 +554,53 @@ export const updateOrderShipment = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[order.functions] updateOrderShipment error:", e);
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao atualizar rastreamento do pedido.");
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao atualizar rastreamento do pedido.",
+      );
+    }
+  });
+
+export const editOrderItems = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      orderId: z.string().uuid(),
+      newItems: z.array(
+        z.object({
+          variant_id: z.string().uuid(),
+          product_title: z.string(),
+          qty: z.number().int().min(1),
+        }),
+      ),
+    }),
+  )
+  .handler(async ({ data: { orderId, newItems } }) => {
+    try {
+      const ssrClient = await getSSRClient();
+      const {
+        data: { user },
+      } = await ssrClient.auth.getUser();
+      if (!user) throw new Error("Não autorizado");
+
+      const { getServerIdentity } = await import("@/lib/server-access");
+      const identity = await getServerIdentity();
+      const db = getServerClient();
+
+      if (!identity.store_id || !["owner", "admin", "manager"].includes(identity.role)) {
+        throw new Error("Acesso negado");
+      }
+
+      const { data, error } = await db.rpc("admin_modify_order_items", {
+        p_order_id: orderId,
+        p_new_items: newItems,
+      });
+
+      if (error) throw error;
+      return data;
+    } catch (e: unknown) {
+      console.error("[order.functions] editOrderItems error:", e);
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao editar itens do pedido.",
+      );
     }
   });
 
@@ -552,7 +633,9 @@ export const getOrderForReceipt = createServerFn({ method: "GET" })
     } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[order.functions] getOrderForReceipt error:", e);
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao carregar recibo do pedido.");
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao carregar recibo do pedido.",
+      );
     }
   });
 
@@ -564,14 +647,12 @@ export const assignDriverToOrder = createServerFn({ method: "POST" })
     assertStoreAccess(identity, ["owner", "admin", "manager", "logistics"]);
 
     // 1. Create the dispatch log
-    const { error: dispatchErr } = await supabase
-      .from("delivery_dispatches")
-      .insert({
-        store_id: identity.store_id,
-        order_id: orderId,
-        driver_id: driverId,
-        status: "assigned",
-      });
+    const { error: dispatchErr } = await supabase.from("delivery_dispatches").insert({
+      store_id: identity.store_id,
+      order_id: orderId,
+      driver_id: driverId,
+      status: "assigned",
+    });
 
     if (dispatchErr) throw new Error("Erro ao criar tentativa de despacho: " + dispatchErr.message);
 
@@ -623,4 +704,3 @@ export const respondToDispatch = createServerFn({ method: "POST" })
 
     return { success: true };
   });
-

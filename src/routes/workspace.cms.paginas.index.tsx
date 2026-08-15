@@ -26,7 +26,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { listAdminPages, createPage, deletePage } from "@/services/cms.functions";
 
 export const Route = createFileRoute("/workspace/cms/paginas/")({
@@ -68,7 +74,7 @@ function CmsPagesPage() {
       toast.error("Preencha título e slug");
       return;
     }
-    
+
     setIsSubmitting(true);
     try {
       const newPage = await createPage({
@@ -81,10 +87,13 @@ function CmsPagesPage() {
       toast.success("Página criada com sucesso!");
       setIsCreateModalOpen(false);
       router.invalidate();
-      
+
       // Redirect to builder
       if (newPage?.id) {
-        navigate({ to: "/workspace/builder/$documentId/editor", params: { documentId: newPage.id } });
+        navigate({
+          to: "/workspace/builder/$documentId/editor",
+          params: { documentId: newPage.id },
+        });
       }
     } catch (error: any) {
       toast.error(error.message || "Erro ao criar página");
@@ -94,7 +103,7 @@ function CmsPagesPage() {
   };
 
   const handleDelete = async (id: string, title: string) => {
-    if (!window.confirm(`Tem certeza que deseja excluir a página "${title}"?`)) return;
+    if (!window.confirm(`Tem certeza que deseja excluir a página"${title}"?`)) return;
     try {
       await deletePage({ data: { id } });
       toast.success("Página excluída.");
@@ -111,7 +120,7 @@ function CmsPagesPage() {
         actions={
           <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
             <DialogTrigger asChild>
-              <Button className="font-bold border border-border shadow-sm">
+              <Button className="font-bold border border-border ">
                 <Plus className="mr-2 h-4 w-4" />
                 Nova Página
               </Button>
@@ -162,7 +171,11 @@ function CmsPagesPage() {
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsCreateModalOpen(false)}
+                  >
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={isSubmitting}>
@@ -190,7 +203,7 @@ function CmsPagesPage() {
           {pages.length === 0 ? (
             <EmptyState title="Nenhuma página criada" />
           ) : (
-            <div className="surface-paper overflow-hidden">
+            <div className="bg-surface-paper shadow-sm rounded-xl border border-border overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
@@ -203,7 +216,7 @@ function CmsPagesPage() {
                 <TableBody>
                   {pages.map((page: any) => (
                     <TableRow key={page.id}>
-                      <TableCell className="font-medium font-display">
+                      <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                           <FileText className="h-4 w-4 text-muted-foreground" />
                           {page.title}
@@ -225,9 +238,9 @@ function CmsPagesPage() {
                               <Edit3 className="h-4 w-4" />
                             </Link>
                           </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             className="text-destructive"
                             onClick={() => handleDelete(page.id, page.title)}
                           >

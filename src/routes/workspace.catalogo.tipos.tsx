@@ -265,7 +265,7 @@ function ProductTypesPage() {
                   </div>
 
                   {fields.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-4 border border-dashed rounded-md">
+                    <p className="text-sm text-muted-foreground text-center py-4 border border-dashed rounded-xl">
                       Nenhum campo dinâmico adicionado.
                     </p>
                   ) : (
@@ -273,7 +273,7 @@ function ProductTypesPage() {
                       {fields.map((field, index) => (
                         <div
                           key={field.id}
-                          className="flex items-start gap-4 p-4 border rounded-md relative"
+                          className="flex items-start gap-4 p-4 border rounded-xl relative"
                         >
                           <Button
                             type="button"
@@ -389,7 +389,7 @@ function ProductTypesPage() {
       {filteredTypes.length === 0 ? (
         <EmptyState title="Nenhum tipo de produto" />
       ) : (
-        <div className="border border-border bg-card rounded-md shadow-xs overflow-hidden">
+        <div className="border border-border bg-card rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>

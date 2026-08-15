@@ -13,7 +13,19 @@ export const getPublicClassifieds = createServerFn({ method: "GET" })
     z
       .object({
         limit: z.number().int().min(1).max(100).optional(),
-        category: z.enum(["job", "sale", "trade", "service"]).optional(),
+        category: z
+          .enum([
+            "sale",
+            "vehicle",
+            "real_estate",
+            "service",
+            "job",
+            "job_offer",
+            "trade",
+            "donation",
+            "event",
+          ])
+          .optional(),
       })
       .optional(),
   )
@@ -23,7 +35,9 @@ export const getPublicClassifieds = createServerFn({ method: "GET" })
 
     let query = supabase
       .from("classifieds")
-      .select("id, category, title, content, price_cents, status, created_at, updated_at")
+      .select(
+        "id, category, title, content, price_cents, images, whatsapp, contact_whatsapp, location_name, location_text, location_lat, location_lng, status, attributes, created_at, updated_at",
+      )
       .eq("status", "active")
       .order("created_at", { ascending: false })
       .limit(limit);
@@ -42,8 +56,104 @@ export const getPublicClassifieds = createServerFn({ method: "GET" })
     return classifieds || [];
   });
 
+export const getPublicClassifiedById = createServerFn({ method: "GET" })
+  .validator(z.string().uuid())
+  .handler(async ({ data: id }) => {
+    const supabase = getServerClient();
+    const identity = await getIdentity().catch(() => null);
+
+    const { data, error } = await supabase
+      .from("classifieds")
+      .select(
+        `
+        id, category, title, content, price_cents, images, whatsapp, contact_whatsapp,
+        location_name, location_text, location_lat, location_lng, condition, negotiable,
+        attributes, status, author_profile_id, created_at, updated_at,
+        profiles:author_profile_id (id, full_name, avatar_url, phone)
+      `,
+      )
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) {
+      console.error("[classifieds] getPublicClassifiedById error:", error);
+      throw new Error("Erro ao carregar o anúncio.");
+    }
+
+    if (!data) return null;
+
+    const isOwner = !!(identity?.id && data.author_profile_id === identity.id);
+    const isAdmin = !!(identity?.role === "admin" || identity?.role === "master");
+    const canManage = isOwner || isAdmin;
+
+    const viewerContext: "owner" | "admin" | "visitor" | "anonymous" = isOwner
+      ? "owner"
+      : isAdmin
+        ? "admin"
+        : identity?.id
+          ? "visitor"
+          : "anonymous";
+
+    return {
+      classified: data,
+      isOwner,
+      canManage,
+      viewerContext,
+    };
+  });
+
+export const updateClassifiedStatus = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string().uuid(),
+      status: z.enum(["active", "paused", "reserved", "completed", "archived"]),
+      reason: z.string().optional(),
+    }),
+  )
+  .handler(async ({ data: { id, status, reason } }) => {
+    const supabase = getServerClient();
+    const identity = await getIdentity();
+
+    if (!identity || !identity.id) {
+      throw new Error("Não autorizado.");
+    }
+
+    // Busca o anúncio para verificar autoria
+    const { data: existing, error: fetchErr } = await supabase
+      .from("classifieds")
+      .select("id, author_profile_id, status")
+      .eq("id", id)
+      .single();
+
+    if (fetchErr || !existing) {
+      throw new Error("Anúncio não encontrado.");
+    }
+
+    const isAdmin = identity.role === "admin" || identity.role === "master";
+    if (existing.author_profile_id !== identity.id && !isAdmin) {
+      throw new Error("Você não tem permissão para alterar o estado deste anúncio.");
+    }
+
+    const { data: updated, error: updateErr } = await supabase
+      .from("classifieds")
+      .update({
+        status,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (updateErr) {
+      console.error("[classifieds] updateClassifiedStatus error:", updateErr);
+      throw new Error("Erro ao atualizar o status do anúncio.");
+    }
+
+    return { success: true, classified: updated };
+  });
+
 // ---------------------------------------------------------------------------
-// AUTHENTICATED (own classifieds — admin)
+// AUTHENTICATED (own classifieds — user)
 // ---------------------------------------------------------------------------
 
 export const getClassifieds = createServerFn({ method: "GET" }).handler(async () => {
@@ -93,24 +203,34 @@ export const getClassified = createServerFn({ method: "GET" })
     return data;
   });
 
-const upsertClassifiedInput = classifiedSchema
-  .omit({
-    id: true,
-    author_profile_id: true,
-    created_at: true,
-    updated_at: true,
-  })
-  .extend({
-    id: z.string().uuid().optional(),
-    // New fields from Microfase C migration — all optional for backwards compat
-    images: z.array(z.string()).optional().default([]),
-    contact_whatsapp: z.string().nullable().optional(),
-    location_text: z.string().nullable().optional(),
-    expires_at: z.string().datetime().nullable().optional(),
-    condition: z.enum(["new", "used", "refurbished"]).nullable().optional(),
-    negotiable: z.boolean().optional().default(true),
-    attributes: z.record(z.any()).optional().default({}),
-  });
+const upsertClassifiedInput = z.object({
+  id: z.string().uuid().optional(),
+  title: z.string().min(3, "Título deve ter no mínimo 3 caracteres"),
+  category: z.enum([
+    "sale",
+    "vehicle",
+    "real_estate",
+    "service",
+    "job",
+    "job_offer",
+    "trade",
+    "donation",
+    "event",
+  ]),
+  content: z.string().min(10, "Descrição deve ter no mínimo 10 caracteres"),
+  price_cents: z.number().int().min(0).nullable().optional(),
+  images: z.array(z.string()).optional().default([]),
+  whatsapp: z.string().nullable().optional(),
+  contact_whatsapp: z.string().nullable().optional(),
+  location_name: z.string().nullable().optional(),
+  location_text: z.string().nullable().optional(),
+  location_lat: z.number().nullable().optional(),
+  location_lng: z.number().nullable().optional(),
+  condition: z.enum(["new", "used", "refurbished"]).nullable().optional(),
+  negotiable: z.boolean().optional().default(true),
+  attributes: z.record(z.any()).optional().default({}),
+  status: z.enum(["draft", "active", "paused", "closed"]).default("active"),
+});
 
 export const upsertClassified = createServerFn({ method: "POST" })
   .validator(upsertClassifiedInput)

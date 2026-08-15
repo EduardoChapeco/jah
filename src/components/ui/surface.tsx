@@ -5,24 +5,24 @@ import { cn } from "@/lib/utils";
 const surfaceVariants = cva("relative overflow-hidden transition-all duration-200", {
   variants: {
     variant: {
-      default: "bg-background text-foreground border shadow-sm rounded-lg",
-      zine: "bg-background text-foreground border shadow-sm rounded-lg", // Alias para manter compatibilidade
-      flyer: "bg-primary text-primary-foreground border shadow-sm rounded-lg",
-      "yellow-pages": "bg-secondary text-secondary-foreground border rounded-lg shadow-sm",
-      ticket: "bg-background text-foreground border border-dashed rounded-lg shadow-sm",
+      default: "bg-background text-foreground border rounded-lg",
+      zine: "bg-background text-foreground border rounded-lg", // Alias para manter compatibilidade
+      flyer: "bg-primary text-primary-foreground border rounded-lg",
+      "yellow-pages": "bg-secondary text-secondary-foreground border rounded-lg ",
+      ticket: "bg-background text-foreground border border-dashed rounded-lg ",
       polaroid: "bg-background text-foreground p-4 pb-12 shadow-md border rounded-lg",
       cardboard: "bg-muted text-muted-foreground border rounded-lg shadow-inner",
-      charcoal: "bg-card text-card-foreground border rounded-lg shadow-sm",
+      charcoal: "bg-card text-card-foreground border rounded-lg ",
       none: "bg-transparent text-foreground border-none shadow-none",
-      lambe: "bg-primary text-primary-foreground border shadow-sm rounded-lg",
-      journal: "bg-background text-foreground border-y shadow-sm font-serif",
+      lambe: "bg-primary text-primary-foreground border rounded-lg",
+      journal: "bg-background text-foreground border-y font-serif",
       flat: "bg-background text-foreground border-none rounded-lg",
       muted: "bg-muted text-muted-foreground border-none rounded-lg",
       op: "card-op",
     },
     elevation: {
       none: "shadow-none",
-      sm: "shadow-sm",
+      sm: "",
       md: "shadow-md",
       hard: "shadow-lg",
     },

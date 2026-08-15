@@ -1,20 +1,19 @@
 import { Link } from "@tanstack/react-router";
-import { PlusCircle, Calendar, Tag, Package, Megaphone, Loader2 } from "lucide-react";
+import { PlusCircle, Calendar, Tag, Package, PenTool, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
-import { Surface } from "@/components/ui/surface";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useQuery } from "@tanstack/react-query";
 import { getIdentity } from "@/services/identity.functions";
 
 export function PublishSheet() {
-  const { data: identity, isLoading } = useQuery({
+  const { data: identity } = useQuery({
     queryKey: ["identity"],
     queryFn: () => getIdentity(),
   });
@@ -22,161 +21,105 @@ export function PublishSheet() {
   const hasBusiness = identity && identity.memberships && identity.memberships.length > 0;
 
   return (
-    <Sheet>
-      <SheetTrigger asChild>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
         <Button
           variant="default"
-          size="lg"
-          className="bg-primary text-primary-foreground hover:bg-primary/90 w-full md:w-auto text-lg px-8 shadow-sm border border-border"
+          className="bg-black text-white dark:bg-white dark:text-black font-black hover:opacity-90 w-full text-xs h-12 rounded-full uppercase tracking-wider flex items-center justify-center gap-2 shadow-xs transition-all"
         >
-          <PlusCircle className="size-5 mr-2" />
+          <PlusCircle className="size-4" />
           PUBLICAR
         </Button>
-      </SheetTrigger>
-      <SheetContent
-        side="bottom"
-        className="h-[80vh] sm:h-[75vh] bg-background border-t border-border rounded-t-3xl sm:rounded-t-[3rem] px-4 py-8 sm:px-12 sm:py-12 overflow-y-auto z-[100]"
-      >
-        <div className="max-w-4xl mx-auto pb-20">
-          <SheetHeader className="mb-8">
-            <SheetTitle className="font-display text-4xl sm:text-6xl uppercase tracking-tighter text-foreground text-left flex items-center gap-4">
-              <Megaphone className="size-10 sm:size-14 text-primary rotate-[-10deg]" />O que você
-              vai colar no muro?
-            </SheetTitle>
-            <SheetDescription className="font-sans text-muted-foreground text-lg sm:text-xl text-foreground/80 text-left max-w-2xl mt-4">
-              A Jah é uma plataforma comunitária. Você pode anunciar serviços, vender produtos da
-              sua marca, ou publicar eventos.
-            </SheetDescription>
-          </SheetHeader>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-64 p-2 bg-background border-border">
+        <DropdownMenuLabel className="font-mono text-xs uppercase text-muted-foreground font-bold tracking-wider">
+          O que você vai postar?
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-8">
-            <Link to="/workspace/agenda" className="block outline-none group">
-              <Surface
-                variant="default"
-                padding="md"
-                className="h-full group-hover:bg-ivory transition-colors"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="bg-primary/10 p-4 rounded-xl border border-poster-red">
-                    <Calendar className="size-8 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-display text-2xl uppercase tracking-tight text-foreground mb-2 group-hover:text-primary transition-colors">
-                      Evento ou Festa
-                    </h3>
-                    <p className="font-sans text-muted-foreground text-foreground/70">
-                      Crie uma página para seu evento, gerencie lotes e venda ingressos diretamente
-                      para a comunidade.
-                    </p>
-                  </div>
-                </div>
-              </Surface>
-            </Link>
+        {/* Funcionalidade livre para todos */}
+        <DropdownMenuItem asChild className="p-3 cursor-pointer rounded-xl">
+          <Link to="/conta/classificados/novo">
+            <Tag className="size-4 mr-3 text-primary" />
+            <div>
+              <p className="font-bold text-sm">Novo Classificado</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                Anuncie desapego, serviço ou vaga
+              </p>
+            </div>
+          </Link>
+        </DropdownMenuItem>
 
-            <Link to="/workspace/catalogo/produtos/novo" className="block outline-none group">
-              <Surface
-                variant="default"
-                padding="md"
-                className="h-full group-hover:bg-ivory transition-colors"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="bg-primary/10 p-4 rounded-xl border border-electric-cyan">
-                    <Package className="size-8 text-electric-cyan" />
-                  </div>
-                  <div>
-                    <h3 className="font-display text-2xl uppercase tracking-tight text-foreground mb-2 group-hover:text-electric-cyan transition-colors">
-                      Mercadoria (Loja)
-                    </h3>
-                    <p className="font-sans text-muted-foreground text-foreground/70">
-                      Venda produtos físicos ou digitais da sua marca, com gestão de estoque e
-                      frete.
-                    </p>
-                  </div>
-                </div>
-              </Surface>
-            </Link>
+        <DropdownMenuSeparator className="my-1 border-border" />
+        <DropdownMenuLabel className="text-[11px] uppercase text-primary font-bold tracking-wider pt-2">
+          Ferramentas de Negócios
+        </DropdownMenuLabel>
 
-            <Link to="/conta/classificados" className="block outline-none group">
-              <Surface
-                variant="default"
-                padding="md"
-                className="h-full group-hover:bg-ivory transition-colors"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="bg-primary/5 p-4 rounded-xl border border-border">
-                    <Tag className="size-8 text-foreground" />
-                  </div>
-                  <div>
-                    <h3 className="font-display text-2xl uppercase tracking-tight text-foreground mb-2">
-                      Classificado
-                    </h3>
-                    <p className="font-sans text-muted-foreground text-foreground/70">
-                      Anuncie um serviço, vaga, instrumento musical usado ou aluguel de estúdio.
-                    </p>
-                  </div>
-                </div>
-              </Surface>
-            </Link>
-
-            <Link to="/workspace/mural/novo" className="block outline-none group">
-              <Surface
-                variant="default"
-                padding="md"
-                className="h-full group-hover:bg-ivory transition-colors"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="bg-primary/10 p-4 rounded-xl border border-border">
-                    <PlusCircle className="size-8 text-foreground" />
-                  </div>
-                  <div>
-                    <h3 className="font-display text-2xl uppercase tracking-tight text-foreground mb-2 group-hover:text-signal-orange transition-colors">
-                      Post Rápido
-                    </h3>
-                    <p className="font-sans text-muted-foreground text-foreground/70">
-                      Mande uma foto ou mensagem para seus seguidores no Mural da Comunidade.
-                    </p>
-                  </div>
-                </div>
-              </Surface>
-            </Link>
-          </div>
-
-          <div className="mt-12 pt-8 border-t border-border/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-            {isLoading ? (
-              <div className="flex items-center text-foreground/60 font-mono text-sm uppercase">
-                <Loader2 className="size-4 animate-spin mr-2" />
-                Verificando acesso...
+        <DropdownMenuItem
+          asChild
+          disabled={!hasBusiness}
+          className="p-3 cursor-pointer rounded-xl focus:bg-muted"
+        >
+          {hasBusiness ? (
+            <Link to="/workspace/catalogo/produtos/novo">
+              <Package className="size-4 mr-3 text-primary" />
+              <div>
+                <p className="font-bold text-sm">Mercadoria / Produto</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  Cadastrar no catálogo da loja
+                </p>
               </div>
-            ) : hasBusiness ? (
-              <>
-                <p className="font-mono text-sm uppercase font-bold text-foreground/60">
-                  Conta de Produtor Ativa
+            </Link>
+          ) : (
+            <div className="opacity-50">
+              <Package className="size-4 mr-3 text-muted-foreground" />
+              <div>
+                <p className="font-bold text-sm">Mercadoria / Produto</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">Requer uma loja ativa</p>
+              </div>
+            </div>
+          )}
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          asChild
+          disabled={!hasBusiness}
+          className="p-3 cursor-pointer rounded-xl focus:bg-muted"
+        >
+          {hasBusiness ? (
+            <Link to="/workspace/agenda">
+              <Calendar className="size-4 mr-3 text-primary" />
+              <div>
+                <p className="font-bold text-sm">Evento ou Festa</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  Criar lotes & vender ingressos
                 </p>
-                <Button
-                  variant="outline"
-                  asChild
-                  className="border border-border shadow-sm bg-background text-foreground hover:bg-muted"
-                >
-                  <Link to="/workspace">Ir para meu Painel</Link>
-                </Button>
-              </>
-            ) : (
-              <>
-                <p className="font-mono text-sm uppercase font-bold text-primary">
-                  Para criar Eventos e Lojas, é necessário ter um Coletivo.
-                </p>
-                <Button
-                  variant="default"
-                  asChild
-                  className="border border-border shadow-sm bg-secondary text-foreground hover:bg-secondary/80"
-                >
-                  <Link to="/criar-negocio">Criar Conta de Produtor</Link>
-                </Button>
-              </>
-            )}
+              </div>
+            </Link>
+          ) : (
+            <div className="opacity-50">
+              <Calendar className="size-4 mr-3 text-muted-foreground" />
+              <div>
+                <p className="font-bold text-sm">Evento ou Festa</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">Requer um coletivo</p>
+              </div>
+            </div>
+          )}
+        </DropdownMenuItem>
+
+        {!hasBusiness && (
+          <div className="p-3 mt-2 bg-primary/5 border border-primary/20 rounded-xl">
+            <Button
+              variant="default"
+              size="sm"
+              asChild
+              className="w-full text-xs font-bold rounded-lg shadow-sm"
+            >
+              <Link to="/criar-negocio">Cadastrar Minha Loja</Link>
+            </Button>
           </div>
-        </div>
-      </SheetContent>
-    </Sheet>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

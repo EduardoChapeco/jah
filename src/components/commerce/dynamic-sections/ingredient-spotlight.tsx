@@ -40,10 +40,7 @@ export function IngredientSpotlight({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {items.map((item, idx) => (
-          <div
-            key={idx}
-            className="flex gap-4 p-6 bg-card border border-border/80 shadow-sm items-start"
-          >
+          <div key={idx} className="flex gap-4 p-6 bg-card border border-border/80 items-start">
             {item.image_url ? (
               <img
                 src={item.image_url}

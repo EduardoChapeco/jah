@@ -58,7 +58,7 @@ function AdminPaymentsPage() {
       {payments.length === 0 ? (
         <EmptyState title="Nenhum pagamento pendente" />
       ) : (
-        <div className="rounded-md border">
+        <div className="rounded-xl border">
           <Table>
             <TableHeader>
               <TableRow>
@@ -91,7 +91,7 @@ function AdminPaymentsPage() {
                     <TableCell>{formatMoney(p.total_cents)}</TableCell>
                     <TableCell>
                       {p.status === "awaiting_payment" ? (
-                        <Badge variant="outline" className="text-warning border-yellow-600">
+                        <Badge variant="outline" className="text-warning border-warning">
                           Aguardando
                         </Badge>
                       ) : p.status === "payment_processing" ? (

@@ -52,7 +52,7 @@ export function ReviewModal({
           Avaliar Produto
         </Button>
       </DialogTrigger>
-      <DialogContent className="border border-border shadow-[8px_8px_0px_rgba(0,0,0,1)] bg-background rounded-md sm:max-w-md">
+      <DialogContent className="border border-border bg-background rounded-xl sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="font-semibold text-2xl font-black text-foreground">
             Avaliar {productName}
@@ -73,10 +73,10 @@ export function ReviewModal({
             placeholder="O que você achou do produto? (Opcional)"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            className="border border-border bg-background rounded-md focus-visible:ring-poster-red focus-visible:ring-offset-0 placeholder:text-foreground/50 resize-none font-medium h-32"
+            className="border border-border bg-background rounded-xl focus-visible:ring-poster-red focus-visible:ring-offset-0 placeholder:text-foreground/50 resize-none font-medium h-32"
           />
           <Button
-            className="w-full border border-border shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-y-1 hover:translate-x-1 transition-all bg-primary text-primary-foreground font-black uppercase text-lg h-12 rounded-md cursor-pointer"
+            className="w-full border border-border hover:shadow-none hover:translate-y-1 hover:translate-x-1 transition-all bg-primary text-primary-foreground font-black uppercase text-lg h-12 rounded-xl cursor-pointer"
             onClick={handleSubmit}
             disabled={loading}
           >

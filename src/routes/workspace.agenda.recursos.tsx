@@ -52,12 +52,12 @@ function AdminResourcesPage() {
           {resources.map((res: any) => (
             <div
               key={res.id}
-              className="flex flex-col h-full relative group p-6 border border-border/80 bg-card hover:border-primary/50 transition-colors rounded-md"
+              className="flex flex-col h-full relative group p-6 border border-border/80 bg-card hover:border-primary/50 transition-colors rounded-xl"
             >
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <h3 className="font-bold text-xl leading-tight">{res.name}</h3>
-                  <p className="text-sm text-muted-foreground uppercase tracking-wider font-semibold mt-1">
+                  <p className="text-sm text-muted-foreground font-semibold mt-1">
                     {res.resource_type === "person"
                       ? "Profissional"
                       : res.resource_type === "room"
@@ -80,7 +80,7 @@ function AdminResourcesPage() {
               </div>
 
               <div className="mt-auto">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3 border-b border-border pb-1">
+                <h4 className="text-xs font-bold text-muted-foreground mb-3 border-b border-border pb-1">
                   Grade de Horários
                 </h4>
 

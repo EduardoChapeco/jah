@@ -10,13 +10,15 @@ export const listCommissions = createServerFn({ method: "GET" }).handler(async (
 
   let query = supabase
     .from("commissions")
-    .select("*, orders(public_token, total_cents), profiles!commissions_seller_id_fkey(full_name)")
+    .select(
+      "*, orders(public_token, total_cents), profiles!commissions_employee_id_fkey(full_name)",
+    )
     .eq("store_id", identity.store_id)
     .order("created_at", { ascending: false });
 
   // Se for apenas seller, restringe às próprias comissões
   if (identity.role === "seller") {
-    query = query.eq("seller_id", identity.id);
+    query = query.eq("employee_id", identity.id);
   }
 
   const { data: commissions, error } = await query;

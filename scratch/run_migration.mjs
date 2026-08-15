@@ -1,16 +1,16 @@
-import postgres from 'postgres';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import postgres from "postgres";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 // Ler o .env.local do pai
-const envPath = path.resolve('.env.local');
-const envContent = fs.readFileSync(envPath, 'utf-8');
+const envPath = path.resolve(".env.local");
+const envContent = fs.readFileSync(envPath, "utf-8");
 const envVars = {};
-envContent.split('\n').forEach(line => {
-  if (line.includes('=')) {
-    const [key, ...rest] = line.split('=');
-    let value = rest.join('=').trim();
+envContent.split("\n").forEach((line) => {
+  if (line.includes("=")) {
+    const [key, ...rest] = line.split("=");
+    let value = rest.join("=").trim();
     if (value.startsWith('"') && value.endsWith('"')) value = value.slice(1, -1);
     envVars[key.trim()] = value;
   }
@@ -30,7 +30,7 @@ const sql = postgres(connectionString);
 async function run() {
   try {
     console.log("Connecting to Supabase Postgres...");
-    
+
     // Billing Settings
     await sql`
       CREATE TABLE IF NOT EXISTS public.platform_billing_settings (

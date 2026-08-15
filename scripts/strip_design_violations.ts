@@ -58,7 +58,7 @@ function processFile(filePath: string) {
   newContent = newContent.replace(
     CLASSNAME_REGEX,
     (match, backtickClasses, doubleQuoteClasses, singleQuoteClasses) => {
-      let classesStr = backtickClasses || doubleQuoteClasses || singleQuoteClasses;
+      const classesStr = backtickClasses || doubleQuoteClasses || singleQuoteClasses;
       if (!classesStr) return match;
 
       let modifiedClassesStr = classesStr;

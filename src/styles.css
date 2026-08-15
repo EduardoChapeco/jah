@@ -4,40 +4,66 @@
 
 /*
  * ============================================================================
- * Jah Community Platform — Operational Design System
+ * Jah Community Platform — Canonical Design System
  * ============================================================================
- * A estética "Zine/Brutalista" foi banida da área operacional. 
- * Este arquivo define o core estrutural Clean, Minimalista e Maduro da JAH.
+ * Estética: Ultra-clean, Minimalista, iFood / Threads style.
+ * Sem hardcodes, forte uso de white space, bordas circulares amigáveis.
  * ============================================================================
  */
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  /* ── Radius scale — Operacional ──────────────────────── */
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 12px;
-  --radius-2xl: 16px;
-  --radius-full: 9999px;
+  /* ── Radius scale — Organic Pill-Squircle System ───────── */
+  --radius-sm: 10px; /* antes 6px  — chips, badges internos */
+  --radius-md: 14px; /* antes 8px  — inputs, selects, controls */
+  --radius-lg: 18px; /* antes 12px — cards gerais, modais */
+  --radius-xl: 24px; /* antes 16px — botões, sheets, popovers */
+  --radius-2xl: 32px; /* antes 24px — cards squircle, overlays */
+  --radius-full: 9999px; /* pill puro — mantido */
 
-  /* ── Density scale — Operacional ──────────────────────── */
-  --density-compact-px: 8px;
-  --density-compact-py: 8px;
-  --density-comfortable-px: 16px;
-  --density-comfortable-py: 12px;
-
-  /* ── Shadows — Elevação suave apenas ──────────────────── */
-  --shadow-sm: 0 1px 2px 0 oklch(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px oklch(0 0 0 / 0.05), 0 2px 4px -2px oklch(0 0 0 / 0.05);
-  --shadow-lg: 0 10px 15px -3px oklch(0 0 0 / 0.05), 0 4px 6px -4px oklch(0 0 0 / 0.05);
-  --shadow-popover: 0 10px 25px -5px oklch(0 0 0 / 0.1), 0 8px 10px -6px oklch(0 0 0 / 0.1);
+  /* ── Shadows — Reduzidas, design flat focado em linhas ─── */
+  --shadow-sm: 0 1px 2px 0 oklch(0 0 0 / 0.02);
+  --shadow-md: 0 4px 12px -2px oklch(0 0 0 / 0.03), 0 2px 4px -2px oklch(0 0 0 / 0.02);
+  --shadow-lg: 0 10px 24px -4px oklch(0 0 0 / 0.04), 0 4px 8px -4px oklch(0 0 0 / 0.03);
+  --shadow-popover: 0 12px 32px -6px oklch(0 0 0 / 0.08), 0 8px 16px -8px oklch(0 0 0 / 0.04);
 
   /* ── Typography Canônica ─────────────────────────────── */
-  --font-sans: "Inter", system-ui, sans-serif;
-  --font-display: "Inter", system-ui, sans-serif;
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-display: "Inter", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
+
+  /* ── Typography Zine / Pública ───────────────────────── */
+  --font-editorial: "Fraunces", "Oswald", serif;
+  --font-zine: "Space Grotesk", "Oswald", sans-serif;
+
+  /* ── App Shell Geometry & Layout Tokens ─────────────────── */
+  --global-rail-width: 68px;
+  --context-sidebar-width: 256px;
+  --utility-cluster-height: 48px;
+  --shell-gutter: clamp(1rem, 2vw, 2rem);
+  --content-gutter: clamp(1rem, 2.5vw, 2.5rem);
+
+  --content-reading-max: 760px;
+  --content-feed-max: 680px;
+  --content-catalog-max: 1400px;
+  --content-workspace-max: 1440px;
+  --content-media-max: 1200px;
+
+  /* ── Organic Geometry & Squircle Family Tokens ────────── */
+  --shape-soft: 16px;
+  --shape-squircle: 28px;
+  --shape-organic-tl: 32px;
+  --shape-organic-tr: 24px;
+  --shape-organic-br: 28px;
+  --shape-organic-bl: 22px;
+  --shape-media: 24px;
+  --shape-action: 20px;
+
+  --radius-shape-soft: var(--shape-soft);
+  --radius-shape-squircle: var(--shape-squircle);
+  --radius-shape-media: var(--shape-media);
+  --radius-shape-action: var(--shape-action);
 
   /* ── Semantic color bridge (consumed by Tailwind) ────── */
   --color-background: var(--background);
@@ -46,29 +72,31 @@
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
-  
+
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
-  
+
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
-  
+
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-  
+
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
-  
+
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
-  
+
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
+
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
-  
+
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -91,49 +119,49 @@
 }
 
 /* ===========================================================================
- * LIGHT THEME — Operacional Base
+ * LIGHT THEME — Operacional Base (Minimalista)
  * ===========================================================================*/
 :root {
   color-scheme: light dark;
-  --radius: 0.5rem; /* 8px default */
+  --radius: 0.75rem; /* 12px default para componentes que usam border-radius cru */
 
   /* ── Semânticos Light ────────────────────────────────────────────────── */
-  --background: oklch(0.98 0 0); /* Cinza muito claro, quase branco (fundo geral) */
-  --foreground: oklch(0.15 0 0); /* Quase preto para leitura */
-  
+  --background: oklch(0.99 0 0); /* Quase totalmente branco */
+  --foreground: oklch(0.12 0 0); /* Preto suave para leitura perfeita */
+
   --card: oklch(1 0 0); /* Branco puro */
-  --card-foreground: oklch(0.15 0 0);
-  
+  --card-foreground: oklch(0.12 0 0);
+
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0 0);
+  --popover-foreground: oklch(0.12 0 0);
 
-  --primary: oklch(0.1 0 0); /* Ação Primária Jah (Escuro) */
-  --primary-foreground: oklch(0.98 0 0);
+  --primary: oklch(0.12 0 0); /* Ação Primária (Preto suave, Apple-like) */
+  --primary-foreground: oklch(0.99 0 0); /* Texto branco */
 
-  --secondary: oklch(0.96 0 0); /* Fundo sutil para botões secundários */
+  --secondary: oklch(0.96 0 0); /* Cinza clarinho para ghosts/outlines */
   --secondary-foreground: oklch(0.2 0 0);
 
-  --muted: oklch(0.95 0 0);
-  --muted-foreground: oklch(0.45 0 0);
+  --muted: oklch(0.96 0 0); /* Fundo sutil */
+  --muted-foreground: oklch(0.45 0 0); /* Texto secundário legível */
 
-  --accent: oklch(0.95 0 0);
-  --accent-foreground: oklch(0.15 0 0);
+  --accent: oklch(0.96 0 0);
+  --accent-foreground: oklch(0.12 0 0);
 
-  --destructive: oklch(0.6 0.15 25); /* Vermelho erro */
-  --destructive-foreground: oklch(0.98 0 0);
+  --destructive: oklch(0.6 0.15 25); /* Vermelho erro focado */
+  --destructive-foreground: oklch(1 0 0);
 
-  --success: oklch(0.6 0.15 150); 
-  --success-foreground: oklch(0.98 0 0);
+  --success: oklch(0.65 0.15 150); /* Verde agradável */
+  --success-foreground: oklch(1 0 0);
 
-  --warning: oklch(0.8 0.15 80);
-  --warning-foreground: oklch(0.1 0 0);
+  --warning: oklch(0.8 0.15 80); /* Amarelo ouro */
+  --warning-foreground: oklch(0.12 0 0);
 
-  --info: oklch(0.6 0.1 240);
-  --info-foreground: oklch(0.98 0 0);
+  --info: oklch(0.6 0.1 240); /* Azul sutil */
+  --info-foreground: oklch(1 0 0);
 
-  --border: oklch(0.9 0 0); /* Borda discreta, baixo contraste */
-  --input: oklch(0.95 0 0);
-  --ring: oklch(0.1 0 0);
+  --border: oklch(0.93 0 0); /* Borda clarinha, clean */
+  --input: oklch(0.93 0 0);
+  --ring: oklch(0.12 0 0); /* Anel de foco preto suave */
 }
 
 /* ===========================================================================
@@ -141,64 +169,64 @@
  * ===========================================================================*/
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
-    --background: oklch(0.15 0 0);
-    --foreground: oklch(0.95 0 0);
-    
-    --card: oklch(0.2 0 0);
-    --card-foreground: oklch(0.95 0 0);
-    
-    --popover: oklch(0.2 0 0);
-    --popover-foreground: oklch(0.95 0 0);
+    --background: oklch(0.15 0 0); /* Fundo escuro */
+    --foreground: oklch(0.96 0 0);
 
-    --primary: oklch(0.95 0 0);
-    --primary-foreground: oklch(0.1 0 0);
+    --card: oklch(0.18 0 0); /* Um tom acima do fundo */
+    --card-foreground: oklch(0.96 0 0);
 
-    --secondary: oklch(0.25 0 0);
-    --secondary-foreground: oklch(0.95 0 0);
+    --popover: oklch(0.18 0 0);
+    --popover-foreground: oklch(0.96 0 0);
 
-    --muted: oklch(0.25 0 0);
+    --primary: oklch(0.98 0 0); /* Botão claro no dark mode */
+    --primary-foreground: oklch(0.1 0 0); /* Texto muito escuro para forçar contraste */
+
+    --secondary: oklch(0.22 0 0);
+    --secondary-foreground: oklch(0.96 0 0);
+
+    --muted: oklch(0.22 0 0);
     --muted-foreground: oklch(0.7 0 0);
 
-    --accent: oklch(0.25 0 0);
-    --accent-foreground: oklch(0.95 0 0);
+    --accent: oklch(0.22 0 0);
+    --accent-foreground: oklch(0.96 0 0);
 
     --destructive: oklch(0.6 0.15 25);
-    --destructive-foreground: oklch(0.98 0 0);
+    --destructive-foreground: oklch(0.96 0 0);
 
-    --border: oklch(0.3 0 0);
+    --border: oklch(0.25 0 0);
     --input: oklch(0.25 0 0);
-    --ring: oklch(0.95 0 0);
+    --ring: oklch(0.96 0 0);
   }
 }
 
 .dark {
-    --background: oklch(0.15 0 0);
-    --foreground: oklch(0.95 0 0);
-    
-    --card: oklch(0.2 0 0);
-    --card-foreground: oklch(0.95 0 0);
-    
-    --popover: oklch(0.2 0 0);
-    --popover-foreground: oklch(0.95 0 0);
+  --background: oklch(0.15 0 0);
+  --foreground: oklch(0.96 0 0);
 
-    --primary: oklch(0.95 0 0);
-    --primary-foreground: oklch(0.1 0 0);
+  --card: oklch(0.18 0 0);
+  --card-foreground: oklch(0.96 0 0);
 
-    --secondary: oklch(0.25 0 0);
-    --secondary-foreground: oklch(0.95 0 0);
+  --popover: oklch(0.18 0 0);
+  --popover-foreground: oklch(0.96 0 0);
 
-    --muted: oklch(0.25 0 0);
-    --muted-foreground: oklch(0.7 0 0);
+  --primary: oklch(0.98 0 0); /* Botão claro no dark mode */
+  --primary-foreground: oklch(0.1 0 0); /* Texto muito escuro para forçar contraste */
 
-    --accent: oklch(0.25 0 0);
-    --accent-foreground: oklch(0.95 0 0);
+  --secondary: oklch(0.22 0 0);
+  --secondary-foreground: oklch(0.96 0 0);
 
-    --destructive: oklch(0.6 0.15 25);
-    --destructive-foreground: oklch(0.98 0 0);
+  --muted: oklch(0.22 0 0);
+  --muted-foreground: oklch(0.7 0 0);
 
-    --border: oklch(0.3 0 0);
-    --input: oklch(0.25 0 0);
-    --ring: oklch(0.95 0 0);
+  --accent: oklch(0.22 0 0);
+  --accent-foreground: oklch(0.96 0 0);
+
+  --destructive: oklch(0.6 0.15 25);
+  --destructive-foreground: oklch(0.96 0 0);
+
+  --border: oklch(0.25 0 0);
+  --input: oklch(0.25 0 0);
+  --ring: oklch(0.96 0 0);
 }
 
 /* ===========================================================================
@@ -220,13 +248,14 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-    transition:
-      background-color var(--duration-base) var(--ease-in-out),
-      color var(--duration-base) var(--ease-in-out);
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-sans);
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-weight: 600;
     letter-spacing: -0.02em;
   }
@@ -265,14 +294,7 @@
 }
 
 /* ── Tipografia canônica ─────────────────────────────────────────────────── */
-@utility text-editorial {
-  /* Mantido para compatibilidade, mas apontando para sans-serif limpa */
-  font-family: var(--font-sans);
-  font-weight: 500;
-}
-
 @utility eyebrow {
-  font-family: var(--font-sans);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 500;
@@ -280,37 +302,65 @@
   line-height: 1rem;
 }
 
-@utility text-meta {
-  font-family: var(--font-sans); /* Substituido mono por sans para limpeza visual */
-  font-size: 0.8125rem;
-  line-height: 1.25rem;
-  color: var(--color-muted-foreground);
-}
-
 /* ── Superfícies canônicas ───────────────────────────── */
 @utility surface-paper {
   background-color: var(--color-card);
   color: var(--color-card-foreground);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
 }
 
 @utility surface-subtle {
   background-color: var(--color-muted);
   color: var(--color-foreground);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
 }
 
-/* ── Scrollbar canônica ──────────────────────────────────────────────────── */
+/* ── Scrollbar canônica & Ocultação ───────────────────────────────────────── */
 @utility scrollbar-jah {
   scrollbar-width: thin;
   scrollbar-color: var(--color-border) transparent;
 }
 
-/* ── Hover Elevate (Operacional) ──────────────────── */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+}
+
+/* ── Timer Pill Colorido & Vibrante ──────────────────────────────────────── */
+@utility timer-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 0.75rem;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #f97316, #ef4444);
+  color: #ffffff;
+  box-shadow: 0 4px 12px -2px rgba(239, 68, 68, 0.35);
+}
+
+@utility squircle-card {
+  border-radius: 24px 24px 24px 24px / 26px 26px 26px 26px;
+  transition:
+    transform var(--duration-fast) cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow var(--duration-fast) cubic-bezier(0.16, 1, 0.3, 1),
+    border-color var(--duration-fast) ease;
+}
+
+/* ── Hover Elevate (Sutil) ──────────────────── */
 @utility hover-elevate {
-  transition: transform var(--duration-fast) var(--ease-out-expo), box-shadow var(--duration-fast) var(--ease-out-expo);
+  transition:
+    transform var(--duration-fast) var(--ease-out-expo),
+    box-shadow var(--duration-fast) var(--ease-out-expo);
   &:hover {
     transform: translateY(-1px);
     box-shadow: var(--shadow-sm);
@@ -319,26 +369,15 @@
 
 /* ── Tabela compacta ───────────────────── */
 @utility table-compact {
-  & th, & td {
-    padding-top: var(--density-compact-py);
-    padding-bottom: var(--density-compact-py);
-    padding-left: var(--density-compact-px);
-    padding-right: var(--density-compact-px);
+  & th,
+  & td {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    padding-left: 16px;
+    padding-right: 16px;
     font-size: 0.875rem;
     line-height: 1.25rem;
   }
-}
-
-/* ── Chip status ──────────────────────────────── */
-@utility chip-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.125rem 0.5rem;
-  border-radius: var(--radius-full);
-  font-size: 0.75rem;
-  font-weight: 500;
-  line-height: 1rem;
 }
 
 /* ── Animação ──────────────────────────────────────────── */
@@ -347,8 +386,14 @@
 }
 
 @keyframes jah-slide-up {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @utility animate-in-fade {
@@ -356,6 +401,70 @@
 }
 
 @keyframes jah-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ── Organic Squircle Utilities (Continuous Curvature & Pillow Tiles) ──── */
+@utility squircle-soft {
+  border-radius: 16px 16px 16px 16px / 18px 18px 18px 18px;
+  transition:
+    transform var(--duration-fast) cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow var(--duration-fast) cubic-bezier(0.16, 1, 0.3, 1),
+    border-color var(--duration-fast) ease;
+}
+
+@utility squircle {
+  border-radius: 28px 28px 28px 28px / 32px 32px 32px 32px;
+  transition:
+    transform var(--duration-fast) cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow var(--duration-fast) cubic-bezier(0.16, 1, 0.3, 1),
+    border-color var(--duration-fast) ease;
+}
+
+@utility squircle-organic {
+  border-radius: 32px 24px 28px 22px / 26px 32px 22px 28px;
+  transition:
+    transform var(--duration-fast) cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow var(--duration-fast) cubic-bezier(0.16, 1, 0.3, 1),
+    border-color var(--duration-fast) ease;
+}
+
+@utility squircle-media {
+  border-radius: 24px 24px 24px 24px / 26px 26px 26px 26px;
+  overflow: hidden;
+  isolation: isolate;
+  transform: translateZ(0);
+}
+
+@utility squircle-action {
+  border-radius: 20px 20px 20px 20px / 22px 22px 22px 22px;
+  transition:
+    transform var(--duration-fast) cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow var(--duration-fast) cubic-bezier(0.16, 1, 0.3, 1),
+    background-color var(--duration-fast) ease;
+}
+
+@utility squircle-hover {
+  &:hover {
+    transform: translateY(-2px) scale(1.01);
+    box-shadow:
+      0 10px 25px -5px rgba(0, 0, 0, 0.06),
+      0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  }
+  &:active {
+    transform: translateY(0) scale(0.985);
+  }
+}
+
+@utility squircle-selected {
+  border-color: var(--color-primary);
+  background-color: var(--color-card);
+  box-shadow:
+    0 0 0 2px var(--color-primary),
+    0 10px 25px -5px rgba(0, 0, 0, 0.08);
 }

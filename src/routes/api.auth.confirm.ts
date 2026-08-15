@@ -2,7 +2,7 @@
  * Email Confirmation Handler Commerce
  *
  * Supabase sends users a confirmation email with a link like:
- *   https://jah.pages.dev/api/auth/confirm?token_hash=XXX&type=signup&next=/conta
+ * https://jah.pages.dev/api/auth/confirm?token_hash=XXX&type=signup&next=/conta
  *
  * This route exchanges the token_hash for a session, sets the cookie,
  * and redirects the user to their destination.

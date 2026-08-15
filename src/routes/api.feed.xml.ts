@@ -61,10 +61,10 @@ export const Route = createFileRoute("/api/feed/xml")({
             .from("products")
             .select(
               `
-              id, slug, title, short_description, description, manufacturer, price_cents, compare_at_cents, status,
-              product_variants(id, sku, price_cents, price_override_cents, attributes, stock_on_hand),
-              product_media(url, is_thumbnail)
-            `,
+ id, slug, title, short_description, description, manufacturer, price_cents, compare_at_cents, status,
+ product_variants(id, sku, price_cents, price_override_cents, attributes, stock_on_hand),
+ product_media(url, is_thumbnail)
+ `,
             )
             .eq("store_id", storeId)
             .eq("status", "published");
@@ -118,35 +118,35 @@ export const Route = createFileRoute("/api/feed/xml")({
 
               const link = `${url.origin}/produtos/${p.slug}?v=${v.sku || v.id}`;
 
-              const titleExt = Object.values(v.attributes || {}).join(" - ");
+              const titleExt = Object.values(v.attributes || {}).join(" -");
               const itemTitle = titleExt ? `${p.title} - ${titleExt}` : p.title;
               const mpn = v.sku || `${p.slug}-${v.id.substring(0, 8)}`;
 
               xml += `<item>\n`;
-              xml += `  <g:id>${escapeXml(v.sku || v.id)}</g:id>\n`;
-              xml += `  <g:item_group_id>${escapeXml(p.id)}</g:item_group_id>\n`;
-              xml += `  <g:title>${escapeXml(itemTitle)}</g:title>\n`;
-              xml += `  <g:description>${escapeXml(p.short_description || p.description || itemTitle)}</g:description>\n`;
-              xml += `  <g:link>${escapeXml(link)}</g:link>\n`;
+              xml += ` <g:id>${escapeXml(v.sku || v.id)}</g:id>\n`;
+              xml += ` <g:item_group_id>${escapeXml(p.id)}</g:item_group_id>\n`;
+              xml += ` <g:title>${escapeXml(itemTitle)}</g:title>\n`;
+              xml += ` <g:description>${escapeXml(p.short_description || p.description || itemTitle)}</g:description>\n`;
+              xml += ` <g:link>${escapeXml(link)}</g:link>\n`;
               if (thumb) {
-                xml += `  <g:image_link>${escapeXml(thumb)}</g:image_link>\n`;
+                xml += ` <g:image_link>${escapeXml(thumb)}</g:image_link>\n`;
               }
               for (const img of additionalImages) {
-                xml += `  <g:additional_image_link>${escapeXml(img.url)}</g:additional_image_link>\n`;
+                xml += ` <g:additional_image_link>${escapeXml(img.url)}</g:additional_image_link>\n`;
               }
-              xml += `  <g:condition>new</g:condition>\n`;
+              xml += ` <g:condition>new</g:condition>\n`;
 
               const availableQty = v.stock_on_hand || 0;
-              xml += `  <g:availability>${availableQty > 0 ? "in stock" : "out of stock"}</g:availability>\n`;
-              xml += `  <g:price>${regularPriceBrl} BRL</g:price>\n`;
+              xml += ` <g:availability>${availableQty > 0 ? "in stock" : "out of stock"}</g:availability>\n`;
+              xml += ` <g:price>${regularPriceBrl} BRL</g:price>\n`;
               if (salePriceBrl) {
-                xml += `  <g:sale_price>${salePriceBrl} BRL</g:sale_price>\n`;
+                xml += ` <g:sale_price>${salePriceBrl} BRL</g:sale_price>\n`;
               }
-              xml += `  <g:brand>${escapeXml(p.manufacturer || "Jah")}</g:brand>\n`;
-              xml += `  <g:mpn>${escapeXml(mpn)}</g:mpn>\n`;
-              xml += `  <g:identifier_exists>false</g:identifier_exists>\n`;
-              xml += `  <g:google_product_category>Apparel &amp; Accessories &gt; Shoes</g:google_product_category>\n`;
-              xml += `  <g:product_type>Calçados</g:product_type>\n`;
+              xml += ` <g:brand>${escapeXml(p.manufacturer || "Jah")}</g:brand>\n`;
+              xml += ` <g:mpn>${escapeXml(mpn)}</g:mpn>\n`;
+              xml += ` <g:identifier_exists>false</g:identifier_exists>\n`;
+              xml += ` <g:google_product_category>Apparel &amp; Accessories &gt; Shoes</g:google_product_category>\n`;
+              xml += ` <g:product_type>Calçados</g:product_type>\n`;
 
               if (v.attributes && typeof v.attributes === "object") {
                 const attrs = v.attributes as Record<string, string>;
@@ -155,8 +155,8 @@ export const Route = createFileRoute("/api/feed/xml")({
                 const sizeKeys = ["tamanho", "size", "taille", "numero", "número", "tam"];
                 const sizeKey = Object.keys(attrs).find((k) => sizeKeys.includes(k.toLowerCase()));
                 if (sizeKey && attrs[sizeKey]) {
-                  xml += `  <g:size>${escapeXml(attrs[sizeKey])}</g:size>\n`;
-                  xml += `  <g:size_system>BR</g:size_system>\n`;
+                  xml += ` <g:size>${escapeXml(attrs[sizeKey])}</g:size>\n`;
+                  xml += ` <g:size_system>BR</g:size_system>\n`;
                 }
 
                 // Dynamic color detection
@@ -165,7 +165,7 @@ export const Route = createFileRoute("/api/feed/xml")({
                   colorKeys.includes(k.toLowerCase()),
                 );
                 if (colorKey && attrs[colorKey]) {
-                  xml += `  <g:color>${escapeXml(attrs[colorKey])}</g:color>\n`;
+                  xml += ` <g:color>${escapeXml(attrs[colorKey])}</g:color>\n`;
                 }
 
                 // Dynamic material detection
@@ -174,7 +174,7 @@ export const Route = createFileRoute("/api/feed/xml")({
                   materialKeys.includes(k.toLowerCase()),
                 );
                 if (materialKey && attrs[materialKey]) {
-                  xml += `  <g:material>${escapeXml(attrs[materialKey])}</g:material>\n`;
+                  xml += ` <g:material>${escapeXml(attrs[materialKey])}</g:material>\n`;
                 }
               }
 

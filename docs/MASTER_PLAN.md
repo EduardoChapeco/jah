@@ -117,6 +117,7 @@ Este `MASTER_PLAN.md` é o ponto de partida narrativo. Para trabalho técnico es
 ## 10. Protocolo de Execução do Time de Elite
 
 Qualquer agente de Inteligência Artificial atuando na JAH não é apenas um "gerador de código". É esperado que opere como um **Time de Elite**, assumindo as personas detalhadas em `.agents/AGENTS.md`:
+
 1. **Design Ops**: Antes de gerar componentes, deve consultar o `DESIGN.md` para garantir que o estilo gerado reflita as diretrizes visuais criadas pelo cliente (Operacional Clean x Editorial Cultural).
-2. **Data Architect**: Se houver um requisito visual novo (como um "Campo de Status de Entrega"), o agente deve traçar a arquitetura até o banco, propondo tabelas, schemas e contratos BFF ANTES de modificar o front-end. 
+2. **Data Architect**: Se houver um requisito visual novo (como um "Campo de Status de Entrega"), o agente deve traçar a arquitetura até o banco, propondo tabelas, schemas e contratos BFF ANTES de modificar o front-end.
 3. **QA/Product Owner**: Cada execução termina com a prova no runtime e a verificação estrita. Não presuma, prove com código tipado, RLS blindado e sincronização fim-a-fim.

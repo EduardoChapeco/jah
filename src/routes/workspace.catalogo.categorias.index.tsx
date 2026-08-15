@@ -161,7 +161,7 @@ function AdminCategoriesPage() {
                           <span>{cat.name}</span>
                           {cat.parent_id && (
                             <span className="text-[10px] text-muted-foreground font-normal">
-                              Subcategoria de{" "}
+                              Subcategoria de{""}
                               {categories.find((c: any) => c.id === cat.parent_id)?.name || "outra"}
                             </span>
                           )}
@@ -216,7 +216,7 @@ function AdminCategoriesPage() {
                                 <DropdownMenuItem
                                   onClick={() => handleUpdateStatus(cat.id, "active")}
                                 >
-                                  <Check className="mr-2 size-3.5 text-emerald-600" />
+                                  <Check className="mr-2 size-3.5 text-success" />
                                   Ativar
                                 </DropdownMenuItem>
                               )}

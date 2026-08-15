@@ -62,10 +62,7 @@ export function SlideOutCart() {
           ) : (
             <div className="flex flex-col gap-6">
               {globalCarts.map((storeCart, idx) => (
-                <div
-                  key={storeCart.id}
-                  className="bg-card border rounded-lg overflow-hidden shadow-sm"
-                >
+                <div key={storeCart.id} className="bg-card border rounded-lg overflow-hidden ">
                   <div className="bg-muted px-4 py-2 border-b flex items-center gap-3">
                     {storeCart.storeLogoUrl ? (
                       <img
@@ -95,7 +92,7 @@ export function SlideOutCart() {
                           isCartUpdating && "opacity-60 pointer-events-none",
                         )}
                       >
-                        <div className="size-16 flex-shrink-0 overflow-hidden rounded-md bg-secondary border">
+                        <div className="size-16 flex-shrink-0 overflow-hidden rounded-xl bg-secondary border">
                           {item.coverUrl ? (
                             <img
                               src={item.coverUrl}
@@ -130,7 +127,7 @@ export function SlideOutCart() {
                           </div>
 
                           <div className="mt-auto flex items-end justify-between pt-2">
-                            <div className="flex items-center rounded-md border shadow-sm">
+                            <div className="flex items-center rounded-xl border ">
                               <button
                                 type="button"
                                 className="flex h-6 w-6 items-center justify-center text-muted-foreground hover:bg-muted"
@@ -166,7 +163,7 @@ export function SlideOutCart() {
         </div>
 
         {globalCarts.length > 0 && (
-          <div className="border-t bg-background p-6 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] z-10 relative">
+          <div className="border-t bg-background p-6 z-10 relative">
             <div className="flex flex-col gap-4">
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between font-bold text-lg">

@@ -30,7 +30,11 @@ export const getSignedUploadUrl = createServerFn({ method: "POST" })
       let result = await supabase.storage.from(bucket).createSignedUploadUrl(uniqueName);
 
       // Auto-Healing: Cria o bucket se não existir e tenta novamente
-      if (result.error && result.error.message.includes("Bucket not found")) {
+      const errMsg = result.error?.message || "";
+      if (
+        errMsg.includes("Bucket not found") ||
+        errMsg.includes("The related resource does not exist")
+      ) {
         console.log(`[storage] Bucket ${bucket} missing. Auto-healing...`);
         const { error: createError } = await supabase.storage.createBucket(bucket, {
           public: bucket !== "payment-proofs" && bucket !== "rma-proofs",
@@ -79,7 +83,7 @@ export const getPostMediaSignedUrl = createServerFn({ method: "POST" })
   .validator(
     z.object({
       fileName: z.string().min(1).max(256),
-      contentType: z.enum(["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4"]),
+      contentType: z.string().min(1).max(100),
     }),
   )
   .handler(async ({ data: { fileName, contentType } }) => {
@@ -90,17 +94,20 @@ export const getPostMediaSignedUrl = createServerFn({ method: "POST" })
     if (!identity.id) throw new Error("Não autorizado — faça login para enviar mídia.");
 
     const BUCKET = "post-media";
-    const ext = contentType.split("/")[1] ?? "jpg";
+    const ext = fileName.split(".").pop() || contentType.split("/")[1] || "bin";
     const uniqueName = `${identity.id}/${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${ext}`;
 
     let result = await supabase.storage.from(BUCKET).createSignedUploadUrl(uniqueName);
 
     // Auto-healing: cria o bucket público se não existir
-    if (result.error?.message.includes("Bucket not found")) {
+    const errMsg = result.error?.message || "";
+    if (
+      errMsg.includes("Bucket not found") ||
+      errMsg.includes("The related resource does not exist")
+    ) {
       const { error: createErr } = await supabase.storage.createBucket(BUCKET, {
         public: true,
-        fileSizeLimit: 20 * 1024 * 1024, // 20MB
-        allowedMimeTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4"],
+        fileSizeLimit: 100 * 1024 * 1024, // 100MB para fotos e vídeos em alta resolução
       });
       if (createErr) throw new Error(`[storage] Bucket auto-heal failed: ${createErr.message}`);
       result = await supabase.storage.from(BUCKET).createSignedUploadUrl(uniqueName);

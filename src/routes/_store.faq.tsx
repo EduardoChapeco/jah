@@ -25,8 +25,7 @@ function Page() {
 
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
-      <PageHeader eyebrow="Ajuda" title="Perguntas Frequentes" />
-      <div className="mt-8 max-w-3xl mx-auto">
+      <div className="max-w-3xl mx-auto">
         {!faqs || faqs.length === 0 ? (
           <EmptyState title="Nenhuma pergunta publicada" />
         ) : (
@@ -35,7 +34,11 @@ function Page() {
               const question = faq.question || faq.q || "Pergunta";
               const answer = faq.answer || faq.a || "";
               return (
-                <AccordionItem key={i} value={`faq-${i}`} className="border px-4 bg-card shadow-sm">
+                <AccordionItem
+                  key={i}
+                  value={`faq-${i}`}
+                  className="border border-border rounded-xl px-4 bg-card"
+                >
                   <AccordionTrigger className="text-base font-medium py-4 hover:no-underline text-left">
                     {question}
                   </AccordionTrigger>

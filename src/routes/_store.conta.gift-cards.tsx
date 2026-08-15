@@ -3,13 +3,11 @@ import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Gift, Sparkles, CheckCircle, Copy, AlertCircle, Calendar } from "lucide-react";
+import { Gift, Sparkles, Copy, Calendar, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Surface } from "@/components/ui/surface";
 import {
   Form,
   FormControl,
@@ -18,30 +16,24 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import {
-  listCustomerGiftCards,
-  claimGiftCard,
-  checkGiftCardBalance,
-} from "@/services/giftcard.functions";
+import { listCustomerGiftCards, claimGiftCard } from "@/services/giftcard.functions";
 import { formatMoney } from "@/lib/money";
-import { formatDate } from "../lib/datetime";
+import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/_store/conta/gift-cards")({
-  head: () => ({ meta: [{ title: "Meus Cartões-Presente" }] }),
+  head: () => ({ meta: [{ title: "Meus Vales-Presente | JAH" }] }),
   loader: async () => {
-    const res = await listCustomerGiftCards();
-    return {
-      giftCards: res || [],
-    };
+    try {
+      const res = await listCustomerGiftCards();
+      return {
+        giftCards: res || [],
+      };
+    } catch {
+      return {
+        giftCards: [],
+      };
+    }
   },
   component: CustomerGiftCardsPage,
 });
@@ -63,7 +55,7 @@ function CustomerGiftCardsPage() {
   const handleClaim = async (data: z.infer<typeof CheckBalanceSchema>) => {
     setIsLoading(true);
     try {
-      const res = await claimGiftCard({ data: { code: data.code } });
+      const res = await claimGiftCard({ data: { code: data.code.trim().toUpperCase() } });
       if (res) {
         toast.success("Vale-presente resgatado e vinculado à sua conta!");
         form.reset();
@@ -82,148 +74,161 @@ function CustomerGiftCardsPage() {
   };
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto font-sans text-foreground">
-      <div className="border-b border-border pb-6 mb-8">
-        <h1 className="text-4xl font-semibold font-black flex items-center gap-3 uppercase">
-          <Gift className="size-10 text-primary" strokeWidth={3} />
+    <div className="space-y-6 w-full text-foreground">
+      <div className="border-b border-border pb-4">
+        <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2.5 text-foreground">
+          <Gift className="size-6 text-primary" />
           Meus Vales-Presente
         </h1>
-        <p className="mt-2 text-foreground/80 font-medium">
-          Gerencie seus cartões-presente ou vincule novos códigos à sua conta.
+        <p className="mt-1 text-sm text-muted-foreground">
+          Gerencie seus créditos ou resgate novos vales-presente para usar no checkout.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Adicionar / Resgatar Card */}
-        <div className="md:col-span-1 space-y-6">
-          <div className="border border-border shadow-sm bg-secondary h-fit flex flex-col">
-            <div className="p-6 border-b border-border">
-              <h3 className="flex items-center gap-2 text-xl font-semibold font-black uppercase">
-                <Sparkles className="size-6 text-primary" strokeWidth={2.5} />
-                Resgatar
-              </h3>
-              <p className="text-sm font-medium text-foreground/80 mt-2">
-                Ganhou um presente? Digite o código de 12 dígitos para salvá-lo na sua conta.
-              </p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Resgatar Vale */}
+        <div className="md:col-span-1">
+          <div className="border border-border bg-card rounded-2xl p-5 shadow-sm space-y-4">
+            <div className="flex items-center gap-2">
+              <Sparkles className="size-5 text-primary" />
+              <h2 className="text-base font-bold text-foreground">Resgatar Vale</h2>
             </div>
-            <div className="p-6 bg-background">
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleClaim)} className="space-y-5">
-                  <FormField
-                    control={form.control}
-                    name="code"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs font-bold text-foreground uppercase tracking-wider">
-                          Código do Cartão
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Ex: ABCD-1234-WXYZ"
-                            className="font-mono uppercase font-bold border border-border h-12 rounded-md focus-visible:ring-0 focus-visible:border-poster-red"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button
-                    type="submit"
-                    className="w-full font-black uppercase tracking-wider text-sm h-12 bg-primary text-primary-foreground border border-border rounded-md cursor-pointer"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Resgatando..." : "Resgatar Vale"}
-                  </Button>
-                </form>
-              </Form>
-            </div>
+            <p className="text-xs text-muted-foreground">
+              Digite o código de 12 dígitos para adicionar o saldo à sua conta.
+            </p>
+
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(handleClaim)} className="space-y-4 pt-2">
+                <FormField
+                  control={form.control}
+                  name="code"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs font-semibold text-foreground">
+                        Código do Cartão
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Ex: ABCD-1234-WXYZ"
+                          className="font-mono uppercase font-bold border border-border h-10 rounded-xl"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type="submit"
+                  className="w-full font-bold text-xs h-10 bg-primary text-primary-foreground rounded-xl"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin mr-2" />
+                      Resgatando...
+                    </>
+                  ) : (
+                    "Resgatar Saldo"
+                  )}
+                </Button>
+              </form>
+            </Form>
           </div>
         </div>
 
         {/* Listagem de Cartões Vinculados */}
-        <div className="md:col-span-2 space-y-6">
-          <h3 className="font-semibold text-2xl font-black flex items-center gap-3 uppercase border-b border-border pb-3">
-            Vinculados
-            <span className="bg-primary text-primary-foreground text-sm px-3 py-1 font-mono shadow-sm">
+        <div className="md:col-span-2 space-y-4">
+          <div className="flex items-center justify-between border-b border-border pb-3">
+            <h2 className="text-base font-bold text-foreground">Vales Vinculados</h2>
+            <Badge variant="secondary" className="font-mono text-xs">
               {giftCards.length}
-            </span>
-          </h3>
+            </Badge>
+          </div>
 
           {giftCards.length === 0 ? (
-            <div className="border border-dashed border-border p-10 text-center bg-background flex flex-col items-center gap-4">
-              <Gift className="size-16 text-foreground/30" strokeWidth={1.5} />
-              <div className="space-y-2">
-                <p className="font-semibold text-2xl font-black uppercase">Nenhum vale-presente</p>
-                <p className="text-sm text-foreground/70 max-w-sm mx-auto font-medium">
-                  Os vales vinculados aparecem automaticamente como saldo disponível no Checkout.
+            <div className="border border-dashed border-border p-8 text-center bg-card rounded-2xl flex flex-col items-center gap-3">
+              <Gift className="size-10 text-muted-foreground/40" />
+              <div className="space-y-1">
+                <p className="font-semibold text-sm text-foreground">Nenhum vale ativo vinculado</p>
+                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                  Vales vinculados são aplicados automaticamente como saldo de desconto no checkout.
                 </p>
               </div>
             </div>
           ) : (
-            <div className="grid gap-5">
+            <div className="grid gap-3">
               {giftCards.map((card: any) => {
-                const isUsed = card.status === "used" || card.current_balance_cents === 0;
+                const isUsed = card.status === "used" || card.balance_cents === 0;
                 const isExpired = card.expires_at && new Date(card.expires_at) < new Date();
 
                 return (
                   <div
                     key={card.id}
-                    className={`relative p-5 sm:p-6 border border-border shadow-[4px_4px_0px_rgba(0,0,0,1)] flex flex-col sm:flex-row justify-between sm:items-center gap-4 transition-all ${isUsed || card.status === "cancelled" || isExpired ? "bg-muted/30/50 opacity-80" : "bg-background hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,1)]"}`}
+                    className={`p-4 sm:p-5 border border-border bg-card flex flex-col sm:flex-row justify-between sm:items-center gap-3 rounded-xl transition-all ${
+                      isUsed || card.status === "cancelled" || isExpired
+                        ? "opacity-60 bg-muted/30"
+                        : "hover:border-primary/40 shadow-sm"
+                    }`}
                   >
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-3">
-                        <span className="font-mono font-black text-lg bg-secondary border border-border px-2 py-0.5">
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-sm bg-muted border border-border px-2 py-0.5 rounded-md">
                           {card.code}
                         </span>
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           onClick={() => handleCopyCode(card.code)}
-                          className="size-8 border border-border bg-white flex items-center justify-center text-foreground rounded-md cursor-pointer"
+                          className="size-7 rounded-md"
+                          title="Copiar código"
                         >
-                          <Copy className="size-4" />
-                        </button>
+                          <Copy className="size-3.5" />
+                        </Button>
                       </div>
 
-                      <div className="flex gap-4 text-sm text-foreground/70 font-medium font-mono">
-                        <span>Orig: {formatMoney(card.initial_balance_cents)}</span>
+                      <div className="flex gap-3 text-xs text-muted-foreground font-mono">
+                        <span>Original: {formatMoney(card.initial_balance_cents)}</span>
                         {card.expires_at && (
                           <span className="flex items-center gap-1">
-                            <Calendar className="size-4" />
+                            <Calendar className="size-3" />
                             Exp: {formatDate(card.expires_at).split(" ")[0]}
                           </span>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between sm:justify-end gap-5 border-t sm:border-0 border-border pt-4 sm:pt-0">
+                    <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-0 border-border pt-3 sm:pt-0">
                       <div className="text-right">
-                        <span className="text-xs text-foreground uppercase font-bold tracking-wider block">
-                          Saldo Atual
+                        <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">
+                          Saldo Disponível
                         </span>
                         <span
-                          className={`text-2xl font-semibold font-black ${isUsed ? "text-foreground/50" : "text-primary"}`}
+                          className={`text-lg font-bold ${
+                            isUsed ? "text-muted-foreground" : "text-primary"
+                          }`}
                         >
-                          {formatMoney(card.current_balance_cents)}
+                          {formatMoney(card.balance_cents)}
                         </span>
                       </div>
 
                       <div>
                         {card.status === "cancelled" ? (
-                          <span className="border border-border bg-primary text-primary-foreground font-black uppercase text-[10px] px-2 py-1 shadow-sm">
+                          <Badge variant="destructive" className="text-[10px] uppercase">
                             Cancelado
-                          </span>
+                          </Badge>
                         ) : isExpired ? (
-                          <span className="border border-border bg-muted/30 text-foreground font-black uppercase text-[10px] px-2 py-1 shadow-sm">
+                          <Badge variant="outline" className="text-[10px] uppercase">
                             Expirado
-                          </span>
+                          </Badge>
                         ) : isUsed ? (
-                          <span className="border border-border bg-white text-foreground/50 font-black uppercase text-[10px] px-2 py-1 shadow-sm">
+                          <Badge variant="secondary" className="text-[10px] uppercase">
                             Utilizado
-                          </span>
+                          </Badge>
                         ) : (
-                          <span className="border border-border bg-success text-white font-black uppercase text-[10px] px-2 py-1 shadow-sm">
+                          <Badge className="bg-emerald-600 text-white text-[10px] uppercase">
                             Ativo
-                          </span>
+                          </Badge>
                         )}
                       </div>
                     </div>

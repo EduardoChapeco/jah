@@ -88,6 +88,8 @@ export async function fetchCartDTO(
         id,
         variant_id,
         qty,
+        selected_options,
+        price_snapshot_cents,
         product_variants (
           id,
           price_override_cents,
@@ -140,6 +142,8 @@ export async function mapCartToDTO(cart: any): Promise<CartDTO> {
     id: string;
     variant_id: string;
     qty: number;
+    price_snapshot_cents: number;
+    selected_options?: Record<string, string | string[]>;
     product_variants: {
       sku: string;
       price_override_cents: number | null;
@@ -159,7 +163,32 @@ export async function mapCartToDTO(cart: any): Promise<CartDTO> {
 
   // Map to DTO
   let totalCents = 0;
-  const rawItems = (cart.cart_items || []) as unknown as CartItemRaw[];
+  // 1. Coletar IDs únicos de option_values de todo o carrinho para fazer fetch num bulk só
+  const allOptionIds = new Set<string>();
+  const rawItems = (cart.cart_items || []) as CartItemRaw[];
+  rawItems.forEach((item) => {
+    if (item.selected_options) {
+      Object.values(item.selected_options).forEach((val) => {
+        if (Array.isArray(val)) val.forEach((v) => allOptionIds.add(v));
+        else allOptionIds.add(val);
+      });
+    }
+  });
+
+  const optionLabelsMap: Record<string, string> = {};
+  if (allOptionIds.size > 0) {
+    const { data: optionVals } = await supabase
+      .from("option_values")
+      .select("id, label")
+      .in("id", Array.from(allOptionIds));
+
+    if (optionVals) {
+      optionVals.forEach((v) => {
+        optionLabelsMap[v.id] = v.label;
+      });
+    }
+  }
+
   const items = rawItems
     .filter((item) => item && item.product_variants && item.product_variants.product)
     .filter((item) => item.product_variants.status === "active")
@@ -167,17 +196,32 @@ export async function mapCartToDTO(cart: any): Promise<CartDTO> {
       const variant = item.product_variants;
       const product = variant.product;
       const image = product.product_media?.[0]?.url;
-      const price = variant.price_override_cents ?? product.price_cents;
+      // USE the snapshot from the RPC which includes options modifiers, fallback to product price
+      const price =
+        item.price_snapshot_cents ?? variant.price_override_cents ?? product.price_cents;
       const lineTotal = price * item.qty;
       totalCents += lineTotal;
 
       const availableStock = variant.stock_on_hand || 0;
       const isOutOfStock = availableStock < item.qty;
 
+      const selectedOptionsLabels: string[] = [];
+      if (item.selected_options) {
+        Object.values(item.selected_options).forEach((val) => {
+          if (Array.isArray(val))
+            val.forEach((v) => {
+              if (optionLabelsMap[v]) selectedOptionsLabels.push(optionLabelsMap[v]);
+            });
+          else if (optionLabelsMap[val]) selectedOptionsLabels.push(optionLabelsMap[val]);
+        });
+      }
+
       return {
         id: item.id,
         variantId: item.variant_id,
         qty: item.qty,
+        selectedOptions: item.selected_options || undefined,
+        selectedOptionsLabels: selectedOptionsLabels.length > 0 ? selectedOptionsLabels : undefined,
         priceCents: price,
         compareAtCents: product.compare_at_cents ?? null,
         lineTotalCents: lineTotal,
@@ -345,11 +389,11 @@ export const cancelCart = createServerFn({ method: "POST" })
   });
 
 const AddToCartSchema = z.object({
-  variantId: z.string().uuid().optional(),
-  productId: z.string().uuid().optional(),
-  quantity: z.number().int().min(1),
-  sellerId: z.string().uuid().optional(),
-  options: z.record(z.string()).optional(),
+  variantId: z.string().optional(),
+  productId: z.string().optional(),
+  quantity: z.number().int().min(1).default(1),
+  sellerId: z.string().optional(),
+  options: z.record(z.union([z.string(), z.array(z.string())])).optional(),
 });
 
 export const addToCart = createServerFn({ method: "POST" })
@@ -388,7 +432,7 @@ export const addToCart = createServerFn({ method: "POST" })
       if (!storeId) throw new Error("Loja não configurada");
 
       // Atomic Insert via RPC (replaces the old 11-step waterfall)
-      const { data: cartId, error: rpcError } = await supabase.rpc("add_to_cart_atomic_v5", {
+      const { data: cartId, error: rpcError } = await supabase.rpc("add_to_cart_atomic_v6", {
         p_store_id: storeId,
         p_customer_id: identity.customer_id,
         p_session_token: identity.session_token,

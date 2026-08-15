@@ -1,271 +1,319 @@
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, MapPin, Bike, Package, Clock, AlertCircle } from "lucide-react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-
-import { listOrders, assignDriverToOrder, respondToDispatch } from "@/services/order.functions";
-import { listDrivers, getOrderDispatches } from "@/services/shipping.functions";
-import { formatDateTime } from "@/lib/datetime";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { PageHeader } from "@/components/commerce/page-header";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
-import { EmptyState } from "@/components/state/states";
+  Truck,
+  Plus,
+  Copy,
+  ExternalLink,
+  MapPin,
+  Phone,
+  CheckCircle2,
+  Clock,
+  KeyRound,
+  DollarSign,
+  Loader2,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { listDispatches, createDispatch, type DispatchRecord } from "@/services/dispatch.functions";
+import { formatMoney } from "@/lib/money";
+import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/workspace/pedidos/frota")({
-  head: () => ({ meta: [{ title: "JAH Entrega - Gestão de Frota" }] }),
+  head: () => ({ meta: [{ title: "Frota & Despacho de Entregas | JAH" }] }),
   loader: async () => {
-    return {
-      initialOrders: await listOrders().catch(() => []),
-      initialDrivers: await listDrivers().catch(() => []),
-    };
+    return await listDispatches();
   },
-  component: DeliveryFleetPage,
+  component: FrotaEntregasPage,
 });
 
-function OrderDispatchHistory({ orderId }: { orderId: string }) {
-  const { data: dispatches, isLoading } = useQuery({
-    queryKey: ["order-dispatches", orderId],
-    queryFn: () => getOrderDispatches({ data: { orderId } }),
-  });
+function FrotaEntregasPage() {
+  const initialDispatches = Route.useLoaderData();
+  const [dispatches, setDispatches] = useState<DispatchRecord[]>(initialDispatches);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const queryClient = useQueryClient();
-  const router = useRouter();
+  // Form states
+  const [orderNumber, setOrderNumber] = useState("");
+  const [courierName, setCourierName] = useState("");
+  const [courierPhone, setCourierPhone] = useState("");
+  const [recipientName, setRecipientName] = useState("");
+  const [recipientPhone, setRecipientPhone] = useState("");
+  const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [feeReal, setFeeReal] = useState("10.00");
 
-  const handleResponse = async (dispatchId: string, response: "accepted" | "rejected" | "failed" | "delivered") => {
-    try {
-      await respondToDispatch({ data: { dispatchId, response } });
-      toast.success("Resposta registrada!");
-      queryClient.invalidateQueries({ queryKey: ["order-dispatches", orderId] });
-      queryClient.invalidateQueries({ queryKey: ["fleet-orders"] });
-      router.invalidate();
-    } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Erro ao registrar resposta.");
-    }
-  };
-
-  if (isLoading || !dispatches || dispatches.length === 0) return null;
-
-  return (
-    <div className="mt-4 pt-4 border-t border-border/10 space-y-3">
-      <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Histórico de Despacho</h5>
-      {dispatches.map((d: any) => (
-        <div key={d.id} className="text-sm bg-muted/30 rounded-md p-3 border border-border">
-          <div className="flex items-center justify-between mb-2">
-            <span className="font-medium text-foreground">{d.delivery_drivers?.name}</span>
-            <Badge variant={
-              d.status === 'delivered' ? 'success' : 
-              d.status === 'failed' || d.status === 'rejected' ? 'destructive' : 
-              d.status === 'in_transit' || d.status === 'accepted' ? 'brand' : 'outline'
-            } className="text-[10px]">{d.status}</Badge>
-          </div>
-          <div className="text-xs text-muted-foreground flex justify-between">
-            <span>Atribuído: {formatDateTime(d.assigned_at)}</span>
-            {d.completed_at && <span>Concluído: {formatDateTime(d.completed_at)}</span>}
-          </div>
-          {d.failure_reason && (
-            <div className="mt-2 text-xs text-destructive flex items-center gap-1">
-              <AlertCircle className="size-3" /> Motivo: {d.failure_reason}
-            </div>
-          )}
-          
-          {d.status === 'assigned' && (
-            <div className="mt-3 flex gap-2">
-              <Button size="xs" variant="outline" onClick={() => handleResponse(d.id, 'accepted')}>Entregador Aceitou</Button>
-              <Button size="xs" variant="destructive" onClick={() => handleResponse(d.id, 'rejected')}>Entregador Rejeitou</Button>
-            </div>
-          )}
-          {(d.status === 'accepted' || d.status === 'in_transit') && (
-            <div className="mt-3 flex gap-2">
-              <Button size="xs" variant="success" onClick={() => handleResponse(d.id, 'delivered')}>Baixar Entrega</Button>
-              <Button size="xs" variant="destructive" onClick={() => handleResponse(d.id, 'failed')}>Falha (Ex: Ausente)</Button>
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function DeliveryFleetPage() {
-  const { initialOrders, initialDrivers } = Route.useLoaderData();
-  const queryClient = useQueryClient();
-  const router = useRouter();
-
-  const { data: allOrders } = useQuery({
-    queryKey: ["fleet-orders"],
-    queryFn: () => listOrders(),
-    initialData: initialOrders,
-  });
-
-  const { data: drivers } = useQuery({
-    queryKey: ["fleet-drivers"],
-    queryFn: () => listDrivers(),
-    initialData: initialDrivers,
-  });
-
-  const orders = (allOrders || []).filter((o: any) => ["processing", "shipped"].includes(o.status));
-
-  const assignMutation = useMutation({
-    mutationFn: async ({ orderId, driverId }: { orderId: string; driverId: string }) => {
-      return await assignDriverToOrder({ data: { orderId, driverId } });
-    },
-    onSuccess: () => {
-      toast.success("Entregador atribuído ao pedido!");
-      queryClient.invalidateQueries({ queryKey: ["fleet-orders"] });
-      router.invalidate();
-    },
-    onError: (error: unknown) => {
-      toast.error(error instanceof Error ? error.message : "Erro ao atribuir entregador.");
-    },
-  });
-
-  const [selectedDriver, setSelectedDriver] = useState<Record<string, string>>({});
-
-  const handleAssignDriver = (orderId: string) => {
-    const driverId = selectedDriver[orderId];
-    if (!driverId) {
-      toast.error("Selecione um entregador primeiro.");
+  const handleCreateDispatch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!orderNumber || !courierName || !deliveryAddress || !recipientName) {
+      toast.error("Preencha todos os campos obrigatórios.");
       return;
     }
-    assignMutation.mutate({ orderId, driverId });
+
+    setIsSubmitting(true);
+    try {
+      const feeCents = Math.round(parseFloat(feeReal || "0") * 100);
+      const created = await createDispatch({
+        data: {
+          orderId: "ord_" + Math.random().toString(36).substring(2, 9),
+          orderNumber,
+          courierName,
+          courierPhone: courierPhone || undefined,
+          deliveryAddress,
+          recipientName,
+          recipientPhone: recipientPhone || undefined,
+          deliveryFeeCents: feeCents,
+        },
+      });
+
+      setDispatches([created, ...dispatches]);
+      setIsOpen(false);
+      // Reset form
+      setOrderNumber("");
+      setCourierName("");
+      setCourierPhone("");
+      setRecipientName("");
+      setRecipientPhone("");
+      setDeliveryAddress("");
+      toast.success("Despacho criado com sucesso! Link Mágico gerado.");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao criar despacho.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCopyLink = (token: string) => {
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const url = `${origin}/entrega/${token}`;
+    navigator.clipboard.writeText(url);
+    toast.success("Link Mágico do Entregador copiado!");
   };
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        eyebrow="Logística Proprietária"
-        title="JAH Entrega (Despachos)"
-        description="Gestão real de motoristas, ocorrências, reatribuições e status de campo."
-        actions={
-          <Button variant="outline" asChild size="sm">
-            <Link to="/workspace">
-              <ArrowLeft className="mr-1.5 size-4" />
-              Voltar
-            </Link>
-          </Button>
-        }
-      />
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-4">
-          <h2 className="text-lg font-bold flex items-center gap-2">
-            <Package className="size-5 text-primary" /> Fila de Despacho
-          </h2>
-
-          {orders.length === 0 ? (
-            <EmptyState title="Tudo limpo!" description="Nenhum pedido pendente de logística." />
-          ) : (
-            <div className="space-y-4">
-              {orders.map((order: any) => (
-                <div
-                  key={order.id}
-                  className="overflow-hidden bg-card rounded-md border border-border shadow-xs"
-                >
-                  <div className="flex flex-col md:flex-row border-b border-border bg-muted/20">
-                    <div className="p-4 flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-bold text-muted-foreground uppercase">
-                          #{order.id.split("-")[0]}
-                        </span>
-                        <Badge
-                          variant={order.status === "shipped" ? "brand" : "outline"}
-                          className="text-[10px]"
-                        >
-                          {order.status === "shipped" ? "Despachado" : "Aguardando Entregador"}
-                        </Badge>
-                      </div>
-                      <h4 className="font-bold text-base">
-                        {order.customer?.name || "Cliente Avulso"}
-                      </h4>
-                      <div className="flex flex-col gap-1 text-xs text-muted-foreground mt-2 font-mono">
-                        <span className="flex items-center gap-1">
-                          <Clock className="size-3" /> {formatDateTime(order.created_at)}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <MapPin className="size-3" />{" "}
-                          {order.shipping_address?.street}, {order.shipping_address?.number} - {order.shipping_address?.neighborhood}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="p-4 bg-muted/10 md:w-64 border-t md:border-t-0 md:border-l border-border flex flex-col justify-center gap-3">
-                      <div className="text-sm">
-                        <span className="text-muted-foreground block mb-1">Atribuir a:</span>
-                        <Select
-                          value={selectedDriver[order.id] || ""}
-                          onValueChange={(val) => setSelectedDriver((p) => ({ ...p, [order.id]: val }))}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {drivers?.length === 0 && <SelectItem value="none" disabled>Nenhum entregador cadastrado</SelectItem>}
-                            {drivers?.map((d: any) => (
-                              <SelectItem key={d.id} value={d.id}>
-                                {d.name} ({d.vehicle_type})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <Button
-                        size="sm"
-                        disabled={assignMutation.isPending}
-                        onClick={() => handleAssignDriver(order.id)}
-                      >
-                        Despachar Pedido
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  {/* Historical Dispatch Data */}
-                  <div className="p-4">
-                    <OrderDispatchHistory orderId={order.id} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
+    <div className="space-y-6 max-w-6xl pb-16">
+      {/* Topbar */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border/60 pb-4">
         <div>
-          <Card className="border border-border shadow-xs bg-card">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Bike className="size-5" /> Frota Ativa
-              </CardTitle>
-              <CardDescription>Entregadores e veículos disponíveis.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {drivers?.length === 0 ? (
-                <div className="text-sm text-muted-foreground text-center py-4">
-                  Nenhum motorista cadastrado.
-                </div>
-              ) : (
-                drivers?.map((d: any) => (
-                  <div key={d.id} className="flex items-center justify-between p-3 border border-border rounded-md">
-                    <div>
-                      <p className="font-medium text-sm">{d.name}</p>
-                      <p className="text-xs text-muted-foreground">{d.vehicle_type} • {d.phone || "Sem tel"}</p>
-                    </div>
-                    <Badge variant={d.status === "available" ? "success" : "secondary"}>
-                      {d.status === "available" ? "Livre" : "Ocupado"}
-                    </Badge>
-                  </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
+          <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
+            <Truck className="size-5 text-primary" />
+            Frota & Despacho de Delivery
+          </h1>
+          <p className="text-xs text-muted-foreground">
+            Gerencie motoboys, gere links mágicos sem login e acompanhe validações por PIN.
+          </p>
         </div>
+
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogTrigger asChild>
+            <Button className="rounded-xl font-semibold gap-2 shadow-xs">
+              <Plus className="size-4" />
+              Novo Despacho / Chamar Motoboy
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-lg rounded-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-bold flex items-center gap-2">
+                <Truck className="size-5 text-primary" />
+                Despachar Pedido com Motoboy
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground">
+                Gere um link temporário com navegação e PIN de 4 dígitos para o entregador.
+              </DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={handleCreateDispatch} className="space-y-4 pt-2">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold">Número do Pedido *</Label>
+                  <Input
+                    value={orderNumber}
+                    onChange={(e) => setOrderNumber(e.target.value)}
+                    placeholder="Ex: #4829"
+                    className="h-9 text-xs rounded-xl"
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold">Taxa da Corrida (R$) *</Label>
+                  <Input
+                    type="number"
+                    step="0.50"
+                    value={feeReal}
+                    onChange={(e) => setFeeReal(e.target.value)}
+                    className="h-9 text-xs rounded-xl font-mono font-semibold"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold">Nome do Entregador / Motoboy *</Label>
+                  <Input
+                    value={courierName}
+                    onChange={(e) => setCourierName(e.target.value)}
+                    placeholder="Ex: Carlos Silva"
+                    className="h-9 text-xs rounded-xl"
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold">WhatsApp do Entregador</Label>
+                  <Input
+                    value={courierPhone}
+                    onChange={(e) => setCourierPhone(e.target.value)}
+                    placeholder="Ex: (49) 98877-6655"
+                    className="h-9 text-xs rounded-xl"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold">Nome do Cliente *</Label>
+                  <Input
+                    value={recipientName}
+                    onChange={(e) => setRecipientName(e.target.value)}
+                    placeholder="Ex: Amanda Lima"
+                    className="h-9 text-xs rounded-xl"
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold">Telefone do Cliente</Label>
+                  <Input
+                    value={recipientPhone}
+                    onChange={(e) => setRecipientPhone(e.target.value)}
+                    placeholder="Ex: (49) 99988-7766"
+                    className="h-9 text-xs rounded-xl"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">Endereço de Entrega Completo *</Label>
+                <Input
+                  value={deliveryAddress}
+                  onChange={(e) => setDeliveryAddress(e.target.value)}
+                  placeholder="Ex: Rua Marechal Deodoro, 120, Apto 302 - Centro"
+                  className="h-9 text-xs rounded-xl"
+                  required
+                />
+              </div>
+
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full rounded-xl font-semibold gap-2 mt-2"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    Gerando Link Mágico...
+                  </>
+                ) : (
+                  <>
+                    <Truck className="size-4" />
+                    Criar e Despachar
+                  </>
+                )}
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
+
+      {/* Lista de Despachos */}
+      {dispatches.length === 0 ? (
+        <div className="squircle-soft border border-border bg-card p-12 text-center space-y-3 shadow-xs">
+          <div className="size-12 rounded-2xl bg-muted flex items-center justify-center mx-auto text-muted-foreground">
+            <Truck className="size-6" />
+          </div>
+          <h3 className="text-sm font-bold text-foreground">Nenhum despacho ativo</h3>
+          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+            Quando você despachar pedidos para motoboys ou entregadores parceiros, os links mágicos
+            e status aparecerão aqui.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {dispatches.map((d) => (
+            <div
+              key={d.id}
+              className="squircle-soft border border-border bg-card p-5 space-y-4 shadow-xs"
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <span className="text-[11px] font-mono font-bold text-primary">
+                    Pedido #{d.order_number}
+                  </span>
+                  <h3 className="text-sm font-bold text-foreground">{d.recipient_name}</h3>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                    <MapPin className="size-3 text-muted-foreground" />
+                    {d.delivery_address}
+                  </p>
+                </div>
+                <Badge
+                  variant={d.status === "delivered" ? "default" : "secondary"}
+                  className="rounded-full text-[10px] font-bold uppercase"
+                >
+                  {d.status === "delivered" ? "Entregue" : "Em Trânsito"}
+                </Badge>
+              </div>
+
+              {/* Informações do Entregador e PIN */}
+              <div className="grid grid-cols-3 gap-2 bg-muted/40 p-3 rounded-xl text-xs">
+                <div>
+                  <span className="text-[10px] text-muted-foreground font-semibold">
+                    Entregador
+                  </span>
+                  <p className="font-bold text-foreground truncate">{d.courier_name}</p>
+                </div>
+                <div>
+                  <span className="text-[10px] text-muted-foreground font-semibold">Taxa</span>
+                  <p className="font-bold text-primary">{formatMoney(d.delivery_fee_cents)}</p>
+                </div>
+                <div>
+                  <span className="text-[10px] text-muted-foreground font-semibold flex items-center gap-0.5">
+                    <KeyRound className="size-2.5 text-primary" /> PIN Cliente
+                  </span>
+                  <p className="font-mono font-black text-foreground">{d.pin_code}</p>
+                </div>
+              </div>
+
+              {/* Ações do Link Mágico */}
+              <div className="flex items-center gap-2 pt-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleCopyLink(d.delivery_token)}
+                  className="flex-1 rounded-xl text-xs font-semibold gap-1.5 h-8"
+                >
+                  <Copy className="size-3.5" />
+                  Copiar Link Mágico
+                </Button>
+                <Button asChild variant="ghost" size="icon" className="rounded-xl size-8">
+                  <Link to="/entrega/$token" params={{ token: d.delivery_token }} target="_blank">
+                    <ExternalLink className="size-3.5" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

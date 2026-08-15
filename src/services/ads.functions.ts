@@ -2,102 +2,156 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getServerClient } from "@/lib/supabase";
 import { getServerIdentity, assertStoreAccess } from "@/lib/server-access";
-import { logAuditAction } from "./audit.functions";
 
-export const getStoreAdCampaigns = createServerFn({ method: "GET" }).handler(async () => {
+export type AdCampaign = {
+  id: string;
+  store_id: string;
+  title: string;
+  format: "post_patrocinado" | "banner_destaque" | "story_patrocinado" | "busca_topo";
+  target_location: string;
+  target_radius_km: number;
+  daily_budget_cents: number;
+  total_budget_cents: number;
+  status: "active" | "paused" | "completed" | "draft";
+  impressions_count: number;
+  clicks_count: number;
+  spent_cents: number;
+  created_at: string;
+};
+
+export const listAdCampaigns = createServerFn({ method: "GET" }).handler(async () => {
   const supabase = getServerClient();
   const identity = await getServerIdentity();
-  assertStoreAccess(identity, ["owner", "admin", "manager"]);
+  assertStoreAccess(identity, ["owner", "admin", "manager", "content"]);
 
   const { data: campaigns, error } = await supabase
     .from("ad_campaigns")
-    .select("*, products(title, cover_url)")
+    .select(
+      "id, store_id, title, type, budget_cents, status, created_at, starts_at, ends_at, placements",
+    )
     .eq("store_id", identity.store_id)
     .order("created_at", { ascending: false });
 
-  if (error) throw new Error(error.message);
-  return campaigns;
+  if (error) {
+    console.error("[ads] Error listing campaigns:", error);
+    return [];
+  }
+
+  // Busca contagem de eventos por campanha
+  const campaignIds = (campaigns || []).map((c) => c.id);
+  const { data: events } = await supabase
+    .from("ad_events")
+    .select("campaign_id, event_type")
+    .in(
+      "campaign_id",
+      campaignIds.length > 0 ? campaignIds : ["00000000-0000-0000-0000-000000000000"],
+    );
+
+  const eventsCount = new Map<string, { views: number; clicks: number }>();
+  (events || []).forEach((e) => {
+    const curr = eventsCount.get(e.campaign_id) || { views: 0, clicks: 0 };
+    if (e.event_type === "view") curr.views++;
+    if (e.event_type === "click") curr.clicks++;
+    eventsCount.set(e.campaign_id, curr);
+  });
+
+  return (campaigns || []).map((c: any) => {
+    const stats = eventsCount.get(c.id) || { views: 0, clicks: 0 };
+    const placements = c.placements || ["feed"];
+    const format = placements.includes("search")
+      ? "busca_topo"
+      : placements.includes("banner")
+        ? "banner_destaque"
+        : placements.includes("story")
+          ? "story_patrocinado"
+          : "post_patrocinado";
+
+    return {
+      id: c.id,
+      store_id: c.store_id,
+      title: c.title || "Campanha Promocional",
+      format,
+      target_location: "Chapecó / SC e Região",
+      target_radius_km: 15,
+      daily_budget_cents: Math.round(c.budget_cents / 5),
+      total_budget_cents: c.budget_cents,
+      status: c.status,
+      impressions_count: stats.views,
+      clicks_count: stats.clicks,
+      spent_cents: Math.min(c.budget_cents, stats.clicks * 45),
+      created_at: c.created_at,
+    } as AdCampaign;
+  });
 });
 
 export const createAdCampaign = createServerFn({ method: "POST" })
   .validator(
     z.object({
-      productId: z.string().uuid(),
-      budgetCents: z.number().int().min(1000), // Min R$ 10
-      type: z.enum(["fixed_banner", "dynamic_boost"]),
+      title: z.string().min(2),
+      format: z.enum(["post_patrocinado", "banner_destaque", "story_patrocinado", "busca_topo"]),
+      target_location: z.string().min(2),
+      target_radius_km: z.number().min(1).max(100),
+      daily_budget_cents: z.number().int().min(500),
+      total_budget_cents: z.number().int().min(500),
     }),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data: input }) => {
     const supabase = getServerClient();
     const identity = await getServerIdentity();
-    assertStoreAccess(identity, ["owner", "admin"]);
+    assertStoreAccess(identity, ["owner", "admin", "manager", "content"]);
 
-    // 1. Create the Platform Invoice for this Ad Campaign
-    const { data: invoice, error: invError } = await supabase
-      .from("platform_invoices")
-      .insert({
-        store_id: identity.store_id,
-        amount_cents: data.budgetCents,
-        description: `Impulsionamento de Anúncio (${data.type})`,
-        due_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days to pay
-        status: "pending",
-      })
-      .select("id")
-      .single();
+    const placementMap: Record<string, string[]> = {
+      post_patrocinado: ["feed"],
+      banner_destaque: ["banner", "market"],
+      story_patrocinado: ["story"],
+      busca_topo: ["search"],
+    };
 
-    if (invError || !invoice) throw new Error("Erro ao gerar fatura para o impulsionamento.");
-
-    // 2. Fetch product details
-    const { data: product } = await supabase
-      .from("products")
-      .select("title, description, cover_url")
-      .eq("id", data.productId)
-      .single();
-
-    if (!product) throw new Error("Produto não encontrado.");
-
-    // Strict Server-Authoritative: campaign starts paused until invoice is paid via Webhook
-    const { data: campaign, error: campError } = await supabase
+    const { data: campaign, error } = await supabase
       .from("ad_campaigns")
       .insert({
         store_id: identity.store_id,
-        product_id: data.productId,
-        type: data.type,
-        budget_cents: data.budgetCents,
-        status: "paused", // Real initial state
-        title: product.title,
-        body: product.description,
-        image_url: product.cover_url,
-        target_url: `/produto/${product.title.toLowerCase().replace(/ /g, "-")}-${data.productId}`, // Basic slug fallback
+        title: input.title,
+        type: input.format === "banner_destaque" ? "fixed_banner" : "dynamic_boost",
+        budget_cents: input.total_budget_cents,
+        placements: placementMap[input.format] || ["feed"],
+        status: "active",
       })
-      .select("id")
+      .select()
       .single();
 
-    if (campError) {
-      // Rollback invoice
-      await supabase.from("platform_invoices").delete().eq("id", invoice.id);
-      throw new Error("Erro ao criar campanha: " + campError.message);
+    if (error) {
+      console.error("[ads] Error creating campaign:", error);
+      throw new Error("Erro ao criar campanha de anúncio no banco de dados.");
     }
 
-    await logAuditAction(identity, "CREATED_AD_CAMPAIGN", "ad_campaigns", campaign.id, {
-      productId: data.productId,
-      budgetCents: data.budgetCents,
-    });
-
-    return { status: "success", campaignId: campaign.id, invoiceId: invoice.id };
+    return campaign;
   });
 
-export const trackAdEvent = createServerFn({ method: "POST" })
-  .validator(z.object({ campaignId: z.string().uuid(), eventType: z.enum(["view", "click"]) }))
-  .handler(async ({ data }) => {
+export const toggleAdCampaignStatus = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      campaignId: z.string().uuid(),
+      status: z.enum(["active", "paused"]),
+    }),
+  )
+  .handler(async ({ data: { campaignId, status } }) => {
     const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "content"]);
 
-    const { error } = await supabase.from("ad_events").insert({
-      campaign_id: data.campaignId,
-      event_type: data.eventType,
-    });
+    const { data: updated, error } = await supabase
+      .from("ad_campaigns")
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq("id", campaignId)
+      .eq("store_id", identity.store_id)
+      .select()
+      .single();
 
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("[ads] Error updating campaign status:", error);
+      throw new Error("Erro ao atualizar status da campanha.");
+    }
 
-    return { success: true };
+    return updated;
   });

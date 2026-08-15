@@ -95,7 +95,7 @@ function ClaimGiftCardPage() {
         {/* Left Side: Premium Glowing Gift Card Reveal */}
         <div className="flex justify-center items-center">
           <div
-            className={`relative w-80 h-48 p-6 flex flex-col justify-between overflow-hidden transition-all duration-700 transform ${showAnimation ? "scale-100  translate-y-0" : "scale-75 rotate-3 translate-y-8"} hover:scale-105 hover: cursor-pointer group`}
+            className={`relative w-80 h-48 p-6 flex flex-col justify-between overflow-hidden transition-all duration-700 transform ${showAnimation ? "scale-100 translate-y-0" : "scale-75 rotate-3 translate-y-8"} hover:scale-105 hover: cursor-pointer group`}
           >
             {/* Sparkle effects overlay */}
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] pointer-events-none" />
@@ -103,9 +103,7 @@ function ClaimGiftCardPage() {
 
             <div className="flex justify-between items-start">
               <div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-accent">
-                  VALE-PRESENTE
-                </span>
+                <span className="text-xs font-semibold text-accent">VALE-PRESENTE</span>
                 <h3 className="font-sans text-muted-foreground font-bold text-white text-xl mt-1">
                   Jah
                 </h3>
@@ -116,9 +114,7 @@ function ClaimGiftCardPage() {
             </div>
 
             <div className="space-y-1">
-              <span className="text-xs text-accent uppercase tracking-widest block font-mono">
-                {code}
-              </span>
+              <span className="text-xs text-accent block font-mono">{code}</span>
               <div className="flex items-baseline gap-1 text-white">
                 <span className="text-sm font-semibold">R$</span>
                 <span className="text-4xl font-extrabold tracking-tight">
@@ -139,14 +135,12 @@ function ClaimGiftCardPage() {
 
         {/* Right Side: Information and Redemption Panel */}
         <div className="space-y-6">
-          <span className="text-xs font-semibold text-primary uppercase tracking-widest block">
-            VOCÊ GANHOU UM PRESENTE!
-          </span>
+          <span className="text-xs font-semibold text-primary block">VOCÊ GANHOU UM PRESENTE!</span>
           <h1 className="text-3xl md:text-4xl font-sans text-muted-foreground font-bold tracking-tight">
             Resgatar Vale-Presente de {formatMoney(card.balanceCents)}
           </h1>
           <p className="text-muted-foreground">
-            Este código dá direito a um desconto instantâneo de{" "}
+            Este código dá direito a um desconto instantâneo de{""}
             <strong>{formatMoney(card.balanceCents)}</strong> em qualquer compra na nossa loja.
             Resgate para sua conta para visualizar seu saldo durante o checkout.
           </p>
@@ -155,7 +149,7 @@ function ClaimGiftCardPage() {
             <Gift className="size-5 text-primary shrink-0 mt-0.5" />
             <div className="text-xs text-muted-foreground font-normal space-y-1">
               <p className="font-semibold text-foreground">Como funciona?</p>
-              <p>1. Clique em "Resgatar para minha conta" para vincular o saldo ao seu e-mail.</p>
+              <p>1. Clique em"Resgatar para minha conta" para vincular o saldo ao seu e-mail.</p>
               <p>
                 2. No checkout, selecione a opção de saldo de Vale-Presente para abater nos seus
                 produtos.

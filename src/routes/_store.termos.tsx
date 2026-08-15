@@ -35,9 +35,8 @@ function Page() {
   }
 
   return (
-    <div className="pb-24">
-      <PageHeader title={res.title} />
-      <div className="container max-w-4xl mx-auto px-4 mt-12">
+    <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
+      <div className="max-w-4xl mx-auto">
         <div className="prose prose-slate dark:prose-invert max-w-none prose-headings:font-bold prose-a:text-primary">
           {res.sections?.map((section: any) => (
             <div key={section.id}>

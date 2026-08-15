@@ -89,7 +89,7 @@ function PdvComandasPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-2xl font-display font-black text-foreground">Comandas em Aberto</h1>
+          <h1 className="text-2xl font-black text-foreground">Comandas em Aberto</h1>
           <p className="text-muted-foreground text-sm">
             Gerencie o fluxo de mesas e contas do salão.
           </p>
@@ -107,13 +107,13 @@ function PdvComandasPage() {
           {comandas.map((comanda: any) => (
             <div
               key={comanda.id}
-              className="overflow-hidden bg-card rounded-md border border-border/80 hover:border-primary/40 transition-colors"
+              className="overflow-hidden bg-surface-paper rounded-xl border-t-4 border-t-amber-500 border-x border-b border-border shadow-sm transition-all hover:shadow-md"
             >
-              <div className="bg-amber-100 dark:bg-amber-900/30 p-3 border-b border-amber-200 dark:border-amber-800/50 flex items-center justify-between">
-                <span className="font-black text-amber-900 dark:text-amber-100 text-lg uppercase tracking-wide">
+              <div className="p-4 border-b border-border/50 flex items-center justify-between bg-muted/10">
+                <span className="font-black text-foreground text-lg uppercase tracking-wide">
                   {comanda.table_identifier}
                 </span>
-                <Badge variant="outline" className="bg-background/50 border-amber-300">
+                <Badge variant="outline" className="bg-background">
                   {formatDateTime(comanda.created_at)}
                 </Badge>
               </div>
@@ -137,7 +137,7 @@ function PdvComandasPage() {
                   </span>
                 </div>
                 <Button
-                  className="w-full font-bold shadow-op-sm mt-2"
+                  className="w-full font-bold mt-2"
                   onClick={() => handleOpenCheckout(comanda)}
                 >
                   <Check className="mr-2 h-4 w-4" />
@@ -153,14 +153,12 @@ function PdvComandasPage() {
       <Dialog open={checkoutModalOpen} onOpenChange={setCheckoutModalOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle className="font-display font-black text-2xl text-center">
-              Fechar Comanda
-            </DialogTitle>
+            <DialogTitle className="font-black text-2xl text-center">Fechar Comanda</DialogTitle>
           </DialogHeader>
 
           <div className="py-6 flex flex-col gap-6">
             <div className="text-center">
-              <p className="text-amber-600 font-bold mb-1 uppercase tracking-widest">
+              <p className="text-foreground/60 font-bold mb-1 uppercase tracking-wide">
                 {selectedComanda?.table_identifier}
               </p>
               <p className="text-muted-foreground text-sm">Total a pagar</p>
@@ -170,9 +168,7 @@ function PdvComandasPage() {
             </div>
 
             <div className="space-y-3">
-              <Label className="text-xs uppercase tracking-wider font-bold text-muted-foreground">
-                Forma de Pagamento
-              </Label>
+              <Label className="text-xs font-bold text-muted-foreground">Forma de Pagamento</Label>
               <div className="grid grid-cols-3 gap-3">
                 <Button
                   type="button"

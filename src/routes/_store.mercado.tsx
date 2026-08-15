@@ -1,26 +1,46 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
-import { SlidersHorizontal, X, ChevronDown, ChevronRight } from "lucide-react";
+import {
+  SlidersHorizontal,
+  LayoutGrid,
+  List,
+  Sparkles,
+  Search,
+  Store,
+  MapPin,
+  Flame,
+  Utensils,
+  Shirt,
+  Sparkle,
+  Briefcase,
+  ChevronRight,
+} from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Separator } from "@/components/ui/separator";
-import { EmptyState, UnconfiguredState, ErrorState } from "@/components/state/states";
+import { EmptyState, UnconfiguredState } from "@/components/state/states";
 import { ProductGrid } from "@/components/commerce/product-grid";
-import { PageHeader } from "@/components/commerce/page-header";
 import { PageSkeleton } from "@/components/state/loading";
+import { HorizontalRail } from "@/components/commerce/horizontal-rail";
+import { OfferCard } from "@/components/commerce/offer-card";
+import { StoreCard } from "@/components/commerce/store-card";
 import {
   listPublishedProducts,
   listPublishedCategories,
   listAvailableAttributes,
 } from "@/services/catalog.functions";
+import { getMarketplaceFeed } from "@/services/marketplace.functions";
+import { listActiveBanners } from "@/services/banner.functions";
+import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
 import type { ProductListResult, CategoryDTO } from "@/types/catalog";
 import { formatMoney } from "@/lib/money";
 
-// ─── Search schema ────────────────────────────────────────────────────────────
+// ─── Search Schema & View Modes ───────────────────────────────────────────────
 const SearchSchema = z.object({
+  view: z.enum(["feed", "grid", "list"]).default("feed").optional(),
   sort: z.enum(["newest", "price_asc", "price_desc", "in_stock"]).default("newest").optional(),
   niche: z.string().optional(),
   categoria: z.string().optional(),
@@ -38,21 +58,23 @@ const SORT_LABELS: Record<string, string> = {
   in_stock: "Em estoque",
 };
 
-const PRICE_RANGES = [
-  { label: "Até R$ 100", min: 0, max: 10000 },
-  { label: "R$ 100 – R$ 200", min: 10000, max: 20000 },
-  { label: "R$ 200 – R$ 400", min: 20000, max: 40000 },
-  { label: "Acima de R$ 400", min: 40000, max: undefined },
+const CATEGORIES_TAXONOMY = [
+  { label: "Tudo", icon: Sparkles, niche: undefined },
+  { label: "Ofertas", icon: Flame, niche: "ofertas" },
+  { label: "Gastronomia", icon: Utensils, niche: "gastronomia" },
+  { label: "Moda & Estilo", icon: Shirt, niche: "moda" },
+  { label: "Arte & Cultura", icon: Sparkle, niche: "arte" },
+  { label: "Serviços Locais", icon: Briefcase, niche: "servicos" },
 ];
 
-// ─── Route ────────────────────────────────────────────────────────────────────
 export const Route = createFileRoute("/_store/mercado")({
   head: () => ({
     meta: [
-      { title: "Catálogo" },
+      { title: "Mercado Central & Descoberta | JAH" },
       {
         name: "description",
-        content: "Explore todos os produtos da Jah: calçados, roupas e acessórios femininos.",
+        content:
+          "Explore o Mercado da JAH: ofertas relâmpago, gastronomia, marcas autorais e comércio local.",
       },
     ],
   }),
@@ -60,11 +82,11 @@ export const Route = createFileRoute("/_store/mercado")({
   loaderDeps: ({ search }) => search,
   loader: async ({ location }) => {
     const search = location.search as CatalogSearch;
-    const [productsRes, categoriesRes, attributesRes] = await Promise.all([
+    const [productsRes, categoriesRes, attributesRes, feedRes, bannersRes] = await Promise.all([
       listPublishedProducts({
         data: {
           categorySlug: search.categoria,
-          niche: search.niche,
+          niche: search.niche === "ofertas" ? undefined : search.niche,
           sort: search.sort ?? "newest",
           minCents: search.minCents,
           maxCents: search.maxCents,
@@ -74,398 +96,310 @@ export const Route = createFileRoute("/_store/mercado")({
       }),
       listPublishedCategories(),
       listAvailableAttributes(),
+      getMarketplaceFeed(),
+      listActiveBanners({ data: { placement: "marketplace" } }).catch(() => []),
     ]);
+
     return {
       products: productsRes,
       categories: categoriesRes || [],
       availableAttributes: attributesRes || [],
+      feed: feedRes,
+      banners: bannersRes || [],
     };
   },
   pendingComponent: PageSkeleton,
-  component: CatalogPage,
+  component: MarketplacePage,
 });
 
-// ─── Active filter chips ──────────────────────────────────────────────────────
-function FilterChips({ search, categories }: { search: CatalogSearch; categories: CategoryDTO[] }) {
-  const navigate = useNavigate();
-  const chips: { label: string; onRemove: () => void }[] = [];
-
-  if (search.categoria) {
-    const cat = categories.find((c) => c.slug === search.categoria);
-    chips.push({
-      label: cat?.name ?? search.categoria,
-      onRemove: () =>
-        navigate({
-          to: Route.fullPath,
-          search: (s: Record<string, any>) => ({ ...s, categoria: undefined }),
-        }),
-    });
-  }
-  if (search.sort && search.sort !== "newest") {
-    chips.push({
-      label: SORT_LABELS[search.sort],
-      onRemove: () =>
-        navigate({
-          to: Route.fullPath,
-          search: (s: Record<string, any>) => ({ ...s, sort: undefined }),
-        }),
-    });
-  }
-  if (search.minCents != null || search.maxCents != null) {
-    const range = PRICE_RANGES.find((r) => r.min === search.minCents && r.max === search.maxCents);
-    chips.push({
-      label: range?.label ?? `Faixa de preço`,
-      onRemove: () =>
-        navigate({
-          to: Route.fullPath,
-          search: (s: Record<string, any>) => ({ ...s, minCents: undefined, maxCents: undefined }),
-        }),
-    });
-  }
-
-  if (search.atributos) {
-    Object.entries(search.atributos).forEach(([key, val]) => {
-      chips.push({
-        label: `${key}: ${val}`,
-        onRemove: () => {
-          const newAttrs = { ...search.atributos };
-          delete newAttrs[key];
-          navigate({
-            to: Route.fullPath,
-            search: (s: Record<string, any>) => ({
-              ...s,
-              atributos: Object.keys(newAttrs).length > 0 ? newAttrs : undefined,
-            }),
-          });
-        },
-      });
-    });
-  }
-
-  if (chips.length === 0) return null;
-
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      <span className="text-xs text-muted-foreground">Filtros ativos:</span>
-      {chips.map((chip) => (
-        <Badge
-          key={chip.label}
-          variant="secondary"
-          className="gap-1.5 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
-          onClick={chip.onRemove}
-        >
-          {chip.label}
-          <X className="size-3" aria-hidden />
-        </Badge>
-      ))}
-      <button
-        onClick={() => navigate({ to: Route.fullPath, search: {} })}
-        className="text-xs text-muted-foreground underline hover:text-foreground"
-      >
-        Limpar todos
-      </button>
-    </div>
-  );
-}
-
-// ─── Filter panel (used in both sidebar desktop + sheet mobile) ───────────────
-function FilterPanel({
-  categories,
-  availableAttributes,
-  search,
-  onClose,
-}: {
-  categories: CategoryDTO[];
-  availableAttributes: { attribute_name: string; attribute_values: string[] }[];
-  search: CatalogSearch;
-  onClose?: () => void;
-}) {
-  const navigate = useNavigate();
-
-  const applyFilter = (patch: Partial<CatalogSearch>) => {
-    navigate({ to: Route.fullPath, search: (s: Record<string, any>) => ({ ...s, ...patch }) });
-    onClose?.();
-  };
-
-  return (
-    <div className="space-y-6">
-      {/* Ordenar */}
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
-          Ordenar por
-        </p>
-        <div className="space-y-1">
-          {Object.entries(SORT_LABELS).map(([value, label]) => (
-            <button
-              key={value}
-              onClick={() => applyFilter({ sort: value as CatalogSearch["sort"] })}
-              className={`w-full text-left text-sm px-3 py-2 transition-colors ${(search.sort ?? "newest") === value ? "bg-primary text-primary-foreground font-medium" : "hover:bg-accent text-foreground"}`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <Separator />
-
-      {/* Categorias */}
-      {categories.length > 0 && (
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
-            Categoria
-          </p>
-          <div className="space-y-1">
-            <button
-              onClick={() => applyFilter({ categoria: undefined })}
-              className={`w-full text-left text-sm px-3 py-2 transition-colors ${!search.categoria ? "bg-primary text-primary-foreground font-medium" : "hover:bg-accent text-foreground"}`}
-            >
-              Todas as categorias
-            </button>
-            {categories.map((cat) => (
-              <button
-                key={cat.slug}
-                onClick={() => applyFilter({ categoria: cat.slug })}
-                className={`w-full text-left text-sm px-3 py-2 transition-colors flex items-center justify-between ${search.categoria === cat.slug ? "bg-primary text-primary-foreground font-medium" : "hover:bg-accent text-foreground"}`}
-              >
-                {cat.name}
-                <ChevronRight className="size-3.5 opacity-50" aria-hidden />
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <Separator />
-
-      {/* Faixa de Preço */}
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
-          Faixa de preço
-        </p>
-        <div className="space-y-1">
-          <button
-            onClick={() => applyFilter({ minCents: undefined, maxCents: undefined })}
-            className={`w-full text-left text-sm px-3 py-2 transition-colors ${search.minCents == null && search.maxCents == null ? "bg-primary text-primary-foreground font-medium" : "hover:bg-accent text-foreground"}`}
-          >
-            Qualquer preço
-          </button>
-          {PRICE_RANGES.map((range) => (
-            <button
-              key={range.label}
-              onClick={() => applyFilter({ minCents: range.min, maxCents: range.max })}
-              className={`w-full text-left text-sm px-3 py-2 transition-colors ${search.minCents === range.min && search.maxCents === range.max ? "bg-primary text-primary-foreground font-medium" : "hover:bg-accent text-foreground"}`}
-            >
-              {range.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <Separator />
-
-      {/* Atributos Dinâmicos (Variações) */}
-      {availableAttributes.map((attr) => {
-        const currentValue = search.atributos?.[attr.attribute_name];
-        return (
-          <div key={attr.attribute_name} className="mb-6">
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
-              {attr.attribute_name}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => {
-                  const newAttrs = { ...search.atributos };
-                  delete newAttrs[attr.attribute_name];
-                  applyFilter({
-                    atributos: Object.keys(newAttrs).length > 0 ? newAttrs : undefined,
-                  });
-                }}
-                className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${!currentValue ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-muted text-foreground border-border"}`}
-              >
-                Qualquer
-              </button>
-              {attr.attribute_values.map((val) => (
-                <button
-                  key={val}
-                  onClick={() => {
-                    const newAttrs = { ...search.atributos, [attr.attribute_name]: val };
-                    applyFilter({ atributos: newAttrs });
-                  }}
-                  className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${currentValue === val ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-muted text-foreground border-border"}`}
-                >
-                  {val}
-                </button>
-              ))}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-// ─── Main page ────────────────────────────────────────────────────────────────
-function CatalogPage() {
+function MarketplacePage() {
   const {
     products: result,
     categories,
     availableAttributes,
-  } = Route.useLoaderData() as {
-    products: ProductListResult;
-    categories: CategoryDTO[];
-    availableAttributes: { attribute_name: string; attribute_values: string[] }[];
-  };
+    feed,
+    banners,
+  } = Route.useLoaderData();
   const search = Route.useSearch();
-  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const navigate = useNavigate();
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const currentView = search.view || "feed";
 
-  const activeFiltersCount = [
-    search.categoria,
-    search.sort && search.sort !== "newest" ? search.sort : null,
-    search.minCents != null ? "price" : null,
-    ...(search.atributos ? Object.keys(search.atributos) : []),
-  ].filter(Boolean).length;
+  const setViewMode = (mode: "feed" | "grid" | "list") => {
+    navigate({
+      to: Route.fullPath,
+      search: (s: Record<string, any>) => ({ ...s, view: mode }),
+    });
+  };
 
   return (
-    <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
-      {/* Breadcrumb */}
-      <nav
-        aria-label="Navegação estrutural"
-        className="mb-6 flex items-center gap-2 text-xs text-muted-foreground"
-      >
-        <Link to="/" className="hover:text-foreground">
-          Início
-        </Link>
-        <ChevronRight className="size-3" aria-hidden />
-        <span className="text-foreground">Catálogo</span>
-      </nav>
+    <div className="w-full space-y-8">
+      {/* ── 1. Top Universal Banner Hero ────────────────────────── */}
+      {banners && banners.length > 0 ? (
+        <BannerHeroCarousel banners={banners} className="w-full" />
+      ) : (
+        <div className="relative overflow-hidden rounded-3xl border border-border bg-linear-to-br from-primary/10 via-card to-background p-6 md:p-10 shadow-xs w-full">
+          <div className="max-w-2xl space-y-3 relative z-10">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-black uppercase tracking-wider text-primary font-mono bg-primary/10 px-2.5 py-1 rounded-full inline-block border border-primary/20">
+                JAH Central Market
+              </span>
+              <span className="text-xs text-muted-foreground font-semibold flex items-center gap-1">
+                <MapPin className="size-3 text-primary" />
+                Chapecó & Região
+              </span>
+            </div>
+            <h1 className="text-2xl md:text-4xl font-black text-foreground tracking-tight leading-tight">
+              Descoberta viva, gastronomia e comércio da comunidade.
+            </h1>
+            <p className="text-xs md:text-sm text-muted-foreground leading-relaxed max-w-xl">
+              Compre direto de produtores locais, aproveite ofertas relâmpago e fortaleça a cena da
+              sua cidade.
+            </p>
+          </div>
+        </div>
+      )}
 
-      <PageHeader
-        eyebrow="O Mercado"
-        title={
-          search.categoria
-            ? (categories.find((c) => c.slug === search.categoria)?.name ?? "Catálogo")
-            : "Explorar Tudo"
-        }
-      />
+      {/* ── 2. Category Chips Bar ───────────────────────────────── */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        {CATEGORIES_TAXONOMY.map((item) => {
+          const Icon = item.icon;
+          const isSelected =
+            item.niche === search.niche || (!item.niche && !search.niche && !search.categoria);
 
-      {/* Niche Tabs */}
-      <div className="flex overflow-x-auto pb-4 mb-6 gap-2 scrollbar-hide">
-        {[
-          { id: "", label: "Tudo" },
-          { id: "event_producer", label: "🎟️ Ingressos & Eventos" },
-          { id: "ecommerce", label: "🛍️ Lojas & Produtos" },
-          { id: "creator", label: "💼 Serviços" },
-          { id: "band", label: "🎸 Bandas" },
-        ].map((tab) => {
-          const isActive = (search.niche || "") === tab.id;
           return (
             <button
-              key={tab.label}
+              key={item.label}
               onClick={() =>
                 navigate({
                   to: Route.fullPath,
-                  search: (s: any) => ({ ...s, niche: tab.id || undefined }),
+                  search: (s: Record<string, any>) => ({
+                    ...s,
+                    niche: item.niche,
+                    categoria: undefined,
+                  }),
                 })
               }
-              className={`px-4 py-2 rounded-full whitespace-nowrap text-sm font-semibold transition-colors border ${isActive ? "bg-primary text-white border-border" : "bg-surface hover:bg-muted border-border text-foreground"}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold shrink-0 transition-all border ${
+                isSelected
+                  ? "bg-foreground text-background border-foreground shadow-xs"
+                  : "bg-card text-muted-foreground border-border/80 hover:text-foreground hover:bg-muted/40"
+              }`}
             >
-              {tab.label}
+              <Icon className="size-3.5" />
+              <span>{item.label}</span>
             </button>
           );
         })}
       </div>
 
-      {/* Toolbar */}
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <p className="text-sm text-muted-foreground">
-            {result.status === "ok" ? `${result.data.length} produto(s)` : null}
-          </p>
-          <FilterChips search={search} categories={categories} />
+      {/* ── 3. Toolbar: View Mode Switcher & Ordenação ───────────── */}
+      <div className="flex flex-wrap items-center justify-between gap-4 pt-1 border-t border-border/60">
+        <div className="flex items-center gap-2">
+          {/* View Mode Switcher (Feed / Grid / List) */}
+          <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-xl border border-border/60">
+            <button
+              onClick={() => setViewMode("feed")}
+              title="Modo Feed (Descoberta)"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                currentView === "feed"
+                  ? "bg-background text-foreground shadow-2xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Sparkles className="size-3.5" />
+              <span className="hidden sm:inline">Descoberta</span>
+            </button>
+
+            <button
+              onClick={() => setViewMode("grid")}
+              title="Modo Grid (Catálogo denso)"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                currentView === "grid"
+                  ? "bg-background text-foreground shadow-2xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <LayoutGrid className="size-3.5" />
+              <span className="hidden sm:inline">Grade</span>
+            </button>
+
+            <button
+              onClick={() => setViewMode("list")}
+              title="Modo Lista (Comparativo)"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                currentView === "list"
+                  ? "bg-background text-foreground shadow-2xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <List className="size-3.5" />
+              <span className="hidden sm:inline">Lista</span>
+            </button>
+          </div>
+
+          <span className="text-xs font-mono text-muted-foreground pl-2 hidden md:inline">
+            {result.status === "ok" ? `${result.data.length} itens encontrados` : ""}
+          </span>
         </div>
 
+        {/* Sort Chips */}
         <div className="flex items-center gap-2">
-          {/* Desktop sort (quick) */}
-          <div className="hidden md:flex items-center gap-2">
-            {Object.entries(SORT_LABELS).map(([value, label]) => (
+          <div className="hidden sm:flex items-center gap-1 bg-muted/40 p-1 rounded-xl border border-border/60">
+            {Object.entries(SORT_LABELS).map(([val, label]) => (
               <button
-                key={value}
-                id={`sort-${value}`}
+                key={val}
                 onClick={() =>
                   navigate({
                     to: Route.fullPath,
                     search: (s: Record<string, any>) => ({
                       ...s,
-                      sort: value as CatalogSearch["sort"],
+                      sort: val as CatalogSearch["sort"],
                     }),
                   })
                 }
-                className={`text-sm px-3 py-1.5 border transition-colors ${(search.sort ?? "newest") === value ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-accent text-foreground"}`}
+                className={`text-xs px-2.5 py-1 rounded-lg font-medium transition-colors ${
+                  (search.sort ?? "newest") === val
+                    ? "bg-background text-foreground font-bold shadow-2xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
               >
                 {label}
               </button>
             ))}
           </div>
-
-          {/* Mobile filter sheet */}
-          <Sheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="sm" className="relative gap-1.5" id="btn-filtrar">
-                <SlidersHorizontal className="size-4" aria-hidden />
-                Filtrar
-                {activeFiltersCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 size-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
-                    {activeFiltersCount}
-                  </span>
-                )}
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="bottom" className="h-auto max-h-[85vh] overflow-y-auto">
-              <SheetHeader className="mb-4">
-                <SheetTitle>Filtros e Ordenação</SheetTitle>
-              </SheetHeader>
-              <FilterPanel
-                categories={categories}
-                availableAttributes={availableAttributes}
-                search={search}
-                onClose={() => setFilterSheetOpen(false)}
-              />
-            </SheetContent>
-          </Sheet>
         </div>
       </div>
 
-      {/* Main layout: sidebar (desktop) + grid */}
-      <div className="mt-8 flex gap-8">
-        {/* Desktop sidebar */}
-        <aside className="hidden lg:block w-64 shrink-0">
-          <div className="sticky top-24 bg-card border p-5 shadow-sm">
-            <div className="flex items-center gap-2 mb-4 pb-4 border-b">
-              <SlidersHorizontal className="size-4" />
-              <h2 className="font-semibold">Filtros</h2>
-            </div>
-            <FilterPanel
-              categories={categories}
-              availableAttributes={availableAttributes}
-              search={search}
-            />
-          </div>
-        </aside>
+      {/* ── 4. RENDERIZAÇÃO CONFORME O VIEW MODE ──────────────────── */}
 
-        {/* Product grid */}
-        <div className="flex-1">
+      {/* MODE 1: FEED DE DESCOBERTA NARRATIVA E RAILS HORIZONTAIS */}
+      {currentView === "feed" && (
+        <div className="space-y-10">
+          {/* Rail 1: Ofertas Relâmpago */}
+          <HorizontalRail
+            title="⚡ Ofertas Relâmpago"
+            subtitle="Preços promocionais por tempo limitado em Chapecó e região"
+            badge="Descontos até 40%"
+            actionLabel="Ver todas as ofertas"
+            onAction={() => setViewMode("grid")}
+          >
+            {feed.allProducts.slice(0, 8).map((product: any) => (
+              <OfferCard key={product.id} {...product} />
+            ))}
+          </HorizontalRail>
+
+          {/* Rail 2: Lojas & Produtores Locais */}
+          {feed.sections.find((s: any) => s.type === "store_rail") && (
+            <HorizontalRail
+              title="🏪 Lojas & Produtores da Comunidade"
+              subtitle="Negócios locais com entrega rápida na sua região"
+              actionLabel="Ver diretório"
+              onAction={() => navigate({ to: "/diretorio" })}
+            >
+              {(feed.sections.find((s: any) => s.type === "store_rail")?.items || []).map(
+                (store: any) => (
+                  <StoreCard key={store.id} {...store} />
+                ),
+              )}
+            </HorizontalRail>
+          )}
+
+          {/* Rail 3: Gastronomia & Artesanal */}
+          <HorizontalRail
+            title="🍔 Gastronomia & Sabores Autorais"
+            subtitle="Pratos especiais, cafés, lanches e doces artesanais"
+            actionLabel="Explorar menu"
+            onAction={() => setViewMode("grid")}
+          >
+            {feed.allProducts.slice(8, 16).map((product: any) => (
+              <OfferCard key={product.id} {...product} />
+            ))}
+          </HorizontalRail>
+
+          {/* Grade de Lançamentos na Base do Feed */}
+          <div className="space-y-4 pt-4 border-t border-border/60">
+            <div className="space-y-1">
+              <h2 className="text-lg md:text-xl font-bold tracking-tight text-foreground">
+                ✨ Todos os Lançamentos da Comunidade
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Navegue pela coleção completa de produtos disponíveis para entrega e retirada
+                imediata.
+              </p>
+            </div>
+
+            {result.status === "ok" && <ProductGrid result={result} />}
+          </div>
+        </div>
+      )}
+
+      {/* MODE 2: GRID DENSO */}
+      {currentView === "grid" && (
+        <div>
           {result.status === "unconfigured" && <UnconfiguredState />}
           {result.status === "empty" && (
-            <EmptyState
-              title="Nenhum produto encontrado"
-              description="Tente ajustar os filtros ou pesquisar por outro termo"
-            />
+            <div className="py-24 text-center space-y-3 bg-muted/10 rounded-3xl border border-border p-8">
+              <EmptyState title="Nenhum produto encontrado nesta categoria" />
+            </div>
           )}
           {result.status === "ok" && <ProductGrid result={result} />}
         </div>
-      </div>
+      )}
+
+      {/* MODE 3: LISTA COMPARATIVA */}
+      {currentView === "list" && (
+        <div className="space-y-3">
+          {result.status === "ok" &&
+            result.data.map((p: any) => (
+              <div
+                key={p.id}
+                className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-2xl border border-border/80 bg-card hover:border-primary/50 transition-all gap-4 shadow-2xs"
+              >
+                <div className="flex items-center gap-4 min-w-0">
+                  <Link
+                    to="/produto/$slug"
+                    params={{ slug: p.slug }}
+                    className="size-16 rounded-xl bg-muted overflow-hidden shrink-0"
+                  >
+                    <img
+                      src={p.coverUrl || p.media?.[0]?.url || "/banner-placeholder.png"}
+                      alt={p.title}
+                      className="size-full object-cover"
+                    />
+                  </Link>
+                  <div className="space-y-1 min-w-0">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
+                      {p.category?.name || "Geral"}
+                    </span>
+                    <Link to="/produto/$slug" params={{ slug: p.slug }}>
+                      <h3 className="text-sm font-bold text-foreground hover:text-primary transition-colors truncate">
+                        {p.title}
+                      </h3>
+                    </Link>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0 border-border/40">
+                  <div className="text-right">
+                    <span className="text-base font-black text-primary font-mono block">
+                      {formatMoney(p.priceCents)}
+                    </span>
+                  </div>
+                  <Button
+                    asChild
+                    size="sm"
+                    className="rounded-xl font-bold bg-primary text-primary-foreground text-xs h-9 px-4"
+                  >
+                    <Link to="/produto/$slug" params={{ slug: p.slug }}>
+                      Ver Produto
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            ))}
+        </div>
+      )}
     </div>
   );
 }

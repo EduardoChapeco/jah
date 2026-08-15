@@ -19,7 +19,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const Route = createFileRoute("/workspace/cms/stories")({
@@ -73,7 +79,7 @@ function CmsStoriesPage() {
       toast.error("A URL da mídia é obrigatória");
       return;
     }
-    
+
     setIsSubmitting(true);
     try {
       await upsertStory({
@@ -111,7 +117,7 @@ function CmsStoriesPage() {
       <PageHeader
         title="Gerenciar Stories"
         actions={
-          <Button onClick={handleOpenNew} className="font-bold border border-border shadow-sm">
+          <Button onClick={handleOpenNew} className="font-bold border border-border ">
             <Plus className="mr-2 h-4 w-4" />
             Novo Story
           </Button>
@@ -124,34 +130,50 @@ function CmsStoriesPage() {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
             {stories.map((story: any) => (
-              <Card key={story.id} className="overflow-hidden group relative surface-paper hover:border-primary transition-colors">
+              <Card
+                key={story.id}
+                className="overflow-hidden group relative surface-paper hover:border-primary transition-colors"
+              >
                 <div className="aspect-[9/16] relative bg-black flex items-center justify-center overflow-hidden">
                   {story.media_url.endsWith(".mp4") ? (
-                    <video 
-                      src={story.media_url} 
-                      className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" 
-                      muted 
+                    <video
+                      src={story.media_url}
+                      className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                      muted
                     />
                   ) : (
-                    <img 
-                      src={story.media_url} 
-                      alt="Story" 
-                      className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" 
+                    <img
+                      src={story.media_url}
+                      alt="Story"
+                      className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
                     />
                   )}
-                  
+
                   <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                    <Button size="icon" variant="secondary" className="h-8 w-8" onClick={() => handleOpenEdit(story)}>
+                    <Button
+                      size="icon"
+                      variant="secondary"
+                      className="h-8 w-8"
+                      onClick={() => handleOpenEdit(story)}
+                    >
                       <Edit3 className="h-4 w-4" />
                     </Button>
-                    <Button size="icon" variant="destructive" className="h-8 w-8" onClick={() => handleDelete(story.id)}>
+                    <Button
+                      size="icon"
+                      variant="destructive"
+                      className="h-8 w-8"
+                      onClick={() => handleDelete(story.id)}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
 
                   <div className="absolute bottom-0 inset-x-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
                     <div className="flex flex-col gap-1">
-                      <Badge variant={story.status === "active" ? "default" : "secondary"} className="w-fit text-[10px]">
+                      <Badge
+                        variant={story.status === "active" ? "default" : "secondary"}
+                        className="w-fit text-[10px]"
+                      >
                         {story.status === "active" ? "Ativo" : "Inativo"}
                       </Badge>
                       {story.link_url && (
@@ -190,7 +212,9 @@ function CmsStoriesPage() {
                     required
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">Cole a URL direta da imagem ou vídeo.</p>
+                <p className="text-xs text-muted-foreground">
+                  Cole a URL direta da imagem ou vídeo.
+                </p>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="link_url">Link de Ação (Opcional)</Label>
@@ -224,7 +248,9 @@ function CmsStoriesPage() {
                     id="sort_order"
                     type="number"
                     value={formData.sort_order}
-                    onChange={(e) => setFormData({ ...formData, sort_order: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, sort_order: Number(e.target.value) })
+                    }
                     min={0}
                   />
                 </div>

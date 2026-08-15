@@ -67,7 +67,7 @@ export function BuilderTopBar({
             {document?.title ?? "Documento"}
           </span>
           <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+            <span className="w-1.5 h-1.5 rounded-full bg-warning shrink-0" />
             <span className="text-white/40 text-[10px]">
               Rascunho v{version?.version_number ?? 1}
             </span>
@@ -76,12 +76,12 @@ export function BuilderTopBar({
       </div>
 
       {/* Center: Viewport */}
-      <div className="flex items-center bg-white/5 p-1 gap-1">
+      <div className="flex items-center bg-white/5 p-1 gap-1 rounded-xl">
         <button
           type="button"
           onClick={() => setViewport("desktop")}
           className={cn(
-            "h-7 w-7 rounded-md flex items-center justify-center transition-colors",
+            "h-7 w-7 rounded-lg flex items-center justify-center transition-colors",
             viewport === "desktop" ? "bg-white/15 text-white" : "text-white/40 hover:text-white/70",
           )}
         >
@@ -91,7 +91,7 @@ export function BuilderTopBar({
           type="button"
           onClick={() => setViewport("mobile")}
           className={cn(
-            "h-7 w-7 rounded-md flex items-center justify-center transition-colors",
+            "h-7 w-7 rounded-lg flex items-center justify-center transition-colors",
             viewport === "mobile" ? "bg-white/15 text-white" : "text-white/40 hover:text-white/70",
           )}
         >
@@ -127,7 +127,7 @@ export function BuilderTopBar({
           <button
             type="button"
             onClick={() => setIsTemplateModalOpen(true)}
-            className="flex items-center gap-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs px-3 py-1.5 border border-amber-500/30 transition-colors font-medium mr-1"
+            className="flex items-center gap-1.5 bg-warning/15 hover:bg-warning/25 text-warning text-xs px-3 py-1.5 border border-warning/30 rounded-xl transition-colors font-medium mr-1"
           >
             <LayoutTemplate className="h-3.5 w-3.5" />
             Trocar Template (Temas)

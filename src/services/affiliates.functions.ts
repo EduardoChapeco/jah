@@ -277,7 +277,10 @@ export const getAffiliatePerformance = createServerFn({ method: "GET" })
       return await _getAffiliatePerformance(filters);
     } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[affiliates] getAffiliatePerformance:", (e instanceof Error ? e.message : String(e)));
+      console.error(
+        "[affiliates] getAffiliatePerformance:",
+        e instanceof Error ? e.message : String(e),
+      );
       throw new Error("Erro ao buscar desempenho de afiliados.");
     }
   });
@@ -287,7 +290,7 @@ export const getCommissionSummary = createServerFn({ method: "GET" }).handler(as
     return await _getCommissionSummary();
   } catch (e: unknown) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
-    console.error("[affiliates] getCommissionSummary:", (e instanceof Error ? e.message : String(e)));
+    console.error("[affiliates] getCommissionSummary:", e instanceof Error ? e.message : String(e));
     throw new Error("Erro ao calcular resumo de comissões.");
   }
 });
@@ -297,7 +300,10 @@ export const getMyCommissionProfile = createServerFn({ method: "GET" }).handler(
     return await _getMyCommissionProfile();
   } catch (e: unknown) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
-    console.error("[affiliates] getMyCommissionProfile:", (e instanceof Error ? e.message : String(e)));
+    console.error(
+      "[affiliates] getMyCommissionProfile:",
+      e instanceof Error ? e.message : String(e),
+    );
     throw new Error("Erro ao buscar perfil de comissão.");
   }
 });
@@ -309,8 +315,10 @@ export const getAffiliateLink = createServerFn({ method: "GET" })
       return await _getAffiliateLink(baseUrl);
     } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[affiliates] getAffiliateLink:", (e instanceof Error ? e.message : String(e)));
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao gerar link de afiliação.");
+      console.error("[affiliates] getAffiliateLink:", e instanceof Error ? e.message : String(e));
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao gerar link de afiliação.",
+      );
     }
   });
 
@@ -319,7 +327,10 @@ export const listMyAttributedOrders = createServerFn({ method: "GET" }).handler(
     return await _listMyAttributedOrders();
   } catch (e: unknown) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
-    console.error("[affiliates] listMyAttributedOrders:", (e instanceof Error ? e.message : String(e)));
+    console.error(
+      "[affiliates] listMyAttributedOrders:",
+      e instanceof Error ? e.message : String(e),
+    );
     throw new Error("Erro ao buscar pedidos atribuídos.");
   }
 });

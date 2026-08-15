@@ -29,8 +29,8 @@ function ReceiptPrintPage() {
   return (
     <div className="bg-white text-black min-h-screen p-8 max-w-2xl mx-auto font-sans">
       <div className="border-b-2 border-black pb-4 mb-6 text-center">
-        <h1 className="text-3xl font-bold uppercase tracking-widest">JAH</h1>
-        <p className="text-sm text-gray-600 mt-1">DOCUMENTO AUXILIAR DE VENDA - PEDIDO</p>
+        <h1 className="text-3xl font-bold">JAH</h1>
+        <p className="text-sm text-muted-foreground mt-1">DOCUMENTO AUXILIAR DE VENDA - PEDIDO</p>
         <p className="text-sm font-medium mt-2">NÃO É DOCUMENTO FISCAL</p>
       </div>
 
@@ -52,7 +52,8 @@ function ReceiptPrintPage() {
           </p>
           <p>{customer?.document || ""}</p>
           <p>
-            <strong>Entrega:</strong>{" "}
+            <strong>Entrega:</strong>
+            {""}
             {order.shipping_method === "pickup" ? "Retirada na Loja" : "Envio"}
           </p>
         </div>
@@ -69,11 +70,11 @@ function ReceiptPrintPage() {
         </thead>
         <tbody>
           {order.order_items?.map((item: any) => (
-            <tr key={item.id} className="border-b border-gray-200">
+            <tr key={item.id} className="border-b border-border">
               <td className="py-2">{item.qty}x</td>
               <td className="py-2">
                 <div>{item.product_title}</div>
-                <div className="text-xs text-gray-500">SKU: {item.variant_sku}</div>
+                <div className="text-xs text-muted-foreground">SKU: {item.variant_sku}</div>
               </td>
               <td className="text-right py-2">{formatMoney(item.unit_price_cents)}</td>
               <td className="text-right py-2">
@@ -107,7 +108,7 @@ function ReceiptPrintPage() {
         </div>
       </div>
 
-      <div className="text-center text-xs text-gray-500 mt-12 pt-4 border-t border-dashed border-gray-400">
+      <div className="text-center text-xs text-muted-foreground mt-12 pt-4 border-t border-dashed border-border">
         <p>Agradecemos a preferência!</p>
         <p>Desenvolvido para Jah Commerce</p>
       </div>
@@ -115,15 +116,15 @@ function ReceiptPrintPage() {
       <style
         dangerouslySetInnerHTML={{
           __html: `
-        @media print {
-          body {
-            background-color: white !important;
-            margin: 0;
-            padding: 0;
-          }
-          @page { margin: 0.5cm; }
-        }
-      `,
+ @media print {
+ body {
+ background-color: white !important;
+ margin: 0;
+ padding: 0;
+ }
+ @page { margin: 0.5cm; }
+ }
+ `,
         }}
       />
     </div>

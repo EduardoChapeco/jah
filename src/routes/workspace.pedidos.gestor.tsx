@@ -81,7 +81,7 @@ function KDSPage() {
       id: "paid",
       title: "Novos (Pendentes)",
       icon: <PackageSearch className="size-5" />,
-      color: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+      color: "bg-info/10 text-info border-info/20",
       nextStatus: "processing",
       nextLabel: "Iniciar Preparo",
     },
@@ -89,7 +89,7 @@ function KDSPage() {
       id: "processing",
       title: "Em Preparo",
       icon: <ChefHat className="size-5" />,
-      color: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+      color: "bg-warning/10 text-warning border-warning/20",
       nextStatus: "shipped",
       nextLabel: "Pronto p/ Entrega",
     },
@@ -97,7 +97,7 @@ function KDSPage() {
       id: "shipped",
       title: "Aguardando Retirada",
       icon: <Bike className="size-5" />,
-      color: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+      color: "bg-secondary text-secondary-foreground border-border",
       nextStatus: "delivered",
       nextLabel: "Finalizar (Entregue)",
     },
@@ -105,7 +105,7 @@ function KDSPage() {
       id: "delivered",
       title: "Concluídos",
       icon: <CheckCircle2 className="size-5" />,
-      color: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+      color: "bg-success/10 text-success border-success/20",
       nextStatus: null,
       nextLabel: null,
     },
@@ -115,29 +115,29 @@ function KDSPage() {
     <div className="fixed inset-0 z-50 bg-background flex flex-col h-screen overflow-hidden text-foreground">
       {/* Estilos de Impressão (Bobina 80mm) */}
       <style>{`
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          #printable-receipt, #printable-receipt * {
-            visibility: visible;
-          }
-          #printable-receipt {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 80mm;
-            padding: 0;
-            margin: 0;
-            font-family: monospace;
-            color: #000;
-            background: #fff;
-          }
-          .no-print {
-            display: none !important;
-          }
-        }
-      `}</style>
+ @media print {
+ body * {
+ visibility: hidden;
+ }
+ #printable-receipt, #printable-receipt * {
+ visibility: visible;
+ }
+ #printable-receipt {
+ position: absolute;
+ left: 0;
+ top: 0;
+ width: 80mm;
+ padding: 0;
+ margin: 0;
+ font-family: monospace;
+ color: #000;
+ background: #fff;
+ }
+ .no-print {
+ display: none !important;
+ }
+ }
+ `}</style>
 
       {/* Topbar */}
       <header className="flex-none h-16 border-b border-border bg-card px-4 flex items-center justify-between no-print">
@@ -177,9 +177,9 @@ function KDSPage() {
           return (
             <div key={col.id} className="flex-shrink-0 w-[350px] flex flex-col gap-3 h-full">
               <div
-                className={`rounded-xl border ${col.color} p-3 flex items-center justify-between shadow-op-sm bg-card`}
+                className={`rounded-xl border ${col.color} p-3 flex items-center justify-between bg-surface-paper shadow-sm`}
               >
-                <div className="flex items-center gap-2 font-bold uppercase tracking-wider text-sm">
+                <div className="flex items-center gap-2 font-bold text-sm">
                   {col.icon}
                   {col.title}
                 </div>
@@ -192,7 +192,7 @@ function KDSPage() {
                 {colOrders.map((order) => (
                   <div
                     key={order.id}
-                    className="bg-card rounded-xl border border-border shadow-op-sm p-4 flex flex-col gap-3 cursor-pointer hover:border-primary/50 transition-colors"
+                    className="bg-surface-paper rounded-xl border border-border shadow-sm p-4 flex flex-col gap-3 cursor-pointer hover:border-primary/50 hover:shadow-md transition-all"
                     onClick={() => setSelectedOrder(order)}
                   >
                     <div className="flex justify-between items-start">
@@ -227,7 +227,7 @@ function KDSPage() {
                           )}
                         </div>
                       </div>
-                      <Badge variant="outline" className="font-mono bg-background">
+                      <Badge variant="outline" className="font-mono bg-muted/20 border-border">
                         {formatMoney(order.total_cents)}
                       </Badge>
                     </div>
@@ -259,7 +259,7 @@ function KDSPage() {
 
                     {col.nextStatus && (
                       <Button
-                        className="w-full font-bold uppercase tracking-wider h-10 shadow-op-sm"
+                        className="w-full font-bold h-10 "
                         onClick={(e) => handleStatusChange(e, order.id, col.nextStatus!)}
                       >
                         {col.nextLabel}
@@ -268,7 +268,7 @@ function KDSPage() {
                   </div>
                 ))}
                 {colOrders.length === 0 && (
-                  <div className="h-24 flex items-center justify-center border border-dashed border-border/60 rounded-xl text-muted-foreground text-sm font-medium">
+                  <div className="h-24 flex items-center justify-center border border-dashed border-border/60 rounded-xl text-muted-foreground text-sm font-medium bg-surface-paper/50">
                     Nenhum pedido nesta fila
                   </div>
                 )}
@@ -306,7 +306,7 @@ function KDSPage() {
                   <h3 className="text-sm font-bold uppercase text-muted-foreground mb-3">
                     Cliente
                   </h3>
-                  <div className="bg-muted/40 rounded-xl p-4 border border-border">
+                  <div className="bg-surface-paper shadow-sm rounded-xl p-4 border border-border">
                     <p className="font-bold text-lg">
                       {selectedOrder.customer_snapshot?.name ||
                         selectedOrder.customer?.name ||
@@ -338,7 +338,10 @@ function KDSPage() {
                         ? Object.values(item.selected_options)
                         : [];
                       return (
-                        <div key={item.id} className="bg-card border rounded-lg p-3">
+                        <div
+                          key={item.id}
+                          className="bg-surface-paper shadow-sm border border-border rounded-xl p-3"
+                        >
                           <div className="flex justify-between items-start mb-1">
                             <span className="font-bold text-base">
                               <span className="text-primary mr-2">{item.qty}x</span>
@@ -374,7 +377,7 @@ function KDSPage() {
                 <Separator />
 
                 {/* Resumo Financeiro */}
-                <section className="bg-muted/30 p-4 rounded-lg">
+                <section className="bg-primary/5 border border-primary/10 p-4 rounded-xl mb-6">
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
                     <span className="text-primary">{formatMoney(selectedOrder.total_cents)}</span>
@@ -406,7 +409,7 @@ function KDSPage() {
             {selectedOrder.origin_type && (
               <p style={{ margin: "5px 0 0 0", fontSize: "14px", fontWeight: "bold" }}>
                 {selectedOrder.origin_type === "table"
-                  ? "MESA " + (selectedOrder.table_identifier || "")
+                  ? "MESA" + (selectedOrder.table_identifier || "")
                   : "BALCÃO"}
               </p>
             )}

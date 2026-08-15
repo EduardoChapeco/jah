@@ -1325,7 +1325,9 @@ export const applyHomeTemplate = createServerFn({ method: "POST" })
       };
     } catch (e: unknown) {
       console.error("[builder.functions] applyHomeTemplate error:", e);
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao aplicar template de vitrine.");
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao aplicar template de vitrine.",
+      );
     }
   });
 

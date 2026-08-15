@@ -1,8 +1,8 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-const filesTxt = fs.readFileSync('src_files.txt', 'utf8');
-const files = filesTxt.split('\n').filter(l => l.trim().length > 0);
+const filesTxt = fs.readFileSync("src_files.txt", "utf8");
+const files = filesTxt.split("\n").filter((l) => l.trim().length > 0);
 
 // Files with hex colors
 const hexColorsData = `
@@ -31,7 +31,11 @@ src\\components\\commerce\\dynamic-sections\\split-banner.tsx
 src\\components\\admin\\builder\\builder-left-panel.tsx
 src\\components\\commerce\\dynamic-sections\\product-grid.tsx
 `;
-const hexFiles = hexColorsData.split('\n').map(l => l.trim()).filter(l => l.length > 0).map(l => l.replace(/\\/g, '/'));
+const hexFiles = hexColorsData
+  .split("\n")
+  .map((l) => l.trim())
+  .filter((l) => l.length > 0)
+  .map((l) => l.replace(/\\/g, "/"));
 
 const styleData = `
 src\\routes\\_store.agenda.tsx
@@ -41,7 +45,11 @@ src\\routes\\admin.growth.campanhas.tsx
 src\\routes\\feed.tsx
 src\\components\\commerce\\public-header.tsx
 `;
-const styleFiles = styleData.split('\n').map(l => l.trim()).filter(l => l.length > 0).map(l => l.replace(/\\/g, '/'));
+const styleFiles = styleData
+  .split("\n")
+  .map((l) => l.trim())
+  .filter((l) => l.length > 0)
+  .map((l) => l.replace(/\\/g, "/"));
 
 let censusContent = `# Censo de Código - Jah Commerce\n\n`;
 censusContent += `Este documento categoriza cada arquivo mapeado na pasta \`src/\`, indicando a presença de dívida visual.\n\n`;
@@ -49,29 +57,31 @@ censusContent += `Este documento categoriza cada arquivo mapeado na pasta \`src/
 censusContent += `| Arquivo | Categoria | Dívida Visual (Hex, Style inline) | Ação Proposta |\n`;
 censusContent += `|---|---|---|---|\n`;
 
-for(const fileLine of files) {
-    const relativePath = path.relative(process.cwd(), fileLine.trim()).replace(/\\/g, '/');
-    if(!relativePath.startsWith('src')) continue;
-    
-    let category = "desconhecido";
-    if (relativePath.includes('components/ui/')) category = 'canônico';
-    else if (relativePath.includes('components/commerce/')) category = 'migrar';
-    else if (relativePath.includes('components/admin/')) category = 'migrar';
-    else if (relativePath.includes('routes/')) category = 'migrar';
-    else if (relativePath.includes('lib/') || relativePath.includes('types/')) category = 'canônico';
-    
-    let debt = [];
-    if(hexFiles.some(f => relativePath.endsWith(f) || f.endsWith(relativePath))) debt.push('Hex Colors');
-    if(styleFiles.some(f => relativePath.endsWith(f) || f.endsWith(relativePath))) debt.push('Inline Styles');
-    
-    const debtStr = debt.length > 0 ? debt.join(', ') : 'Limpo';
-    
-    censusContent += `| ${relativePath} | ${category} | ${debtStr} | Revisar |\n`;
+for (const fileLine of files) {
+  const relativePath = path.relative(process.cwd(), fileLine.trim()).replace(/\\/g, "/");
+  if (!relativePath.startsWith("src")) continue;
+
+  let category = "desconhecido";
+  if (relativePath.includes("components/ui/")) category = "canônico";
+  else if (relativePath.includes("components/commerce/")) category = "migrar";
+  else if (relativePath.includes("components/admin/")) category = "migrar";
+  else if (relativePath.includes("routes/")) category = "migrar";
+  else if (relativePath.includes("lib/") || relativePath.includes("types/")) category = "canônico";
+
+  let debt = [];
+  if (hexFiles.some((f) => relativePath.endsWith(f) || f.endsWith(relativePath)))
+    debt.push("Hex Colors");
+  if (styleFiles.some((f) => relativePath.endsWith(f) || f.endsWith(relativePath)))
+    debt.push("Inline Styles");
+
+  const debtStr = debt.length > 0 ? debt.join(", ") : "Limpo";
+
+  censusContent += `| ${relativePath} | ${category} | ${debtStr} | Revisar |\n`;
 }
 
-if (!fs.existsSync('docs/audit')) {
-    fs.mkdirSync('docs/audit', { recursive: true });
+if (!fs.existsSync("docs/audit")) {
+  fs.mkdirSync("docs/audit", { recursive: true });
 }
 
-fs.writeFileSync('docs/audit/CODE-CENSUS.md', censusContent);
-console.log('CODE-CENSUS.md created successfully.');
+fs.writeFileSync("docs/audit/CODE-CENSUS.md", censusContent);
+console.log("CODE-CENSUS.md created successfully.");

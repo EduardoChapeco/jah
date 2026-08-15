@@ -101,6 +101,63 @@ export const getCustomer360 = createServerFn({ method: "GET" })
       .eq("store_id", identity.store_id)
       .order("is_default", { ascending: false });
 
+    // 1. Busca Orçamentos do cliente
+    const { data: quotations } = await supabase
+      .from("quotations")
+      .select("id, code, title, total_cents, status, created_at")
+      .eq("customer_id", customerId)
+      .order("created_at", { ascending: false });
+
+    // 2. Busca Ingressos / Inscrições em Eventos
+    const { data: tickets } = await supabase
+      .from("event_tickets")
+      .select("id, event_id, status, created_at, events(title, date)")
+      .eq("customer_id", customerId)
+      .order("created_at", { ascending: false });
+
+    // 3. Monta a Timeline 360 Unificada
+    const timeline: any[] = [];
+
+    (orders || []).forEach((o: any) => {
+      timeline.push({
+        id: `order_${o.id}`,
+        type: "order",
+        title: `Pedido #${o.public_token || o.id.slice(0, 8)}`,
+        description: `Total: R$ ${(o.total_cents / 100).toFixed(2)} • Status: ${o.status}`,
+        status: o.status,
+        timestamp: o.created_at,
+        metadata: { total_cents: o.total_cents, order_id: o.id },
+      });
+    });
+
+    (quotations || []).forEach((q: any) => {
+      timeline.push({
+        id: `quote_${q.id}`,
+        type: "quote",
+        title: `Orçamento #${q.code || q.id.slice(0, 8)}`,
+        description: `${q.title || "Orçamento de Serviços"} • Total: R$ ${((q.total_cents || 0) / 100).toFixed(2)}`,
+        status: q.status,
+        timestamp: q.created_at,
+        metadata: { quotation_id: q.id },
+      });
+    });
+
+    (tickets || []).forEach((t: any) => {
+      timeline.push({
+        id: `ticket_${t.id}`,
+        type: "ticket",
+        title: `Ingresso: ${t.events?.title || "Evento Cultural"}`,
+        description: `Status: ${t.status === "used" ? "Check-in Realizado" : "Emitido / Válido"}`,
+        status: t.status,
+        timestamp: t.created_at,
+        metadata: { ticket_id: t.id },
+      });
+    });
+
+    timeline.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+    const totalLtv = (orders || []).reduce((acc: number, o: any) => acc + (o.total_cents || 0), 0);
+
     return {
       profile: {
         id: profile.id,
@@ -111,7 +168,11 @@ export const getCustomer360 = createServerFn({ method: "GET" })
       },
       crm: crm || { notes: null, tags: [] },
       orders: orders || [],
+      quotations: quotations || [],
+      tickets: tickets || [],
       addresses: addresses || [],
+      timeline,
+      totalLtvCents: totalLtv,
     };
   });
 
@@ -306,7 +367,7 @@ export const updateLeadStatus = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: unknown) {
       console.error("[crm] updateLeadStatus error:", e);
-      throw new Error((e instanceof Error ? e.message : String(e)));
+      throw new Error(e instanceof Error ? e.message : String(e));
     }
   });
 

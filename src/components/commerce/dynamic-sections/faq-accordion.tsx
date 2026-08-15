@@ -56,7 +56,7 @@ export function FaqAccordion({ content, design_tokens }: FAQAccordionProps) {
             ))}
           </Accordion>
         ) : (
-          <div className="p-4 border border-dashed text-center text-muted-foreground bg-muted/50 rounded-md">
+          <div className="p-4 border border-dashed text-center text-muted-foreground bg-muted/50 rounded-xl">
             Adicione perguntas frequentes pelo inspetor.
           </div>
         )}

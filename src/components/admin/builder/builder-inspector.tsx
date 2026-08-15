@@ -143,7 +143,7 @@ export function BuilderInspector({
                 type="button"
                 onClick={() => setInspectorMode("quick")}
                 className={cn(
-                  "flex-1 text-[11px] font-medium py-1 rounded-md transition-colors",
+                  "flex-1 text-[11px] font-medium py-1 rounded-xl transition-colors",
                   inspectorMode === "quick"
                     ? "bg-white/10 text-white"
                     : "text-white/40 hover:text-white/70",
@@ -155,7 +155,7 @@ export function BuilderInspector({
                 type="button"
                 onClick={() => setInspectorMode("studio")}
                 className={cn(
-                  "flex-1 text-[11px] font-medium py-1 rounded-md transition-colors",
+                  "flex-1 text-[11px] font-medium py-1 rounded-xl transition-colors",
                   inspectorMode === "studio"
                     ? "bg-white/10 text-white"
                     : "text-white/40 hover:text-white/70",
@@ -181,7 +181,7 @@ export function BuilderInspector({
                     key={tab}
                     onClick={() => setInspectorTab(tab as InspectorTab)}
                     className={cn(
-                      "px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors capitalize",
+                      "px-2.5 py-1 rounded-xl text-[11px] font-medium transition-colors capitalize",
                       inspectorTab === tab
                         ? "bg-white/15 text-white"
                         : "text-white/40 hover:text-white/70",
@@ -219,7 +219,7 @@ export function BuilderInspector({
                             label: "Ticket",
                             bg: "bg-white border border-dashed border-gray-300",
                           },
-                          { id: "polaroid", label: "Polaróide", bg: "bg-[#fffff8] shadow-sm pb-4" },
+                          { id: "polaroid", label: "Polaróide", bg: "bg-[#fffff8] pb-4" },
                         ].map((theme) => (
                           <button
                             key={theme.id}
@@ -241,7 +241,7 @@ export function BuilderInspector({
                                 : "border-white/10 bg-white/5 hover:border-white/30",
                             )}
                           >
-                            <div className={cn("w-full aspect-video rounded-md", theme.bg)} />
+                            <div className={cn("w-full aspect-video rounded-xl", theme.bg)} />
                             <span className="text-white/70 text-xs font-medium">{theme.label}</span>
                           </button>
                         ))}
@@ -567,7 +567,7 @@ export function BuilderInspector({
                   <div className="space-y-4">
                     {/* Native Layout Variant (from canonical registry) */}
                     {blockManifest.layoutVariants && (
-                      <div className="space-y-1.5 p-3 border border-dashed border-white/20 bg-white/5 rounded-md">
+                      <div className="space-y-1.5 p-3 border border-dashed border-white/20 bg-white/5 rounded-xl">
                         <label className="text-white text-[12px] font-semibold tracking-wide flex items-center gap-2">
                           Variante Canônica de Layout
                         </label>

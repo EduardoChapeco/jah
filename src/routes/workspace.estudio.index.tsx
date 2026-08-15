@@ -85,7 +85,7 @@ function EstudioPage() {
                 Voltar ao Catálogo
               </Button>
             )}
-            <Button onClick={handleDownload} className="font-bold border border-border shadow-sm">
+            <Button onClick={handleDownload} className="font-bold border border-border ">
               <Download className="mr-2 h-4 w-4" />
               Baixar Imagem
             </Button>
@@ -98,16 +98,14 @@ function EstudioPage() {
           <div className="w-full flex items-center justify-center">
             <div className="max-w-md w-full p-8 bg-card rounded-lg border border-dashed border-border text-center">
               <ImageIcon className="h-12 w-12 text-muted-foreground opacity-50 mb-4" />
-              <h2 className="text-xl font-bold font-display text-foreground mb-2">
-                Nenhum produto selecionado
-              </h2>
+              <h2 className="text-xl font-bold text-foreground mb-2">Nenhum produto selecionado</h2>
               <p className="text-muted-foreground mb-6">
                 Para criar artes no Estúdio, você precisa selecionar um produto real do seu
                 catálogo. Dados ilustrativos não são permitidos.
               </p>
               <Button
                 onClick={() => navigate({ to: "/workspace/catalogo/produtos" })}
-                className="w-full font-bold border border-border shadow-sm"
+                className="w-full font-bold border border-border "
               >
                 Ir para o Catálogo
               </Button>
@@ -116,10 +114,10 @@ function EstudioPage() {
         ) : (
           <>
             {/* Editor Sidebar */}
-            <ScrollArea className="w-full md:w-80 shrink-0 bg-card rounded-lg border border-border p-6 shadow-sm">
+            <ScrollArea className="w-full md:w-80 shrink-0 bg-card rounded-lg border border-border p-6 ">
               <div className="space-y-8 pb-10">
                 <div className="space-y-4">
-                  <h3 className="font-bold font-display text-lg flex items-center gap-2">
+                  <h3 className="font-bold text-lg flex items-center gap-2">
                     <LayoutTemplate className="h-5 w-5" />
                     Estilo Gráfico
                   </h3>
@@ -128,7 +126,7 @@ function EstudioPage() {
                       <Button
                         key={p}
                         variant={preset === p ? "default" : "outline"}
-                        className={`h-20 flex-col gap-2 border ${preset === p ? "border-border shadow-sm -translate-y-0.5" : "border-border"}`}
+                        className={`h-20 flex-col gap-2 border ${preset === p ? "border-border -translate-y-0.5" : "border-border"}`}
                         onClick={() => setPreset(p as PresetID)}
                       >
                         <span className="capitalize font-bold">{p}</span>
@@ -138,21 +136,21 @@ function EstudioPage() {
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="font-bold font-display text-lg flex items-center gap-2">
+                  <h3 className="font-bold text-lg flex items-center gap-2">
                     <Maximize className="h-5 w-5" />
                     Formato
                   </h3>
                   <div className="grid grid-cols-2 gap-3">
                     <Button
                       variant={aspectRatio === "1:1" ? "default" : "outline"}
-                      className={`h-12 border ${aspectRatio === "1:1" ? "border-border shadow-sm -translate-y-0.5" : "border-border"}`}
+                      className={`h-12 border ${aspectRatio === "1:1" ? "border-border -translate-y-0.5" : "border-border"}`}
                       onClick={() => setAspectRatio("1:1")}
                     >
                       Quadrado (Feed)
                     </Button>
                     <Button
                       variant={aspectRatio === "9:16" ? "default" : "outline"}
-                      className={`h-12 border ${aspectRatio === "9:16" ? "border-border shadow-sm -translate-y-0.5" : "border-border"}`}
+                      className={`h-12 border ${aspectRatio === "9:16" ? "border-border -translate-y-0.5" : "border-border"}`}
                       onClick={() => setAspectRatio("9:16")}
                     >
                       Vertical (Stories)
@@ -161,7 +159,7 @@ function EstudioPage() {
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="font-bold font-display text-lg flex items-center gap-2">
+                  <h3 className="font-bold text-lg flex items-center gap-2">
                     <Palette className="h-5 w-5" />
                     Paleta de Cor
                   </h3>
@@ -174,7 +172,7 @@ function EstudioPage() {
                     ].map((color) => (
                       <button
                         key={color.id}
-                        className={`h-12 rounded-md font-bold uppercase tracking-widest text-xs border transition-all ${color.bg} ${colorScheme === color.id ? "border-border shadow-sm -translate-y-0.5 scale-105" : "border-transparent opacity-70 hover:opacity-100"}`}
+                        className={`h-12 rounded-xl font-bold text-xs border transition-all ${color.bg} ${colorScheme === color.id ? "border-border -translate-y-0.5 scale-105" : "border-transparent opacity-70 hover:opacity-100"}`}
                         onClick={() => setColorScheme(color.id as any)}
                       >
                         {color.id}
@@ -188,7 +186,7 @@ function EstudioPage() {
             {/* Preview Area */}
             <div className="flex-1 flex items-center justify-center bg-[url('/checkers.svg')] bg-repeat bg-[length:24px_24px] bg-muted/10 rounded-lg border border-border overflow-hidden p-8 shadow-inner relative">
               <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none">
-                <span className="font-display font-black text-[20vw] tracking-tighter leading-none">
+                <span className="font-black text-[20vw] tracking-tighter leading-none">
                   PREVIEW
                 </span>
               </div>

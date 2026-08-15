@@ -16,8 +16,8 @@ export default defineConfig({
   vite: {
     build: {
       rollupOptions: {
-        external: ["vinxi/routes"]
-      }
-    }
-  }
+        external: ["vinxi/routes"],
+      },
+    },
+  },
 });

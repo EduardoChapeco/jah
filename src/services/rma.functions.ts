@@ -44,8 +44,10 @@ export const requestOrderReturn = createServerFn({ method: "POST" })
       return { rmaId: data };
     } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[RMA] requestOrderReturn:", (e instanceof Error ? e.message : String(e)));
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao solicitar devolução.");
+      console.error("[RMA] requestOrderReturn:", e instanceof Error ? e.message : String(e));
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao solicitar devolução.",
+      );
     }
   });
 
@@ -111,8 +113,10 @@ export const requestCustomerRma = createServerFn({ method: "POST" })
       return { rmaId: data };
     } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[RMA] requestCustomerRma:", (e instanceof Error ? e.message : String(e)));
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao solicitar devolução.");
+      console.error("[RMA] requestCustomerRma:", e instanceof Error ? e.message : String(e));
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao solicitar devolução.",
+      );
     }
   });
 
@@ -145,15 +149,25 @@ export const inspectRmaItem = createServerFn({ method: "POST" })
       return { success: true };
     } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[RMA] inspectRmaItem:", (e instanceof Error ? e.message : String(e)));
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao registrar inspeção do item.");
+      console.error("[RMA] inspectRmaItem:", e instanceof Error ? e.message : String(e));
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao registrar inspeção do item.",
+      );
     }
   });
 
 export const listAdminRmas = createServerFn({ method: "GET" }).handler(async () => {
   try {
     const identity = await getServerIdentity();
-    await assertStoreAccess(identity, ["owner", "admin", "manager", "seller", "finance", "logistics", "stock"]);
+    await assertStoreAccess(identity, [
+      "owner",
+      "admin",
+      "manager",
+      "seller",
+      "finance",
+      "logistics",
+      "stock",
+    ]);
 
     const db = getServerClient();
     const { data, error } = await db
@@ -206,7 +220,7 @@ export const listAdminRmas = createServerFn({ method: "GET" }).handler(async () 
     }));
   } catch (e: unknown) {
     if (e instanceof SupabaseUnconfiguredError) return [];
-    console.error("[RMA] listAdminRmas:", (e instanceof Error ? e.message : String(e)));
+    console.error("[RMA] listAdminRmas:", e instanceof Error ? e.message : String(e));
     return [];
   }
 });
@@ -244,8 +258,10 @@ export const updateRmaStatus = createServerFn({ method: "POST" })
       return { success: true };
     } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[RMA] updateRmaStatus:", (e instanceof Error ? e.message : String(e)));
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao atualizar status do RMA.");
+      console.error("[RMA] updateRmaStatus:", e instanceof Error ? e.message : String(e));
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao atualizar status do RMA.",
+      );
     }
   });
 
@@ -318,8 +334,10 @@ export const resolveRmaWithCredit = createServerFn({ method: "POST" })
       return { success: true, creditAmount: totalRefundCents };
     } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[RMA] resolveRmaWithCredit:", (e instanceof Error ? e.message : String(e)));
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao resolver RMA com crédito.");
+      console.error("[RMA] resolveRmaWithCredit:", e instanceof Error ? e.message : String(e));
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao resolver RMA com crédito.",
+      );
     }
   });
 
@@ -337,7 +355,7 @@ export const listCustomerRmas = createServerFn({ method: "GET" }).handler(async 
       .eq("customer_id", identity.id)
       .order("created_at", { ascending: false });
 
-    if (error) throw new Error((error instanceof Error ? error.message : String(error)));
+    if (error) throw new Error(error instanceof Error ? error.message : String(error));
 
     return (data || []).map((rma: any) => ({
       id: rma.id,
@@ -353,7 +371,7 @@ export const listCustomerRmas = createServerFn({ method: "GET" }).handler(async 
     }));
   } catch (e: unknown) {
     if (e instanceof SupabaseUnconfiguredError) return [];
-    console.error("[RMA] listCustomerRmas:", (e instanceof Error ? e.message : String(e)));
+    console.error("[RMA] listCustomerRmas:", e instanceof Error ? e.message : String(e));
     throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao buscar RMA.");
   }
 });

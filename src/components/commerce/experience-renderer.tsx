@@ -161,7 +161,7 @@ function ExperienceNodeRenderer({
   if (!manifest) {
     if (isEditing) {
       return (
-        <div className="p-4 border border-dashed border-red-500 bg-destructive text-destructive text-sm">
+        <div className="p-4 border border-dashed border-destructive/40 bg-destructive/10 text-destructive rounded-xl text-sm">
           Bloco não suportado: {node.block_type}
         </div>
       );
@@ -190,7 +190,7 @@ function ExperienceNodeRenderer({
       >
         {children}
         {isSelected && (
-          <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] px-2 py-1 font-mono z-20 rounded-bl-md shadow-sm pointer-events-none">
+          <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] px-2 py-1 font-mono z-20 rounded-bl-md pointer-events-none">
             {manifest.name}
           </div>
         )}

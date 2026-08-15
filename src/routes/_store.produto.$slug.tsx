@@ -316,6 +316,27 @@ function ProductContent({
     new Set(product.variants.flatMap((v: VariantDTO) => Object.keys(v.attributes))),
   );
 
+  // isFoodOrPerishable: detecta produtos gastronômicos ou perecíveis para adaptar políticas
+  const isFoodOrPerishable = useMemo(() => {
+    const text =
+      `${product.title} ${product.brand || ""} ${product.categories?.map((c: any) => c.name || c.slug).join(" ") || ""}`.toLowerCase();
+    return [
+      "burger",
+      "lanche",
+      "hambúrguer",
+      "café",
+      "grãos",
+      "comida",
+      "artesanal",
+      "queijo",
+      "prato",
+      "pizza",
+      "doce",
+      "gastronomia",
+      "bebida",
+    ].some((k) => text.includes(k));
+  }, [product]);
+
   // allOutOfStock: product is truly unavailable only when ALL variants have no stock AND no backorder allowed
   const allOutOfStock =
     product.variants.length > 0 &&
@@ -347,6 +368,25 @@ function ProductContent({
   const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>(
     initialVariant?.attributes || {},
   );
+
+  // Initialize selected options (e.g. additional configurable groups)
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, string | string[]>>(() => {
+    const initial: Record<string, string | string[]> = {};
+    if (product.optionGroups) {
+      product.optionGroups.forEach((og: any) => {
+        const defaults = og.values.filter((v: any) => v.isDefault).map((v: any) => v.id);
+        if (defaults.length > 0) {
+          if (og.selectionType === "single") {
+            initial[og.id] = defaults[0];
+          } else {
+            initial[og.id] = defaults;
+          }
+        }
+      });
+    }
+    return initial;
+  });
+
   const [isAdding, setIsAdding] = useState(false);
   const [activeMedia, setActiveMedia] = useState<ProductMediaDTO | null>(coverImage);
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
@@ -424,6 +464,7 @@ function ProductContent({
           variantId: targetVariantId,
           productId: product.id,
           quantity: 1,
+          options: Object.keys(selectedOptions).length > 0 ? selectedOptions : undefined,
         },
       });
 
@@ -439,7 +480,13 @@ function ProductContent({
       toast.success("Adicionado ao carrinho");
       setIsCartOpen(true);
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? (error instanceof Error ? error.message : String(error)) : "Erro ao adicionar ao carrinho.");
+      toast.error(
+        error instanceof Error
+          ? error instanceof Error
+            ? error.message
+            : String(error)
+          : "Erro ao adicionar ao carrinho.",
+      );
     } finally {
       setIsAdding(false);
     }
@@ -498,7 +545,10 @@ function ProductContent({
         toast.error("Erro ao enviar avaliação. Faça login primeiro.");
       }
     } catch (err: unknown) {
-      toast.error((err instanceof Error ? err.message : String(err)) || "Você precisa estar autenticado como cliente para avaliar.");
+      toast.error(
+        (err instanceof Error ? err.message : String(err)) ||
+          "Você precisa estar autenticado como cliente para avaliar.",
+      );
     } finally {
       setIsSubmittingReview(false);
     }
@@ -512,7 +562,10 @@ function ProductContent({
       );
       refetchFollowStatus();
     } catch (err: unknown) {
-      toast.error((err instanceof Error ? err.message : String(err)) || "Você precisa estar autenticado como cliente para seguir a loja.");
+      toast.error(
+        (err instanceof Error ? err.message : String(err)) ||
+          "Você precisa estar autenticado como cliente para seguir a loja.",
+      );
     }
   };
 
@@ -523,86 +576,88 @@ function ProductContent({
   };
 
   return (
-    <>
-      <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
-        {/* Breadcrumb */}
-        <nav
-          aria-label="Navegação estrutural"
-          className="mb-6 flex items-center gap-2 text-xs text-muted-foreground"
-        >
-          <Link to="/" className="hover:text-foreground">
-            Início
-          </Link>
-          <ChevronRight className="size-3" aria-hidden />
-          <Link to="/mercado" className="hover:text-foreground">
-            Catálogo
-          </Link>
-          {product.categories && product.categories.length > 0 && (
-            <>
-              <ChevronRight className="size-3" aria-hidden />
-              <Link
-                to="/mercado"
-                search={{ categoria: product.categories[0].slug }}
-                className="hover:text-foreground truncate max-w-[150px]"
-              >
-                {product.categories[0].name}
-              </Link>
-            </>
+    <div className="w-full space-y-8">
+      {/* Breadcrumb */}
+      <nav
+        aria-label="Navegação estrutural"
+        className="mb-6 flex items-center gap-2 text-xs text-muted-foreground font-medium"
+      >
+        <Link to="/" className="hover:text-foreground">
+          Início
+        </Link>
+        <ChevronRight className="size-3" aria-hidden />
+        <Link to="/mercado" className="hover:text-foreground">
+          Catálogo
+        </Link>
+        {product.categories && product.categories.length > 0 && (
+          <>
+            <ChevronRight className="size-3" aria-hidden />
+            <Link
+              to="/mercado"
+              search={{ categoria: product.categories[0].slug }}
+              className="hover:text-foreground truncate max-w-[150px]"
+            >
+              {product.categories[0].name}
+            </Link>
+          </>
+        )}
+        <ChevronRight className="size-3" aria-hidden />
+        <span className="text-foreground font-bold truncate max-w-[200px]">{product.title}</span>
+      </nav>
+
+      {/* Product Workspace Split */}
+      <div className="grid gap-8 md:grid-cols-12 lg:gap-14">
+        {/* LADO ESQUERDO: Media Switcher com strip vertical sem scrollbar feia */}
+        <div className="md:col-span-6 flex flex-col sm:flex-row gap-3.5 items-start">
+          {/* Strip vertical esquerdo de thumbnails (apenas se houver mais de 1 mídia) */}
+          {product.media.length > 1 && (
+            <div className="hidden sm:flex flex-col gap-2 w-16 shrink-0 max-h-[480px] overflow-y-auto scrollbar-none pr-0.5">
+              {product.media.map((m: ProductMediaDTO) => {
+                const isVideo = m.mediaType === "video";
+                const active = activeMedia?.id === m.id;
+                return (
+                  <button
+                    key={m.id}
+                    onClick={() => setActiveMedia(m)}
+                    className={`relative aspect-square w-14 shrink-0 rounded-xl overflow-hidden border transition-all duration-200 ${
+                      active
+                        ? "border-primary ring-2 ring-primary/20 scale-[1.03]"
+                        : "border-border/60 hover:border-primary/50 bg-secondary"
+                    }`}
+                  >
+                    {isVideo ? (
+                      <div className="relative size-full bg-black/20 flex items-center justify-center">
+                        <Play className="size-4 text-white fill-white relative z-10" />
+                        {m.url.includes("youtube.com") || m.url.includes("youtu.be") ? (
+                          <img
+                            src={`https://img.youtube.com/vi/${parseYoutubeId(m.url)}/hqdefault.jpg`}
+                            alt="Video thumbnail"
+                            className="absolute size-full object-cover opacity-60"
+                          />
+                        ) : (
+                          <ImageOff className="size-4 text-white opacity-40" />
+                        )}
+                      </div>
+                    ) : (
+                      <img
+                        src={m.url}
+                        alt={m.alt ?? ""}
+                        loading="lazy"
+                        className="size-full object-cover"
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           )}
-          <ChevronRight className="size-3" aria-hidden />
-          <span className="text-foreground font-medium truncate max-w-[200px]">
-            {product.title}
-          </span>
-        </nav>
 
-        {/* Product Workspace Split */}
-        <div className="grid gap-8 md:grid-cols-12 lg:gap-14">
-          {/* LADO ESQUERDO: Media Switcher com strip vertical (SHEIN style) */}
-          <div className="md:col-span-6 flex gap-3.5 items-start">
-            {/* Strip vertical esquerdo de thumbnails */}
-            {product.media.length > 0 && (
-              <div className="hidden sm:flex flex-col gap-2 w-16 shrink-0 max-h-[480px] overflow-y-auto pr-1">
-                {product.media.map((m: ProductMediaDTO) => {
-                  const isVideo = m.mediaType === "video";
-                  const active = activeMedia?.id === m.id;
-                  return (
-                    <button
-                      key={m.id}
-                      onClick={() => setActiveMedia(m)}
-                      className={`relative aspect-square w-14 shrink-0 overflow-hidden border transition-all duration-200 ${active ? "border-primary scale-[1.03]" : "border-border/60 hover:border-primary/50 bg-secondary"}`}
-                    >
-                      {isVideo ? (
-                        <div className="relative size-full bg-black/20 flex items-center justify-center">
-                          <Play className="size-4 text-white fill-white relative z-10" />
-                          {m.url.includes("youtube.com") || m.url.includes("youtu.be") ? (
-                            <img
-                              src={`https://img.youtube.com/vi/${parseYoutubeId(m.url)}/hqdefault.jpg`}
-                              alt="Video thumbnail"
-                              className="absolute size-full object-cover opacity-60"
-                            />
-                          ) : (
-                            <ImageOff className="size-4 text-white opacity-40" />
-                          )}
-                        </div>
-                      ) : (
-                        <img
-                          src={m.url}
-                          alt={m.alt ?? ""}
-                          loading="lazy"
-                          className="size-full object-cover"
-                        />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Main Screen Viewport */}
+          {/* Main Screen Viewport */}
+          <div className="flex-1 w-full space-y-4">
             <Surface
               variant="default"
               padding="none"
-              className="flex-1 relative aspect-square overflow-hidden bg-secondary"
+              className="w-full relative aspect-square overflow-hidden bg-secondary rounded-3xl border border-border/80 shadow-xs"
             >
               {activeMedia ? (
                 activeMedia.mediaType === "video" ? (
@@ -639,394 +694,508 @@ function ProductContent({
                 </div>
               )}
             </Surface>
-          </div>
 
-          {/* LADO DIREITO: Info & Atributos Customizados */}
-          <div className="md:col-span-6 flex flex-col gap-6 text-left">
-            <div className="space-y-2">
-              {product.brand && (
-                <span className="text-xs font-bold tracking-wider uppercase text-primary bg-primary/10 px-2 py-0.5 rounded">
-                  {product.brand}
-                </span>
-              )}
-              <h1 className="font-semibold text-2xl font-bold leading-tight text-foreground sm:text-3xl">
-                {product.title}
-              </h1>
-
-              {/* Preços Autorizados pelo Servidor com Badges de Desconto */}
-              <div className="flex items-baseline gap-3 pt-2">
-                <PriceDisplay
-                  amountCents={
-                    selectedVariant ? selectedVariant.effectivePriceCents : product.priceCents
-                  }
-                  compareAtCents={product.compareAtCents}
-                  size="lg"
-                />
-                {product.compareAtCents && product.compareAtCents > product.priceCents && (
-                  <Badge
-                    variant="outline"
-                    className="bg-destructive/10 text-destructive border-red-500/20 text-xs font-bold px-2 py-0.5"
-                  >
-                    Estimado -
-                    {Math.round(
-                      ((product.compareAtCents - product.priceCents) / product.compareAtCents) *
-                        100,
-                    )}
-                    %
-                  </Badge>
-                )}
-              </div>
-            </div>
-
-            {/* Out of stock — only shown when all variants are truly unavailable (no backorder) */}
-            {allOutOfStock && (
-              <Badge variant="destructive" className="w-fit text-xs font-bold py-1 px-3">
-                Sem estoque disponível
-              </Badge>
-            )}
-
-            {/* Selectores de Atributos Customizados */}
-            {attributeKeys.length > 0 && (
-              <div className="space-y-5 border-t border-b border-border/60 py-5">
-                {attributeKeys.map((key: string) => {
-                  const values: string[] = Array.from(
-                    new Set(
-                      product.variants
-                        .map((v: VariantDTO) => v.attributes[key])
-                        .filter((val): val is string => typeof val === "string"),
-                    ),
-                  );
-
-                  const isColor = key.toLowerCase() === "cor" || key.toLowerCase() === "color";
-                  const isSize = key.toLowerCase() === "tamanho" || key.toLowerCase() === "size";
-
-                  return (
-                    <div key={key} className="space-y-2.5">
-                      <div className="flex justify-between items-center text-sm font-medium text-foreground">
-                        <span className="capitalize">
-                          {key}:{" "}
-                          <span className="text-muted-foreground font-normal">
-                            {selectedAttributes[key]}
-                          </span>
-                        </span>
-
-                        {/* Guia de tamanhos link */}
-                        {isSize && (
-                          <button
-                            type="button"
-                            onClick={() => setSizeGuideOpen(true)}
-                            className="text-xs text-primary hover:underline font-bold flex items-center gap-1"
-                          >
-                            <Info className="size-3.5" />
-                            Guia de tamanhos
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Renderizador de Cores (Color Swatches) */}
-                      {isColor ? (
-                        <div className="flex flex-wrap gap-2.5">
-                          {values.map((val: string) => {
-                            const isSelected = selectedAttributes[key] === val;
-                            const colorHex = getColorHex(val);
-                            return (
-                              <button
-                                key={val}
-                                type="button"
-                                title={val}
-                                onClick={() =>
-                                  setSelectedAttributes((prev) => ({ ...prev, [key]: val }))
-                                }
-                                className={`group relative w-8 h-8 rounded-full border transition-all duration-200 ${isSelected ? "ring-2 ring-primary ring-offset-2 border-primary scale-110" : "border-border/80 hover:scale-105"}`}
-                                style={{ backgroundColor: colorHex }}
-                              >
-                                {val.toLowerCase() === "branco" && (
-                                  <span className="absolute inset-0 rounded-full border border-black/10" />
-                                )}
-                                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover:block bg-black text-white text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap z-20">
-                                  {val}
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        /* Renderizador de Tamanhos ou Outros Atributos */
-                        <div className="flex flex-wrap gap-2">
-                          {values.map((val: string) => {
-                            const isSelected = selectedAttributes[key] === val;
-
-                            // Check if this specific option is in stock by finding the variant matching selectedAttributes but with this value
-                            const hypotheticVariant = product.variants.find((v: VariantDTO) => {
-                              const testAttrs = { ...selectedAttributes, [key]: val };
-                              return Object.entries(testAttrs).every(
-                                ([tk, tv]) => v.attributes[tk] === tv,
-                              );
-                            });
-                            const isOptionOutOfStock =
-                              hypotheticVariant && hypotheticVariant.availableQty <= 0;
-
-                            return (
-                              <button
-                                key={val}
-                                type="button"
-                                disabled={isOptionOutOfStock && !hypotheticVariant?.allowBackorder}
-                                onClick={() =>
-                                  setSelectedAttributes((prev) => ({ ...prev, [key]: val }))
-                                }
-                                className={`min-h-10 border px-4 py-2.5 text-xs font-semibold tracking-wide transition-all duration-150 ${isSelected ? "border-primary bg-primary text-primary-foreground font-bold shadow-xs scale-[1.02]" : isOptionOutOfStock && !hypotheticVariant?.allowBackorder ? "border-dashed border-border/40 text-muted-foreground/40 bg-muted/20 cursor-not-allowed line-through opacity-50" : "border-border bg-card text-foreground hover:border-primary hover:text-primary"}`}
-                              >
-                                {val}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Origem de Envio ("Enviado por") */}
-            <div className="space-y-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Enviado por
-              </span>
-              <div className="flex gap-2">
-                <div
-                  className={`flex-1 py-2 px-3 border text-xs font-bold transition-all border-primary bg-primary/5 text-primary text-center`}
-                >
-                  {shippingOrigin === "national" ? "Envio Nacional" : "Envio Internacional"}
-                </div>
-              </div>
-
-              {shippingOrigin === "international" && (
-                <div className="p-3 border border-warning/20 bg-warning/5 text-[11px] text-warning-foreground leading-normal flex items-start gap-2">
-                  <Info className="size-4 text-warning shrink-0 mt-0.5" />
-                  <span>
-                    Produto Internacional sujeito à declaração de importação e eventuais tributos
-                    alfandegários estaduais e federais.
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Simulação de Frete e Prazos */}
-            <Surface variant="default" padding="sm" className="space-y-4">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                <Truck className="size-4 text-primary" />
-                <span>Simulador de Frete</span>
-              </div>
-
-              <form onSubmit={handleCalculateShipping} className="flex gap-2">
-                <Input
-                  placeholder="Digite seu CEP (Ex: 89801-000)"
-                  value={zipcode}
-                  onChange={(e) => setZipcode(e.target.value)}
-                  className="h-9 text-xs bg-muted/40"
-                />
-                <Button
-                  type="submit"
-                  size="sm"
-                  className="h-9 font-bold px-4"
-                  disabled={loadingShipping}
-                >
-                  {loadingShipping ? <Loader2 className="size-4 animate-spin" /> : "Calcular"}
-                </Button>
-              </form>
-
-              {shippingRates ? (
-                <div className="space-y-2 pt-1">
-                  {shippingRates.map((rate) => (
-                    <div
-                      key={rate.id}
-                      className="flex justify-between items-center text-xs p-2.5 border bg-muted/10"
-                    >
-                      <div>
-                        <p className="font-bold text-foreground">{rate.name}</p>
-                        <p className="text-[10px] text-muted-foreground">
-                          Prazo estimado: {rate.estimated_days} dias úteis
-                        </p>
-                      </div>
-                      <span className="font-bold text-primary">
-                        {rate.price_cents === 0 ? (
-                          <span className="text-emerald-600 font-bold">Grátis</span>
-                        ) : (
-                          formatMoney(rate.price_cents)
-                        )}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                /* Card Padrão de Prazos SHEIN */
-                <div className="space-y-3 pt-1 text-xs">
-                  <div className="flex items-start gap-2.5">
-                    <Check className="size-4 text-emerald-600 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-bold text-foreground">
-                        Frete grátis (pedidos acima de R$ 69,00)
-                      </p>
-                      <p className="text-[10px] text-muted-foreground leading-normal">
-                        Entrega estimada em 12 a 18 dias úteis para a sua localidade.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2.5 pt-1 border-t border-border/40">
-                    <RotateCcw className="size-4 text-primary shrink-0 mt-0.5" />
-                    <p className="text-muted-foreground leading-normal">
-                      Os itens desta categoria possuem garantia e podem ser devolvidos ou trocados
-                      em até 7 dias.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Selos de Confiança */}
-              <div className="flex flex-wrap gap-x-4 gap-y-1.5 pt-3 border-t border-border/40 text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">
-                <span className="flex items-center gap-1.5">
-                  <ShieldCheck className="size-3.5 text-success fill-success/10" />
-                  Pagamento Seguro
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <ShieldCheck className="size-3.5 text-success fill-success/10" />
-                  Proteção de Privacidade
-                </span>
-              </div>
-            </Surface>
-
-            {/* Add to cart / Encomendar */}
-            <div className="space-y-3">
-              {(() => {
-                const isBackorder =
-                  selectedVariant &&
-                  selectedVariant.availableQty <= 0 &&
-                  selectedVariant.allowBackorder;
-                const variantHardBlocked =
-                  selectedVariant &&
-                  selectedVariant.availableQty <= 0 &&
-                  !selectedVariant.allowBackorder;
-
-                return (
-                  <>
-                    <Button
-                      size="lg"
-                      className={`w-full font-bold text-sm h-12 uppercase tracking-wider transition-transform duration-100 hover:scale-[1.01] ${isBackorder ? "bg-foreground text-background hover:bg-foreground/90" : "bg-primary hover:bg-primary/95"}`}
-                      onClick={handleAddToCart}
-                      disabled={
-                        Boolean(isAdding) || Boolean(allOutOfStock) || Boolean(variantHardBlocked)
-                      }
-                    >
-                      <ShoppingBag className="size-5 mr-2" aria-hidden />
-                      {isAdding
-                        ? "Adicionando..."
-                        : isBackorder
-                          ? "Encomendar"
-                          : "Adicionar ao carrinho"}
-                    </Button>
-
-                    {isBackorder &&
-                      selectedVariant.backorderLeadTimeDays != null &&
-                      selectedVariant.backorderLeadTimeDays > 0 && (
-                        <p className="text-[11px] text-muted-foreground bg-muted/40 p-2.5 rounded border border-dashed text-center">
-                          🚚 Produto sob encomenda. Prazo adicional estimado:{" "}
-                          <strong>{selectedVariant.backorderLeadTimeDays} dias úteis</strong> além
-                          do frete normal.
-                        </p>
-                      )}
-
-                    {isBackorder && !selectedVariant?.backorderLeadTimeDays && (
-                      <p className="text-[11px] text-muted-foreground bg-muted/40 p-2.5 rounded border border-dashed text-center">
-                        🚚 Produto sob encomenda. Consulte-nos para confirmar o prazo.
-                      </p>
-                    )}
-                  </>
-                );
-              })()}
-            </div>
-
-            {/* Card "Sobre a Loja" */}
-            <Surface variant="default" padding="sm" className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="size-11 rounded bg-primary/10 flex items-center justify-center font-bold text-primary text-lg overflow-hidden border border-primary/20">
-                  {product.brand ? product.brand.substring(0, 2).toUpperCase() : "J"}
-                </div>
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <h3 className="font-bold text-sm text-foreground">{product.brand || "Jah"}</h3>
-                    <Badge className="bg-primary/15 text-primary hover:bg-primary/20 text-[9px] uppercase tracking-wider px-1.5 py-0">
-                      Marca Oficial
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-medium mt-1">
-                    {reviewStats.total_reviews > 0 ? (
-                      <span>
-                        ★ {reviewStats.average_rating.toFixed(1)} ({reviewStats.total_reviews}{" "}
-                        avaliações)
-                      </span>
-                    ) : (
-                      <span>Sem avaliações ainda</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <Button
-                size="sm"
-                variant={isFollowingStore ? "secondary" : "outline"}
-                className="text-xs font-bold"
-                onClick={handleToggleFollow}
-              >
-                {isFollowingStore ? "Seguindo" : "+ Seguir"}
-              </Button>
-            </Surface>
-
-            {/* Description */}
-            {product.shortDescription && (
-              <p className="text-sm text-muted-foreground leading-relaxed border-l border-primary/30 pl-3 italic">
-                {product.shortDescription}
-              </p>
-            )}
+            {/* Descrição do Produto diretamente abaixo da foto */}
             {product.description && (
-              <div className="border-t border-border/60 pt-5 space-y-2">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-                  Descrição do Produto
-                </h2>
-                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+              <div className="p-5 rounded-3xl border border-border/80 bg-card space-y-2.5 shadow-2xs">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Sobre o Produto
+                </h3>
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
                   {product.description}
                 </p>
               </div>
             )}
+          </div>
+        </div>
 
-            {/* Ficha Técnica Dinâmica (Product Type Attributes) */}
-            {product.attributes && Object.keys(product.attributes).length > 0 && (
-              <div className="border-t border-border/60 pt-5 space-y-3">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-                  Ficha Técnica
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
-                  {Object.entries(product.attributes).map(([key, value]) => {
-                    // Ignora campos vazios ou booleanos falsos da renderização visual
-                    if (value === null || value === "" || value === false) return null;
-                    return (
-                      <div
-                        key={key}
-                        className="flex flex-col text-sm border-b border-border/40 pb-1.5"
-                      >
-                        <span className="text-muted-foreground capitalize text-[11px] font-bold tracking-wide">
-                          {key}
+        {/* LADO DIREITO: Info & Atributos Customizados */}
+        <div className="md:col-span-6 flex flex-col gap-6 text-left">
+          <div className="space-y-2">
+            {product.brand && (
+              <span className="text-xs font-bold tracking-wider uppercase text-primary bg-primary/10 px-2 py-0.5 rounded">
+                {product.brand}
+              </span>
+            )}
+            <h1 className="font-zine text-4xl font-bold leading-none tracking-tighter uppercase text-foreground sm:text-6xl mb-2">
+              {product.title}
+            </h1>
+
+            {/* Preços Autorizados pelo Servidor com Badges de Desconto */}
+            <div className="flex items-baseline gap-3 pt-2">
+              <PriceDisplay
+                amountCents={
+                  (selectedVariant ? selectedVariant.effectivePriceCents : product.priceCents) +
+                  (product.optionGroups?.reduce((acc: number, og: any) => {
+                    const selection = selectedOptions[og.id];
+                    if (!selection) return acc;
+                    if (Array.isArray(selection)) {
+                      return (
+                        acc +
+                        selection.reduce((subAcc: number, valId: string) => {
+                          const val = og.values.find((v: any) => v.id === valId);
+                          return subAcc + (val?.priceModifierCents || 0);
+                        }, 0)
+                      );
+                    } else {
+                      const val = og.values.find((v: any) => v.id === selection);
+                      return acc + (val?.priceModifierCents || 0);
+                    }
+                  }, 0) || 0)
+                }
+                compareAtCents={product.compareAtCents}
+                size="lg"
+              />
+              {product.compareAtCents && product.compareAtCents > product.priceCents && (
+                <Badge
+                  variant="outline"
+                  className="bg-destructive/10 text-destructive border-destructive/20 text-xs font-bold px-2 py-0.5"
+                >
+                  Estimado -
+                  {Math.round(
+                    ((product.compareAtCents - product.priceCents) / product.compareAtCents) * 100,
+                  )}
+                  %
+                </Badge>
+              )}
+            </div>
+          </div>
+
+          {/* Out of stock — only shown when all variants are truly unavailable (no backorder) */}
+          {allOutOfStock && (
+            <Badge variant="destructive" className="w-fit text-xs font-bold py-1 px-3">
+              Sem estoque disponível
+            </Badge>
+          )}
+
+          {/* Selectores de Atributos Customizados */}
+          {attributeKeys.length > 0 && (
+            <div className="space-y-5 border-t border-b border-border/60 py-5">
+              {attributeKeys.map((key: string) => {
+                const values: string[] = Array.from(
+                  new Set(
+                    product.variants
+                      .map((v: VariantDTO) => v.attributes[key])
+                      .filter((val): val is string => typeof val === "string"),
+                  ),
+                );
+
+                const isColor = key.toLowerCase() === "cor" || key.toLowerCase() === "color";
+                const isSize = key.toLowerCase() === "tamanho" || key.toLowerCase() === "size";
+
+                return (
+                  <div key={key} className="space-y-2.5">
+                    <div className="flex justify-between items-center text-sm font-medium text-foreground">
+                      <span className="capitalize">
+                        {key}:{""}
+                        <span className="text-muted-foreground font-normal">
+                          {selectedAttributes[key]}
                         </span>
-                        <span className="font-medium text-foreground text-sm">
-                          {value === true ? "Sim" : String(value)}
-                        </span>
+                      </span>
+
+                      {/* Guia de tamanhos link (apenas para moda/calçados, nunca para comida) */}
+                      {isSize && !isFoodOrPerishable && (
+                        <button
+                          type="button"
+                          onClick={() => setSizeGuideOpen(true)}
+                          className="text-xs text-primary hover:underline font-bold flex items-center gap-1"
+                        >
+                          <Info className="size-3.5" />
+                          Guia de tamanhos
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Renderizador de Cores (Color Swatches) */}
+                    {isColor ? (
+                      <div className="flex flex-wrap gap-2.5">
+                        {values.map((val: string) => {
+                          const isSelected = selectedAttributes[key] === val;
+                          const colorHex = getColorHex(val);
+                          return (
+                            <button
+                              key={val}
+                              type="button"
+                              title={val}
+                              onClick={() =>
+                                setSelectedAttributes((prev) => ({ ...prev, [key]: val }))
+                              }
+                              className={`group relative w-8 h-8 rounded-full border transition-all duration-200 ${isSelected ? "ring-2 ring-primary ring-offset-2 border-primary scale-110" : "border-border/80 hover:scale-105"}`}
+                              style={{ backgroundColor: colorHex }}
+                            >
+                              {val.toLowerCase() === "branco" && (
+                                <span className="absolute inset-0 rounded-full border border-black/10" />
+                              )}
+                              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover:block bg-black text-white text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap z-20">
+                                {val}
+                              </span>
+                            </button>
+                          );
+                        })}
                       </div>
-                    );
-                  })}
-                </div>
+                    ) : (
+                      /* Renderizador de Tamanhos ou Outros Atributos */
+                      <div className="flex flex-wrap gap-2">
+                        {values.map((val: string) => {
+                          const isSelected = selectedAttributes[key] === val;
+
+                          // Check if this specific option is in stock by finding the variant matching selectedAttributes but with this value
+                          const hypotheticVariant = product.variants.find((v: VariantDTO) => {
+                            const testAttrs = { ...selectedAttributes, [key]: val };
+                            return Object.entries(testAttrs).every(
+                              ([tk, tv]) => v.attributes[tk] === tv,
+                            );
+                          });
+                          const isOptionOutOfStock =
+                            hypotheticVariant && hypotheticVariant.availableQty <= 0;
+
+                          return (
+                            <button
+                              key={val}
+                              type="button"
+                              disabled={isOptionOutOfStock && !hypotheticVariant?.allowBackorder}
+                              onClick={() =>
+                                setSelectedAttributes((prev) => ({ ...prev, [key]: val }))
+                              }
+                              className={`min-h-10 border px-4 py-2.5 text-xs font-semibold tracking-wide transition-all duration-150 ${isSelected ? "border-primary bg-primary text-primary-foreground font-bold scale-[1.02]" : isOptionOutOfStock && !hypotheticVariant?.allowBackorder ? "border-dashed border-border/40 text-muted-foreground/40 bg-muted/20 cursor-not-allowed line-through opacity-50" : "border-border bg-card text-foreground hover:border-primary hover:text-primary"}`}
+                            >
+                              {val}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Configuração de Adicionais / Opções (Option Groups) */}
+          {product.optionGroups && product.optionGroups.length > 0 && (
+            <div className="space-y-5 border-b border-border/60 pb-5">
+              {product.optionGroups.map((og: any) => {
+                const isMultiple = og.selectionType === "multiple";
+                const selection = selectedOptions[og.id] || (isMultiple ? [] : "");
+
+                // Helper para atualizar as seleções
+                const handleOptionToggle = (valId: string) => {
+                  setSelectedOptions((prev) => {
+                    const current = prev[og.id];
+                    if (isMultiple) {
+                      const currentArray = Array.isArray(current) ? current : [];
+                      if (currentArray.includes(valId)) {
+                        return { ...prev, [og.id]: currentArray.filter((id) => id !== valId) };
+                      } else {
+                        // Respeita maxSelections
+                        if (og.maxSelections > 0 && currentArray.length >= og.maxSelections) {
+                          return prev;
+                        }
+                        return { ...prev, [og.id]: [...currentArray, valId] };
+                      }
+                    } else {
+                      // Radio / Single behavior
+                      if (current === valId && !og.isRequired) {
+                        return { ...prev, [og.id]: "" }; // Permite desmarcar se não for obrigatório
+                      }
+                      return { ...prev, [og.id]: valId };
+                    }
+                  });
+                };
+
+                return (
+                  <div key={og.id} className="space-y-3">
+                    <div className="flex justify-between items-end">
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">{og.displayName}</p>
+                        {og.isRequired && (
+                          <p className="text-[10px] uppercase text-primary tracking-wider font-bold">
+                            Obrigatório
+                          </p>
+                        )}
+                      </div>
+                      <span className="text-xs text-muted-foreground font-medium">
+                        {isMultiple ? `Até ${og.maxSelections} opções` : "Escolha 1 opção"}
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      {og.values.map((val: any) => {
+                        const isSelected = isMultiple
+                          ? Array.isArray(selection) && selection.includes(val.id)
+                          : selection === val.id;
+
+                        return (
+                          <button
+                            key={val.id}
+                            type="button"
+                            onClick={() => handleOptionToggle(val.id)}
+                            className={`flex items-center justify-between p-3 border rounded text-left transition-all ${isSelected ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border hover:border-primary/50"}`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`flex items-center justify-center border transition-all ${isMultiple ? "size-4 rounded-lg" : "size-4 rounded-full"} ${isSelected ? "bg-primary border-primary" : "border-muted-foreground/40"}`}
+                              >
+                                {isSelected && (
+                                  <span className="size-2 bg-white rounded-full"></span>
+                                )}
+                              </div>
+                              <span className="text-sm font-medium text-foreground">
+                                {val.label}
+                              </span>
+                            </div>
+                            {val.priceModifierCents > 0 && (
+                              <span className="text-xs font-semibold text-muted-foreground">
+                                +
+                                {(val.priceModifierCents / 100).toLocaleString("pt-BR", {
+                                  style: "currency",
+                                  currency: "BRL",
+                                })}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Origem de Envio ("Enviado por") */}
+          <div className="space-y-2">
+            <span className="text-xs font-bold text-muted-foreground">Enviado por</span>
+            <div className="flex gap-2">
+              <div
+                className={`flex-1 py-2 px-3 border text-xs font-bold transition-all border-primary bg-primary/5 text-primary text-center`}
+              >
+                {shippingOrigin === "national" ? "Envio Nacional" : "Envio Internacional"}
+              </div>
+            </div>
+
+            {shippingOrigin === "international" && (
+              <div className="p-3 border border-warning/20 bg-warning/5 text-[11px] text-warning-foreground leading-normal flex items-start gap-2">
+                <Info className="size-4 text-warning shrink-0 mt-0.5" />
+                <span>
+                  Produto Internacional sujeito à declaração de importação e eventuais tributos
+                  alfandegários estaduais e federais.
+                </span>
               </div>
             )}
           </div>
+
+          {/* Simulação de Frete e Prazos */}
+          <Surface variant="default" padding="sm" className="space-y-4">
+            <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
+              <Truck className="size-4 text-primary" />
+              <span>Simulador de Frete</span>
+            </div>
+
+            <form onSubmit={handleCalculateShipping} className="flex gap-2">
+              <Input
+                placeholder="Digite seu CEP (Ex: 89801-000)"
+                value={zipcode}
+                onChange={(e) => setZipcode(e.target.value)}
+                className="h-9 text-xs bg-muted/40"
+              />
+              <Button
+                type="submit"
+                size="sm"
+                className="h-9 font-bold px-4"
+                disabled={loadingShipping}
+              >
+                {loadingShipping ? <Loader2 className="size-4 animate-spin" /> : "Calcular"}
+              </Button>
+            </form>
+
+            {shippingRates ? (
+              <div className="space-y-2 pt-1">
+                {shippingRates.map((rate) => (
+                  <div
+                    key={rate.id}
+                    className="flex justify-between items-center text-xs p-2.5 border bg-muted/10"
+                  >
+                    <div>
+                      <p className="font-bold text-foreground">{rate.name}</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        Prazo estimado: {rate.estimated_days} dias úteis
+                      </p>
+                    </div>
+                    <span className="font-bold text-primary">
+                      {rate.price_cents === 0 ? (
+                        <span className="text-success font-bold">Grátis</span>
+                      ) : (
+                        formatMoney(rate.price_cents)
+                      )}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              /* Card Padrão de Prazos SHEIN */
+              <div className="space-y-3 pt-1 text-xs">
+                <div className="flex items-start gap-2.5">
+                  <Check className="size-4 text-success shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold text-foreground">
+                      Frete grátis (pedidos acima de R$ 69,00)
+                    </p>
+                    <p className="text-[10px] text-muted-foreground leading-normal">
+                      Entrega estimada em 12 a 18 dias úteis para a sua localidade.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2.5 pt-1 border-t border-border/40">
+                  <RotateCcw className="size-4 text-primary shrink-0 mt-0.5" />
+                  <p className="text-muted-foreground leading-normal">
+                    {isFoodOrPerishable
+                      ? "Garantia de preparo fresco e seguro. Entrega com controle térmico e higiene rigorosa para consumo imediato."
+                      : "Os itens desta categoria possuem garantia e podem ser devolvidos ou trocados em até 7 dias após o recebimento."}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Selos de Confiança */}
+            <div className="flex flex-wrap gap-x-4 gap-y-1.5 pt-3 border-t border-border/40 text-[10px] text-muted-foreground font-semibold">
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck className="size-3.5 text-success fill-success/10" />
+                Pagamento Seguro
+              </span>
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck className="size-3.5 text-success fill-success/10" />
+                Proteção de Privacidade
+              </span>
+            </div>
+          </Surface>
+
+          {/* Add to cart / Encomendar */}
+          <div className="space-y-3">
+            {(() => {
+              const isBackorder =
+                selectedVariant &&
+                selectedVariant.availableQty <= 0 &&
+                selectedVariant.allowBackorder;
+              const variantHardBlocked =
+                selectedVariant &&
+                selectedVariant.availableQty <= 0 &&
+                !selectedVariant.allowBackorder;
+
+              return (
+                <>
+                  <Button
+                    size="lg"
+                    className={`w-full font-bold text-base uppercase rounded-xl h-13 transition-all duration-200 shadow-xs border border-transparent ${isBackorder ? "bg-foreground text-background" : "bg-primary text-primary-foreground"}`}
+                    onClick={handleAddToCart}
+                    disabled={
+                      Boolean(isAdding) || Boolean(allOutOfStock) || Boolean(variantHardBlocked)
+                    }
+                  >
+                    <ShoppingBag className="size-5 mr-2" aria-hidden />
+                    {isAdding
+                      ? "Adicionando..."
+                      : isBackorder
+                        ? "Encomendar"
+                        : "Adicionar ao carrinho"}
+                  </Button>
+
+                  {isBackorder &&
+                    selectedVariant.backorderLeadTimeDays != null &&
+                    selectedVariant.backorderLeadTimeDays > 0 && (
+                      <p className="text-[11px] text-muted-foreground bg-muted/40 p-2.5 rounded border border-dashed text-center">
+                        🚚 Produto sob encomenda. Prazo adicional estimado:{""}
+                        <strong>{selectedVariant.backorderLeadTimeDays} dias úteis</strong> além do
+                        frete normal.
+                      </p>
+                    )}
+
+                  {isBackorder && !selectedVariant?.backorderLeadTimeDays && (
+                    <p className="text-[11px] text-muted-foreground bg-muted/40 p-2.5 rounded border border-dashed text-center">
+                      🚚 Produto sob encomenda. Consulte-nos para confirmar o prazo.
+                    </p>
+                  )}
+                </>
+              );
+            })()}
+          </div>
+
+          {/* Card"Sobre a Loja" */}
+          <Surface variant="default" padding="sm" className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="size-11 rounded bg-primary/10 flex items-center justify-center font-bold text-primary text-lg overflow-hidden border border-primary/20">
+                {product.brand ? product.brand.substring(0, 2).toUpperCase() : "J"}
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <h3 className="font-bold text-sm text-foreground">{product.brand || "Jah"}</h3>
+                  <Badge className="bg-primary/15 text-primary hover:bg-primary/20 text-[9px] px-1.5 py-0">
+                    Marca Oficial
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-medium mt-1">
+                  {reviewStats.total_reviews > 0 ? (
+                    <span>
+                      ★ {reviewStats.average_rating.toFixed(1)} ({reviewStats.total_reviews}
+                      {""}
+                      avaliações)
+                    </span>
+                  ) : (
+                    <span>Sem avaliações ainda</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <Button
+              size="sm"
+              variant={isFollowingStore ? "secondary" : "outline"}
+              className="text-xs font-bold"
+              onClick={handleToggleFollow}
+            >
+              {isFollowingStore ? "Seguindo" : "+ Seguir"}
+            </Button>
+          </Surface>
+
+          {/* Description */}
+          {product.shortDescription && (
+            <p className="text-sm text-muted-foreground leading-relaxed border-l border-primary/30 pl-3 italic">
+              {product.shortDescription}
+            </p>
+          )}
+          {product.description && (
+            <div className="border-t border-border/60 pt-5 space-y-2">
+              <h2 className="text-sm font-bold text-muted-foreground">Descrição do Produto</h2>
+              <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                {product.description}
+              </p>
+            </div>
+          )}
+
+          {/* Ficha Técnica Dinâmica (Product Type Attributes) */}
+          {product.attributes && Object.keys(product.attributes).length > 0 && (
+            <div className="border-t border-border/60 pt-5 space-y-3">
+              <h2 className="text-sm font-bold text-muted-foreground">Ficha Técnica</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+                {Object.entries(product.attributes).map(([key, value]) => {
+                  // Ignora campos vazios ou booleanos falsos da renderização visual
+                  if (value === null || value === "" || value === false) return null;
+                  return (
+                    <div
+                      key={key}
+                      className="flex flex-col text-sm border-b border-border/40 pb-1.5"
+                    >
+                      <span className="text-muted-foreground capitalize text-[11px] font-bold tracking-wide">
+                        {key}
+                      </span>
+                      <span className="font-medium text-foreground text-sm">
+                        {value === true ? "Sim" : String(value)}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -1036,13 +1205,13 @@ function ProductContent({
           <div className="grid gap-10 md:grid-cols-12">
             {/* Esquerda: Média Geral das Notas */}
             <div className="md:col-span-4 space-y-6 text-left">
-              <h2 className="text-3xl font-semibold font-black uppercase tracking-tight flex items-center gap-2">
+              <h2 className="text-4xl font-zine font-bold uppercase tracking-tight flex items-center gap-2">
                 <MessageCircle className="size-8 text-primary" strokeWidth={3} />
                 Comentários
               </h2>
 
-              <div className="flex items-baseline gap-2 bg-background border border-border shadow-sm inline-flex p-4">
-                <span className="text-5xl font-semibold font-black text-primary">
+              <div className="flex items-baseline gap-2 bg-background border border-border inline-flex p-4">
+                <span className="text-6xl font-zine font-bold text-primary">
                   {reviewStats.average_rating > 0 ? reviewStats.average_rating.toFixed(1) : "-"}
                 </span>
                 <span className="text-xl font-bold">/ 5.0</span>
@@ -1059,53 +1228,76 @@ function ProductContent({
               </div>
 
               <p className="text-sm font-medium text-foreground/80 max-w-xs">
-                Baseado em <strong className="text-foreground">{reviewStats.total_reviews}</strong>{" "}
+                Baseado em <strong className="text-foreground">{reviewStats.total_reviews}</strong>
+                {""}
                 avaliações de clientes. Compartilhe sua experiência de uso abaixo.
               </p>
 
-              {/* Formulário para Inserir Avaliação Real */}
-              <form onSubmit={handleSubmitReview}>
-                <div className="border border-border shadow-sm p-5 space-y-5 bg-background">
-                  <h3 className="font-bold text-lg uppercase font-semibold border-b border-border pb-2">
-                    Escrever uma Avaliação
+              {/* Formulário para Inserir Avaliação Real ou CTA de Login */}
+              {!followStatus || followStatus.following === undefined ? (
+                <div className="border border-border p-5 rounded-2xl bg-card text-center space-y-3 shadow-xs">
+                  <MessageCircle className="size-8 text-primary mx-auto" />
+                  <h3 className="font-bold text-sm text-foreground">
+                    Deseja avaliar este produto?
                   </h3>
-
-                  <div className="space-y-2">
-                    <span className="text-sm font-bold text-foreground">Sua Nota:</span>
-                    <div className="flex gap-2">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button
-                          key={star}
-                          type="button"
-                          onClick={() => setNewRating(star)}
-                          className={`size-8 transition-transform hover:scale-110 ${star <= newRating ? "text-primary fill-poster-red" : "text-foreground/30 hover:text-foreground/60"}`}
-                        >
-                          <Star className="size-8" strokeWidth={star <= newRating ? 2 : 1.5} />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <span className="text-sm font-bold text-foreground">Seu Comentário:</span>
-                    <textarea
-                      placeholder="Conte sua opinião sobre conforto, tamanho e material..."
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      rows={3}
-                      className="w-full text-sm p-3 border border-border focus-visible:outline-none focus-visible:ring-0 focus-visible:border-poster-red bg-white resize-none font-medium placeholder:text-foreground/40"
-                    />
-                  </div>
-
+                  <p className="text-xs text-muted-foreground">
+                    Faça login na sua conta para compartilhar sua avaliação e notas reais com a
+                    comunidade JAH.
+                  </p>
                   <Button
-                    type="submit"
-                    className="w-full font-black text-sm uppercase bg-primary text-primary-foreground rounded-md border border-border cursor-pointer"
-                    disabled={isSubmittingReview}
+                    asChild
+                    size="sm"
+                    className="rounded-xl font-bold bg-primary text-primary-foreground text-xs h-9 px-4"
                   >
-                    {isSubmittingReview ? "Enviando..." : "Publicar Avaliação"}
+                    <Link to="/entrar" search={{ returnUrl: `/produto/${product.slug}` }}>
+                      Entrar para Avaliar
+                    </Link>
                   </Button>
                 </div>
-              </form>
+              ) : (
+                <form onSubmit={handleSubmitReview}>
+                  <div className="border border-border p-5 space-y-5 bg-background rounded-2xl">
+                    <h3 className="font-bold text-base border-b border-border pb-2">
+                      Escrever uma Avaliação
+                    </h3>
+
+                    <div className="space-y-2">
+                      <span className="text-xs font-bold text-foreground">Sua Nota:</span>
+                      <div className="flex gap-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setNewRating(star)}
+                            className={`size-8 transition-transform hover:scale-110 ${star <= newRating ? "text-primary fill-poster-red" : "text-foreground/30 hover:text-foreground/60"}`}
+                          >
+                            <Star className="size-8" strokeWidth={star <= newRating ? 2 : 1.5} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <span className="text-xs font-bold text-foreground">Seu Comentário:</span>
+                      <textarea
+                        placeholder="Conte sua opinião sobre conforto, tamanho e material..."
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        rows={3}
+                        className="w-full text-sm p-3 border border-border rounded-xl focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary bg-background resize-none font-medium placeholder:text-muted-foreground"
+                      />
+                    </div>
+
+                    <Button
+                      type="submit"
+                      className="w-full font-bold text-sm rounded-xl h-11 transition-all duration-200 bg-primary text-primary-foreground shadow-xs cursor-pointer"
+                      disabled={isSubmittingReview}
+                    >
+                      {isSubmittingReview ? "Enviando..." : "Publicar Avaliação"}
+                    </Button>
+                  </div>
+                </form>
+              )}
             </div>
 
             {/* Direita: Lista de Comentários */}
@@ -1122,19 +1314,16 @@ function ProductContent({
                 </div>
               ) : (
                 reviewsList.map((review: any) => (
-                  <div
-                    key={review.id}
-                    className="border border-border shadow-[4px_4px_0px_rgba(0,0,0,1)] bg-background p-5 space-y-3"
-                  >
+                  <div key={review.id} className="border border-border bg-background p-5 space-y-3">
                     <div className="flex items-center justify-between border-b border-border pb-3 mb-2">
                       <div className="flex items-center gap-3">
-                        <div className="size-10 rounded-md bg-secondary border border-border flex items-center justify-center text-foreground font-black text-sm uppercase">
+                        <div className="size-10 rounded-xl bg-secondary border border-border flex items-center justify-center text-foreground font-black text-sm uppercase">
                           {review.userName.substring(0, 2)}
                         </div>
                         <div>
                           <p className="text-base font-bold text-foreground flex items-center gap-2">
                             {review.userName}
-                            <span className="bg-success text-white text-[10px] uppercase font-black tracking-wider px-2 py-0.5 border border-border shadow-sm">
+                            <span className="bg-success text-white text-[10px] uppercase font-black tracking-wider px-2 py-0.5 border border-border ">
                               Verificado
                             </span>
                           </p>
@@ -1170,10 +1359,10 @@ function ProductContent({
 
       {/* ZONA DO BUILDER: Template Híbrido da Página de Produto */}
       {templateTree && templateTree.length > 0 && (
-        <div className="w-full border-t border-border bg-card">
+        <div className="w-full border-t border-border bg-card rounded-2xl overflow-hidden mt-8">
           <ExperienceRenderer nodes={templateTree} transientData={{ product }} />
         </div>
       )}
-    </>
+    </div>
   );
 }

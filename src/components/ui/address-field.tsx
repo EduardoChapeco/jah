@@ -122,11 +122,11 @@ export const AddressField: React.FC<AddressFieldProps> = ({ value, onChange }) =
         </Button>
       </div>
 
-      <div className="border border-border rounded-md overflow-hidden relative">
+      <div className="border border-border rounded-xl overflow-hidden relative">
         <div ref={mapContainer} className="w-full h-[200px]" />
         {!value?.lat && (
           <div className="absolute inset-0 bg-background/50 backdrop-blur-[2px] flex items-center justify-center p-4 text-center z-10 pointer-events-none">
-            <p className="text-sm font-medium text-muted-foreground bg-background p-2 rounded shadow-sm border border-border">
+            <p className="text-sm font-medium text-muted-foreground bg-background p-2 rounded border border-border">
               Digite um endereço e clique em buscar para fixar no mapa.
             </p>
           </div>

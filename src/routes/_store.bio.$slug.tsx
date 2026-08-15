@@ -37,28 +37,30 @@ function BiolinkPage() {
           )}
         </div>
         <div>
-          <h1 className="text-xl font-bold font-display">{bio.title}</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">{bio.title}</h1>
           {bio.description && (
-            <p className="text-sm text-muted-foreground mt-2 whitespace-pre-wrap">{bio.description}</p>
+            <p className="text-sm text-muted-foreground mt-2 whitespace-pre-wrap">
+              {bio.description}
+            </p>
           )}
         </div>
       </div>
 
-      <div className="w-full max-w-md flex flex-col gap-3">
-        {bio.links && Array.isArray(bio.links) ? (
-          bio.links.map((link: any, index: number) => (
-            <Button
-              key={index}
-              asChild
-              variant="outline"
-              className="w-full h-14 font-bold border-2 hover:bg-muted"
-            >
-              <a href={link.url} target="_blank" rel="noopener noreferrer">
-                {link.label}
-              </a>
-            </Button>
-          ))
-        ) : null}
+      <div className="w-full max-w-md flex flex-col gap-4">
+        {bio.links && Array.isArray(bio.links)
+          ? bio.links.map((link: { url: string; label: string }, index: number) => (
+              <Button
+                key={index}
+                asChild
+                variant="outline"
+                className="w-full h-14 font-medium text-base rounded-xl border border-border hover:bg-muted hover:scale-[1.02] transition-transform duration-200"
+              >
+                <a href={link.url} target="_blank" rel="noopener noreferrer">
+                  {link.label}
+                </a>
+              </Button>
+            ))
+          : null}
       </div>
     </main>
   );

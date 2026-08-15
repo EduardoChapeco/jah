@@ -5,6 +5,9 @@
 > telas falsas: no painel abrem um estado "Planejado para a Fase X"; na vitrine
 > mostram estados vazios honestos. Nenhum link quebrado.
 
+> [!IMPORTANT]
+> **CÉREBRO DAS ROTAS E ACESSOS:** Para entender _quem_ pode acessar o que (Customer vs Admin vs Owner) e como as políticas RLS atuam sobre cada rota, consulte a **[Matriz de Acessos](PAGE_ACCESS_MATRIX.md)**. O `ROUTES.md` serve apenas como catálogo de URLs.
+
 ## Convenções
 
 - `:param` (docs) equivale a `$param` (arquivos TanStack).

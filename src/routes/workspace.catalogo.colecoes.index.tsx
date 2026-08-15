@@ -198,7 +198,7 @@ function AdminCollectionsPage() {
                                 <DropdownMenuItem
                                   onClick={() => handleUpdateStatus(col.id, "active")}
                                 >
-                                  <Check className="mr-2 size-3.5 text-emerald-600" />
+                                  <Check className="mr-2 size-3.5 text-success" />
                                   Ativar
                                 </DropdownMenuItem>
                               )}

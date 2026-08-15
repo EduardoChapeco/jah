@@ -190,7 +190,9 @@ export const generateMatchTimeOffer = createServerFn({ method: "POST" })
 
       return { status: "success" as const, data: { offerId: offer.id, expiresAt } };
     } catch (e: unknown) {
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao gerar oferta relâmpago.");
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao gerar oferta relâmpago.",
+      );
     }
   });
 
@@ -346,7 +348,9 @@ export const getCustomerAffinityRecommendations = createServerFn({ method: "GET"
     } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError)
         return { status: "unconfigured" as const, message: "Supabase não configurado." };
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao calcular recomendações.");
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao calcular recomendações.",
+      );
     }
   },
 );

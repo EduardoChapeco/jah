@@ -228,34 +228,197 @@ CashShift ──< Settlement (fechamento consolidado)
   - Durante o checkout, o e-mail e/ou telefone do visitante (guest_email, guest_phone) são salvos na tabela carts na Etapa 1.
 - **Engine (process_abandoned_carts):**
   - Identifica carrinhos com updated_at < now() - 2 horas que possuem itens e cujos usuários não completaram o pedido.
-  - Copia o snapshot dos itens e os dados de contato para a tabela append-only bandoned_carts_log (se ainda não existir).
-  - Status inicial é pending. Pode evoluir para contacted,
-    ecovered ou lost através do painel admin.
+  - Copia o snapshot dos itens e os dados de contato para a tabela append-only abandoned_carts_log (se ainda não existir).
+  - Status inicial é pending. Pode evoluir para contacted, recovered ou lost através do painel admin.
 
 ## 18. Integração de Logística Automatizada (Melhor Envio)
 
 - **Cotação Dinâmica de Frete:**
-  - Caso a integração \melhor_envio\ esteja com status \is_active: true\ e possua credencial configurada (\pi_token\ e \postal_code\ de origem), a plataforma realiza consulta em tempo real à API REST do Melhor Envio (\2/me/shipment/calculate\).
+  - Caso a integração melhor_envio esteja com status is_active: true e possua credencial configurada, a plataforma realiza consulta em tempo real à API.
   - **Higienização de CEPs:** CEPs de origem e destino possuem formatação removida antes da requisição.
-  - **Conversão Monetária:** Os valores retornados em BRL (\custom_price\) são convertidos para centavos inteiros (\price_cents = Math.round(price * 100)\).
-  - **Resiliência:** Em caso de indisponibilidade ou falha externa da API, o sistema não interrompe a operação e recorre graciosa e unicamente às taxas manuais cadastradas no painel (\shipping_rates\).
+  - **Conversão Monetária:** Os valores retornados são convertidos para centavos inteiros.
+  - **Resiliência:** Em caso de indisponibilidade ou falha externa da API, o sistema não interrompe a operação e recorre graciosa e unicamente às taxas manuais cadastradas no painel.
 
 ## 19. Feeds de Produtos XML (Google Merchant & Meta Commerce)
 
 - **Geração de RSS XML Standard:**
-  - Endpoint de acesso público: \GET /api/feed/xml\ (com suporte ao parâmetro \?store=UUID\ ou fallback dinâmico para o tenant principal).
+  - Endpoint de acesso público: GET /api/feed/xml.
   - **Especificações Google Shopping:**
-    - Identificador: \<g:id>\ contendo o SKU da variação ou ID.
-    - Agrupamento: \<g:item_group_id>\ contendo o ID do produto pai.
-    - Preço Padrão e Promocional: Convertidos de \price_cents\ e \compare_at_cents\ para o formato ISO \X.XX BRL\.
-    - Disponibilidade: \in stock\ se estoque líquido (\stock_on_hand - stock_reserved > 0\), senão \out of stock\.
-    - Categorização: Inclui \<g:google_product_category>Apparel & Accessories > Shoes</g:google_product_category>\ e \<g:identifier_exists>false</g:identifier_exists>\ para evitar avisos no Google Merchant Center.
+    - Identificador: <g:id> contendo o SKU da variação ou ID.
+    - Agrupamento: <g:item_group_id> contendo o ID do produto pai.
+    - Preço Padrão e Promocional: Convertidos de price_cents e compare_at_cents para o formato ISO X.XX BRL.
+    - Disponibilidade: in stock se estoque líquido (stock_on_hand - stock_reserved > 0), senão out of stock.
+    - Categorização: Inclui <g:google_product_category>Community & Marketplace Goods</g:google_product_category> e <g:identifier_exists>false</g:identifier_exists> para evitar avisos no Google Merchant Center.
 
 ## 20. Rastreamento e Webhooks de Logística
 
 - **Rastreamento de Pedidos:**
-  - O pedido armazena \ racking_code\, \carrier_name\, \ racking_url\, \shipped_at\ e \delivered_at\.
-  - Links automáticos são gerados para Correios (\https://rastreamento.correios.com.br/...\) ou agregadores de frete (\Melhor Rastreio\).
-- **Webhooks de Logística (\POST /api/webhooks/shipment\):**
-  - Permite a parceiros de entrega notificar automaticamente mudanças de status (\shipped\, \delivered\).
-  - **Idempotência & Auditoria:** Toda notificação é registrada na tabela append-only \shipment_webhook_logs\.
+  - O pedido armazena `tracking_code`, `carrier_name`, `tracking_url`, `shipped_at` e `delivered_at`.
+  - Links automáticos são gerados para Correios (`https://rastreamento.correios.com.br/...`) ou agregadores de frete.
+- **Webhooks de Logística (`POST /api/webhooks/shipment`):**
+  - Permite a parceiros de entrega notificar automaticamente mudanças de status (`shipped`, `delivered`).
+  - **Idempotência & Auditoria:** Toda notificação é registrada na tabela append-only `shipment_webhook_logs`.
+
+## 21. Agendas Orquestradas (Multi-Recurso)
+
+A plataforma suporta negócios (como Técnicos, Clínicas, Locadoras, Estúdios) que não possuem apenas uma "agenda da empresa", mas precisam orquestrar múltiplos eixos de tempo:
+
+- **ScheduleResource**: Representa qualquer entidade agendável (`type ∈ { person, equipment, space }`).
+- **ResourceAvailability**: Regras de disponibilidade recorrente ou exceções de um recurso específico.
+- **Booking / Event**: Um compromisso na agenda. Pode referenciar múltiplos `ScheduleResource` na mesma transação.
+- **Conflito (Race Condition):** A criação de um `Booking` atua como uma transação relacional que adquire um lock nas linhas dos recursos para o intervalo de tempo desejado. O agendamento falha atomicamente se qualquer um dos recursos for reservado milissegundos antes por outra transação.
+
+## 22. Orçamentos e Carrinhos Híbridos (Quote & Hybrid Cart)
+
+Negócios de serviços e eventos frequentemente negociam pacotes que misturam venda, locação e serviço:
+
+- **Quote (Orçamento)**: Entidade que agrupa intenções de compra com validade (`expires_at`).
+- **QuoteItem**: Pode ser:
+  1. `product_variant` (venda de item físico, diminui estoque ao aprovar).
+  2. `service` (prestação de serviço, sem controle de estoque tangível).
+  3. `rental_equipment` (bloqueia disponibilidade na agenda ao aprovar).
+- **Conversão**: Quando o cliente aprova o `Quote`, ele gera atomicamente um `Order` (Pedido) e um `Booking` (Agenda). O preço final do `Order` usa o snapshot imutável definido no `Quote`, independentemente de alterações posteriores no catálogo.
+
+## 23. Afiliação e Comissionamento de Terceiros (Partners/Affiliates)
+
+Para suportar indicações:
+
+- **StoreAffiliate**: Vínculo (partnership) entre uma conta `BusinessProfile` e um `UserProfile` ou outro `BusinessProfile`.
+- **AffiliateLink / ReferralToken**: O parceiro pode gerar um link com um token de rastreio (`?ref=parceiro123`).
+- **Atribuição**: O token é guardado na sessão/cookie do visitante (`store_affiliate_ref`).
+- **CommissionLedger**: Quando o `Order` transiciona para `paid` ou `completed`, o sistema avalia a `CommissionRule` vigente e gera um `CommissionLedgerEntry` (append-only) creditando o parceiro. Esse saldo aparece em um submódulo de "Comissões" (Third-party Commissions) na interface da maquiadora, de onde ela pode gerar uma fatura (`PayoutRequest`) contra a loja principal.
+
+---
+
+## 24. Identidade, Perfis Públicos e Sistema de Handles (@)
+
+### 24.1 Sistema de Handles Globais
+
+- **Normalização**: Minúsculas, apenas caracteres `[a-z0-9_]`, comprimento entre 3 e 30 caracteres.
+- **Unicidade Case-Insensitive**: Nenhum perfil pode colidir com outro (ex.: `@eduardo` e `@Eduardo` são idênticos).
+- **Reserved Handles**: Lista de sistema protegida (`admin`, `jah`, `suporte`, `api`, `auth`, `termos`, `privacidade`, `seguranca`, `loja`, `mural`, `mapa`, `mercado`, `agenda`).
+- **Cooldown & Histórico**: Alteração de handle grava registro em `handle_history`. Existe cooldown de 14 dias entre alterações. O handle antigo redireciona temporariamente por 30 dias para evitar quebra de links antes de ser liberado.
+- **Tipos de Perfil**:
+  - `personal`: Pessoa física com avatar, bio, cidade, posts, moments, histórias, classificados e listas públicas.
+  - `professional`: Profissional autônomo com portfólio, serviços, agenda e avaliações.
+  - `institutional`: Organização/Empresa com logo, cover, horários, catálogo de produtos/serviços, FAQ, eventos e equipe.
+
+---
+
+## 25. Dynamic Listing Engine & Category Schemas
+
+### 25.1 Núcleo de Classificados & Capabilities
+
+- **Tabelas**: `classifieds`, `listing_categories`, `listing_category_versions`, `listing_attributes`.
+- **Esquema Dinâmico por Categoria**:
+  - `sale` / `trade` / `donation`: Desapegos com condição (`new`, `used`, `refurbished`), negociabilidade, entrega/retirada, garantia e nota fiscal.
+  - `vehicle`: Marca, modelo, versão, ano fab/mod, quilometragem, câmbio, combustível, opcionais, aceita troca/financiamento.
+  - `real_estate`: Finalidade (venda, aluguel, temporada), área útil m², quartos, suítes, banheiros, vagas, condomínio, IPTU, comodidades e nível de precisão pública de localização.
+  - `service`: Modalidade (presencial, remoto, domicílio), área de atendimento, duração estimada, disponibilidade e portfólio.
+  - `job` / `job_offer`: Regime (CLT, PJ, estágio), carga horária, faixa salarial e requisitos.
+- **Máquina de Estados de Listing**:
+  `draft` ➔ `under_review` ➔ `published` ➔ `paused` ➔ `reserved` ➔ `negotiating` ➔ `sold` / `rented` / `completed` ➔ `archived`.
+
+---
+
+## 26. Negociações, Deals e Transações P2P
+
+- **Deal Lifecycle**: `listing` ➔ `negotiation` ➔ `deal` ➔ `contract` ➔ `receivables` ➔ `handover` ➔ `termination`.
+- **Deal**: Registra o acordo formal entre vendedor e comprador (valor acordado, entrada, caução, parcelas, data de início e término em caso de locação).
+- **Invariante**: Mutações em deals gravam trilha de auditoria e notificam ambas as partes em tempo real.
+
+---
+
+## 27. Contract Engine Canônico & Assinatura Eletrônica
+
+### 27.1 Modelo de Contratos
+
+- **Entidades**: `ContractTemplate`, `ContractTemplateVersion`, `ClauseLibrary`, `ClauseVersion`, `Contract`, `ContractVersion`, `ContractParty`, `ContractSigner`, `SignatureEnvelope`, `SigningSession`, `SignatureEvidence`, `VerificationPolicy`.
+- **Imutabilidade**: Ao emitir um contrato para assinatura, a versão é congelada (`status = 'sealed'`). Qualquer correção gera nova versão e invalida o envelope anterior com justificativa registrada.
+- **AI Contract Assistant**: Sugere cláusulas, detecta riscos e calcula diferenças estruturadas. A IA nunca altera o documento sem aprovação explícita do usuário.
+- **Níveis de Assinatura Eletrônica**:
+  - `basic`: Aceite eletrônico autenticado com registro de IP, timestamp e consentimento.
+  - `advanced`: Verificação via OTP (E-mail/SMS), autenticação de dois fatores e hash criptográfico do documento.
+  - `qualified`: Assinatura via provedor compatível com certificado digital.
+- **Evidence Bundle**: Manifest criptográfico append-only contendo `document_hash`, `signer_id`, `auth_method`, `timestamps`, `device_session_metadata`, `consent_events` e `signature_digest`.
+- **Verificação Pública (`/verify/document/:code`)**: Exibe autenticidade, status, data de emissão e assinaturas válidas sem expor PII ou conteúdo sigiloso.
+
+---
+
+## 28. Identity Verification Engine & Privacidade LGPD
+
+- **Níveis de Verificação**: `email`, `phone`, `identity_document`, `selfie_liveness`, `external_identity`, `qualified_identity`.
+- **Segurança de Documentos e Biometria**:
+  - Armazenamento em bucket restrito e isolado (`identity-vault`), com criptografia em repouso e acesso exclusivo via URLs assinadas de curta duração (máx. 60s).
+  - Dados sensíveis nunca são exibidos à contraparte. A contraparte visualiza apenas o selo "Identidade Verificada (Nível X)".
+  - Política de Retenção (`retention_policy`): Documentos são expurgados após o prazo legal e verificação concluída.
+
+---
+
+## 29. Cobranças P2P & Receivables
+
+- **Receivables & Installments**: Geração automática de parcelas a partir de deals e locações.
+- **Controle Manual & Comprovantes**: Usuários registram pagamentos com anexação de comprovante, data e forma de pagamento. Parcela vencida altera estado via cron job seguro.
+
+---
+
+## 30. Integration Orchestrator & Secret Vault
+
+- **Secret Vault**: Credenciais e chaves de API nunca retornam ao frontend. São armazenadas criptografadas e referenciadas via `credential_reference`.
+- **BYOK (Bring Your Own Key)**: Suporte a credenciais em nível global (Admin Master), organizacional (Tenant) ou pessoal.
+- **AI Routing Engine**: Roteia chamadas conforme capability configurada (`contract_clause_assistant` ➔ Gemini/OpenRouter, `ocr` ➔ Vision, `maps` ➔ Geocoding), respeitando rate limits e budgets diários/mensais.
+
+---
+
+## 31. Capabilities de Restaurantes (Food) e Serviços Profissionais
+
+- **Modifier Engine (Restaurantes)**: Suporte a grupos de modificadores (Tamanhos, Bordas, Extras, Quantidade Mín/Máx, Preço Delta) validados estritamente no backend.
+- **KDS (Kitchen Display System)**: Superfície operacional para cozinha com estados `new` ➔ `accepted` ➔ `preparing` ➔ `ready` ➔ `completed`.
+- **Mesas & Reservas**: Gestão visual de salão com QR Code nas mesas, pedidos abertos e reservas.
+- **Service Extras & Master Providers**: Alocação de profissionais/mestres com taxas adicionais e orquestração de agenda.
+
+---
+
+## 32. Ciclo de Vida de Conteúdo, State Machine & Content Actions Matrix
+
+### 32.1 State Machine Canônica de Conteúdo
+
+```text
+[ draft ]
+   │
+   ▼
+[ published / active ] ◄──┐
+   │         │            │
+   ├─────────┼────────────┤ (reativar)
+   │         ▼            │
+   │    [ paused ] ───────┘
+   │         │
+   ▼         ▼
+[ reserved ] ──► [ completed / sold / rented ]
+   │                    │
+   ▼                    ▼
+[ archived ] ◄──────────┘
+   │
+   ▼
+[ soft_deleted / hard_deleted ]
+```
+
+### 32.2 Matriz de Autoridade e Ações Contextuais (ContentActionsMenu)
+
+- **Determinação Server-Side**: O backend calcula `isOwner`, `canManage` e `viewerContext` (`owner | admin | visitor | anonymous`) baseado no JWT da sessão e na chave `author_profile_id`.
+- **Ações do Proprietário (`isOwner=true`)**:
+  - `Editar Publicação`
+  - `Pausar / Reativar Anúncio` (altera status e oculta/exibe nas buscas e feeds públicos)
+  - `Marcar como Reservado` (bloqueia novas propostas diretas)
+  - `Marcar como Concluído / Vendido / Alugado` (registra fechamento de negócio)
+  - `Arquivar` (preserva histórico e contratos, remove da vitrine ativa)
+  - `Excluir` (com verificação de dependências: se houver propostas/contratos vinculados, o item é arquivado com segurança)
+- **Ações do Visitante (`isOwner=false`)**:
+  - `Salvar nos Favoritos` (persiste na área pessoal)
+  - `Compartilhar Conteúdo` (Web Share API + ShareModal canônico com links nativos de WhatsApp, Telegram, X, Email e Clipboard API)
+  - `Fazer Proposta / Negociar` (dispara criação estruturada em `deals`)
+  - `Denunciar Publicação` (dispara fila de moderação com log de auditoria)
+
+### 32.3 Diretrizes Visuais Canônicas (Design Ops)
+
+- **Sem Breadcrumbs Administrativos Artificiais**: Páginas públicas sociais, classificados e eventos iniciam de maneira limpa com suas mídias, títulos, badges contextuais e ações prioritárias, sem heros inflados ou trilhas burocráticas no topo.

@@ -10,6 +10,13 @@ export const getCustomerCredits = createServerFn({ method: "GET" }).handler(asyn
 
     if (!user) throw new Error("Não autorizado");
 
+    const { resolveTenantStoreId } = await import("@/lib/tenant.server");
+    const storeId = await resolveTenantStoreId();
+
+    if (!storeId) {
+      return { balance_cents: 0, customer_credit_transactions: [] };
+    }
+
     const { data: credits, error } = await ssrClient
       .from("customer_credits")
       .select(
@@ -19,6 +26,7 @@ export const getCustomerCredits = createServerFn({ method: "GET" }).handler(asyn
       `,
       )
       .eq("customer_id", user.id)
+      .eq("store_id", storeId)
       .maybeSingle();
 
     if (error) throw error;

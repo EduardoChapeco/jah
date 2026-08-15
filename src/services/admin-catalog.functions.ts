@@ -77,7 +77,7 @@ export const createProductType = createServerFn({ method: "POST" })
     z.object({
       name: z.string().min(1).max(100),
       slug: z.string().regex(/^[a-z0-9-]+$/),
-      field_schema: z.array(z.any()), // JSON representation of fields
+      field_schema: z.array(z.unknown()), // JSON representation of fields
     }),
   )
   .handler(async ({ data: input }) => {
@@ -87,7 +87,13 @@ export const createProductType = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] createProductType error:", e);
-      throw new Error(e instanceof Error ? (e instanceof Error ? e.message : String(e)) : "Erro ao criar tipo de produto.");
+      throw new Error(
+        e instanceof Error
+          ? e instanceof Error
+            ? e.message
+            : String(e)
+          : "Erro ao criar tipo de produto.",
+      );
     }
   });
 
@@ -120,7 +126,7 @@ export const updateProductType = createServerFn({ method: "POST" })
       id: z.string().uuid(),
       name: z.string().min(1).max(100),
       slug: z.string().regex(/^[a-z0-9-]+$/),
-      field_schema: z.array(z.any()),
+      field_schema: z.array(z.unknown()),
     }),
   )
   .handler(async ({ data: input }) => {
@@ -130,7 +136,13 @@ export const updateProductType = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] updateProductType error:", e);
-      throw new Error(e instanceof Error ? (e instanceof Error ? e.message : String(e)) : "Erro ao atualizar tipo de produto.");
+      throw new Error(
+        e instanceof Error
+          ? e instanceof Error
+            ? e.message
+            : String(e)
+          : "Erro ao atualizar tipo de produto.",
+      );
     }
   });
 
@@ -246,7 +258,10 @@ export async function _createProduct(input: {
 
   if (error) {
     console.error("[admin-catalog] createProduct RPC error:", error);
-    throw new Error((error instanceof Error ? error.message : String(error)) || "Erro atômico ao criar o produto e matriz.");
+    throw new Error(
+      (error instanceof Error ? error.message : String(error)) ||
+        "Erro atômico ao criar o produto e matriz.",
+    );
   }
 
   return data;
@@ -269,8 +284,8 @@ export const createProduct = createServerFn({ method: "POST" })
       price_cents: z.number().int().min(0),
       compare_at_cents: z.number().int().min(0).optional().nullable(),
       cost_cents: z.number().int().min(0).optional().nullable(),
-      attributes: z.record(z.any()).default({}), // Dynamic fields based on type
-      options: z.any().optional(),
+      attributes: z.record(z.unknown()).default({}), // Dynamic fields based on type
+      options: z.unknown().optional(),
       is_physical: z.boolean().default(true).optional(),
       weight_kg: z.number().min(0).optional().nullable(),
       width_cm: z.number().min(0).optional().nullable(),
@@ -283,7 +298,7 @@ export const createProduct = createServerFn({ method: "POST" })
         .array(
           z.object({
             sku: z.string().min(1),
-            attributes: z.record(z.any()).default({}),
+            attributes: z.record(z.unknown()).default({}),
             price_override_cents: z.number().int().min(0).optional().nullable(),
             stock: z.number().int().min(0).default(0),
             image_url: z.string().optional().nullable(),
@@ -302,7 +317,13 @@ export const createProduct = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] createProduct error:", e);
-      throw new Error(e instanceof Error ? (e instanceof Error ? e.message : String(e)) : "Erro ao criar produto.");
+      throw new Error(
+        e instanceof Error
+          ? e instanceof Error
+            ? e.message
+            : String(e)
+          : "Erro ao criar produto.",
+      );
     }
   });
 
@@ -377,7 +398,13 @@ export const createCategory = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] createCategory error:", e);
-      throw new Error(e instanceof Error ? (e instanceof Error ? e.message : String(e)) : "Erro ao criar categoria.");
+      throw new Error(
+        e instanceof Error
+          ? e instanceof Error
+            ? e.message
+            : String(e)
+          : "Erro ao criar categoria.",
+      );
     }
   });
 
@@ -441,7 +468,13 @@ export const updateCategory = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] updateCategory error:", e);
-      throw new Error(e instanceof Error ? (e instanceof Error ? e.message : String(e)) : "Erro ao atualizar categoria.");
+      throw new Error(
+        e instanceof Error
+          ? e instanceof Error
+            ? e.message
+            : String(e)
+          : "Erro ao atualizar categoria.",
+      );
     }
   });
 
@@ -514,7 +547,13 @@ export const createCollection = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] createCollection error:", e);
-      throw new Error(e instanceof Error ? (e instanceof Error ? e.message : String(e)) : "Erro ao criar coleção.");
+      throw new Error(
+        e instanceof Error
+          ? e instanceof Error
+            ? e.message
+            : String(e)
+          : "Erro ao criar coleção.",
+      );
     }
   });
 
@@ -576,7 +615,13 @@ export const updateCollection = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] updateCollection error:", e);
-      throw new Error(e instanceof Error ? (e instanceof Error ? e.message : String(e)) : "Erro ao atualizar coleção.");
+      throw new Error(
+        e instanceof Error
+          ? e instanceof Error
+            ? e.message
+            : String(e)
+          : "Erro ao atualizar coleção.",
+      );
     }
   });
 
@@ -640,6 +685,7 @@ export async function _updateProduct(input: {
   height_cm?: number | null;
   length_cm?: number | null;
   preparation_time_days?: number | null;
+  preparation_time_minutes?: number | null;
   type_id?: string | null;
   category_ids?: string[];
   options?: any;
@@ -716,22 +762,23 @@ export const updateProduct = createServerFn({ method: "POST" })
       price_cents: z.number().int().min(0).optional(),
       compare_at_cents: z.number().int().min(0).optional().nullable(),
       cost_cents: z.number().int().min(0).optional().nullable(),
-      attributes: z.record(z.any()).optional(),
+      attributes: z.record(z.unknown()).optional(),
       is_physical: z.boolean().optional(),
       weight_kg: z.number().min(0).optional().nullable(),
       width_cm: z.number().min(0).optional().nullable(),
       height_cm: z.number().min(0).optional().nullable(),
       length_cm: z.number().min(0).optional().nullable(),
       preparation_time_days: z.number().int().min(0).optional().nullable(),
+      preparation_time_minutes: z.number().int().min(0).optional().nullable(),
       type_id: z.string().uuid().optional().nullable(),
       category_ids: z.array(z.string().uuid()).optional(),
-      options: z.any().optional(),
+      options: z.unknown().optional(),
       variants: z
         .array(
           z.object({
             id: z.string().uuid().optional(),
             sku: z.string().optional(),
-            attributes: z.record(z.any()).default({}),
+            attributes: z.record(z.unknown()).default({}),
             price_cents: z.number().int().min(0).optional().nullable(),
             price_override_cents: z.number().int().min(0).optional().nullable(),
             stock: z.number().int().min(0).default(0),
@@ -748,7 +795,13 @@ export const updateProduct = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] updateProduct error:", e);
-      throw new Error(e instanceof Error ? (e instanceof Error ? e.message : String(e)) : "Erro ao atualizar produto.");
+      throw new Error(
+        e instanceof Error
+          ? e instanceof Error
+            ? e.message
+            : String(e)
+          : "Erro ao atualizar produto.",
+      );
     }
   });
 
@@ -848,7 +901,7 @@ export const upsertProductVariant = createServerFn({ method: "POST" })
       height_cm: z.number().min(0).optional().nullable(),
       length_cm: z.number().min(0).optional().nullable(),
       display_name: z.string().optional().nullable(),
-      attributes: z.record(z.any()).default({}),
+      attributes: z.record(z.unknown()).default({}),
     }),
   )
   .handler(async ({ data: input }) => {
@@ -858,7 +911,13 @@ export const upsertProductVariant = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] upsertProductVariant error:", e);
-      throw new Error(e instanceof Error ? (e instanceof Error ? e.message : String(e)) : "Erro ao salvar variante.");
+      throw new Error(
+        e instanceof Error
+          ? e instanceof Error
+            ? e.message
+            : String(e)
+          : "Erro ao salvar variante.",
+      );
     }
   });
 export async function _batchUpsertVariantMatrix(input: {
@@ -895,7 +954,10 @@ export async function _batchUpsertVariantMatrix(input: {
 
   if (error) {
     console.error("[admin-catalog] batchUpsertVariantMatrix RPC error:", error);
-    throw new Error((error instanceof Error ? error.message : String(error)) || "Erro atômico ao atualizar matriz.");
+    throw new Error(
+      (error instanceof Error ? error.message : String(error)) ||
+        "Erro atômico ao atualizar matriz.",
+    );
   }
 
   return data;
@@ -931,7 +993,13 @@ export const batchUpsertVariantMatrix = createServerFn({ method: "POST" })
       return await _batchUpsertVariantMatrix(input);
     } catch (e: unknown) {
       console.error("[admin-catalog] batchUpsertVariantMatrix error:", e);
-      throw new Error(e instanceof Error ? (e instanceof Error ? e.message : String(e)) : "Erro ao salvar matriz de variações.");
+      throw new Error(
+        e instanceof Error
+          ? e instanceof Error
+            ? e.message
+            : String(e)
+          : "Erro ao salvar matriz de variações.",
+      );
     }
   });
 
@@ -954,8 +1022,13 @@ export const updateProductMediaMetadata = createServerFn({ method: "POST" })
       if (error) throw error;
       return { status: "success" as const };
     } catch (e: unknown) {
-      console.error("[admin-catalog] updateProductMediaMetadata error:", (e instanceof Error ? e.message : String(e)));
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao atualizar metadados da mídia.");
+      console.error(
+        "[admin-catalog] updateProductMediaMetadata error:",
+        e instanceof Error ? e.message : String(e),
+      );
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao atualizar metadados da mídia.",
+      );
     }
   });
 
@@ -985,7 +1058,10 @@ export const reorderProductMedia = createServerFn({ method: "POST" })
 
       return { status: "success" as const };
     } catch (e: unknown) {
-      console.error("[admin-catalog] reorderProductMedia error:", (e instanceof Error ? e.message : String(e)));
+      console.error(
+        "[admin-catalog] reorderProductMedia error:",
+        e instanceof Error ? e.message : String(e),
+      );
       throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao reordenar mídias.");
     }
   });
@@ -1051,11 +1127,16 @@ export const getOnboardingProgress = createServerFn({ method: "GET" }).handler(a
       data,
     };
   } catch (e: unknown) {
-    if ((e as any).code === "supabase_unconfigured" || (e instanceof Error ? e.message : String(e))?.includes("unconfigured")) {
+    if (
+      (e as any).code === "supabase_unconfigured" ||
+      (e instanceof Error ? e.message : String(e))?.includes("unconfigured")
+    ) {
       return { status: "unconfigured" as const };
     }
     console.error("[admin-catalog] getOnboardingProgress error:", e);
-    throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao carregar progresso de onboarding.");
+    throw new Error(
+      (e instanceof Error ? e.message : String(e)) || "Erro ao carregar progresso de onboarding.",
+    );
   }
 });
 
@@ -1194,7 +1275,10 @@ export const toggleProductCollection = createServerFn({ method: "POST" })
         return await _toggleProductCollection(input);
       } catch (e: unknown) {
         console.error("[admin-catalog] toggleProductCollection error:", e);
-        return { status: "error" as const, message: (e instanceof Error ? e.message : String(e)) || "Erro ao vincular coleção" };
+        return {
+          status: "error" as const,
+          message: (e instanceof Error ? e.message : String(e)) || "Erro ao vincular coleção",
+        };
       }
     },
   );
@@ -1294,7 +1378,13 @@ export const duplicateProduct = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] duplicateProduct error:", e);
-      throw new Error(e instanceof Error ? (e instanceof Error ? e.message : String(e)) : "Erro ao duplicar produto.");
+      throw new Error(
+        e instanceof Error
+          ? e instanceof Error
+            ? e.message
+            : String(e)
+          : "Erro ao duplicar produto.",
+      );
     }
   });
 
@@ -1333,7 +1423,13 @@ export const toggleProductStatus = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] toggleProductStatus error:", e);
-      throw new Error(e instanceof Error ? (e instanceof Error ? e.message : String(e)) : "Erro ao alterar status.");
+      throw new Error(
+        e instanceof Error
+          ? e instanceof Error
+            ? e.message
+            : String(e)
+          : "Erro ao alterar status.",
+      );
     }
   });
 
@@ -1375,7 +1471,13 @@ export const bulkUpdateProductStatus = createServerFn({ method: "POST" })
       return res;
     } catch (e: unknown) {
       console.error("[admin-catalog] bulkUpdateProductStatus error:", e);
-      throw new Error(e instanceof Error ? (e instanceof Error ? e.message : String(e)) : "Erro ao executar ação em lote.");
+      throw new Error(
+        e instanceof Error
+          ? e instanceof Error
+            ? e.message
+            : String(e)
+          : "Erro ao executar ação em lote.",
+      );
     }
   });
 
@@ -1474,36 +1576,6 @@ export const listProductOptionGroups = createServerFn({ method: "GET" })
     }
   });
 
-/** Remove um grupo de opções (CASCADE apaga os valores) */
-export const deleteOptionGroup = createServerFn({ method: "POST" })
-  .validator(z.object({ group_id: z.string().uuid() }))
-  .handler(async ({ data: { group_id } }) => {
-    try {
-      await requireAdmin();
-      const db = getServerClient();
-      const { error } = await db.from("product_options").delete().eq("id", group_id);
-      if (error) throw error;
-      return { success: true };
-    } catch (e: unknown) {
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao remover grupo de opções.");
-    }
-  });
-
-/** Remove um valor de opção */
-export const deleteOptionValue = createServerFn({ method: "POST" })
-  .validator(z.object({ value_id: z.string().uuid() }))
-  .handler(async ({ data: { value_id } }) => {
-    try {
-      await requireAdmin();
-      const db = getServerClient();
-      const { error } = await db.from("product_option_values").delete().eq("id", value_id);
-      if (error) throw error;
-      return { success: true };
-    } catch (e: unknown) {
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao remover opção.");
-    }
-  });
-
 /**
  * Salva toda a matriz de grupos + valores em batch (substitui e reinsere).
  * Estratégia idempotente: remove grupos antigos e reinsere todos de uma vez.
@@ -1581,6 +1653,176 @@ export const batchSaveOptionGroups = createServerFn({ method: "POST" })
       return { success: true };
     } catch (e: unknown) {
       console.error("[admin-catalog] batchSaveOptionGroups error:", e);
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao salvar opções do produto.");
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao salvar opções do produto.",
+      );
+    }
+  });
+
+// ---------------------------------------------------------------------------
+// Option Groups (Library / Global)
+// ---------------------------------------------------------------------------
+
+export const listOptionGroups = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    await requireAdmin();
+    const db = getServerClient();
+    const { getServerIdentity } = await import("@/lib/server-access");
+    const { store_id } = await getServerIdentity();
+
+    const { data, error } = await db
+      .from("option_groups")
+      .select(
+        `
+        id, internal_name, display_name, selection_type,
+        min_selections, max_selections, is_required,
+        created_at, updated_at,
+        values:option_values(
+          id, label, price_modifier_cents, is_default, is_active, sort_order
+        )
+      `,
+      )
+      .eq("store_id", store_id)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    // Sort values inside each group
+    if (data) {
+      data.forEach((group) => {
+        if (group.values) {
+          group.values.sort((a: any, b: any) => a.sort_order - b.sort_order);
+        }
+      });
+    }
+
+    return data || [];
+  } catch (e) {
+    console.error("[admin-catalog] listOptionGroups error:", e);
+    return [];
+  }
+});
+
+export const upsertOptionGroup = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string().uuid().optional(),
+      internal_name: z.string().min(1),
+      display_name: z.string().min(1),
+      selection_type: z.enum(["single", "multiple"]),
+      min_selections: z.number().int().min(0),
+      max_selections: z.number().int().min(1),
+      is_required: z.boolean(),
+      values: z.array(
+        z.object({
+          id: z.string().uuid().optional(),
+          label: z.string().min(1),
+          price_modifier_cents: z.number().int().default(0),
+          is_default: z.boolean().default(false),
+          is_active: z.boolean().default(true),
+          sort_order: z.number().int().default(0),
+        }),
+      ),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    try {
+      await requireAdmin();
+      const db = getServerClient();
+      const { getServerIdentity } = await import("@/lib/server-access");
+      const { store_id } = await getServerIdentity();
+
+      let groupId = input.id;
+
+      const groupPayload = {
+        store_id,
+        internal_name: input.internal_name,
+        display_name: input.display_name,
+        selection_type: input.selection_type,
+        min_selections: input.min_selections,
+        max_selections: input.max_selections,
+        is_required: input.is_required,
+      };
+
+      if (!groupId) {
+        const { data, error } = await db
+          .from("option_groups")
+          .insert(groupPayload)
+          .select("id")
+          .single();
+        if (error) throw error;
+        groupId = data.id;
+      } else {
+        const { error } = await db
+          .from("option_groups")
+          .update(groupPayload)
+          .eq("id", groupId)
+          .eq("store_id", store_id);
+        if (error) throw error;
+      }
+
+      // Sync Values
+      if (input.values && input.values.length > 0) {
+        const valuesToUpsert = input.values.map((v, index) => ({
+          ...(v.id ? { id: v.id } : {}),
+          group_id: groupId,
+          label: v.label,
+          price_modifier_cents: v.price_modifier_cents,
+          is_default: v.is_default,
+          is_active: v.is_active,
+          sort_order: v.sort_order ?? index,
+        }));
+
+        // Remove values that are not in the payload anymore
+        const keepIds = input.values.map((v) => v.id).filter(Boolean) as string[];
+        if (keepIds.length > 0) {
+          await db
+            .from("option_values")
+            .delete()
+            .eq("group_id", groupId)
+            .not("id", "in", `(${keepIds.join(",")})`);
+        } else {
+          await db.from("option_values").delete().eq("group_id", groupId);
+        }
+
+        const { error: upsertErr } = await db
+          .from("option_values")
+          .upsert(valuesToUpsert, { onConflict: "id" });
+        if (upsertErr) throw upsertErr;
+      } else {
+        await db.from("option_values").delete().eq("group_id", groupId);
+      }
+
+      return { success: true };
+    } catch (e: unknown) {
+      console.error("[admin-catalog] upsertOptionGroup error:", e);
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao salvar Option Group.",
+      );
+    }
+  });
+
+export const deleteOptionGroup = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string().uuid() }))
+  .handler(async ({ data: { id } }) => {
+    try {
+      await requireAdmin();
+      const db = getServerClient();
+      const { getServerIdentity } = await import("@/lib/server-access");
+      const { store_id } = await getServerIdentity();
+
+      const { error } = await db
+        .from("option_groups")
+        .delete()
+        .eq("id", id)
+        .eq("store_id", store_id);
+
+      if (error) throw error;
+      return { success: true };
+    } catch (e: unknown) {
+      console.error("[admin-catalog] deleteOptionGroup error:", e);
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao remover Option Group.",
+      );
     }
   });

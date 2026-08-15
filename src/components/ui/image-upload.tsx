@@ -97,7 +97,10 @@ export function ImageUpload({
       onChange(res.publicUrl!);
       toast.success("Imagem enviada com sucesso!");
     } catch (error: unknown) {
-      toast.error((error instanceof Error ? error.message : String(error)) || "Erro ao fazer upload da imagem");
+      toast.error(
+        (error instanceof Error ? error.message : String(error)) ||
+          "Erro ao fazer upload da imagem",
+      );
     } finally {
       setIsUploading(false);
     }
@@ -106,7 +109,7 @@ export function ImageUpload({
   return (
     <div className={cn("flex flex-col gap-4", className)}>
       {value ? (
-        <div className="relative min-h-[100px] max-h-[200px] w-full max-w-sm overflow-hidden border border-border p-3 bg-[linear-gradient(45deg,#e2e8f0_25%,transparent_25%),linear-gradient(-45deg,#e2e8f0_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e2e8f0_75%),linear-gradient(-45deg,transparent_75%,#e2e8f0_75%)] bg-[length:16px_16px] bg-[position:0_0,0_8px,8px_-8px,-8px_0px] bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+        <div className="relative min-h-[100px] max-h-[200px] w-full max-w-sm overflow-hidden border border-border rounded-xl p-3 bg-[linear-gradient(45deg,#e2e8f0_25%,transparent_25%),linear-gradient(-45deg,#e2e8f0_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e2e8f0_75%),linear-gradient(-45deg,transparent_75%,#e2e8f0_75%)] bg-[length:16px_16px] bg-[position:0_0,0_8px,8px_-8px,-8px_0px] bg-muted/30 flex items-center justify-center">
           <img src={value} alt="Upload" className="max-h-36 w-auto max-w-full object-contain" />
           {onRemove && (
             <Button
@@ -123,7 +126,7 @@ export function ImageUpload({
       ) : variant === "minimal" ? (
         <div
           onClick={() => inputRef.current?.click()}
-          className="flex h-full w-full items-center justify-center rounded-md border border-dashed bg-muted/50 hover:bg-muted cursor-pointer transition-colors"
+          className="flex h-full w-full items-center justify-center rounded-xl border border-dashed border-border bg-muted/50 hover:bg-muted cursor-pointer transition-colors"
           title="Clique para enviar imagem"
         >
           {isUploading ? (
@@ -133,8 +136,8 @@ export function ImageUpload({
           )}
         </div>
       ) : (
-        <div className="flex aspect-video w-full max-w-sm flex-col items-center justify-center gap-2 border border-dashed bg-muted/50 p-6 hover:bg-muted">
-          <div className="rounded-full bg-background p-3 shadow-sm">
+        <div className="flex aspect-video w-full max-w-sm flex-col items-center justify-center gap-2 border border-dashed border-border rounded-xl bg-muted/50 p-6 hover:bg-muted">
+          <div className="rounded-full bg-background p-3 ">
             <Upload className="h-5 w-5 text-muted-foreground" />
           </div>
           <div className="text-center">

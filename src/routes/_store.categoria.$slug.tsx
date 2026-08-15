@@ -58,11 +58,7 @@ export const Route = createFileRoute("/_store/categoria/$slug")({
                 name: "Catálogo",
                 item: typeof window !== "undefined" ? `${window.location.origin}/catalogo` : "",
               },
-              {
-                "@type": "ListItem",
-                position: 3,
-                name: categoryName,
-              },
+              { "@type": "ListItem", position: 3, name: categoryName },
             ],
           }),
         },
@@ -98,8 +94,6 @@ function CategoryPage() {
         <ChevronRight className="size-3" aria-hidden />
         <span className="text-foreground">{category?.name ?? slug}</span>
       </nav>
-
-      <PageHeader eyebrow="Categoria" title={category?.name ?? slug} />
 
       <div className="mt-8">
         {products.length === 0 ? (

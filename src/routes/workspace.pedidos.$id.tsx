@@ -31,10 +31,16 @@ import {
   ExternalLink,
   Package,
 } from "lucide-react";
-import { getOrderById, updateOrderStatus, updateOrderShipment, updateOrderShippingQuote } from "@/services/order.functions";
+import {
+  getOrderById,
+  updateOrderStatus,
+  updateOrderShipment,
+  updateOrderShippingQuote,
+} from "@/services/order.functions";
 import { approvePayment, rejectPayment } from "@/services/payment.functions";
 import { PickingWizard } from "@/components/admin/orders/picking-wizard";
 import { RmaRequestWizard } from "@/components/admin/orders/rma-request-wizard";
+import { OrderEditWizard } from "@/components/admin/orders/order-edit-wizard";
 import { formatDate } from "../lib/datetime";
 
 export const Route = createFileRoute("/workspace/pedidos/$id")({
@@ -84,10 +90,11 @@ function AdminOrderDetailPage() {
   const [pickingModalOpen, setPickingModalOpen] = useState(false);
   const [trackingModalOpen, setTrackingModalOpen] = useState(false);
   const [returnModalOpen, setReturnModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const [trackingForm, setTrackingForm] = useState({
-    trackingCode: order.tracking_code || "",
-    carrierName: order.carrier_name || "Transportadora",
-    trackingUrl: order.tracking_url || "",
+    trackingCode: "",
+    carrierName: "Transportadora",
+    trackingUrl: "",
   });
   const [isSavingTracking, setIsSavingTracking] = useState(false);
 
@@ -110,7 +117,9 @@ function AdminOrderDetailPage() {
       setTrackingModalOpen(false);
       router.invalidate();
     } catch (err: unknown) {
-      toast.error((err instanceof Error ? err.message : String(err)) || "Erro ao salvar rastreamento");
+      toast.error(
+        (err instanceof Error ? err.message : String(err)) || "Erro ao salvar rastreamento",
+      );
     } finally {
       setIsSavingTracking(false);
     }
@@ -188,31 +197,44 @@ function AdminOrderDetailPage() {
     <div className="space-y-8">
       <div className="flex justify-between items-start">
         <PageHeader eyebrow="Vendas" title={`Pedido #${order.public_token}`} />
-        <Button
-          variant="outline"
-          onClick={() => window.open(`/admin_/pedidos/${order.id}/recibo`, "_blank")}
-        >
-          <Printer className="mr-2 h-4 w-4" /> Imprimir Recibo
-        </Button>
+        <div className="flex items-center gap-2">
+          {["draft", "awaiting_payment", "paid"].includes(order.status) && (
+            <Button variant="outline" onClick={() => setEditModalOpen(true)}>
+              Editar Pedido
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            onClick={() => window.open(`/workspace/pedidos/${order.id}/recibo`, "_blank")}
+          >
+            <Printer className="mr-2 h-4 w-4" /> Imprimir Recibo
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Items */}
         <div className="md:col-span-2 space-y-6">
-          <div className="border border-border p-6 bg-card text-card-foreground shadow-xs">
+          <div className="border border-border p-6 bg-card text-card-foreground ">
             <h3 className="font-semibold text-lg mb-4 text-foreground">Itens do Pedido</h3>
             <div className="space-y-4">
               {(order.order_items ?? []).map((item: any) => {
                 const options = item.selected_options ? Object.values(item.selected_options) : [];
+                const isBackorderItem = item.metadata?.is_backorder === true;
                 return (
                   <div
                     key={item.id}
                     className="flex justify-between items-start border-b border-border pb-4 last:border-0 last:pb-0"
                   >
                     <div>
-                      <p className="font-medium text-foreground">
+                      <p className="font-medium text-foreground flex items-center gap-2 flex-wrap">
                         <span className="text-primary font-bold mr-1">{item.qty}x</span>
                         {item.product_title}
+                        {isBackorderItem && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 bg-warning/15 text-warning border border-warning/30 rounded-md">
+                            ⏱ Encomenda
+                          </span>
+                        )}
                       </p>
                       <p className="text-xs text-muted-foreground font-mono mt-0.5">
                         SKU: {item.variant_sku}
@@ -246,7 +268,7 @@ function AdminOrderDetailPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Summary */}
-          <div className="border border-border p-6 bg-card text-card-foreground shadow-xs">
+          <div className="border border-border p-6 bg-card text-card-foreground ">
             <h3 className="font-semibold text-lg mb-4 text-foreground">Resumo</h3>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
@@ -265,27 +287,30 @@ function AdminOrderDetailPage() {
           </div>
 
           {/* Status & Actions */}
-          <div className="border border-border p-6 bg-card text-card-foreground shadow-xs">
+          <div className="border border-border p-6 bg-card text-card-foreground ">
             <h3 className="font-semibold text-lg mb-4 text-foreground">Status</h3>
             <Badge
               variant={getStatusLabel(order.status).variant}
-              className="text-[11px] uppercase tracking-wider py-1 mb-4 flex justify-center"
+              className="text-[11px] py-1 mb-4 flex justify-center"
             >
               {getStatusLabel(order.status).label}
             </Badge>
 
             {order.status === "awaiting_shipping_quote" && (
-              <div className="space-y-4 mb-4 p-4 border border-warning/50 bg-warning/10 rounded-md">
+              <div className="space-y-4 mb-4 p-4 border border-warning/50 bg-warning/10 rounded-xl">
                 <h4 className="font-semibold text-warning-foreground text-sm flex items-center gap-2">
                   <AlertTriangle className="size-4" />
                   Cotação de Frete Pendente
                 </h4>
                 <p className="text-xs text-muted-foreground">
-                  O cliente solicitou uma cotação de frete personalizada. Informe o valor do frete para liberar o pagamento.
+                  O cliente solicitou uma cotação de frete personalizada. Informe o valor do frete
+                  para liberar o pagamento.
                 </p>
                 <form onSubmit={handleSaveQuote} className="flex gap-2">
                   <div className="relative flex-1">
-                    <span className="absolute left-3 top-2.5 text-muted-foreground text-sm">R$</span>
+                    <span className="absolute left-3 top-2.5 text-muted-foreground text-sm">
+                      R$
+                    </span>
                     <input
                       type="number"
                       step="0.01"
@@ -294,7 +319,7 @@ function AdminOrderDetailPage() {
                       placeholder="0,00"
                       value={shippingQuoteCents}
                       onChange={(e) => setShippingQuoteCents(e.target.value)}
-                      className="w-full rounded-md border px-3 py-2 pl-8 text-sm"
+                      className="w-full rounded-xl border px-3 py-2 pl-8 text-sm"
                     />
                   </div>
                   <Button type="submit" disabled={isSavingQuote}>
@@ -437,95 +462,114 @@ function AdminOrderDetailPage() {
                 </span>
                 <Sheet open={trackingModalOpen} onOpenChange={setTrackingModalOpen}>
                   <SheetTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      {order.tracking_code ? "Editar Rastreio" : "Cadastrar Rastreio"}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setTrackingForm({
+                          trackingCode: "",
+                          carrierName: "Transportadora",
+                          trackingUrl: "",
+                        })
+                      }
+                    >
+                      Novo Envio (Pacote)
                     </Button>
                   </SheetTrigger>
                   <SheetContent>
                     <SheetHeader>
-                      <SheetTitle>Informações de Envio / Rastreio</SheetTitle>
+                      <SheetTitle>Informar Código de Rastreio</SheetTitle>
+                      <SheetDescription>
+                        Insira os dados da transportadora para enviar ao cliente.
+                      </SheetDescription>
                     </SheetHeader>
-                    <form onSubmit={handleSaveTracking} className="space-y-4 pt-2">
-                      <div className="space-y-1.5">
+                    <form onSubmit={handleSaveTracking} className="space-y-4 py-4">
+                      <div className="space-y-2">
                         <label className="text-sm font-medium">Transportadora</label>
                         <input
                           type="text"
-                          className="w-full rounded-md border px-3 py-2 text-sm"
-                          placeholder="Ex: Correios, Jadlog, Loggi"
+                          required
                           value={trackingForm.carrierName}
                           onChange={(e) =>
-                            setTrackingForm({ ...trackingForm, carrierName: e.target.value })
+                            setTrackingForm((p) => ({ ...p, carrierName: e.target.value }))
                           }
+                          className="w-full rounded-xl border px-3 py-2 text-sm"
                         />
                       </div>
-                      <div className="space-y-1.5">
-                        <label className="text-sm font-medium">Código de Rastreamento</label>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Código de Rastreio</label>
                         <input
                           type="text"
                           required
-                          className="w-full rounded-md border px-3 py-2 text-sm"
-                          placeholder="Ex: AA123456789BR"
+                          placeholder="Ex: BR123456789BR"
                           value={trackingForm.trackingCode}
                           onChange={(e) =>
-                            setTrackingForm({ ...trackingForm, trackingCode: e.target.value })
+                            setTrackingForm((p) => ({ ...p, trackingCode: e.target.value }))
                           }
+                          className="w-full rounded-xl border px-3 py-2 text-sm"
                         />
                       </div>
-                      <div className="space-y-1.5">
+                      <div className="space-y-2">
                         <label className="text-sm font-medium">Link de Rastreio (Opcional)</label>
                         <input
                           type="url"
-                          className="w-full rounded-md border px-3 py-2 text-sm"
-                          placeholder="Deixe em branco para gerar link automático"
+                          placeholder="https://..."
                           value={trackingForm.trackingUrl}
                           onChange={(e) =>
-                            setTrackingForm({ ...trackingForm, trackingUrl: e.target.value })
+                            setTrackingForm((p) => ({ ...p, trackingUrl: e.target.value }))
                           }
+                          className="w-full rounded-xl border px-3 py-2 text-sm"
                         />
                       </div>
-                      <div className="flex justify-end gap-2 pt-4 mt-8 border-t">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setTrackingModalOpen(false)}
-                        >
-                          Cancelar
-                        </Button>
-                        <Button type="submit" disabled={isSavingTracking}>
-                          {isSavingTracking ? "Salvando..." : "Salvar Rastreio"}
-                        </Button>
-                      </div>
+                      <Button type="submit" className="w-full" disabled={isSavingTracking}>
+                        {isSavingTracking ? "Salvando..." : "Confirmar Envio"}
+                      </Button>
                     </form>
                   </SheetContent>
                 </Sheet>
               </div>
 
-              {order.tracking_code ? (
-                <div className="p-3 bg-muted/40 text-xs space-y-1.5">
-                  <div className="flex justify-between items-center font-medium">
-                    <span>{order.carrier_name || "Transportadora"}</span>
-                    <Badge variant="outline">{order.tracking_code}</Badge>
-                  </div>
-                  {order.tracking_url && (
-                    <a
-                      href={order.tracking_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline flex items-center gap-1 font-semibold pt-1"
-                    >
-                      Acompanhar Rastreio Externo <ExternalLink className="h-3 w-3" />
-                    </a>
-                  )}
+              {order.shipments && order.shipments.length > 0 ? (
+                <div className="space-y-2">
+                  {order.shipments.map((shipment: any) => (
+                    <div key={shipment.id} className="text-sm p-3 border rounded bg-muted/20">
+                      <p className="font-semibold">{shipment.carrier_name}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="font-mono text-muted-foreground">
+                          {shipment.tracking_code}
+                        </span>
+                        {shipment.tracking_url && (
+                          <a
+                            href={shipment.tracking_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-primary hover:underline flex items-center gap-1"
+                          >
+                            <ExternalLink className="h-3 w-3" /> Acompanhar
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : (
-                <p className="text-xs text-muted-foreground">
-                  Nenhum código de rastreamento cadastrado para este envio.
-                </p>
+                <p className="text-sm text-muted-foreground">Nenhum pacote enviado ainda.</p>
               )}
             </div>
           </div>
         </div>
       </div>
+
+      {editModalOpen && (
+        <OrderEditWizard
+          order={order}
+          isOpen={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          onComplete={async () => {
+            await router.invalidate();
+          }}
+        />
+      )}
 
       <PickingWizard
         order={order}

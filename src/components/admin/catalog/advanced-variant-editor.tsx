@@ -134,7 +134,7 @@ export function AdvancedVariantEditor({
           <div className="space-y-2">
             <Label>Status da Variação</Label>
             <select
-              className="flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-9 w-full items-center justify-between whitespace-nowrap rounded-xl border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
               value={formData.status || "active"}
               onChange={(e) => handleChange("status", e.target.value)}
             >
@@ -144,7 +144,7 @@ export function AdvancedVariantEditor({
           </div>
           <div className="col-span-2 border-t pt-4 mt-2">
             <h4 className="text-sm font-medium mb-3">Venda Sob Encomenda (Backorders)</h4>
-            <div className="space-y-4 bg-muted/30 p-4 rounded-md">
+            <div className="space-y-4 bg-muted/30 p-4 rounded-xl">
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="allow_backorder"
@@ -175,7 +175,7 @@ export function AdvancedVariantEditor({
                   <div className="space-y-2">
                     <Label>Reserva sem pagamento?</Label>
                     <select
-                      className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                      className="flex h-9 w-full items-center justify-between rounded-xl border border-input bg-transparent px-3 py-1 text-sm "
                       value={formData.requires_payment_for_backorder === false ? "false" : "true"}
                       onChange={(e) =>
                         handleChange("requires_payment_for_backorder", e.target.value === "true")

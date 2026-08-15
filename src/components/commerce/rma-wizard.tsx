@@ -173,7 +173,7 @@ export function RmaWizard({
 
             <div className="space-y-3">
               <Label>Quais itens deseja incluir?</Label>
-              <div className="space-y-2 border rounded-md p-2 max-h-[300px] overflow-y-auto">
+              <div className="space-y-2 border rounded-xl p-2 max-h-[300px] overflow-y-auto">
                 {items.map((item) => {
                   const state = selectedItems[item.id] || {
                     selected: false,
@@ -260,7 +260,7 @@ export function RmaWizard({
                             <p className="text-xs text-muted-foreground">Fazendo upload...</p>
                           )}
                           {state.photos && state.photos.length > 0 && (
-                            <p className="text-xs text-green-600">
+                            <p className="text-xs text-success">
                               {state.photos.length} foto(s) anexada(s).
                             </p>
                           )}

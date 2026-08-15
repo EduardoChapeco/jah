@@ -1,15 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { randomBytes } from "node:crypto";
 import { getServerClient } from "@/lib/supabase";
 import { getSSRClient } from "@/lib/server-access";
 import { getServerIdentity, assertStoreAccess } from "@/lib/server-access";
 
-// Generate a random 12-char code like ABCD-1234-WXYZ using cryptographically secure randomness
+// Generate a random 12-char code like ABCD-1234-WXYZ using standard Web Crypto
 // Exclude ambiguous characters (I, O, 0, 1) to prevent user typing mistakes
 function generateGiftCardCode() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  const bytes = randomBytes(12);
+  const bytes = new Uint8Array(12);
+  crypto.getRandomValues(bytes);
   let code = "";
   for (let i = 0; i < 12; i++) {
     if (i > 0 && i % 4 === 0) code += "-";
@@ -145,16 +145,18 @@ export const claimGiftCard = createServerFn({ method: "POST" })
     if (!user) throw new Error("Você precisa estar logado para resgatar um vale-presente.");
 
     const { resolveTenantStoreId } = await import("@/lib/tenant.server");
-    const storeId = await resolveTenantStoreId();
-    if (!storeId) throw new Error("Loja não identificada.");
+    const storeId = await resolveTenantStoreId().catch(() => null);
 
-    const { data: card, error: findError } = await supabase
+    let query = supabase
       .from("gift_cards")
       .select("id, purchaser_id, status, balance_cents")
-      .eq("code", code)
-      .eq("store_id", storeId)
-      .limit(1)
-      .maybeSingle();
+      .eq("code", code);
+
+    if (storeId) {
+      query = query.eq("store_id", storeId);
+    }
+
+    const { data: card, error: findError } = await query.limit(1).maybeSingle();
 
     if (findError || !card) throw new Error("Vale-presente inválido ou não encontrado.");
     if (card.status !== "active")
@@ -172,30 +174,36 @@ export const claimGiftCard = createServerFn({ method: "POST" })
   });
 
 export const listCustomerGiftCards = createServerFn({ method: "GET" }).handler(async () => {
-  const ssrClient = await getSSRClient();
-  const {
-    data: { user },
-  } = await ssrClient.auth.getUser();
-  if (!user) throw new Error("Não autorizado");
+  try {
+    const ssrClient = await getSSRClient();
+    const {
+      data: { user },
+    } = await ssrClient.auth.getUser().catch(() => ({ data: { user: null } }));
+    if (!user) return [];
 
-  const { resolveTenantStoreId } = await import("@/lib/tenant.server");
-  const storeId = await resolveTenantStoreId();
-  if (!storeId) throw new Error("Loja não identificada.");
+    const { resolveTenantStoreId } = await import("@/lib/tenant.server");
+    const storeId = await resolveTenantStoreId().catch(() => null);
 
-  const supabase = getServerClient();
-  const { data: cards, error } = await supabase
-    .from("gift_cards")
-    .select(
-      "id, code, initial_balance_cents, balance_cents, status, expires_at, created_at",
-    )
-    .eq("purchaser_id", user.id)
-    .eq("store_id", storeId)
-    .order("created_at", { ascending: false });
+    const supabase = getServerClient();
+    let query = supabase
+      .from("gift_cards")
+      .select("id, code, initial_balance_cents, balance_cents, status, expires_at, created_at")
+      .eq("purchaser_id", user.id);
 
-  if (error) {
-    console.error("[giftcard.functions] listCustomerGiftCards error:", error);
-    throw new Error("Erro ao listar cartões presente.");
+    if (storeId) {
+      query = query.eq("store_id", storeId);
+    }
+
+    const { data: cards, error } = await query.order("created_at", { ascending: false });
+
+    if (error) {
+      console.warn("[giftcard.functions] listCustomerGiftCards warning:", error);
+      return [];
+    }
+
+    return cards || [];
+  } catch (err) {
+    console.warn("[giftcard.functions] listCustomerGiftCards error:", err);
+    return [];
   }
-
-  return cards || [];
 });

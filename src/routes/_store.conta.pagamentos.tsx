@@ -1,4 +1,7 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   Receipt,
   FileText,
@@ -7,6 +10,9 @@ import {
   CheckCircle2,
   Clock,
   AlertCircle,
+  Handshake,
+  UploadCloud,
+  Loader2,
 } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
@@ -20,21 +26,33 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { EmptyState } from "@/components/state/states";
 import { getCustomerInstallments } from "@/services/installments.functions";
 import { getCustomerOrderPayments } from "@/services/payment.functions";
+import { listUserReceivables, registerInstallmentPayment } from "@/services/receivables.functions";
 import { formatMoney } from "@/lib/money";
 import { Surface } from "@/components/ui/surface";
 import { formatDate } from "../lib/datetime";
 
 export const Route = createFileRoute("/_store/conta/pagamentos")({
-  head: () => ({ meta: [{ title: "Central de Pagamentos" }] }),
+  head: () => ({ meta: [{ title: "Central de Pagamentos & Parcelas" }] }),
   loader: async () => {
-    const [plans, orders] = await Promise.all([
+    const [plans, orders, receivables] = await Promise.all([
       getCustomerInstallments().catch(() => []),
       getCustomerOrderPayments().catch(() => []),
+      listUserReceivables().catch(() => []),
     ]);
-    return { plans, orders };
+    return { plans, orders, receivables };
   },
   component: CustomerInstallmentsPage,
 });
@@ -72,21 +90,59 @@ function translatePaymentMethod(method?: string) {
 }
 
 function CustomerInstallmentsPage() {
-  const { plans, orders } = Route.useLoaderData();
+  const { plans, orders, receivables } = Route.useLoaderData();
+  const queryClient = useQueryClient();
 
-  if (plans.length === 0 && orders.length === 0) {
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [selectedInstallment, setSelectedInstallment] = useState<any>(null);
+  const [paymentProofUrl, setPaymentProofUrl] = useState("");
+  const [notes, setNotes] = useState("");
+
+  const payInstallmentMutation = useMutation({
+    mutationFn: registerInstallmentPayment,
+    onSuccess: () => {
+      toast.success("Pagamento da parcela registrado com sucesso!");
+      setPaymentModalOpen(false);
+      setSelectedInstallment(null);
+      setPaymentProofUrl("");
+      setNotes("");
+      window.location.reload();
+    },
+    onError: (err: any) => {
+      toast.error(err?.message || "Erro ao registrar quitação da parcela.");
+    },
+  });
+
+  const handleOpenPay = (inst: any) => {
+    setSelectedInstallment(inst);
+    setPaymentModalOpen(true);
+  };
+
+  const handleConfirmPay = () => {
+    if (!selectedInstallment) return;
+    payInstallmentMutation.mutate({
+      data: {
+        installmentId: selectedInstallment.id,
+        paymentMethod: "PIX",
+        paymentProofUrl: paymentProofUrl.trim() || undefined,
+        notes: notes.trim() || undefined,
+      },
+    });
+  };
+
+  const hasAnyData =
+    plans.length > 0 || orders.length > 0 || (receivables && receivables.length > 0);
+
+  if (!hasAnyData) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Central de Pagamentos" />
-        <EmptyState title="Nenhum histórico de pagamento" />
+        <EmptyState title="Nenhum histórico de pagamento ou cobrança" />
       </div>
     );
   }
 
   return (
     <div className="space-y-10">
-      <PageHeader title="Central de Pagamentos" />
-
       {/* Seção 1: Pagamentos de Pedidos */}
       {orders.length > 0 && (
         <section className="space-y-4">
@@ -163,7 +219,120 @@ function CustomerInstallmentsPage() {
         </section>
       )}
 
-      {/* Seção 2: Carnês e Crediário */}
+      {/* Seção 2: Recebíveis e Parcelas P2P */}
+      {receivables && receivables.length > 0 && (
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-xl font-semibold tracking-tight flex items-center gap-2">
+              <Handshake className="h-5 w-5 text-primary" />
+              Recebíveis & Parcelas de Negociações (P2P)
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Acompanhe as parcelas de vendas parceladas, contratos e acordos entre membros.
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            {receivables.map((rec: any) => (
+              <Surface variant="default" padding="none" key={rec.id}>
+                <div className="flex flex-row items-center justify-between p-6 bg-muted/30 border-b border-border/20">
+                  <div>
+                    <h3 className="text-lg flex items-center font-bold">
+                      <FileText className="mr-2 h-5 w-5 text-primary" />
+                      {rec.title || "Acordo P2P"}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Total:{" "}
+                      <strong className="text-foreground">
+                        {formatMoney(rec.total_amount_cents)}
+                      </strong>{" "}
+                      • {rec.total_installments} parcelas
+                    </p>
+                  </div>
+                  <Badge
+                    variant={
+                      rec.status === "settled"
+                        ? "default"
+                        : rec.status === "defaulted"
+                          ? "destructive"
+                          : "outline"
+                    }
+                    className="uppercase text-[10px]"
+                  >
+                    {rec.status === "settled"
+                      ? "Quitado"
+                      : rec.status === "active"
+                        ? "Em Aberto"
+                        : rec.status}
+                  </Badge>
+                </div>
+
+                <div className="p-6">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Parcela</TableHead>
+                        <TableHead>Vencimento</TableHead>
+                        <TableHead>Valor</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Data de Pagamento</TableHead>
+                        <TableHead className="text-right">Ação</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {(rec.installments || []).map((inst: any) => {
+                        const isLate =
+                          inst.status === "pending" && new Date(inst.due_date) < new Date();
+                        const isPaid = inst.status === "paid";
+
+                        return (
+                          <TableRow key={inst.id}>
+                            <TableCell className="font-medium">
+                              {inst.installment_number}ª Parcela
+                            </TableCell>
+                            <TableCell>{formatDate(inst.due_date)}</TableCell>
+                            <TableCell className="font-semibold font-mono">
+                              {formatMoney(inst.amount_cents)}
+                            </TableCell>
+                            <TableCell>
+                              {isPaid ? (
+                                <Badge variant="default" className="bg-emerald-600">
+                                  Paga
+                                </Badge>
+                              ) : isLate ? (
+                                <Badge variant="destructive">Em Atraso</Badge>
+                              ) : (
+                                <Badge variant="secondary">Pendente</Badge>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-muted-foreground text-xs">
+                              {inst.paid_at ? formatDate(inst.paid_at) : "—"}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {!isPaid && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleOpenPay(inst)}
+                                  className="h-8 text-xs font-semibold rounded-xl"
+                                >
+                                  Quitar Parcela
+                                </Button>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </Surface>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Seção 3: Carnês e Crediário */}
       {plans.length > 0 && (
         <section className="space-y-4">
           <div>
@@ -247,6 +416,79 @@ function CustomerInstallmentsPage() {
             ))}
           </div>
         </section>
+      )}
+
+      {/* Modal de Quitação de Parcela */}
+      {selectedInstallment && (
+        <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
+          <DialogContent className="max-w-md rounded-2xl p-6">
+            <DialogHeader className="space-y-1">
+              <DialogTitle className="text-base font-bold text-foreground">
+                Quitar {selectedInstallment.installment_number}ª Parcela
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground">
+                Valor:{" "}
+                <strong className="text-foreground">
+                  {formatMoney(selectedInstallment.amount_cents)}
+                </strong>{" "}
+                • Vencimento: {formatDate(selectedInstallment.due_date)}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-2 text-xs">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">
+                  Link do Comprovante de Pagamento (opcional)
+                </Label>
+                <Input
+                  value={paymentProofUrl}
+                  onChange={(e) => setPaymentProofUrl(e.target.value)}
+                  placeholder="https://..."
+                  className="h-10 rounded-xl text-xs bg-background"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">Observações / Código da Transação</Label>
+                <Textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Ex: Pago via PIX pelo banco Nubank às 14:30"
+                  rows={3}
+                  className="rounded-xl text-xs bg-background resize-none"
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setPaymentModalOpen(false)}
+                  className="rounded-xl text-xs"
+                >
+                  Cancelar
+                </Button>
+
+                <Button
+                  type="button"
+                  onClick={handleConfirmPay}
+                  disabled={payInstallmentMutation.isPending}
+                  className="rounded-xl text-xs font-bold gap-1.5 bg-primary text-primary-foreground"
+                >
+                  {payInstallmentMutation.isPending ? (
+                    <>
+                      <Loader2 className="size-3.5 animate-spin" />
+                      <span>Registrando...</span>
+                    </>
+                  ) : (
+                    <span>Confirmar Pagamento</span>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );

@@ -1,33 +1,21 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
+import { Plus, MoreHorizontal, Edit, Trash2, Search } from "lucide-react";
+import { useState, useMemo } from "react";
+import { useForm, useFieldArray } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { toast } from "sonner";
-import {
-  Plus,
-  Trash2,
-  Settings2,
-  Sparkles,
-  Layers,
-  CheckCircle2,
-  Tag,
-  Palette,
-  Ruler,
-  SlidersHorizontal,
-} from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from "@/components/ui/card";
-import { EmptyState } from "@/components/state/states";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   Sheet,
   SheetContent,
@@ -35,403 +23,435 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
 import { Surface } from "@/components/ui/surface";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { EmptyState } from "@/components/state/states";
 import {
-  listProductTypes,
-  createProductType,
-  updateProductType,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  listOptionGroups,
+  upsertOptionGroup,
+  deleteOptionGroup,
 } from "@/services/admin-catalog.functions";
 
-export const Route = createFileRoute("/workspace/catalogo/atributos")({
-  head: () => ({ meta: [{ title: "Grupos de Opções & Atributos" }] }),
-  loader: async () => {
-    return await listProductTypes();
-  },
-  component: AtributosPage,
+const optionValueSchema = z.object({
+  id: z.string().uuid().optional(),
+  label: z.string().min(1, "Obrigatório"),
+  price_modifier_cents: z.number().int().default(0),
+  is_default: z.boolean().default(false),
+  is_active: z.boolean().default(true),
 });
 
-const PRESET_OPTION_GROUPS = [
-  {
-    id: "sizes-fem",
-    title: "Tamanhos Femininos (Calçados)",
-    icon: Ruler,
-    options: ["34", "35", "36", "37", "38", "39"],
-    category: "Calçados",
-  },
-  {
-    id: "sizes-masc",
-    title: "Tamanhos Masculinos (Calçados)",
-    icon: Ruler,
-    options: ["37", "38", "39", "40", "41", "42", "43", "44"],
-    category: "Calçados",
-  },
-  {
-    id: "colors-basic",
-    title: "Cores Neutras e Básicas",
-    icon: Palette,
-    options: ["Preto", "Branco", "Nude", "Bege", "Caramelo", "Rosa"],
-    category: "Geral",
-  },
-  {
-    id: "sizes-clothing",
-    title: "Tamanhos de Vestuário",
-    icon: Tag,
-    options: ["PP", "P", "M", "G", "GG", "XG"],
-    category: "Vestuário",
-  },
-  {
-    id: "materials-footwear",
-    title: "Materiais Principais",
-    icon: Layers,
-    options: ["Couro Legítimo", "Sintético Premium", "Camurça", "Lona", "Verniz", "Nylon"],
-    category: "Calçados & Bolsas",
-  },
-  {
-    id: "voltage-electronics",
-    title: "Voltagem Elétrica",
-    icon: SlidersHorizontal,
-    options: ["110V", "220V", "Bivolt"],
-    category: "Eletrônicos",
-  },
-];
+const formSchema = z.object({
+  id: z.string().uuid().optional(),
+  internal_name: z.string().min(1, "Nome interno é obrigatório"),
+  display_name: z.string().min(1, "Nome de exibição é obrigatório"),
+  selection_type: z.enum(["single", "multiple"]),
+  min_selections: z.number().int().min(0),
+  max_selections: z.number().int().min(1),
+  is_required: z.boolean(),
+  values: z.array(optionValueSchema),
+});
 
-function AtributosPage() {
-  const types = Route.useLoaderData() as any[];
+type FormValues = z.infer<typeof formSchema>;
+
+export const Route = createFileRoute("/workspace/catalogo/atributos")({
+  head: () => ({ meta: [{ title: "Adicionais e Opções" }] }),
+  loader: async () => {
+    const res = await listOptionGroups();
+    return res || [];
+  },
+  component: OptionGroupsPage,
+});
+
+function OptionGroupsPage() {
+  const groups = Route.useLoaderData();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // New Custom Group Form State
-  const [groupName, setGroupName] = useState("");
-  const [groupSlug, setGroupSlug] = useState("");
-  const [optionInput, setOptionInput] = useState("");
-  const [optionsList, setOptionsList] = useState<string[]>([]);
+  const filteredGroups = useMemo(() => {
+    return groups.filter(
+      (g: any) =>
+        g.internal_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        g.display_name.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
+  }, [groups, searchQuery]);
 
-  const handleAddOption = () => {
-    if (!optionInput.trim()) return;
-    if (optionsList.includes(optionInput.trim())) {
-      toast.error("Esta opção já foi adicionada.");
-      return;
-    }
-    setOptionsList([...optionsList, optionInput.trim()]);
-    setOptionInput("");
+  const form = useForm<FormValues>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(formSchema) as any,
+    defaultValues: {
+      internal_name: "",
+      display_name: "",
+      selection_type: "multiple",
+      min_selections: 0,
+      max_selections: 1,
+      is_required: false,
+      values: [],
+    },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "values",
+  });
+
+  const handleEdit = (group: any) => {
+    form.reset({
+      id: group.id,
+      internal_name: group.internal_name,
+      display_name: group.display_name,
+      selection_type: group.selection_type,
+      min_selections: group.min_selections,
+      max_selections: group.max_selections,
+      is_required: group.is_required,
+      values: group.values || [],
+    });
+    setOpen(true);
   };
 
-  const handleRemoveOption = (opt: string) => {
-    setOptionsList(optionsList.filter((o) => o !== opt));
-  };
-
-  const handleImportPreset = async (preset: (typeof PRESET_OPTION_GROUPS)[0]) => {
-    setIsSaving(true);
+  const handleDelete = async (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir este grupo?")) return;
     try {
-      const slug = preset.title
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9]+/g, "-");
-
-      await createProductType({
-        data: {
-          name: preset.title,
-          slug,
-          field_schema: [
-            {
-              name: preset.title,
-              kind: "option_group",
-              required: true,
-              options: preset.options,
-            },
-          ],
-        },
-      });
-
-      toast.success(`Grupo "${preset.title}" importado com sucesso!`);
+      await deleteOptionGroup({ data: { id } });
+      toast.success("Grupo excluído");
       router.invalidate();
-    } catch (e: unknown) {
-      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao importar preset.");
-    } finally {
-      setIsSaving(false);
+    } catch (e: any) {
+      toast.error(e.message);
     }
   };
 
-  const handleSubmitCustom = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (optionsList.length === 0) {
-      toast.error("Adicione pelo menos uma opção ao grupo.");
-      return;
-    }
-
-    setIsSaving(true);
+  const onSubmit = async (data: FormValues) => {
+    setIsSubmitting(true);
     try {
-      const slug = (groupSlug || groupName)
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9]+/g, "-");
-
-      await createProductType({
-        data: {
-          name: groupName,
-          slug,
-          field_schema: [
-            {
-              name: groupName,
-              kind: "option_group",
-              required: true,
-              options: optionsList,
-            },
-          ],
-        },
-      });
-
-      toast.success("Grupo de opções criado!");
+      await upsertOptionGroup({ data });
+      toast.success("Grupo salvo com sucesso!");
       setOpen(false);
-      setGroupName("");
-      setGroupSlug("");
-      setOptionsList([]);
+      form.reset();
       router.invalidate();
-    } catch (e: unknown) {
-      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao criar grupo.");
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao salvar grupo.");
     } finally {
-      setIsSaving(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-6">
       <PageHeader
-        eyebrow="Catálogo / Atributos Globais"
-        title="Grupos de Opções Reutilizáveis"
+        title="Adicionais e Opções"
+
         actions={
-          <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger asChild>
-              <Button size="sm">
-                <Plus className="mr-1.5 size-4" aria-hidden />
-                Novo Grupo de Opções
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="max-w-md overflow-y-auto">
-              <SheetHeader>
-                <SheetTitle>Criar Grupo de Opções Customizado</SheetTitle>
-                <SheetDescription>
-                  Defina o nome do grupo (ex: Tamanhos Salto Alto) e adicione as opções.
-                </SheetDescription>
-              </SheetHeader>
-              <form onSubmit={handleSubmitCustom} className="space-y-4 pt-2">
-                <div className="space-y-2">
-                  <Label htmlFor="g-name">Nome do Grupo *</Label>
-                  <Input
-                    id="g-name"
-                    placeholder="Ex: Tamanhos Tênis Esportivo"
-                    value={groupName}
-                    onChange={(e) => {
-                      setGroupName(e.target.value);
-                      setGroupSlug(
-                        e.target.value
-                          .toLowerCase()
-                          .normalize("NFD")
-                          .replace(/[\u0300-\u036f]/g, "")
-                          .replace(/[^a-z0-9]+/g, "-"),
-                      );
-                    }}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="g-slug">Slug Identificador</Label>
-                  <Input
-                    id="g-slug"
-                    placeholder="tamanhos-tenis-esportivo"
-                    value={groupSlug}
-                    onChange={(e) => setGroupSlug(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2 pt-2">
-                  <Label>Opções do Grupo (Adicione uma a uma)</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Ex: 35 ou Vermelho"
-                      value={optionInput}
-                      onChange={(e) => setOptionInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleAddOption();
-                        }
-                      }}
-                    />
-                    <Button type="button" variant="outline" onClick={handleAddOption}>
-                      Adicionar
-                    </Button>
-                  </div>
-
-                  <div className="flex flex-wrap gap-1.5 pt-2 min-h-12 p-2 border bg-muted/30">
-                    {optionsList.length === 0 ? (
-                      <span className="text-xs text-muted-foreground self-center">
-                        Nenhuma opção adicionada ainda.
-                      </span>
-                    ) : (
-                      optionsList.map((opt) => (
-                        <Badge
-                          key={opt}
-                          variant="secondary"
-                          className="text-xs flex items-center gap-1"
-                        >
-                          {opt}
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveOption(opt)}
-                            className="hover:text-destructive text-muted-foreground ml-0.5"
-                          >
-                            ×
-                          </button>
-                        </Badge>
-                      ))
-                    )}
-                  </div>
-                </div>
-
-                <SheetFooter className="pt-4">
-                  <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
-                    Cancelar
-                  </Button>
-                  <Button type="submit" disabled={isSaving}>
-                    {isSaving ? "Salvando..." : "Salvar Grupo"}
-                  </Button>
-                </SheetFooter>
-              </form>
-            </SheetContent>
-          </Sheet>
+          <Button
+            onClick={() => {
+              form.reset({
+                internal_name: "",
+                display_name: "",
+                selection_type: "multiple",
+                min_selections: 0,
+                max_selections: 1,
+                is_required: false,
+                values: [],
+              });
+              setOpen(true);
+            }}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Criar Grupo
+          </Button>
         }
       />
 
-      {/* Seção 1: Presets Prontos (1-Click Import) */}
-      <div className="border border-border bg-primary/5 dark:bg-primary/10 rounded-md shadow-xs p-6">
-        <div className="pb-3 border-b border-border/10 mb-4">
-          <h3 className="font-display font-bold text-lg flex items-center gap-2">
-            <Sparkles className="size-5 text-primary" aria-hidden />
-            Biblioteca de Presets de Variação (1-Clique)
-          </h3>
-          <p className="text-sm text-muted-foreground mt-1">
-            Importe conjuntos canônicos prontos para acelerar o cadastro dos seus produtos.
-          </p>
+      <Surface variant="default" padding="sm" className="flex items-center gap-2">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nome..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 h-9"
+          />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
-          {PRESET_OPTION_GROUPS.map((preset) => {
-            const Icon = preset.icon;
-            const isImported = types.some((t: any) => t.name === preset.title);
+      </Surface>
 
-            return (
-              <div
-                key={preset.id}
-                className="p-4 border border-border/20 bg-card hover:border-primary/40 transition-all flex flex-col justify-between gap-3"
-              >
+      <Surface variant="default" padding="none">
+        {filteredGroups.length === 0 ? (
+          <EmptyState
+            title="Nenhum grupo encontrado"
+            description="Você ainda não criou nenhum grupo de opções."
+          />
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome Interno</TableHead>
+                <TableHead>Nome Exibido</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Regras</TableHead>
+                <TableHead>Opções</TableHead>
+                <TableHead className="w-[80px]"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredGroups.map((group: any) => (
+                <TableRow key={group.id}>
+                  <TableCell className="font-medium text-xs uppercase">
+                    {group.internal_name}
+                  </TableCell>
+                  <TableCell className="font-semibold">{group.display_name}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="text-xs">
+                      {group.selection_type === "single"
+                        ? "Escolha Única (Radio)"
+                        : "Múltipla (Checkbox)"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-xs text-muted-foreground">
+                    {group.is_required && (
+                      <Badge className="mr-2 bg-primary/20 text-primary">Obrigatório</Badge>
+                    )}
+                    Min: {group.min_selections} | Max: {group.max_selections}
+                  </TableCell>
+                  <TableCell className="text-xs">{group.values?.length || 0} valor(es)</TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleEdit(group)}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => handleDelete(group.id)}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </Surface>
+
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent className="w-[450px] sm:w-[600px] overflow-y-auto sm:max-w-xl">
+          <SheetHeader>
+            <SheetTitle>{form.watch("id") ? "Editar Grupo" : "Novo Grupo de Opções"}</SheetTitle>
+            <SheetDescription>
+              Configure regras de exibição e os valores que o cliente poderá escolher.
+            </SheetDescription>
+          </SheetHeader>
+
+          <form onSubmit={form.handleSubmit(onSubmit as any)} className="space-y-6 mt-6">
+            <div className="grid gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-primary">
-                      {preset.category}
-                    </span>
-                    <Icon className="size-4 text-muted-foreground" />
-                  </div>
-                  <h4 className="text-sm font-bold text-foreground">{preset.title}</h4>
-                  <div className="flex flex-wrap gap-1">
-                    {preset.options.map((opt) => (
-                      <Badge
-                        key={opt}
-                        variant="outline"
-                        className="text-[11px] py-0 border-border/30"
-                      >
-                        {opt}
-                      </Badge>
-                    ))}
-                  </div>
+                  <Label>Nome Interno</Label>
+                  <Input {...form.register("internal_name")} placeholder="Ex: BORDAS_PIZZA" />
+                  {form.formState.errors.internal_name && (
+                    <p className="text-xs text-destructive">
+                      {form.formState.errors.internal_name.message}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label>Nome de Exibição (Vitrine)</Label>
+                  <Input {...form.register("display_name")} placeholder="Ex: Escolha a Borda" />
+                  {form.formState.errors.display_name && (
+                    <p className="text-xs text-destructive">
+                      {form.formState.errors.display_name.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Tipo de Seleção</Label>
+                <Select
+                  value={form.watch("selection_type")}
+                  onValueChange={(val: any) => form.setValue("selection_type", val)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="single">Escolha Única (Um apenas)</SelectItem>
+                    <SelectItem value="multiple">Escolha Múltipla (Vários)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Mínimo de Seleções</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    {...form.register("min_selections", { valueAsNumber: true })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Máximo de Seleções</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    {...form.register("max_selections", { valueAsNumber: true })}
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2 pt-2 pb-4 border-b border-border">
+                <Checkbox
+                  id="isRequired"
+                  checked={form.watch("is_required")}
+                  onCheckedChange={(c) => form.setValue("is_required", !!c)}
+                />
+                <Label htmlFor="isRequired" className="font-semibold text-foreground">
+                  Obrigatório
+                </Label>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-base font-semibold">Valores (Opções)</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      append({
+                        label: "",
+                        price_modifier_cents: 0,
+                        is_default: false,
+                        is_active: true,
+                      })
+                    }
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Adicionar
+                  </Button>
                 </div>
 
-                <Button
-                  variant={isImported ? "secondary" : "outline"}
-                  size="sm"
-                  disabled={isImported || isSaving}
-                  className="w-full text-xs"
-                  onClick={() => handleImportPreset(preset)}
-                >
-                  {isImported ? (
-                    <>
-                      <CheckCircle2 className="size-3.5 mr-1 text-emerald-600" />
-                      Grupo Ativo
-                    </>
-                  ) : (
-                    "Importar Conjunto"
-                  )}
-                </Button>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Seção 2: Grupos de Opções Ativos */}
-      <div className="border border-border bg-card rounded-md shadow-xs p-6">
-        <div className="pb-4 border-b border-border/10 mb-4">
-          <h3 className="font-display font-bold text-lg">Grupos de Opções Ativos no Sistema</h3>
-          <p className="text-sm text-muted-foreground mt-1">
-            Estes esquemas estão disponíveis para seleção dinâmica nos Tipos de Produto e no Editor.
-          </p>
-        </div>
-        <div>
-          {types.length === 0 ? (
-            <EmptyState title="Nenhum grupo ativo" />
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {types.map((type: any) => {
-                const schema = Array.isArray(type.field_schema) ? type.field_schema : [];
-                const optionFields = schema.filter(
-                  (f: any) => f.options && Array.isArray(f.options),
-                );
-
-                return (
-                  <div key={type.id} className="p-4 border border-border/20 bg-card space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="text-sm font-bold text-foreground">{type.name}</h4>
-                        <p className="text-xs text-muted-foreground font-mono">/{type.slug}</p>
-                      </div>
-                      <Badge variant="secondary" className="text-xs border-border/30">
-                        {optionFields.length > 0
-                          ? `${optionFields.length} grupo(s)`
-                          : "Campos livres"}
-                      </Badge>
-                    </div>
-
-                    {optionFields.map((f: any, idx: number) => (
-                      <div key={idx} className="space-y-1 pt-1">
-                        <span className="text-xs font-semibold text-muted-foreground">
-                          {f.name}:
-                        </span>
-                        <div className="flex flex-wrap gap-1">
-                          {f.options.map((opt: string) => (
-                            <Badge
-                              key={opt}
-                              variant="outline"
-                              className="text-xs bg-muted/40 border-border/30"
-                            >
-                              {opt}
-                            </Badge>
-                          ))}
+                {fields.length === 0 ? (
+                  <div className="text-sm text-muted-foreground p-4 text-center border rounded border-dashed">
+                    Nenhuma opção adicionada.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {fields.map((field, index) => (
+                      <div
+                        key={field.id}
+                        className="flex gap-3 items-start border p-3 rounded-xl bg-muted/20"
+                      >
+                        <div className="grid flex-1 gap-3">
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                              <Label className="text-xs">Nome / Label</Label>
+                              <Input
+                                {...form.register(`values.${index}.label`)}
+                                placeholder="Ex: Catupiry"
+                                className="h-8 text-sm"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs">Preço Adicional (R$)</Label>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                className="h-8 text-sm"
+                                placeholder="0.00"
+                                onChange={(e) => {
+                                  const val = parseFloat(e.target.value);
+                                  form.setValue(
+                                    `values.${index}.price_modifier_cents`,
+                                    isNaN(val) ? 0 : Math.round(val * 100),
+                                  );
+                                }}
+                                defaultValue={(
+                                  (form.watch(`values.${index}.price_modifier_cents`) || 0) / 100
+                                ).toFixed(2)}
+                              />
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <label className="flex items-center gap-2 text-xs font-medium cursor-pointer">
+                              <Checkbox
+                                checked={form.watch(`values.${index}.is_default`)}
+                                onCheckedChange={(c) =>
+                                  form.setValue(`values.${index}.is_default`, !!c)
+                                }
+                              />
+                              Padrão
+                            </label>
+                            <label className="flex items-center gap-2 text-xs font-medium cursor-pointer text-muted-foreground">
+                              <Checkbox
+                                checked={form.watch(`values.${index}.is_active`)}
+                                onCheckedChange={(c) =>
+                                  form.setValue(`values.${index}.is_active`, !!c)
+                                }
+                              />
+                              Ativo
+                            </label>
+                          </div>
                         </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive shrink-0"
+                          onClick={() => remove(index)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     ))}
                   </div>
-                );
-              })}
+                )}
+              </div>
             </div>
-          )}
-        </div>
-      </div>
+
+            <SheetFooter className="pt-4 border-t border-border/40">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+                disabled={isSubmitting}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Salvando..." : "Salvar Grupo"}
+              </Button>
+            </SheetFooter>
+          </form>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

@@ -57,7 +57,7 @@ function MatchTimePage() {
         <div className="size-24 rounded-full bg-primary/10 text-primary flex items-center justify-center">
           <Sparkles className="size-12" />
         </div>
-        <h1 className="text-3xl font-black tracking-tight">Acabaram as ofertas de hoje!</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Acabaram as ofertas de hoje!</h1>
         <p className="text-muted-foreground max-w-md">
           Você varreu todas as promoções secretas que preparamos para você neste momento. Volte mais
           tarde!
@@ -84,9 +84,9 @@ function MatchTimePage() {
         >
           <ArrowLeft className="w-6 h-6" />
         </Link>
-        <div className="flex items-center text-primary font-black text-xl tracking-tighter">
+        <div className="flex items-center text-primary font-semibold text-xl tracking-tight">
           <Sparkles className="w-5 h-5 mr-1" />
-          MATCH TIME
+          Match Time
         </div>
         <div className="w-10"></div> {/* spacer */}
       </div>
@@ -94,7 +94,7 @@ function MatchTimePage() {
       <div className="relative w-full max-w-sm aspect-[3/4] mx-auto px-4 perspective-1000">
         {currentOffer && (
           <div
-            className={`absolute inset-0 px-4 transition-all duration-300 ease-out transform ${direction === "left" ? "-translate-x-full rotate-[-20deg] opacity-0" : direction === "right" ? "translate-x-full rotate-[20deg] opacity-0" : "translate-x-0  opacity-100"}`}
+            className={`absolute inset-0 px-4 transition-all duration-300 ease-out transform ${direction === "left" ? "-translate-x-full rotate-[-20deg] opacity-0" : direction === "right" ? "translate-x-full rotate-[20deg] opacity-0" : "translate-x-0 opacity-100"}`}
           >
             <div className="w-full h-full bg-card border overflow-hidden relative group">
               {/* Image */}
@@ -111,8 +111,7 @@ function MatchTimePage() {
                   </div>
                 )}
 
-                {/* Badge de Desconto */}
-                <div className="absolute top-4 right-4 bg-primary text-primary-foreground font-black px-3 py-1.5 rounded-full text-lg rotate-12">
+                <div className="absolute top-4 right-4 bg-primary text-primary-foreground font-semibold px-3 py-1.5 rounded-full text-sm">
                   -{currentOffer.discountPercentage}%
                 </div>
               </div>
@@ -129,7 +128,7 @@ function MatchTimePage() {
                   <span className="text-sm text-muted-foreground line-through">
                     {formatMoney(currentOffer.originalPrice)}
                   </span>
-                  <span className="text-2xl font-black text-primary">
+                  <span className="text-2xl font-bold text-primary">
                     {formatMoney(currentOffer.matchPrice)}
                   </span>
                 </div>
@@ -139,14 +138,14 @@ function MatchTimePage() {
               <div
                 className={`absolute inset-0 bg-destructive/20 transition-opacity flex items-center justify-center ${direction === "left" ? "opacity-100" : "opacity-0"}`}
               >
-                <div className="border border-destructive text-destructive font-black text-5xl p-4 rotate-[-20deg] uppercase">
+                <div className="border border-destructive rounded text-destructive font-bold text-4xl p-4 rotate-[-20deg] uppercase">
                   Nope
                 </div>
               </div>
               <div
                 className={`absolute inset-0 bg-success/20 transition-opacity flex items-center justify-center ${direction === "right" ? "opacity-100" : "opacity-0"}`}
               >
-                <div className="border border-success text-success font-black text-5xl p-4 rotate-[20deg] uppercase">
+                <div className="border border-success rounded text-success font-bold text-4xl p-4 rotate-[20deg] uppercase">
                   Match!
                 </div>
               </div>
@@ -170,7 +169,7 @@ function MatchTimePage() {
         <Button
           variant="outline"
           size="icon"
-          className="w-16 h-16 rounded-full border border-success text-success hover:bg-success hover:text-success-foreground transition-all shadow-[0_0_15px_rgba(34,197,94,0.3)]"
+          className="w-16 h-16 rounded-full border border-success text-success hover:bg-success hover:text-success-foreground transition-all "
           onClick={() => handleSwipe("right")}
           disabled={direction !== null || isCartUpdating}
         >

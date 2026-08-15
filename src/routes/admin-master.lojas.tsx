@@ -45,7 +45,7 @@ function MasterLojasPage() {
       toast.success("Status da loja alterado com sucesso.");
       router.invalidate();
     } catch (e: unknown) {
-      toast.error((e instanceof Error ? e.message : String(e)));
+      toast.error(e instanceof Error ? e.message : String(e));
     } finally {
       setLoadingId(null);
     }
@@ -65,7 +65,7 @@ function MasterLojasPage() {
         </div>
       </div>
 
-      <div className="border border-border bg-card rounded-md shadow-xs overflow-hidden">
+      <div className="border border-border bg-card rounded-xl overflow-hidden">
         <div className="p-4 border-b bg-muted/30 flex flex-col sm:flex-row gap-4 justify-between sm:items-center">
           <div className="relative max-w-sm w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />

@@ -13,6 +13,7 @@ import {
   Minus,
   Receipt,
   Percent,
+  Utensils,
 } from "lucide-react";
 import { getActiveRegister, processPOSSale } from "@/services/cash.functions";
 import { listAdminProducts } from "@/services/admin-catalog.functions";
@@ -27,9 +28,14 @@ import {
   SheetHeader,
   SheetTitle,
   SheetDescription,
+  SheetTrigger,
 } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { Surface } from "@/components/ui/surface";
+import {
+  ProductModifiersModal,
+  type SelectedModifier,
+} from "@/components/pos/product-modifiers-modal";
 
 export const Route = createFileRoute("/workspace/pdv/")({
   head: () => ({ meta: [{ title: "Frente de Caixa (PDV)" }] }),
@@ -39,7 +45,6 @@ export const Route = createFileRoute("/workspace/pdv/")({
       throw new Error("CAIXA_FECHADO");
     }
 
-    // The backend now natively returns isExpired, but we can also double check or rely on it
     if (activeRegister.isExpired) {
       throw new Error("CAIXA_EXPIRADO");
     }
@@ -51,9 +56,9 @@ export const Route = createFileRoute("/workspace/pdv/")({
     if ((error instanceof Error ? error.message : String(error)) === "CAIXA_FECHADO") {
       return (
         <div className="flex h-[80vh] items-center justify-center p-4 bg-muted/20">
-          <div className="w-full max-w-md text-center p-8 border border-border bg-card rounded-md shadow-xs">
+          <div className="w-full max-w-md text-center p-8 border border-border bg-card rounded-xl ">
             <MonitorPause className="size-16 text-foreground mb-4 opacity-50" />
-            <h2 className="text-2xl font-black font-display mb-2">Caixa Fechado</h2>
+            <h2 className="text-2xl font-black mb-2">Caixa Fechado</h2>
             <p className="text-muted-foreground mb-6 font-sans">
               Para operar a frente de caixa, você precisa abrir o seu turno e informar o troco
               inicial.
@@ -65,12 +70,15 @@ export const Route = createFileRoute("/workspace/pdv/")({
         </div>
       );
     }
-    if ((error instanceof Error ? error.message : String(error)) === "CAIXA_EXPIRADO" || (error instanceof Error ? error.message : String(error)).includes("CAIXA_EXPIRADO")) {
+    if (
+      (error instanceof Error ? error.message : String(error)) === "CAIXA_EXPIRADO" ||
+      (error instanceof Error ? error.message : String(error)).includes("CAIXA_EXPIRADO")
+    ) {
       return (
         <div className="flex h-[80vh] items-center justify-center p-4 bg-muted/20">
-          <div className="w-full max-w-md text-center bg-destructive border-border p-8 rounded-md shadow-xs">
+          <div className="w-full max-w-md text-center bg-destructive border-border p-8 rounded-xl ">
             <MonitorPause className="size-16 text-white mb-4" />
-            <h2 className="text-2xl font-black font-display text-white mb-2">Turno Expirado</h2>
+            <h2 className="text-2xl font-black text-white mb-2">Turno Expirado</h2>
             <p className="text-white/80 mb-6 font-sans normal-case">
               Seu caixa está aberto há mais de 24 horas. Por favor, feche o turno atual para
               continuar operando.
@@ -87,19 +95,33 @@ export const Route = createFileRoute("/workspace/pdv/")({
         </div>
       );
     }
-    return <div>Erro no PDV: {(error instanceof Error ? error.message : String(error))}</div>;
+    return <div>Erro no PDV: {error instanceof Error ? error.message : String(error)}</div>;
   },
   component: PdvTerminal,
 });
 
+interface CartItem {
+  id: string;
+  product: any;
+  variant: any;
+  qty: number;
+  selectedModifiers: SelectedModifier[];
+  notes?: string;
+  unitPriceCents: number;
+}
+
 function PdvTerminal() {
   const { activeRegister, catalog } = Route.useLoaderData();
-  const [cart, setCart] = useState<Array<{ id: string; product: any; variant: any; qty: number }>>(
-    [],
-  );
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [modifiersModalOpen, setModifiersModalOpen] = useState(false);
+  const [selectedItemForModifiers, setSelectedItemForModifiers] = useState<{
+    product: any;
+    variant: any;
+  } | null>(null);
+
   const [paymentMethod, setPaymentMethod] = useState<"cash" | "pix" | "card" | "open_tab">("cash");
   const [tableIdentifier, setTableIdentifier] = useState("");
   const [discountInput, setDiscountInput] = useState("");
@@ -124,16 +146,33 @@ function PdvTerminal() {
     );
   }, [flatProducts, searchQuery]);
 
-  const addToCart = (product: any, variant: any) => {
-    setCart((prev) => {
-      const existing = prev.find((item) => item.variant.sku === variant.sku);
-      if (existing) {
-        return prev.map((item) =>
-          item.variant.sku === variant.sku ? { ...item, qty: item.qty + 1 } : item,
-        );
-      }
-      return [...prev, { id: crypto.randomUUID(), product, variant, qty: 1 }];
-    });
+  const handleProductClick = (product: any, variant: any) => {
+    setSelectedItemForModifiers({ product, variant });
+    setModifiersModalOpen(true);
+  };
+
+  const handleConfirmModifiers = (
+    product: any,
+    variant: any,
+    selectedModifiers: SelectedModifier[],
+    notes?: string,
+  ) => {
+    const basePrice = variant.price_override_cents ?? product.price_cents ?? 0;
+    const modifiersDelta = selectedModifiers.reduce((acc, m) => acc + m.priceDeltaCents, 0);
+    const unitPriceCents = basePrice + modifiersDelta;
+
+    setCart((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        product,
+        variant,
+        qty: 1,
+        selectedModifiers,
+        notes,
+        unitPriceCents,
+      },
+    ]);
   };
 
   const updateQty = (id: string, delta: number) => {
@@ -152,10 +191,7 @@ function PdvTerminal() {
     setCart((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const cartSubtotal = cart.reduce(
-    (acc, item) => acc + (item.variant.price_override_cents ?? item.product.price_cents) * item.qty,
-    0,
-  );
+  const cartSubtotal = cart.reduce((acc, item) => acc + item.unitPriceCents * item.qty, 0);
   const discountCents = useMemo(() => {
     const val = parseFloat(discountInput.replace(",", "."));
     return isNaN(val) ? 0 : Math.round(val * 100);
@@ -176,13 +212,21 @@ function PdvTerminal() {
 
     setIsProcessing(true);
     try {
-      const itemsPayload = cart.map((item) => ({
-        variantId: item.variant.id,
-        qty: item.qty,
-        priceCents: item.variant.price_override_cents ?? item.product.price_cents,
-        title: item.product.title,
-        sku: item.variant.sku,
-      }));
+      const itemsPayload = cart.map((item) => {
+        const modifiersSuffix =
+          item.selectedModifiers.length > 0
+            ? ` (${item.selectedModifiers.map((m) => m.title).join(", ")})`
+            : "";
+        const notesSuffix = item.notes ? ` [Obs: ${item.notes}]` : "";
+
+        return {
+          variantId: item.variant.id,
+          qty: item.qty,
+          priceCents: item.unitPriceCents,
+          title: `${item.product.title}${modifiersSuffix}${notesSuffix}`,
+          sku: item.variant.sku,
+        };
+      });
 
       const result = await processPOSSale({
         data: {
@@ -223,22 +267,135 @@ function PdvTerminal() {
     }
   };
 
+  const CartPanel = () => (
+    <>
+      <div className="p-4 border-b border-border flex items-center justify-between bg-primary text-primary-foreground">
+        <h2 className="font-semibold text-xl flex items-center gap-2">Ticket</h2>
+        <Badge variant="outline" className="bg-background/20 text-white border-white/30 text-xs">
+          Turno #{activeRegister.id.slice(0, 6)}
+        </Badge>
+      </div>
+
+      <ScrollArea className="flex-1 p-0">
+        {cart.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full p-8 text-center mt-20 opacity-40">
+            <Receipt className="h-20 w-20 text-foreground mb-4" />
+            <p className="text-foreground font-bold">Sem Lançamentos</p>
+          </div>
+        ) : (
+          <div className="p-4 flex flex-col gap-3">
+            {cart.map((item) => (
+              <div
+                key={item.id}
+                className="p-3 bg-muted/30 border border-border rounded-xl space-y-2"
+              >
+                <div className="flex justify-between items-start gap-2">
+                  <div className="space-y-1 flex-1">
+                    <span className="font-bold text-sm leading-tight block">
+                      {item.product.title}
+                      {item.variant.sku !== "DEFAULT" && (
+                        <span className="text-[10px] font-mono ml-1.5 opacity-70">
+                          ({item.variant.sku})
+                        </span>
+                      )}
+                    </span>
+
+                    {/* Lista de Modificadores / Adicionais */}
+                    {item.selectedModifiers && item.selectedModifiers.length > 0 && (
+                      <div className="flex flex-wrap gap-1 pt-0.5">
+                        {item.selectedModifiers.map((mod, mIdx) => (
+                          <Badge
+                            key={`${mod.modifierId}-${mIdx}`}
+                            variant="outline"
+                            className="text-[9px] py-0 px-1.5 h-4 bg-background font-normal"
+                          >
+                            + {mod.title}
+                            {mod.priceDeltaCents > 0 && ` (+${formatMoney(mod.priceDeltaCents)})`}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Observação da Cozinha */}
+                    {item.notes && (
+                      <p className="text-[11px] text-muted-foreground italic bg-background/60 px-2 py-0.5 rounded border border-border/40 inline-block">
+                        Obs: {item.notes}
+                      </p>
+                    )}
+                  </div>
+
+                  <span className="font-semibold text-sm font-mono shrink-0">
+                    {formatMoney(item.unitPriceCents * item.qty)}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between pt-1 border-t border-border/40">
+                  <div className="flex items-center border border-border rounded-lg bg-background overflow-hidden">
+                    <button
+                      className="px-2 py-1 hover:bg-muted active:bg-muted/80 transition-colors"
+                      onClick={() => updateQty(item.id, -1)}
+                    >
+                      <Minus className="h-3 w-3" />
+                    </button>
+                    <span className="text-xs font-semibold w-8 text-center border-x border-border py-1 bg-muted/20">
+                      {item.qty}
+                    </span>
+                    <button
+                      className="px-2 py-1 hover:bg-muted active:bg-muted/80 transition-colors"
+                      onClick={() => updateQty(item.id, 1)}
+                    >
+                      <Plus className="h-3 w-3" />
+                    </button>
+                  </div>
+                  <button
+                    className="p-1.5 text-destructive hover:bg-destructive/10 border border-transparent hover:border-destructive/30 rounded-full transition-all"
+                    onClick={() => removeItem(item.id)}
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </ScrollArea>
+
+      {/* Totals & Checkout Button */}
+      <div className="p-5 border-t border-border bg-surface-paper pb-safe">
+        <div className="flex justify-between items-end mb-4">
+          <span className="text-foreground font-bold text-sm">Total</span>
+          <span className="text-3xl font-semibold text-primary tracking-tight">
+            {formatMoney(cartTotal)}
+          </span>
+        </div>
+        <Button
+          size="lg"
+          className="w-full h-14 text-lg font-semibold border border-border hover:translate-y-0.5 transition-all"
+          disabled={cart.length === 0}
+          onClick={() => setCheckoutOpen(true)}
+        >
+          Cobrar
+        </Button>
+      </div>
+    </>
+  );
+
   return (
     <div className="flex flex-col md:flex-row h-[calc(100vh-4rem)] overflow-hidden bg-muted/20">
       {/* Left: Product Grid & Search */}
-      <div className="flex-1 flex flex-col h-full border-r border-border">
+      <div className="flex-1 flex flex-col h-full border-r border-border pb-16 md:pb-0">
         <div className="p-4 bg-background border-b border-border flex items-center gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
               autoFocus
-              className="pl-10 h-12 text-lg shadow-sm bg-background border border-border"
+              className="pl-10 h-12 text-lg bg-background border border-border"
               placeholder="Buscar por produto ou código de barras (SKU)..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Button variant="default" className="h-12 border border-border shadow-sm" asChild>
+          <Button variant="default" className="h-12 border border-border " asChild>
             <Link to="/workspace/pdv/comandas">
               <Receipt className="mr-2 h-5 w-5" />
               Comandas
@@ -253,8 +410,8 @@ function PdvTerminal() {
               return (
                 <div
                   key={`${item.product.id}-${item.variant.sku}-${idx}`}
-                  className={`flex flex-col border border-border/80 bg-card rounded-md overflow-hidden cursor-pointer transition-transform hover:-translate-y-1 active:translate-y-0 ${isOutOfStock ? "opacity-80" : ""}`}
-                  onClick={() => addToCart(item.product, item.variant)}
+                  className={`flex flex-col border border-border bg-surface-paper shadow-sm rounded-xl overflow-hidden cursor-pointer transition-all hover:border-primary/50 hover:shadow-md active:scale-[0.98] ${isOutOfStock ? "opacity-60 grayscale-[0.5]" : ""}`}
+                  onClick={() => handleProductClick(item.product, item.variant)}
                 >
                   <div className="aspect-square bg-muted/50 w-full relative overflow-hidden border-b-2 border-border">
                     {item.product.product_media?.[0]?.url ? (
@@ -272,7 +429,7 @@ function PdvTerminal() {
                       <div className="absolute inset-0 bg-background/50 backdrop-blur-[2px] flex items-center justify-center">
                         <Badge
                           variant="destructive"
-                          className="shadow-sm border border-border rotate-[-5deg] text-xs py-1 px-2 uppercase tracking-widest font-black"
+                          className="border border-border text-xs py-1 px-2 font-bold"
                         >
                           Em Falta
                         </Badge>
@@ -290,7 +447,7 @@ function PdvTerminal() {
                         </p>
                       )}
                     </div>
-                    <div className="font-black font-display text-primary mt-2 text-lg">
+                    <div className="font-black text-primary mt-2 text-lg">
                       {formatMoney(item.variant.price_override_cents ?? item.product.price_cents)}
                     </div>
                   </div>
@@ -307,94 +464,35 @@ function PdvTerminal() {
         </ScrollArea>
       </div>
 
-      {/* Right: Cart (Ticket) */}
-      <div className="w-full md:w-[400px] flex flex-col h-full bg-background z-10 relative">
-        <div className="p-4 border-b border-border flex items-center justify-between bg-primary text-primary-foreground">
-          <h2 className="font-display font-black text-xl flex items-center gap-2 uppercase tracking-widest">
-            Ticket
-          </h2>
-          <Badge variant="outline" className="bg-background/20 text-white border-white/30 text-xs">
-            Turno #{activeRegister.id.slice(0, 6)}
-          </Badge>
-        </div>
+      {/* Right: Cart (Ticket) - DESKTOP */}
+      <div className="hidden md:flex w-[400px] flex-col h-full bg-surface-paper z-10 relative border-l border-border">
+        <CartPanel />
+      </div>
 
-        <ScrollArea className="flex-1 p-0">
-          {cart.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full p-8 text-center mt-20 opacity-40">
-              <Receipt className="h-20 w-20 text-foreground mb-4" />
-              <p className="text-foreground font-bold uppercase tracking-wider font-display">
-                Sem Lançamentos
-              </p>
-            </div>
-          ) : (
-            <div className="p-4 flex flex-col gap-3">
-              {cart.map((item) => (
-                <div key={item.id} className="p-3 bg-muted/50 border border-border rounded-md">
-                  <div className="flex justify-between items-start gap-2 mb-2">
-                    <span className="font-bold text-sm leading-tight flex-1">
-                      {item.product.title}
-                      {item.variant.sku !== "DEFAULT" && (
-                        <span className="block text-[10px] font-mono mt-0.5 opacity-70">
-                          {item.variant.sku}
-                        </span>
-                      )}
-                    </span>
-                    <span className="font-black text-sm">
-                      {formatMoney(
-                        (item.variant.price_override_cents ?? item.product.price_cents) * item.qty,
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center border border-border rounded-none bg-background overflow-hidden">
-                      <button
-                        className="px-2 py-1 hover:bg-muted active:bg-muted/80 transition-colors"
-                        onClick={() => updateQty(item.id, -1)}
-                      >
-                        <Minus className="h-3 w-3" />
-                      </button>
-                      <span className="text-xs font-bold font-mono w-8 text-center border-x-2 border-border py-1 bg-muted/20">
-                        {item.qty}
-                      </span>
-                      <button
-                        className="px-2 py-1 hover:bg-muted active:bg-muted/80 transition-colors"
-                        onClick={() => updateQty(item.id, 1)}
-                      >
-                        <Plus className="h-3 w-3" />
-                      </button>
-                    </div>
-                    <button
-                      className="p-1.5 text-destructive hover:bg-destructive/10 border border-transparent hover:border-destructive/30 rounded-full transition-all"
-                      onClick={() => removeItem(item.id)}
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
+      {/* Floating Cart Button & Mobile Sheet */}
+      <div className="md:hidden fixed bottom-4 left-4 right-4 z-40">
+        {cart.length > 0 && (
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                size="lg"
+                className="w-full h-14 rounded-full shadow-xl flex items-center justify-between px-6 bg-primary text-primary-foreground font-bold hover:translate-y-0 active:scale-[0.98] transition-all"
+              >
+                <div className="flex items-center gap-2">
+                  <ShoppingCart className="h-5 w-5" />
+                  <span>Ver Ticket ({cart.length})</span>
                 </div>
-              ))}
-            </div>
-          )}
-        </ScrollArea>
-
-        {/* Totals & Checkout Button */}
-        <div className="p-6 border-t border-border bg-background pb-safe">
-          <div className="flex justify-between items-end mb-6">
-            <span className="text-foreground font-bold uppercase tracking-widest text-sm">
-              Total
-            </span>
-            <span className="text-4xl font-black font-display text-primary leading-none tracking-tight">
-              {formatMoney(cartTotal)}
-            </span>
-          </div>
-          <Button
-            size="lg"
-            className="w-full h-16 text-xl font-black uppercase tracking-widest border border-border shadow-sm hover:translate-y-0.5 hover:shadow-sm transition-all"
-            disabled={cart.length === 0}
-            onClick={() => setCheckoutOpen(true)}
-          >
-            Cobrar
-          </Button>
-        </div>
+                <span className="text-lg">{formatMoney(cartTotal)}</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent
+              side="bottom"
+              className="h-[85vh] p-0 flex flex-col bg-surface-paper rounded-t-[2rem] border-t border-border"
+            >
+              <CartPanel />
+            </SheetContent>
+          </Sheet>
+        )}
       </div>
 
       {/* Checkout — Sheet 75% altura, conforme AGENTS.md §7 */}
@@ -404,12 +502,12 @@ function PdvTerminal() {
           className="h-[78vh] bg-background border-t border-border rounded-t-[2rem] px-6 py-8 overflow-y-auto"
         >
           <SheetHeader className="mb-6">
-            <SheetTitle className="font-display text-4xl uppercase tracking-tighter text-foreground">
+            <SheetTitle className="text-3xl font-semibold tracking-tight text-foreground">
               Finalizar Ticket
             </SheetTitle>
-            <SheetDescription className="font-mono text-foreground/60 text-sm">
-              Total a cobrar:{" "}
-              <strong className="text-foreground text-2xl font-black font-display">
+            <SheetDescription className="text-foreground/60 text-sm">
+              Total a cobrar:{""}
+              <strong className="text-foreground text-xl font-semibold">
                 {formatMoney(cartTotal)}
               </strong>
               {discountCents > 0 && (
@@ -424,7 +522,7 @@ function PdvTerminal() {
             {/* Desconto */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <Label className="text-xs font-mono uppercase font-bold text-foreground/70 flex items-center gap-1">
+                <Label className="text-sm font-medium text-foreground flex items-center gap-1">
                   <Percent className="size-3" /> Desconto (R$)
                 </Label>
                 <Input
@@ -434,24 +532,22 @@ function PdvTerminal() {
                   placeholder="0,00"
                   value={discountInput}
                   onChange={(e) => setDiscountInput(e.target.value)}
-                  className="border border-border rounded-none h-12 text-base font-bold font-mono"
+                  className="h-10 text-base font-semibold"
                 />
               </div>
               {paymentMethod === "cash" && (
                 <div className="space-y-1">
-                  <Label className="text-xs font-mono uppercase font-bold text-foreground/70">
-                    Valor Entregue (R$)
-                  </Label>
+                  <Label className="text-sm font-medium text-foreground">Valor Entregue (R$)</Label>
                   <Input
                     type="number"
                     step="0.01"
                     placeholder={(cartTotal / 100).toFixed(2)}
                     value={amountPaidInput}
                     onChange={(e) => setAmountPaidInput(e.target.value)}
-                    className="border border-border rounded-none h-12 text-base font-bold font-mono"
+                    className="h-10 text-base font-semibold"
                   />
                   {changeCents > 0 && (
-                    <p className="text-success font-bold font-mono text-sm mt-1">
+                    <p className="text-success font-medium text-sm mt-1">
                       Troco: {formatMoney(changeCents)}
                     </p>
                   )}
@@ -461,9 +557,7 @@ function PdvTerminal() {
 
             {/* Forma de Pagamento */}
             <div className="space-y-3">
-              <Label className="text-xs uppercase tracking-widest font-black font-mono text-foreground">
-                Forma de Pagamento
-              </Label>
+              <Label className="text-sm font-medium text-foreground">Forma de Pagamento</Label>
               <div className="grid grid-cols-2 gap-3">
                 {(
                   [
@@ -477,7 +571,7 @@ function PdvTerminal() {
                     key={id}
                     type="button"
                     variant={paymentMethod === id ? "default" : "outline"}
-                    className={`h-16 flex flex-col gap-1 border border-border rounded-none ${paymentMethod === id ? "shadow-sm -translate-y-1" : ""}`}
+                    className={`h-14 flex flex-col gap-1 border border-border rounded-xl ${paymentMethod === id ? "bg-primary text-primary-foreground" : "bg-card"}`}
                     onClick={() => setPaymentMethod(id)}
                   >
                     <Icon className="h-5 w-5" />
@@ -490,10 +584,7 @@ function PdvTerminal() {
             {/* Identificacao para comanda */}
             {paymentMethod === "open_tab" && (
               <div className="space-y-2">
-                <Label
-                  htmlFor="table-id"
-                  className="font-bold uppercase tracking-wider text-xs font-mono"
-                >
+                <Label htmlFor="table-id" className="font-medium text-sm text-foreground">
                   Identificação (Mesa/Nome)
                 </Label>
                 <Input
@@ -517,7 +608,7 @@ function PdvTerminal() {
               </Button>
               <Button
                 size="lg"
-                className="flex-1 border border-border shadow-sm rounded-none font-bold uppercase tracking-wider h-14 text-lg"
+                className="flex-1 border border-border rounded-none font-bold h-14 text-lg"
                 onClick={handleCheckout}
                 disabled={isProcessing}
               >
@@ -527,6 +618,17 @@ function PdvTerminal() {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Modal de Modificadores e Adicionais */}
+      {selectedItemForModifiers && (
+        <ProductModifiersModal
+          open={modifiersModalOpen}
+          onOpenChange={setModifiersModalOpen}
+          product={selectedItemForModifiers.product}
+          variant={selectedItemForModifiers.variant}
+          onConfirm={handleConfirmModifiers}
+        />
+      )}
     </div>
   );
 }

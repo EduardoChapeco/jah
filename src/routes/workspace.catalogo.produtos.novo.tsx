@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Surface } from "@/components/ui/surface";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { createProduct, listCategories } from "@/services/admin-catalog.functions";
 import { VariantMatrixGrid, type RawVariant } from "@/components/admin/catalog/variant-matrix-grid";
@@ -215,7 +216,7 @@ function QuickNewProductPage() {
       const finalSlug = values.slug || slugify(values.title);
 
       // Garante que se o usuário digitou variações no cadastro inicial mas esqueceu de clicar
-      // no botão "Gerar Matriz de Variações", a matriz é gerada automaticamente no padrão da indústria (estoque inicial 0)
+      // no botão"Gerar Matriz de Variações", a matriz é gerada automaticamente no padrão da indústria (estoque inicial 0)
       let finalVariants: RawVariant[] | undefined = undefined;
       if (isMatrixGenerated && variantsMatrix.length > 0) {
         finalVariants = variantsMatrix;
@@ -289,190 +290,135 @@ function QuickNewProductPage() {
         }
       />
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Informações Principais */}
-        <div>
-          <div className="mb-4">
-            <h3 className="text-lg font-bold text-foreground">Informações Principais</h3>
-            <p className="text-sm text-muted-foreground">O básico para iniciar o cadastro.</p>
-          </div>
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold">Nome do produto *</Label>
-              <Input
-                {...register("title", { required: "Obrigatório" })}
-                className="h-11 text-base font-medium"
-                placeholder="Ex: Tênis Runner Pro Masculino"
-                autoFocus
-                onChange={(e) => {
-                  register("title").onChange(e);
-                  setValue("slug", slugify(e.target.value));
-                }}
-              />
-              {errors.title && (
-                <p className="text-xs text-destructive">{errors.title.message as string}</p>
-              )}
+      <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6">
+          <Surface variant="default" padding="lg">
+            <div className="mb-6 border-b border-border pb-4">
+              <h3 className="text-lg font-bold text-foreground">Informações Principais</h3>
+              <p className="text-sm text-muted-foreground">O básico para iniciar o cadastro.</p>
             </div>
 
-            {/* Campos Dinâmicos Baseados no Nicho */}
-            {store?.type === "event_producer" && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-muted/30 rounded-lg border">
-                <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-primary">Data do Evento *</Label>
-                  <Input
-                    type="datetime-local"
-                    className="h-11"
-                    value={baseAttributes["data_evento"] || ""}
-                    onChange={(e) =>
-                      setBaseAttributes({ ...baseAttributes, data_evento: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-primary">Localização</Label>
-                  <Input
-                    placeholder="Ex: Galpão 5, SP"
-                    className="h-11"
-                    value={baseAttributes["local"] || ""}
-                    onChange={(e) =>
-                      setBaseAttributes({ ...baseAttributes, local: e.target.value })
-                    }
-                  />
-                </div>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold">Nome do produto *</Label>
+                <Input
+                  {...register("title", { required: "Obrigatório" })}
+                  className="h-11 text-base font-medium"
+                  placeholder="Ex: Tênis Runner Pro Masculino"
+                  autoFocus
+                  onChange={(e) => {
+                    register("title").onChange(e);
+                    setValue("slug", slugify(e.target.value));
+                  }}
+                />
+                {errors.title && (
+                  <p className="text-xs text-destructive">{errors.title.message as string}</p>
+                )}
               </div>
-            )}
 
-            {store?.type === "creator" && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-muted/30 rounded-lg border">
-                <div className="space-y-2">
-                  <Label className="text-sm font-semibold">Duração (Minutos)</Label>
-                  <Input
-                    type="number"
-                    placeholder="Ex: 60"
-                    className="h-11"
-                    value={baseAttributes["duracao_min"] || ""}
-                    onChange={(e) =>
-                      setBaseAttributes({ ...baseAttributes, duracao_min: e.target.value })
-                    }
-                  />
+              {/* Campos Dinâmicos Baseados no Nicho */}
+              {store?.type === "event_producer" && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold text-primary">Data do Evento *</Label>
+                    <Input
+                      type="datetime-local"
+                      className="h-11"
+                      value={baseAttributes["data_evento"] || ""}
+                      onChange={(e) =>
+                        setBaseAttributes({ ...baseAttributes, data_evento: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold text-primary">Localização</Label>
+                    <Input
+                      placeholder="Ex: Galpão 5, SP"
+                      className="h-11"
+                      value={baseAttributes["local"] || ""}
+                      onChange={(e) =>
+                        setBaseAttributes({ ...baseAttributes, local: e.target.value })
+                      }
+                    />
+                  </div>
                 </div>
+              )}
+
+              {store?.type === "creator" && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold">Duração (Minutos)</Label>
+                    <Input
+                      type="number"
+                      placeholder="Ex: 60"
+                      className="h-11"
+                      value={baseAttributes["duracao_min"] || ""}
+                      onChange={(e) =>
+                        setBaseAttributes({ ...baseAttributes, duracao_min: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold">Formato</Label>
+                    <Select
+                      value={baseAttributes["formato"] || ""}
+                      onValueChange={(v) => setBaseAttributes({ ...baseAttributes, formato: v })}
+                    >
+                      <SelectTrigger className="h-11">
+                        <SelectValue placeholder="Selecione..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="online">Online (Meet/Zoom)</SelectItem>
+                        <SelectItem value="presencial">Presencial</SelectItem>
+                        <SelectItem value="gravado">Conteúdo Gravado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold">Formato</Label>
-                  <Select
-                    value={baseAttributes["formato"] || ""}
-                    onValueChange={(v) => setBaseAttributes({ ...baseAttributes, formato: v })}
-                  >
+                  <Label className="text-sm font-semibold">URL Automática (Slug)</Label>
+                  <Input {...register("slug")} className="h-11 bg-muted/50" readOnly />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold">Categoria Principal</Label>
+                  <Select onValueChange={(val) => setValue("category_id", val)}>
                     <SelectTrigger className="h-11">
-                      <SelectValue placeholder="Selecione..." />
+                      <SelectValue placeholder="Sem categoria" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="online">Online (Meet/Zoom)</SelectItem>
-                      <SelectItem value="presencial">Presencial</SelectItem>
-                      <SelectItem value="gravado">Conteúdo Gravado</SelectItem>
+                      <SelectItem value="none">Nenhuma</SelectItem>
+                      {categories.map((c: any) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label className="text-sm font-semibold">Preço Base (R$) *</Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
-                    R$
-                  </span>
-                  <Input
-                    {...register("price_cents", { required: "Obrigatório" })}
-                    className="pl-9 h-11 text-lg font-medium"
-                    placeholder="0,00"
-                    onChange={(e) => {
-                      let val = e.target.value.replace(/\D/g, "");
-                      if (val) {
-                        val = (parseInt(val, 10) / 100).toLocaleString("pt-BR", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        });
-                      }
-                      e.target.value = val;
-                      register("price_cents").onChange(e);
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-semibold">URL Automática (Slug)</Label>
-                <Input {...register("slug")} className="h-11 bg-muted/50" readOnly />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-semibold">Categoria Principal</Label>
-                <Select onValueChange={(val) => setValue("category_id", val)}>
-                  <SelectTrigger className="h-11">
-                    <SelectValue placeholder="Sem categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Nenhuma</SelectItem>
-                    {categories.map((c: any) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-semibold">Tipo / Template de Ficha</Label>
-                <Select onValueChange={(val) => setValue("type_id", val)}>
-                  <SelectTrigger className="h-11">
-                    <SelectValue placeholder="Geral (Padrão)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Geral (Padrão)</SelectItem>
-                    {productTypes.map((t: any) => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
-          </div>
-        </div>
+          </Surface>
 
-        {/* Mídia Principal */}
-        <div className="pt-6 border-t">
-          <div className="mb-4">
-            <h3 className="text-lg font-bold text-foreground">Foto de Capa Inicial (Opcional)</h3>
-            <p className="text-sm text-muted-foreground">
-              A imagem principal deste produto. Você poderá adicionar mais depois.
-            </p>
-          </div>
-          <div>
-            <div className="max-w-sm">
-              <ImageUpload onChange={setMainImageUrl} value={mainImageUrl} bucket="product-media" />
+          {/* Gerador de Variações Dinâmicas */}
+          <Surface variant="default" padding="lg">
+            <div className="mb-6 border-b border-border pb-4">
+              <h3 className="text-lg font-bold text-foreground">Matriz de Variações</h3>
+              <p className="text-sm text-muted-foreground">
+                Crie opções customizadas (Tamanho, Cor) para gerar a matriz de estoque.
+              </p>
             </div>
-          </div>
-        </div>
 
-        {/* Gerador de Variações Dinâmicas */}
-        <div className="pt-6 border-t">
-          <div className="mb-4">
-            <h3 className="text-lg font-bold text-foreground">Construtor Dinâmico de Variações</h3>
-            <p className="text-sm text-muted-foreground">
-              Crie opções customizadas (Tamanho, Cor, Material) para gerar automaticamente a matriz
-              de estoque.
-            </p>
-          </div>
-
-          <div className="space-y-6">
             {!isMatrixGenerated ? (
               <div className="space-y-6 animate-in fade-in">
                 {attributes.map((attr, index) => (
-                  <div key={attr.id} className="p-4 border bg-card relative group">
+                  <div
+                    key={attr.id}
+                    className="p-5 border border-border rounded-xl bg-surface-paper  relative group"
+                  >
                     <button
                       type="button"
                       onClick={() => removeAttribute(attr.id)}
@@ -539,7 +485,7 @@ function QuickNewProductPage() {
               </div>
             ) : (
               <div className="space-y-4 animate-in fade-in">
-                <div className="flex items-center justify-between bg-muted/50 p-4 border">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-primary/5 p-4 border border-primary/20 rounded-xl">
                   <div>
                     <h4 className="font-bold text-base">Matriz de Variações Gerada</h4>
                     <p className="text-sm text-muted-foreground">
@@ -565,7 +511,69 @@ function QuickNewProductPage() {
                 />
               </div>
             )}
-          </div>
+          </Surface>
+        </div>
+
+        <div className="lg:col-span-1 space-y-6">
+          <Surface variant="default" padding="lg">
+            <div className="mb-4 border-b border-border pb-4">
+              <h3 className="text-lg font-bold text-foreground">Comercialização</h3>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold">Preço Base (R$) *</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+                    R$
+                  </span>
+                  <Input
+                    {...register("price_cents", { required: "Obrigatório" })}
+                    className="pl-9 h-12 text-xl font-bold"
+                    placeholder="0,00"
+                    onChange={(e) => {
+                      let val = e.target.value.replace(/\D/g, "");
+                      if (val) {
+                        val = (parseInt(val, 10) / 100).toLocaleString("pt-BR", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        });
+                      }
+                      e.target.value = val;
+                      register("price_cents").onChange(e);
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold">Tipo de Produto</Label>
+                <Select onValueChange={(val) => setValue("type_id", val)}>
+                  <SelectTrigger className="h-11">
+                    <SelectValue placeholder="Geral (Padrão)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Geral (Padrão)</SelectItem>
+                    {productTypes.map((t: any) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </Surface>
+
+          <Surface variant="default" padding="lg">
+            <div className="mb-4 border-b border-border pb-4">
+              <h3 className="text-lg font-bold text-foreground">Mídia Principal</h3>
+              <p className="text-xs text-muted-foreground mt-1">Capa do seu produto</p>
+            </div>
+            <div className="w-full">
+              <ImageUpload onChange={setMainImageUrl} value={mainImageUrl} bucket="product-media" />
+            </div>
+          </Surface>
         </div>
       </form>
     </div>

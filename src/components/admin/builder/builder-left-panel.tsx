@@ -91,8 +91,8 @@ export const SECTION_PRESETS = [
     label: "Hero Principal",
     description: "Banner de destaque com imagem e CTA",
     icon: ImageIcon,
-    color: "bg-violet-50 border-violet-200",
-    iconColor: "text-violet-500",
+    color: "bg-muted/40 border-border",
+    iconColor: "text-foreground",
     blocks: ["section", "container", "hero_carousel"],
   },
   {
@@ -100,7 +100,7 @@ export const SECTION_PRESETS = [
     label: "Carrossel de Produtos",
     description: "Produtos reais em carrossel deslizante",
     icon: ShoppingBag,
-    color: "bg-primary border-blue-200",
+    color: "bg-muted/40 border-border",
     iconColor: "text-primary",
     blocks: ["section", "container", "product_carousel"],
   },
@@ -109,8 +109,8 @@ export const SECTION_PRESETS = [
     label: "Grid de Produtos",
     description: "Grade de produtos 2, 3 ou 4 colunas",
     icon: Grid,
-    color: "bg-cyan-50 border-cyan-200",
-    iconColor: "text-cyan-500",
+    color: "bg-muted/40 border-border",
+    iconColor: "text-foreground",
     blocks: ["section", "container", "product_grid"],
   },
   {
@@ -118,8 +118,8 @@ export const SECTION_PRESETS = [
     label: "Banner Dividido 50/50",
     description: "Imagem de um lado, texto do outro",
     icon: Columns2,
-    color: "bg-emerald-50 border-emerald-200",
-    iconColor: "text-emerald-500",
+    color: "bg-muted/40 border-border",
+    iconColor: "text-foreground",
     blocks: ["section", "container_full", "split_banner"],
   },
   {
@@ -127,8 +127,8 @@ export const SECTION_PRESETS = [
     label: "Barra de Anúncio",
     description: "Faixa de aviso/promoção no topo",
     icon: Megaphone,
-    color: "bg-amber-50 border-amber-200",
-    iconColor: "text-amber-500",
+    color: "bg-muted/40 border-border",
+    iconColor: "text-warning",
     blocks: ["section", "container", "announcement_bar"],
   },
   {
@@ -136,7 +136,7 @@ export const SECTION_PRESETS = [
     label: "Depoimentos",
     description: "Carrossel de avaliações de clientes",
     icon: MessageSquare,
-    color: "bg-accent border-pink-200",
+    color: "bg-muted/40 border-border",
     iconColor: "text-accent",
     blocks: ["section", "container", "testimonial_carousel"],
   },
@@ -145,7 +145,7 @@ export const SECTION_PRESETS = [
     label: "Cronômetro Regressivo",
     description: "Timer para ofertas com prazo",
     icon: Timer,
-    color: "bg-destructive border-red-200",
+    color: "bg-muted/40 border-border",
     iconColor: "text-destructive",
     blocks: ["section", "container", "countdown_timer"],
   },
@@ -154,8 +154,8 @@ export const SECTION_PRESETS = [
     label: "Selos de Confiança",
     description: "Badges de garantia, frete, segurança",
     icon: Shield,
-    color: "bg-accent border-teal-200",
-    iconColor: "text-accent",
+    color: "bg-muted/40 border-border",
+    iconColor: "text-foreground",
     blocks: ["section", "container", "trust_badges"],
   },
   {
@@ -163,8 +163,8 @@ export const SECTION_PRESETS = [
     label: "Bento Grid",
     description: "Mosaico assimétrico de cards",
     icon: LayoutTemplate,
-    color: "bg-accent border-indigo-200",
-    iconColor: "text-accent",
+    color: "bg-muted/40 border-border",
+    iconColor: "text-foreground",
     blocks: ["section", "container", "bento_grid"],
   },
   {
@@ -172,8 +172,8 @@ export const SECTION_PRESETS = [
     label: "Galeria de Imagens",
     description: "Grade editorial de fotos",
     icon: ImageIcon,
-    color: "bg-warning border-orange-200",
-    iconColor: "text-warning",
+    color: "bg-muted/40 border-border",
+    iconColor: "text-foreground",
     blocks: ["section", "container", "gallery_grid"],
   },
   {
@@ -181,8 +181,8 @@ export const SECTION_PRESETS = [
     label: "FAQ",
     description: "Perguntas e respostas em accordion",
     icon: ListOrdered,
-    color: "bg-slate-50 border-slate-200",
-    iconColor: "text-slate-500",
+    color: "bg-muted/40 border-border",
+    iconColor: "text-muted-foreground",
     blocks: ["section", "container", "faq_accordion"],
   },
   {
@@ -190,8 +190,8 @@ export const SECTION_PRESETS = [
     label: "Timeline / História",
     description: "Linha do tempo da marca",
     icon: Map,
-    color: "bg-warning border-yellow-200",
-    iconColor: "text-warning",
+    color: "bg-muted/40 border-border",
+    iconColor: "text-foreground",
     blocks: ["section", "container", "timeline_history"],
   },
   {
@@ -199,8 +199,8 @@ export const SECTION_PRESETS = [
     label: "Vídeo Embed",
     description: "YouTube ou Vimeo incorporado",
     icon: Video,
-    color: "bg-rose-50 border-rose-200",
-    iconColor: "text-rose-500",
+    color: "bg-muted/40 border-border",
+    iconColor: "text-destructive",
     blocks: ["section", "container", "video_section"],
   },
   {
@@ -208,8 +208,8 @@ export const SECTION_PRESETS = [
     label: "Texto Rico",
     description: "Bloco de conteúdo editorial HTML",
     icon: AlignLeft,
-    color: "bg-gray-50 border-gray-200",
-    iconColor: "text-gray-500",
+    color: "bg-muted/40 border-border",
+    iconColor: "text-muted-foreground",
     blocks: ["section", "container", "rich_text"],
   },
 ];
@@ -298,7 +298,7 @@ export function BuilderLeftPanel({
             "flex items-center gap-1.5 py-1.5 pr-2 rounded-lg text-sm cursor-grab active:cursor-grabbing transition-colors group select-none relative",
             isSelected
               ? "bg-primary/10 text-primary font-medium"
-              : "hover:bg-white/5 text-white/70 hover:text-white",
+              : "hover:bg-muted text-muted-foreground hover:text-foreground",
             isDragged && "opacity-50",
             isDragOver && "border-t-2 border-t-primary", // Feedback visual simples de drop
           )}
@@ -310,14 +310,14 @@ export function BuilderLeftPanel({
           <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
               type="button"
-              className="p-0.5 rounded hover:bg-white/10 text-white/50 hover:text-white"
+              className="p-0.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
               onClick={(e) => moveNode(node.id, -1, e)}
             >
               <ChevronUp className="h-3 w-3" />
             </button>
             <button
               type="button"
-              className="p-0.5 rounded hover:bg-white/10 text-white/50 hover:text-white"
+              className="p-0.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
               onClick={(e) => moveNode(node.id, 1, e)}
             >
               <ChevronDown className="h-3 w-3" />
@@ -339,9 +339,9 @@ export function BuilderLeftPanel({
   };
 
   return (
-    <aside className="w-72 bg-[#1a1a1a] border-r border-white/10 flex flex-col flex-none overflow-hidden">
+    <aside className="w-72 surface-paper border-r border-border flex flex-col flex-none overflow-hidden rounded-none border-t-0 border-l-0 border-b-0">
       {/* Panel Tabs */}
-      <div className="flex border-b border-white/10 bg-[#161616]">
+      <div className="flex border-b border-border bg-muted/30">
         {(["layers", "blocks"] as const).map((tab) => (
           <button
             type="button"
@@ -350,8 +350,8 @@ export function BuilderLeftPanel({
             className={cn(
               "flex-1 py-2.5 text-[11px] font-medium uppercase tracking-wide transition-colors",
               activePanel === tab
-                ? "text-white border-b-2 border-primary"
-                : "text-white/40 hover:text-white/70",
+                ? "text-foreground border-b-2 border-primary"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
             {tab === "layers" ? "Camadas" : "Blocos (Studio)"}
@@ -363,29 +363,29 @@ export function BuilderLeftPanel({
         {/* BLOCKS: Categorized block picker */}
         {activePanel === "blocks" && (
           <div className="flex flex-col">
-            <div className="p-4 border-b border-white/10">
+            <div className="p-4 border-b border-border">
               <button
                 type="button"
                 onClick={onAddSection}
-                className="w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-black font-semibold py-3 px-4 transition-all shadow-md"
+                className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-medium py-2.5 px-4 transition-all"
               >
-                <LayoutTemplate className="h-5 w-5" />
+                <LayoutTemplate className="h-4 w-4" />
                 Catálogo de Seções
               </button>
-              <p className="text-[10px] text-white/50 text-center mt-3 leading-relaxed">
+              <p className="text-[10px] text-muted-foreground text-center mt-3 leading-relaxed">
                 Recomendado: Use o catálogo para adicionar seções completas prontas para edição
                 (Modo Guiado).
               </p>
             </div>
 
-            <div className="px-4 py-3 bg-[#111] border-b border-white/5">
-              <p className="text-[11px] font-medium text-white/40 uppercase tracking-wider">
+            <div className="px-4 py-3 bg-muted/50 border-b border-border">
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
                 Montagem Granular (Avançado)
               </p>
             </div>
 
             {/* Category tabs */}
-            <div className="flex flex-col gap-0.5 p-2 border-b border-white/10">
+            <div className="flex flex-col gap-0.5 p-2 border-b border-border">
               {BLOCK_CATEGORIES.map((cat) => {
                 const Icon = cat.icon;
                 return (
@@ -396,8 +396,8 @@ export function BuilderLeftPanel({
                     className={cn(
                       "flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors text-left",
                       blockCategory === cat.id
-                        ? "bg-white/10 text-white"
-                        : "text-white/50 hover:text-white/80 hover:bg-white/5",
+                        ? "bg-muted text-foreground font-medium"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
                     )}
                   >
                     <Icon className="h-3.5 w-3.5 shrink-0" />
@@ -417,12 +417,12 @@ export function BuilderLeftPanel({
                       type="button"
                       key={blockType}
                       onClick={() => insertBlock(blockType)}
-                      className="flex flex-col items-center gap-2 p-3 bg-white/5 hover:bg-white/10 border border-transparent hover:border-white/10 transition-colors text-center"
+                      className="flex flex-col items-center gap-2 p-3 bg-muted/30 hover:bg-muted border border-transparent hover:border-border rounded-lg transition-colors text-center"
                     >
-                      <div className="w-10 h-10 bg-white/10 flex items-center justify-center">
-                        <Plus className="h-4 w-4 text-white/50" />
+                      <div className="w-10 h-10 bg-background border border-border rounded-md flex items-center justify-center">
+                        <Plus className="h-4 w-4 text-muted-foreground" />
                       </div>
-                      <span className="text-white/70 text-[10px] font-medium leading-tight">
+                      <span className="text-muted-foreground text-[10px] font-medium leading-tight group-hover:text-foreground">
                         {reg.name}
                       </span>
                     </button>
@@ -436,11 +436,11 @@ export function BuilderLeftPanel({
         {/* LAYERS: DOM tree */}
         {activePanel === "layers" && (
           <div className="p-3">
-            <p className="text-[11px] text-white/40 uppercase tracking-wider px-1 mb-3">
+            <p className="text-[11px] text-muted-foreground uppercase tracking-wider px-1 mb-3">
               Árvore do Documento
             </p>
             {nodes.length === 0 ? (
-              <div className="text-center py-8 text-white/30 text-xs space-y-2">
+              <div className="text-center py-8 text-muted-foreground/60 text-xs space-y-2">
                 <Layers className="h-8 w-8 mx-auto opacity-30" />
                 <p>O documento está vazio.</p>
                 <p>Use o botão "Adicionar Seção" no painel principal.</p>

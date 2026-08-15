@@ -67,12 +67,12 @@ export function EventRail({ content, resolvedEvents, isEditing }: any) {
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-zinc-100 dark:bg-zinc-800">
+                <div className="w-full h-full flex items-center justify-center bg-muted/50">
                   <Calendar className="h-10 w-10 text-muted-foreground/30" />
                 </div>
               )}
               {/* Date Badge overlay */}
-              <div className="absolute top-4 left-4 bg-background/95 backdrop-blur-sm px-3 py-1.5 shadow-sm border text-center leading-tight">
+              <div className="absolute top-4 left-4 bg-background/95 backdrop-blur-sm px-3 py-1.5 border border-border rounded-xl text-center leading-tight">
                 <span className="block text-xs font-bold text-muted-foreground uppercase">
                   {formatDate(evt.event_date)}
                 </span>

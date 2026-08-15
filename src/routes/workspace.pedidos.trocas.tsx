@@ -23,7 +23,7 @@ import {
   Gift,
   RefreshCw,
   Banknote,
-  XCircle
+  XCircle,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { formatDate } from "../lib/datetime";
@@ -78,26 +78,30 @@ const KANBAN_COLUMNS = [
   { id: "rejected", title: "Rejeitadas" },
 ];
 
-function ResolutionDrawer({ 
-  exchange, 
-  isOpen, 
-  onClose, 
-  onResolved 
-}: { 
-  exchange: any, 
-  isOpen: boolean, 
-  onClose: () => void, 
-  onResolved: () => void 
+function ResolutionDrawer({
+  exchange,
+  isOpen,
+  onClose,
+  onResolved,
+}: {
+  exchange: any;
+  isOpen: boolean;
+  onClose: () => void;
+  onResolved: () => void;
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [resolutionType, setResolutionType] = useState<"store_credit" | "refund" | "replacement">("store_credit");
-  
+  const [resolutionType, setResolutionType] = useState<"store_credit" | "refund" | "replacement">(
+    "store_credit",
+  );
+
   // Default to full order total, but user can change it
-  const [refundValue, setRefundValue] = useState<string>((exchange?.orderTotal / 100 || 0).toFixed(2));
+  const [refundValue, setRefundValue] = useState<string>(
+    (exchange?.orderTotal / 100 || 0).toFixed(2),
+  );
 
   const handleResolve = async () => {
     const valCents = Math.round(parseFloat(refundValue.replace(",", ".")) * 100);
-    
+
     if (isNaN(valCents) || valCents < 0) {
       toast.error("Valor inválido");
       return;
@@ -110,8 +114,8 @@ function ResolutionDrawer({
           exchangeId: exchange.id,
           status: "completed",
           resolutionType,
-          refundCents: valCents
-        }
+          refundCents: valCents,
+        },
       });
       toast.success("Troca concluída com sucesso!");
       onResolved();
@@ -132,12 +136,14 @@ function ResolutionDrawer({
             Pedido #{exchange?.orderToken} - Determine a resolução financeira para o cliente.
           </SheetDescription>
         </SheetHeader>
-        
+
         <div className="py-6 space-y-6 flex-1">
-          <div className="p-4 surface-subtle border border-border rounded-lg space-y-2">
+          <div className="p-4 surface-subtle border border-border rounded-xl space-y-2">
             <h4 className="font-semibold text-sm">Resumo da Solicitação</h4>
             <p className="text-sm text-muted-foreground">Motivo: {exchange?.reason}</p>
-            <p className="text-sm text-muted-foreground font-bold">Valor do Pedido: {formatMoney(exchange?.orderTotal || 0)}</p>
+            <p className="text-sm text-muted-foreground font-bold">
+              Valor do Pedido: {formatMoney(exchange?.orderTotal || 0)}
+            </p>
           </div>
 
           <div className="space-y-4">
@@ -146,44 +152,56 @@ function ResolutionDrawer({
               <div className="grid grid-cols-1 gap-2">
                 <button
                   onClick={() => setResolutionType("store_credit")}
-                  className={`flex items-center gap-3 p-3 border rounded-md text-left transition-colors ${
-                    resolutionType === "store_credit" 
-                      ? "border-primary bg-primary/5 ring-1 ring-primary" 
+                  className={`flex items-center gap-3 p-3 border rounded-xl text-left transition-colors ${
+                    resolutionType === "store_credit"
+                      ? "border-primary bg-primary/5 ring-1 ring-primary"
                       : "border-border hover:bg-muted/50"
                   }`}
                 >
-                  <Gift className={`size-5 ${resolutionType === "store_credit" ? "text-primary" : "text-muted-foreground"}`} />
+                  <Gift
+                    className={`size-5 ${resolutionType === "store_credit" ? "text-primary" : "text-muted-foreground"}`}
+                  />
                   <div>
                     <p className="font-semibold text-sm">Vale-Compras (Prioridade)</p>
-                    <p className="text-xs text-muted-foreground">Gera um Gift Card para o cliente usar na loja</p>
+                    <p className="text-xs text-muted-foreground">
+                      Gera um Gift Card para o cliente usar na loja
+                    </p>
                   </div>
                 </button>
                 <button
                   onClick={() => setResolutionType("refund")}
-                  className={`flex items-center gap-3 p-3 border rounded-md text-left transition-colors ${
-                    resolutionType === "refund" 
-                      ? "border-primary bg-primary/5 ring-1 ring-primary" 
+                  className={`flex items-center gap-3 p-3 border rounded-xl text-left transition-colors ${
+                    resolutionType === "refund"
+                      ? "border-primary bg-primary/5 ring-1 ring-primary"
                       : "border-border hover:bg-muted/50"
                   }`}
                 >
-                  <Banknote className={`size-5 ${resolutionType === "refund" ? "text-primary" : "text-muted-foreground"}`} />
+                  <Banknote
+                    className={`size-5 ${resolutionType === "refund" ? "text-primary" : "text-muted-foreground"}`}
+                  />
                   <div>
                     <p className="font-semibold text-sm">Estorno Financeiro</p>
-                    <p className="text-xs text-muted-foreground">Devolve o dinheiro (Pix, Cartão, Dinheiro)</p>
+                    <p className="text-xs text-muted-foreground">
+                      Devolve o dinheiro (Pix, Cartão, Dinheiro)
+                    </p>
                   </div>
                 </button>
                 <button
                   onClick={() => setResolutionType("replacement")}
-                  className={`flex items-center gap-3 p-3 border rounded-md text-left transition-colors ${
-                    resolutionType === "replacement" 
-                      ? "border-primary bg-primary/5 ring-1 ring-primary" 
+                  className={`flex items-center gap-3 p-3 border rounded-xl text-left transition-colors ${
+                    resolutionType === "replacement"
+                      ? "border-primary bg-primary/5 ring-1 ring-primary"
                       : "border-border hover:bg-muted/50"
                   }`}
                 >
-                  <RefreshCw className={`size-5 ${resolutionType === "replacement" ? "text-primary" : "text-muted-foreground"}`} />
+                  <RefreshCw
+                    className={`size-5 ${resolutionType === "replacement" ? "text-primary" : "text-muted-foreground"}`}
+                  />
                   <div>
                     <p className="font-semibold text-sm">Substituição</p>
-                    <p className="text-xs text-muted-foreground">O cliente pegou outro produto de mesmo valor</p>
+                    <p className="text-xs text-muted-foreground">
+                      O cliente pegou outro produto de mesmo valor
+                    </p>
                   </div>
                 </button>
               </div>
@@ -192,7 +210,7 @@ function ResolutionDrawer({
             {(resolutionType === "store_credit" || resolutionType === "refund") && (
               <div className="space-y-2 mt-4">
                 <Label className="text-sm font-semibold">Valor (R$)</Label>
-                <Input 
+                <Input
                   type="number"
                   step="0.01"
                   value={refundValue}
@@ -201,11 +219,11 @@ function ResolutionDrawer({
                 />
               </div>
             )}
-            
-            <Button 
-              size="lg" 
-              className="w-full mt-4 font-bold" 
-              onClick={handleResolve} 
+
+            <Button
+              size="lg"
+              className="w-full mt-4 font-bold"
+              onClick={handleResolve}
               disabled={isSubmitting}
             >
               {isSubmitting ? "Finalizando..." : "Confirmar e Concluir Troca"}
@@ -292,7 +310,7 @@ function ExchangesDashboardPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <PageHeader title="Trocas e Devoluções" />
-        <div className="flex surface-subtle p-1 rounded-md border border-border">
+        <div className="flex surface-subtle p-1 rounded-xl border border-border">
           <Button
             variant={viewMode === "kanban" ? "secondary" : "ghost"}
             size="sm"
@@ -325,7 +343,7 @@ function ExchangesDashboardPage() {
       {filteredExchanges.length === 0 ? (
         <EmptyState title="Nenhuma solicitação de troca encontrada" />
       ) : viewMode === "table" ? (
-        <div className="rounded-md border bg-card shadow-xs overflow-hidden">
+        <div className="rounded-xl border bg-card overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
@@ -347,9 +365,7 @@ function ExchangesDashboardPage() {
                     {ex.reason}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={getStatusBadge(ex.status)}>
-                      {translateStatus(ex.status)}
-                    </Badge>
+                    <Badge variant={getStatusBadge(ex.status)}>{translateStatus(ex.status)}</Badge>
                   </TableCell>
                   <TableCell className="text-right flex flex-col justify-end items-end gap-2">
                     {getActionButtons(ex)}
@@ -366,7 +382,7 @@ function ExchangesDashboardPage() {
             return (
               <div
                 key={col.id}
-                className="min-w-[320px] w-[320px] surface-subtle p-3 border border-border flex flex-col gap-3 rounded-md"
+                className="min-w-[320px] w-[320px] surface-subtle p-3 border border-border flex flex-col gap-3 rounded-xl"
               >
                 <div className="flex justify-between items-center font-medium px-1">
                   <span className="font-bold text-foreground">{col.title}</span>
@@ -375,7 +391,7 @@ function ExchangesDashboardPage() {
                   </Badge>
                 </div>
                 {columnExchanges.length === 0 ? (
-                  <div className="text-sm text-muted-foreground p-4 text-center border border-dashed rounded-md bg-background/50">
+                  <div className="text-sm text-muted-foreground p-4 text-center border border-dashed rounded-xl bg-background/50">
                     Nenhum item
                   </div>
                 ) : (
@@ -383,22 +399,25 @@ function ExchangesDashboardPage() {
                     {columnExchanges.map((ex: any) => (
                       <div
                         key={ex.id}
-                        className="bg-card p-4 rounded-md shadow-xs border border-border space-y-3"
+                        className="bg-card p-4 rounded-xl border border-border space-y-3"
                       >
                         <div className="flex justify-between items-start">
                           <div>
                             <p className="font-bold text-sm">#{ex.orderToken}</p>
-                            <p className="text-xs text-muted-foreground font-medium">{ex.customerName}</p>
+                            <p className="text-xs text-muted-foreground font-medium">
+                              {ex.customerName}
+                            </p>
                           </div>
                           <Badge variant={getStatusBadge(ex.status)} className="text-[10px]">
                             {translateStatus(ex.status)}
                           </Badge>
                         </div>
-                        
-                        <div className="text-xs text-foreground p-2 surface-subtle rounded border">
-                          <span className="font-semibold text-muted-foreground">Motivo:</span> {ex.reason}
+
+                        <div className="text-xs text-foreground p-2 surface-subtle rounded-lg border border-border">
+                          <span className="font-semibold text-muted-foreground">Motivo:</span>{" "}
+                          {ex.reason}
                         </div>
-                        
+
                         <div className="flex justify-between items-center text-xs text-muted-foreground">
                           <span>Valor: {formatMoney(ex.orderTotal || 0)}</span>
                           <span>{formatDate(ex.requestedAt)}</span>
@@ -420,10 +439,10 @@ function ExchangesDashboardPage() {
       )}
 
       {resolvingExchange && (
-        <ResolutionDrawer 
-          exchange={resolvingExchange} 
-          isOpen={!!resolvingExchange} 
-          onClose={() => setResolvingExchange(null)} 
+        <ResolutionDrawer
+          exchange={resolvingExchange}
+          isOpen={!!resolvingExchange}
+          onClose={() => setResolvingExchange(null)}
           onResolved={() => {
             router.invalidate();
           }}

@@ -34,7 +34,7 @@ function BookingIndexPage() {
               <CardContent className="p-6 flex flex-col h-full justify-between gap-4">
                 <div className="space-y-2">
                   <h3 className="font-semibold text-lg leading-none">{service.title}</h3>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground font-mono bg-muted/50 w-fit px-2 py-1 rounded-md">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground font-mono bg-muted/50 w-fit px-2 py-1 rounded-xl">
                     <Clock className="size-3.5" />
                     {service.duration_minutes} minutos
                   </div>

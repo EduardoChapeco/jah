@@ -3,22 +3,13 @@ import { Home, Search, ShoppingBag, User, LayoutGrid } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export function BottomNav({ storeType }: { storeType?: string }) {
-  // Configuração dinâmica das abas (Tabs) baseada no tipo da loja PWA
-  const items = [{ to: "/", label: "Mural", icon: Home, exact: true }];
-
-  if (storeType === "event_producer") {
-    items.push({ to: "/agenda", label: "Agenda", icon: LayoutGrid, exact: false });
-  } else if (storeType === "band" || storeType === "creator") {
-    items.push({ to: "/perfil-da-loja", label: "Portfólio", icon: LayoutGrid, exact: false });
-    items.push({ to: "/mercado", label: "Loja", icon: ShoppingBag, exact: false });
-  } else {
-    items.push({ to: "/mercado", label: "Catálogo", icon: LayoutGrid, exact: false });
-  }
-
-  items.push({ to: "/buscar", label: "Buscar", icon: Search, exact: false });
-
-  // A Sacola é controlada via SlideOut no Header, mas mantemos atalho no BottomNav
-  items.push({ to: "/conta", label: "Conta", icon: User, exact: false });
+  const items = [
+    { to: "/", label: "Mural", icon: Home, exact: true },
+    { to: "/mapa", label: "Mapa", icon: LayoutGrid, exact: false },
+    { to: "/mercado", label: "Mercado", icon: ShoppingBag, exact: false },
+    { to: "/buscar", label: "Buscar", icon: Search, exact: false },
+    { to: "/conta", label: "Conta", icon: User, exact: false },
+  ];
   return (
     <nav
       aria-label="Navegação principal"

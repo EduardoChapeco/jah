@@ -298,7 +298,7 @@ function HeaderRightIsland({ session }: { session: any }) {
           <TenantSwitcher identity={session} />
         </div>
       )}
-      <div className="flex h-full items-center gap-2 rounded-full border border-border/80 bg-card px-3 py-1 shadow-xs text-xs font-medium text-foreground">
+      <div className="flex h-full items-center gap-2 rounded-full border border-border/80 bg-card px-3 py-1 text-xs font-medium text-foreground">
         {dateStr && (
           <span className="flex items-center gap-1.5 text-muted-foreground capitalize">
             <Calendar className="size-3.5 text-primary" />
@@ -350,7 +350,9 @@ export function AdminShell({
       toast.success("Sessão encerrada.");
       window.location.href = "/entrar";
     } catch (e: unknown) {
-      toast.error((e instanceof Error ? e.message : String(e)) || "Erro inesperado ao encerrar sessão.");
+      toast.error(
+        (e instanceof Error ? e.message : String(e)) || "Erro inesperado ao encerrar sessão.",
+      );
     }
   };
 
@@ -414,7 +416,7 @@ export function AdminShell({
             <Link
               to={contextualAction.path}
               className={cn(
-                "flex h-11 items-center gap-3 rounded-full bg-primary text-primary-foreground hover:bg-primary/95 transition-all shadow-op-sm",
+                "flex h-11 items-center gap-3 rounded-full bg-primary text-primary-foreground hover:bg-primary/95 transition-all ",
                 collapsed ? "w-11 justify-center" : "w-full px-4",
               )}
               title={contextualAction.label}
@@ -586,7 +588,7 @@ export function AdminShell({
         )}
       >
         {/* Topbar */}
-        <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-background/95 px-4 backdrop-blur pt-safe md:px-6 shadow-op-sm">
+        <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-background/95 px-4 backdrop-blur pt-safe md:px-6 ">
           {/* Mobile menu */}
           <Sheet>
             <SheetTrigger asChild>

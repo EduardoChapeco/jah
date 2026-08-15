@@ -38,9 +38,8 @@ function CmsNavigationPage() {
   const menus = Route.useLoaderData();
 
   // Create a default menu state based on loaded data or a new empty menu
-  const defaultMenu = menus.find((m: any) => m.handle === "main-menu") || 
-                      menus[0] || 
-                      { name: "Menu Principal", handle: "main-menu", items: [] };
+  const defaultMenu = menus.find((m: any) => m.handle === "main-menu") ||
+    menus[0] || { name: "Menu Principal", handle: "main-menu", items: [] };
 
   const [activeMenu, setActiveMenu] = useState<MenuState>({
     id: defaultMenu.id,
@@ -48,7 +47,7 @@ function CmsNavigationPage() {
     handle: defaultMenu.handle,
     items: defaultMenu.items || [],
   });
-  
+
   const [isSaving, setIsSaving] = useState(false);
 
   const handleAddItem = () => {
@@ -76,7 +75,7 @@ function CmsNavigationPage() {
       toast.error("Nome e identificador do menu são obrigatórios");
       return;
     }
-    
+
     setIsSaving(true);
     try {
       await upsertNavigationMenu({
@@ -101,7 +100,11 @@ function CmsNavigationPage() {
       <PageHeader
         title="Navegação"
         actions={
-          <Button onClick={handleSave} disabled={isSaving} className="font-bold border border-border shadow-sm">
+          <Button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="font-bold border border-border "
+          >
             <Save className="mr-2 h-4 w-4" />
             {isSaving ? "Salvando..." : "Salvar Menu"}
           </Button>
@@ -110,33 +113,31 @@ function CmsNavigationPage() {
 
       <div className="flex-1 p-6 flex justify-center">
         <div className="w-full max-w-3xl space-y-6">
-          <Card>
-            <CardContent className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Nome do Menu</Label>
-                  <Input 
-                    value={activeMenu.name}
-                    onChange={(e) => setActiveMenu({ ...activeMenu, name: e.target.value })}
-                    placeholder="Ex: Menu Principal"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Identificador (Handle)</Label>
-                  <Input 
-                    value={activeMenu.handle}
-                    onChange={(e) => setActiveMenu({ ...activeMenu, handle: e.target.value })}
-                    placeholder="Ex: main-menu"
-                    disabled={!!activeMenu.id} // Prevents changing handle after creation to avoid breaking frontend
-                  />
-                </div>
+          <div className="bg-surface-paper border border-border shadow-sm rounded-xl p-6 space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Nome do Menu</Label>
+                <Input
+                  value={activeMenu.name}
+                  onChange={(e) => setActiveMenu({ ...activeMenu, name: e.target.value })}
+                  placeholder="Ex: Menu Principal"
+                />
               </div>
-            </CardContent>
-          </Card>
+              <div className="space-y-2">
+                <Label>Identificador (Handle)</Label>
+                <Input
+                  value={activeMenu.handle}
+                  onChange={(e) => setActiveMenu({ ...activeMenu, handle: e.target.value })}
+                  placeholder="Ex: main-menu"
+                  disabled={!!activeMenu.id} // Prevents changing handle after creation to avoid breaking frontend
+                />
+              </div>
+            </div>
+          </div>
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold font-display">Links do Menu</h3>
+              <h3 className="text-lg font-bold">Links do Menu</h3>
               <Button onClick={handleAddItem} variant="outline" size="sm">
                 <Plus className="mr-2 h-4 w-4" />
                 Adicionar Link
@@ -148,12 +149,15 @@ function CmsNavigationPage() {
             ) : (
               <div className="space-y-3">
                 {activeMenu.items.map((item, index) => (
-                  <div key={item.id} className="flex items-center gap-3 p-3 surface-paper shadow-sm">
+                  <div
+                    key={item.id}
+                    className="flex items-center gap-3 p-3 bg-surface-paper shadow-sm border border-border rounded-xl"
+                  >
                     <GripVertical className="h-5 w-5 text-muted-foreground cursor-move" />
                     <div className="grid grid-cols-2 gap-3 flex-1">
                       <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">Rótulo</Label>
-                        <Input 
+                        <Input
                           value={item.label}
                           onChange={(e) => handleItemChange(index, "label", e.target.value)}
                           placeholder="Ex: Produtos"
@@ -163,7 +167,7 @@ function CmsNavigationPage() {
                         <Label className="text-xs text-muted-foreground">URL ou Caminho</Label>
                         <div className="relative">
                           <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input 
+                          <Input
                             className="pl-9"
                             value={item.url}
                             onChange={(e) => handleItemChange(index, "url", e.target.value)}
@@ -172,9 +176,9 @@ function CmsNavigationPage() {
                         </div>
                       </div>
                     </div>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       className="text-destructive mt-5"
                       onClick={() => handleRemoveItem(index)}
                     >

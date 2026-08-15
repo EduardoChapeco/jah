@@ -146,7 +146,7 @@ export function HeroCarousel({
                 {/* Content Overlay */}
                 <div className="absolute inset-0 z-10 mx-auto flex w-full max-w-screen-xl flex-col items-start justify-end pb-16 px-6 @md:justify-center @md:pb-0 @md:px-12 pointer-events-none">
                   {title && (
-                    <h2 className="text-balance text-4xl text-white @md:text-6xl @xl:text-7xl font-light tracking-tight drop-shadow-sm max-w-3xl pointer-events-auto leading-none">
+                    <h2 className="text-balance text-4xl text-white @md:text-6xl @xl:text-7xl font-light tracking-tight drop- max-w-3xl pointer-events-auto leading-none">
                       {title}
                     </h2>
                   )}

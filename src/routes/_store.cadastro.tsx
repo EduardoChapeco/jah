@@ -1,9 +1,9 @@
 import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Eye, EyeOff, ShieldCheck, Sparkles, ArrowRight } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -16,13 +16,12 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { PageHeader } from "@/components/commerce/page-header";
 import { signUpWithPassword, signInWithOAuth, getUserSession } from "@/services/auth.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/cadastro")({
   head: () => ({
-    meta: [{ title: "Cadastro" }],
+    meta: [{ title: "Criar Conta — JAH Community Commerce" }],
   }),
   validateSearch: (search: Record<string, unknown>): { returnUrl?: string; error?: string } => {
     return {
@@ -54,6 +53,10 @@ function RegisterPage() {
   const search = Route.useSearch();
   const returnUrl = search.returnUrl ?? "/conta";
   const errorParam = search.error;
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Integração Google Login desativada por padrão
+  const isGoogleAuthEnabled = false;
 
   useEffect(() => {
     if (errorParam === "auth-callback-failed") {
@@ -84,24 +87,16 @@ function RegisterPage() {
           "Conta criada! Verifique seu e-mail e clique no link de confirmação para ativar seu acesso.",
           { duration: 8000 },
         );
-        // User must confirm email before logging in. Redirect to /entrar.
         navigate({ to: "/entrar", search: { returnUrl } });
         return;
       }
 
       toast.success("Conta criada com sucesso!");
-
-      // CRITICAL FIX: Ensure the server function layer sees the new cookie
-      // before invalidating the router. Sometimes the fetch cache or cookie write races.
       await new Promise((r) => setTimeout(r, 100));
       await getUserSession();
-
-      await router.invalidate();
-      navigate({ to: returnUrl });
+      window.location.href = returnUrl || "/conta";
     } catch (e: unknown) {
-      const correlationId = Math.random().toString(36).substring(2, 10).toUpperCase();
-      console.error(`[cadastro] Error ID: ${correlationId}`, e);
-      toast.error(`Erro no cadastro. Código: ${e?.code || "ERR_SIGNUP"} | ID: ${correlationId}`);
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao cadastrar.");
     }
   };
 
@@ -111,31 +106,94 @@ function RegisterPage() {
       if (result.status === "success" && result.url) {
         window.location.href = result.url;
       } else {
-        toast.error(result.message || "Erro ao inicializar login social.");
+        toast.error(result.message || "Erro ao inicializar cadastro social.");
       }
     } catch (e) {
-      toast.error("Ocorreu um erro com o login social.");
+      toast.error("Ocorreu um erro com o cadastro social.");
     }
   };
 
   return (
-    <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
-      {/* Breadcrumb */}
-      <nav
-        aria-label="Navegação estrutural"
-        className="mb-6 flex items-center gap-2 text-sm text-muted-foreground"
-      >
-        <Link to="/" className="hover:text-foreground">
-          Início
-        </Link>
-        <ChevronRight className="size-3" aria-hidden />
-        <span className="text-foreground">Cadastro</span>
-      </nav>
+    <div className="min-h-[calc(100vh-4rem)] w-full flex flex-col lg:flex-row bg-background">
+      {/* ── Left Side: Split Editorial Screen (Desktop) ────────── */}
+      <div className="relative hidden lg:flex lg:w-1/2 bg-zinc-950 text-white flex-col justify-between p-12 overflow-hidden border-r border-border/40">
+        {/* Background Gradient & Pattern */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(120,50,255,0.15),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(#ffffff15_1px,transparent_1px)] [background-size:24px_24px] opacity-40" />
 
-      <div className="mx-auto max-w-md">
-        <PageHeader title="Criar conta" />
+        {/* Top Branding */}
+        <div className="relative z-10">
+          <Link to="/" className="inline-flex items-center gap-2 text-xl font-bold tracking-tight">
+            <span className="bg-primary text-primary-foreground px-2 py-0.5 rounded-lg text-sm font-black">
+              JAH
+            </span>
+            <span>Community Platform</span>
+          </Link>
+        </div>
 
-        <div className="mt-8">
+        {/* Center Editorial Focus */}
+        <div className="relative z-10 max-w-lg space-y-4 my-auto">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-semibold border border-white/15">
+            <Sparkles className="size-3.5 text-primary" />
+            <span>Faça parte da nossa comunidade</span>
+          </div>
+
+          <h2 className="text-4xl font-extrabold tracking-tight leading-tight">
+            Crie sua conta para desapegar, comprar e interagir sem intermediários.
+          </h2>
+
+          <p className="text-sm text-zinc-400 leading-relaxed">
+            Tenha acesso instantâneo a propostas de troca seguras, ingressos oficiais com QR Code e
+            feeds culturais locais.
+          </p>
+        </div>
+
+        {/* Bottom Trust Badge */}
+        <div className="relative z-10 flex items-center justify-between text-xs text-zinc-500 border-t border-white/10 pt-6">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="size-4 text-emerald-400" />
+            <span>Proteção de dados com RLS e LGPD nativa</span>
+          </div>
+          <span>Jah OS v2.4</span>
+        </div>
+      </div>
+
+      {/* ── Right Side: Clean Register Form ────────── */}
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-10 lg:p-16">
+        <div className="w-full max-w-md space-y-8">
+          {/* Mobile Back / Breadcrumb */}
+          <div className="flex items-center justify-between">
+            <Link
+              to="/"
+              className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+            >
+              ← Voltar para o início
+            </Link>
+            <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-xl border border-border/60 text-xs">
+              <Link
+                to="/entrar"
+                search={{ returnUrl }}
+                className="px-3 py-1 rounded-lg text-muted-foreground hover:text-foreground font-medium transition-colors"
+              >
+                Entrar
+              </Link>
+              <span className="px-3 py-1 rounded-lg bg-background font-bold text-foreground shadow-2xs">
+                Cadastrar
+              </span>
+            </div>
+          </div>
+
+          {/* Header Title */}
+          <div className="space-y-1">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+              Crie seu perfil
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Leva menos de 1 minuto para começar a usar.
+            </p>
+          </div>
+
+          {/* Form */}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -143,88 +201,140 @@ function RegisterPage() {
                 name="fullName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nome Completo</FormLabel>
+                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                      Nome Completo
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="Maria da Silva" {...field} />
+                      <Input
+                        placeholder="Seu nome"
+                        autoComplete="name"
+                        className="h-11 rounded-xl border-border bg-card/50 text-sm focus-visible:ring-primary/20"
+                        {...field}
+                      />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-xs font-semibold" />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>E-mail</FormLabel>
+                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                      E-mail
+                    </FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="seu@email.com" {...field} />
+                      <Input
+                        type="email"
+                        placeholder="seu.email@exemplo.com"
+                        autoComplete="email"
+                        className="h-11 rounded-xl border-border bg-card/50 text-sm focus-visible:ring-primary/20"
+                        {...field}
+                      />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-xs font-semibold" />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Senha</FormLabel>
+                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                      Senha (mínimo 6 caracteres)
+                    </FormLabel>
                     <FormControl>
-                      <Input type="password" {...field} />
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          autoComplete="new-password"
+                          className="h-11 rounded-xl border-border bg-card/50 text-sm pr-10 focus-visible:ring-primary/20"
+                          {...field}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          aria-label={showPassword ? "Ocultar senha" : "Ver senha"}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="size-4" />
+                          ) : (
+                            <Eye className="size-4" />
+                          )}
+                        </button>
+                      </div>
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-xs font-semibold" />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="isConsentLgpd"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormItem className="flex items-start gap-2.5 space-y-0 pt-2">
                     <FormControl>
-                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        className="rounded-md mt-0.5"
+                      />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel>
-                        Eu concordo com os Termos de Uso e Política de Privacidade (LGPD).
+                      <FormLabel className="text-xs text-muted-foreground font-normal leading-relaxed cursor-pointer">
+                        Concordo com os{" "}
+                        <Link to="/termos" className="text-primary font-semibold hover:underline">
+                          Termos de Uso
+                        </Link>{" "}
+                        e{" "}
+                        <Link
+                          to="/privacidade"
+                          className="text-primary font-semibold hover:underline"
+                        >
+                          Política de Privacidade
+                        </Link>
+                        .
                       </FormLabel>
+                      <FormMessage className="text-xs font-semibold" />
                     </div>
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? "Criando conta..." : "Criar conta"}
+
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full h-12 rounded-xl font-bold bg-primary text-primary-foreground shadow-xs gap-2 text-sm mt-2"
+                disabled={form.formState.isSubmitting}
+              >
+                {form.formState.isSubmitting ? (
+                  "Criando conta..."
+                ) : (
+                  <>
+                    <span>Concluir Cadastro</span>
+                    <ArrowRight className="size-4" />
+                  </>
+                )}
               </Button>
             </form>
           </Form>
 
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Ou cadastre-se com</span>
-            </div>
-          </div>
-
-          <Button
-            variant="outline"
-            className="w-full font-normal"
-            onClick={() => handleOAuth("google")}
-          >
-            <span className="mr-2 h-4 w-4 text-lg font-bold">G</span>
-            Google
-          </Button>
-
-          <div className="mt-6 text-center text-sm text-muted-foreground">
-            Já tem uma conta?{" "}
+          {/* Footer Call to Action */}
+          <div className="text-center text-xs text-muted-foreground pt-4 border-t border-border/40">
+            Já possui uma conta?{" "}
             <Link
               to="/entrar"
               search={{ returnUrl }}
-              className="font-medium text-primary hover:underline"
+              className="text-primary font-bold hover:underline"
             >
-              Faça login
+              Fazer login
             </Link>
           </div>
         </div>

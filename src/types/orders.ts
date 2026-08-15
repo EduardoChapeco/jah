@@ -81,6 +81,8 @@ export interface CartItemDTO {
   id: string;
   variantId: string;
   qty: number;
+  selectedOptions?: Record<string, string | string[]>;
+  selectedOptionsLabels?: string[];
   /** Server-computed unit price at time of add. */
   priceCents: number;
   /** Server-computed line total (qty × unit price). */

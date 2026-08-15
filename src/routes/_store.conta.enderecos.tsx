@@ -61,7 +61,9 @@ function AddressesPage() {
       });
       router.invalidate();
     } catch (error: unknown) {
-      toast.error((error instanceof Error ? error.message : String(error)) || "Erro ao adicionar endereço.");
+      toast.error(
+        (error instanceof Error ? error.message : String(error)) || "Erro ao adicionar endereço.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -96,8 +98,11 @@ function AddressesPage() {
       </div>
 
       {isAdding && (
-        <form onSubmit={handleSubmit} className="bg-card p-6 border border-border mb-8 space-y-4">
-          <h3 className="font-semibold text-lg mb-4">Adicionar Endereço</h3>
+        <form
+          onSubmit={handleSubmit}
+          className="p-6 border border-border bg-card rounded-xl space-y-4 mb-8"
+        >
+          <h3 className="text-lg font-medium">Novo Endereço</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2 md:col-span-1">
               <label className="text-sm font-medium">CEP *</label>
@@ -181,9 +186,9 @@ function AddressesPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {addresses.map((addr: any) => (
-            <div key={addr.id} className="p-5 border border-border bg-card relative">
+            <div key={addr.id} className="p-5 border border-border bg-card rounded-xl relative">
               {addr.is_default && (
-                <span className="absolute top-4 right-4 bg-primary text-primary-foreground text-xs font-semibold px-2 py-1 rounded">
+                <span className="absolute top-4 right-4 bg-primary text-primary-foreground text-xs font-semibold px-2 py-1 rounded-full">
                   Padrão
                 </span>
               )}

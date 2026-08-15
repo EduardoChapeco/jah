@@ -31,42 +31,50 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [isCartUpdating, setIsCartUpdating] = useState(false);
   const router = useRouter();
 
+  const isRefreshingRef = React.useRef(false);
+
   const initCart = (initialCart: CartDTO | null, initialGlobalCarts?: CartDTO[]) => {
-    if (!cart) setCart(initialCart);
-    if (initialGlobalCarts && globalCarts.length === 0) setGlobalCarts(initialGlobalCarts);
+    if (initialCart !== undefined) setCart(initialCart);
+    if (initialGlobalCarts !== undefined) setGlobalCarts(initialGlobalCarts);
   };
 
   const refreshCart = async () => {
-    if (isCartUpdating) return;
+    if (isRefreshingRef.current) return;
+    isRefreshingRef.current = true;
     setIsCartUpdating(true);
     try {
-      const [updatedCart, updatedGlobalCarts] = await Promise.all([getCart(), getGlobalCarts()]);
+      const [updatedCart, updatedGlobalCarts] = await Promise.all([
+        getCart().catch(() => null),
+        getGlobalCarts().catch(() => []),
+      ]);
       setCart(updatedCart || null);
       setGlobalCarts(updatedGlobalCarts || []);
       await router.invalidate();
     } catch (e) {
       console.error("Failed to refresh cart", e);
     } finally {
+      isRefreshingRef.current = false;
       setIsCartUpdating(false);
     }
   };
 
   useEffect(() => {
     const handleFocus = () => {
-      if (!isCartUpdating) refreshCart();
+      if (!isRefreshingRef.current) refreshCart();
     };
     window.addEventListener("focus", handleFocus);
     return () => window.removeEventListener("focus", handleFocus);
-  }, [isCartUpdating]);
+  }, []);
 
   const updateQty = async (variantId: string, delta: number) => {
     setIsCartUpdating(true);
     try {
       await updateCartItemQty({ data: { variantId, delta } });
     } catch (e: unknown) {
-      toast.error((e instanceof Error ? (e instanceof Error ? e.message : String(e)) : String(e)) || "Erro inesperado ao atualizar carrinho");
+      toast.error(
+        (e instanceof Error ? e.message : String(e)) || "Erro inesperado ao atualizar carrinho",
+      );
     } finally {
-      setIsCartUpdating(false);
       await refreshCart();
     }
   };
@@ -76,11 +84,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
     try {
       await removeFromCart({ data: { itemId } });
     } catch (e: unknown) {
-      toast.error((e instanceof Error ? (e instanceof Error ? e.message : String(e)) : String(e)) || "Erro inesperado ao remover item");
+      toast.error(
+        (e instanceof Error ? e.message : String(e)) || "Erro inesperado ao remover item",
+      );
     } finally {
-      setIsCartUpdating(false);
       await refreshCart();
     }
+  };
+
+  const setCartData = (newCart: CartDTO | null) => {
+    setCart(newCart);
+    refreshCart();
   };
 
   return (
@@ -95,7 +109,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         updateQty,
         removeItem,
         initCart,
-        setCartData: setCart,
+        setCartData,
       }}
     >
       {children}

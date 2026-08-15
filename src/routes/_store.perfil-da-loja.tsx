@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Clock, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
+import { Clock, Mail, MessageCircle, Phone } from "lucide-react";
 
 import { ErrorState, UnconfiguredState } from "@/components/state/states";
 import { getPublicStoreProfile } from "@/services/catalog.functions";
@@ -49,7 +49,7 @@ function StorePerfil() {
     );
   }
 
-  // ── Canonical path: published Builder document for slug "institucional"
+  // ── Canonical path: published Builder document for slug"institucional"
   // The server has already hydrated store_profile bindings (hours, contact, hero)
   if (builderTree) {
     return (
@@ -73,7 +73,7 @@ function StorePerfil() {
   return (
     <main className="min-h-screen bg-background">
       {/* Admin banner — directs admin to create the Builder page */}
-      <div className="bg-amber-50 border-b border-amber-200 text-amber-800 text-xs text-center py-2 px-4">
+      <div className="bg-warning/15 border-b border-warning/30 text-warning text-xs text-center py-2 px-4">
         Exibindo perfil canônico da loja.{" "}
         <Link to="/workspace" className="underline font-semibold">
           Personalize este perfil no Editor Visual
@@ -96,7 +96,7 @@ function StorePerfil() {
             <img
               src={store.logo_url || settings.logoUrl}
               alt={store.name}
-              className={`size-24 rounded-full object-cover border border-background shadow-md bg-background ${settings.cover_url ? "-mt-16 relative z-10" : ""}`}
+              className={`size-24 rounded-full object-cover border border-border bg-background ${settings.cover_url ? "-mt-16 relative z-10" : ""}`}
             />
           )}
           <div>
@@ -112,10 +112,10 @@ function StorePerfil() {
           {/* Status badge */}
           {openStatus && (
             <span
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${openStatus.status === "open" ? "bg-emerald-500/15 text-emerald-700" : "bg-destructive/15 text-destructive"}`}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${openStatus.status === "open" ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive"}`}
             >
               <span
-                className={`size-2 rounded-full ${openStatus.status === "open" ? "bg-emerald-500" : "bg-destructive"}`}
+                className={`size-2 rounded-full ${openStatus.status === "open" ? "bg-success" : "bg-destructive"}`}
               />
               {openStatus.text}
             </span>
@@ -130,7 +130,7 @@ function StorePerfil() {
                   href={btn.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 rounded-full border bg-background text-sm font-medium hover:bg-muted transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-background text-sm font-medium hover:bg-muted transition-colors"
                 >
                   {btn.label}
                 </a>
@@ -144,7 +144,7 @@ function StorePerfil() {
           {store.phone && (
             <a
               href={`tel:${store.phone}`}
-              className="flex items-center gap-4 p-3 border hover:bg-muted/50 transition-colors"
+              className="flex items-center gap-4 p-3 border border-border rounded-xl hover:bg-muted/50 transition-colors"
             >
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary shrink-0">
                 <Phone className="h-4 w-4" />
@@ -160,9 +160,9 @@ function StorePerfil() {
               href={`https://wa.me/${store.phone.replace(/\D/g, "")}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-4 p-3 border hover:bg-muted/50 transition-colors"
+              className="flex items-center gap-4 p-3 border border-border rounded-xl hover:bg-muted/50 transition-colors"
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 shrink-0">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-success/10 text-success shrink-0">
                 <MessageCircle className="h-4 w-4" />
               </div>
               <div>
@@ -171,21 +171,7 @@ function StorePerfil() {
               </div>
             </a>
           )}
-          {store.address && (
-            <div className="flex items-start gap-4 p-3 border">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary shrink-0 mt-0.5">
-                <MapPin className="h-4 w-4" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">Endereço</p>
-                <p className="text-sm font-medium">
-                  {store.address}
-                  {store.city ? `, ${store.city}` : ""}
-                  {store.state ? `/${store.state}` : ""}
-                </p>
-              </div>
-            </div>
-          )}
+
           {extendedHours.length > 0 && (
             <div className="p-4 border">
               <div className="flex items-center gap-2 mb-3">

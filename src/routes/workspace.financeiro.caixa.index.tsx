@@ -237,7 +237,7 @@ function CashRegisterPage() {
       if (variants.length === 0) continue;
 
       for (const v of variants) {
-        const variantAttributes = Object.values(v.attributes || {}).join(" - ");
+        const variantAttributes = Object.values(v.attributes || {}).join(" -");
         const titleSuffix = variantAttributes ? ` - ${variantAttributes}` : "";
         const isBackorder = v.stock_on_hand <= 0 && v.allow_backorder;
 
@@ -373,7 +373,9 @@ function CashRegisterPage() {
       openForm.reset();
       router.invalidate();
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? (e instanceof Error ? e.message : String(e)) : "Erro ao abrir caixa");
+      toast.error(
+        e instanceof Error ? (e instanceof Error ? e.message : String(e)) : "Erro ao abrir caixa",
+      );
     } finally {
       setIsOpening(false);
     }
@@ -402,7 +404,9 @@ function CashRegisterPage() {
       closeForm.reset();
       router.invalidate();
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? (e instanceof Error ? e.message : String(e)) : "Erro ao fechar caixa");
+      toast.error(
+        e instanceof Error ? (e instanceof Error ? e.message : String(e)) : "Erro ao fechar caixa",
+      );
     } finally {
       setIsClosing(false);
     }
@@ -414,10 +418,10 @@ function CashRegisterPage() {
       <div className="space-y-6">
         <PageHeader eyebrow="Frente de Loja / PDV" title="Caixa Fechado" />
 
-        <div className="border border-warning/30 bg-warning/10 p-6 rounded-md">
+        <div className="border border-border bg-surface-paper shadow-sm p-6 rounded-xl max-w-2xl">
           <div className="mb-6">
-            <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
-              <Lock className="size-5 text-warning-foreground" />
+            <h3 className="text-base font-bold flex items-center gap-2 text-warning">
+              <Lock className="size-5" />
               Abertura Obrigatória de Turno
             </h3>
             <p className="text-sm text-muted-foreground mt-1">
@@ -473,10 +477,7 @@ function CashRegisterPage() {
         title="Frente de Caixa & PDV Balcão"
         actions={
           <div className="flex items-center gap-2">
-            <Badge
-              variant="success"
-              className="text-xs px-3 py-1 font-bold uppercase tracking-wider"
-            >
+            <Badge variant="default" className="text-xs px-3 py-1 font-bold">
               Gaveta: {formatMoney(register.currentBalanceCents)}
             </Badge>
             <Button variant="outline" asChild size="sm">
@@ -522,7 +523,7 @@ function CashRegisterPage() {
                   <div
                     key={variant.variantId}
                     onClick={() => handleAddToCart(variant)}
-                    className="p-3 border border-border bg-card hover:border-primary/50 hover:shadow-xs transition-all cursor-pointer flex items-center gap-3 group"
+                    className="p-3 border border-border bg-surface-paper shadow-sm hover:border-primary/50 hover:shadow-md transition-all cursor-pointer flex items-center gap-3 group rounded-xl"
                   >
                     {variant.coverUrl ? (
                       <img
@@ -563,8 +564,8 @@ function CashRegisterPage() {
 
             {/* LADO DIREITO: Carrinho do Balcão e Fechamento (5 Colunas) */}
             <div className="lg:col-span-5 space-y-4">
-              <div className="border border-border bg-card rounded-md overflow-hidden">
-                <div className="py-3 px-4 border-b bg-muted/30 flex flex-row items-center justify-between">
+              <div className="border border-border bg-surface-paper shadow-sm rounded-xl overflow-hidden">
+                <div className="py-3 px-4 border-b bg-primary/5 flex flex-row items-center justify-between">
                   <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
                     <ShoppingCart className="size-4 text-primary" />
                     Carrinho do Balcão
@@ -725,7 +726,7 @@ function CashRegisterPage() {
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs">Troco a Devolver</Label>
-                          <div className="h-8 rounded-md bg-success/15 border border-transparent flex items-center justify-center font-extrabold text-sm text-success">
+                          <div className="h-8 rounded-xl bg-success/15 border border-transparent flex items-center justify-center font-extrabold text-sm text-success">
                             {formatMoney(changeCents)}
                           </div>
                         </div>
@@ -774,7 +775,7 @@ function CashRegisterPage() {
                 Vendas, reforços de troco e sangrias registradas.
               </p>
             </div>
-            <div className="border border-border rounded-md bg-card overflow-hidden">
+            <div className="border border-border rounded-xl bg-surface-paper shadow-sm overflow-hidden">
               {!register.recentEntries || register.recentEntries.length === 0 ? (
                 <EmptyState title="Nenhum lançamento" />
               ) : (

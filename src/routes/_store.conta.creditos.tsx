@@ -17,28 +17,18 @@ function Page() {
   const credits = Route.useLoaderData();
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto font-sans text-foreground">
+    <div className="space-y-8 w-full font-sans text-foreground">
       <div className="border-b border-border pb-6 mb-8">
-        <h1 className="text-4xl font-semibold font-black flex items-center gap-3 uppercase">
-          <span className="bg-secondary text-foreground px-3 py-1 border border-border shadow-[4px_4px_0px_rgba(0,0,0,1)] -rotate-2">
-            Meus
-          </span>
-          Créditos
-        </h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Meus Créditos</h1>
         <p className="mt-4 text-foreground/80 font-medium">
           Acompanhe seu saldo em carteira (Store Credit) e histórico de recebimentos/estornos.
         </p>
       </div>
 
-      <div className="border border-border shadow-sm bg-secondary p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
-        <div className="absolute -right-4 -top-8 text-foreground/5 rotate-12 scale-150 pointer-events-none">
-          <span className="font-semibold text-9xl">$</span>
-        </div>
+      <div className="border border-border bg-card p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 rounded-xl">
         <div className="relative z-10">
-          <p className="text-sm text-foreground font-black uppercase tracking-widest bg-white inline-block px-2 py-0.5 border border-border shadow-sm mb-4">
-            Saldo Disponível
-          </p>
-          <p className="text-6xl font-semibold font-black text-primary drop-shadow-sm">
+          <p className="text-sm font-medium text-muted-foreground mb-2">Saldo Disponível</p>
+          <p className="text-4xl font-semibold text-foreground">
             {formatMoney(credits.balance_cents)}
           </p>
         </div>
@@ -50,15 +40,15 @@ function Page() {
       </div>
 
       <div className="space-y-6 pt-6">
-        <h3 className="text-2xl font-semibold font-black uppercase border-b border-border pb-2">
+        <h3 className="text-lg font-semibold border-b border-border pb-2">
           Histórico de Transações
         </h3>
         {credits.customer_credit_transactions.length === 0 ? (
-          <div className="border border-dashed border-border p-10 text-center bg-background flex flex-col items-center gap-4">
+          <div className="border border-border rounded-lg p-10 text-center flex flex-col items-center gap-4">
             <span className="text-4xl">🧾</span>
-            <div className="space-y-2">
-              <p className="font-semibold text-2xl font-black uppercase">Sem movimentações</p>
-              <p className="text-sm text-foreground/70 font-medium">
+            <div className="space-y-1">
+              <p className="font-semibold text-lg">Sem movimentações</p>
+              <p className="text-sm text-muted-foreground">
                 Você ainda não possui transações de créditos registradas.
               </p>
             </div>
@@ -68,17 +58,15 @@ function Page() {
             {credits.customer_credit_transactions.map((t: any) => (
               <div
                 key={t.id}
-                className="flex justify-between items-center p-5 border border-border bg-background hover:shadow-sm hover:-translate-y-1 transition-all"
+                className="flex justify-between items-center p-4 border-b border-border last:border-0"
               >
                 <div>
-                  <p className="font-black text-foreground uppercase text-sm">{t.reason}</p>
-                  <p className="text-xs font-mono font-bold text-foreground/60 mt-1">
-                    {formatDate(t.created_at)}
-                  </p>
+                  <p className="font-medium text-foreground">{t.reason}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{formatDate(t.created_at)}</p>
                 </div>
                 <div className="text-right">
                   <p
-                    className={`font-semibold text-2xl font-black ${t.amount_cents > 0 ? "text-success" : "text-primary"}`}
+                    className={`font-semibold text-lg ${t.amount_cents > 0 ? "text-success" : "text-foreground"}`}
                   >
                     {t.amount_cents > 0 ? "+" : ""}
                     {formatMoney(t.amount_cents)}

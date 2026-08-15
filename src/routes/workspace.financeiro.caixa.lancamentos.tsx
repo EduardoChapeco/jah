@@ -203,19 +203,19 @@ function CaixaLancamentosPage() {
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        <div className="border border-border rounded-md shadow-xs bg-card p-4">
+        <div className="border border-border rounded-xl bg-card p-4">
           <p className="text-sm text-muted-foreground">Saldo Inicial</p>
           <p className="mt-1 text-2xl font-semibold">
             {formatMoney(register.initial_balance_cents)}
           </p>
         </div>
-        <div className="border border-border rounded-md shadow-xs bg-card p-4">
+        <div className="border border-border rounded-xl bg-card p-4">
           <p className="text-sm text-muted-foreground">Saldo Atual</p>
           <p className="mt-1 text-2xl font-semibold text-success">
             {formatMoney(register.currentBalanceCents)}
           </p>
         </div>
-        <div className="border border-border rounded-md shadow-xs bg-card p-4 flex items-center gap-3">
+        <div className="border border-border rounded-xl bg-card p-4 flex items-center gap-3">
           <Wallet className="h-8 w-8 text-muted-foreground" />
           <div>
             <p className="text-sm text-muted-foreground">Status</p>
@@ -227,7 +227,7 @@ function CaixaLancamentosPage() {
       </div>
 
       {/* Lançamentos Table */}
-      <div className="border border-border bg-card rounded-md shadow-xs overflow-hidden">
+      <div className="border border-border bg-card rounded-xl overflow-hidden">
         <div className="p-4 border-b border-border">
           <h3 className="font-semibold text-foreground">Extrato do Turno</h3>
         </div>

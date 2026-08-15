@@ -23,14 +23,12 @@ function Page() {
   const page = Route.useLoaderData();
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 md:px-6 md:py-12">
-      <PageHeader eyebrow="Documento" title={page?.title || "Política de privacidade"} />
-      <div className="mt-8">
+    <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
+      <div className="max-w-4xl mx-auto">
         {!page ? (
           <EmptyState title="Página não encontrada" />
         ) : (
           <div className="prose prose-neutral max-w-none">
-            {/* Aqui renderizaríamos as seções do construtor de página se existissem. Como é texto rico, vamos simplificar: */}
             {page.sections?.map((section: any) => (
               <div key={section.id}>
                 {section.section_type === "text" && (

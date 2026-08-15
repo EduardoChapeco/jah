@@ -29,19 +29,19 @@ function AdminMasterLayout() {
         <nav className="flex-1 p-4 space-y-2">
           <Link
             to="/admin-master"
-            className="flex items-center gap-3 p-3 rounded-md text-sm font-semibold hover:bg-muted/50 [&.active]:bg-primary [&.active]:text-primary-foreground transition-colors"
+            className="flex items-center gap-3 p-3 rounded-xl text-sm font-semibold hover:bg-muted/50 [&.active]:bg-primary [&.active]:text-primary-foreground transition-colors"
           >
             <Home className="size-4" /> Dashboard Global
           </Link>
           <Link
             to="/admin-master/lojas"
-            className="flex items-center gap-3 p-3 rounded-md text-sm font-semibold hover:bg-muted/50 [&.active]:bg-primary [&.active]:text-primary-foreground transition-colors"
+            className="flex items-center gap-3 p-3 rounded-xl text-sm font-semibold hover:bg-muted/50 [&.active]:bg-primary [&.active]:text-primary-foreground transition-colors"
           >
             <Store className="size-4" /> Todas as Lojas
           </Link>
           <Link
             to="/admin-master/faturas"
-            className="flex items-center gap-3 p-3 rounded-md text-sm font-semibold hover:bg-muted/50 [&.active]:bg-primary [&.active]:text-primary-foreground transition-colors"
+            className="flex items-center gap-3 p-3 rounded-xl text-sm font-semibold hover:bg-muted/50 [&.active]:bg-primary [&.active]:text-primary-foreground transition-colors"
           >
             <DollarSign className="size-4" /> Faturamentos
           </Link>

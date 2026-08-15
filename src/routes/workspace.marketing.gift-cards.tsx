@@ -49,7 +49,15 @@ function getStatusBadge(status: string): "success" | "secondary" | "destructive"
   return "secondary";
 }
 
-function NewGiftCardDrawer({ isOpen, onClose, onCreated }: { isOpen: boolean, onClose: () => void, onCreated: () => void }) {
+function NewGiftCardDrawer({
+  isOpen,
+  onClose,
+  onCreated,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onCreated: () => void;
+}) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [balance, setBalance] = useState("100.00");
   const [email, setEmail] = useState("");
@@ -88,12 +96,12 @@ function NewGiftCardDrawer({ isOpen, onClose, onCreated }: { isOpen: boolean, on
             Crie um cartão presente manualmente para campanhas, cortesias ou vendas corporativas.
           </SheetDescription>
         </SheetHeader>
-        
+
         <div className="py-6 space-y-6 flex-1">
           <div className="space-y-4">
             <div className="space-y-2">
               <Label className="text-sm font-semibold">Valor do Cartão (R$)</Label>
-              <Input 
+              <Input
                 type="number"
                 step="0.01"
                 min="1"
@@ -102,10 +110,10 @@ function NewGiftCardDrawer({ isOpen, onClose, onCreated }: { isOpen: boolean, on
                 className="font-bold text-lg h-12"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label className="text-sm font-semibold">E-mail do Destinatário (Opcional)</Label>
-              <Input 
+              <Input
                 type="email"
                 placeholder="cliente@exemplo.com"
                 value={email}
@@ -115,11 +123,11 @@ function NewGiftCardDrawer({ isOpen, onClose, onCreated }: { isOpen: boolean, on
                 Se preenchido, o código será enviado automaticamente para este e-mail.
               </p>
             </div>
-            
-            <Button 
-              size="lg" 
-              className="w-full mt-4 font-bold" 
-              onClick={handleCreate} 
+
+            <Button
+              size="lg"
+              className="w-full mt-4 font-bold"
+              onClick={handleCreate}
               disabled={isSubmitting}
             >
               {isSubmitting ? "Gerando..." : "Gerar e Ativar Código"}
@@ -141,15 +149,17 @@ function GiftCardsDashboardPage() {
   const filteredCards = giftCards.filter((card: any) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
-    return (
-      card.code?.toLowerCase().includes(q) ||
-      card.purchaserName?.toLowerCase().includes(q)
-    );
+    return card.code?.toLowerCase().includes(q) || card.purchaserName?.toLowerCase().includes(q);
   });
 
   const handleCancel = async (id: string) => {
-    if (!confirm("Tem certeza que deseja cancelar este Vale-Presente? Esta ação não pode ser desfeita.")) return;
-    
+    if (
+      !confirm(
+        "Tem certeza que deseja cancelar este Vale-Presente? Esta ação não pode ser desfeita.",
+      )
+    )
+      return;
+
     setProcessingId(id);
     try {
       await cancelGiftCard({ data: { id } });
@@ -186,7 +196,7 @@ function GiftCardsDashboardPage() {
       {filteredCards.length === 0 ? (
         <EmptyState title="Nenhum Vale-Presente encontrado" />
       ) : (
-        <div className="rounded-md border bg-card shadow-xs overflow-hidden">
+        <div className="rounded-xl border bg-card overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
@@ -204,13 +214,20 @@ function GiftCardsDashboardPage() {
                 <TableRow key={card.id}>
                   <TableCell className="whitespace-nowrap">{formatDate(card.createdAt)}</TableCell>
                   <TableCell>
-                    <Badge variant="outline" className="font-mono text-xs font-bold tracking-widest bg-muted/50">
+                    <Badge
+                      variant="outline"
+                      className="font-mono text-xs font-bold tracking-widest bg-muted/50"
+                    >
                       {card.code}
                     </Badge>
                   </TableCell>
                   <TableCell>{card.purchaserName}</TableCell>
-                  <TableCell className="text-muted-foreground">{formatMoney(card.initialBalance)}</TableCell>
-                  <TableCell className="font-bold text-foreground">{formatMoney(card.currentBalance)}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {formatMoney(card.initialBalance)}
+                  </TableCell>
+                  <TableCell className="font-bold text-foreground">
+                    {formatMoney(card.currentBalance)}
+                  </TableCell>
                   <TableCell>
                     <Badge variant={getStatusBadge(card.status)}>
                       {translateStatus(card.status)}
@@ -236,9 +253,9 @@ function GiftCardsDashboardPage() {
         </div>
       )}
 
-      <NewGiftCardDrawer 
-        isOpen={isDrawerOpen} 
-        onClose={() => setIsDrawerOpen(false)} 
+      <NewGiftCardDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
         onCreated={() => {
           router.invalidate();
         }}

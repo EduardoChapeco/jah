@@ -236,7 +236,9 @@ function SearchPage() {
       const res = await federatedSearch({ data: { query: trimmed } });
       setResult(res);
     } catch (e: unknown) {
-      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao buscar. Tente novamente.");
+      toast.error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao buscar. Tente novamente.",
+      );
       setResult(null);
     } finally {
       setIsSearching(false);
@@ -270,7 +272,7 @@ function SearchPage() {
     <div className="mx-auto max-w-screen-xl px-4 py-10 md:px-6 md:py-16">
       {/* Header */}
       <div className="mx-auto max-w-2xl text-center mb-10">
-        <h1 className="font-display text-3xl md:text-4xl uppercase tracking-tighter text-foreground mb-2">
+        <h1 className="text-3xl md:text-4xl tracking-tight text-foreground mb-2">
           Encontre o que procura
         </h1>
         <p className="text-sm text-muted-foreground">

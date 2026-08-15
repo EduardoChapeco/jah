@@ -30,7 +30,9 @@ function Page() {
 
       setSuccess(true);
     } catch (e: unknown) {
-      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao solicitar recuperação de senha.");
+      toast.error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao solicitar recuperação de senha.",
+      );
     } finally {
       setIsSubmitting(false);
     }

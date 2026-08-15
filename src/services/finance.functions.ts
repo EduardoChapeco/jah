@@ -215,7 +215,10 @@ export const listFinancialTransactions = createServerFn({ method: "GET" })
       return await _listFinancialTransactions(filters);
     } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[finance] listFinancialTransactions:", (e instanceof Error ? e.message : String(e)));
+      console.error(
+        "[finance] listFinancialTransactions:",
+        e instanceof Error ? e.message : String(e),
+      );
       throw new Error("Erro ao buscar lançamentos financeiros.");
     }
   });
@@ -232,7 +235,7 @@ export const getFinancialSummary = createServerFn({ method: "GET" })
       return await _getFinancialSummary(filters);
     } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[finance] getFinancialSummary:", (e instanceof Error ? e.message : String(e)));
+      console.error("[finance] getFinancialSummary:", e instanceof Error ? e.message : String(e));
       throw new Error("Erro ao calcular resumo financeiro.");
     }
   });
@@ -252,7 +255,12 @@ export const createManualTransaction = createServerFn({ method: "POST" })
       return await _createManualTransaction(input);
     } catch (e: unknown) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error("[finance] createManualTransaction:", (e instanceof Error ? e.message : String(e)));
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao registrar lançamento.");
+      console.error(
+        "[finance] createManualTransaction:",
+        e instanceof Error ? e.message : String(e),
+      );
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao registrar lançamento.",
+      );
     }
   });

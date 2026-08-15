@@ -11,8 +11,9 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const FALLBACK_NAV = [
   { url: "/", label: "Mural" },
-  { url: "/agenda", label: "Agenda" },
+  { url: "/mapa", label: "Mapa" },
   { url: "/mercado", label: "Mercado" },
+  { url: "/agenda", label: "Agenda" },
   { url: "/diretorio", label: "Diretório" },
 ];
 
@@ -34,7 +35,7 @@ export function PublicHeader({
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const { cart: contextCart, setIsCartOpen } = useCartContext();
+  const { cart: contextCart, globalCarts, setIsCartOpen } = useCartContext();
 
   // Auto-focus search input when it opens
   useEffect(() => {
@@ -52,7 +53,10 @@ export function PublicHeader({
     }
   };
 
-  const totalItemCount = contextCart?.itemCount || 0;
+  const totalItemCount =
+    globalCarts && globalCarts.length > 0
+      ? globalCarts.reduce((acc, c) => acc + (c.itemCount || 0), 0)
+      : contextCart?.itemCount || 0;
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background pt-safe">
@@ -63,7 +67,7 @@ export function PublicHeader({
             <Button
               variant="outline"
               size="icon"
-              className="md:hidden shrink-0 border border-border shadow-sm"
+              className="md:hidden shrink-0 border border-border "
               aria-label="Abrir menu"
             >
               <Menu className="size-6 text-foreground" aria-hidden />
@@ -79,7 +83,7 @@ export function PublicHeader({
                 <Link
                   key={item.url}
                   to={item.url}
-                  className="px-4 py-3 text-lg font-semibold text-foreground hover:bg-muted/50 transition-colors rounded-md"
+                  className="px-4 py-3 text-lg font-semibold text-foreground hover:bg-muted/50 transition-colors rounded-xl"
                   activeProps={{ className: "bg-secondary text-primary font-bold" }}
                 >
                   {item.label}
@@ -108,7 +112,7 @@ export function PublicHeader({
             <Link
               key={item.url}
               to={item.url}
-              className="px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted/50 transition-colors rounded-md"
+              className="px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted/50 transition-colors rounded-xl"
               activeProps={{ className: "bg-secondary text-primary" }}
             >
               {item.label}
@@ -148,20 +152,20 @@ export function PublicHeader({
               size="icon"
               onClick={() => setIsSearchOpen(true)}
               aria-label="Buscar"
-              className="shrink-0 border border-border shadow-sm"
+              className="shrink-0 border border-border "
             >
               <Search className="size-5 text-foreground" aria-hidden />
             </Button>
           )}
 
-          <ThemeToggle className="shrink-0 border border-border shadow-sm" />
+          <ThemeToggle className="shrink-0 border border-border " />
 
           <Button
             variant="outline"
             size="icon"
             asChild
             aria-label="Minha conta"
-            className="shrink-0 border border-border shadow-sm"
+            className="shrink-0 border border-border "
           >
             <Link to="/conta">
               <User className="size-5 text-foreground" aria-hidden />
@@ -173,7 +177,7 @@ export function PublicHeader({
             size="icon"
             onClick={() => setIsCartOpen(true)}
             aria-label="Carrinho"
-            className="relative shrink-0 border border-border shadow-sm bg-secondary text-foreground"
+            className="relative shrink-0 border border-border bg-secondary text-foreground"
           >
             <ShoppingBag className="size-5" aria-hidden />
             {totalItemCount > 0 && (

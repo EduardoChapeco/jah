@@ -51,7 +51,7 @@ function Page() {
       ) : (
         <div className="space-y-6">
           {orders.map((order: any) => (
-            <div key={order.id} className="border overflow-hidden bg-card">
+            <div key={order.id} className="border border-border rounded-xl overflow-hidden bg-card">
               <div className="bg-muted/40 p-4 border-b flex flex-wrap justify-between items-center gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Pedido realizado em</p>

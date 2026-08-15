@@ -140,7 +140,10 @@ export const processCheckout = createServerFn({ method: "POST" })
         p_affiliate_id: affiliateId || null,
       });
 
-      if (error) throw new Error("Erro ao processar pedido: " + (error instanceof Error ? error.message : String(error)));
+      if (error)
+        throw new Error(
+          "Erro ao processar pedido: " + (error instanceof Error ? error.message : String(error)),
+        );
 
       const result = data as {
         status: string;
@@ -159,7 +162,10 @@ export const processCheckout = createServerFn({ method: "POST" })
         orderToken: result.orderToken,
       };
     } catch (e: unknown) {
-      console.error("[checkout.functions] processCheckout:", (e instanceof Error ? e.message : String(e)));
+      console.error(
+        "[checkout.functions] processCheckout:",
+        e instanceof Error ? e.message : String(e),
+      );
       throw new Error((e instanceof Error ? e.message : String(e)) || "Erro no checkout");
     }
   });

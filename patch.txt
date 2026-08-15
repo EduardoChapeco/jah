@@ -1,1 +1,0 @@
-{\" "types\: \./types/routes.d.ts\, \import\: \./types/routes.d.ts\, \default\: \./types/routes.d.ts\} 

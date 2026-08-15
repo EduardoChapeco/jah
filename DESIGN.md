@@ -2,9 +2,9 @@
 
 > Fonte única de verdade do design system da plataforma comunitária JAH. Segue a especificação aberta
 > Google Labs `DESIGN.md`: tokens semânticos em YAML + justificativa humana.
-> Os valores canônicos vivem em `src/styles.css`. 
-> 
-> **MANDATO DE DESIGN V4:** O produto JAH opera sob uma arquitetura visual dividida. A Operação (dashboards, catálogos, PDV, admin) utiliza um design system "Clean", minimalista e silencioso (referências: iFood, Neutto, Mobg, Luma). A apresentação pública (Feeds, Murais, Posts Especiais) pode utilizar as clássicas formatações culturais "Underground" (Zines, Cartazes, Tickets), restritas exclusivamente à *exibição* de dados.
+> Os valores canônicos vivem em `src/styles.css`.
+>
+> **MANDATO DE DESIGN V4:** O produto JAH opera sob uma arquitetura visual dividida. A Operação (dashboards, catálogos, PDV, admin) utiliza um design system "Clean", minimalista e silencioso (referências: iFood, Neutto, Mobg, Luma). A apresentação pública (Feeds, Murais, Posts Especiais) pode utilizar as clássicas formatações culturais "Underground" (Zines, Cartazes, Tickets), restritas exclusivamente à _exibição_ de dados.
 
 ## 1. Direção Criativa: Operacional "Clean"
 

@@ -1,117 +1,218 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import {
+  Tag,
+  Plus,
+  Loader2,
+  ExternalLink,
+  MapPin,
+  Eye,
+  Edit3,
+  Image as ImageIcon,
+} from "lucide-react";
+
 import { getClassifieds } from "@/services/classifieds.functions";
-import { Surface } from "@/components/ui/surface";
 import { Button } from "@/components/ui/button";
-import { Tag, Plus, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { formatMoney } from "@/lib/money";
+import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/_store/conta/classificados/")({
+  head: () => ({ meta: [{ title: "Meus Anúncios — JAH" }] }),
   component: ClassificadosIndex,
 });
 
+const CATEGORY_LABELS: Record<string, string> = {
+  sale: "Desapego",
+  vehicle: "Veículo",
+  real_estate: "Imóvel",
+  service: "Serviço",
+  job: "Vaga",
+  trade: "Troca",
+};
+
+const STATUS_CONFIG: Record<
+  string,
+  { label: string; variant: "default" | "secondary" | "outline" | "destructive" }
+> = {
+  published: { label: "Publicado", variant: "default" },
+  active: { label: "Publicado", variant: "default" },
+  draft: { label: "Rascunho", variant: "secondary" },
+  paused: { label: "Pausado", variant: "outline" },
+  reserved: { label: "Reservado", variant: "secondary" },
+  negotiating: { label: "Negociando", variant: "secondary" },
+  completed: { label: "Finalizado", variant: "outline" },
+  archived: { label: "Arquivado", variant: "destructive" },
+};
+
 function ClassificadosIndex() {
+  const [searchTerm, setSearchTerm] = useState("");
   const { data: classifieds, isLoading } = useQuery({
     queryKey: ["classifieds"],
     queryFn: () => getClassifieds(),
   });
 
+  const filtered = (classifieds || []).filter((ad: any) => {
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
+    return (
+      ad.title?.toLowerCase().includes(term) ||
+      ad.description?.toLowerCase().includes(term) ||
+      ad.category?.toLowerCase().includes(term)
+    );
+  });
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      {/* ── Toolbar Operacional ─────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border pb-4">
         <div>
-          <h1 className="font-display text-4xl uppercase tracking-tighter text-foreground flex items-center gap-3">
-            <Tag className="size-8 text-electric-cyan" />
-            Classificados
+          <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            <Tag className="size-5 text-primary" />
+            <span>Meus Classificados</span>
           </h1>
-          <p className="font-sans text-muted-foreground text-foreground/70">
-            Gerencie seus classificados no mural da comunidade.
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Gerencie suas publicações, propostas e negociações na comunidade.
           </p>
         </div>
-        <Button
-          asChild
-          variant="default"
-          className="bg-primary text-foreground hover:bg-primary/90 border border-border shadow-sm"
-        >
-          <Link to="/workspace">
-            <Plus className="size-4 mr-2" />
-            Criar Anúncio
+
+        <Button asChild size="sm" className="rounded-xl text-xs font-bold gap-1.5 shadow-sm">
+          <Link to="/conta/classificados/novo">
+            <Plus className="size-4" />
+            <span>Novo Classificado</span>
           </Link>
         </Button>
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="size-8 animate-spin text-foreground/40" />
+      {/* ── Filtro de Busca ─────────────────────────────────────── */}
+      {classifieds && classifieds.length > 0 && (
+        <div className="max-w-md">
+          <Input
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Buscar nos meus anúncios..."
+            className="h-9 rounded-xl text-xs bg-background"
+          />
         </div>
-      ) : classifieds && classifieds.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {classifieds.map((ad) => (
-            <Surface
-              key={ad.id}
-              variant="default"
-              padding="md"
-              className="flex flex-col justify-between h-full group"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="bg-primary text-primary-foreground text-xs font-mono uppercase px-2 py-1 rounded-sm">
-                    {ad.category}
-                  </span>
-                  <span
-                    className={`text-xs font-mono uppercase font-bold ${ad.status === "active" ? "text-green-600" : "text-primary"}`}
-                  >
-                    {ad.status === "active" ? "Ativo" : ad.status}
-                  </span>
+      )}
+
+      {/* ── Lista de Anúncios ────────────────────────────────────── */}
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-2">
+          <Loader2 className="size-6 animate-spin text-primary" />
+          <p className="text-xs">Carregando seus classificados...</p>
+        </div>
+      ) : filtered.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 w-full">
+          {filtered.map((ad: any) => {
+            const statusInfo = STATUS_CONFIG[ad.status] || { label: ad.status, variant: "outline" };
+            const coverImage = ad.images && ad.images.length > 0 ? ad.images[0] : null;
+
+            return (
+              <div
+                key={ad.id}
+                className="border border-border bg-card rounded-2xl overflow-hidden shadow-2xs hover:shadow-sm transition-shadow flex flex-col justify-between"
+              >
+                <div>
+                  {/* Foto de Capa */}
+                  <div className="relative aspect-video bg-muted border-b border-border overflow-hidden flex items-center justify-center">
+                    {coverImage ? (
+                      <img
+                        src={coverImage}
+                        alt={ad.title}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center gap-1 text-muted-foreground/60">
+                        <ImageIcon className="size-8 stroke-[1.5]" />
+                        <span className="text-[10px]">Sem fotos</span>
+                      </div>
+                    )}
+
+                    <Badge
+                      variant={statusInfo.variant}
+                      className="absolute top-2.5 right-2.5 text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm"
+                    >
+                      {statusInfo.label}
+                    </Badge>
+                  </div>
+
+                  {/* Detalhes */}
+                  <div className="p-4 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <Badge variant="outline" className="text-[10px] font-semibold">
+                        {CATEGORY_LABELS[ad.category] || ad.category}
+                      </Badge>
+                      {ad.location_name && (
+                        <span className="text-[11px] text-muted-foreground flex items-center gap-1 truncate max-w-[150px]">
+                          <MapPin className="size-3 text-primary shrink-0" />
+                          {ad.location_name}
+                        </span>
+                      )}
+                    </div>
+
+                    <h2 className="text-sm font-bold text-foreground line-clamp-1">{ad.title}</h2>
+
+                    <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                      {ad.description || ad.content}
+                    </p>
+
+                    <div className="pt-2 flex items-baseline justify-between border-t border-border/60">
+                      <span className="text-base font-black text-primary font-mono">
+                        {ad.price_cents ? formatMoney(ad.price_cents) : "A Combinar"}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {formatDate(ad.created_at).split(" ")[0]}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="font-display text-2xl uppercase tracking-tight text-foreground mb-2">
-                  {ad.title}
-                </h3>
-                <p className="font-sans text-muted-foreground text-foreground/80 line-clamp-3 mb-4">
-                  {ad.content}
-                </p>
+
+                {/* Ações */}
+                <div className="p-3 bg-muted/20 border-t border-border flex items-center justify-between gap-2">
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="rounded-xl text-xs h-8 flex-1"
+                  >
+                    <Link to="/classificados/$id" params={{ id: ad.id }}>
+                      <Eye className="size-3.5 mr-1.5" />
+                      <span>Ver Anúncio</span>
+                    </Link>
+                  </Button>
+                </div>
               </div>
-              <div className="mt-4 flex items-center justify-between border-t border-border/10 pt-4">
-                <span className="font-mono text-foreground font-bold">
-                  {ad.price_cents
-                    ? `R$ ${(ad.price_cents / 100).toFixed(2).replace(".", ",")}`
-                    : "À combinar"}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  asChild
-                  className="border border-border shadow-sm bg-white text-foreground hover:bg-ivory"
-                >
-                  <Link to="/conta/classificados">Editar</Link>
-                </Button>
-              </div>
-            </Surface>
-          ))}
+            );
+          })}
         </div>
       ) : (
-        <Surface
-          variant="default"
-          padding="lg"
-          className="text-center py-20 flex flex-col items-center justify-center grayscale opacity-80"
-        >
-          <div className="bg-primary/10 p-6 rounded-full border border-border border-dashed mb-6">
-            <Tag className="size-12 text-foreground/50" />
+        <div className="border border-dashed border-border bg-card/60 rounded-2xl p-10 text-center space-y-3">
+          <div className="size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
+            <Tag className="size-6" />
           </div>
-          <h2 className="font-display text-3xl uppercase tracking-tight text-foreground mb-2">
-            Muro Vazio
+          <h2 className="text-base font-bold text-foreground">
+            {searchTerm
+              ? "Nenhum anúncio corresponde à sua busca"
+              : "Você ainda não publicou nenhum anúncio"}
           </h2>
-          <p className="font-sans text-muted-foreground text-foreground/70 max-w-md mx-auto mb-8">
-            Você ainda não publicou nenhum classificado. Anuncie serviços, vagas ou venda aquele
-            instrumento encostado.
+          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+            {searchTerm
+              ? "Tente buscar por outras palavras-chave ou limpe o campo de busca."
+              : "Desapegue de itens, anuncie imóveis, veículos, vagas ou ofereça seus serviços profissionais para a comunidade."}
           </p>
-          <Button
-            asChild
-            variant="default"
-            className="bg-primary text-primary-foreground border border-border shadow-sm"
-          >
-            <Link to="/workspace">Colar o primeiro cartaz</Link>
-          </Button>
-        </Surface>
+          {!searchTerm && (
+            <Button asChild size="sm" className="rounded-xl text-xs font-bold gap-1.5 mt-2">
+              <Link to="/conta/classificados/novo">
+                <Plus className="size-4" />
+                <span>Criar Meu Primeiro Anúncio</span>
+              </Link>
+            </Button>
+          )}
+        </div>
       )}
     </div>
   );

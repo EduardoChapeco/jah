@@ -179,7 +179,9 @@ export function SectionFrame({
           <div>
             {eyebrow ? <p className="eyebrow text-primary">{eyebrow}</p> : null}
             {title ? (
-              <h2 className="text-editorial text-2xl text-foreground sm:text-3xl">{title}</h2>
+              <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+                {title}
+              </h2>
             ) : null}
           </div>
           {action ? <div>{action}</div> : null}

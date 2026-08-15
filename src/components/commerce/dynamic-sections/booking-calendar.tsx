@@ -177,7 +177,7 @@ export function BookingCalendar({ content }: BookingCalendarProps) {
                       onSelect={setSelectedDate}
                       disabled={(date) => date < new Date() || date.getDay() === 0} // Disable past and Sundays
                       locale={ptBR}
-                      className="rounded-md border shadow-sm p-3"
+                      className="rounded-xl border p-3"
                     />
                   </div>
                   <div>

@@ -41,7 +41,7 @@ function AdminMasterDashboard() {
       toast.success("Status da loja alterado com sucesso.");
       router.invalidate();
     } catch (e: unknown) {
-      toast.error((e instanceof Error ? e.message : String(e)));
+      toast.error(e instanceof Error ? e.message : String(e));
     } finally {
       setLoadingId(null);
     }
@@ -56,7 +56,7 @@ function AdminMasterDashboard() {
 
       {/* Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="border border-border bg-card rounded-md shadow-xs p-6 flex items-center gap-4 relative overflow-hidden">
+        <div className="border border-border bg-card rounded-xl p-6 flex items-center gap-4 relative overflow-hidden">
           <div className="absolute -right-4 -top-4 opacity-5">
             <DollarSign className="size-32" />
           </div>
@@ -64,16 +64,14 @@ function AdminMasterDashboard() {
             <DollarSign className="size-8" />
           </div>
           <div>
-            <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
-              Receita (Paga)
-            </p>
+            <p className="text-sm font-bold text-muted-foreground">Receita (Paga)</p>
             <p className="text-3xl font-black text-foreground">
               {formatMoney(metrics.totalRevenueCents)}
             </p>
           </div>
         </div>
 
-        <div className="border border-border bg-card rounded-md shadow-xs p-6 flex items-center gap-4 relative overflow-hidden">
+        <div className="border border-border bg-card rounded-xl p-6 flex items-center gap-4 relative overflow-hidden">
           <div className="absolute -right-4 -top-4 opacity-5">
             <Activity className="size-32" />
           </div>
@@ -81,26 +79,22 @@ function AdminMasterDashboard() {
             <Activity className="size-8" />
           </div>
           <div>
-            <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
-              Receita Pendente
-            </p>
+            <p className="text-sm font-bold text-muted-foreground">Receita Pendente</p>
             <p className="text-3xl font-black text-foreground">
               {formatMoney(metrics.pendingRevenueCents)}
             </p>
           </div>
         </div>
 
-        <div className="border border-border bg-card rounded-md shadow-xs p-6 flex items-center gap-4 relative overflow-hidden">
+        <div className="border border-border bg-card rounded-xl p-6 flex items-center gap-4 relative overflow-hidden">
           <div className="absolute -right-4 -top-4 opacity-5">
             <Store className="size-32" />
           </div>
-          <div className="p-4 bg-ink/10 text-foreground rounded-xl">
+          <div className="p-4 bg-primary/10 text-foreground rounded-xl">
             <Store className="size-8" />
           </div>
           <div>
-            <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
-              Total de Lojas
-            </p>
+            <p className="text-sm font-bold text-muted-foreground">Total de Lojas</p>
             <p className="text-3xl font-black text-foreground">{metrics.totalStores}</p>
           </div>
         </div>
@@ -108,7 +102,7 @@ function AdminMasterDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Stores Table */}
-        <div className="border border-border bg-card rounded-md shadow-xs overflow-hidden">
+        <div className="border border-border bg-card rounded-xl overflow-hidden">
           <div className="p-4 border-b bg-muted/30">
             <h3 className="font-bold flex items-center gap-2">
               <Store className="size-4 text-primary" /> Ecossistema de Lojas
@@ -157,7 +151,7 @@ function AdminMasterDashboard() {
         </div>
 
         {/* Invoices Table */}
-        <div className="border border-border bg-card rounded-md shadow-xs overflow-hidden">
+        <div className="border border-border bg-card rounded-xl overflow-hidden">
           <div className="p-4 border-b bg-muted/30">
             <h3 className="font-bold flex items-center gap-2">
               <DollarSign className="size-4 text-warning" /> Últimas Faturas Geradas

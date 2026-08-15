@@ -47,7 +47,10 @@ export const listBookingServices = createServerFn({ method: "GET" }).handler(asy
     return { status: "success" as const, data };
   } catch (error: unknown) {
     console.error("[booking.functions] listBookingServices error:", error);
-    throw new Error((error instanceof Error ? error.message : String(error)) || "Erro ao listar serviços de agendamento.");
+    throw new Error(
+      (error instanceof Error ? error.message : String(error)) ||
+        "Erro ao listar serviços de agendamento.",
+    );
   }
 });
 
@@ -132,7 +135,10 @@ export const getAvailableSlots = createServerFn({ method: "GET" })
       return { status: "success" as const, data: slots };
     } catch (error: unknown) {
       console.error("[booking.functions] getAvailableSlots error:", error);
-      throw new Error((error instanceof Error ? error.message : String(error)) || "Erro ao buscar horários disponíveis.");
+      throw new Error(
+        (error instanceof Error ? error.message : String(error)) ||
+          "Erro ao buscar horários disponíveis.",
+      );
     }
   });
 
@@ -176,7 +182,9 @@ export const createAppointment = createServerFn({ method: "POST" })
       return { status: "success" as const, data };
     } catch (error: unknown) {
       console.error("[booking.functions] createAppointment error:", error);
-      throw new Error((error instanceof Error ? error.message : String(error)) || "Erro ao criar agendamento.");
+      throw new Error(
+        (error instanceof Error ? error.message : String(error)) || "Erro ao criar agendamento.",
+      );
     }
   });
 
@@ -207,7 +215,9 @@ export const listResources = createServerFn({ method: "GET" }).handler(async () 
     return { status: "success" as const, data: data || [] };
   } catch (error: unknown) {
     console.error("[booking.functions] listResources error:", error);
-    throw new Error((error instanceof Error ? error.message : String(error)) || "Erro ao listar recursos.");
+    throw new Error(
+      (error instanceof Error ? error.message : String(error)) || "Erro ao listar recursos.",
+    );
   }
 });
 
@@ -397,24 +407,24 @@ export const addClinicalRecord = createServerFn({ method: "POST" })
       const storeId = await resolveTenantStoreId();
 
       const db = getServerClient();
-      
+
       // First get the customer_id from the appointment
       const { data: appt, error: apptErr } = await db
         .from("booking_appointments")
         .select("customer_id")
         .eq("id", input.appointment_id)
         .single();
-        
+
       if (apptErr) throw apptErr;
-      
+
       // If customer_id is null (guest booking), we might need to handle it.
       // But the schema says customer_id is NOT NULL for clinical records.
-      // Wait, guest bookings might not have customer_id. 
-      // Let's check `booking_engine_v4.sql`. 
+      // Wait, guest bookings might not have customer_id.
+      // Let's check `booking_engine_v4.sql`.
       // `customer_id UUID NOT NULL REFERENCES auth.users(id)`
       // If it's a guest, the UI should warn that clinical records need registered users, or we use a fallback.
       if (!appt.customer_id) {
-         throw new Error("Não é possível criar prontuário para cliente não cadastrado na base.");
+        throw new Error("Não é possível criar prontuário para cliente não cadastrado na base.");
       }
 
       const { data, error } = await db
@@ -434,7 +444,9 @@ export const addClinicalRecord = createServerFn({ method: "POST" })
       return { success: true, data };
     } catch (e: unknown) {
       console.error("[booking] addClinicalRecord error:", e);
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao adicionar prontuário.");
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao adicionar prontuário.",
+      );
     }
   });
 
@@ -461,4 +473,3 @@ export const listClinicalRecords = createServerFn({ method: "GET" })
       throw new Error("Erro ao listar prontuários.");
     }
   });
-

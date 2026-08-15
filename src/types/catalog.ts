@@ -67,6 +67,10 @@ export interface ProductCardDTO {
   hoverUrl?: string | null;
   /** True when all active variants are out of stock (server-computed). */
   isOutOfStock?: boolean;
+  /** True when product is out of stock but accepts backorder (encomenda). */
+  isBackorderAvailable?: boolean;
+  /** Number of business days for backorder lead time (when isBackorderAvailable). */
+  backorderLeadTimeDays?: number;
   /** ISO timestamp — used to derive "Novo" badge (< 7 days). */
   publishedAt?: string | null;
   /** Specific variant ID if this card represents an exploded variant. */
@@ -92,6 +96,23 @@ export interface ProductMediaDTO {
   focalPoint?: { x: number; y: number } | null;
   /** If set, this media belongs to a specific variant (for gallery switching). */
   variantId?: string | null;
+}
+export interface OptionValueDTO {
+  id: string;
+  label: string;
+  priceModifierCents: number;
+  isDefault: boolean;
+}
+
+export interface OptionGroupDTO {
+  id: string;
+  internalName: string;
+  displayName: string;
+  selectionType: "single" | "multiple";
+  minSelections: number;
+  maxSelections: number;
+  isRequired: boolean;
+  values: OptionValueDTO[];
 }
 
 export interface VariantDTO {
@@ -137,6 +158,8 @@ export interface ProductDetailDTO {
   /** All product-level media (general gallery + per-variant if variant_id set). */
   media: ProductMediaDTO[];
   variants: VariantDTO[];
+  /** Configurable option groups (e.g. Add-ons, Extra Cheese). */
+  optionGroups?: OptionGroupDTO[];
   /** Canonical SEO title (server resolves: meta_title → seo_title → title). */
   seoTitle?: string | null;
   /** Canonical SEO description. */

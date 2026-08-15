@@ -35,7 +35,7 @@ export function MosaicBanners({ content }: { content: Record<string, unknown> })
               {/* Content */}
               {title && (
                 <div className="absolute bottom-0 left-0 p-6 @md:p-8">
-                  <h3 className="text-2xl font-semibold text-white drop-shadow-sm">{title}</h3>
+                  <h3 className="text-2xl font-semibold text-white drop-">{title}</h3>
                 </div>
               )}
             </div>

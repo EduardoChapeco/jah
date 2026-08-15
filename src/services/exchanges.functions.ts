@@ -100,7 +100,7 @@ export const updateExchangeStatus = createServerFn({ method: "POST" })
         .select("original_order_id, reason")
         .eq("id", exchangeId)
         .single();
-        
+
       if (!exchange) throw new Error("Troca não encontrada");
 
       const { error: rpcError } = await supabase.rpc("process_exchange_transaction", {
@@ -113,13 +113,13 @@ export const updateExchangeStatus = createServerFn({ method: "POST" })
       });
 
       if (rpcError) throw new Error("Erro ao processar transação de troca: " + rpcError.message);
-      
+
       // Delete the pending one if the RPC created a new completed one
       // OR since our RPC creates a new exchange record, we might just update the old one instead.
       // Wait, our RPC does INSERT! So we should just use the RPC to CREATE completed exchanges directly,
       // but here we are updating an existing request.
       // Let's adapt our update to just UPDATE the row and generate GC if needed:
-      
+
       const { error: updateError } = await supabase
         .from("exchanges")
         .update({
@@ -128,9 +128,9 @@ export const updateExchangeStatus = createServerFn({ method: "POST" })
           processed_by: identity.id,
         })
         .eq("id", exchangeId);
-        
+
       if (updateError) throw new Error("Erro ao atualizar troca");
-      
+
       if (resolutionType === "store_credit" && refundCents) {
         // Generate GC manually here since RPC creates a new exchange
         const code = "GC" + Math.random().toString(36).substring(2, 10).toUpperCase();
@@ -142,7 +142,7 @@ export const updateExchangeStatus = createServerFn({ method: "POST" })
           status: "active",
         });
       }
-      
+
       return { status: "success" };
     }
 
@@ -173,13 +173,11 @@ export const listCustomerExchanges = createServerFn({ method: "GET" }).handler(a
     const supabase = getServerClient();
     const { data, error } = await supabase
       .from("exchanges")
-      .select(
-        "id, status, reason, requested_at, orders!inner(public_token, total_cents)",
-      )
+      .select("id, status, reason, requested_at, orders!inner(public_token, total_cents)")
       .eq("orders.customer_id", user.id)
       .order("requested_at", { ascending: false });
 
-    if (error) throw new Error((error instanceof Error ? error.message : String(error)));
+    if (error) throw new Error(error instanceof Error ? error.message : String(error));
 
     return (data || []).map((ex: any) => ({
       id: ex.id,

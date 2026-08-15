@@ -5,37 +5,44 @@ description: "Use when creating or modifying ANY UI components (React, Tailwind)
 
 # Design Ops Protocol (JAH)
 
-## Core Principles
+## Core Principles (Estilo iFood / Threads)
 
-**1. A 'Cara' do Projeto é CLEAN e MINIMALISTA**
-A JAH adotou um visual estritamente profissional, sofisticado e neutro (estilo Vercel/Apple).
-> **PROIBIDO:** Estilos "Neo-Brutalist", bordas grossas (border-4), sombras sólidas rígidas e cores chamativas gritantes.
+**1. A 'Cara' do Projeto é ULTRA CLEAN e MINIMALISTA**
+A JAH adotou um visual estritamente moderno, focado em silêncio visual, retenção e usabilidade fluida (semelhante ao Threads, iOS, iFood, Vercel).
 
-**2. Proibição de Cores e Fontes Genéricas**
-Você **NUNCA** deve usar `bg-red-500`, `text-blue-600` ou afins.
-Você deve **SEMPRE** utilizar as variáveis semânticas (ex: `bg-primary`, `text-muted-foreground`, `border-border`) baseadas no sistema limpo em `src/styles.css` e `docs/DESIGN.md`.
+> **PROIBIDO:** Estilos "Neo-Brutalist", bordas grossas (border-2 ou border-4), sombras sólidas, backgrounds coloridos desnecessários, cantos quadrados duros (`rounded-none` ou `rounded-sm`).
+
+**2. Proibição Total de Cores e Medidas Genéricas (HARDCODE ZERO)**
+Você **NUNCA** deve usar `bg-red-500`, `text-blue-600`, `px-7`, `gap-5` ou afins.
+Você deve **SEMPRE** utilizar as variáveis semânticas do Tailwind (ex: `bg-primary`, `text-muted-foreground`, `border-border`, `p-6`, `gap-6`). A fonte da verdade é o `docs/DESIGN.md`.
 
 ## Regras de Estilização Canônica
 
-- **Tipografia**: O padrão é `Inter` (sans). Use as utilities prontas para coesão:
-  - `.text-editorial`: Fonte sans para cabeçalhos limpos.
-  - `.eyebrow`: Para overlines pequenas e discretas.
-  - `.text-meta`: Textos utilitários em cor `muted-foreground`.
+- **Tipografia**: O padrão é `Inter` (sans). Use as classes nativas limpas:
+  - Textos de corpo: `text-sm text-foreground` ou `text-sm text-muted-foreground`.
+  - Cabeçalhos: `text-lg font-semibold text-foreground` (nunca abuse de tamanhos gigantes).
+  - Overlines: `text-xs uppercase tracking-wider font-medium text-muted-foreground`.
 
-- **Superfícies**:
-  - Prefira o componente padrão `<Card>` do Shadcn para painéis e invólucros.
-  - Para bordas finas com sombra suave, utilize o padrão do Tailwind `border rounded-lg shadow-sm`.
-  - O Light Theme padrão usa `bg-background` (Branco) para dar respiro.
+- **Superfícies e Formas (Radiuses)**:
+  - Formas são arredondadas e amigáveis.
+  - Cards padrão: `border border-border rounded-xl bg-background`.
+  - Paineis ou Modais: `rounded-2xl`.
+  - Inputs e botões pequenos: `rounded-md` ou `rounded-lg`.
+  - Chips e status: `rounded-full` (pill).
 
-- **Elevação e Animação**:
-  - Sombras devem ser esfumaçadas e sutis (`shadow-sm`, `shadow-md`).
-  - Efeitos de hover devem se basear em transições suaves de cor, opacidade ou sombras leves, não em saltos (`translate-y-0.5`).
+- **Elevação (Sem Sombras)**:
+  - O design é predominantemente "Flat". Separe blocos através de **bordas finas** (`border-border`) e espaços generosos (`gap-6`), não com box-shadow.
+  - Sombras (`shadow-sm`) são reservadas _estritamente_ para modais, dropdowns flutuantes ou destaque muito sutil ao passar o mouse (`hover-elevate`).
 
 ## Brainstorming & Projection (Seja um UI/UX Designer Minimalista)
-Antes de construir uma tela:
-1. Pense no "Respiro" (White Space). Componentes clean exigem bom padding (`p-6`, `p-8`) e gaps definidos.
-2. Contraste focado na usabilidade: a ação principal deve estar clara (normalmente botão preto sólido), enquanto as ações secundárias são outlines ou ghosts.
+
+Antes de codar uma tela:
+
+1. **Respiro (White Space)**: Você tem padding suficiente? `p-6` ou `p-8` é o ideal para containers.
+2. **Contraste de Ação**: O botão principal é escuro/sólido (`bg-foreground text-background`). Todo o resto é outline ou ghost (`variant="ghost"`).
+3. **Erradicação do Lixo Visual**: Remova divisórias desnecessárias. Remova textos redundantes. Menos é mais.
 
 ## O que NÃO Fazer:
+
 - Não crie elementos extravagantes ou cores literais no className.
-- Nunca adicione `shadow-hard` ou `hover-lift`.
+- Nunca crie páginas que parecem Landing Pages coloridas dentro da área operacional. A operação é focada no trabalho do usuário.

@@ -82,10 +82,10 @@ export function TestimonialCarousel({
               {testimonials.map((item: any, idx: number) => (
                 <CarouselItem key={idx} className="pl-2 @md:pl-4 @md:basis-1/2 @lg:basis-1/3">
                   <div className="p-1 h-full">
-                    <Card className="h-full border-muted/50 bg-background/50 backdrop-blur shadow-sm">
+                    <Card className="h-full border-muted/50 bg-background/50 backdrop-blur ">
                       <CardContent className="flex flex-col h-full p-6">
                         {item.rating && (
-                          <div className="flex gap-1 mb-4 text-amber-400">
+                          <div className="flex gap-1 mb-4 text-warning">
                             {Array.from({ length: 5 }).map((_, i) => (
                               <Star
                                 key={i}
@@ -128,8 +128,8 @@ export function TestimonialCarousel({
               ))}
             </CarouselContent>
             <div className="hidden @md:block">
-              <CarouselPrevious className="-left-4 @lg:-left-12 bg-background border-muted shadow-sm hover:bg-background" />
-              <CarouselNext className="-right-4 @lg:-right-12 bg-background border-muted shadow-sm hover:bg-background" />
+              <CarouselPrevious className="-left-4 @lg:-left-12 bg-background border-muted hover:bg-background" />
+              <CarouselNext className="-right-4 @lg:-right-12 bg-background border-muted hover:bg-background" />
             </div>
           </Carousel>
         ) : (

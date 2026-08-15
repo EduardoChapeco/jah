@@ -108,7 +108,9 @@ export function RmaRequestWizard({
       await onComplete();
       onOpenChange(false);
     } catch (err: unknown) {
-      toast.error((err instanceof Error ? err.message : String(err)) || "Erro ao solicitar devolução.");
+      toast.error(
+        (err instanceof Error ? err.message : String(err)) || "Erro ao solicitar devolução.",
+      );
     } finally {
       setIsSubmitting(false);
     }

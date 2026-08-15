@@ -35,14 +35,14 @@ export function CartSheet() {
     <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
       <SheetContent
         side="right"
-        className="w-full sm:max-w-md flex flex-col p-0 bg-background border-l border-border shadow-sm"
+        className="w-full sm:max-w-md flex flex-col p-0 bg-background border-l border-border "
       >
         <SheetHeader className="px-6 py-4 border-b border-border bg-secondary">
           <SheetTitle className="flex items-center gap-2 font-semibold text-foreground text-2xl">
             <ShoppingBag className="size-6 text-foreground" strokeWidth={3} />
             Meu Carrinho
             {totalItemCount > 0 && (
-              <span className="ml-2 rounded-md border border-border bg-primary text-primary-foreground px-2 py-0.5 text-badge">
+              <span className="ml-2 rounded-xl border border-border bg-primary text-primary-foreground px-2 py-0.5 text-badge">
                 {totalItemCount}
               </span>
             )}
@@ -52,7 +52,7 @@ export function CartSheet() {
         <div className="flex-1 overflow-y-auto px-6 py-4 bg-background">
           {globalCarts.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
-              <div className="size-24 rounded-full border border-border bg-muted/30 flex items-center justify-center text-foreground shadow-sm mb-4">
+              <div className="size-24 rounded-full border border-border bg-muted/30 flex items-center justify-center text-foreground mb-4">
                 <ShoppingBag className="size-10" strokeWidth={2.5} />
               </div>
               <h3 className="font-semibold text-2xl text-foreground">Sua sacola está vazia</h3>
@@ -61,7 +61,7 @@ export function CartSheet() {
               </p>
               <Button
                 onClick={handleNavigateToCatalog}
-                className="bg-primary text-primary-foreground border border-border rounded-md font-semibold px-8"
+                className="bg-primary text-primary-foreground border border-border rounded-xl font-semibold px-8"
               >
                 Ver Lojas
               </Button>
@@ -72,7 +72,7 @@ export function CartSheet() {
                 <Surface
                   key={storeCart.id}
                   variant="default"
-                  className="overflow-hidden border border-border shadow-sm"
+                  className="overflow-hidden border border-border "
                 >
                   <div className="bg-muted/30 px-4 py-2 border-b border-border flex items-center gap-3">
                     {storeCart.storeLogoUrl ? (
@@ -101,7 +101,7 @@ export function CartSheet() {
                           isCartUpdating && "opacity-60 pointer-events-none",
                         )}
                       >
-                        <div className="size-20 flex-shrink-0 overflow-hidden rounded-md border border-border bg-muted/30">
+                        <div className="size-20 flex-shrink-0 overflow-hidden rounded-xl border border-border bg-muted/30">
                           {item.coverUrl ? (
                             <img
                               src={item.coverUrl}
@@ -136,7 +136,7 @@ export function CartSheet() {
                           </div>
 
                           <div className="mt-auto flex items-end justify-between pt-2">
-                            <div className="flex items-center border border-border shadow-sm bg-muted/30">
+                            <div className="flex items-center border border-border bg-muted/30">
                               <button
                                 type="button"
                                 className="flex h-7 w-7 items-center justify-center text-foreground hover:bg-primary hover:text-primary-foreground transition-colors"
@@ -176,7 +176,7 @@ export function CartSheet() {
         </div>
 
         {globalCarts.length > 0 && (
-          <div className="border-t border-border bg-secondary p-6 shadow-[0_-4px_10px_rgba(0,0,0,0.1)] z-10 relative">
+          <div className="border-t border-border bg-secondary p-6 z-10 relative">
             <div className="flex flex-col gap-4">
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between font-semibold text-foreground text-xl">
@@ -192,7 +192,7 @@ export function CartSheet() {
 
               <Button
                 size="lg"
-                className="w-full h-14 bg-primary text-primary-foreground border border-border font-semibold text-xl rounded-md"
+                className="w-full h-14 bg-primary text-primary-foreground border border-border font-semibold text-xl rounded-xl"
                 onClick={handleNavigateToCheckoutHub}
                 disabled={isCartUpdating}
               >

@@ -22,6 +22,7 @@ import {
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Surface } from "@/components/ui/surface";
 import {
   Table,
   TableBody,
@@ -248,6 +249,61 @@ function AdminProductsPage() {
     toast.success("Catálogo exportado em arquivo JSON.");
   };
 
+  const ProductActionsMenu = ({ product }: { product: AdminProductRow }) => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" aria-label="Ações do produto">
+          <MoreVertical className="size-4 text-muted-foreground" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuLabel className="text-xs">Ações Comerciais</DropdownMenuLabel>
+        <DropdownMenuItem asChild>
+          <Link to={`/admin/catalogo/produtos/${product.id}` as never}>
+            <Edit3 className="size-3.5 mr-2" />
+            Editar Produto
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link to={`/produto/${product.slug}` as never} target="_blank">
+            <Eye className="size-3.5 mr-2" />
+            Ver na Loja
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => handleDuplicate(product.id)}>
+          <Copy className="size-3.5 mr-2" />
+          Duplicar Produto
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link to={`/workspace/estudio` as never} search={{ productId: product.id } as never}>
+            <Palette className="size-3.5 mr-2 text-info" />
+            Criar Post (Estúdio)
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        {product.status !== "published" && (
+          <DropdownMenuItem onClick={() => handleToggleStatus(product.id, "published")}>
+            <CheckCircle2 className="size-3.5 mr-2 text-success" />
+            Publicar na Vitrine
+          </DropdownMenuItem>
+        )}
+        {product.status !== "draft" && (
+          <DropdownMenuItem onClick={() => handleToggleStatus(product.id, "draft")}>
+            <FileText className="size-3.5 mr-2 text-warning" />
+            Tornar Rascunho
+          </DropdownMenuItem>
+        )}
+        {product.status !== "archived" && (
+          <DropdownMenuItem onClick={() => handleToggleStatus(product.id, "archived")}>
+            <Archive className="size-3.5 mr-2" />
+            Arquivar Produto
+          </DropdownMenuItem>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -307,7 +363,7 @@ function AdminProductsPage() {
 
       {/* Barra Flutuante de Ações em Lote */}
       {selectedIds.length > 0 && (
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border border-primary/30 bg-primary/10 dark:bg-primary/20 animate-in fade-in-50 gap-3">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border border-primary/30 bg-primary/10 dark:bg-primary/20 rounded-xl animate-in fade-in-50 gap-3">
           <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
             <Badge variant="default" className="font-bold">
               {selectedIds.length}
@@ -322,7 +378,7 @@ function AdminProductsPage() {
               disabled={isProcessing}
               onClick={() => handleBulkAction("published")}
             >
-              <CheckCircle2 className="size-3.5 mr-1 text-emerald-600 shrink-0" />
+              <CheckCircle2 className="size-3.5 mr-1 text-success shrink-0" />
               Publicar
             </Button>
             <Button
@@ -332,7 +388,7 @@ function AdminProductsPage() {
               disabled={isProcessing}
               onClick={() => handleBulkAction("draft")}
             >
-              <FileText className="size-3.5 mr-1 text-amber-600 shrink-0" />
+              <FileText className="size-3.5 mr-1 text-warning shrink-0" />
               Rascunho
             </Button>
             <Button
@@ -363,11 +419,97 @@ function AdminProductsPage() {
       {filteredProducts.length === 0 ? (
         <EmptyState title="Nenhum produto encontrado" />
       ) : (
-        <div className="border border-border rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
+        <Surface
+          variant="default"
+          padding="none"
+          className="flex flex-col border border-border overflow-hidden"
+        >
+          {/* VISÃO MOBILE: Cartões (Cards) */}
+          <div className="md:hidden flex flex-col divide-y divide-border bg-surface-paper">
+            {filteredProducts.map((product) => {
+              const cover = product.product_media?.[0]?.url;
+              const isSelected = selectedIds.includes(product.id);
+              const typeName = product.product_types?.name || "Padrão";
+
+              return (
+                <div
+                  key={product.id}
+                  className={`flex flex-col p-4 ${isSelected ? "bg-primary/5" : "bg-transparent"} transition-colors relative`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="pt-1">
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => toggleSelectRow(product.id)}
+                        aria-label={`Selecionar ${product.title}`}
+                      />
+                    </div>
+                    {cover ? (
+                      <img
+                        src={cover}
+                        alt=""
+                        className="size-16 object-cover border border-border rounded-md shrink-0"
+                      />
+                    ) : (
+                      <div className="size-16 bg-muted border border-border rounded-md flex items-center justify-center shrink-0">
+                        <Package className="size-6 text-muted-foreground" aria-hidden />
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1 flex flex-col">
+                      <Link
+                        to={`/admin/catalogo/produtos/${product.id}` as never}
+                        className="font-semibold text-[15px] text-foreground leading-snug line-clamp-2 mb-1"
+                      >
+                        {product.title}
+                      </Link>
+                      <div className="flex items-center flex-wrap gap-2 mb-1.5">
+                        <Badge
+                          variant={
+                            product.status === "published"
+                              ? "default"
+                              : product.status === "archived"
+                                ? "outline"
+                                : "secondary"
+                          }
+                          className="text-[10px] px-1.5 py-0 rounded-sm"
+                        >
+                          {product.status === "published"
+                            ? "Publicado"
+                            : product.status === "archived"
+                              ? "Arquivado"
+                              : "Rascunho"}
+                        </Badge>
+                        <span className="text-[11px] text-muted-foreground font-medium">
+                          {typeName}
+                        </span>
+                      </div>
+                      <div className="mt-auto flex items-center gap-2">
+                        <EditablePriceCell
+                          productId={product.id}
+                          initialCents={product.price_cents}
+                          onSave={(cents) => handleUpdatePrice(product.id, cents)}
+                        />
+                        {product.compare_at_cents ? (
+                          <span className="text-[11px] text-muted-foreground line-through">
+                            {formatMoney(product.compare_at_cents)}
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
+                    <div className="shrink-0 -mt-1 -mr-1">
+                      <ProductActionsMenu product={product} />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* VISÃO DESKTOP: DataGrid / Tabela */}
+          <div className="hidden md:block overflow-x-auto bg-surface-paper">
             <Table>
               <TableHeader>
-                <TableRow className="bg-muted/40">
+                <TableRow className="bg-muted/30">
                   <TableHead className="w-12 text-center">
                     <Checkbox
                       checked={isAllSelected}
@@ -407,10 +549,10 @@ function AdminProductsPage() {
                             <img
                               src={cover}
                               alt=""
-                              className="size-11 object-cover border border-border shrink-0"
+                              className="size-11 object-cover border border-border rounded shrink-0"
                             />
                           ) : (
-                            <div className="size-11 bg-muted border border-border flex items-center justify-center shrink-0">
+                            <div className="size-11 bg-muted border border-border rounded flex items-center justify-center shrink-0">
                               <Package className="size-5 text-muted-foreground" aria-hidden />
                             </div>
                           )}
@@ -470,69 +612,7 @@ function AdminProductsPage() {
                       </TableCell>
 
                       <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" aria-label="Ações do produto">
-                              <MoreVertical className="size-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuLabel className="text-xs">
-                              Ações Comerciais
-                            </DropdownMenuLabel>
-                            <DropdownMenuItem asChild>
-                              <Link to={`/admin/catalogo/produtos/${product.id}` as never}>
-                                <Edit3 className="size-3.5 mr-2" />
-                                Editar Produto
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <Link to={`/produto/${product.slug}` as never} target="_blank">
-                                <Eye className="size-3.5 mr-2" />
-                                Ver na Loja
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDuplicate(product.id)}>
-                              <Copy className="size-3.5 mr-2" />
-                              Duplicar Produto
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem asChild>
-                              <Link
-                                to={`/workspace/estudio` as never}
-                                search={{ productId: product.id } as never}
-                              >
-                                <Palette className="size-3.5 mr-2 text-indigo-500" />
-                                Criar Post (Estúdio)
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            {product.status !== "published" && (
-                              <DropdownMenuItem
-                                onClick={() => handleToggleStatus(product.id, "published")}
-                              >
-                                <CheckCircle2 className="size-3.5 mr-2 text-emerald-600" />
-                                Publicar na Vitrine
-                              </DropdownMenuItem>
-                            )}
-                            {product.status !== "draft" && (
-                              <DropdownMenuItem
-                                onClick={() => handleToggleStatus(product.id, "draft")}
-                              >
-                                <FileText className="size-3.5 mr-2 text-amber-600" />
-                                Tornar Rascunho
-                              </DropdownMenuItem>
-                            )}
-                            {product.status !== "archived" && (
-                              <DropdownMenuItem
-                                onClick={() => handleToggleStatus(product.id, "archived")}
-                              >
-                                <Archive className="size-3.5 mr-2" />
-                                Arquivar Produto
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <ProductActionsMenu product={product} />
                       </TableCell>
                     </TableRow>
                   );
@@ -540,7 +620,7 @@ function AdminProductsPage() {
               </TableBody>
             </Table>
           </div>
-        </div>
+        </Surface>
       )}
     </div>
   );

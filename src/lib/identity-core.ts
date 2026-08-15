@@ -40,9 +40,13 @@ export const STAFF_ROLES = [
  */
 export function assertStoreAccess(
   identity: ServerIdentity,
-  allowedRoles: string[] = [...STAFF_ROLES],
+  allowedRoles: readonly string[] | string[] = STAFF_ROLES,
 ): asserts identity is ServerIdentity & { id: string; store_id: string } {
-  if (!identity.id || !identity.store_id || !allowedRoles.includes(identity.role)) {
+  if (
+    !identity.id ||
+    !identity.store_id ||
+    !(allowedRoles as readonly string[]).includes(identity.role)
+  ) {
     throw new Error("Não autorizado");
   }
 }

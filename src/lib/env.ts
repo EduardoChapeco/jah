@@ -71,7 +71,7 @@ export function getEnvVar(key: string): string | undefined {
       debug += "evt=null;";
     }
   } catch (err: unknown) {
-    debug += `evtThrow=${(err instanceof Error ? err.message : String(err))};`;
+    debug += `evtThrow=${err instanceof Error ? err.message : String(err)};`;
   }
 
   // 2. Fallback to process.env (Node.js runtime / local dev)

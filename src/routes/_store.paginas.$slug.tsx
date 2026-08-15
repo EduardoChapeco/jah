@@ -47,7 +47,7 @@ export const Route = createFileRoute("/_store/paginas/$slug")({
       <Surface
         variant="default"
         padding="lg"
-        className="max-w-md w-full text-center border border-border shadow-sm"
+        className="max-w-md w-full text-center border border-border "
       >
         <AlertCircle className="size-12 text-primary mx-auto mb-4" />
         <h2 className="font-semibold text-2xl mb-2 text-primary">Erro no Carregamento</h2>
@@ -63,7 +63,7 @@ export const Route = createFileRoute("/_store/paginas/$slug")({
       <Surface
         variant="default"
         padding="lg"
-        className="max-w-md w-full text-center border border-border shadow-sm"
+        className="max-w-md w-full text-center border border-border "
       >
         <FileQuestion className="size-12 text-foreground mx-auto mb-4 opacity-50" />
         <h2 className="font-semibold text-2xl mb-2">Página Vazia</h2>

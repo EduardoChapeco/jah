@@ -232,3 +232,142 @@ Este roadmap detalha as fases de construção da Jah Community Platform (Platafo
 | 3    | Conteúdo, presença, confiança                                 | Fase 1 (parcialmente Fase 2 para avaliações ligadas a pedidos) |
 | 4    | Operação avançada e retenção                                  | Fase 2                                                         |
 | 5    | Crescimento e integrações externas                            | Fase 3 e Fase 4                                                |
+| 6    | Expansão de Domínios, Contratos, Identidade & Deals (V3)      | Fase 1 a 5                                                     |
+
+---
+
+# Roadmap Canônico de Capabilities — Expansão V3
+
+Abaixo estão os capítulos de capability profunda que regem a expansão contínua da JAH.
+
+---
+
+### Capability 1: Identity & Public Profiles (@handle Uniqueness)
+
+- **Current State:** Autenticação via Supabase Auth e perfis sociais básicos (`profiles`).
+- **Target State:** Sistema de `@handle` único, normalizado (`[a-z0-9_]`), case-insensitive, com lista de reserved handles, histórico de mudanças, cooldown de 14 dias e redirects de links antigos.
+- **Dependencies:** `profiles`, `auth.users`.
+- **Canonical Authority:** `docs/DOMAIN_MODEL.md` (Seção 24).
+- **Migration:** Tabela `handle_history`, trigger de validação de formato e unicidade no Postgres.
+- **Microphases:**
+  1. Adicionar constraints e normalização de handle no banco.
+  2. Implementar rota pública `/@:handle` ou `/membro/:id`.
+  3. Adicionar visualização de perfil enriquecido (posts, momentos, classificados, histórias).
+- **Acceptance:** Colisão de handles é bloqueada no banco; perfil renderiza dados reais.
+- **Runtime Proof:** Teste de inserção de handle duplicado com falha esperada e resolução de perfil público.
+
+---
+
+### Capability 2: Personal Account UX (In-Page & Density)
+
+- **Current State:** `/conta` com tabs horizontais e estrutura de dashboard.
+- **Target State:** Shell pessoal in-page, leve, com foco em conteúdo do usuário (pedidos, desapegos, ingressos, mensagens, dados de perfil). Sem dashboard ERP corporativo ou criação de organização automática.
+- **Dependencies:** `src/routes/_store.conta.tsx`.
+- **Canonical Authority:** `docs/PAGE_CATALOG.md`.
+- **Microphases:**
+  1. Refatorar shell de `/conta` removendo headers inflados.
+  2. Alinhar cartões de resumo com queries reais.
+- **Acceptance:** Navegação fluida entre Minhas Compras, Meus Ingressos e Meus Classificados.
+- **Runtime Proof:** Navegação sem quebra e sem elementos estáticos falsos.
+
+---
+
+### Capability 3: Dynamic Listing Engine & Category Schema
+
+- **Current State:** Classificados básicos (`sale`, `job`, `service`, `trade`) com campos genéricos.
+- **Target State:** Editor split-pane desktop (painel de edição 440px com scroll interno + Live Truthful Preview Mobg-style) e mobile step-editor com schemas específicos para Veículos, Imóveis, Serviços, Vagas e Itens Gerais.
+- **Dependencies:** `src/services/classifieds.functions.ts`, `public.classifieds`.
+- **Canonical Authority:** `docs/DOMAIN_MODEL.md` (Seção 25).
+- **Microphases:**
+  1. Editor split-pane implementado em `_store.conta.classificados.novo.tsx`.
+  2. Ficha técnica rica renderizada na rota pública `_store.classificados.$id.tsx`.
+  3. Filtros por atributos de categoria no catálogo/busca.
+- **Acceptance:** Veículos renderizam marca/modelo/ano/km; Imóveis renderizam m²/quartos/vagas/IPTU.
+- **Runtime Proof:** Teste de submissão com JSONB de atributos e verificação na página pública.
+
+---
+
+### Capability 4: Deals, Negotiations & P2P Transactions
+
+- **Current State:** Negociação ocorre primariamente via link direto de WhatsApp.
+- **Target State:** Máquina de estados de acordo formal (`Deal`), vinculando anúncio, comprador e vendedor com proposta, aceite, valor acordado, caução e geração de contrato.
+- **Dependencies:** `classifieds`, `profiles`.
+- **Canonical Authority:** `docs/DOMAIN_MODEL.md` (Seção 26).
+- **Microphases:**
+  1. Modelagem da tabela `deals` com status `negotiating`, `accepted`, `rejected`, `closed`.
+  2. Interface de propostas no detalhe do anúncio.
+- **Acceptance:** Vendedor aceita proposta e gera Deal formal.
+- **Runtime Proof:** Transição de status do anúncio para `reserved` ao aceitar deal.
+
+---
+
+### Capability 5: Contract Engine & Electronic Signature
+
+- **Current State:** Nenhum contrato digital ou assinatura formal implementados.
+- **Target State:** Contract Engine canônico com templates versionados, biblioteca de cláusulas, preview instantâneo, assistente de IA com visualização de diffs estruturados, envelopes de assinatura com múltiplos níveis (`basic`, `advanced`, `qualified`), manifest criptográfico de evidências e verificação pública em `/verify/document/:code`.
+- **Dependencies:** Supabase Database, PDF generator, Web Crypto API.
+- **Canonical Authority:** `docs/DOMAIN_MODEL.md` (Seção 27).
+- **Microphases:**
+  1. Tabelas `contract_templates`, `contracts`, `contract_versions`, `signature_envelopes`.
+  2. Editor split-pane de contratos com preview em canvas.
+  3. Signing session segura para signatários com link de token escopado.
+  4. Rota pública de verificação `/verify/document/:code`.
+- **Acceptance:** Contrato assinado gera versão selada imutável e manifest de evidências com hash.
+- **Runtime Proof:** Validação de integridade de hash de documento selado.
+
+---
+
+### Capability 6: Identity Verification Engine & Privacy
+
+- **Current State:** Verificação básica de e-mail via Supabase Auth.
+- **Target State:** Verification Engine com níveis de conformidade (`email`, `phone`, `identity_document`, `selfie_liveness`), armazenamento isolado em bucket criptografado (`identity-vault`), expurgo programado e concessão de selos de verificação.
+- **Dependencies:** Supabase Storage (RLS restrito), Server Functions.
+- **Canonical Authority:** `docs/DOMAIN_MODEL.md` (Seção 28).
+- **Microphases:**
+  1. Criação do bucket `identity-vault` com RLS deny-by-default.
+  2. Fluxo de envio de documento com URLs assinadas temporárias.
+- **Acceptance:** Contrapartes visualizam apenas selo de verificação; documentos brutos permanecem sigilosos.
+- **Runtime Proof:** Acesso não autorizado a documento retorna 403.
+
+---
+
+### Capability 7: Receivables & P2P Billing
+
+- **Current State:** Pagamento apenas em checkout de e-commerce e eventos.
+- **Target State:** Motor de contas a receber decorrentes de deals/locações com geração de parcelas, lembretes de vencimento in-app e registro manual de pagamentos com comprovante.
+- **Dependencies:** `deals`, `contracts`.
+- **Canonical Authority:** `docs/DOMAIN_MODEL.md` (Seção 29).
+- **Microphases:**
+  1. Tabela `receivables` e `receivable_installments`.
+  2. Interface de gestão de parcelas e upload de comprovante.
+- **Acceptance:** Parcela quitada reflete no extrato do deal.
+- **Runtime Proof:** Alteração de status de parcela com auditoria.
+
+---
+
+### Capability 8: Integration Orchestrator & AI Provider Router
+
+- **Current State:** Variáveis globais de ambiente no worker.
+- **Target State:** Secret Vault seguro no banco com criptografia para BYOK (Bring Your Own Key), suporte a escopos globais, organizacionais e pessoais, e roteador de capabilities de IA (Gemini, OpenRouter, Firecrawl, Steel) com controle de budget diário/mensal e fallback resiliente.
+- **Dependencies:** `integration_credentials`, Server Functions.
+- **Canonical Authority:** `docs/DOMAIN_MODEL.md` (Seção 30).
+- **Microphases:**
+  1. Tabela `secret_vault` com criptografia e máscara de chaves.
+  2. AI capability router no backend (`ai.functions.ts`).
+- **Acceptance:** Nenhuma chave de API vaza para o cliente; chamadas respeitam limites de cota.
+- **Runtime Proof:** Mascaramento de chave validado no payload do client.
+
+---
+
+### Capability 9: Restaurant & Food Services (Benchmark Foodyman)
+
+- **Current State:** Catálogo de produtos com variantes simples.
+- **Target State:** Modifier Engine para gastronomia (Tamanhos, Bordas, Extras, Quantidade Mín/Máx, Preço Delta), KDS operacional em tempo real para cozinha, gestão de mesas/salão com QR Code e orquestração de entregas.
+- **Dependencies:** `catalog`, `orders`, `realtime`.
+- **Canonical Authority:** `docs/DOMAIN_MODEL.md` (Seção 31).
+- **Microphases:**
+  1. Tabelas `product_modifier_groups` e `product_modifiers`.
+  2. Interface de seleção de adicionais na tela de produto.
+  3. KDS Kanban conectado ao Supabase Realtime.
+- **Acceptance:** Pedido com modificadores calcula total com precisão de centavos no backend.
+- **Runtime Proof:** Teste de cálculo de pedido com modificadores obrigatórios e opcionais.

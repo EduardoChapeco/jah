@@ -514,7 +514,10 @@ export const createProductReview = createServerFn({ method: "POST" })
       if (error) throw error;
       return data;
     } catch (e: unknown) {
-      console.error("[cms.functions] createProductReview error:", (e instanceof Error ? e.message : String(e)) || e);
+      console.error(
+        "[cms.functions] createProductReview error:",
+        (e instanceof Error ? e.message : String(e)) || e,
+      );
       throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao enviar avaliação.");
     }
   });
@@ -850,7 +853,9 @@ export const createManualReview = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: unknown) {
       console.error("[cms.functions] createManualReview:", e);
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao inserir avaliação manual.");
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao inserir avaliação manual.",
+      );
     }
   });
 
@@ -875,7 +880,7 @@ export const listCustomerReviews = createServerFn({ method: "GET" }).handler(asy
       .eq("store_id", storeId)
       .order("created_at", { ascending: false });
 
-    if (error) throw new Error((error instanceof Error ? error.message : String(error)));
+    if (error) throw new Error(error instanceof Error ? error.message : String(error));
 
     return (data || []).map((r: any) => ({
       id: r.id as string,

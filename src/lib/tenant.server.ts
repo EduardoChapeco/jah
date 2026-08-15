@@ -2,53 +2,41 @@ import { getRequestHeader, getCookie } from "@tanstack/react-start/server";
 import { getAnonServerClient } from "@/lib/supabase";
 
 /**
- * Resolve the current store_id based on the HTTP Host header or active cookie.
- * For now, if the host is missing or it doesn`t match any slug,
- * it gracefully falls back to the first available store (preserving compatibility during migration).
+ * Resolve o store_id do contexto ativo a partir do cookie de sessão ou subdomínio.
+ *
+ * SEGURANÇA: Esta função NÃO faz fallback para a primeira store disponível.
+ * Se nenhum contexto puder ser determinado com certeza, retorna null.
+ * Contexto organizacional é adquirido SOMENTE mediante ação explícita do usuário.
  */
 export async function resolveTenantStoreId(): Promise<string | null> {
+  // 1. Cookie de sessão de tenant (definido por setTenantContext ou após createBusinessProfile)
   const activeTenantCookie = getCookie("jah_active_tenant");
   if (activeTenantCookie) {
     return activeTenantCookie;
   }
 
+  // 2. Subdomínio (ex: "minha-loja.jah.com.br" → slug = "minha-loja")
   const host = getRequestHeader("host");
-
-  // Extract subdomain or matching slug from host if possible
-  // E.g., se host for "loja1.localhost:3000", extraimos "loja1"
-  let slugToMatch = null;
   if (host) {
     const parts = host.split(".");
-    if (parts.length > 1 && parts[0] !== "www") {
-      slugToMatch = parts[0];
+    if (parts.length > 1 && parts[0] !== "www" && parts[0] !== "jah") {
+      const slugToMatch = parts[0];
+      const db = getAnonServerClient();
+      const { data: matchedStore } = await db
+        .from("stores")
+        .select("id")
+        .eq("slug", slugToMatch)
+        .limit(1)
+        .maybeSingle();
+
+      if (matchedStore) {
+        return matchedStore.id as string;
+      }
     }
   }
 
-  const db = getAnonServerClient();
-
-  if (slugToMatch) {
-    const { data: matchedStore } = await db
-      .from("stores")
-      .select("id")
-      .eq("slug", slugToMatch)
-      .limit(1)
-      .maybeSingle();
-
-    if (matchedStore) {
-      return matchedStore.id as string;
-    }
-  }
-
-  // Fallback controlado: tentar resolver para a loja principal "jah". Se não encontrar, pega a primeira.
-  // Em produção, isso deve emitir um aviso.
-  console.warn(`[TENANT WARNING] Resolving tenant via fallback for host: ${host}`);
-  const { data, error } = await db
-    .from("stores")
-    .select("id")
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .single();
-
-  if (error || !data) return null;
-  return data.id as string;
+  // 3. Sem cookie e sem subdomínio reconhecido → sem contexto organizacional.
+  // O usuário está operando no escopo pessoal.
+  // NÃO fazer fallback para a primeira store — isso criaria contexto silencioso.
+  return null;
 }

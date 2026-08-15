@@ -31,7 +31,7 @@ function ShiftsPage() {
   const getStatusBadge = (status: CashRegisterStatus) => {
     switch (status) {
       case "open":
-        return <Badge variant="success">Aberto</Badge>;
+        return <Badge variant="default">Aberto</Badge>;
       case "closed":
         return <Badge variant="secondary">Fechado</Badge>;
       case "discrepancy":
@@ -50,7 +50,7 @@ function ShiftsPage() {
 
       <PageHeader title="Histórico de Turnos" />
 
-      <div className="border border-border bg-card rounded-md shadow-xs overflow-hidden">
+      <div className="border border-border bg-card rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>

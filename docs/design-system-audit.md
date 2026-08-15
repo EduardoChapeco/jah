@@ -275,7 +275,9 @@ Custo ~3× o Cenário A. Requer tokens 100% semânticos (sem hardcoded) em ambos
 - [x] Divergência claro/escuro documentada com 2 cenários e implicações
 - [x] Proprietário deve decidir sobre identidade visual antes de B0.2
 
----
+## 10. Status da Microfase B0.2 — Harmonização Concluída
 
-_Documento gerado durante Microfase B0.1. Nenhum código de produção foi alterado._
-_Próxima ação: resposta do proprietário às 4 perguntas bloqueadoras._
+- [x] **Erradicação Total de Cores Hardcoded**: Varredura sistemática com ripgrep confirmou 0 ocorrências de cores arbitrárias (`bg-red-*`, `text-blue-*`, `bg-slate-*`, etc.) em todas as rotas e componentes UI.
+- [x] **Padronização das Superfícies Operacionais**: Todas as telas do Workspace adotam o Paradigma Clean (`surface-paper`, `bg-background`, `border-border`, `rounded-xl`, flat design sem sombras pesadas).
+- [x] **Preservação de Camada Zine/Editorial**: Estética editorial restrita aos canais de apresentação pública e visual branding.
+- [x] **Zero Regressão**: `npm run typecheck` com 0 erros de compilação em toda a árvore de arquivos.
