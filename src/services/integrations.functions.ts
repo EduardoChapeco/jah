@@ -165,3 +165,46 @@ export const deleteIntegrationCredential = createServerFn({ method: "POST" })
 
     return { status: "success" };
   });
+
+/**
+ * Retorna a configuração pública do provedor de mapas (OpenStreetMap, Mapbox, Google Maps).
+ * Padrão: OpenStreetMap ativo como open source fallback, a menos que o admin tenha configurado
+ * e ativado outro provedor ou desativado o serviço de mapas.
+ */
+export const getPublicMapConfig = createServerFn({ method: "GET" }).handler(async () => {
+  const supabase = getServerClient();
+  
+  const { data: record } = await supabase
+    .from("integration_credentials")
+    .select("is_active, token_payload")
+    .eq("provider", "map_service")
+    .maybeSingle();
+
+  if (record) {
+    if (!record.is_active) {
+      return {
+        isActive: false,
+        provider: "none",
+        message: "Serviço de mapas desativado nas configurações do sistema.",
+      };
+    }
+    const payload = (record.token_payload as any) || {};
+    return {
+      isActive: true,
+      provider: payload.provider || "open_street_map",
+      apiKey: payload.api_key || null,
+      customTileUrl: payload.custom_tile_url || null,
+      message: null,
+    };
+  }
+
+  // Fallback padrão: OpenStreetMap ativo
+  return {
+    isActive: true,
+    provider: "open_street_map",
+    apiKey: null,
+    customTileUrl: null,
+    message: null,
+  };
+});
+

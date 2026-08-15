@@ -286,18 +286,29 @@ function IntegrationsPage() {
         />
 
         <IntegrationCard
-          provider="google_analytics"
-          title="Google Analytics (GA4)"
-          description="Métricas de tráfego, sessões e conversões no Google Analytics."
-          icon={BarChart}
-          existingSetting={settings.find((s: any) => s.provider === "google_analytics")}
+          provider="map_service"
+          title="Mapas & Geolocalização"
+          description="Configuração do provedor de mapas para corridas, entregas, rotas e visualização geográfica."
+          icon={MapPin}
+          existingSetting={settings.find((s: any) => s.provider === "map_service")}
           onSave={handleSave}
           onDelete={handleDelete}
           fields={[
             {
-              key: "measurement_id",
-              label: "ID de Métrica (Measurement ID)",
-              placeholder: "G-XXXXXXXXXX",
+              key: "provider",
+              label: "Provedor de Mapas (open_street_map | mapbox | google_maps)",
+              placeholder: "open_street_map",
+            },
+            {
+              key: "api_key",
+              label: "Chave de API / Token de Acesso (opcional para OpenStreetMap)",
+              type: "password",
+              placeholder: "pk.eyJ1...",
+            },
+            {
+              key: "custom_tile_url",
+              label: "URL de Tiles Customizada (opcional)",
+              placeholder: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
             },
           ]}
         />
@@ -305,3 +316,4 @@ function IntegrationsPage() {
     </div>
   );
 }
+

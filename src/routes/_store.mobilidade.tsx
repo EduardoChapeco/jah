@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   Car,
   Bike,
@@ -19,6 +19,7 @@ import {
   CreditCard,
   QrCode,
   Banknote,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,9 +27,11 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { formatMoney } from "@/lib/money";
 import {
+  calculateMobilityQuote,
   createMobilityRequest,
   type MobilityServiceType,
   type MobilityRequestDTO,
+  type MobilityQuoteEstimate,
 } from "@/services/mobility.functions";
 import { MapLibreCanvas, type MapPoint } from "@/components/mobility/maplibre-canvas";
 import { toast } from "sonner";
@@ -53,61 +56,13 @@ const DEFAULT_ORIGIN: MapPoint = {
   label: "Av. Getúlio Vargas, 500 — Centro",
 };
 
-const MODALITIES: Array<{
-  type: MobilityServiceType;
-  title: string;
-  subtitle: string;
-  icon: typeof Car;
-  basePrice: number;
-  pricePerKm: number;
-  etaMins: number;
-}> = [
-  {
-    type: "ride_car",
-    title: "Carro Privado",
-    subtitle: "Até 4 passageiros",
-    icon: Car,
-    basePrice: 750,
-    pricePerKm: 240,
-    etaMins: 3,
-  },
-  {
-    type: "ride_moto",
-    title: "Moto",
-    subtitle: "Rápido e econômico",
-    icon: Bike,
-    basePrice: 500,
-    pricePerKm: 160,
-    etaMins: 2,
-  },
-  {
-    type: "delivery_express",
-    title: "Entrega Flash",
-    subtitle: "Pacotes e encomendas",
-    icon: Zap,
-    basePrice: 600,
-    pricePerKm: 180,
-    etaMins: 4,
-  },
-  {
-    type: "freight_van",
-    title: "Fiorino / Van",
-    subtitle: "Cargas médias",
-    icon: Truck,
-    basePrice: 2800,
-    pricePerKm: 350,
-    etaMins: 8,
-  },
-  {
-    type: "moving_truck",
-    title: "Mudança",
-    subtitle: "Caminhão com ajudantes",
-    icon: Boxes,
-    basePrice: 12000,
-    pricePerKm: 550,
-    etaMins: 15,
-  },
-];
+const ICONS_BY_TYPE: Record<string, typeof Car> = {
+  ride_car: Car,
+  ride_moto: Bike,
+  delivery_express: Zap,
+  freight_van: Truck,
+  moving_truck: Boxes,
+};
 
 const PRESET_PLACES = [
   { name: "Centro", address: "Av. Getúlio Vargas, Centro", lat: -27.1004, lng: -52.6152 },
@@ -159,16 +114,32 @@ function MobilityPage() {
     return { distanceKm, durationMin };
   }, [origin, destination]);
 
-  const currentModality = MODALITIES.find((m) => m.type === selectedService) || MODALITIES[0];
+  // Consulta cotação dinâmica de tarifas reais do banco de dados (logistics_price_tables)
+  const { data: quotes, isLoading: isLoadingQuotes } = useQuery({
+    queryKey: ["mobility-quotes", routeStats.distanceKm, helpersCount],
+    queryFn: () =>
+      calculateMobilityQuote({
+        data: {
+          origin_address: originText || origin.label || "Origem",
+          destination_address: destinationText || destination?.label || "Destino",
+          distance_km: routeStats.distanceKm,
+          helpers_count: helpersCount,
+        },
+      }),
+    staleTime: 30000,
+  });
+
+  const availableModals: MobilityQuoteEstimate[] = quotes || [];
+  const selectedQuote = availableModals.find((q) => q.service_type === selectedService) || availableModals[0];
 
   const computedPriceCents = useMemo(() => {
-    let price = currentModality.basePrice + Math.round(routeStats.distanceKm * currentModality.pricePerKm);
-    if (selectedService === "moving_truck") {
-      price += helpersCount * 4500;
-      if (propertyType === "stairs") price += 3500;
+    if (!selectedQuote) return 0;
+    let price = selectedQuote.estimated_price_cents;
+    if (selectedService === "moving_truck" && propertyType === "stairs") {
+      price += 3500;
     }
     return price;
-  }, [currentModality, routeStats.distanceKm, selectedService, helpersCount, propertyType]);
+  }, [selectedQuote, selectedService, propertyType]);
 
   const createMutation = useMutation({
     mutationFn: (payload: any) => createMobilityRequest({ data: payload }),
@@ -232,6 +203,11 @@ function MobilityPage() {
   const handleSubmitRequest = () => {
     if (!destination && !destinationText) {
       toast.error("Informe o endereço de destino.");
+      return;
+    }
+
+    if (!selectedQuote) {
+      toast.error("Nenhuma modalidade com tarifa ativa disponível.");
       return;
     }
 
@@ -328,41 +304,61 @@ function MobilityPage() {
           </Button>
         </div>
 
-        {/* ── SELETOR DE MODALIDADES ── */}
+        {/* ── SELETOR DE MODALIDADES VINDAS DO BANCO DE DADOS ── */}
         <div className="space-y-1.5">
           <span className="text-xs font-medium text-muted-foreground">
             Modalidade
           </span>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {MODALITIES.map((mod) => {
-              const Icon = mod.icon;
-              const isSelected = selectedService === mod.type;
-              return (
-                <button
-                  key={mod.type}
-                  type="button"
-                  onClick={() => setSelectedService(mod.type)}
-                  className={`p-3 rounded-xl border text-left transition-colors flex flex-col justify-between ${
-                    isSelected
-                      ? "bg-muted border-foreground/30 text-foreground"
-                      : "bg-background border-border text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                  }`}
-                >
-                  <Icon className={`size-4 mb-2 ${isSelected ? "text-foreground" : "text-muted-foreground"}`} />
-                  <div>
-                    <span className="text-xs font-semibold text-foreground block leading-tight">
-                      {mod.title}
-                    </span>
-                    <span className="text-[11px] font-medium text-muted-foreground mt-0.5 block">
-                      {formatMoney(
-                        mod.basePrice + Math.round(routeStats.distanceKm * mod.pricePerKm),
-                      )}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+
+          {isLoadingQuotes && (
+            <div className="py-6 flex items-center justify-center text-xs text-muted-foreground gap-2">
+              <Loader2 className="size-4 animate-spin" />
+              <span>Calculando tarifas da região...</span>
+            </div>
+          )}
+
+          {!isLoadingQuotes && availableModals.length === 0 && (
+            <div className="p-3.5 rounded-xl bg-muted/40 border border-dashed border-border text-center space-y-1">
+              <AlertCircle className="size-5 mx-auto text-muted-foreground opacity-60" />
+              <p className="text-xs font-medium text-foreground">
+                Sem atendimento ou tabela de tarifas configurada
+              </p>
+              <p className="text-[11px] text-muted-foreground">
+                Nenhuma empresa de logística ou motorista cadastrou tarifas ativas para esta região.
+              </p>
+            </div>
+          )}
+
+          {!isLoadingQuotes && availableModals.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {availableModals.map((mod) => {
+                const Icon = ICONS_BY_TYPE[mod.service_type] || Car;
+                const isSelected = selectedService === mod.service_type;
+                return (
+                  <button
+                    key={mod.service_type}
+                    type="button"
+                    onClick={() => setSelectedService(mod.service_type)}
+                    className={`p-3 rounded-xl border text-left transition-colors flex flex-col justify-between ${
+                      isSelected
+                        ? "bg-muted border-foreground/30 text-foreground"
+                        : "bg-background border-border text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    }`}
+                  >
+                    <Icon className={`size-4 mb-2 ${isSelected ? "text-foreground" : "text-muted-foreground"}`} />
+                    <div>
+                      <span className="text-xs font-semibold text-foreground block leading-tight">
+                        {mod.label}
+                      </span>
+                      <span className="text-[11px] font-medium text-muted-foreground mt-0.5 block">
+                        {formatMoney(mod.estimated_price_cents)}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* ── CAMPOS DE ENDEREÇO ── */}
@@ -552,52 +548,54 @@ function MobilityPage() {
         )}
 
         {/* ── PREÇO ESTIMADO & PAGAMENTO ── */}
-        <div className="p-3.5 rounded-xl border border-border bg-muted/20 flex items-center justify-between">
-          <div>
-            <span className="text-xs text-muted-foreground block">
-              Valor Estimado
-            </span>
-            <span className="font-semibold text-lg text-foreground">
-              {formatMoney(computedPriceCents)}
-            </span>
-          </div>
+        {availableModals.length > 0 && (
+          <div className="p-3.5 rounded-xl border border-border bg-muted/20 flex items-center justify-between">
+            <div>
+              <span className="text-xs text-muted-foreground block">
+                Valor Estimado
+              </span>
+              <span className="font-semibold text-lg text-foreground">
+                {formatMoney(computedPriceCents)}
+              </span>
+            </div>
 
-          <div className="flex items-center gap-1 bg-background p-1 rounded-lg border border-border">
-            <button
-              type="button"
-              onClick={() => setPaymentMethod("pix")}
-              className={`p-1.5 rounded-md text-xs font-medium flex items-center gap-1 ${paymentMethod === "pix" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-              title="Pix"
-            >
-              <QrCode className="size-3.5" />
-              <span>Pix</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setPaymentMethod("card")}
-              className={`p-1.5 rounded-md text-xs font-medium flex items-center gap-1 ${paymentMethod === "card" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-              title="Cartão"
-            >
-              <CreditCard className="size-3.5" />
-              <span>Cartão</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setPaymentMethod("cash")}
-              className={`p-1.5 rounded-md text-xs font-medium flex items-center gap-1 ${paymentMethod === "cash" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-              title="Dinheiro"
-            >
-              <Banknote className="size-3.5" />
-              <span>Dinheiro</span>
-            </button>
+            <div className="flex items-center gap-1 bg-background p-1 rounded-lg border border-border">
+              <button
+                type="button"
+                onClick={() => setPaymentMethod("pix")}
+                className={`p-1.5 rounded-md text-xs font-medium flex items-center gap-1 ${paymentMethod === "pix" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                title="Pix"
+              >
+                <QrCode className="size-3.5" />
+                <span>Pix</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPaymentMethod("card")}
+                className={`p-1.5 rounded-md text-xs font-medium flex items-center gap-1 ${paymentMethod === "card" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                title="Cartão"
+              >
+                <CreditCard className="size-3.5" />
+                <span>Cartão</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPaymentMethod("cash")}
+                className={`p-1.5 rounded-md text-xs font-medium flex items-center gap-1 ${paymentMethod === "cash" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                title="Dinheiro"
+              >
+                <Banknote className="size-3.5" />
+                <span>Dinheiro</span>
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* ── BOTÃO DE AÇÃO PRINCIPAL ── */}
         <Button
           type="button"
           onClick={handleSubmitRequest}
-          disabled={createMutation.isPending || requestStatus === "searching"}
+          disabled={createMutation.isPending || requestStatus === "searching" || availableModals.length === 0}
           className="w-full h-11 rounded-xl bg-foreground text-background font-semibold text-sm hover:opacity-90 transition-opacity"
         >
           {createMutation.isPending || requestStatus === "searching" ? (
@@ -605,8 +603,10 @@ function MobilityPage() {
               <Loader2 className="size-4 animate-spin" />
               <span>Conectando com motoristas...</span>
             </div>
+          ) : availableModals.length === 0 ? (
+            <span>Sem Cobertura no Momento</span>
           ) : (
-            <span>Confirmar e Chamar {currentModality.title}</span>
+            <span>Confirmar e Chamar {selectedQuote?.label || "Serviço"}</span>
           )}
         </Button>
 

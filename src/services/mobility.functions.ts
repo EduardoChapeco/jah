@@ -174,7 +174,9 @@ const SERVICE_CONFIGS: Record<
 // ============================================================
 
 /**
- * 1. Simula cotação para todos os modais disponíveis baseando-se em KM e ajudantes.
+ * 1. Simula cotação para todos os modais disponíveis baseando-se nas tabelas ativas no banco de dados (logistics_price_tables).
+ * Se o administrador ou empresa de logística não cadastrou nenhuma tabela de preço ativa, retorna lista vazia
+ * para que a interface informe "Sem atendimento ou tabela de tarifas configurada para esta região".
  */
 export const calculateMobilityQuote = createServerFn({ method: "POST" })
   .validator(
@@ -186,29 +188,56 @@ export const calculateMobilityQuote = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data }) => {
-    const estimates: MobilityQuoteEstimate[] = Object.entries(SERVICE_CONFIGS).map(
-      ([key, cfg]) => {
-        const serviceType = key as MobilityServiceType;
-        const rawKmCost = Math.round(data.distance_km * cfg.km_rate_cents);
-        const rawHelperCost = data.helpers_count * cfg.helper_fee_cents;
-        const rawTotal = cfg.base_fee_cents + rawKmCost + rawHelperCost;
-        const finalPrice = Math.max(rawTotal, cfg.min_fare_cents);
-        const durationMin = Math.max(10, Math.round(data.distance_km * 3) + 5);
+    const supabase = getServerClient();
 
-        return {
-          service_type: serviceType,
-          label: cfg.label,
-          description: cfg.description,
-          icon_name: cfg.icon_name,
-          estimated_price_cents: finalPrice,
-          distance_km: data.distance_km,
-          duration_minutes: durationMin,
-          base_fee_cents: cfg.base_fee_cents,
-          km_rate_cents: cfg.km_rate_cents,
-          helper_fee_cents: cfg.helper_fee_cents,
-        };
-      },
-    );
+    // Consulta tabelas de preço ativas cadastradas no banco
+    const { data: priceTables, error } = await supabase
+      .from("logistics_price_tables")
+      .select("*")
+      .eq("is_active", true)
+      .order("base_fee_cents", { ascending: true });
+
+    if (error || !priceTables || priceTables.length === 0) {
+      // Se não há tabelas cadastradas no banco, retorna lista vazia (sem cobertura)
+      return [] as MobilityQuoteEstimate[];
+    }
+
+    const durationMin = Math.max(10, Math.round(data.distance_km * 3) + 5);
+
+    const estimates: MobilityQuoteEstimate[] = priceTables.map((tbl) => {
+      const rawKmCost = Math.round(data.distance_km * tbl.km_rate_cents);
+      const rawMinuteCost = Math.round(durationMin * (tbl.minute_rate_cents || 0));
+      const rawHelperCost = data.helpers_count * (tbl.helper_fee_cents || 0);
+      const rawTotal = tbl.base_fee_cents + rawKmCost + rawMinuteCost + rawHelperCost;
+      const finalPrice = Math.max(rawTotal, tbl.min_fare_cents || 0);
+
+      const labelsMap: Record<MobilityServiceType, { label: string; description: string; icon: string }> = {
+        ride_car: { label: "Carro Privado", description: "Transporte confortável para até 4 passageiros.", icon: "Car" },
+        ride_moto: { label: "Moto Passageiro", description: "Deslocamento ágil e econômico para 1 pessoa.", icon: "Bike" },
+        delivery_express: { label: "Entrega Flash", description: "Documentos, chaves e encomendas urgentes.", icon: "Zap" },
+        freight_van: { label: "Fiorino / Van", description: "Cargas médias e mercadorias comerciais.", icon: "Truck" },
+        moving_truck: { label: "Caminhão de Mudança", description: "Mudanças completas com opção de ajudantes.", icon: "Boxes" },
+      };
+
+      const meta = labelsMap[tbl.service_type as MobilityServiceType] || {
+        label: tbl.name || "Serviço de Transporte",
+        description: "Transporte local tarifado.",
+        icon: "Car",
+      };
+
+      return {
+        service_type: tbl.service_type as MobilityServiceType,
+        label: tbl.name || meta.label,
+        description: meta.description,
+        icon_name: meta.icon,
+        estimated_price_cents: finalPrice,
+        distance_km: data.distance_km,
+        duration_minutes: durationMin,
+        base_fee_cents: tbl.base_fee_cents,
+        km_rate_cents: tbl.km_rate_cents,
+        helper_fee_cents: tbl.helper_fee_cents || 0,
+      };
+    });
 
     return estimates;
   });
@@ -493,3 +522,106 @@ export const getCourierBySlug = createServerFn({ method: "GET" })
 
     return courier as CourierProfileDTO;
   });
+
+/**
+ * 9. Lista tabelas de preço cadastradas pela loja/empresa de logística no Workspace.
+ */
+export const listLogisticsPriceTables = createServerFn({ method: "GET" }).handler(
+  async () => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity().catch(() => null);
+    if (!identity?.store_id) return [];
+
+    const { data, error } = await supabase
+      .from("logistics_price_tables")
+      .select("*")
+      .eq("store_id", identity.store_id)
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      console.warn("[mobility] Erro ao listar tabelas de preço:", error);
+      return [];
+    }
+
+    return data || [];
+  },
+);
+
+/**
+ * 10. Salva ou atualiza uma tabela de preço de modalidade.
+ */
+export const saveLogisticsPriceTable = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string().uuid().optional(),
+      name: z.string().min(2),
+      service_type: mobilityServiceTypeEnum,
+      base_fee_cents: z.number().int().min(0),
+      km_rate_cents: z.number().int().min(0),
+      minute_rate_cents: z.number().int().min(0).default(0),
+      helper_fee_cents: z.number().int().min(0).default(0),
+      min_fare_cents: z.number().int().min(0).default(0),
+      is_active: z.boolean().default(true),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin"]);
+
+    const payload = {
+      store_id: identity.store_id,
+      name: data.name,
+      service_type: data.service_type,
+      base_fee_cents: data.base_fee_cents,
+      km_rate_cents: data.km_rate_cents,
+      minute_rate_cents: data.minute_rate_cents,
+      helper_fee_cents: data.helper_fee_cents,
+      min_fare_cents: data.min_fare_cents,
+      is_active: data.is_active,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (data.id) {
+      const { data: updated, error } = await supabase
+        .from("logistics_price_tables")
+        .update(payload)
+        .eq("id", data.id)
+        .eq("store_id", identity.store_id)
+        .select()
+        .single();
+
+      if (error) throw new Error(`Erro ao atualizar tabela de preço: ${error.message}`);
+      return updated;
+    }
+
+    const { data: created, error } = await supabase
+      .from("logistics_price_tables")
+      .insert({ ...payload, created_at: new Date().toISOString() })
+      .select()
+      .single();
+
+    if (error) throw new Error(`Erro ao criar tabela de preço: ${error.message}`);
+    return created;
+  });
+
+/**
+ * 11. Remove uma tabela de preço.
+ */
+export const deleteLogisticsPriceTable = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string().uuid() }))
+  .handler(async ({ data: { id } }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin"]);
+
+    const { error } = await supabase
+      .from("logistics_price_tables")
+      .delete()
+      .eq("id", id)
+      .eq("store_id", identity.store_id);
+
+    if (error) throw new Error(`Erro ao remover tabela de preço: ${error.message}`);
+    return { status: "success" };
+  });
+
