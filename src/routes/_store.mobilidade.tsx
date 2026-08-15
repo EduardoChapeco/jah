@@ -290,6 +290,8 @@ function FullMapMobilityPage() {
     setRequestStatus("searching");
 
     const payload = {
+      customer_name: recipientName || "Cliente JAH",
+      customer_phone: recipientPhone || "(49) 99999-9999",
       service_type: selectedService,
       origin_address: originText || origin.label,
       origin_lat: origin.lat,
@@ -297,9 +299,10 @@ function FullMapMobilityPage() {
       destination_address: destinationText || destination?.label || "Destino selecionado",
       destination_lat: destination?.lat || origin.lat + 0.02,
       destination_lng: destination?.lng || origin.lng + 0.02,
-      estimated_distance_km: routeStats.distanceKm,
-      estimated_duration_min: routeStats.durationMin,
-      quoted_price_cents: computedPriceCents,
+      distance_km: routeStats.distanceKm,
+      estimated_price_cents: computedPriceCents,
+      helpers_count: helpersCount,
+      payment_method: paymentMethod,
       notes: [
         buildingNumber ? `Nº: ${buildingNumber}` : "",
         complement ? `Compl: ${complement}` : "",
