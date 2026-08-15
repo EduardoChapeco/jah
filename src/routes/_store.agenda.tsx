@@ -3,6 +3,7 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   CalendarDots,
+  CalendarBlank,
   MapPin,
   MagnifyingGlass,
   Sparkle,
@@ -13,6 +14,8 @@ import {
   ForkKnife,
   Tag,
   GraduationCap,
+  CircleNotch,
+  WarningCircle,
 } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -411,20 +414,20 @@ function AgendaPage() {
       {/* ── 6. ESTADOS DE CARREGAMENTO, ERRO E VAZIO ── */}
       {isLoading && (
         <div className="flex justify-center py-24">
-          <Loader2 className="size-6 animate-spin text-muted-foreground" />
+          <CircleNotch size={32} className="animate-spin text-muted-foreground" />
         </div>
       )}
 
       {isError && (
         <div className="py-12 px-6 rounded-2xl border border-destructive/20 bg-destructive/5 text-center space-y-2">
-          <AlertCircle className="size-6 text-destructive mx-auto" />
+          <WarningCircle size={32} className="text-destructive mx-auto" />
           <p className="font-semibold text-foreground text-sm">Erro ao carregar a Agenda Cultural</p>
         </div>
       )}
 
       {!isLoading && !isError && filteredEvents.length === 0 && (
         <div className="py-20 text-center space-y-2.5 bg-muted/20 rounded-2xl border border-border p-8">
-          <CalendarIcon className="size-8 text-muted-foreground/50 mx-auto" />
+          <CalendarBlank size={36} className="text-muted-foreground/50 mx-auto" />
           <h2 className="text-sm font-semibold text-foreground">
             Nenhum evento agendado para {activeDateLabel}
           </h2>
@@ -485,7 +488,7 @@ function AgendaPage() {
                 <div className="space-y-1.5">
                   {event.location && (
                     <p className="flex items-center gap-1.5 text-muted-foreground">
-                      <MapPin className="size-3.5 shrink-0 text-foreground" />
+                      <MapPin size={14} className="shrink-0 text-foreground" />
                       <span className="truncate">{event.location}</span>
                     </p>
                   )}
@@ -505,7 +508,7 @@ function AgendaPage() {
                   <Button asChild size="sm" variant="outline" className="h-8 rounded-lg text-xs">
                     <Link to="/evento/$id" params={{ id: event.id }}>
                       <span>Detalhes</span>
-                      <ChevronRight className="size-3.5 ml-1" />
+                      <CaretRight size={14} className="ml-1" />
                     </Link>
                   </Button>
                 </div>

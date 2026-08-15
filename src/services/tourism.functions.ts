@@ -1,109 +1,36 @@
 /**
- * tourism.functions.ts — BFF para o Módulo Master de Turismo, Viagens & Lazer
+ * tourism.functions.ts — BFF para o Módulo Master de Turismo, Viagens & Lazer (100% Real no Supabase)
  */
 
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getServerClient } from "@/lib/supabase";
+import { getCurrentIdentity } from "@/services/cart-helpers";
 
 export interface TourismItemDTO {
   id: string;
+  store_id?: string | null;
+  author_profile_id?: string | null;
   title: string;
-  subtitle: string;
-  category: "passeios" | "hospedagens" | "agencias" | "gastronomia_turistica" | "aventura";
+  subtitle?: string | null;
+  description: string;
+  category: "passeios" | "hospedagens" | "gastronomia_turistica" | "aventura" | "agencias" | "cultura";
   location: string;
-  duration?: string;
+  duration: string;
   price_display: string;
+  price_cents?: number | null;
   image_url: string;
+  gallery_urls: string[];
   provider_name: string;
-  whatsapp: string;
+  provider_logo_url?: string | null;
+  contact_whatsapp: string;
   rating: number;
-  featured?: boolean;
+  included_items: string[];
+  what_to_bring: string[];
+  is_featured: boolean;
+  status: "active" | "inactive" | "draft";
+  created_at: string;
 }
-
-export const SEED_TOURISM: TourismItemDTO[] = [
-  {
-    id: "tour-001",
-    title: "Passeio de Catamarã no Vale do Rio Uruguai",
-    subtitle: "Navegação cênica pelas águas calmas do Rio Uruguai com almoço típico colonial a bordo.",
-    category: "passeios",
-    location: "Goio-Ên — Chapecó / Nonoai",
-    duration: "4 horas",
-    price_display: "R$ 120,00 / pessoa",
-    image_url: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&q=80",
-    provider_name: "Rota das Águas Ecoturismo",
-    whatsapp: "49991223344",
-    rating: 4.9,
-    featured: true,
-  },
-  {
-    id: "tour-002",
-    title: "Diária Romântica em Cabana de Montanha & Spa",
-    subtitle: "Cabana privativa com hidromassagem, lareira, vista panorâmica da serra e café da manhã colonial.",
-    category: "hospedagens",
-    location: "Linha Rodeio Bonito",
-    duration: "Diária / Casal",
-    price_display: "R$ 480,00 / diária",
-    image_url: "https://images.unsplash.com/photo-1587061949409-02df41d5e562?w=800&q=80",
-    provider_name: "Pousada Morada dos Canyons",
-    whatsapp: "49998877665",
-    rating: 5.0,
-    featured: true,
-  },
-  {
-    id: "tour-003",
-    title: "Circuito das Vinícolas Coloniais & Degustação",
-    subtitle: "Roteiro guiado por 3 vinícolas familiares com degustação de rótulos artesanais e queijos premiados.",
-    category: "gastronomia_turistica",
-    location: "Interior de Chapecó & Guatambu",
-    duration: "6 horas",
-    price_display: "R$ 160,00 / pessoa",
-    image_url: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800&q=80",
-    provider_name: "Vinhos & Tradição Turismo",
-    whatsapp: "49999334455",
-    rating: 4.85,
-  },
-  {
-    id: "tour-004",
-    title: "Expedição de Caiaque & Stand Up Paddle nas Cachoeiras",
-    subtitle: "Aventura aquática com instrução profissional, coletes e paradas para banho em piscinas naturais.",
-    category: "aventura",
-    location: "Trilha da Cachoeira do Guatambu",
-    duration: "3 horas",
-    price_display: "R$ 90,00 / pessoa",
-    image_url: "https://images.unsplash.com/photo-1472745433479-4556f22e32c2?w=800&q=80",
-    provider_name: "Oeste Adventure Club",
-    whatsapp: "49991112233",
-    rating: 4.92,
-  },
-  {
-    id: "tour-005",
-    title: "Excursão de Fim de Semana: Serra Gaúcha & Gramado",
-    subtitle: "Pacote completo com transporte executivo, hospedagem, guia de turismo e ingressos para atrações.",
-    category: "agencias",
-    location: "Saída de Chapecó",
-    duration: "3 dias (Sex a Dom)",
-    price_display: "R$ 890,00 / pessoa",
-    image_url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
-    provider_name: "Excelência Tour Agência de Viagens",
-    whatsapp: "4933221100",
-    rating: 4.98,
-    featured: true,
-  },
-  {
-    id: "tour-006",
-    title: "Day Use no Parque Aquático das Águas Termais",
-    subtitle: "Piscinas aquecidas naturais, toboáguas, quiosques com churrasqueira e restaurante self-service.",
-    category: "passeios",
-    location: "Águas de Chapecó",
-    duration: "Dia todo (08h às 18h)",
-    price_display: "R$ 55,00 / pessoa",
-    image_url: "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&q=80",
-    provider_name: "Termas do Oeste Complexo Turístico",
-    whatsapp: "4933214500",
-    rating: 4.75,
-  },
-];
 
 export const listPublicTourism = createServerFn({ method: "GET" })
   .validator(
@@ -111,26 +38,155 @@ export const listPublicTourism = createServerFn({ method: "GET" })
       .object({
         category: z.string().optional(),
         search: z.string().optional(),
+        limit: z.number().int().min(1).max(100).optional(),
       })
       .optional(),
   )
   .handler(async ({ data }) => {
-    let items = [...SEED_TOURISM];
+    const supabase = getServerClient();
+    const limit = data?.limit ?? 50;
+
+    let query = supabase
+      .from("tourism_experiences")
+      .select("*")
+      .eq("status", "active")
+      .order("is_featured", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(limit);
 
     if (data?.category && data.category !== "todos") {
-      items = items.filter((i) => i.category === data.category);
+      query = query.eq("category", data.category);
     }
 
-    if (data?.search) {
-      const q = data.search.toLowerCase();
-      items = items.filter(
-        (i) =>
-          i.title.toLowerCase().includes(q) ||
-          i.subtitle.toLowerCase().includes(q) ||
-          i.location.toLowerCase().includes(q) ||
-          i.provider_name.toLowerCase().includes(q),
-      );
+    if (data?.search && data.search.trim()) {
+      const q = `%${data.search.trim()}%`;
+      query = query.or(`title.ilike.${q},subtitle.ilike.${q},location.ilike.${q},provider_name.ilike.${q},description.ilike.${q}`);
     }
 
-    return items;
+    const { data: rows, error } = await query;
+
+    if (error) {
+      console.error("Erro ao listar turismo no Supabase:", error);
+      return [];
+    }
+
+    return (rows || []).map((row: any) => ({
+      id: row.id,
+      store_id: row.store_id,
+      author_profile_id: row.author_profile_id,
+      title: row.title,
+      subtitle: row.subtitle,
+      description: row.description,
+      category: row.category,
+      location: row.location,
+      duration: row.duration,
+      price_display: row.price_display,
+      price_cents: row.price_cents ? Number(row.price_cents) : null,
+      image_url: row.image_url,
+      gallery_urls: row.gallery_urls || [],
+      provider_name: row.provider_name,
+      provider_logo_url: row.provider_logo_url,
+      contact_whatsapp: row.contact_whatsapp,
+      rating: Number(row.rating || 5.0),
+      included_items: row.included_items || [],
+      what_to_bring: row.what_to_bring || [],
+      is_featured: row.is_featured ?? false,
+      status: row.status,
+      created_at: row.created_at,
+    })) as TourismItemDTO[];
+  });
+
+export const getPublicTourismById = createServerFn({ method: "GET" })
+  .validator(z.object({ experienceId: z.string().uuid() }))
+  .handler(async ({ data: { experienceId } }) => {
+    const supabase = getServerClient();
+
+    const { data: row, error } = await supabase
+      .from("tourism_experiences")
+      .select("*")
+      .eq("id", experienceId)
+      .maybeSingle();
+
+    if (error || !row) {
+      return null;
+    }
+
+    return {
+      id: row.id,
+      store_id: row.store_id,
+      author_profile_id: row.author_profile_id,
+      title: row.title,
+      subtitle: row.subtitle,
+      description: row.description,
+      category: row.category,
+      location: row.location,
+      duration: row.duration,
+      price_display: row.price_display,
+      price_cents: row.price_cents ? Number(row.price_cents) : null,
+      image_url: row.image_url,
+      gallery_urls: row.gallery_urls || [],
+      provider_name: row.provider_name,
+      provider_logo_url: row.provider_logo_url,
+      contact_whatsapp: row.contact_whatsapp,
+      rating: Number(row.rating || 5.0),
+      included_items: row.included_items || [],
+      what_to_bring: row.what_to_bring || [],
+      is_featured: row.is_featured ?? false,
+      status: row.status,
+      created_at: row.created_at,
+    } as TourismItemDTO;
+  });
+
+export const inquireTourismExperience = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      experienceId: z.string().uuid(),
+      customerName: z.string().min(2, "Informe seu nome"),
+      customerEmail: z.string().email("E-mail inválido"),
+      customerPhone: z.string().min(8, "Telefone inválido"),
+      desiredDate: z.string().optional(),
+      guestsCount: z.number().int().min(1).default(1),
+      message: z.string().max(1000).optional(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const identity = await getCurrentIdentity();
+
+    const { data: exp } = await supabase
+      .from("tourism_experiences")
+      .select("id, status, title")
+      .eq("id", data.experienceId)
+      .maybeSingle();
+
+    if (!exp || exp.status !== "active") {
+      throw new Error("Esta experiência não está disponível para reservas no momento.");
+    }
+
+    const { data: created, error } = await supabase
+      .from("tourism_inquiries")
+      .insert({
+        experience_id: data.experienceId,
+        profile_id: identity.customer_id || null,
+        customer_name: data.customerName.trim(),
+        customer_email: data.customerEmail.trim().toLowerCase(),
+        customer_phone: data.customerPhone.trim(),
+        desired_date: data.desiredDate || null,
+        guests_count: data.guestsCount,
+        message: data.message?.trim() || null,
+        status: "pending",
+      })
+      .select("id, created_at")
+      .single();
+
+    if (error) {
+      console.error("Erro ao registrar interesse turístico no Supabase:", error);
+      throw new Error("Não foi possível registrar seu interesse. Tente novamente.");
+    }
+
+    return {
+      success: true,
+      inquiryId: created.id,
+      message: "Solicitação de reserva registrada com sucesso!",
+    };
   });

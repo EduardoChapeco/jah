@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -18,6 +18,8 @@ import {
   Heartbeat,
   Truck,
   Storefront,
+  WhatsappLogo,
+  ArrowRight,
 } from "@phosphor-icons/react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -199,36 +201,40 @@ function JobsMasterPage() {
           jobs.map((job) => (
             <div
               key={job.id}
-              className="rounded-3xl border border-border/80 bg-card p-6 shadow-xs hover-elevate transition-all flex flex-col justify-between space-y-4"
+              className="rounded-3xl border border-border bg-card p-6 shadow-2xs hover:border-foreground/30 transition-all flex flex-col justify-between space-y-4 group"
             >
               <div className="space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="size-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold shrink-0">
-                      <Building className="size-5" />
+                    <div className="size-11 rounded-2xl bg-muted border border-border flex items-center justify-center font-bold shrink-0 text-foreground group-hover:scale-105 transition-transform">
+                      <Buildings size={22} weight="duotone" />
                     </div>
                     <div>
-                      <h3 className="text-base font-bold text-foreground leading-tight">
+                      <Link
+                        to="/empregos/$id"
+                        params={{ id: job.id }}
+                        className="text-base font-bold text-foreground leading-tight hover:underline line-clamp-1 block"
+                      >
                         {job.title}
-                      </h3>
-                      <p className="text-xs text-muted-foreground font-medium mt-0.5">
+                      </Link>
+                      <p className="text-xs text-muted-foreground font-semibold mt-0.5">
                         {job.company_name}
                       </p>
                     </div>
                   </div>
 
-                  <Badge variant="outline" className="text-[10px] uppercase font-mono shrink-0">
+                  <Badge variant="outline" className="text-[10px] uppercase font-mono shrink-0 rounded-lg">
                     {job.workplace_type}
                   </Badge>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground font-mono">
                   <span className="flex items-center gap-1">
-                    <MapPin className="size-3.5 text-primary" />
+                    <MapPin size={13} weight="bold" className="text-foreground" />
                     <span>{job.location}</span>
                   </span>
                   <span>•</span>
-                  <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                  <span className="font-bold text-foreground">
                     {job.salary_display}
                   </span>
                 </div>
@@ -238,33 +244,46 @@ function JobsMasterPage() {
                 </p>
 
                 {/* Tags / Benefícios */}
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  {job.benefits.map((b, idx) => (
-                    <span
-                      key={idx}
-                      className="px-2.5 py-1 rounded-xl bg-muted/60 text-[10px] font-semibold text-foreground/80"
-                    >
-                      {b}
-                    </span>
-                  ))}
-                </div>
+                {job.benefits && job.benefits.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {job.benefits.slice(0, 3).map((b, idx) => (
+                      <span
+                        key={idx}
+                        className="px-2.5 py-1 rounded-xl bg-muted/60 text-[10px] font-semibold text-foreground/80"
+                      >
+                        {b}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* Ação / Candidatura Direta */}
-              <div className="pt-3 border-t border-border/40 flex items-center justify-between gap-3">
-                <Badge variant="secondary" className="text-[10px] uppercase font-mono">
-                  Regime {job.contract_type}
+              {/* Ação / Links */}
+              <div className="pt-3 border-t border-border flex items-center justify-between gap-3">
+                <Badge variant="secondary" className="text-[10px] uppercase font-mono rounded-lg">
+                  {job.contract_type}
                 </Badge>
 
-                <a
-                  href={`https://wa.me/55${job.contact_whatsapp}?text=Olá,%20vi%20a%20vaga%20de%20${encodeURIComponent(job.title)}%20no%20JAH%20e%20gostaria%20de%20enviar%20meu%20currículo.`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="px-4 py-2 rounded-2xl bg-primary text-primary-foreground font-bold text-xs flex items-center gap-1.5 shadow-xs hover:scale-105 active:scale-95 transition-all"
-                >
-                  <Send className="size-3.5" />
-                  <span>Candidatar-se (WhatsApp)</span>
-                </a>
+                <div className="flex items-center gap-2">
+                  {job.contact_whatsapp && (
+                    <a
+                      href={`https://wa.me/55${job.contact_whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(`Olá, vi a vaga de ${job.title} no JAH e gostaria de mais informações.`)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="size-9 rounded-xl border border-border bg-card hover:bg-muted text-foreground flex items-center justify-center transition-all"
+                      title="Conversar no WhatsApp"
+                    >
+                      <WhatsappLogo size={18} weight="bold" />
+                    </a>
+                  )}
+
+                  <Button asChild size="sm" className="rounded-xl font-bold text-xs h-9 px-4 gap-1.5 bg-foreground text-background">
+                    <Link to="/empregos/$id" params={{ id: job.id }}>
+                      <span>Ver Vaga & Candidatar</span>
+                      <ArrowRight size={14} weight="bold" />
+                    </Link>
+                  </Button>
+                </div>
               </div>
             </div>
           ))}

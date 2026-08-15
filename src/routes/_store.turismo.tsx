@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -14,6 +14,8 @@ import {
   ForkKnife,
   Buildings,
   Mountains,
+  WhatsappLogo,
+  ArrowRight,
 } from "@phosphor-icons/react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -194,11 +196,15 @@ function TourismMasterPage() {
           items.map((item) => (
             <div
               key={item.id}
-              className="rounded-3xl border border-border/80 bg-card overflow-hidden shadow-xs hover-elevate transition-all flex flex-col justify-between"
+              className="rounded-3xl border border-border bg-card overflow-hidden shadow-2xs hover:border-foreground/30 transition-all flex flex-col justify-between group"
             >
               <div className="space-y-3">
                 {/* Imagem de Capa */}
-                <div className="relative aspect-16/10 w-full overflow-hidden bg-muted">
+                <Link
+                  to="/turismo/$id"
+                  params={{ id: item.id }}
+                  className="relative aspect-16/10 w-full overflow-hidden bg-muted block cursor-pointer"
+                >
                   <img
                     src={item.image_url}
                     alt={item.title}
@@ -206,35 +212,39 @@ function TourismMasterPage() {
                     loading="lazy"
                   />
                   <div className="absolute top-3 left-3">
-                    <Badge className="bg-black/60 backdrop-blur-md text-white border-white/20 text-[10px] font-bold">
+                    <Badge className="bg-black/70 backdrop-blur-md text-white border-white/20 text-[10px] font-bold">
                       {item.duration || item.location}
                     </Badge>
                   </div>
-                  {item.featured && (
+                  {item.is_featured && (
                     <div className="absolute top-3 right-3">
-                      <Badge className="bg-primary text-primary-foreground text-[10px] font-black uppercase">
+                      <Badge className="bg-foreground text-background text-[10px] font-black uppercase">
                         Destaque
                       </Badge>
                     </div>
                   )}
-                </div>
+                </Link>
 
                 {/* Conteúdo */}
                 <div className="p-5 space-y-2">
                   <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground font-mono">
                     <span className="flex items-center gap-1">
-                      <MapPin className="size-3 text-primary" />
+                      <MapPin size={12} weight="bold" className="text-foreground" />
                       <span className="truncate">{item.location}</span>
                     </span>
-                    <span className="flex items-center gap-1 font-bold text-amber-500">
-                      <Star className="size-3 fill-amber-500" />
+                    <span className="flex items-center gap-1 font-bold text-foreground">
+                      <Star size={12} weight="fill" className="text-amber-500" />
                       <span>{item.rating.toFixed(1)}</span>
                     </span>
                   </div>
 
-                  <h3 className="text-base font-bold text-foreground leading-snug line-clamp-2">
+                  <Link
+                    to="/turismo/$id"
+                    params={{ id: item.id }}
+                    className="text-base font-bold text-foreground leading-snug line-clamp-2 hover:underline block"
+                  >
                     {item.title}
-                  </h3>
+                  </Link>
 
                   <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
                     {item.subtitle}
@@ -243,25 +253,36 @@ function TourismMasterPage() {
               </div>
 
               {/* Rodapé & Ação */}
-              <div className="p-5 pt-0 border-t border-border/40 mt-3 flex items-center justify-between gap-3">
+              <div className="p-5 pt-0 border-t border-border mt-3 flex items-center justify-between gap-3">
                 <div>
-                  <span className="text-[10px] text-muted-foreground uppercase font-bold">
-                    Investimento
+                  <span className="text-[10px] text-muted-foreground uppercase font-mono font-bold">
+                    Tarifa
                   </span>
-                  <p className="font-mono font-black text-sm text-foreground">
+                  <p className="font-mono font-bold text-xs text-foreground">
                     {item.price_display}
                   </p>
                 </div>
 
-                <a
-                  href={`https://wa.me/55${item.whatsapp}?text=Olá,%20vi%20o%20roteiro%20${encodeURIComponent(item.title)}%20no%20JAH%20e%20gostaria%20de%20mais%20informações.`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="px-4 py-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs transition-colors"
-                >
-                  <Phone className="size-3.5" />
-                  <span>Reservar / Info</span>
-                </a>
+                <div className="flex items-center gap-2">
+                  {item.contact_whatsapp && (
+                    <a
+                      href={`https://wa.me/55${item.contact_whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(`Olá, vi a experiência ${item.title} no JAH e gostaria de informações.`)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="size-9 rounded-xl border border-border bg-card hover:bg-muted text-foreground flex items-center justify-center transition-all"
+                      title="Conversar no WhatsApp"
+                    >
+                      <WhatsappLogo size={18} weight="bold" />
+                    </a>
+                  )}
+
+                  <Button asChild size="sm" className="rounded-xl font-bold text-xs h-9 px-4 gap-1.5 bg-foreground text-background">
+                    <Link to="/turismo/$id" params={{ id: item.id }}>
+                      <span>Ver Roteiro</span>
+                      <ArrowRight size={14} weight="bold" />
+                    </Link>
+                  </Button>
+                </div>
               </div>
             </div>
           ))}

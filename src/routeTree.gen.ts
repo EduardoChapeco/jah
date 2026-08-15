@@ -64,6 +64,7 @@ import { Route as StoreContaSalvosRouteImport } from './routes/_store.conta.salv
 import { Route as StoreContaSuporteRouteImport } from './routes/_store.conta.suporte'
 import { Route as StoreContaTrocasRouteImport } from './routes/_store.conta.trocas'
 import { Route as StoreDestaquesSlugRouteImport } from './routes/_store.destaques.$slug'
+import { Route as StoreEmpregosIdRouteImport } from './routes/_store.empregos.$id'
 import { Route as StoreEntregaTokenRouteImport } from './routes/_store.entrega.$token'
 import { Route as StoreEventoIdRouteImport } from './routes/_store.evento.$id'
 import { Route as StoreGiftCardClaimTokenRouteImport } from './routes/_store.gift-card.$claimToken'
@@ -74,6 +75,7 @@ import { Route as StoreNoticiasSlugRouteImport } from './routes/_store.noticias.
 import { Route as StorePaginasSlugRouteImport } from './routes/_store.paginas.$slug'
 import { Route as StorePoliticasSlugRouteImport } from './routes/_store.politicas.$slug'
 import { Route as StoreProdutoSlugRouteImport } from './routes/_store.produto.$slug'
+import { Route as StoreTurismoIdRouteImport } from './routes/_store.turismo.$id'
 import { Route as StoreVendedoraSlugRouteImport } from './routes/_store.vendedora.$slug'
 import { Route as ApiAuthCallbackRouteImport } from './routes/api.auth.callback'
 import { Route as ApiAuthConfirmRouteImport } from './routes/api.auth.confirm'
@@ -429,6 +431,11 @@ const StoreDestaquesSlugRoute = StoreDestaquesSlugRouteImport.update({
   path: '/destaques/$slug',
   getParentRoute: () => StoreRoute,
 } as any)
+const StoreEmpregosIdRoute = StoreEmpregosIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => StoreEmpregosRoute,
+} as any)
 const StoreEntregaTokenRoute = StoreEntregaTokenRouteImport.update({
   id: '/entrega/$token',
   path: '/entrega/$token',
@@ -478,6 +485,11 @@ const StoreProdutoSlugRoute = StoreProdutoSlugRouteImport.update({
   id: '/produto/$slug',
   path: '/produto/$slug',
   getParentRoute: () => StoreRoute,
+} as any)
+const StoreTurismoIdRoute = StoreTurismoIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => StoreTurismoRoute,
 } as any)
 const StoreVendedoraSlugRoute = StoreVendedoraSlugRouteImport.update({
   id: '/vendedora/$slug',
@@ -941,7 +953,7 @@ export interface FileRoutesByFullPath {
   '/contato': typeof StoreContatoRoute
   '/criar-negocio': typeof StoreCriarNegocioRoute
   '/diretorio': typeof StoreDiretorioRoute
-  '/empregos': typeof StoreEmpregosRoute
+  '/empregos': typeof StoreEmpregosRouteWithChildren
   '/entrar': typeof StoreEntrarRoute
   '/faq': typeof StoreFaqRoute
   '/mapa': typeof StoreMapaRoute
@@ -955,7 +967,7 @@ export interface FileRoutesByFullPath {
   '/stories': typeof StoreStoriesRoute
   '/termos': typeof StoreTermosRoute
   '/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
-  '/turismo': typeof StoreTurismoRoute
+  '/turismo': typeof StoreTurismoRouteWithChildren
   '/admin-master/faturas': typeof AdminMasterFaturasRoute
   '/admin-master/lojas': typeof AdminMasterLojasRoute
   '/assinar/$token': typeof AssinarTokenRoute
@@ -978,6 +990,7 @@ export interface FileRoutesByFullPath {
   '/conta/suporte': typeof StoreContaSuporteRoute
   '/conta/trocas': typeof StoreContaTrocasRoute
   '/destaques/$slug': typeof StoreDestaquesSlugRoute
+  '/empregos/$id': typeof StoreEmpregosIdRoute
   '/entrega/$token': typeof StoreEntregaTokenRoute
   '/evento/$id': typeof StoreEventoIdRoute
   '/gift-card/$claimToken': typeof StoreGiftCardClaimTokenRoute
@@ -987,6 +1000,7 @@ export interface FileRoutesByFullPath {
   '/paginas/$slug': typeof StorePaginasSlugRoute
   '/politicas/$slug': typeof StorePoliticasSlugRoute
   '/produto/$slug': typeof StoreProdutoSlugRoute
+  '/turismo/$id': typeof StoreTurismoIdRoute
   '/vendedora/$slug': typeof StoreVendedoraSlugRoute
   '/api/auth/callback': typeof ApiAuthCallbackRoute
   '/api/auth/confirm': typeof ApiAuthConfirmRoute
@@ -1082,7 +1096,7 @@ export interface FileRoutesByTo {
   '/contato': typeof StoreContatoRoute
   '/criar-negocio': typeof StoreCriarNegocioRoute
   '/diretorio': typeof StoreDiretorioRoute
-  '/empregos': typeof StoreEmpregosRoute
+  '/empregos': typeof StoreEmpregosRouteWithChildren
   '/entrar': typeof StoreEntrarRoute
   '/faq': typeof StoreFaqRoute
   '/mapa': typeof StoreMapaRoute
@@ -1096,7 +1110,7 @@ export interface FileRoutesByTo {
   '/stories': typeof StoreStoriesRoute
   '/termos': typeof StoreTermosRoute
   '/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
-  '/turismo': typeof StoreTurismoRoute
+  '/turismo': typeof StoreTurismoRouteWithChildren
   '/admin-master/faturas': typeof AdminMasterFaturasRoute
   '/admin-master/lojas': typeof AdminMasterLojasRoute
   '/assinar/$token': typeof AssinarTokenRoute
@@ -1120,6 +1134,7 @@ export interface FileRoutesByTo {
   '/conta/suporte': typeof StoreContaSuporteRoute
   '/conta/trocas': typeof StoreContaTrocasRoute
   '/destaques/$slug': typeof StoreDestaquesSlugRoute
+  '/empregos/$id': typeof StoreEmpregosIdRoute
   '/entrega/$token': typeof StoreEntregaTokenRoute
   '/evento/$id': typeof StoreEventoIdRoute
   '/gift-card/$claimToken': typeof StoreGiftCardClaimTokenRoute
@@ -1129,6 +1144,7 @@ export interface FileRoutesByTo {
   '/paginas/$slug': typeof StorePaginasSlugRoute
   '/politicas/$slug': typeof StorePoliticasSlugRoute
   '/produto/$slug': typeof StoreProdutoSlugRoute
+  '/turismo/$id': typeof StoreTurismoIdRoute
   '/vendedora/$slug': typeof StoreVendedoraSlugRoute
   '/api/auth/callback': typeof ApiAuthCallbackRoute
   '/api/auth/confirm': typeof ApiAuthConfirmRoute
@@ -1230,7 +1246,7 @@ export interface FileRoutesById {
   '/_store/contato': typeof StoreContatoRoute
   '/_store/criar-negocio': typeof StoreCriarNegocioRoute
   '/_store/diretorio': typeof StoreDiretorioRoute
-  '/_store/empregos': typeof StoreEmpregosRoute
+  '/_store/empregos': typeof StoreEmpregosRouteWithChildren
   '/_store/entrar': typeof StoreEntrarRoute
   '/_store/faq': typeof StoreFaqRoute
   '/_store/mapa': typeof StoreMapaRoute
@@ -1244,7 +1260,7 @@ export interface FileRoutesById {
   '/_store/stories': typeof StoreStoriesRoute
   '/_store/termos': typeof StoreTermosRoute
   '/_store/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
-  '/_store/turismo': typeof StoreTurismoRoute
+  '/_store/turismo': typeof StoreTurismoRouteWithChildren
   '/admin-master/faturas': typeof AdminMasterFaturasRoute
   '/admin-master/lojas': typeof AdminMasterLojasRoute
   '/assinar/$token': typeof AssinarTokenRoute
@@ -1268,6 +1284,7 @@ export interface FileRoutesById {
   '/_store/conta/suporte': typeof StoreContaSuporteRoute
   '/_store/conta/trocas': typeof StoreContaTrocasRoute
   '/_store/destaques/$slug': typeof StoreDestaquesSlugRoute
+  '/_store/empregos/$id': typeof StoreEmpregosIdRoute
   '/_store/entrega/$token': typeof StoreEntregaTokenRoute
   '/_store/evento/$id': typeof StoreEventoIdRoute
   '/_store/gift-card/$claimToken': typeof StoreGiftCardClaimTokenRoute
@@ -1277,6 +1294,7 @@ export interface FileRoutesById {
   '/_store/paginas/$slug': typeof StorePaginasSlugRoute
   '/_store/politicas/$slug': typeof StorePoliticasSlugRoute
   '/_store/produto/$slug': typeof StoreProdutoSlugRoute
+  '/_store/turismo/$id': typeof StoreTurismoIdRoute
   '/_store/vendedora/$slug': typeof StoreVendedoraSlugRoute
   '/api/auth/callback': typeof ApiAuthCallbackRoute
   '/api/auth/confirm': typeof ApiAuthConfirmRoute
@@ -1416,6 +1434,7 @@ export interface FileRouteTypes {
     | '/conta/suporte'
     | '/conta/trocas'
     | '/destaques/$slug'
+    | '/empregos/$id'
     | '/entrega/$token'
     | '/evento/$id'
     | '/gift-card/$claimToken'
@@ -1425,6 +1444,7 @@ export interface FileRouteTypes {
     | '/paginas/$slug'
     | '/politicas/$slug'
     | '/produto/$slug'
+    | '/turismo/$id'
     | '/vendedora/$slug'
     | '/api/auth/callback'
     | '/api/auth/confirm'
@@ -1558,6 +1578,7 @@ export interface FileRouteTypes {
     | '/conta/suporte'
     | '/conta/trocas'
     | '/destaques/$slug'
+    | '/empregos/$id'
     | '/entrega/$token'
     | '/evento/$id'
     | '/gift-card/$claimToken'
@@ -1567,6 +1588,7 @@ export interface FileRouteTypes {
     | '/paginas/$slug'
     | '/politicas/$slug'
     | '/produto/$slug'
+    | '/turismo/$id'
     | '/vendedora/$slug'
     | '/api/auth/callback'
     | '/api/auth/confirm'
@@ -1705,6 +1727,7 @@ export interface FileRouteTypes {
     | '/_store/conta/suporte'
     | '/_store/conta/trocas'
     | '/_store/destaques/$slug'
+    | '/_store/empregos/$id'
     | '/_store/entrega/$token'
     | '/_store/evento/$id'
     | '/_store/gift-card/$claimToken'
@@ -1714,6 +1737,7 @@ export interface FileRouteTypes {
     | '/_store/paginas/$slug'
     | '/_store/politicas/$slug'
     | '/_store/produto/$slug'
+    | '/_store/turismo/$id'
     | '/_store/vendedora/$slug'
     | '/api/auth/callback'
     | '/api/auth/confirm'
@@ -2201,6 +2225,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreDestaquesSlugRouteImport
       parentRoute: typeof StoreRoute
     }
+    '/_store/empregos/$id': {
+      id: '/_store/empregos/$id'
+      path: '/$id'
+      fullPath: '/empregos/$id'
+      preLoaderRoute: typeof StoreEmpregosIdRouteImport
+      parentRoute: typeof StoreEmpregosRoute
+    }
     '/_store/entrega/$token': {
       id: '/_store/entrega/$token'
       path: '/entrega/$token'
@@ -2270,6 +2301,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/produto/$slug'
       preLoaderRoute: typeof StoreProdutoSlugRouteImport
       parentRoute: typeof StoreRoute
+    }
+    '/_store/turismo/$id': {
+      id: '/_store/turismo/$id'
+      path: '/$id'
+      fullPath: '/turismo/$id'
+      preLoaderRoute: typeof StoreTurismoIdRouteImport
+      parentRoute: typeof StoreTurismoRoute
     }
     '/_store/vendedora/$slug': {
       id: '/_store/vendedora/$slug'
@@ -2890,6 +2928,30 @@ const StoreContaRouteWithChildren = StoreContaRoute._addFileChildren(
   StoreContaRouteChildren,
 )
 
+interface StoreEmpregosRouteChildren {
+  StoreEmpregosIdRoute: typeof StoreEmpregosIdRoute
+}
+
+const StoreEmpregosRouteChildren: StoreEmpregosRouteChildren = {
+  StoreEmpregosIdRoute: StoreEmpregosIdRoute,
+}
+
+const StoreEmpregosRouteWithChildren = StoreEmpregosRoute._addFileChildren(
+  StoreEmpregosRouteChildren,
+)
+
+interface StoreTurismoRouteChildren {
+  StoreTurismoIdRoute: typeof StoreTurismoIdRoute
+}
+
+const StoreTurismoRouteChildren: StoreTurismoRouteChildren = {
+  StoreTurismoIdRoute: StoreTurismoIdRoute,
+}
+
+const StoreTurismoRouteWithChildren = StoreTurismoRoute._addFileChildren(
+  StoreTurismoRouteChildren,
+)
+
 interface StoreRouteChildren {
   StoreAgendaRoute: typeof StoreAgendaRoute
   StoreAgendarRoute: typeof StoreAgendarRouteWithChildren
@@ -2901,7 +2963,7 @@ interface StoreRouteChildren {
   StoreContatoRoute: typeof StoreContatoRoute
   StoreCriarNegocioRoute: typeof StoreCriarNegocioRoute
   StoreDiretorioRoute: typeof StoreDiretorioRoute
-  StoreEmpregosRoute: typeof StoreEmpregosRoute
+  StoreEmpregosRoute: typeof StoreEmpregosRouteWithChildren
   StoreEntrarRoute: typeof StoreEntrarRoute
   StoreFaqRoute: typeof StoreFaqRoute
   StoreMapaRoute: typeof StoreMapaRoute
@@ -2915,7 +2977,7 @@ interface StoreRouteChildren {
   StoreStoriesRoute: typeof StoreStoriesRoute
   StoreTermosRoute: typeof StoreTermosRoute
   StoreTrocasEDevolucoesRoute: typeof StoreTrocasEDevolucoesRoute
-  StoreTurismoRoute: typeof StoreTurismoRoute
+  StoreTurismoRoute: typeof StoreTurismoRouteWithChildren
   StoreIndexRoute: typeof StoreIndexRoute
   StoreBioSlugRoute: typeof StoreBioSlugRoute
   StoreCategoriaSlugRoute: typeof StoreCategoriaSlugRoute
@@ -2948,7 +3010,7 @@ const StoreRouteChildren: StoreRouteChildren = {
   StoreContatoRoute: StoreContatoRoute,
   StoreCriarNegocioRoute: StoreCriarNegocioRoute,
   StoreDiretorioRoute: StoreDiretorioRoute,
-  StoreEmpregosRoute: StoreEmpregosRoute,
+  StoreEmpregosRoute: StoreEmpregosRouteWithChildren,
   StoreEntrarRoute: StoreEntrarRoute,
   StoreFaqRoute: StoreFaqRoute,
   StoreMapaRoute: StoreMapaRoute,
@@ -2962,7 +3024,7 @@ const StoreRouteChildren: StoreRouteChildren = {
   StoreStoriesRoute: StoreStoriesRoute,
   StoreTermosRoute: StoreTermosRoute,
   StoreTrocasEDevolucoesRoute: StoreTrocasEDevolucoesRoute,
-  StoreTurismoRoute: StoreTurismoRoute,
+  StoreTurismoRoute: StoreTurismoRouteWithChildren,
   StoreIndexRoute: StoreIndexRoute,
   StoreBioSlugRoute: StoreBioSlugRoute,
   StoreCategoriaSlugRoute: StoreCategoriaSlugRoute,
