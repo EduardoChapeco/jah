@@ -63,9 +63,13 @@ const SORT_LABELS: Record<string, string> = {
 const CATEGORIES_TAXONOMY = [
   { label: "Tudo", icon: Sparkles, niche: undefined },
   { label: "Ofertas", icon: Flame, niche: "ofertas" },
+  { label: "Mercado & Horti", icon: Store, niche: "mercado" },
   { label: "Gastronomia", icon: Utensils, niche: "gastronomia" },
-  { label: "Moda & Estilo", icon: Shirt, niche: "moda" },
-  { label: "Arte & Cultura", icon: Sparkle, niche: "arte" },
+  { label: "Farmácia", icon: Sparkle, niche: "farmacia" },
+  { label: "Conveniência", icon: Sparkle, niche: "conveniencia" },
+  { label: "Moda & Roupas", icon: Shirt, niche: "moda" },
+  { label: "Alugue", icon: Briefcase, niche: "aluguel" },
+  { label: "Beleza & Estética", icon: Sparkle, niche: "beleza" },
   { label: "Serviços Locais", icon: Briefcase, niche: "servicos" },
 ];
 

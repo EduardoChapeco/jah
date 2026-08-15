@@ -1,5 +1,6 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { LocationMasterPill } from "@/components/location/location-master-pill";
+import { MobilityQuickButton } from "@/components/mobility/mobility-quick-button";
 import { UtilityCluster } from "@/components/shell/utility-cluster";
 import { Flame, ShoppingBag, Calendar, Sparkles, Utensils, Scissors, Compass, Search } from "lucide-react";
 
@@ -21,10 +22,10 @@ export function TopBar({ session }: TopBarProps) {
 
   return (
     <header className="sticky top-0 z-30 w-full bg-background/95 backdrop-blur-md select-none">
-      {/* ── Camada 1: Topo Principal (Logo + Localização + Busca + Utility) ── */}
+      {/* ── Camada 1: Topo Principal (Logo + Localização + Mobilidade + Busca + Utility) ── */}
       <div className="px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3">
-        {/* 1. Logo Jah & Location Pill */}
-        <div className="flex items-center gap-3 sm:gap-5 shrink-0">
+        {/* 1. Logo Jah & Location Pill + Atalho de Mobilidade */}
+        <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
           <Link
             to="/"
             className="font-display font-black text-2xl tracking-tight text-foreground hover:opacity-90 transition-opacity shrink-0"
@@ -34,6 +35,9 @@ export function TopBar({ session }: TopBarProps) {
 
           {/* Master Location Pill with Long Press GPS / Click Modal */}
           <LocationMasterPill />
+
+          {/* Botão Animado de Mobilidade (Carro / Moto / Frete) */}
+          <MobilityQuickButton />
         </div>
 
         {/* 2. Barra de Busca Global Inteligente no Desktop */}

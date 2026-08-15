@@ -4,10 +4,9 @@ import {
   Newspaper,
   Flame,
   Search,
-  SlidersHorizontal,
-  Compass,
   ArrowRight,
   Sparkles,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,16 +20,16 @@ import { NewsCard } from "@/components/news/news-card";
 export const Route = createFileRoute("/_store/noticias/")({
   head: () => ({
     meta: [
-      { title: "Notícias & Editorial | JAH" },
+      { title: "Notícias & Jornalismo Local | JAH" },
       {
         name: "description",
-        content: "Acompanhe as últimas notícias, reportagens e destaques da sua região no JAH.",
+        content: "Acompanhe as últimas notícias, urgências, reportagens e coberturas locais no JAH.",
       },
     ],
   }),
   loader: async () => {
     const [articles, banners, hotpages] = await Promise.all([
-      listPublicArticles({ data: { limit: 30 } }).catch(() => []),
+      listPublicArticles({ data: { limit: 40 } }).catch(() => []),
       listActiveBanners({ data: { placement: "noticias" } }).catch(() => []),
       listHotpages({ data: { module: "noticias" } }).catch(() => []),
     ]);
@@ -40,16 +39,17 @@ export const Route = createFileRoute("/_store/noticias/")({
 });
 
 const CATEGORIES = [
-  { id: "todas", label: "Todas" },
+  { id: "todas", label: "Todas as Notícias" },
+  { id: "urgente", label: "Última Hora" },
   { id: "cidade", label: "Cidade & Região" },
-  { id: "politica", label: "Política" },
-  { id: "economia", label: "Economia & Negócios" },
   { id: "cultura", label: "Cultura & Lazer" },
+  { id: "economia", label: "Economia & Negócios" },
   { id: "esportes", label: "Esportes" },
+  { id: "politica", label: "Política" },
   { id: "tecnologia", label: "Inovação" },
 ];
 
-function NoticiasFeedPage() {
+export function NoticiasFeedPage() {
   const { articles: initialArticles, banners, hotpages } = Route.useLoaderData();
   const [articles, setArticles] = useState<NewsArticleDTO[]>(initialArticles || []);
   const [selectedCategory, setSelectedCategory] = useState("todas");
@@ -63,7 +63,7 @@ function NoticiasFeedPage() {
       data: {
         category: cat === "todas" ? undefined : cat,
         query: searchQuery || undefined,
-        limit: 30,
+        limit: 40,
       },
     }).catch(() => []);
     setArticles(updated);
@@ -77,7 +77,7 @@ function NoticiasFeedPage() {
       data: {
         category: selectedCategory === "todas" ? undefined : selectedCategory,
         query: searchQuery || undefined,
-        limit: 30,
+        limit: 40,
       },
     }).catch(() => []);
     setArticles(updated);
@@ -85,10 +85,15 @@ function NoticiasFeedPage() {
   };
 
   const featuredArticle = articles[0];
+  const breakingNews = articles.filter(
+    (a) => a.is_breaking || a.category === "urgente" || a.kicker?.toLowerCase().includes("urgente"),
+  );
+  const cultureArticles = articles.filter((a) => a.category === "cultura");
+  const economyArticles = articles.filter((a) => a.category === "economia");
   const gridArticles = articles.slice(1);
 
   return (
-    <div className="w-full space-y-8">
+    <div className="w-full space-y-8 pb-12">
       {/* ── 1. Banners no Portal de Notícias ── */}
       {banners && banners.length > 0 && (
         <section aria-label="Banners e Anúncios">
@@ -96,41 +101,30 @@ function NoticiasFeedPage() {
         </section>
       )}
 
-      {/* ── 1.5. Hotpages & Categorias Visuais ── */}
-      {hotpages && hotpages.length > 0 && (
-        <section aria-label="Categorias">
-          <HotpagesRail
-            hotpages={hotpages}
-            activeSlug={selectedCategory}
-            onSelect={(slug) => handleFilterCategory(slug)}
-          />
-        </section>
-      )}
-
       {/* ── 2. Barra Superior Editorial & Busca ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-primary text-primary-foreground">
+          <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider bg-foreground text-background">
             Notícias
           </span>
           <span className="text-xs text-muted-foreground font-mono">Cobertura em Tempo Real</span>
         </div>
 
         {/* Busca Rápida de Notícias */}
-        <form onSubmit={handleSearch} className="flex gap-2 w-full sm:w-72">
+        <form onSubmit={handleSearch} className="flex gap-2 w-full sm:w-80">
           <Input
-            placeholder="Buscar matérias..."
+            placeholder="Buscar matérias, autores..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="rounded-2xl h-10 bg-card text-xs"
+            className="rounded-xl h-10 bg-card text-xs border-border"
           />
-          <Button type="submit" size="icon" className="h-10 w-10 rounded-2xl shrink-0 font-bold">
+          <Button type="submit" size="icon" className="h-10 w-10 rounded-xl shrink-0 font-bold">
             <Search className="size-4" />
           </Button>
         </form>
       </div>
 
-      {/* ── Categorias & Editorias Chips ── */}
+      {/* ── 3. Categorias & Editorias Chips (Squircle Retangular Gordinho) ── */}
       <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1">
         {CATEGORIES.map((cat) => {
           const isSelected = selectedCategory === cat.id;
@@ -151,13 +145,46 @@ function NoticiasFeedPage() {
         })}
       </div>
 
-      {/* ── Manchete Principal em Destaque ── */}
+      {/* ── 3.5. Hotpages & Coleções Visuais de Notícias ── */}
+      {hotpages && hotpages.length > 0 && (
+        <section aria-label="Coleções de Notícias">
+          <HotpagesRail
+            hotpages={hotpages}
+            activeSlug={selectedCategory}
+            onSelect={(slug) => handleFilterCategory(slug)}
+            cleanMode={true}
+          />
+        </section>
+      )}
+
+      {/* ── 4. Plantão & Notícias de Última Hora (Trilho Horizontal de Destaque) ── */}
+      {breakingNews.length > 0 && !searchQuery && (
+        <section aria-label="Plantão de Notícias" className="space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="size-2 rounded-full bg-red-600 animate-ping" />
+            <Zap className="size-4 text-foreground" />
+            <h2 className="text-sm font-bold text-foreground tracking-tight uppercase font-mono">
+              Plantão & Última Hora
+            </h2>
+          </div>
+
+          <div className="flex items-center gap-4 overflow-x-auto pb-2 scrollbar-none">
+            {breakingNews.map((article) => (
+              <div key={article.id} className="min-w-[280px] sm:min-w-[340px] shrink-0">
+                <NewsCard article={article} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── 5. Manchete Principal em Destaque ── */}
       {featuredArticle && !searchQuery && (
-        <section className="relative rounded-3xl overflow-hidden border border-border/80 bg-card shadow-md group hover-elevate transition-all">
+        <section className="relative rounded-3xl overflow-hidden border border-border bg-card shadow-xs group hover-elevate transition-all">
           <Link
             to="/noticias/$slug"
             params={{ slug: featuredArticle.slug }}
-            className="grid grid-cols-1 lg:grid-cols-12 min-h-[360px]"
+            className="grid grid-cols-1 lg:grid-cols-12 min-h-[340px]"
           >
             {featuredArticle.cover_media_url && (
               <div className="lg:col-span-7 relative aspect-16/9 lg:aspect-auto overflow-hidden bg-muted">
@@ -166,14 +193,14 @@ function NoticiasFeedPage() {
                   alt={featuredArticle.title}
                   className="size-full object-cover group-hover:scale-103 transition-transform duration-700"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 lg:hidden pointer-events-none" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/60 lg:hidden pointer-events-none" />
               </div>
             )}
 
             <div className="lg:col-span-5 p-6 sm:p-8 flex flex-col justify-between space-y-4">
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
+                  <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider bg-foreground text-background">
                     {featuredArticle.kicker || "Manchete Principal"}
                   </span>
                   <span className="text-[11px] text-muted-foreground font-mono">
@@ -181,7 +208,7 @@ function NoticiasFeedPage() {
                   </span>
                 </div>
 
-                <h2 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-foreground leading-tight group-hover:text-primary transition-colors">
+                <h2 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-foreground leading-tight group-hover:opacity-80 transition-opacity">
                   {featuredArticle.title}
                 </h2>
 
@@ -192,12 +219,12 @@ function NoticiasFeedPage() {
                 )}
               </div>
 
-              <div className="pt-4 border-t border-border/60 flex items-center justify-between">
+              <div className="pt-4 border-t border-border flex items-center justify-between">
                 <span className="text-xs font-bold text-foreground">
                   {featuredArticle.store_name || "Redação JAH"}
                 </span>
-                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-primary">
-                  <span>Ler Matéria Completa</span>
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-foreground">
+                  <span>Ler Matéria</span>
                   <ArrowRight className="size-4" />
                 </span>
               </div>
@@ -206,7 +233,31 @@ function NoticiasFeedPage() {
         </section>
       )}
 
-      {/* ── Grid de Notícias ── */}
+      {/* ── 6. Carrossel Editorial de Cultura & Lazer ── */}
+      {cultureArticles.length > 0 && !searchQuery && (
+        <section aria-label="Cultura & Lazer" className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-bold text-foreground tracking-tight">
+              Cultura & Lazer na Cidade
+            </h2>
+            <button
+              onClick={() => handleFilterCategory("cultura")}
+              className="text-xs font-semibold text-muted-foreground hover:text-foreground"
+            >
+              Ver mais
+            </button>
+          </div>
+          <div className="flex items-center gap-4 overflow-x-auto pb-2 scrollbar-none">
+            {cultureArticles.map((article) => (
+              <div key={article.id} className="min-w-[280px] sm:min-w-[320px] shrink-0">
+                <NewsCard article={article} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── 7. Grade Geral de Notícias ── */}
       {articles.length === 0 ? (
         <div className="py-16 text-center rounded-3xl border border-dashed border-border bg-card/50 space-y-3">
           <Newspaper className="size-10 text-muted-foreground/40 mx-auto" />
@@ -216,11 +267,16 @@ function NoticiasFeedPage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {(searchQuery ? articles : gridArticles).map((article) => (
-            <NewsCard key={article.id} article={article} />
-          ))}
-        </div>
+        <section aria-label="Todas as Notícias" className="space-y-4">
+          <h2 className="text-sm font-bold text-foreground tracking-tight">
+            Todas as Matérias
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {(searchQuery ? articles : gridArticles).map((article) => (
+              <NewsCard key={article.id} article={article} />
+            ))}
+          </div>
+        </section>
       )}
     </div>
   );

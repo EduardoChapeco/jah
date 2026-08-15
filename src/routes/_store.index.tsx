@@ -1,20 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  Sparkles,
-  Flame,
-  ShoppingBag,
   Store,
-  Truck,
   Utensils,
   Scissors,
   Briefcase,
   Plane,
-  ArrowRight,
-  ShieldCheck,
   Tag,
-  Star,
-  Plus,
   Compass,
+  HeartPulse,
+  Coffee,
+  Shirt,
+  KeyRound,
+  Car,
+  Calendar,
+  Sparkles,
 } from "lucide-react";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
 import { HorizontalRail } from "@/components/commerce/horizontal-rail";
@@ -31,14 +30,30 @@ import { Button } from "@/components/ui/button";
 import { listPublicArticles, type NewsArticleDTO } from "@/services/news.functions";
 import { NewsCard } from "@/components/news/news-card";
 
+// ── Categorias Master Estilo iFood / Super App do Dia a Dia ──
+const IFOOD_MASTER_CATEGORIES = [
+  { to: "/mercado?niche=mercado", label: "Mercado", icon: Store, badge: "Essencial" },
+  { to: "/mercado?niche=farmacia", label: "Farmácia", icon: HeartPulse, badge: "Saúde" },
+  { to: "/mercado?niche=gastronomia", label: "Delivery", icon: Utensils, badge: "Comida" },
+  { to: "/mercado?niche=conveniencia", label: "Bebidas", icon: Coffee },
+  { to: "/mercado?niche=moda", label: "Roupas & Moda", icon: Shirt },
+  { to: "/mercado?niche=aluguel", label: "Alugue", icon: KeyRound },
+  { to: "/empregos", label: "Empregos", icon: Briefcase, badge: "Vagas" },
+  { to: "/agenda", label: "Eventos", icon: Calendar },
+  { to: "/mobilidade", label: "Mobilidade", icon: Car },
+  { to: "/classificados", label: "Classificados", icon: Tag },
+  { to: "/mercado?niche=beleza", label: "Beleza", icon: Scissors },
+  { to: "/diretorio", label: "Serviços", icon: Compass },
+];
+
 export const Route = createFileRoute("/_store/")({
   head: () => ({
     meta: [
-      { title: "JAH — Marketplace & Descoberta Comercial da Comunidade" },
+      { title: "JAH — Super App & Descoberta Comunitária" },
       {
         name: "description",
         content:
-          "Explore ofertas relâmpago, gastronomia, marcas autorais, comércios locais e serviços na sua região.",
+          "Explore mercado, farmácia, gastronomia, empregos, eventos culturais, mobilidade e classificados na sua região.",
       },
     ],
   }),
@@ -58,15 +73,15 @@ export const Route = createFileRoute("/_store/")({
 function CommercialHomePage() {
   const { banners, hotpages, marketFeed, stories, newsArticles } = Route.useLoaderData();
 
-  // Find real flash deals rail
+  // Real flash deals rail
   const flashOffersSection = marketFeed.sections?.find((s: any) => s.type === "flash_deal_rail");
   const flashProducts = flashOffersSection?.items || [];
 
-  // Find real stores rail
+  // Real stores rail
   const storeSection = marketFeed.sections?.find((s: any) => s.type === "store_rail");
   const stores = storeSection?.items || [];
 
-  // Find real catalog highlights rail
+  // Real catalog highlights rail
   const trendingSection = marketFeed.sections?.find((s: any) => s.type === "product_rail");
   const catalogProducts = trendingSection?.items || [];
 
@@ -78,7 +93,7 @@ function CommercialHomePage() {
     catalogProducts.length > 0;
 
   return (
-    <div className="w-full space-y-8">
+    <div className="w-full space-y-8 pb-10">
       {/* ── 1. Top Banners Hero Carousel (100% Real do Supabase) ── */}
       {banners.length > 0 && (
         <section aria-label="Destaques Principais">
@@ -86,21 +101,67 @@ function CommercialHomePage() {
         </section>
       )}
 
-      {/* ── 2. Stories Rápidos de Lojas & Marcas da Comunidade ── */}
+      {/* ── 2. Stories Rápidos de Lojas & Membros Locais ── */}
       {stories && stories.length > 0 && (
         <section aria-label="Stories Locais" className="py-1">
           <StoryRail stories={stories} />
         </section>
       )}
 
-      {/* ── 3. Categorias / Hotpages Panorâmicas ── */}
+      {/* ── 3. Categorias Master Diárias Estilo iFood (Squircle Inflado) ── */}
+      <section aria-label="Acesso Rápido Master" className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Sparkles className="size-4 text-foreground" />
+          <h2 className="text-sm font-bold text-foreground tracking-tight">
+            Categorias em Destaque
+          </h2>
+        </div>
+
+        <div className="flex items-center gap-2.5 overflow-x-auto pb-2 scrollbar-none">
+          {IFOOD_MASTER_CATEGORIES.map((cat) => {
+            const Icon = cat.icon;
+            return (
+              <Link
+                key={cat.label}
+                to={cat.to as any}
+                className="h-20 min-w-[88px] sm:min-w-[96px] p-2.5 rounded-2xl border border-border bg-card hover:bg-muted/60 hover:border-foreground/30 flex flex-col items-center justify-between transition-all select-none group cursor-pointer shrink-0 shadow-2xs active:scale-[0.97]"
+              >
+                <div className="relative size-8 rounded-xl bg-muted flex items-center justify-center text-foreground group-hover:scale-110 transition-transform">
+                  <Icon className="size-4" />
+                  {cat.badge && (
+                    <span className="absolute -top-1.5 -right-1 px-1 py-0.2 text-[8px] font-mono font-bold uppercase rounded-sm bg-foreground text-background">
+                      {cat.badge}
+                    </span>
+                  )}
+                </div>
+                <span className="text-[11px] font-semibold text-center text-foreground line-clamp-1">
+                  {cat.label}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ── 4. Categorias / Hotpages Panorâmicas Clean (Sem poluição de texto) ── */}
       {hotpages.length > 0 && (
-        <section className="space-y-3" aria-label="Categorias">
-          <HotpagesRail hotpages={hotpages} />
+        <section className="space-y-3" aria-label="Coleções & Hotpages">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-bold text-foreground tracking-tight">
+              Explorar Coleções Locais
+            </h2>
+            <Link
+              to="/mercado"
+              className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Ver tudo
+            </Link>
+          </div>
+          <HotpagesRail hotpages={hotpages} cleanMode={true} />
         </section>
       )}
 
-      {/* ── 4. Ofertas Relâmpago ── */}
+      {/* ── 5. Ofertas Relâmpago ── */}
       {flashProducts.length > 0 && (
         <section aria-label="Ofertas Relâmpago">
           <HorizontalRail
@@ -131,7 +192,7 @@ function CommercialHomePage() {
         </section>
       )}
 
-      {/* ── 5. Lojas & Negócios ── */}
+      {/* ── 6. Lojas & Negócios Locais ── */}
       {stores.length > 0 && (
         <section aria-label="Comércios Locais em Destaque">
           <HorizontalRail
@@ -160,7 +221,7 @@ function CommercialHomePage() {
         </section>
       )}
 
-      {/* ── 6. Produtos Destaque ── */}
+      {/* ── 7. Produtos em Destaque ── */}
       {catalogProducts.length > 0 && (
         <section aria-label="Produtos em Destaque">
           <HorizontalRail
@@ -191,15 +252,15 @@ function CommercialHomePage() {
         </section>
       )}
 
-      {/* ── 6.5. Trilho de Notícias & Jornalismo Local ── */}
+      {/* ── 8. Trilho de Notícias & Jornalismo Local ── */}
       {newsArticles && newsArticles.length > 0 && (
         <section aria-label="Notícias & Matérias da Região" className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
+              <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider bg-foreground text-background">
                 Notícias
               </span>
-              <span className="text-xs font-bold text-foreground">Acontecimentos & Matérias</span>
+              <span className="text-xs font-bold text-foreground">Últimos Acontecimentos</span>
             </div>
             <Button asChild variant="ghost" size="sm" className="font-bold text-xs">
               <Link to="/noticias">Ver todas</Link>
@@ -214,10 +275,10 @@ function CommercialHomePage() {
         </section>
       )}
 
-      {/* ── 7. Estado Inicial / Onboarding Honesto (Sem mocks) ── */}
+      {/* ── 9. Estado Inicial / Onboarding Honesto (Sem mocks) ── */}
       {!hasAnyCommercialData && newsArticles.length === 0 && (
         <section className="py-12 px-6 rounded-3xl border border-dashed border-border bg-card/60 text-center space-y-4 max-w-xl mx-auto">
-          <div className="size-16 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
+          <div className="size-16 rounded-2xl bg-muted text-foreground flex items-center justify-center mx-auto">
             <Store className="size-8" />
           </div>
           <div className="space-y-1.5">
@@ -229,13 +290,13 @@ function CommercialHomePage() {
             </p>
           </div>
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Button asChild className="w-full sm:w-auto rounded-2xl font-bold">
+            <Button asChild className="w-full sm:w-auto rounded-xl font-bold">
               <Link to="/criar-negocio">
                 <Store className="size-4 mr-2" />
                 Cadastrar Minha Loja
               </Link>
             </Button>
-            <Button asChild variant="outline" className="w-full sm:w-auto rounded-2xl font-bold">
+            <Button asChild variant="outline" className="w-full sm:w-auto rounded-xl font-bold">
               <Link to="/workspace">
                 Painel do Lojista
               </Link>

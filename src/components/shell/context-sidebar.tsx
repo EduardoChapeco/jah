@@ -4,48 +4,65 @@ import { PublishSheet } from "@/components/commerce/publish-sheet";
 import {
   Home,
   MessageSquare,
-  MapPin,
+  Newspaper,
   ShoppingBag,
+  Tag,
+  MapPin,
   Calendar,
+  Plane,
+  Briefcase,
+  Car,
+  KeyRound,
+  Shirt,
   Compass,
-  User,
-  Flame,
   Utensils,
   Store,
+  HeartPulse,
+  Coffee,
   Scissors,
-  Briefcase,
-  Plane,
-  Tag,
+  CarFront,
+  Building2,
+  Wrench,
+  Flame,
+  User,
   Bookmark,
-  Newspaper,
-  Car,
 } from "lucide-react";
 
 export interface ContextSidebarProps {
   config: ContextConfig;
 }
 
+// ── 1. Módulos Principais de Descoberta (Explorar) ──
 const PRIMARY_DESTINATIONS = [
-  { to: "/", label: "Início (Mercado)", icon: Home, exact: true },
-  { to: "/mural", label: "Mural Social", icon: MessageSquare },
-  { to: "/noticias", label: "Notícias & Mídia", icon: Newspaper },
-  { to: "/mercado", label: "Catálogo Geral", icon: ShoppingBag },
-  { to: "/mobilidade", label: "Mobilidade & Fretes", icon: Car },
-  { to: "/mapa", label: "Mapa & Moments", icon: MapPin },
-  { to: "/agenda", label: "Eventos & Agenda", icon: Calendar },
+  { to: "/", label: "Início", icon: Home, exact: true },
+  { to: "/mural", label: "Feed", icon: MessageSquare },
+  { to: "/noticias", label: "Notícias", icon: Newspaper },
+  { to: "/mercado", label: "Marketplace", icon: ShoppingBag, exact: true },
+  { to: "/classificados", label: "Classificados", icon: Tag, exact: true },
+  { to: "/mapa", label: "Moments", icon: MapPin },
+  { to: "/agenda", label: "Agenda", icon: Calendar },
+  { to: "/turismo", label: "Turismo", icon: Plane },
+  { to: "/empregos", label: "Empregos", icon: Briefcase },
+  { to: "/mobilidade", label: "Mobilidade", icon: Car },
+  { to: "/mercado?niche=aluguel", label: "Alugue", icon: KeyRound },
+  { to: "/mercado?niche=moda", label: "Roupas & Moda", icon: Shirt },
   { to: "/diretorio", label: "Guia & Diretório", icon: Compass },
 ];
 
+// ── 2. Categorias Master & Nichos de Alto Consumo ──
 const CATEGORY_NICHES = [
-  { to: "/turismo", label: "Turismo & Lazer", icon: Plane },
-  { to: "/empregos", label: "Vagas & Empregos", icon: Briefcase },
-  { to: "/classificados", label: "Classificados", icon: Tag },
-  { to: "/mercado?niche=ofertas", label: "Ofertas Relâmpago", icon: Flame },
-  { to: "/mercado?niche=gastronomia", label: "Gastronomia", icon: Utensils },
-  { to: "/mercado?niche=mercado", label: "Mercado & Horti", icon: Store },
+  { to: "/mercado?niche=gastronomia", label: "Gastronomia & Delivery", icon: Utensils },
+  { to: "/mercado?niche=mercado", label: "Mercado & Hortifruti", icon: Store },
+  { to: "/mercado?niche=farmacia", label: "Farmácia & Saúde", icon: HeartPulse },
+  { to: "/mercado?niche=conveniencia", label: "Conveniência & Bebidas", icon: Coffee },
   { to: "/mercado?niche=beleza", label: "Beleza & Estética", icon: Scissors },
+  { to: "/classificados?categoria=veiculos", label: "Veículos (Auto)", icon: CarFront },
+  { to: "/classificados?categoria=imoveis", label: "Imóveis", icon: Building2 },
+  { to: "/diretorio", label: "Prestadores de Serviços", icon: Wrench },
+  { to: "/mercado?niche=ofertas", label: "Ofertas Relâmpago", icon: Flame },
 ];
 
+// ── 3. Painel Pessoal ──
 const USER_DESTINATIONS = [
   { to: "/conta", label: "Minha Conta", icon: User, exact: true },
   { to: "/conta/salvos", label: "Itens Salvos", icon: Bookmark },
@@ -56,7 +73,7 @@ export function ContextSidebar({ config }: ContextSidebarProps) {
 
   const isCurrentActive = (item: { to: string; exact?: boolean }) => {
     if (item.exact) {
-      return location.pathname === item.to;
+      return location.pathname === item.to && !location.searchStr;
     }
     if (item.to.includes("?")) {
       const [base, query] = item.to.split("?");
@@ -66,14 +83,14 @@ export function ContextSidebar({ config }: ContextSidebarProps) {
   };
 
   return (
-    <aside className="hidden lg:flex flex-col w-[260px] shrink-0 h-screen sticky top-0 py-6 px-4 bg-background justify-between select-none overflow-y-auto scrollbar-none z-20">
-      <div className="space-y-6">
-        {/* 1. Módulos Principais */}
+    <aside className="hidden lg:flex flex-col w-[260px] shrink-0 h-screen sticky top-0 py-5 px-3.5 bg-background justify-between select-none overflow-y-auto scrollbar-none z-20 border-r border-border/40">
+      <div className="space-y-5">
+        {/* 1. Módulos Principais (Botões Grandes Squircle Inflados) */}
         <div className="space-y-1">
-          <span className="px-3 text-[10px] font-bold tracking-wider uppercase text-muted-foreground/80">
+          <span className="px-3 text-[10px] font-mono font-bold tracking-wider uppercase text-muted-foreground/80">
             Explorar
           </span>
-          <nav className="flex flex-col space-y-0.5 pt-1">
+          <nav className="flex flex-col space-y-1 pt-1">
             {PRIMARY_DESTINATIONS.map((item) => {
               const Icon = item.icon;
               const active = isCurrentActive(item);
@@ -82,10 +99,10 @@ export function ContextSidebar({ config }: ContextSidebarProps) {
                 <Link
                   key={item.to}
                   to={item.to as any}
-                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                  className={`flex items-center gap-3 h-10.5 px-3.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                     active
-                      ? "bg-foreground text-background shadow-2xs"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                      ? "bg-foreground text-background shadow-xs font-bold scale-[1.01]"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                   }`}
                 >
                   <Icon
@@ -98,9 +115,9 @@ export function ContextSidebar({ config }: ContextSidebarProps) {
           </nav>
         </div>
 
-        {/* 2. Categorias & Nichos */}
-        <div className="space-y-1 pt-3 border-t border-border">
-          <span className="px-3 text-[10px] font-bold tracking-wider uppercase text-muted-foreground/80">
+        {/* 2. Categorias Master & Nichos */}
+        <div className="space-y-1 pt-3 border-t border-border/60">
+          <span className="px-3 text-[10px] font-mono font-bold tracking-wider uppercase text-muted-foreground/80">
             Categorias
           </span>
           <nav className="flex flex-col space-y-0.5 pt-1">
@@ -112,9 +129,9 @@ export function ContextSidebar({ config }: ContextSidebarProps) {
                 <Link
                   key={item.to}
                   to={item.to as any}
-                  className={`flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+                  className={`flex items-center gap-3 h-9 px-3.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
                     active
-                      ? "bg-foreground text-background shadow-2xs"
+                      ? "bg-foreground text-background shadow-xs font-bold"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                   }`}
                 >
@@ -128,9 +145,9 @@ export function ContextSidebar({ config }: ContextSidebarProps) {
           </nav>
         </div>
 
-        {/* 3. Minha Área */}
-        <div className="space-y-1 pt-2 border-t border-border">
-          <span className="px-3 text-[10px] font-bold tracking-wider uppercase text-muted-foreground">
+        {/* 3. Área Pessoal */}
+        <div className="space-y-1 pt-2 border-t border-border/60">
+          <span className="px-3 text-[10px] font-mono font-bold tracking-wider uppercase text-muted-foreground/80">
             Pessoal
           </span>
           <nav className="flex flex-col space-y-0.5 pt-1">
@@ -142,9 +159,9 @@ export function ContextSidebar({ config }: ContextSidebarProps) {
                 <Link
                   key={item.to}
                   to={item.to as any}
-                  className={`flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+                  className={`flex items-center gap-3 h-9 px-3.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
                     active
-                      ? "bg-foreground text-background shadow-2xs"
+                      ? "bg-foreground text-background shadow-xs font-bold"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                   }`}
                 >
@@ -159,8 +176,8 @@ export function ContextSidebar({ config }: ContextSidebarProps) {
         </div>
       </div>
 
-      {/* ── Botão de Ação Primária (+ PUBLICAR) ─────────────── */}
-      <div className="pt-4 border-t border-border">
+      {/* 4. Ação Principal Flutuante / Publicar */}
+      <div className="pt-4 border-t border-border/60 mt-4">
         <PublishSheet />
       </div>
     </aside>

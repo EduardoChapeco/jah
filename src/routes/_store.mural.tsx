@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { Loader2, AlertCircle, Sparkles, Flame, Tag, MessageSquare } from "lucide-react";
+import { Loader2, AlertCircle, Sparkles, Users, Camera, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { InlinePostComposer } from "@/components/community/inline-post-composer";
 import { PostCard } from "@/components/community/post-card";
@@ -12,10 +12,10 @@ import { getUserSession } from "@/services/auth.functions";
 export const Route = createFileRoute("/_store/mural")({
   head: () => ({
     meta: [
-      { title: "Mural da Comunidade — JAH" },
+      { title: "Feed da Comunidade — JAH" },
       {
         name: "description",
-        content: "Compartilhe vivências, fotos, moments da rua e converse com a sua comunidade.",
+        content: "Explore vivências, fotos, moments da rua e novidades de quem você segue na comunidade.",
       },
     ],
   }),
@@ -36,7 +36,7 @@ export const Route = createFileRoute("/_store/mural")({
 
 function MuralPage() {
   const { firstPage, stories, session } = Route.useLoaderData();
-  const [activeFeedTab, setActiveFeedTab] = useState<"for_you" | "moments" | "classifieds">(
+  const [activeFeedTab, setActiveFeedTab] = useState<"for_you" | "following" | "moments" | "classifieds">(
     "for_you",
   );
 
@@ -78,38 +78,50 @@ function MuralPage() {
         <InlinePostComposer session={session} />
       </section>
 
-      {/* 3. Filtros do Feed Social */}
-      <div className="flex items-center gap-1.5 p-1 bg-muted/50 rounded-2xl border border-border/60">
+      {/* 3. Filtros do Feed Social (Squircle Retangular) */}
+      <div className="flex items-center gap-1.5 p-1 bg-muted/60 rounded-2xl border border-border">
         <button
           onClick={() => setActiveFeedTab("for_you")}
-          className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             activeFeedTab === "for_you"
-              ? "bg-card text-foreground shadow-2xs"
-              : "text-muted-foreground hover:text-foreground"
+              ? "bg-foreground text-background shadow-2xs font-bold"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
           }`}
         >
           <Sparkles className="size-3.5" />
-          <span>Para Você</span>
+          <span>Pra Você</span>
+        </button>
+
+        <button
+          onClick={() => setActiveFeedTab("following")}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeFeedTab === "following"
+              ? "bg-foreground text-background shadow-2xs font-bold"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+          }`}
+        >
+          <Users className="size-3.5" />
+          <span>Seguindo</span>
         </button>
 
         <button
           onClick={() => setActiveFeedTab("moments")}
-          className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             activeFeedTab === "moments"
-              ? "bg-card text-foreground shadow-2xs"
-              : "text-muted-foreground hover:text-foreground"
+              ? "bg-foreground text-background shadow-2xs font-bold"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
           }`}
         >
-          <Flame className="size-3.5" />
-          <span>Moments da Rua</span>
+          <Camera className="size-3.5" />
+          <span>Moments</span>
         </button>
 
         <button
           onClick={() => setActiveFeedTab("classifieds")}
-          className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             activeFeedTab === "classifieds"
-              ? "bg-card text-foreground shadow-2xs"
-              : "text-muted-foreground hover:text-foreground"
+              ? "bg-foreground text-background shadow-2xs font-bold"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
           }`}
         >
           <Tag className="size-3.5" />
@@ -117,62 +129,53 @@ function MuralPage() {
         </button>
       </div>
 
-      {/* 4. Stream de Posts */}
-      {isLoading && (
-        <div className="flex justify-center py-16">
-          <Loader2 className="size-8 animate-spin text-muted-foreground/40" />
-        </div>
-      )}
+      {/* 4. Lista do Feed Real do Supabase */}
+      <section aria-label="Linha do Tempo" className="space-y-4">
+        {filteredItems.map((item) => (
+          <PostCard key={item.id} post={item} session={session} />
+        ))}
 
-      {isError && (
-        <div className="flex items-center gap-3 p-4 rounded-2xl border border-destructive/30 bg-destructive/5 text-destructive text-sm">
-          <AlertCircle className="size-5 shrink-0" />
-          <div>
-            <p className="font-medium">Não foi possível carregar as publicações do mural.</p>
-            <p className="text-muted-foreground text-xs mt-0.5">
-              Verifique sua conexão e tente novamente.
+        {/* 5. Estado de Loading Contínuo / Infinito */}
+        {isFetchingNextPage && (
+          <div className="flex items-center justify-center py-6">
+            <Loader2 className="size-6 animate-spin text-muted-foreground" />
+          </div>
+        )}
+
+        {/* 6. Gatilho de Paginação Manual ou Automática */}
+        {hasNextPage && !isFetchingNextPage && (
+          <div className="flex justify-center pt-4">
+            <Button
+              variant="outline"
+              onClick={() => fetchNextPage()}
+              className="rounded-xl font-bold text-xs"
+            >
+              Carregar mais publicações
+            </Button>
+          </div>
+        )}
+
+        {/* 7. Estado Vazio Honesto */}
+        {!isLoading && filteredItems.length === 0 && (
+          <div className="py-16 text-center space-y-3 rounded-3xl border border-dashed border-border bg-card/60 p-6">
+            <p className="text-sm font-semibold text-foreground">
+              Nenhuma publicação encontrada
+            </p>
+            <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+              Seja o primeiro a compartilhar o que está acontecendo no seu bairro ou desapegar de um item!
             </p>
           </div>
-        </div>
-      )}
+        )}
 
-      {!isLoading && !isError && filteredItems.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 gap-3 text-center border border-dashed border-border rounded-3xl p-8 bg-card">
-          <div className="size-12 rounded-full bg-muted flex items-center justify-center">
-            <MessageSquare className="size-6 text-muted-foreground" />
+        {isError && (
+          <div className="py-8 text-center space-y-2">
+            <AlertCircle className="size-5 text-destructive mx-auto" />
+            <p className="text-xs text-destructive">
+              Não foi possível carregar as publicações. Tente novamente mais tarde.
+            </p>
           </div>
-          <p className="text-sm font-bold text-foreground">Nenhuma publicação nesta aba ainda.</p>
-          <p className="text-xs text-muted-foreground max-w-sm">
-            Seja o primeiro a compartilhar uma foto, momento cultural ou desapego com a comunidade.
-          </p>
-        </div>
-      )}
-
-      {!isLoading && !isError && filteredItems.length > 0 && (
-        <div className="space-y-4">
-          {filteredItems.map((item: MuralFeedItem) => (
-            <PostCard key={item.id} item={item} queryKey={["mural-feed"]} />
-          ))}
-
-          {hasNextPage && (
-            <div className="flex justify-center pt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => fetchNextPage()}
-                disabled={isFetchingNextPage}
-                className="rounded-2xl text-xs font-bold"
-              >
-                {isFetchingNextPage ? (
-                  <Loader2 className="size-3.5 animate-spin mr-2" />
-                ) : (
-                  "Carregar mais publicações"
-                )}
-              </Button>
-            </div>
-          )}
-        </div>
-      )}
+        )}
+      </section>
     </div>
   );
 }
