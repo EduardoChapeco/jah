@@ -117,3 +117,84 @@ export const getUserPreferences = createServerFn({ method: "GET" }).handler(
     };
   },
 );
+
+export const createHotpage = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      slug: z.string().min(2),
+      title: z.string().min(2),
+      badge_label: z.string().optional(),
+      description: z.string().optional(),
+      cover_image_url: z.string().url().optional(),
+      icon_name: z.string().optional(),
+      sort_order: z.number().int().default(0),
+      show_title: z.boolean().default(true),
+      show_description: z.boolean().default(true),
+      show_overlay: z.boolean().default(true),
+      show_badge: z.boolean().default(true),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const { data: created, error } = await supabase
+      .from("hotpages")
+      .insert({
+        slug: data.slug,
+        title: data.title,
+        badge_label: data.badge_label || null,
+        description: data.description || null,
+        cover_image_url: data.cover_image_url || null,
+        icon_name: data.icon_name || null,
+        sort_order: data.sort_order,
+        show_title: data.show_title,
+        show_description: data.show_description,
+        show_overlay: data.show_overlay,
+        show_badge: data.show_badge,
+        is_active: true,
+      })
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return created as HotpageDTO;
+  });
+
+export const updateHotpage = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string().uuid(),
+      slug: z.string().min(2).optional(),
+      title: z.string().min(2).optional(),
+      badge_label: z.string().nullable().optional(),
+      description: z.string().nullable().optional(),
+      cover_image_url: z.string().nullable().optional(),
+      icon_name: z.string().nullable().optional(),
+      sort_order: z.number().int().optional(),
+      show_title: z.boolean().optional(),
+      show_description: z.boolean().optional(),
+      show_overlay: z.boolean().optional(),
+      show_badge: z.boolean().optional(),
+      is_active: z.boolean().optional(),
+    }),
+  )
+  .handler(async ({ data: { id, ...patch } }) => {
+    const supabase = getServerClient();
+    const { data: updated, error } = await supabase
+      .from("hotpages")
+      .update(patch)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return updated as HotpageDTO;
+  });
+
+export const deleteHotpage = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string().uuid() }))
+  .handler(async ({ data: { id } }) => {
+    const supabase = getServerClient();
+    const { error } = await supabase.from("hotpages").delete().eq("id", id);
+    if (error) throw new Error(error.message);
+    return { success: true };
+  });

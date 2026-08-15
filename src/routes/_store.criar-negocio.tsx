@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Building2,
   ArrowLeft,
+  Newspaper,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +25,12 @@ export const Route = createFileRoute("/_store/criar-negocio")({
 });
 
 const TYPES = [
+  {
+    id: "news_portal",
+    title: "Jornal / Portal de Notícias",
+    desc: "Matérias, colunas, patrocinadores e telemetria.",
+    icon: Newspaper,
+  },
   {
     id: "event_producer",
     title: "Produtor de Eventos",

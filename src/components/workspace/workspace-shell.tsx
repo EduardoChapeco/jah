@@ -25,6 +25,10 @@ import {
   Sparkles,
   Megaphone,
   Flame,
+  Newspaper,
+  Plus,
+  Sliders,
+  BarChart3,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -64,7 +68,15 @@ const WORKSPACE_MODULES: NavGroup[] = [
       { path: "/workspace/simulacao", label: "SimLab (Enxame IA)", icon: Sparkles },
     ],
   },
-
+  {
+    id: "news",
+    label: "Notícias & Redação",
+    icon: Newspaper,
+    items: [
+      { path: "/workspace/noticias", label: "Matérias & Artigos", icon: Newspaper },
+      { path: "/workspace/noticias/novo", label: "Nova Matéria", icon: Plus },
+    ],
+  },
   {
     id: "catalog",
     label: "Catálogo",
@@ -91,10 +103,13 @@ const WORKSPACE_MODULES: NavGroup[] = [
   },
   {
     id: "marketing",
-    label: "Marketing & Descoberta",
+    label: "Marketing & Monetização",
     icon: Megaphone,
     items: [
       { path: "/workspace/marketing/banners", label: "Top Banners (Vídeo/GIF)", icon: ImageIcon },
+      { path: "/workspace/marketing/hotpages", label: "Cards de Categorias", icon: Sliders },
+      { path: "/workspace/marketing/patrocinadores", label: "Patrocinadores", icon: Megaphone },
+      { path: "/workspace/marketing/telemetria", label: "Telemetria & Audiência", icon: BarChart3 },
       { path: "/workspace/marketing/promocoes", label: "Promoções & Ofertas", icon: Flame },
       { path: "/workspace/marketing/anuncios", label: "Campanhas & Anúncios", icon: Megaphone },
       { path: "/workspace/marketing/gift-cards", label: "Gift Cards", icon: Tag },

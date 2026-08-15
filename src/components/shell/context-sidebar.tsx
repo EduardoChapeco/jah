@@ -17,6 +17,7 @@ import {
   Plane,
   Tag,
   Bookmark,
+  Newspaper,
 } from "lucide-react";
 
 export interface ContextSidebarProps {
@@ -26,6 +27,7 @@ export interface ContextSidebarProps {
 const PRIMARY_DESTINATIONS = [
   { to: "/", label: "Início (Mercado)", icon: Home, exact: true },
   { to: "/mural", label: "Mural Social", icon: MessageSquare },
+  { to: "/noticias", label: "Notícias & Mídia", icon: Newspaper },
   { to: "/mercado", label: "Catálogo Geral", icon: ShoppingBag },
   { to: "/mapa", label: "Mapa & Moments", icon: MapPin },
   { to: "/agenda", label: "Eventos & Agenda", icon: Calendar },

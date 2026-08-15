@@ -31,9 +31,11 @@ import { toast } from "sonner";
 
 export interface UtilityClusterProps {
   session?: any;
+  embedded?: boolean;
+  className?: string;
 }
 
-export function UtilityCluster({ session }: UtilityClusterProps) {
+export function UtilityCluster({ session, embedded = false, className = "" }: UtilityClusterProps) {
   const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -85,7 +87,13 @@ export function UtilityCluster({ session }: UtilityClusterProps) {
 
   return (
     <>
-      <div className="fixed top-4 right-4 md:right-8 z-40 flex items-center gap-2 bg-background/90 backdrop-blur-md px-2.5 py-1.5 rounded-full border border-border/80 shadow-xs">
+      <div
+        className={
+          embedded
+            ? `flex items-center gap-2 bg-background/90 px-2 py-1 rounded-full border border-border/80 shadow-2xs ${className}`
+            : `fixed top-4 right-4 md:right-8 z-40 flex items-center gap-2 bg-background/90 backdrop-blur-md px-2.5 py-1.5 rounded-full border border-border/80 shadow-xs ${className}`
+        }
+      >
         {/* 1. Busca Rápida */}
         <Button
           variant="ghost"

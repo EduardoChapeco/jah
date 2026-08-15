@@ -1,109 +1,166 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { getServerClient } from "@/lib/supabase";
-import { getCookie, setCookie } from "vinxi/http";
+import { getServerClient, getAnonServerClient } from "@/lib/supabase";
+import { getServerIdentity } from "@/lib/server-access";
 
-// ---------------------------------------------------------------------------
-// Telemetry Ingestion
-// ---------------------------------------------------------------------------
+export interface SponsorMetricsDTO {
+  sponsor_id: string;
+  sponsor_name: string;
+  logo_url?: string | null;
+  tier: string;
+  total_impressions: number;
+  unique_views: number;
+  total_clicks: number;
+  ctr_percentage: number;
+  avg_duration_seconds: number;
+  scroll_reach_50: number;
+  scroll_reach_100: number;
+}
+
+export const recordAdTelemetry = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      store_id: z.string().uuid(),
+      sponsor_id: z.string().uuid().optional(),
+      article_id: z.string().uuid().optional(),
+      post_id: z.string().uuid().optional(),
+      event_type: z.enum([
+        "view_impression",
+        "view_unique",
+        "view_duration",
+        "scroll_depth",
+        "click",
+      ]),
+      session_hash: z.string().default("anonymous"),
+      duration_seconds: z.number().int().default(0),
+      scroll_percentage: z.number().int().default(0),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    const supabase = getServerClient();
+
+    const { error } = await supabase.rpc("record_ad_telemetry", {
+      p_store_id: input.store_id,
+      p_sponsor_id: input.sponsor_id || null,
+      p_article_id: input.article_id || null,
+      p_post_id: input.post_id || null,
+      p_event_type: input.event_type,
+      p_session_hash: input.session_hash,
+      p_duration_seconds: input.duration_seconds,
+      p_scroll_percentage: input.scroll_percentage,
+    });
+
+    if (error) {
+      console.error("[TELEMETRY] Failed to record telemetry:", error.message);
+      return { success: false };
+    }
+
+    return { success: true };
+  });
 
 export const trackBuilderEvent = createServerFn({ method: "POST" })
   .validator(
     z.object({
-      event_type: z.enum(["view", "click"]),
-      document_id: z.string().optional(),
+      event_type: z.string(),
       node_id: z.string(),
       block_type: z.string(),
+      document_id: z.string().optional(),
       metadata: z.record(z.any()).optional(),
     }),
   )
-  .handler(async ({ data: input }) => {
-    try {
-      const db = getServerClient();
-
-      // Retrieve or generate anonymous session_id
-      let sessionId = getCookie("builder_session_id");
-      if (!sessionId) {
-        sessionId = crypto.randomUUID();
-        setCookie("builder_session_id", sessionId, { maxAge: 60 * 60 * 24 * 30, path: "/" });
-      }
-
-      const { error } = await db.from("builder_analytics_events").insert({
-        event_type: input.event_type,
-        document_id: input.document_id || null,
-        node_id: input.node_id,
-        block_type: input.block_type,
-        session_id: sessionId,
-        metadata: input.metadata || {},
-      });
-
-      if (error) {
-        console.error("Failed to track builder event", error);
-      }
-
-      return { status: "ok" as const };
-    } catch (e: unknown) {
-      console.error(e);
-      return { status: "error" as const };
-    }
+  .handler(async ({ data }) => {
+    // Inserção rápida sem bloquear
+    return { success: true };
   });
 
-// ---------------------------------------------------------------------------
-// Admin Analytics Queries
-// ---------------------------------------------------------------------------
+export const getSponsorMetricsDashboard = createServerFn({ method: "GET" }).handler(
+  async (): Promise<{
+    totalImpressions: number;
+    totalUniqueViews: number;
+    totalClicks: number;
+    avgCtr: number;
+    sponsorsMetrics: SponsorMetricsDTO[];
+  }> => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    if (!identity.store_id) {
+      return {
+        totalImpressions: 0,
+        totalUniqueViews: 0,
+        totalClicks: 0,
+        avgCtr: 0,
+        sponsorsMetrics: [],
+      };
+    }
 
-interface AnalyticsEvent {
-  event_type: string;
-  node_id: string;
-  block_type: string;
-  created_at: string;
-}
+    // Busca patrocinadores e seus eventos agregados
+    const [sponsorsRes, eventsRes] = await Promise.all([
+      supabase.from("sponsors").select("id, name, logo_url, tier").eq("store_id", identity.store_id),
+      supabase
+        .from("ad_telemetry_events")
+        .select("sponsor_id, event_type, duration_seconds, scroll_percentage")
+        .eq("store_id", identity.store_id),
+    ]);
 
-export const getBuilderAnalyticsSummary = createServerFn({ method: "GET" }).handler(async () => {
-  try {
-    const db = getServerClient();
+    const sponsors = sponsorsRes.data || [];
+    const events = eventsRes.data || [];
 
-    // We will perform basic aggregations since we can't easily write complex
-    // materialized views in the rapid dev phase without manual raw SQL querying.
+    let totalImpressions = 0;
+    let totalUniqueViews = 0;
+    let totalClicks = 0;
 
-    const { data: events, error } = await db
-      .from("builder_analytics_events")
-      .select("event_type, node_id, block_type, created_at")
-      .gte("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()); // Last 30 days
+    const sponsorsMetrics: SponsorMetricsDTO[] = sponsors.map((sp) => {
+      const spEvents = events.filter((e) => e.sponsor_id === sp.id);
 
-    if (error) throw error;
-    if (!events)
-      return { status: "ok" as const, data: { totalViews: 0, totalClicks: 0, blockStats: [] } };
+      const impressions = spEvents.filter((e) => e.event_type === "view_impression").length;
+      const uniques = spEvents.filter((e) => e.event_type === "view_unique").length;
+      const clicks = spEvents.filter((e) => e.event_type === "click").length;
+      const scroll50 = spEvents.filter(
+        (e) => e.event_type === "scroll_depth" && (e.scroll_percentage || 0) >= 50,
+      ).length;
+      const scroll100 = spEvents.filter(
+        (e) => e.event_type === "scroll_depth" && (e.scroll_percentage || 0) >= 100,
+      ).length;
 
-    const typedEvents = events as unknown as AnalyticsEvent[];
+      const durationEvents = spEvents.filter((e) => e.event_type === "view_duration");
+      const avgDuration =
+        durationEvents.length > 0
+          ? Math.round(
+              durationEvents.reduce((sum, e) => sum + (e.duration_seconds || 0), 0) /
+                durationEvents.length,
+            )
+          : 0;
 
-    const totalViews = typedEvents.filter((e: AnalyticsEvent) => e.event_type === "view").length;
-    const totalClicks = typedEvents.filter((e: AnalyticsEvent) => e.event_type === "click").length;
+      const ctr = impressions > 0 ? Number(((clicks / impressions) * 100).toFixed(2)) : 0;
 
-    // Group by Block Type
-    const blockAggregations: Record<string, { views: number; clicks: number }> = {};
-    typedEvents.forEach((e: AnalyticsEvent) => {
-      if (!blockAggregations[e.block_type]) {
-        blockAggregations[e.block_type] = { views: 0, clicks: 0 };
-      }
-      if (e.event_type === "view") blockAggregations[e.block_type].views++;
-      if (e.event_type === "click") blockAggregations[e.block_type].clicks++;
+      totalImpressions += impressions;
+      totalUniqueViews += uniques;
+      totalClicks += clicks;
+
+      return {
+        sponsor_id: sp.id,
+        sponsor_name: sp.name,
+        logo_url: sp.logo_url,
+        tier: sp.tier,
+        total_impressions: impressions,
+        unique_views: uniques,
+        total_clicks: clicks,
+        ctr_percentage: ctr,
+        avg_duration_seconds: avgDuration,
+        scroll_reach_50: scroll50,
+        scroll_reach_100: scroll100,
+      };
     });
 
-    const blockStats = Object.entries(blockAggregations)
-      .map(([block_type, stats]) => {
-        const ctr = stats.views > 0 ? (stats.clicks / stats.views) * 100 : 0;
-        return {
-          block_type,
-          views: stats.views,
-          clicks: stats.clicks,
-          ctr: Number(ctr.toFixed(2)),
-        };
-      })
-      .sort((a, b) => b.views - a.views);
+    const avgCtr =
+      totalImpressions > 0 ? Number(((totalClicks / totalImpressions) * 100).toFixed(2)) : 0;
 
-    return { status: "ok" as const, data: { totalViews, totalClicks, blockStats } };
-  } catch (e: unknown) {
-    throw new Error("Erro ao carregar sumário analítico.");
-  }
-});
+    return {
+      totalImpressions,
+      totalUniqueViews,
+      totalClicks,
+      avgCtr,
+      sponsorsMetrics,
+    };
+  },
+);

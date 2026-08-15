@@ -27,6 +27,8 @@ import { getMarketplaceFeed } from "@/services/marketplace.functions";
 import { getFeedStories } from "@/services/social.functions";
 import { Button } from "@/components/ui/button";
 
+import { listPublicArticles, type NewsArticleDTO } from "@/services/news.functions";
+
 export const Route = createFileRoute("/_store/")({
   head: () => ({
     meta: [
@@ -39,19 +41,20 @@ export const Route = createFileRoute("/_store/")({
     ],
   }),
   loader: async () => {
-    const [banners, hotpages, marketFeed, stories] = await Promise.all([
+    const [banners, hotpages, marketFeed, stories, newsArticles] = await Promise.all([
       listActiveBanners({ data: { placement: "home" } }).catch(() => []),
       listHotpages().catch(() => []),
       getMarketplaceFeed().catch(() => ({ sections: [], allProducts: [] })),
       getFeedStories().catch(() => []),
+      listPublicArticles({ data: { limit: 6 } }).catch(() => []),
     ]);
-    return { banners, hotpages, marketFeed, stories };
+    return { banners, hotpages, marketFeed, stories, newsArticles };
   },
   component: CommercialHomePage,
 });
 
 function CommercialHomePage() {
-  const { banners, hotpages, marketFeed, stories } = Route.useLoaderData();
+  const { banners, hotpages, marketFeed, stories, newsArticles } = Route.useLoaderData();
 
   // Find real flash deals rail
   const flashOffersSection = marketFeed.sections?.find((s: any) => s.type === "flash_deal_rail");
@@ -257,8 +260,33 @@ function CommercialHomePage() {
         </section>
       )}
 
+      {/* ── 6.5. Trilho de Notícias & Jornalismo Local ── */}
+      {newsArticles && newsArticles.length > 0 && (
+        <section aria-label="Notícias & Matérias da Região" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
+                  📰 Notícias
+                </span>
+                <span className="text-xs font-bold text-foreground">Acontecimentos & Matérias</span>
+              </div>
+            </div>
+            <Button asChild variant="ghost" size="sm" className="font-bold text-xs">
+              <Link to="/noticias">Ver todas ➔</Link>
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {newsArticles.slice(0, 3).map((article: NewsArticleDTO) => (
+              <NewsCard key={article.id} article={article} />
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* ── 7. Estado Inicial / Onboarding Honesto (Sem mocks) ── */}
-      {!hasAnyCommercialData && (
+      {!hasAnyCommercialData && newsArticles.length === 0 && (
         <section className="py-12 px-6 rounded-3xl border border-dashed border-border bg-card/60 text-center space-y-4 max-w-xl mx-auto">
           <div className="size-16 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
             <Store className="size-8" />

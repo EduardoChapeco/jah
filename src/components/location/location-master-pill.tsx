@@ -1,5 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
-import { MapPin, Navigation, Search, X, Check, Loader2, Compass } from "lucide-react";
+import {
+  MapPin,
+  Navigation,
+  Search,
+  X,
+  Check,
+  Loader2,
+  Compass,
+  Maximize2,
+  Minimize2,
+  Crosshair,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -10,7 +21,6 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { useLocation } from "@tanstack/react-router";
 
 export interface LocationState {
   city: string;
@@ -18,7 +28,7 @@ export interface LocationState {
   lat?: number;
   lng?: number;
   address?: string;
-  source: "gps" | "cep" | "manual" | "default";
+  source: "gps" | "cep" | "manual" | "map_pin" | "default";
 }
 
 const DEFAULT_LOCATION: LocationState = {
@@ -156,8 +166,8 @@ export function LocationMasterPill({ className = "" }: { className?: string }) {
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
-        title="Clique para escolher cidade/CEP ou segure para ativar GPS"
-        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all border select-none cursor-pointer ${
+        title="Clique para escolher cidade/CEP/mapa ou segure para ativar GPS"
+        className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border select-none cursor-pointer ${
           isHolding
             ? "scale-95 bg-primary/20 border-primary text-primary"
             : "bg-muted/70 hover:bg-muted text-foreground border-border/80 hover:border-primary/40 shadow-2xs"
@@ -201,9 +211,16 @@ export function LocationPickerModal({
   onSelectLocation: (loc: LocationState) => void;
   onTriggerGPS: () => void;
 }) {
+  const [activeTab, setActiveTab] = useState<"quick" | "map">("quick");
   const [cep, setCep] = useState("");
   const [isSearchingCep, setIsSearchingCep] = useState(false);
-  const [manualCity, setManualCity] = useState("");
+
+  // Map pin states
+  const [pinLat, setPinLat] = useState(currentLocation.lat || -27.1004);
+  const [pinLng, setPinLng] = useState(currentLocation.lng || -52.6152);
+  const [resolvedAddress, setResolvedAddress] = useState(currentLocation.address || "Chapecó - SC");
+  const [isResolvingPin, setIsResolvingPin] = useState(false);
+  const [isMapFullscreen, setIsMapFullscreen] = useState(false);
 
   const POPULAR_CITIES = [
     { city: "Chapecó", state: "SC", lat: -27.1004, lng: -52.6152 },
@@ -243,96 +260,271 @@ export function LocationPickerModal({
     }
   };
 
+  const resolvePinCoords = async (lat: number, lng: number) => {
+    setIsResolvingPin(true);
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+        { headers: { "User-Agent": "JahCommunityCommerce/1.0" } },
+      );
+      const data = await res.json();
+      const city =
+        data.address?.city ||
+        data.address?.town ||
+        data.address?.municipality ||
+        data.address?.village ||
+        "Local Selecionado";
+      const state = data.address?.state_code || data.address?.state || "";
+      const addr = data.display_name || `${city}, ${state}`;
+
+      setResolvedAddress(addr);
+      return { city, state, address: addr };
+    } catch {
+      setResolvedAddress(`${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+      return { city: "Ponto no Mapa", state: "", address: `${lat.toFixed(4)}, ${lng.toFixed(4)}` };
+    } finally {
+      setIsResolvingPin(false);
+    }
+  };
+
+  const handleConfirmMapPin = async () => {
+    const geo = await resolvePinCoords(pinLat, pinLng);
+    onSelectLocation({
+      city: geo.city,
+      state: geo.state,
+      lat: pinLat,
+      lng: pinLng,
+      address: geo.address,
+      source: "map_pin",
+    });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl p-0 overflow-hidden rounded-3xl border border-border bg-background shadow-2xl">
-        <DialogHeader className="p-6 pb-4 border-b border-border/80 bg-muted/20">
-          <DialogTitle className="flex items-center gap-2 text-lg font-black tracking-tight">
-            <MapPin className="size-5 text-primary" />
-            <span>Onde você quer descobrir e comprar?</span>
-          </DialogTitle>
-          <DialogDescription className="text-xs text-muted-foreground">
+      <DialogContent
+        className={`p-0 overflow-hidden border border-border bg-background shadow-2xl transition-all duration-300 ${
+          isMapFullscreen || activeTab === "map"
+            ? "max-w-4xl w-[95vw] h-[85vh] rounded-3xl flex flex-col"
+            : "max-w-xl rounded-3xl"
+        }`}
+      >
+        <DialogHeader className="p-5 sm:p-6 pb-3 border-b border-border/80 bg-muted/20 shrink-0">
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-black tracking-tight">
+              <MapPin className="size-5 text-primary" />
+              <span>Selecione sua Localização</span>
+            </DialogTitle>
+
+            {/* Toggle Tabs */}
+            <div className="flex items-center gap-1 bg-muted/80 p-1 rounded-xl border border-border/60">
+              <button
+                type="button"
+                onClick={() => setActiveTab("quick")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                  activeTab === "quick"
+                    ? "bg-background text-foreground shadow-2xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Cidades / CEP
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("map")}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                  activeTab === "map"
+                    ? "bg-primary text-primary-foreground shadow-2xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Compass className="size-3.5" />
+                <span>Pin no Mapa</span>
+              </button>
+            </div>
+          </div>
+          <DialogDescription className="text-xs text-muted-foreground mt-1">
             Filtre produtos, comércios, eventos e classificados de acordo com a sua região.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="p-6 space-y-6">
-          {/* Quick GPS button */}
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              onTriggerGPS();
-              onOpenChange(false);
-            }}
-            className="w-full h-12 rounded-2xl border-dashed border-primary/40 bg-primary/5 hover:bg-primary/10 text-primary font-bold text-xs gap-2"
-          >
-            <Navigation className="size-4" />
-            <span>Usar minha localização atual (GPS)</span>
-          </Button>
+        {/* TAB 1: QUICK CITIES & CEP */}
+        {activeTab === "quick" && (
+          <div className="p-6 space-y-6 overflow-y-auto">
+            {/* Quick GPS button */}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                onTriggerGPS();
+                onOpenChange(false);
+              }}
+              className="w-full h-12 rounded-2xl border-dashed border-primary/40 bg-primary/5 hover:bg-primary/10 text-primary font-bold text-xs gap-2"
+            >
+              <Navigation className="size-4" />
+              <span>Usar minha localização atual (GPS)</span>
+            </Button>
 
-          {/* Search by CEP */}
-          <form onSubmit={handleSearchCep} className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Buscar por CEP
-            </label>
-            <div className="flex gap-2">
-              <Input
-                placeholder="Ex: 89801-000"
-                value={cep}
-                onChange={(e) => setCep(e.target.value)}
-                maxLength={9}
-                className="h-11 rounded-xl bg-card text-sm"
-              />
-              <Button
-                type="submit"
-                disabled={isSearchingCep}
-                className="h-11 px-5 rounded-xl font-bold bg-primary text-primary-foreground text-xs"
-              >
-                {isSearchingCep ? <Loader2 className="size-4 animate-spin" /> : "Buscar"}
-              </Button>
-            </div>
-          </form>
+            {/* Search by CEP */}
+            <form onSubmit={handleSearchCep} className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Buscar por CEP
+              </label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Ex: 89801-000"
+                  value={cep}
+                  onChange={(e) => setCep(e.target.value)}
+                  maxLength={9}
+                  className="h-11 rounded-xl bg-card text-sm"
+                />
+                <Button
+                  type="submit"
+                  disabled={isSearchingCep}
+                  className="h-11 px-5 rounded-xl font-bold bg-primary text-primary-foreground text-xs"
+                >
+                  {isSearchingCep ? <Loader2 className="size-4 animate-spin" /> : "Buscar"}
+                </Button>
+              </div>
+            </form>
 
-          {/* Popular Cities Quick Select */}
-          <div className="space-y-2.5">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Cidades em Destaque
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {POPULAR_CITIES.map((c) => {
-                const isSelected = currentLocation.city.toLowerCase() === c.city.toLowerCase();
+            {/* Popular Cities Quick Select */}
+            <div className="space-y-2.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Cidades em Destaque
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {POPULAR_CITIES.map((c) => {
+                  const isSelected = currentLocation.city.toLowerCase() === c.city.toLowerCase();
 
-                return (
-                  <button
-                    key={c.city}
-                    type="button"
-                    onClick={() =>
-                      onSelectLocation({
-                        city: c.city,
-                        state: c.state,
-                        lat: c.lat,
-                        lng: c.lng,
-                        address: `${c.city} - ${c.state}`,
-                        source: "manual",
-                      })
-                    }
-                    className={`flex items-center justify-between p-3 rounded-xl border text-xs font-semibold transition-all ${
-                      isSelected
-                        ? "bg-primary text-primary-foreground border-primary font-bold shadow-xs"
-                        : "bg-card hover:bg-muted text-foreground border-border/80"
-                    }`}
-                  >
-                    <span>
-                      {c.city} - {c.state}
-                    </span>
-                    {isSelected && <Check className="size-3.5 shrink-0" />}
-                  </button>
-                );
-              })}
+                  return (
+                    <button
+                      key={c.city}
+                      type="button"
+                      onClick={() =>
+                        onSelectLocation({
+                          city: c.city,
+                          state: c.state,
+                          lat: c.lat,
+                          lng: c.lng,
+                          address: `${c.city} - ${c.state}`,
+                          source: "manual",
+                        })
+                      }
+                      className={`flex items-center justify-between p-3 rounded-xl border text-xs font-semibold transition-all ${
+                        isSelected
+                          ? "bg-primary text-primary-foreground border-primary font-bold shadow-xs"
+                          : "bg-card hover:bg-muted text-foreground border-border/80"
+                      }`}
+                    >
+                      <span>
+                        {c.city} - {c.state}
+                      </span>
+                      {isSelected && <Check className="size-3.5 shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {/* TAB 2: INTERACTIVE FULLSCREEN MAP PIN PICKER */}
+        {activeTab === "map" && (
+          <div className="flex-1 flex flex-col min-h-0 relative">
+            {/* Interactive Map Area */}
+            <div
+              className="flex-1 relative bg-zinc-950 w-full overflow-hidden cursor-crosshair"
+              onClick={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width - 0.5;
+                const y = (e.clientY - rect.top) / rect.height - 0.5;
+                // Offset latitude and longitude proportionally around Chapecó center
+                const newLat = pinLat - y * 0.05;
+                const newLng = pinLng + x * 0.05;
+                setPinLat(newLat);
+                setPinLng(newLng);
+                resolvePinCoords(newLat, newLng);
+              }}
+            >
+              {/* Map Tile Background Image */}
+              <div
+                className="absolute inset-0 size-full opacity-60 bg-cover bg-center pointer-events-none"
+                style={{
+                  backgroundImage: `url('https://images.unsplash.com/photo-1524661135-423995f22d0b?w=1400&auto=format&fit=crop&q=80')`,
+                }}
+              />
+              <div className="absolute inset-0 bg-radial from-transparent via-background/40 to-background/90 pointer-events-none" />
+
+              {/* Center Map Pin with Pulse */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full flex flex-col items-center pointer-events-none z-20">
+                <div className="px-3 py-1 rounded-full bg-foreground text-background text-[11px] font-black shadow-lg mb-1 whitespace-nowrap">
+                  {isResolvingPin ? "Localizando..." : "📍 Solte o Pin Aqui"}
+                </div>
+                <div className="relative flex items-center justify-center">
+                  <MapPin className="size-10 text-primary fill-primary drop-shadow-lg animate-bounce" />
+                </div>
+                <div className="size-3 bg-black/40 rounded-full blur-[2px] mt-0.5" />
+              </div>
+
+              {/* Coordinates Indicator */}
+              <div className="absolute top-3 left-3 z-30 bg-background/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-border text-[11px] font-mono text-muted-foreground shadow-xs">
+                Lat: {pinLat.toFixed(5)} · Lng: {pinLng.toFixed(5)}
+              </div>
+
+              {/* Fullscreen Map Toggle & Recenter GPS */}
+              <div className="absolute top-3 right-3 z-30 flex items-center gap-1.5">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onTriggerGPS();
+                  }}
+                  className="rounded-xl font-bold text-xs bg-background/90 backdrop-blur-md gap-1.5 shadow-xs"
+                >
+                  <Crosshair className="size-3.5 text-primary" />
+                  <span>GPS Atual</span>
+                </Button>
+              </div>
+            </div>
+
+            {/* Bottom Bar: Resolved Address & Confirm Button */}
+            <div className="p-4 sm:p-5 border-t border-border bg-card flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+              <div className="w-full sm:flex-1 space-y-0.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Endereço Selecionado
+                </span>
+                <p className="text-xs sm:text-sm font-bold text-foreground line-clamp-1">
+                  {resolvedAddress}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setActiveTab("quick")}
+                  className="w-1/3 sm:w-auto rounded-xl font-semibold text-xs"
+                >
+                  Voltar
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleConfirmMapPin}
+                  disabled={isResolvingPin}
+                  className="flex-1 sm:flex-none rounded-xl font-bold text-xs bg-primary text-primary-foreground px-6 shadow-md"
+                >
+                  {isResolvingPin ? (
+                    <Loader2 className="size-3.5 animate-spin mr-1.5" />
+                  ) : (
+                    <Check className="size-3.5 mr-1.5" />
+                  )}
+                  <span>Definir Este Ponto</span>
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

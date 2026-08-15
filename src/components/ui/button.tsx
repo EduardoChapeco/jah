@@ -6,29 +6,33 @@ import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
   // Base: squircle-action por padrão — geometria pill orgânica em todo o sistema
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap squircle-action text-sm font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl text-sm font-semibold transition-all duration-200 cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.98]",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98]",
+        default:
+          "bg-primary text-primary-foreground hover:opacity-90 shadow-2xs font-bold border border-primary/20",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90 active:scale-[0.98]",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-2xs font-bold",
         outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground active:scale-[0.98]",
+          "border border-border/90 bg-background hover:bg-muted text-foreground hover:border-border font-semibold shadow-2xs",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 active:scale-[0.98]",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 font-semibold border border-border/40 shadow-2xs",
+        ghost: "hover:bg-muted hover:text-foreground text-muted-foreground",
+        link: "text-primary underline-offset-4 hover:underline font-semibold",
         pillow:
-          "squircle-hover bg-primary text-primary-foreground font-bold shadow-sm hover:bg-primary/95",
+          "rounded-full bg-primary text-primary-foreground font-bold shadow-xs hover:opacity-90 hover:scale-[1.02] active:scale-[0.97]",
         pillowOutline:
-          "squircle-hover border border-border bg-card hover:bg-accent hover:text-foreground text-foreground font-bold",
+          "rounded-full border border-border/80 bg-card hover:bg-muted text-foreground font-bold shadow-2xs hover:scale-[1.02] active:scale-[0.97]",
+        heroAction:
+          "rounded-2xl bg-linear-to-r from-primary via-primary/90 to-primary text-primary-foreground font-black shadow-md hover:scale-[1.02] hover:shadow-lg active:scale-[0.97] border border-white/15",
       },
       size: {
-        default: "h-12 px-6 py-2" /* 48px — confortável, moderno */,
-        sm: "h-9 px-4 text-xs" /* 36px — conteúdo compacto */,
-        lg: "h-14 px-8 text-base font-bold" /* 56px — CTAs principais */,
-        icon: "h-12 w-12" /* 48px quadrado */,
+        default: "h-11 px-5 py-2", /* 44px — padrão ergonômico Apple */
+        sm: "h-8 px-3.5 text-xs rounded-xl", /* 32px — compacto */
+        lg: "h-13 px-7 text-base font-bold rounded-2xl", /* 52px — destaque */
+        icon: "size-10 rounded-xl",
+        iconSm: "size-8 rounded-lg",
       },
     },
     defaultVariants: {
