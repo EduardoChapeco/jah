@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { Loader2, AlertCircle, Sparkles, Users, Camera, Tag } from "lucide-react";
+import { Sparkle, Users, Camera, Tag, CircleNotch } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { InlinePostComposer } from "@/components/community/inline-post-composer";
 import { PostCard } from "@/components/community/post-card";
@@ -88,7 +88,7 @@ function MuralPage() {
               : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
           }`}
         >
-          <Sparkles className="size-3.5" />
+          <Sparkle size={14} weight="bold" />
           <span>Pra Você</span>
         </button>
 
@@ -100,7 +100,7 @@ function MuralPage() {
               : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
           }`}
         >
-          <Users className="size-3.5" />
+          <Users size={14} weight="bold" />
           <span>Seguindo</span>
         </button>
 
@@ -112,7 +112,7 @@ function MuralPage() {
               : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
           }`}
         >
-          <Camera className="size-3.5" />
+          <Camera size={14} weight="bold" />
           <span>Moments</span>
         </button>
 
@@ -124,7 +124,7 @@ function MuralPage() {
               : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
           }`}
         >
-          <Tag className="size-3.5" />
+          <Tag size={14} weight="bold" />
           <span>Desapegos</span>
         </button>
       </div>
@@ -138,7 +138,7 @@ function MuralPage() {
         {/* 5. Estado de Loading Contínuo / Infinito */}
         {isFetchingNextPage && (
           <div className="flex items-center justify-center py-6">
-            <Loader2 className="size-6 animate-spin text-muted-foreground" />
+            <CircleNotch size={24} className="animate-spin text-muted-foreground" />
           </div>
         )}
 

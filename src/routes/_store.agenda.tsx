@@ -2,17 +2,15 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Calendar as CalendarIcon,
-  Loader2,
-  AlertCircle,
+  CalendarDots,
   MapPin,
-  Search,
-  Sparkles,
-  CalendarDays,
+  MagnifyingGlass,
+  Sparkle,
   X,
-  ChevronRight,
+  CaretRight,
   Clock,
-} from "lucide-react";
+  Ticket,
+} from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -229,7 +227,7 @@ function AgendaPage() {
       <section aria-label="Filtrar por Dias" className="space-y-3 pt-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <CalendarDays className="size-4 text-foreground" />
+            <CalendarDots size={16} weight="bold" className="text-foreground" />
             <h2 className="text-sm font-bold text-foreground tracking-tight">
               Filtrar por Data & Programação
             </h2>
@@ -246,7 +244,7 @@ function AgendaPage() {
                   onClick={() => setSelectedDateFilter(preset.id)}
                   className={`h-9 px-4 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                     isSelected
-                      ? "bg-foreground text-background shadow-xs"
+                      ? "bg-foreground text-background shadow-xs font-bold"
                       : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
@@ -272,7 +270,7 @@ function AgendaPage() {
             <span className="text-[11px] font-mono uppercase tracking-wider opacity-80">
               Geral
             </span>
-            <CalendarIcon className="size-5 my-0.5" />
+            <CalendarDots size={20} weight="bold" className="my-0.5" />
             <span className="text-xs font-semibold">Todos</span>
           </button>
 
@@ -345,7 +343,7 @@ function AgendaPage() {
 
           {/* Busca de Eventos */}
           <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Buscar por show, local, artista..."
               value={searchQuery}
@@ -358,7 +356,7 @@ function AgendaPage() {
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 aria-label="Limpar busca"
               >
-                <X className="size-3.5" />
+                <X size={14} />
               </button>
             )}
           </div>

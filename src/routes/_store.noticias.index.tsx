@@ -1,13 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
-  Newspaper,
+  NewspaperClipping,
   Flame,
-  Search,
+  MagnifyingGlass,
   ArrowRight,
-  Sparkles,
-  Zap,
-} from "lucide-react";
+  Sparkle,
+  Lightning,
+} from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { listPublicArticles, type NewsArticleDTO } from "@/services/news.functions";
@@ -119,7 +119,7 @@ export function NoticiasFeedPage() {
             className="rounded-xl h-10 bg-card text-xs border-border"
           />
           <Button type="submit" size="icon" className="h-10 w-10 rounded-xl shrink-0 font-bold">
-            <Search className="size-4" />
+            <MagnifyingGlass size={16} weight="bold" />
           </Button>
         </form>
       </div>
@@ -162,7 +162,7 @@ export function NoticiasFeedPage() {
         <section aria-label="Plantão de Notícias" className="space-y-3">
           <div className="flex items-center gap-2">
             <div className="size-2 rounded-full bg-red-600 animate-ping" />
-            <Zap className="size-4 text-foreground" />
+            <Lightning size={16} weight="fill" className="text-foreground" />
             <h2 className="text-sm font-bold text-foreground tracking-tight uppercase font-mono">
               Plantão & Última Hora
             </h2>

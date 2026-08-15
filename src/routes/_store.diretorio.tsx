@@ -5,18 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
-  BookOpen,
-  Loader2,
-  AlertCircle,
+  Compass,
   Phone,
   CheckCircle,
-  Store,
+  Storefront,
   MapPin,
   Clock,
-  Search,
-  ExternalLink,
-  MessageCircle,
-} from "lucide-react";
+  MagnifyingGlass,
+  ArrowSquareOut,
+  WhatsappLogo,
+} from "@phosphor-icons/react";
 import { getPublicDirectory } from "@/services/directory.functions";
 import { listHotpages } from "@/services/hotpage.functions";
 import { listActiveBanners } from "@/services/banner.functions";
@@ -158,7 +156,7 @@ function DirectoryPage() {
 
       {!isLoading && !isError && filteredListings.length === 0 && (
         <div className="py-24 text-center space-y-3 bg-muted/10 rounded-3xl border border-border p-8">
-          <BookOpen className="size-10 text-muted-foreground/40 mx-auto" />
+          <Compass size={40} className="text-muted-foreground/40 mx-auto" />
           <h2 className="text-base font-bold text-foreground">
             Nenhum negócio encontrado nesta categoria
           </h2>
@@ -177,7 +175,7 @@ function DirectoryPage() {
             return (
               <div
                 key={listing.id}
-                className="flex flex-col justify-between rounded-3xl border border-border/80 bg-card p-6 shadow-xs hover-elevate transition-all space-y-5"
+                className="flex flex-col justify-between rounded-3xl border border-border bg-card p-6 shadow-2xs hover-elevate transition-all space-y-5"
               >
                 <div className="space-y-4">
                   {/* Top Header */}
@@ -190,7 +188,7 @@ function DirectoryPage() {
                           className="size-12 rounded-2xl object-cover border border-border shadow-xs shrink-0"
                         />
                       ) : (
-                        <div className="size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold text-base border border-primary/20 shrink-0">
+                        <div className="size-12 rounded-2xl bg-muted text-foreground flex items-center justify-center font-bold text-base border border-border shrink-0">
                           {storeData?.name?.charAt(0) || "J"}
                         </div>
                       )}
@@ -206,7 +204,7 @@ function DirectoryPage() {
 
                     {listing.is_verified && (
                       <span className="flex items-center gap-1 text-[10px] font-mono text-emerald-600 font-bold bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full shrink-0">
-                        <CheckCircle className="size-3" /> Verificado
+                        <CheckCircle size={14} weight="fill" /> Verificado
                       </span>
                     )}
                   </div>
@@ -222,13 +220,13 @@ function DirectoryPage() {
                   <div className="space-y-1.5 pt-2 border-t border-border/50 text-xs text-muted-foreground font-medium">
                     {listing.address && (
                       <p className="flex items-center gap-2">
-                        <MapPin className="size-3.5 text-primary shrink-0" />
+                        <MapPin size={14} weight="bold" className="text-foreground shrink-0" />
                         <span className="truncate">{listing.address}</span>
                       </p>
                     )}
                     {listing.working_hours && (
                       <p className="flex items-center gap-2">
-                        <Clock className="size-3.5 text-muted-foreground/70 shrink-0" />
+                        <Clock size={14} weight="bold" className="text-muted-foreground/70 shrink-0" />
                         <span className="truncate">{listing.working_hours}</span>
                       </p>
                     )}
@@ -249,7 +247,7 @@ function DirectoryPage() {
                         target="_blank"
                         rel="noreferrer"
                       >
-                        <MessageCircle className="size-3.5 text-emerald-600" />
+                        <WhatsappLogo size={16} weight="fill" className="text-emerald-600" />
                         <span>WhatsApp</span>
                       </a>
                     </Button>
@@ -258,10 +256,10 @@ function DirectoryPage() {
                   <Button
                     asChild
                     size="sm"
-                    className="flex-1 rounded-xl text-xs font-bold gap-1.5 h-10 bg-primary text-primary-foreground"
+                    className="flex-1 rounded-xl text-xs font-bold gap-1.5 h-10 bg-foreground text-background"
                   >
                     <Link to="/mercado">
-                      <Store className="size-3.5" />
+                      <Storefront size={16} weight="bold" />
                       <span>Ver Vitrine</span>
                     </Link>
                   </Button>

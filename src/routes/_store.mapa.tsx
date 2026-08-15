@@ -3,19 +3,19 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   MapPin,
-  Search,
-  Calendar,
-  Store,
-  Sparkles,
+  MagnifyingGlass,
+  CalendarDots,
+  Storefront,
+  Sparkle,
   Phone,
   ArrowRight,
   X,
   Plus,
-  Navigation,
-  Utensils,
-  Radio,
-  ExternalLink,
-} from "lucide-react";
+  NavigationArrow,
+  ForkKnife,
+  Broadcast,
+  ArrowSquareOut,
+} from "@phosphor-icons/react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -129,7 +129,7 @@ function MapaPage() {
 
         {/* Floating Counter Badge */}
         <div className="absolute top-4 right-4 z-20 hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-card border border-border text-foreground shadow-xs text-xs font-medium">
-          <MapPin className="size-3.5 text-muted-foreground" />
+          <MapPin size={14} weight="bold" className="text-muted-foreground" />
           <span>{allFilteredItems.length} pontos no mapa</span>
         </div>
       </div>
@@ -154,7 +154,7 @@ function MapaPage() {
 
         {/* ── BUSCA DE LOCAIS & MOMENTOS ── */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -167,7 +167,7 @@ function MapaPage() {
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               aria-label="Limpar busca"
             >
-              <X className="size-3.5" />
+              <X size={14} />
             </button>
           )}
         </div>

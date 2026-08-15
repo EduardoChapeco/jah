@@ -2,19 +2,22 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import {
   SlidersHorizontal,
-  LayoutGrid,
-  List,
-  Sparkles,
-  Search,
-  Store,
+  SquaresFour,
+  ListDashes,
+  Sparkle,
+  MagnifyingGlass,
+  Storefront,
   MapPin,
   Flame,
-  Utensils,
-  Shirt,
-  Sparkle,
-  Briefcase,
-  ChevronRight,
-} from "lucide-react";
+  ForkKnife,
+  TShirt,
+  Heartbeat,
+  Coffee,
+  Key,
+  Scissors,
+  Wrench,
+  CaretRight,
+} from "@phosphor-icons/react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -61,16 +64,16 @@ const SORT_LABELS: Record<string, string> = {
 };
 
 const CATEGORIES_TAXONOMY = [
-  { label: "Tudo", icon: Sparkles, niche: undefined },
+  { label: "Tudo", icon: Sparkle, niche: undefined },
   { label: "Ofertas", icon: Flame, niche: "ofertas" },
-  { label: "Mercado & Horti", icon: Store, niche: "mercado" },
-  { label: "Gastronomia", icon: Utensils, niche: "gastronomia" },
-  { label: "Farmácia", icon: Sparkle, niche: "farmacia" },
-  { label: "Conveniência", icon: Sparkle, niche: "conveniencia" },
-  { label: "Moda & Roupas", icon: Shirt, niche: "moda" },
-  { label: "Alugue", icon: Briefcase, niche: "aluguel" },
-  { label: "Beleza & Estética", icon: Sparkle, niche: "beleza" },
-  { label: "Serviços Locais", icon: Briefcase, niche: "servicos" },
+  { label: "Mercado & Horti", icon: Storefront, niche: "mercado" },
+  { label: "Gastronomia", icon: ForkKnife, niche: "gastronomia" },
+  { label: "Farmácia", icon: Heartbeat, niche: "farmacia" },
+  { label: "Conveniência", icon: Coffee, niche: "conveniencia" },
+  { label: "Moda & Roupas", icon: TShirt, niche: "moda" },
+  { label: "Alugue", icon: Key, niche: "aluguel" },
+  { label: "Beleza & Estética", icon: Scissors, niche: "beleza" },
+  { label: "Serviços Locais", icon: Wrench, niche: "servicos" },
 ];
 
 export const Route = createFileRoute("/_store/mercado")({
@@ -181,7 +184,7 @@ function MarketplacePage() {
                   : "bg-card text-muted-foreground border-border hover:bg-muted/70 hover:text-foreground hover:border-foreground/20"
               }`}
             >
-              <Icon className="size-4" />
+              <Icon size={16} weight="bold" />
               <span>{item.label}</span>
             </button>
           );
@@ -196,39 +199,39 @@ function MarketplacePage() {
             <button
               onClick={() => setViewMode("feed")}
               title="Modo Feed (Descoberta)"
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 currentView === "feed"
-                  ? "bg-background text-foreground shadow-2xs"
+                  ? "bg-background text-foreground shadow-2xs font-bold"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <Sparkles className="size-3.5" />
+              <Sparkle size={14} weight="bold" />
               <span className="hidden sm:inline">Descoberta</span>
             </button>
 
             <button
               onClick={() => setViewMode("grid")}
               title="Modo Grid (Catálogo denso)"
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 currentView === "grid"
-                  ? "bg-background text-foreground shadow-2xs"
+                  ? "bg-background text-foreground shadow-2xs font-bold"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <LayoutGrid className="size-3.5" />
+              <SquaresFour size={14} weight="bold" />
               <span className="hidden sm:inline">Grade</span>
             </button>
 
             <button
               onClick={() => setViewMode("list")}
               title="Modo Lista (Comparativo)"
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 currentView === "list"
-                  ? "bg-background text-foreground shadow-2xs"
+                  ? "bg-background text-foreground shadow-2xs font-bold"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <List className="size-3.5" />
+              <ListDashes size={14} weight="bold" />
               <span className="hidden sm:inline">Lista</span>
             </button>
           </div>

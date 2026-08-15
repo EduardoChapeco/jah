@@ -3,18 +3,18 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Compass,
-  Search,
+  MagnifyingGlass,
   MapPin,
   Clock,
   Phone,
   Star,
-  Sparkles,
-  Plane,
+  Sparkle,
+  AirplaneTilt,
   Camera,
-  Utensils,
-  Hotel,
-  Mountain,
-} from "lucide-react";
+  ForkKnife,
+  Buildings,
+  Mountains,
+} from "@phosphor-icons/react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
@@ -158,12 +158,12 @@ function TourismMasterPage() {
         </div>
 
         <div className="relative w-full md:w-72">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <MagnifyingGlass size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Buscar destino, pousada, passeio..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-10 rounded-2xl text-xs bg-card"
+            className="pl-9 h-10 rounded-xl text-xs bg-card"
           />
         </div>
       </section>

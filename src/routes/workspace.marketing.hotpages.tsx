@@ -1,16 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import {
-  Sparkles,
-  Plus,
-  Trash2,
-  Tag,
-  Layers,
-  CheckCircle2,
-  Loader2,
-  Eye,
   Sliders,
-} from "lucide-react";
+  Plus,
+  Trash,
+  Tag,
+  Eye,
+  Sparkle,
+  Image,
+  PencilSimple,
+} from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,9 +31,9 @@ import {
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/workspace/marketing/hotpages")({
-  head: () => ({ meta: [{ title: "Gestão de Cards de Categorias & Hotpages | JAH Workspace" }] }),
+  head: () => ({ meta: [{ title: "Gestão de Cards de Categorias & Ícones | JAH Workspace" }] }),
   loader: async () => {
-    const hotpages = await listHotpages().catch(() => []);
+    const hotpages = await listHotpages({ data: { module: "all" } }).catch(() => []);
     return { hotpages };
   },
   component: WorkspaceHotpagesPage,
@@ -53,6 +52,7 @@ function WorkspaceHotpagesPage() {
   const [badgeLabel, setBadgeLabel] = useState("");
   const [description, setDescription] = useState("");
   const [coverImageUrl, setCoverImageUrl] = useState("");
+  const [customIconUrl, setCustomIconUrl] = useState("");
   const [module, setModule] = useState<
     "home" | "mercado" | "marketplace" | "noticias" | "agenda" | "events" | "diretorio" | "all"
   >("home");
@@ -76,6 +76,7 @@ function WorkspaceHotpagesPage() {
     setBadgeLabel("Destaque");
     setDescription("");
     setCoverImageUrl("");
+    setCustomIconUrl("");
     setModule("home");
     setSortOrder(hotpages.length);
     setShowTitle(true);
@@ -92,6 +93,7 @@ function WorkspaceHotpagesPage() {
     setBadgeLabel(hp.badge_label || "");
     setDescription(hp.description || "");
     setCoverImageUrl(hp.cover_image_url || "");
+    setCustomIconUrl(hp.custom_icon_url || hp.icon_url || "");
     setModule(hp.module || "home");
     setSortOrder(hp.sort_order || 0);
     setShowTitle(hp.show_title !== false);
@@ -123,6 +125,8 @@ function WorkspaceHotpagesPage() {
             badge_label: badgeLabel || null,
             description: description || null,
             cover_image_url: coverImageUrl || null,
+            icon_url: customIconUrl || null,
+            custom_icon_url: customIconUrl || null,
             module,
             sort_order: sortOrder,
             show_title: showTitle,
@@ -131,7 +135,7 @@ function WorkspaceHotpagesPage() {
             show_badge: showBadge,
           },
         });
-        toast.success("Card de categoria atualizado com sucesso!");
+        toast.success("Categoria e ícone atualizados com sucesso!");
       } else {
         await createHotpage({
           data: {
@@ -140,6 +144,8 @@ function WorkspaceHotpagesPage() {
             badge_label: badgeLabel || undefined,
             description: description || undefined,
             cover_image_url: coverImageUrl || undefined,
+            icon_url: customIconUrl || undefined,
+            custom_icon_url: customIconUrl || undefined,
             module,
             sort_order: sortOrder,
             show_title: showTitle,
@@ -148,7 +154,7 @@ function WorkspaceHotpagesPage() {
             show_badge: showBadge,
           },
         });
-        toast.success("Card de categoria criado com sucesso!");
+        toast.success("Categoria criada com sucesso!");
       }
       setIsModalOpen(false);
       await refreshHotpages();
@@ -176,21 +182,21 @@ function WorkspaceHotpagesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
+            <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider bg-foreground text-background">
               Descoberta & Categorias
             </span>
-            <span className="text-xs text-muted-foreground font-mono">Modo Visual Customizável</span>
+            <span className="text-xs text-muted-foreground font-mono">Customização de Ícones & Mídias</span>
           </div>
           <h1 className="text-2xl font-black tracking-tight text-foreground mt-1">
-            Cards de Categorias & Hotpages
+            Cards de Categorias & Ícones Customizados
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-            Configure cards panorâmicos da vitrine principal com controle total sobre textos, sombras e mídias.
+            Configure cards panorâmicos e suba imagens/ícones personalizados para cada categoria exibida no Super App.
           </p>
         </div>
 
-        <Button onClick={handleOpenCreate} className="rounded-2xl font-bold gap-2">
-          <Plus className="size-4" />
+        <Button onClick={handleOpenCreate} className="rounded-xl font-bold gap-2">
+          <Plus size={16} weight="bold" />
           <span>Nova Categoria</span>
         </Button>
       </div>
@@ -200,11 +206,12 @@ function WorkspaceHotpagesPage() {
         {hotpages.map((hp) => {
           const showT = hp.show_title !== false;
           const showO = hp.show_overlay !== false && (showT || hp.badge_label);
+          const iconUrl = hp.custom_icon_url || hp.icon_url;
 
           return (
             <div
               key={hp.id}
-              className="group relative flex flex-col rounded-3xl border border-border/80 bg-card overflow-hidden shadow-xs hover-elevate transition-all"
+              className="group relative flex flex-col rounded-3xl border border-border bg-card overflow-hidden shadow-2xs hover-elevate transition-all"
             >
               {/* Visual Card Preview */}
               <div className="relative aspect-16/10 w-full overflow-hidden bg-muted">
@@ -215,19 +222,19 @@ function WorkspaceHotpagesPage() {
                     className="size-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 ) : (
-                  <div className="size-full bg-linear-to-br from-primary/20 to-muted flex items-center justify-center">
-                    <Tag className="size-8 text-muted-foreground/40" />
+                  <div className="size-full bg-muted flex items-center justify-center">
+                    <Tag size={32} className="text-muted-foreground/40" />
                   </div>
                 )}
 
                 {showO && (
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/30 to-transparent pointer-events-none" />
                 )}
 
                 <div className="absolute inset-0 p-3 flex flex-col justify-between z-10 pointer-events-none">
                   <div className="flex items-center justify-between">
                     {hp.show_badge !== false && hp.badge_label && (
-                      <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-primary text-primary-foreground shadow-xs">
+                      <span className="px-2 py-0.5 rounded-md text-[9px] font-mono font-bold uppercase tracking-wider bg-foreground text-background shadow-xs">
                         {hp.badge_label}
                       </span>
                     )}
@@ -236,19 +243,26 @@ function WorkspaceHotpagesPage() {
                     </Badge>
                   </div>
 
-                  {showT && (
-                    <h3 className="text-xs font-black text-white line-clamp-1 drop-shadow-xs">
-                      {hp.title}
-                    </h3>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {iconUrl && (
+                      <div className="size-6 rounded-md bg-white/20 backdrop-blur-md p-1 shrink-0 overflow-hidden flex items-center justify-center">
+                        <img src={iconUrl} alt="Icon" className="size-full object-contain" />
+                      </div>
+                    )}
+                    {showT && (
+                      <h3 className="text-xs font-black text-white line-clamp-1 drop-shadow-xs">
+                        {hp.title}
+                      </h3>
+                    )}
+                  </div>
                 </div>
               </div>
 
               {/* Management Controls */}
-              <div className="p-3 border-t border-border/60 flex items-center justify-between bg-card text-xs">
+              <div className="p-3 border-t border-border flex items-center justify-between bg-card text-xs">
                 <div className="space-y-0.5">
                   <p className="font-bold text-foreground truncate max-w-[140px]">{hp.title}</p>
-                  <p className="text-[10px] text-muted-foreground">Ordem: {hp.sort_order}</p>
+                  <p className="text-[10px] text-muted-foreground">Módulo: {hp.module || "home"}</p>
                 </div>
 
                 <div className="flex items-center gap-1">
@@ -256,17 +270,18 @@ function WorkspaceHotpagesPage() {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleOpenEdit(hp)}
-                    className="h-7 px-2 text-[11px] font-semibold"
+                    className="h-8 px-2.5 text-xs font-semibold rounded-lg"
                   >
+                    <PencilSimple size={14} className="mr-1" />
                     Editar
                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => handleDelete(hp.id)}
-                    className="size-7 text-destructive hover:bg-destructive/10"
+                    className="size-8 text-destructive hover:bg-destructive/10 rounded-lg"
                   >
-                    <Trash2 className="size-3.5" />
+                    <Trash size={14} />
                   </Button>
                 </div>
               </div>
@@ -278,13 +293,13 @@ function WorkspaceHotpagesPage() {
       {/* Modal de Criação / Edição com Live Preview */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-2xl p-0 overflow-hidden rounded-3xl border border-border bg-background shadow-2xl">
-          <DialogHeader className="p-6 pb-4 border-b border-border/80 bg-muted/20">
+          <DialogHeader className="p-6 pb-4 border-b border-border bg-muted/20">
             <DialogTitle className="flex items-center gap-2 text-lg font-black tracking-tight">
-              <Sliders className="size-5 text-primary" />
-              <span>{editingId ? "Editar Card de Categoria" : "Novo Card de Categoria"}</span>
+              <Sliders size={20} weight="bold" className="text-foreground" />
+              <span>{editingId ? "Editar Categoria & Ícone" : "Nova Categoria"}</span>
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
-              Ajuste imagens, textos e ative ou desative elementos visuais em tempo real.
+              Configure imagens de capa, suba URLs de ícones customizados e defina o comportamento de exibição.
             </DialogDescription>
           </DialogHeader>
 
@@ -293,10 +308,10 @@ function WorkspaceHotpagesPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 <span className="flex items-center gap-1.5">
-                  <Eye className="size-3.5 text-primary" />
+                  <Eye size={14} weight="bold" className="text-foreground" />
                   Live Preview do Card
                 </span>
-                <span className="text-[10px] font-mono lowercase">formato panorâmico</span>
+                <span className="text-[10px] font-mono lowercase">vitrine pública</span>
               </div>
 
               <div className="relative aspect-16/10 sm:aspect-21/9 w-full rounded-2xl border border-border overflow-hidden shadow-xs bg-zinc-900 flex items-end">
@@ -307,27 +322,34 @@ function WorkspaceHotpagesPage() {
                     className="absolute inset-0 size-full object-cover"
                   />
                 ) : (
-                  <div className="absolute inset-0 bg-linear-to-br from-primary/20 via-zinc-800 to-zinc-900 flex items-center justify-center">
-                    <Tag className="size-10 text-muted-foreground/30" />
+                  <div className="absolute inset-0 bg-muted flex items-center justify-center">
+                    <Tag size={36} className="text-muted-foreground/30" />
                   </div>
                 )}
 
                 {showOverlay && (
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/30 to-transparent pointer-events-none" />
                 )}
 
                 <div className="relative p-4 z-10 w-full space-y-1">
                   {showBadge && badgeLabel && (
-                    <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-primary text-primary-foreground shadow-xs">
+                    <span className="px-2.5 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider bg-foreground text-background shadow-xs">
                       {badgeLabel}
                     </span>
                   )}
 
-                  {showTitle && (
-                    <h3 className="text-sm sm:text-base font-black text-white drop-shadow-xs">
-                      {title || "Título da Categoria"}
-                    </h3>
-                  )}
+                  <div className="flex items-center gap-2 pt-1">
+                    {customIconUrl && (
+                      <div className="size-6 rounded-md bg-white/20 backdrop-blur-md p-1 shrink-0 overflow-hidden flex items-center justify-center">
+                        <img src={customIconUrl} alt="Icon Preview" className="size-full object-contain" />
+                      </div>
+                    )}
+                    {showTitle && (
+                      <h3 className="text-sm sm:text-base font-black text-white drop-shadow-xs">
+                        {title || "Título da Categoria"}
+                      </h3>
+                    )}
+                  </div>
 
                   {showDescription && description && (
                     <p className="text-xs text-zinc-300 line-clamp-1 drop-shadow-xs">
@@ -364,6 +386,33 @@ function WorkspaceHotpagesPage() {
                   onChange={(e) => setSlug(e.target.value)}
                   className="rounded-xl h-10 font-mono"
                 />
+              </div>
+            </div>
+
+            {/* ── 2.5. Imagem / Ícone Customizado da Categoria (Upload / URL) ── */}
+            <div className="space-y-1.5 rounded-2xl border border-border bg-muted/20 p-4">
+              <div className="flex items-center gap-2">
+                <Image size={16} weight="bold" className="text-foreground" />
+                <Label htmlFor="customIcon" className="text-xs font-bold">
+                  Ícone Customizado da Categoria (URL da Imagem / PNG / SVG)
+                </Label>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Suba o link do ícone ou imagem ilustrativa da categoria. Ele será exibido na barra estilo iFood e nos menus.
+              </p>
+              <div className="flex items-center gap-3 pt-1">
+                <Input
+                  id="customIcon"
+                  placeholder="https://.../icon-farmacia.png"
+                  value={customIconUrl}
+                  onChange={(e) => setCustomIconUrl(e.target.value)}
+                  className="rounded-xl h-10 font-mono text-xs flex-1"
+                />
+                {customIconUrl && (
+                  <div className="size-10 rounded-xl border border-border bg-card p-1 shrink-0 flex items-center justify-center overflow-hidden">
+                    <img src={customIconUrl} alt="Icon" className="size-full object-contain" />
+                  </div>
+                )}
               </div>
             </div>
 
@@ -416,7 +465,7 @@ function WorkspaceHotpagesPage() {
 
             <div className="space-y-1.5">
               <Label htmlFor="media" className="text-xs font-bold">
-                URL da Mídia de Capa (Imagem / GIF)
+                URL da Imagem de Capa Panorâmica
               </Label>
               <Input
                 id="media"
@@ -428,7 +477,7 @@ function WorkspaceHotpagesPage() {
             </div>
 
             {/* ── 3. Switches de Customização Visual (Modo Mídia Limpa) ── */}
-            <div className="rounded-2xl border border-border/80 bg-muted/20 p-4 space-y-3">
+            <div className="rounded-2xl border border-border bg-muted/20 p-4 space-y-3">
               <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
                 Personalização Visual (Modo Mídia Limpa)
               </span>
@@ -455,9 +504,7 @@ function WorkspaceHotpagesPage() {
                 </label>
 
                 <label className="flex items-center justify-between p-2.5 rounded-xl border border-border bg-card cursor-pointer hover:bg-muted/40 transition-colors">
-                  <span className="text-xs font-semibold text-foreground">
-                    Exibir Máscara / Sombra
-                  </span>
+                  <span className="text-xs font-semibold text-foreground">Exibir Overlay Escuro</span>
                   <input
                     type="checkbox"
                     checked={showOverlay}
@@ -478,8 +525,8 @@ function WorkspaceHotpagesPage() {
               </div>
             </div>
 
-            {/* Footer Buttons */}
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-border/60">
+            {/* ── 4. Ações do Formulário ── */}
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
               <Button
                 type="button"
                 variant="outline"
@@ -491,14 +538,11 @@ function WorkspaceHotpagesPage() {
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="rounded-xl font-bold bg-primary text-primary-foreground"
+                isLoading={isSubmitting}
+                loadingText="Salvando..."
+                className="rounded-xl font-bold"
               >
-                {isSubmitting ? (
-                  <Loader2 className="size-4 animate-spin mr-2" />
-                ) : (
-                  <CheckCircle2 className="size-4 mr-2" />
-                )}
-                <span>Salvar Categoria</span>
+                {editingId ? "Salvar Alterações" : "Criar Categoria"}
               </Button>
             </div>
           </form>

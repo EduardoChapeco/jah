@@ -3,18 +3,18 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Tag,
-  Search,
+  MagnifyingGlass,
   MapPin,
   Clock,
   Phone,
   Plus,
-  Car,
-  Home,
+  CarProfile,
+  House,
   Laptop,
-  Sofa,
+  Armchair,
   Wrench,
-  Sparkles,
-} from "lucide-react";
+  Sparkle,
+} from "@phosphor-icons/react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -169,22 +169,22 @@ function ClassifiedsMasterPage() {
 
         <div className="flex items-center gap-3 w-full md:w-auto">
           <div className="relative w-full md:w-64">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <MagnifyingGlass size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Buscar veículo, imóvel, produto..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-10 rounded-2xl text-xs bg-card"
+              className="pl-9 h-10 rounded-xl text-xs bg-card"
             />
           </div>
 
           <Button
             asChild
-            className="h-10 px-4 rounded-2xl font-bold text-xs bg-primary text-primary-foreground shrink-0 gap-1.5"
+            className="h-10 px-4 rounded-xl font-bold text-xs bg-foreground text-background shrink-0 gap-1.5"
           >
             <Link to="/conta/classificados/novo">
-              <Plus className="size-4" />
-              <span>Anunciar Grátis</span>
+              <Plus size={16} weight="bold" />
+              <span>Anunciar</span>
             </Link>
           </Button>
         </div>

@@ -21,6 +21,8 @@ export interface HotpageDTO {
   description?: string | null;
   cover_image_url?: string | null;
   icon_name?: string | null;
+  icon_url?: string | null;
+  custom_icon_url?: string | null;
   filter_rules?: Record<string, any>;
   module?: HotpageModule;
   is_active: boolean;
@@ -475,6 +477,8 @@ export const createHotpage = createServerFn({ method: "POST" })
       description: z.string().optional(),
       cover_image_url: z.string().url().optional(),
       icon_name: z.string().optional(),
+      icon_url: z.string().optional(),
+      custom_icon_url: z.string().optional(),
       module: z
         .enum([
           "home",
@@ -505,6 +509,8 @@ export const createHotpage = createServerFn({ method: "POST" })
         description: data.description || null,
         cover_image_url: data.cover_image_url || null,
         icon_name: data.icon_name || null,
+        icon_url: data.icon_url || data.custom_icon_url || null,
+        custom_icon_url: data.custom_icon_url || data.icon_url || null,
         module: data.module || "home",
         sort_order: data.sort_order,
         show_title: data.show_title,
@@ -530,6 +536,8 @@ export const updateHotpage = createServerFn({ method: "POST" })
       description: z.string().nullable().optional(),
       cover_image_url: z.string().nullable().optional(),
       icon_name: z.string().nullable().optional(),
+      icon_url: z.string().nullable().optional(),
+      custom_icon_url: z.string().nullable().optional(),
       module: z
         .enum([
           "home",

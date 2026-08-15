@@ -2,31 +2,31 @@ import { Link, useLocation } from "@tanstack/react-router";
 import { type ContextConfig } from "@/lib/navigation-registry";
 import { PublishSheet } from "@/components/commerce/publish-sheet";
 import {
-  Home,
-  MessageSquare,
-  Newspaper,
-  ShoppingBag,
+  House,
+  ChatCenteredText,
+  NewspaperClipping,
+  Storefront,
   Tag,
   MapPin,
-  Calendar,
-  Plane,
+  CalendarDots,
+  AirplaneTilt,
   Briefcase,
-  Car,
-  KeyRound,
-  Shirt,
+  CarProfile,
+  Key,
+  TShirt,
   Compass,
-  Utensils,
-  Store,
-  HeartPulse,
+  ForkKnife,
+  ShoppingBag,
+  Heartbeat,
   Coffee,
   Scissors,
-  CarFront,
-  Building2,
+  Jeep,
+  Buildings,
   Wrench,
   Flame,
   User,
-  Bookmark,
-} from "lucide-react";
+  BookmarkSimple,
+} from "@phosphor-icons/react";
 
 export interface ContextSidebarProps {
   config: ContextConfig;
@@ -34,30 +34,30 @@ export interface ContextSidebarProps {
 
 // ── 1. Módulos Principais de Descoberta (Explorar) ──
 const PRIMARY_DESTINATIONS = [
-  { to: "/", label: "Início", icon: Home, exact: true },
-  { to: "/mural", label: "Feed", icon: MessageSquare },
-  { to: "/noticias", label: "Notícias", icon: Newspaper },
-  { to: "/mercado", label: "Marketplace", icon: ShoppingBag, exact: true },
+  { to: "/", label: "Início", icon: House, exact: true },
+  { to: "/mural", label: "Feed", icon: ChatCenteredText },
+  { to: "/noticias", label: "Notícias", icon: NewspaperClipping },
+  { to: "/mercado", label: "Marketplace", icon: Storefront, exact: true },
   { to: "/classificados", label: "Classificados", icon: Tag, exact: true },
   { to: "/mapa", label: "Moments", icon: MapPin },
-  { to: "/agenda", label: "Agenda", icon: Calendar },
-  { to: "/turismo", label: "Turismo", icon: Plane },
+  { to: "/agenda", label: "Agenda", icon: CalendarDots },
+  { to: "/turismo", label: "Turismo", icon: AirplaneTilt },
   { to: "/empregos", label: "Empregos", icon: Briefcase },
-  { to: "/mobilidade", label: "Mobilidade", icon: Car },
-  { to: "/mercado?niche=aluguel", label: "Alugue", icon: KeyRound },
-  { to: "/mercado?niche=moda", label: "Roupas & Moda", icon: Shirt },
+  { to: "/mobilidade", label: "Mobilidade", icon: CarProfile },
+  { to: "/mercado?niche=aluguel", label: "Alugue", icon: Key },
+  { to: "/mercado?niche=moda", label: "Roupas & Moda", icon: TShirt },
   { to: "/diretorio", label: "Guia & Diretório", icon: Compass },
 ];
 
 // ── 2. Categorias Master & Nichos de Alto Consumo ──
 const CATEGORY_NICHES = [
-  { to: "/mercado?niche=gastronomia", label: "Gastronomia & Delivery", icon: Utensils },
-  { to: "/mercado?niche=mercado", label: "Mercado & Hortifruti", icon: Store },
-  { to: "/mercado?niche=farmacia", label: "Farmácia & Saúde", icon: HeartPulse },
+  { to: "/mercado?niche=gastronomia", label: "Gastronomia & Delivery", icon: ForkKnife },
+  { to: "/mercado?niche=mercado", label: "Mercado & Hortifruti", icon: ShoppingBag },
+  { to: "/mercado?niche=farmacia", label: "Farmácia & Saúde", icon: Heartbeat },
   { to: "/mercado?niche=conveniencia", label: "Conveniência & Bebidas", icon: Coffee },
   { to: "/mercado?niche=beleza", label: "Beleza & Estética", icon: Scissors },
-  { to: "/classificados?categoria=veiculos", label: "Veículos (Auto)", icon: CarFront },
-  { to: "/classificados?categoria=imoveis", label: "Imóveis", icon: Building2 },
+  { to: "/classificados?categoria=veiculos", label: "Veículos (Auto)", icon: Jeep },
+  { to: "/classificados?categoria=imoveis", label: "Imóveis", icon: Buildings },
   { to: "/diretorio", label: "Prestadores de Serviços", icon: Wrench },
   { to: "/mercado?niche=ofertas", label: "Ofertas Relâmpago", icon: Flame },
 ];
@@ -65,7 +65,7 @@ const CATEGORY_NICHES = [
 // ── 3. Painel Pessoal ──
 const USER_DESTINATIONS = [
   { to: "/conta", label: "Minha Conta", icon: User, exact: true },
-  { to: "/conta/salvos", label: "Itens Salvos", icon: Bookmark },
+  { to: "/conta/salvos", label: "Itens Salvos", icon: BookmarkSimple },
 ];
 
 export function ContextSidebar({ config }: ContextSidebarProps) {
@@ -106,7 +106,9 @@ export function ContextSidebar({ config }: ContextSidebarProps) {
                   }`}
                 >
                   <Icon
-                    className={`size-4 shrink-0 ${active ? "text-background" : "text-muted-foreground"}`}
+                    size={18}
+                    weight={active ? "bold" : "regular"}
+                    className={`shrink-0 ${active ? "text-background" : "text-muted-foreground"}`}
                   />
                   <span className="truncate">{item.label}</span>
                 </Link>
@@ -136,7 +138,9 @@ export function ContextSidebar({ config }: ContextSidebarProps) {
                   }`}
                 >
                   <Icon
-                    className={`size-3.5 shrink-0 ${active ? "text-background" : "text-muted-foreground"}`}
+                    size={16}
+                    weight={active ? "bold" : "regular"}
+                    className={`shrink-0 ${active ? "text-background" : "text-muted-foreground"}`}
                   />
                   <span className="truncate">{item.label}</span>
                 </Link>
@@ -166,7 +170,9 @@ export function ContextSidebar({ config }: ContextSidebarProps) {
                   }`}
                 >
                   <Icon
-                    className={`size-3.5 shrink-0 ${active ? "text-background" : "text-muted-foreground"}`}
+                    size={16}
+                    weight={active ? "bold" : "regular"}
+                    className={`shrink-0 ${active ? "text-background" : "text-muted-foreground"}`}
                   />
                   <span className="truncate">{item.label}</span>
                 </Link>

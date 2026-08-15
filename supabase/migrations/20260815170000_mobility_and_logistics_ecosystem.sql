@@ -225,7 +225,7 @@ CREATE POLICY "Public read logistics price tables"
 CREATE POLICY "Store owners can manage price tables"
   ON logistics_price_tables FOR ALL
   USING (store_id IS NOT NULL AND EXISTS (
-    SELECT 1 FROM stores s WHERE s.id = logistics_price_tables.store_id AND s.owner_id = auth.uid()
+    SELECT 1 FROM workspace_members wm WHERE wm.store_id = logistics_price_tables.store_id AND wm.profile_id = auth.uid()
   ));
 
 -- Mobility Requests: Leitura pelo cliente que solicitou, pelo motorista atribuído ou pela loja responsável

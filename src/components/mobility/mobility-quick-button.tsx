@@ -1,10 +1,10 @@
 import * as React from "react";
 import { Link, useLocation } from "@tanstack/react-router";
-import { Car, Bike, Truck } from "lucide-react";
+import { Car, Motorcycle, Truck } from "@phosphor-icons/react";
 
 const MOBILITY_ICONS = [
   { icon: Car, label: "Carro" },
-  { icon: Bike, label: "Moto" },
+  { icon: Motorcycle, label: "Moto" },
   { icon: Truck, label: "Frete" },
 ];
 
@@ -37,7 +37,9 @@ export function MobilityQuickButton() {
       <div className="relative size-4 flex items-center justify-center overflow-hidden">
         <Icon
           key={index}
-          className="size-4 text-foreground transition-all duration-300 animate-in fade-in zoom-in-75"
+          size={16}
+          weight="bold"
+          className="text-foreground transition-all duration-300 animate-in fade-in zoom-in-75"
         />
       </div>
       <span className="hidden sm:inline text-xs font-bold tracking-tight">

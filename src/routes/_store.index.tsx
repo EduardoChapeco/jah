@@ -1,20 +1,21 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  Store,
-  Utensils,
+  Storefront,
+  ForkKnife,
   Scissors,
   Briefcase,
-  Plane,
+  AirplaneTilt,
   Tag,
   Compass,
-  HeartPulse,
+  Heartbeat,
   Coffee,
-  Shirt,
-  KeyRound,
-  Car,
-  Calendar,
-  Sparkles,
-} from "lucide-react";
+  TShirt,
+  Key,
+  CarProfile,
+  CalendarDots,
+  Sparkle,
+  ArrowRight,
+} from "@phosphor-icons/react";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
 import { HorizontalRail } from "@/components/commerce/horizontal-rail";
 import { OfferCard } from "@/components/commerce/offer-card";
@@ -22,7 +23,7 @@ import { StoreCard } from "@/components/commerce/store-card";
 import { StoryRail } from "@/components/community/story-rail";
 import { HotpagesRail } from "@/components/commerce/hotpages-rail";
 import { listActiveBanners } from "@/services/banner.functions";
-import { listHotpages } from "@/services/hotpage.functions";
+import { listHotpages, type HotpageDTO } from "@/services/hotpage.functions";
 import { getMarketplaceFeed } from "@/services/marketplace.functions";
 import { getFeedStories } from "@/services/social.functions";
 import { Button } from "@/components/ui/button";
@@ -31,25 +32,34 @@ import { listPublicArticles, type NewsArticleDTO } from "@/services/news.functio
 import { NewsCard } from "@/components/news/news-card";
 
 // ── Categorias Master Estilo iFood / Super App do Dia a Dia ──
-const IFOOD_MASTER_CATEGORIES = [
-  { to: "/mercado?niche=mercado", label: "Mercado", icon: Store, badge: "Essencial" },
-  { to: "/mercado?niche=farmacia", label: "Farmácia", icon: HeartPulse, badge: "Saúde" },
-  { to: "/mercado?niche=gastronomia", label: "Delivery", icon: Utensils, badge: "Comida" },
-  { to: "/mercado?niche=conveniencia", label: "Bebidas", icon: Coffee },
-  { to: "/mercado?niche=moda", label: "Roupas & Moda", icon: Shirt },
-  { to: "/mercado?niche=aluguel", label: "Alugue", icon: KeyRound },
-  { to: "/empregos", label: "Empregos", icon: Briefcase, badge: "Vagas" },
-  { to: "/agenda", label: "Eventos", icon: Calendar },
-  { to: "/mobilidade", label: "Mobilidade", icon: Car },
-  { to: "/classificados", label: "Classificados", icon: Tag },
-  { to: "/mercado?niche=beleza", label: "Beleza", icon: Scissors },
-  { to: "/diretorio", label: "Serviços", icon: Compass },
+interface MasterCategoryItem {
+  to: string;
+  label: string;
+  icon: any;
+  badge?: string;
+  icon_url?: string;
+  slug?: string;
+}
+
+const DEFAULT_MASTER_CATEGORIES: MasterCategoryItem[] = [
+  { to: "/mercado?niche=mercado", slug: "mercado", label: "Mercado", icon: Storefront, badge: "Essencial" },
+  { to: "/mercado?niche=farmacia", slug: "farmacia", label: "Farmácia", icon: Heartbeat, badge: "Saúde" },
+  { to: "/mercado?niche=gastronomia", slug: "gastronomia", label: "Delivery", icon: ForkKnife, badge: "Comida" },
+  { to: "/mercado?niche=conveniencia", slug: "conveniencia", label: "Bebidas", icon: Coffee },
+  { to: "/mercado?niche=moda", slug: "moda", label: "Roupas & Moda", icon: TShirt },
+  { to: "/mercado?niche=aluguel", slug: "aluguel", label: "Alugue", icon: Key },
+  { to: "/empregos", slug: "empregos", label: "Empregos", icon: Briefcase, badge: "Vagas" },
+  { to: "/agenda", slug: "agenda", label: "Eventos", icon: CalendarDots },
+  { to: "/mobilidade", slug: "mobilidade", label: "Mobilidade", icon: CarProfile },
+  { to: "/classificados", slug: "classificados", label: "Classificados", icon: Tag },
+  { to: "/mercado?niche=beleza", slug: "beleza", label: "Beleza", icon: Scissors },
+  { to: "/diretorio", slug: "diretorio", label: "Serviços", icon: Compass },
 ];
 
 export const Route = createFileRoute("/_store/")({
   head: () => ({
     meta: [
-      { title: "JAH — Super App & Descoberta Comunitária" },
+      { title: "JAH — Super App Comunitário" },
       {
         name: "description",
         content:
@@ -92,6 +102,15 @@ function CommercialHomePage() {
     stores.length > 0 ||
     catalogProducts.length > 0;
 
+  // Build master categories merging with database custom icons if configured
+  const categoriesList = DEFAULT_MASTER_CATEGORIES.map((cat) => {
+    const match = hotpages.find((hp: HotpageDTO) => hp.slug === cat.slug);
+    return {
+      ...cat,
+      icon_url: match?.custom_icon_url || match?.icon_url || undefined,
+    };
+  });
+
   return (
     <div className="w-full space-y-8 pb-10">
       {/* ── 1. Top Banners Hero Carousel (100% Real do Supabase) ── */}
@@ -108,17 +127,17 @@ function CommercialHomePage() {
         </section>
       )}
 
-      {/* ── 3. Categorias Master Diárias Estilo iFood (Squircle Inflado) ── */}
+      {/* ── 3. Categorias Master Diárias Estilo iFood (com Suporte a Upload Customizado) ── */}
       <section aria-label="Acesso Rápido Master" className="space-y-3">
         <div className="flex items-center gap-2">
-          <Sparkles className="size-4 text-foreground" />
+          <Sparkle size={16} weight="fill" className="text-foreground" />
           <h2 className="text-sm font-bold text-foreground tracking-tight">
             Categorias em Destaque
           </h2>
         </div>
 
         <div className="flex items-center gap-2.5 overflow-x-auto pb-2 scrollbar-none">
-          {IFOOD_MASTER_CATEGORIES.map((cat) => {
+          {categoriesList.map((cat) => {
             const Icon = cat.icon;
             return (
               <Link
@@ -126,8 +145,17 @@ function CommercialHomePage() {
                 to={cat.to as any}
                 className="h-20 min-w-[88px] sm:min-w-[96px] p-2.5 rounded-2xl border border-border bg-card hover:bg-muted/60 hover:border-foreground/30 flex flex-col items-center justify-between transition-all select-none group cursor-pointer shrink-0 shadow-2xs active:scale-[0.97]"
               >
-                <div className="relative size-8 rounded-xl bg-muted flex items-center justify-center text-foreground group-hover:scale-110 transition-transform">
-                  <Icon className="size-4" />
+                <div className="relative size-8 rounded-xl bg-muted flex items-center justify-center text-foreground group-hover:scale-110 transition-transform overflow-hidden">
+                  {cat.icon_url ? (
+                    <img
+                      src={cat.icon_url}
+                      alt={cat.label}
+                      className="size-5 object-contain"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <Icon size={18} weight="bold" />
+                  )}
                   {cat.badge && (
                     <span className="absolute -top-1.5 -right-1 px-1 py-0.2 text-[8px] font-mono font-bold uppercase rounded-sm bg-foreground text-background">
                       {cat.badge}
@@ -279,7 +307,7 @@ function CommercialHomePage() {
       {!hasAnyCommercialData && newsArticles.length === 0 && (
         <section className="py-12 px-6 rounded-3xl border border-dashed border-border bg-card/60 text-center space-y-4 max-w-xl mx-auto">
           <div className="size-16 rounded-2xl bg-muted text-foreground flex items-center justify-center mx-auto">
-            <Store className="size-8" />
+            <Storefront size={32} weight="bold" />
           </div>
           <div className="space-y-1.5">
             <h2 className="text-xl font-bold text-foreground">
@@ -292,7 +320,7 @@ function CommercialHomePage() {
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
             <Button asChild className="w-full sm:w-auto rounded-xl font-bold">
               <Link to="/criar-negocio">
-                <Store className="size-4 mr-2" />
+                <Storefront size={16} weight="bold" className="mr-2" />
                 Cadastrar Minha Loja
               </Link>
             </Button>
