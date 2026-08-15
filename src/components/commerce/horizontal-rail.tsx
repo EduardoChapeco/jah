@@ -1,4 +1,5 @@
 import React, { useRef } from "react";
+import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -7,6 +8,7 @@ interface HorizontalRailProps {
   subtitle?: string;
   badge?: string;
   actionLabel?: string;
+  actionTo?: string;
   onAction?: () => void;
   children: React.ReactNode;
   className?: string;
@@ -17,6 +19,7 @@ export function HorizontalRail({
   subtitle,
   badge,
   actionLabel,
+  actionTo,
   onAction,
   children,
   className = "",
@@ -53,7 +56,17 @@ export function HorizontalRail({
 
         {/* Action Button & Desktop Arrows */}
         <div className="flex items-center gap-2 shrink-0">
-          {actionLabel && onAction && (
+          {actionLabel && actionTo && (
+            <Button
+              asChild
+              variant="ghost"
+              size="sm"
+              className="text-xs font-semibold text-primary hover:text-primary/80 h-8 px-2.5 rounded-lg"
+            >
+              <Link to={actionTo as any}>{actionLabel}</Link>
+            </Button>
+          )}
+          {actionLabel && onAction && !actionTo && (
             <Button
               variant="ghost"
               size="sm"

@@ -21,6 +21,11 @@ export interface BannerDTO {
   ends_at?: string | null;
   is_active: boolean;
   sort_order: number;
+  show_title?: boolean;
+  show_description?: boolean;
+  show_overlay?: boolean;
+  show_badge?: boolean;
+  show_cta?: boolean;
 }
 
 export const listActiveBanners = createServerFn({ method: "GET" })
@@ -79,6 +84,11 @@ export const createBanner = createServerFn({ method: "POST" })
       ends_at: z.string().optional(),
       is_active: z.boolean().optional(),
       sort_order: z.number().int().default(0),
+      show_title: z.boolean().optional(),
+      show_description: z.boolean().optional(),
+      show_overlay: z.boolean().optional(),
+      show_badge: z.boolean().optional(),
+      show_cta: z.boolean().optional(),
     }),
   )
   .handler(async ({ data }) => {

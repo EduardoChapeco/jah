@@ -64,6 +64,13 @@ function WorkspaceBannersPage() {
   const [badgeText, setBadgeText] = useState("Destaque");
   const [ctaLabel, setCtaLabel] = useState("Conferir");
 
+  // Customization Switches (Clean Media Mode)
+  const [showTitle, setShowTitle] = useState(true);
+  const [showDescription, setShowDescription] = useState(true);
+  const [showOverlay, setShowOverlay] = useState(true);
+  const [showBadge, setShowBadge] = useState(true);
+  const [showCta, setShowCta] = useState(true);
+
   const refreshBanners = async () => {
     const updated = await listActiveBanners({ data: { placement: "all" } }).catch(() => []);
     setBanners(updated);
@@ -71,7 +78,7 @@ function WorkspaceBannersPage() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) {
+    if (!title.trim() && showTitle) {
       toast.error("Informe o título do banner.");
       return;
     }
@@ -84,7 +91,7 @@ function WorkspaceBannersPage() {
     try {
       await createBanner({
         data: {
-          title,
+          title: title || "Banner Promocional",
           subtitle: subtitle || undefined,
           media_type: mediaType,
           media_url: mediaUrl,
@@ -94,6 +101,11 @@ function WorkspaceBannersPage() {
           placement,
           badge_text: badgeText || undefined,
           cta_label: ctaLabel || undefined,
+          show_title: showTitle,
+          show_description: showDescription,
+          show_overlay: showOverlay,
+          show_badge: showBadge,
+          show_cta: showCta,
           is_active: true,
         },
       });
@@ -281,18 +293,93 @@ function WorkspaceBannersPage() {
 
                 {/* Simulated Content */}
                 {mediaUrl && (
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent p-5 flex flex-col justify-end text-white">
-                    {badgeText && (
+                  <div
+                    className={`absolute inset-0 p-5 flex flex-col justify-end text-white ${
+                      showOverlay && (showTitle || showDescription || showBadge || showCta)
+                        ? "bg-gradient-to-t from-black/85 via-black/30 to-transparent"
+                        : "bg-transparent"
+                    }`}
+                  >
+                    {showBadge && badgeText && (
                       <span className="w-fit px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-[9px] font-bold uppercase tracking-wider mb-1">
                         {badgeText}
                       </span>
                     )}
-                    <h4 className="text-lg font-black leading-tight line-clamp-1">
-                      {title || "Título do Banner"}
-                    </h4>
-                    {subtitle && <p className="text-xs text-zinc-300 line-clamp-1">{subtitle}</p>}
+                    {showTitle && (
+                      <h4 className="text-lg font-black leading-tight line-clamp-1 drop-shadow-xs">
+                        {title || "Título do Banner"}
+                      </h4>
+                    )}
+                    {showDescription && subtitle && (
+                      <p className="text-xs text-zinc-300 line-clamp-1">{subtitle}</p>
+                    )}
+                    {showCta && (
+                      <div className="pt-2">
+                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-white text-black font-bold text-[10px]">
+                          {ctaLabel || "Conferir"}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )}
+              </div>
+            </div>
+
+            {/* Customization Switches: Clean Media vs Text Overlay */}
+            <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/80 space-y-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
+                🎨 Estilo Visual do Banner (Mídia Limpa vs Textos)
+              </span>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1 text-xs">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={showTitle}
+                    onChange={(e) => setShowTitle(e.target.checked)}
+                    className="size-4 rounded border-border text-primary focus:ring-primary"
+                  />
+                  <span>Exibir Título</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={showDescription}
+                    onChange={(e) => setShowDescription(e.target.checked)}
+                    className="size-4 rounded border-border text-primary focus:ring-primary"
+                  />
+                  <span>Exibir Subtítulo</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={showOverlay}
+                    onChange={(e) => setShowOverlay(e.target.checked)}
+                    className="size-4 rounded border-border text-primary focus:ring-primary"
+                  />
+                  <span>Máscara de Sombra</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={showBadge}
+                    onChange={(e) => setShowBadge(e.target.checked)}
+                    className="size-4 rounded border-border text-primary focus:ring-primary"
+                  />
+                  <span>Exibir Badge</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={showCta}
+                    onChange={(e) => setShowCta(e.target.checked)}
+                    className="size-4 rounded border-border text-primary focus:ring-primary"
+                  />
+                  <span>Exibir Botão CTA</span>
+                </label>
               </div>
             </div>
 

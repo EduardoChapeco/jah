@@ -1,7 +1,6 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { GLOBAL_DESTINATIONS } from "@/lib/navigation-registry";
 import { LocationMasterPill } from "@/components/location/location-master-pill";
-import { Flame, ShoppingBag, Calendar, Sparkles, Utensils, Scissors, Compass } from "lucide-react";
+import { Flame, ShoppingBag, Calendar, Sparkles, Utensils, Scissors, Compass, Search } from "lucide-react";
 
 const MOBILE_QUICK_CHIPS = [
   { to: "/mercado?niche=ofertas", label: "⚡ Ofertas", icon: Flame },
@@ -39,29 +38,24 @@ export function TopBar() {
           <LocationMasterPill />
         </div>
 
-        {/* 2. Links Centrais em Pílula (Desktop) */}
-        <nav className="hidden lg:flex items-center gap-1.5 mx-auto">
-          {GLOBAL_DESTINATIONS.map((item) => {
-            const active = isCurrentActive(item);
-
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
-                  active
-                    ? "bg-zinc-100 dark:bg-zinc-800 text-foreground shadow-2xs"
-                    : "text-muted-foreground hover:text-foreground hover:bg-zinc-50 dark:hover:bg-zinc-900"
-                }`}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+        {/* 2. Barra de Busca Global Inteligente no Desktop (Sem duplicação de botões do sidebar) */}
+        <div className="hidden lg:flex flex-1 max-w-xl mx-6">
+          <Link
+            to="/buscar"
+            className="w-full flex items-center justify-between px-4 py-2 rounded-2xl bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground text-xs font-medium border border-border/60 transition-all shadow-2xs group"
+          >
+            <div className="flex items-center gap-2.5">
+              <Search className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
+              <span>Buscar produtos, lojas, serviços e desapegos...</span>
+            </div>
+            <kbd className="hidden xl:inline-flex items-center gap-0.5 px-2 py-0.5 text-[10px] font-mono font-bold text-muted-foreground bg-background rounded-md border border-border shadow-2xs">
+              ⌘K
+            </kbd>
+          </Link>
+        </div>
 
         {/* 3. Espaço reservado para o UtilityCluster no Desktop */}
-        <div className="w-28 hidden lg:block" />
+        <div className="w-28 hidden lg:block shrink-0" />
       </div>
 
       {/* ── Camada 2: Sub-header Mobile de Hotpages & Atalhos (Estilo Facebook) ── */}

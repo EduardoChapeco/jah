@@ -12,62 +12,45 @@
 
 ---
 
-# Família 1 — Social / Público (_store.*)
+# Família 1 — Comercial, Descoberta & Social (_store.*)
 
 ---
 
-## P-001 · Feed / Para Você
+## P-001 · Home / Marketplace & Discovery Hub
 
-**Rota:** `/_store/` (`_store.index.tsx`) | **Status:** `⚠️ LEGADO`
-**Shell:** Social Shell | **Padrão:** social-feed | **Ator:** Todos
+**Rota:** `/_store/` (`_store.index.tsx`) | **Status:** `✅ IMPLEMENTADO`
+**Shell:** Commercial Hub Shell | **Padrão:** marketplace-discovery | **Ator:** Todos
 
-### Anatomia Desktop
-
-```
-[Rail Esquerda 240px] [Feed Central 600-620px] [Rail Direita 320px]
-- Rail E: Logo, nav (Início, Explorar, Atividade, Perfil), botão Publicar
-- Feed: search compacta, composer inline, stream de posts
-- Rail D: Sugestões de perfis, trending (futuro)
-```
-
-### Anatomia Mobile
+### Anatomia Desktop (1440px)
 
 ```
-[Topbar compacta 48px] [Feed 100%] [Bottom Nav 56px]
-- Topbar: logo JAH centrado, ícone busca, ícone composer
-- Feed: composer colapsável, posts em stack vertical
-- Bottom Nav: Início / Explorar / Publicar+ / Atividade / Perfil
+[Context Sidebar 260px] [Main Viewport max-w-7xl]
+- TopBar: Logo JAH + Master Location Pill (GPS/Manual) + Smart Search (Ctrl+K) + Cart/Profile
+- 1. Top Banners Hero Carousel: Vídeo/GIF/Imagem (21:9 desktop, 16:9 mobile), proporção fixa, máscara/textos configuráveis
+- 2. Stories Rápidos de Lojas e Marcas Locais
+- 3. Hotpages / Categorias Panorâmicas: Grid 6 colunas, cards 16:10 / 4:3, suporte a arte limpa sem texto
+- 4. Rail de Ofertas Relâmpago: Cards retangulares horizontais 320px com Timer Dinâmico (Verde >12h, Amarelo 2-12h, Vermelho <2h)
+- 5. Rail de Lojas & Negócios Locais: Cards ampliados (384px) com banners 160px e avatars 72px
+- 6. Trilhos de Produtos por Nicho: Gastronomia, Mercado, Beleza, Moda
+- 7. Banner de Conversão: "Venda no JAH / Abra sua Loja"
 ```
-
-### Estados
-
-- **Loading:** skeleton de 3 posts (avatar + linhas de texto).
-- **Empty:** "Nenhuma publicação ainda. [Publicar]".
-- **Error:** "Não foi possível carregar. [Tentar novamente]".
-
-### Ações
-
-- Curtir post (otimístico), comentar, compartilhar link, salvar, reportar.
-- Publicar via composer inline (abre PublishSheet).
-
-### Conexões
-
-- Post → P-005 (detalhe do post).
-- Busca → P-003 (explorar).
-- Perfil do autor → P-004 (perfil pessoal).
 
 ---
 
-## P-002 · Seguindo
+## P-002 · Mural Social da Comunidade
 
-**Rota:** `/_store/mural` (`_store.mural.tsx`) | **Status:** `⚠️ LEGADO`
-**Shell:** Social Shell | **Padrão:** social-feed | **Ator:** Autenticado
+**Rota:** `/_store/mural` (`_store.mural.tsx`) | **Status:** `✅ IMPLEMENTADO`
+**Shell:** Social Shell | **Padrão:** social-feed | **Ator:** Todos / Autenticado
 
 ### Anatomia
 
-Mesmo shell do P-001, mas feed filtrado por contas seguidas.
-
-### Estados Extras
+```
+[Mural Feed max-w-3xl]
+- 1. StoryRail no topo com fotos e moments
+- 2. InlinePostComposer com upload de fotos e tags de comércio/classificado
+- 3. Abas de Filtro: [Para Você] [Moments da Rua] [Desapegos]
+- 4. Stream de PostCards com curtidas, comentários, salvos e denúncia
+```
 
 - **Empty:** "Você ainda não segue ninguém. [Explorar perfis]".
 

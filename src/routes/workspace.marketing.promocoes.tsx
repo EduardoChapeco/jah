@@ -194,28 +194,70 @@ function WorkspacePromotionsPage() {
                 </div>
 
                 {(type === "flash_offer" || type === "percentage_discount") && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="font-semibold text-foreground">Desconto (%)</label>
-                      <Input
-                        type="number"
-                        min={1}
-                        max={90}
-                        value={discountPercent}
-                        onChange={(e) => setDiscountPercent(Number(e.target.value))}
-                        className="rounded-xl text-xs"
-                      />
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="font-semibold text-foreground">Desconto (%)</label>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={90}
+                          value={discountPercent}
+                          onChange={(e) => setDiscountPercent(Number(e.target.value))}
+                          className="rounded-xl text-xs"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="font-semibold text-foreground">Duração (Horas)</label>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={168}
+                          value={durationHours}
+                          onChange={(e) => setDurationHours(Number(e.target.value))}
+                          className="rounded-xl text-xs"
+                        />
+                      </div>
                     </div>
-                    <div className="space-y-1.5">
-                      <label className="font-semibold text-foreground">Duração (Horas)</label>
-                      <Input
-                        type="number"
-                        min={1}
-                        max={168}
-                        value={durationHours}
-                        onChange={(e) => setDurationHours(Number(e.target.value))}
-                        className="rounded-xl text-xs"
-                      />
+
+                    {/* Bloco de Gestão e Auto-Renovação de Estoque da Oferta */}
+                    <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/80 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <label className="font-bold text-xs text-foreground flex items-center gap-1.5">
+                            <Sparkles className="size-3.5 text-primary" />
+                            <span>Auto-Renovação de Estoque Promocional</span>
+                          </label>
+                          <p className="text-[11px] text-muted-foreground">
+                            Ao esgotar o lote inicial, reativa automaticamente uma nova cota.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 pt-1">
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-semibold text-muted-foreground">
+                            Cota Inicial (Unidades)
+                          </label>
+                          <Input
+                            type="number"
+                            defaultValue={10}
+                            min={1}
+                            className="rounded-xl text-xs h-9"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-semibold text-muted-foreground">
+                            Repor Automaticamente
+                          </label>
+                          <Input
+                            type="number"
+                            defaultValue={10}
+                            min={1}
+                            className="rounded-xl text-xs h-9"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}

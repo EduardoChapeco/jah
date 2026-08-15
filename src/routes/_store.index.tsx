@@ -1,15 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { useInfiniteQuery } from "@tanstack/react-query";
 import {
-  Loader2,
-  AlertCircle,
-  MapPin,
-  Calendar,
   Sparkles,
-  ArrowRight,
   Flame,
-  Tag,
   ShoppingBag,
   Store,
   Truck,
@@ -17,353 +9,290 @@ import {
   Scissors,
   Briefcase,
   Plane,
+  ArrowRight,
+  ShieldCheck,
+  Tag,
+  Star,
+  Plus,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { InlinePostComposer } from "@/components/community/inline-post-composer";
-import { PostCard } from "@/components/community/post-card";
-import { StoryRail } from "@/components/community/story-rail";
-import { ThumbnailPreviewRail } from "@/components/community/thumbnail-preview-rail";
-import { SuggestedFriendsBlock } from "@/components/community/suggested-friends-block";
-import { FeedBannerBlock } from "@/components/community/feed-banner-block";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
 import { HorizontalRail } from "@/components/commerce/horizontal-rail";
 import { OfferCard } from "@/components/commerce/offer-card";
 import { StoreCard } from "@/components/commerce/store-card";
-import { getMuralFeed, getFeedStories, getSuggestedFriends } from "@/services/social.functions";
+import { StoryRail } from "@/components/community/story-rail";
 import { listActiveBanners } from "@/services/banner.functions";
 import { listHotpages } from "@/services/hotpage.functions";
 import { getMarketplaceFeed } from "@/services/marketplace.functions";
+import { getFeedStories } from "@/services/social.functions";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_store/")({
   head: () => ({
     meta: [
-      { title: "JAH — Plataforma Comunitária de Comércio, Cultura & Descoberta" },
+      { title: "JAH — Marketplace & Descoberta Comercial da Comunidade" },
       {
         name: "description",
         content:
-          "Explore ofertas locais, gastronomia, marcas autorais, eventos e classificados da sua comunidade.",
+          "Explore ofertas relâmpago, gastronomia, marcas autorais, comércios locais e serviços na sua região.",
       },
     ],
   }),
   loader: async () => {
-    const [firstPage, stories, suggestedFriends, banners, hotpages, marketFeed] = await Promise.all(
-      [
-        getMuralFeed({ data: { limit: 15 } }).catch(() => ({
-          items: [],
-          hasMore: false,
-          nextCursor: null,
-        })),
-        getFeedStories().catch(() => []),
-        getSuggestedFriends().catch(() => []),
-        listActiveBanners({ data: { placement: "home" } }).catch(() => []),
-        listHotpages().catch(() => []),
-        getMarketplaceFeed().catch(() => ({ sections: [], allProducts: [] })),
-      ],
-    );
-    return { firstPage, stories, suggestedFriends, banners, hotpages, marketFeed };
+    const [banners, hotpages, marketFeed, stories] = await Promise.all([
+      listActiveBanners({ data: { placement: "home" } }).catch(() => []),
+      listHotpages().catch(() => []),
+      getMarketplaceFeed().catch(() => ({ sections: [], allProducts: [] })),
+      getFeedStories().catch(() => []),
+    ]);
+    return { banners, hotpages, marketFeed, stories };
   },
-  component: HomePage,
+  component: CommercialHomePage,
 });
 
-function HomePage() {
-  const { firstPage, stories, suggestedFriends, banners, hotpages, marketFeed } =
-    Route.useLoaderData();
-  const [activeFeedTab, setActiveFeedTab] = useState<"for_you" | "moments" | "classifieds">(
-    "for_you",
+function CommercialHomePage() {
+  const { banners, hotpages, marketFeed, stories } = Route.useLoaderData();
+
+  // Find flash offers section
+  const flashOffersSection = marketFeed.sections?.find(
+    (s: any) => s.type === "flash_deals" || s.title?.toLowerCase().includes("ofertas"),
   );
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status } = useInfiniteQuery({
-    queryKey: ["mural-feed"],
-    queryFn: async ({ pageParam = 0 }) => {
-      return await getMuralFeed({ data: { cursor: pageParam as string | undefined, limit: 15 } });
-    },
-    initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) =>
-      lastPage.hasMore ? (lastPage.nextCursor ?? undefined) : undefined,
-    initialData: {
-      pages: [firstPage],
-      pageParams: [undefined],
-    },
-  });
+  const flashProducts = flashOffersSection?.items || marketFeed.allProducts?.slice(0, 6) || [];
 
-  const allPosts = data?.pages.flatMap((page) => page.items) || [];
+  // Categorize products by niche for dedicated discovery rails
+  const foodProducts = marketFeed.allProducts?.filter((p: any) =>
+    p.categories?.some((c: any) => c.slug === "gastronomia" || c.name?.toLowerCase().includes("lanche")),
+  ) || [];
 
-  const filteredPosts = allPosts.filter((item) => {
-    if (activeFeedTab === "moments") {
-      return (item.media_urls && item.media_urls.length > 0) || item.location_name;
-    }
-    if (activeFeedTab === "classifieds") {
-      return item.reference_type === "classified";
-    }
-    return true;
-  });
-
-  const RightAsideWidgets = (
-    <div className="space-y-6">
-      {/* Widget do Mapa Social */}
-      <div className="rounded-3xl border border-border bg-card p-5 space-y-3.5 shadow-xs">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <MapPin className="size-4 text-primary" />
-            <h3 className="text-sm font-bold text-foreground">Moments na Cidade</h3>
-          </div>
-          <span className="text-[10px] uppercase font-bold text-emerald-500 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
-            Ao Vivo
-          </span>
-        </div>
-
-        <p className="text-xs text-muted-foreground leading-relaxed">
-          Veja momentos publicados por pessoas e locais em tempo real no mapa interativo.
-        </p>
-
-        <Button
-          asChild
-          size="sm"
-          variant="outline"
-          className="w-full rounded-xl text-xs font-semibold"
-        >
-          <Link to="/mapa">
-            Abrir Mapa Social
-            <ArrowRight className="size-3.5 ml-1.5" />
-          </Link>
-        </Button>
-      </div>
-
-      {/* Widget de Próximos Eventos */}
-      <div className="rounded-3xl border border-border bg-card p-5 space-y-3.5 shadow-xs">
-        <div className="flex items-center gap-2">
-          <Calendar className="size-4 text-primary" />
-          <h3 className="text-sm font-bold text-foreground">Agenda Cultural</h3>
-        </div>
-
-        <p className="text-xs text-muted-foreground leading-relaxed">
-          Shows, feiras de artesanato, exposições e eventos gastronômicos na sua região.
-        </p>
-
-        <Button
-          asChild
-          size="sm"
-          variant="outline"
-          className="w-full rounded-xl text-xs font-semibold"
-        >
-          <Link to="/agenda">
-            Ver Agenda Completa
-            <ArrowRight className="size-3.5 ml-1.5" />
-          </Link>
-        </Button>
-      </div>
-    </div>
-  );
+  const marketProducts = marketFeed.allProducts?.filter((p: any) =>
+    p.categories?.some((c: any) => c.slug === "mercado" || c.slug === "hortifruti"),
+  ) || [];
 
   return (
-    <div className="w-full space-y-8">
-      {/* ── 1. Top Universal Banner Hero ────────────────────────── */}
-      {banners && banners.length > 0 && <BannerHeroCarousel banners={banners} className="w-full" />}
+    <div className="w-full space-y-8 sm:space-y-12">
+      {/* ── 1. Top Banners Hero Carousel (Vídeo / GIF / Imagem com Aspect Ratio Fixo) ── */}
+      {banners.length > 0 && (
+        <section aria-label="Destaques Principais">
+          <BannerHeroCarousel banners={banners} />
+        </section>
+      )}
 
-      {/* ── 2. Hotpages & Categorias Grid/Rail (Estilo iFood / Pinterest) ── */}
-      {hotpages && hotpages.length > 0 && (
-        <div className="space-y-3">
+      {/* ── 2. Stories Rápidos de Lojas & Marcas da Comunidade ── */}
+      {stories && stories.length > 0 && (
+        <section aria-label="Stories Locais" className="py-1">
+          <StoryRail stories={stories} />
+        </section>
+      )}
+
+      {/* ── 3. Categorias / Hotpages em Formato Panorâmico & Retangular Ampliado ── */}
+      {hotpages.length > 0 && (
+        <section className="space-y-4" aria-label="Categorias em Destaque">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm sm:text-base font-black tracking-tight text-foreground flex items-center gap-2">
-              <Sparkles className="size-4 text-primary" />
-              <span>Destaques & Hotpages da Cidade</span>
-            </h2>
-            <Link to="/mercado" className="text-xs text-primary font-bold hover:underline">
-              Ver tudo →
+            <div>
+              <h2 className="text-xl sm:text-2xl font-black tracking-tight text-foreground flex items-center gap-2">
+                <Sparkles className="size-5 text-primary" />
+                <span>Explorar por Categoria</span>
+              </h2>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                Navegue pelas principais áreas de consumo e serviços da cidade
+              </p>
+            </div>
+            <Link
+              to="/mercado"
+              className="text-xs sm:text-sm font-bold text-primary hover:underline inline-flex items-center gap-1"
+            >
+              <span>Ver todas</span>
+              <ArrowRight className="size-3.5" />
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {hotpages.map((hp) => (
-              <Link
-                key={hp.id}
-                to="/mercado"
-                search={{ categoria: hp.slug }}
-                className="group relative flex flex-col justify-end p-3 rounded-2xl overflow-hidden aspect-4/3 sm:aspect-square bg-muted border border-border/80 hover:border-primary/50 shadow-xs hover-elevate transition-all select-none"
-              >
-                {/* Background Image */}
-                {hp.cover_image_url && (
-                  <img
-                    src={hp.cover_image_url}
-                    alt={hp.title}
-                    className="absolute inset-0 size-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    loading="lazy"
-                  />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+          {/* Grid Panorâmico de Hotpages Ampliadas */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+            {hotpages.map((hp) => {
+              const showTitle = hp.show_title !== false;
+              const showOverlay = hp.show_overlay !== false && (showTitle || hp.badge_label);
 
-                {/* Badge */}
-                {hp.badge_label && (
-                  <span className="absolute top-2 left-2 px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-primary text-primary-foreground shadow-2xs z-10">
-                    {hp.badge_label}
-                  </span>
-                )}
-
-                {/* Title */}
-                <div className="relative z-10 text-white space-y-0.5">
-                  <h3 className="text-xs sm:text-sm font-bold leading-tight line-clamp-1 group-hover:text-amber-300 transition-colors">
-                    {hp.title}
-                  </h3>
-                  {hp.description && (
-                    <p className="text-[10px] text-zinc-300 line-clamp-1 hidden sm:block">
-                      {hp.description}
-                    </p>
+              return (
+                <Link
+                  key={hp.id}
+                  to="/mercado"
+                  search={{ niche: hp.slug }}
+                  className="group relative flex flex-col justify-end aspect-16/10 sm:aspect-4/3 w-full rounded-2xl sm:rounded-3xl border border-border/80 bg-card overflow-hidden shadow-xs hover-elevate transition-all duration-300"
+                >
+                  {/* Cover Image / Asset */}
+                  {hp.cover_image_url ? (
+                    <img
+                      src={hp.cover_image_url}
+                      alt={hp.title}
+                      className="absolute inset-0 size-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 size-full bg-linear-to-br from-primary/20 to-muted flex items-center justify-center">
+                      <Tag className="size-8 text-muted-foreground/40" />
+                    </div>
                   )}
-                </div>
-              </Link>
-            ))}
+
+                  {/* Gradient Overlay (Opcional se show_overlay !== false) */}
+                  {showOverlay && (
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent pointer-events-none" />
+                  )}
+
+                  {/* Content Container */}
+                  <div className="relative p-3 sm:p-4 z-10 space-y-1">
+                    {hp.show_badge !== false && hp.badge_label && (
+                      <span className="px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-black uppercase tracking-wider bg-primary text-primary-foreground shadow-xs">
+                        {hp.badge_label}
+                      </span>
+                    )}
+
+                    {showTitle && (
+                      <h3 className="text-xs sm:text-sm font-black text-white line-clamp-1 drop-shadow-xs">
+                        {hp.title}
+                      </h3>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
           </div>
-        </div>
+        </section>
       )}
 
-      {/* ── 3. Rail de Ofertas Relâmpago (Se houver produtos) ──── */}
-      {marketFeed?.allProducts && marketFeed.allProducts.length > 0 && (
-        <div className="pt-2">
+      {/* ── 4. Trilho de Ofertas Relâmpago (Cards Retangulares Espaçosos & Timer Dinâmico) ── */}
+      {flashProducts.length > 0 && (
+        <section aria-label="Ofertas Relâmpago">
           <HorizontalRail
             title="⚡ Ofertas Relâmpago na Sua Região"
-            subtitle="Preços promocionais com estoque limitado disponíveis para entrega rápida"
-            badge="Até 40% OFF"
-            actionLabel="Ver todas"
-            onAction={() => (window.location.href = "/mercado?niche=ofertas")}
+            badge="Preços Especiais"
+            subtitle="Preços promocionais por tempo limitado e estoque garantido"
+            actionLabel="Ver todas as ofertas"
+            actionTo="/mercado?niche=ofertas"
           >
-            {marketFeed.allProducts.slice(0, 6).map((product: any) => (
-              <OfferCard key={product.id} {...product} />
-            ))}
+            {flashProducts.map((product: any, idx: number) => {
+              // Create dynamic future end timestamp for demo offers
+              const futureEndsAt = new Date(Date.now() + (idx + 1) * 3.5 * 3600 * 1000).toISOString();
+
+              return (
+                <OfferCard
+                  key={product.id}
+                  id={product.id}
+                  title={product.title}
+                  slug={product.slug}
+                  store_name={product.brand || "Loja Local"}
+                  price_cents={product.price_cents || 2990}
+                  original_price_cents={product.compare_at_cents || (product.price_cents ? Math.round(product.price_cents * 1.35) : 3990)}
+                  discount_percent={25}
+                  mechanic_label="OFERTA DO DIA"
+                  ends_at={product.flash_offer_ends_at || futureEndsAt}
+                  has_flash_offer={true}
+                  cover_image={
+                    product.product_media?.[0]?.url ||
+                    product.media?.[0]?.url ||
+                    "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop&q=80"
+                  }
+                  selling_unit={product.selling_unit || "un"}
+                  in_stock={product.stock_on_hand !== 0}
+                />
+              );
+            })}
           </HorizontalRail>
-        </div>
+        </section>
       )}
 
-      {/* ── 4. Feed Central & Mural da Comunidade ────────────────── */}
-      <div className="flex flex-col lg:flex-row gap-8 items-start justify-center w-full pt-4 border-t border-border/60">
-        {/* Feed Social Central */}
-        <div className="w-full max-w-[620px] space-y-6 mx-auto">
-          {/* Feed Sub-Header Tabs */}
-          <div className="flex items-center gap-2 border-b border-border pb-3">
-            <button
-              onClick={() => setActiveFeedTab("for_you")}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${
-                activeFeedTab === "for_you"
-                  ? "bg-foreground text-background font-bold shadow-2xs"
-                  : "bg-muted text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Para Você
-            </button>
-            <button
-              onClick={() => setActiveFeedTab("moments")}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-colors flex items-center gap-1.5 ${
-                activeFeedTab === "moments"
-                  ? "bg-foreground text-background font-bold shadow-2xs"
-                  : "bg-muted text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Flame className="size-3.5 text-amber-500" />
-              <span>Momentos</span>
-            </button>
-            <button
-              onClick={() => setActiveFeedTab("classifieds")}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-colors flex items-center gap-1.5 ${
-                activeFeedTab === "classifieds"
-                  ? "bg-foreground text-background font-bold shadow-2xs"
-                  : "bg-muted text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Tag className="size-3.5 text-primary" />
-              <span>Classificados</span>
-            </button>
-          </div>
-
-          {/* Stories Bar */}
-          {stories && stories.length > 0 && <StoryRail stories={stories} />}
-
-          {/* Composer inline */}
-          <InlinePostComposer />
-
-          {/* Status Loading/Error */}
-          {(status as string) === "pending" && (
-            <div className="py-20 flex flex-col items-center justify-center gap-3 text-muted-foreground">
-              <Loader2 className="size-8 animate-spin text-primary" />
-              <p className="text-sm font-medium">Carregando feed da comunidade...</p>
-            </div>
-          )}
-
-          {status === "error" && (
-            <div className="py-12 px-6 rounded-2xl border border-destructive/20 bg-destructive/5 text-center space-y-3">
-              <AlertCircle className="size-8 text-destructive mx-auto" />
-              <h3 className="font-bold text-foreground text-sm">
-                Não foi possível carregar o feed
-              </h3>
-              <p className="text-xs text-muted-foreground">
-                Verifique sua conexão e tente novamente.
-              </p>
-            </div>
-          )}
-
-          {/* Feed List com blocos editoriais intercalados */}
-          <div className="space-y-6">
-            {filteredPosts.map((post, idx) => (
-              <div key={post.id} className="space-y-6">
-                <PostCard item={post} />
-
-                {idx === 2 && (
-                  <FeedBannerBlock
-                    title="Descubra Sabores Autorais da Cidade"
-                    subtitle="Explore pratos especiais e cafés artesanais entregues na sua porta."
-                    badge="JAH Gastronomia"
-                    actionLabel="Explorar Menu"
-                    actionHref="/mercado?niche=gastronomia"
-                  />
-                )}
-
-                {idx === 5 && allPosts.length > 0 && <ThumbnailPreviewRail items={allPosts} />}
-
-                {idx === 9 && suggestedFriends && suggestedFriends.length > 0 && (
-                  <SuggestedFriendsBlock friends={suggestedFriends} />
-                )}
-              </div>
-            ))}
-
-            {filteredPosts.length === 0 && status === "success" && (
-              <div className="py-16 text-center space-y-3 bg-muted/20 rounded-3xl border border-border p-8">
-                <Sparkles className="size-8 text-muted-foreground/40 mx-auto" />
-                <h3 className="font-bold text-foreground text-sm">
-                  Nenhum post encontrado nesta aba
-                </h3>
-                <p className="text-xs text-muted-foreground">
-                  Seja a primeira pessoa a compartilhar um momento ou anúncio na comunidade!
-                </p>
-              </div>
+      {/* ── 5. Lojas & Negócios Autorais em Destaque (Cards Ampliados) ── */}
+      {marketFeed.sections?.find((s: any) => s.type === "stores") && (
+        <section aria-label="Comércios Locais em Destaque">
+          <HorizontalRail
+            title="🏪 Lojas & Negócios Locais"
+            badge="Compre do Bairro"
+            subtitle="Conheça marcas autorais, artesãos e serviços recomendados"
+            actionLabel="Ver diretório completo"
+            actionTo="/diretorio"
+          >
+            {(marketFeed.sections.find((s: any) => s.type === "stores")?.items || []).map(
+              (store: any) => (
+                <StoreCard
+                  key={store.id}
+                  id={store.id}
+                  name={store.name}
+                  slug={store.slug}
+                  avatar_url={store.avatar_url}
+                  banner_url={store.banner_url}
+                  category={store.category}
+                  rating={store.rating}
+                  review_count={store.review_count}
+                  distance_km={store.distance_km}
+                  is_open={store.is_open}
+                  delivery_time_min={store.delivery_time_min}
+                />
+              ),
             )}
+          </HorizontalRail>
+        </section>
+      )}
+
+      {/* ── 6. Gastronomia & Lanches Rápidos ── */}
+      {foodProducts.length > 0 && (
+        <section aria-label="Gastronomia Local">
+          <HorizontalRail
+            title="🍔 Gastronomia & Entregas Rápidas"
+            badge="Sabor Local"
+            subtitle="Hamburguerias, pizzarias, cafés e pratos especiais entregues quentinhos"
+            actionLabel="Ver cardápios"
+            actionTo="/mercado?niche=gastronomia"
+          >
+            {foodProducts.map((prod: any) => (
+              <OfferCard
+                key={prod.id}
+                id={prod.id}
+                title={prod.title}
+                slug={prod.slug}
+                store_name={prod.brand || "Restaurante Local"}
+                price_cents={prod.price_cents || 3490}
+                original_price_cents={prod.compare_at_cents || 4200}
+                discount_percent={15}
+                mechanic_label="ENTREGA RÁPIDA"
+                has_flash_offer={false}
+                cover_image={
+                  prod.product_media?.[0]?.url ||
+                  prod.media?.[0]?.url ||
+                  "https://images.unsplash.com/photo-1550547660-d9450f859349?w=600&auto=format&fit=crop&q=80"
+                }
+              />
+            ))}
+          </HorizontalRail>
+        </section>
+      )}
+
+      {/* ── 7. Banner de Conversão Comercial: Venda no JAH ── */}
+      <section className="relative overflow-hidden rounded-3xl bg-linear-to-br from-zinc-900 via-zinc-800 to-black text-white p-6 sm:p-10 lg:p-12 border border-border shadow-md">
+        <div className="max-w-2xl space-y-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs font-bold uppercase tracking-wider text-emerald-400 border border-white/15">
+            <Store className="size-3.5" />
+            <span>Ecossistema para Empreendedores</span>
           </div>
-
-          {/* Infinite Scroll trigger */}
-          {hasNextPage && (
-            <div className="pt-6 pb-12 flex justify-center">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => fetchNextPage()}
-                disabled={isFetchingNextPage}
-                className="rounded-full px-6 text-xs font-semibold"
-              >
-                {isFetchingNextPage ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin mr-2" />
-                    Carregando mais...
-                  </>
-                ) : (
-                  "Carregar mais publicações"
-                )}
-              </Button>
-            </div>
-          )}
+          <h2 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight">
+            Venda seus produtos, serviços e desapegos para milhares de pessoas.
+          </h2>
+          <p className="text-sm sm:text-base text-zinc-300 leading-relaxed">
+            Tenha seu próprio catálogo digital, frente de caixa PDV, links de entrega com motoboy e gestão integrada sem taxas abusivas.
+          </p>
+          <div className="flex flex-wrap items-center gap-3 pt-2">
+            <Button asChild size="lg" className="rounded-2xl font-bold bg-primary text-primary-foreground shadow-md hover:scale-105 active:scale-95 transition-all">
+              <Link to="/criar-negocio">
+                Criar Minha Loja Grátis
+                <ArrowRight className="size-4 ml-2" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="rounded-2xl font-bold bg-white/10 hover:bg-white/20 text-white border-white/20">
+              <Link to="/conta/classificados/novo">
+                Publicar Classificado Avulso
+              </Link>
+            </Button>
+          </div>
         </div>
-
-        {/* Coluna Lateral de Descobertas e Widgets */}
-        <aside className="hidden xl:block w-[320px] shrink-0 sticky top-20 self-start space-y-6">
-          {RightAsideWidgets}
-        </aside>
-      </div>
+      </section>
     </div>
   );
 }

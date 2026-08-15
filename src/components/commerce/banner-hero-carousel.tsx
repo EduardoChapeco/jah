@@ -77,40 +77,54 @@ export function BannerHeroCarousel({
     >
       {/* ── Fixed Aspect Ratio Container: 21:9 on desktop, 16:9 on tablet, 16:9 on mobile ── */}
       <div className="relative w-full aspect-16/9 sm:aspect-21/9 max-h-[420px] overflow-hidden">
-        {/* Media Background */}
-        <div className="absolute inset-0 bg-muted">{renderMedia(currentBanner)}</div>
+        {/* Clickable entire card link if no CTA or always */}
+        <Link
+          to={targetLink as any}
+          className="absolute inset-0 z-0"
+          aria-label={currentBanner.title}
+        />
 
-        {/* Gradient Overlay for Text Readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent sm:bg-gradient-to-r sm:from-black/90 sm:via-black/50 sm:to-transparent flex flex-col justify-end sm:justify-center p-6 sm:p-10 lg:p-12 text-white">
-          <div className="max-w-xl space-y-2 sm:space-y-3 z-10">
-            {currentBanner.badge_text && (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[10px] sm:text-xs font-bold uppercase tracking-wider text-white border border-white/30 shadow-xs">
-                <Sparkles className="size-3 text-amber-300" />
-                <span>{currentBanner.badge_text}</span>
+        {/* Gradient Overlay for Text Readability (Optional / Configurable) */}
+        {currentBanner.show_overlay !== false &&
+          (currentBanner.show_title !== false ||
+            currentBanner.show_description !== false ||
+            currentBanner.show_badge !== false ||
+            currentBanner.show_cta !== false) && (
+            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent sm:bg-gradient-to-r sm:from-black/90 sm:via-black/50 sm:to-transparent flex flex-col justify-end sm:justify-center p-6 sm:p-10 lg:p-12 text-white pointer-events-none">
+              <div className="max-w-xl space-y-2 sm:space-y-3 z-10 pointer-events-auto">
+                {currentBanner.show_badge !== false && currentBanner.badge_text && (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[10px] sm:text-xs font-bold uppercase tracking-wider text-white border border-white/30 shadow-xs">
+                    <Sparkles className="size-3 text-amber-300" />
+                    <span>{currentBanner.badge_text}</span>
+                  </div>
+                )}
+
+                {currentBanner.show_title !== false && (
+                  <h2 className="text-xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-tight line-clamp-2 text-white drop-shadow-sm">
+                    {currentBanner.title}
+                  </h2>
+                )}
+
+                {currentBanner.show_description !== false && currentBanner.subtitle && (
+                  <p className="text-xs sm:text-sm text-zinc-200 line-clamp-2 leading-relaxed max-w-lg">
+                    {currentBanner.subtitle}
+                  </p>
+                )}
+
+                {currentBanner.show_cta !== false && (
+                  <div className="pt-2">
+                    <Link
+                      to={targetLink as any}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white text-black font-bold text-xs sm:text-sm shadow-md hover:bg-zinc-100 hover:scale-105 active:scale-95 transition-all"
+                    >
+                      <span>{currentBanner.cta_label || "Conferir"}</span>
+                      <ArrowRight className="size-4" />
+                    </Link>
+                  </div>
+                )}
               </div>
-            )}
-
-            <h2 className="text-xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-tight line-clamp-2 text-white drop-shadow-sm">
-              {currentBanner.title}
-            </h2>
-
-            {currentBanner.subtitle && (
-              <p className="text-xs sm:text-sm text-zinc-200 line-clamp-2 leading-relaxed max-w-lg">
-                {currentBanner.subtitle}
-              </p>
-            )}
-
-            <div className="pt-2">
-              <Link
-                to={targetLink as any}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white text-black font-bold text-xs sm:text-sm shadow-md hover:bg-zinc-100 hover:scale-105 active:scale-95 transition-all"
-              >
-                <span>{currentBanner.cta_label || "Conferir"}</span>
-                <ArrowRight className="size-4" />
-              </Link>
             </div>
-          </div>
-        </div>
+          )}
 
         {/* Navigation Arrows (Desktop) */}
         {activeBanners.length > 1 && (

@@ -14,6 +14,10 @@ export interface HotpageDTO {
   filter_rules?: Record<string, any>;
   is_active: boolean;
   sort_order: number;
+  show_title?: boolean;
+  show_description?: boolean;
+  show_overlay?: boolean;
+  show_badge?: boolean;
 }
 
 export const listHotpages = createServerFn({ method: "GET" }).handler(
