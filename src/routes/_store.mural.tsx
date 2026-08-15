@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { Sparkle, Users, Camera, Tag, CircleNotch } from "@phosphor-icons/react";
+import { Sparkle, Users, Camera, Tag, CircleNotch, WarningCircle } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { InlinePostComposer } from "@/components/community/inline-post-composer";
 import { PostCard } from "@/components/community/post-card";
@@ -132,7 +132,7 @@ function MuralPage() {
       {/* 4. Lista do Feed Real do Supabase */}
       <section aria-label="Linha do Tempo" className="space-y-4">
         {filteredItems.map((item) => (
-          <PostCard key={item.id} post={item} session={session} />
+          <PostCard key={item.id} item={item} session={session} />
         ))}
 
         {/* 5. Estado de Loading Contínuo / Infinito */}
@@ -169,7 +169,7 @@ function MuralPage() {
 
         {isError && (
           <div className="py-8 text-center space-y-2">
-            <AlertCircle className="size-5 text-destructive mx-auto" />
+            <WarningCircle size={20} className="text-destructive mx-auto" />
             <p className="text-xs text-destructive">
               Não foi possível carregar as publicações. Tente novamente mais tarde.
             </p>

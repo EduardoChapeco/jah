@@ -1,7 +1,15 @@
 import { useState, useRef } from "react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { ImagePlus, X, Loader2, Video, Film, LogIn, MessageSquare } from "lucide-react";
+import {
+  ImageSquare,
+  X,
+  CircleNotch,
+  VideoCamera,
+  FilmStrip,
+  SignIn,
+  ChatCircleText,
+} from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { createPost } from "@/services/social.functions";
@@ -29,10 +37,10 @@ export function InlinePostComposer({ session }: InlinePostComposerProps) {
 
   if (!session?.id && !session?.email) {
     return (
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-3xl border border-border/80 bg-card/60 backdrop-blur-md shadow-xs">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-3xl border border-border bg-card shadow-2xs">
         <div className="flex items-center gap-3.5">
-          <div className="size-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-            <MessageSquare className="size-5" />
+          <div className="size-11 rounded-2xl bg-muted text-foreground flex items-center justify-center shrink-0">
+            <ChatCircleText size={20} weight="bold" />
           </div>
           <div>
             <h4 className="text-sm font-bold text-foreground">
@@ -43,9 +51,9 @@ export function InlinePostComposer({ session }: InlinePostComposerProps) {
             </p>
           </div>
         </div>
-        <Button asChild className="rounded-2xl font-bold gap-2 text-xs shrink-0 w-full sm:w-auto">
+        <Button asChild className="rounded-xl font-bold gap-2 text-xs shrink-0 w-full sm:w-auto">
           <Link to="/entrar">
-            <LogIn className="size-4" />
+            <SignIn size={16} weight="bold" />
             <span>Entrar / Cadastrar</span>
           </Link>
         </Button>
@@ -183,7 +191,7 @@ export function InlinePostComposer({ session }: InlinePostComposerProps) {
 
               {preview.type === "video" && (
                 <div className="absolute bottom-1.5 left-1.5 bg-black/70 text-white px-2 py-0.5 rounded-lg text-[10px] flex items-center gap-1 font-bold">
-                  <Film className="size-3" />
+                  <FilmStrip size={12} weight="bold" />
                   <span>Vídeo</span>
                 </div>
               )}
@@ -194,22 +202,22 @@ export function InlinePostComposer({ session }: InlinePostComposerProps) {
                 className="absolute top-1.5 right-1.5 bg-black/70 text-white rounded-xl p-1.5 hover:bg-black z-30 transition-all hover:scale-105"
                 aria-label="Remover mídia"
               >
-                <X className="size-3.5" />
+                <X size={14} />
               </button>
             </div>
           ))}
         </div>
       )}
 
-      <div className="flex justify-between items-center border-t border-border/60 pt-3 mt-1">
+      <div className="flex justify-between items-center border-t border-border pt-3 mt-1">
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => fileInputRef.current?.click()}
-            className="text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-2xl h-10 px-3.5 text-xs font-bold"
+            className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl h-10 px-3.5 text-xs font-bold"
           >
-            <ImagePlus className="size-4 mr-1.5 text-primary" />
+            <ImageSquare size={16} weight="bold" className="mr-1.5 text-foreground" />
             Foto / Vídeo
           </Button>
 
@@ -225,7 +233,7 @@ export function InlinePostComposer({ session }: InlinePostComposerProps) {
             <select
               value={layoutStyle}
               onChange={(e) => setLayoutStyle(e.target.value as "grid" | "carousel")}
-              className="text-xs border border-border/80 bg-background rounded-2xl px-3 h-10 outline-none focus:ring-1 focus:ring-primary text-foreground font-medium"
+              className="text-xs border border-border bg-background rounded-xl px-3 h-10 outline-none text-foreground font-medium"
             >
               <option value="grid">Layout em Grid</option>
               <option value="carousel">Layout em Carrossel</option>
@@ -237,11 +245,11 @@ export function InlinePostComposer({ session }: InlinePostComposerProps) {
           onClick={onSubmit}
           disabled={isSubmitting || isUploadingMedia || (!content.trim() && mediaUrls.length === 0)}
           size="sm"
-          className="bg-primary text-primary-foreground font-bold rounded-2xl h-10 px-6 text-xs shadow-xs hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+          className="bg-foreground text-background font-bold rounded-xl h-10 px-6 text-xs shadow-2xs hover:scale-102 active:scale-98 transition-all cursor-pointer"
         >
           {isSubmitting ? (
             <>
-              <Loader2 className="size-3.5 animate-spin mr-1.5" />
+              <CircleNotch size={14} className="animate-spin mr-1.5" />
               Publicando...
             </>
           ) : (

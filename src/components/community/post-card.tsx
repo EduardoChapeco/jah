@@ -31,7 +31,9 @@ import { toast } from "sonner";
 import { ContentActionsMenu } from "@/components/common/content-actions-menu";
 
 interface PostCardProps {
-  item: MuralFeedItem;
+  item?: MuralFeedItem;
+  post?: MuralFeedItem;
+  session?: any;
   queryKey?: unknown[];
 }
 
@@ -49,7 +51,12 @@ function isVideoUrl(url?: string | null): boolean {
   );
 }
 
-export function PostCard({ item, queryKey = ["mural-feed"] }: PostCardProps) {
+export function PostCard(props: PostCardProps) {
+  const item = props.item || props.post;
+  const queryKey = props.queryKey || ["mural-feed"];
+
+  if (!item) return null;
+
   const qc = useQueryClient();
   const [activeSlide, setActiveSlide] = useState(0);
   const [isSaved, setIsSaved] = useState(false);

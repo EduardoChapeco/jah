@@ -264,8 +264,8 @@ export const getMuralFeed = createServerFn({ method: "GET" })
         id, content_text, media_urls, layout_style, post_type, location_name, location_lat, location_lng, metadata,
         reference_type, reference_id, created_at,
         author_profile_id, author_store_id,
-        profiles!posts_author_profile_id_fkey(full_name, avatar_url),
-        stores!posts_author_store_id_fkey(name, logo_url)
+        profiles(full_name, avatar_url),
+        stores(name, settings)
       `,
       )
       .eq("status", "active")
@@ -281,7 +281,7 @@ export const getMuralFeed = createServerFn({ method: "GET" })
 
     if (error) {
       console.error("Erro ao buscar posts:", error);
-      throw new Error("Erro ao carregar o mural.");
+      return { items: [], hasMore: false, nextCursor: null } as MuralFeedResponse;
     }
 
     const posts = postsData ?? [];
@@ -355,6 +355,7 @@ export const getMuralFeed = createServerFn({ method: "GET" })
       const is_store = !!p.author_store_id && !!p.stores;
       const prof = p.profiles as any;
       const store = p.stores as any;
+      const storeLogo = store?.settings?.avatar_url || store?.settings?.logo_url || null;
 
       let reference_data: any = null;
       if (p.reference_type === "product" && p.reference_id)
@@ -370,7 +371,7 @@ export const getMuralFeed = createServerFn({ method: "GET" })
         author: {
           id: p.author_store_id || p.author_profile_id,
           name: is_store ? store.name : (prof?.full_name || "").trim() || "Membro da Jah",
-          avatar_url: is_store ? store.logo_url : (prof?.avatar_url ?? null),
+          avatar_url: is_store ? storeLogo : (prof?.avatar_url ?? null),
           is_store,
         },
         content_text: p.content_text,
@@ -511,8 +512,8 @@ export const getMomentsMap = createServerFn({ method: "GET" })
       .select(
         `
         id, content_text, media_urls, post_type, location_name, location_lat, location_lng, metadata, created_at,
-        profiles!posts_author_profile_id_fkey(full_name, avatar_url),
-        stores!posts_author_store_id_fkey(name, logo_url)
+        profiles(full_name, avatar_url),
+        stores(name, settings)
       `,
       )
       .eq("status", "active")
@@ -524,7 +525,7 @@ export const getMomentsMap = createServerFn({ method: "GET" })
     // 2. Negócios do diretório
     const directoryQuery = db
       .from("directory_listings")
-      .select("id, category, contact_phone, store_id, stores(name, logo_url, settings)")
+      .select("id, category, contact_phone, store_id, stores(name, settings)")
       .eq("status", "active")
       .limit(40);
 
@@ -544,13 +545,14 @@ export const getMomentsMap = createServerFn({ method: "GET" })
 
     const moments = (postsRes.data || []).map((p: any) => {
       const is_store = !!p.stores?.name;
+      const storeLogo = p.stores?.settings?.avatar_url || p.stores?.settings?.logo_url || null;
       return {
         id: p.id,
         kind: "moment" as const,
         title: p.location_name || (is_store ? p.stores.name : p.profiles?.full_name) || "Momento",
         subtitle: p.content_text?.substring(0, 80) || "",
         image_url: p.media_urls?.[0] || null,
-        avatar_url: is_store ? p.stores.logo_url : p.profiles?.avatar_url,
+        avatar_url: is_store ? storeLogo : p.profiles?.avatar_url,
         author_name: is_store ? p.stores.name : p.profiles?.full_name || "Membro da Jah",
         lat: p.location_lat as number,
         lng: p.location_lng as number,
@@ -560,17 +562,20 @@ export const getMomentsMap = createServerFn({ method: "GET" })
       };
     });
 
-    const places = (dirRes.data || []).map((d: any) => ({
-      id: d.id,
-      kind: "place" as const,
-      title: d.stores?.name || "Local Comunitário",
-      subtitle: d.category || "Negócio Local",
-      category: d.category,
-      avatar_url: d.stores?.logo_url || null,
-      phone: d.contact_phone || null,
-      lat: (d.stores?.settings as any)?.latitude || -23.5505 + (Math.random() - 0.5) * 0.05,
-      lng: (d.stores?.settings as any)?.longitude || -46.6333 + (Math.random() - 0.5) * 0.05,
-    }));
+    const places = (dirRes.data || []).map((d: any) => {
+      const storeLogo = d.stores?.settings?.avatar_url || d.stores?.settings?.logo_url || null;
+      return {
+        id: d.id,
+        kind: "place" as const,
+        title: d.stores?.name || "Local Comunitário",
+        subtitle: d.category || "Negócio Local",
+        category: d.category,
+        avatar_url: storeLogo,
+        phone: d.contact_phone || null,
+        lat: (d.stores?.settings as any)?.latitude || -27.1000 + (Math.random() - 0.5) * 0.05,
+        lng: (d.stores?.settings as any)?.longitude || -52.6150 + (Math.random() - 0.5) * 0.05,
+      };
+    });
 
     const events = (eventsRes.data || []).map((e: any) => ({
       id: e.id,
@@ -580,8 +585,8 @@ export const getMomentsMap = createServerFn({ method: "GET" })
       image_url: e.cover_image || null,
       event_date: e.event_date,
       is_free: e.is_free,
-      lat: -23.5505 + (Math.random() - 0.5) * 0.06,
-      lng: -46.6333 + (Math.random() - 0.5) * 0.06,
+      lat: -27.1000 + (Math.random() - 0.5) * 0.06,
+      lng: -52.6150 + (Math.random() - 0.5) * 0.06,
     }));
 
     return {
@@ -605,7 +610,7 @@ export const getFeedStories = createServerFn({ method: "GET" }).handler(async ()
       .not("media_urls", "eq", "{}")
       .order("created_at", { ascending: false })
       .limit(10),
-    db.from("stores").select("id, name, logo_url, type").eq("status", "active").limit(8),
+    db.from("stores").select("id, name, settings").limit(8),
     db
       .from("events")
       .select("id, title, cover_image, event_date")
@@ -623,14 +628,17 @@ export const getFeedStories = createServerFn({ method: "GET" }).handler(async ()
       avatar_url: p.profiles?.avatar_url || null,
       created_at: p.created_at,
     })),
-    ...(featuredStores.data || []).map((s: any) => ({
-      id: `store-${s.id}`,
-      type: "store" as const,
-      title: s.name,
-      image_url: s.logo_url || "",
-      avatar_url: s.logo_url || null,
-      badge: "Loja",
-    })),
+    ...(featuredStores.data || []).map((s: any) => {
+      const storeLogo = s.settings?.avatar_url || s.settings?.logo_url || "";
+      return {
+        id: `store-${s.id}`,
+        type: "store" as const,
+        title: s.name,
+        image_url: storeLogo,
+        avatar_url: storeLogo || null,
+        badge: "Loja",
+      };
+    }),
     ...(upcomingEvents.data || []).map((e: any) => ({
       id: `event-${e.id}`,
       type: "event" as const,
