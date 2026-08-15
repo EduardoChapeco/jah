@@ -24,6 +24,7 @@ import { Route as StoreContaRouteImport } from './routes/_store.conta'
 import { Route as StoreContatoRouteImport } from './routes/_store.contato'
 import { Route as StoreCriarNegocioRouteImport } from './routes/_store.criar-negocio'
 import { Route as StoreDiretorioRouteImport } from './routes/_store.diretorio'
+import { Route as StoreEmpregosRouteImport } from './routes/_store.empregos'
 import { Route as StoreEntrarRouteImport } from './routes/_store.entrar'
 import { Route as StoreFaqRouteImport } from './routes/_store.faq'
 import { Route as StoreMapaRouteImport } from './routes/_store.mapa'
@@ -37,6 +38,7 @@ import { Route as StoreRecuperarSenhaRouteImport } from './routes/_store.recuper
 import { Route as StoreStoriesRouteImport } from './routes/_store.stories'
 import { Route as StoreTermosRouteImport } from './routes/_store.termos'
 import { Route as StoreTrocasEDevolucoesRouteImport } from './routes/_store.trocas-e-devolucoes'
+import { Route as StoreTurismoRouteImport } from './routes/_store.turismo'
 import { Route as AdminMasterIndexRouteImport } from './routes/admin-master.index'
 import { Route as AdminMasterFaturasRouteImport } from './routes/admin-master.faturas'
 import { Route as AdminMasterLojasRouteImport } from './routes/admin-master.lojas'
@@ -46,6 +48,7 @@ import { Route as WorkspaceSimulacaoRouteImport } from './routes/workspace.simul
 import { Route as StoreAgendarIndexRouteImport } from './routes/_store.agendar.index'
 import { Route as StoreBioSlugRouteImport } from './routes/_store.bio.$slug'
 import { Route as StoreCategoriaSlugRouteImport } from './routes/_store.categoria.$slug'
+import { Route as StoreClassificadosIndexRouteImport } from './routes/_store.classificados.index'
 import { Route as StoreClassificadosIdRouteImport } from './routes/_store.classificados.$id'
 import { Route as StoreColecaoSlugRouteImport } from './routes/_store.colecao.$slug'
 import { Route as StoreContaIndexRouteImport } from './routes/_store.conta.index'
@@ -226,6 +229,11 @@ const StoreDiretorioRoute = StoreDiretorioRouteImport.update({
   path: '/diretorio',
   getParentRoute: () => StoreRoute,
 } as any)
+const StoreEmpregosRoute = StoreEmpregosRouteImport.update({
+  id: '/empregos',
+  path: '/empregos',
+  getParentRoute: () => StoreRoute,
+} as any)
 const StoreEntrarRoute = StoreEntrarRouteImport.update({
   id: '/entrar',
   path: '/entrar',
@@ -291,6 +299,11 @@ const StoreTrocasEDevolucoesRoute = StoreTrocasEDevolucoesRouteImport.update({
   path: '/trocas-e-devolucoes',
   getParentRoute: () => StoreRoute,
 } as any)
+const StoreTurismoRoute = StoreTurismoRouteImport.update({
+  id: '/turismo',
+  path: '/turismo',
+  getParentRoute: () => StoreRoute,
+} as any)
 const AdminMasterIndexRoute = AdminMasterIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -334,6 +347,11 @@ const StoreBioSlugRoute = StoreBioSlugRouteImport.update({
 const StoreCategoriaSlugRoute = StoreCategoriaSlugRouteImport.update({
   id: '/categoria/$slug',
   path: '/categoria/$slug',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StoreClassificadosIndexRoute = StoreClassificadosIndexRouteImport.update({
+  id: '/classificados/',
+  path: '/classificados/',
   getParentRoute: () => StoreRoute,
 } as any)
 const StoreClassificadosIdRoute = StoreClassificadosIdRouteImport.update({
@@ -923,6 +941,7 @@ export interface FileRoutesByFullPath {
   '/contato': typeof StoreContatoRoute
   '/criar-negocio': typeof StoreCriarNegocioRoute
   '/diretorio': typeof StoreDiretorioRoute
+  '/empregos': typeof StoreEmpregosRoute
   '/entrar': typeof StoreEntrarRoute
   '/faq': typeof StoreFaqRoute
   '/mapa': typeof StoreMapaRoute
@@ -936,6 +955,7 @@ export interface FileRoutesByFullPath {
   '/stories': typeof StoreStoriesRoute
   '/termos': typeof StoreTermosRoute
   '/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
+  '/turismo': typeof StoreTurismoRoute
   '/admin-master/faturas': typeof AdminMasterFaturasRoute
   '/admin-master/lojas': typeof AdminMasterLojasRoute
   '/assinar/$token': typeof AssinarTokenRoute
@@ -1011,6 +1031,7 @@ export interface FileRoutesByFullPath {
   '/workspace/pedidos/gestor': typeof WorkspacePedidosGestorRoute
   '/workspace/pedidos/trocas': typeof WorkspacePedidosTrocasRoute
   '/agendar/': typeof StoreAgendarIndexRoute
+  '/classificados/': typeof StoreClassificadosIndexRoute
   '/conta/': typeof StoreContaIndexRoute
   '/noticias/': typeof StoreNoticiasIndexRoute
   '/workspace/agenda/': typeof WorkspaceAgendaIndexRoute
@@ -1061,6 +1082,7 @@ export interface FileRoutesByTo {
   '/contato': typeof StoreContatoRoute
   '/criar-negocio': typeof StoreCriarNegocioRoute
   '/diretorio': typeof StoreDiretorioRoute
+  '/empregos': typeof StoreEmpregosRoute
   '/entrar': typeof StoreEntrarRoute
   '/faq': typeof StoreFaqRoute
   '/mapa': typeof StoreMapaRoute
@@ -1074,6 +1096,7 @@ export interface FileRoutesByTo {
   '/stories': typeof StoreStoriesRoute
   '/termos': typeof StoreTermosRoute
   '/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
+  '/turismo': typeof StoreTurismoRoute
   '/admin-master/faturas': typeof AdminMasterFaturasRoute
   '/admin-master/lojas': typeof AdminMasterLojasRoute
   '/assinar/$token': typeof AssinarTokenRoute
@@ -1150,6 +1173,7 @@ export interface FileRoutesByTo {
   '/workspace/pedidos/gestor': typeof WorkspacePedidosGestorRoute
   '/workspace/pedidos/trocas': typeof WorkspacePedidosTrocasRoute
   '/agendar': typeof StoreAgendarIndexRoute
+  '/classificados': typeof StoreClassificadosIndexRoute
   '/conta': typeof StoreContaIndexRoute
   '/noticias': typeof StoreNoticiasIndexRoute
   '/workspace/agenda': typeof WorkspaceAgendaIndexRoute
@@ -1206,6 +1230,7 @@ export interface FileRoutesById {
   '/_store/contato': typeof StoreContatoRoute
   '/_store/criar-negocio': typeof StoreCriarNegocioRoute
   '/_store/diretorio': typeof StoreDiretorioRoute
+  '/_store/empregos': typeof StoreEmpregosRoute
   '/_store/entrar': typeof StoreEntrarRoute
   '/_store/faq': typeof StoreFaqRoute
   '/_store/mapa': typeof StoreMapaRoute
@@ -1219,6 +1244,7 @@ export interface FileRoutesById {
   '/_store/stories': typeof StoreStoriesRoute
   '/_store/termos': typeof StoreTermosRoute
   '/_store/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
+  '/_store/turismo': typeof StoreTurismoRoute
   '/admin-master/faturas': typeof AdminMasterFaturasRoute
   '/admin-master/lojas': typeof AdminMasterLojasRoute
   '/assinar/$token': typeof AssinarTokenRoute
@@ -1295,6 +1321,7 @@ export interface FileRoutesById {
   '/workspace/pedidos/gestor': typeof WorkspacePedidosGestorRoute
   '/workspace/pedidos/trocas': typeof WorkspacePedidosTrocasRoute
   '/_store/agendar/': typeof StoreAgendarIndexRoute
+  '/_store/classificados/': typeof StoreClassificadosIndexRoute
   '/_store/conta/': typeof StoreContaIndexRoute
   '/_store/noticias/': typeof StoreNoticiasIndexRoute
   '/workspace/agenda/': typeof WorkspaceAgendaIndexRoute
@@ -1352,6 +1379,7 @@ export interface FileRouteTypes {
     | '/contato'
     | '/criar-negocio'
     | '/diretorio'
+    | '/empregos'
     | '/entrar'
     | '/faq'
     | '/mapa'
@@ -1365,6 +1393,7 @@ export interface FileRouteTypes {
     | '/stories'
     | '/termos'
     | '/trocas-e-devolucoes'
+    | '/turismo'
     | '/admin-master/faturas'
     | '/admin-master/lojas'
     | '/assinar/$token'
@@ -1440,6 +1469,7 @@ export interface FileRouteTypes {
     | '/workspace/pedidos/gestor'
     | '/workspace/pedidos/trocas'
     | '/agendar/'
+    | '/classificados/'
     | '/conta/'
     | '/noticias/'
     | '/workspace/agenda/'
@@ -1490,6 +1520,7 @@ export interface FileRouteTypes {
     | '/contato'
     | '/criar-negocio'
     | '/diretorio'
+    | '/empregos'
     | '/entrar'
     | '/faq'
     | '/mapa'
@@ -1503,6 +1534,7 @@ export interface FileRouteTypes {
     | '/stories'
     | '/termos'
     | '/trocas-e-devolucoes'
+    | '/turismo'
     | '/admin-master/faturas'
     | '/admin-master/lojas'
     | '/assinar/$token'
@@ -1579,6 +1611,7 @@ export interface FileRouteTypes {
     | '/workspace/pedidos/gestor'
     | '/workspace/pedidos/trocas'
     | '/agendar'
+    | '/classificados'
     | '/conta'
     | '/noticias'
     | '/workspace/agenda'
@@ -1634,6 +1667,7 @@ export interface FileRouteTypes {
     | '/_store/contato'
     | '/_store/criar-negocio'
     | '/_store/diretorio'
+    | '/_store/empregos'
     | '/_store/entrar'
     | '/_store/faq'
     | '/_store/mapa'
@@ -1647,6 +1681,7 @@ export interface FileRouteTypes {
     | '/_store/stories'
     | '/_store/termos'
     | '/_store/trocas-e-devolucoes'
+    | '/_store/turismo'
     | '/admin-master/faturas'
     | '/admin-master/lojas'
     | '/assinar/$token'
@@ -1723,6 +1758,7 @@ export interface FileRouteTypes {
     | '/workspace/pedidos/gestor'
     | '/workspace/pedidos/trocas'
     | '/_store/agendar/'
+    | '/_store/classificados/'
     | '/_store/conta/'
     | '/_store/noticias/'
     | '/workspace/agenda/'
@@ -1885,6 +1921,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreDiretorioRouteImport
       parentRoute: typeof StoreRoute
     }
+    '/_store/empregos': {
+      id: '/_store/empregos'
+      path: '/empregos'
+      fullPath: '/empregos'
+      preLoaderRoute: typeof StoreEmpregosRouteImport
+      parentRoute: typeof StoreRoute
+    }
     '/_store/entrar': {
       id: '/_store/entrar'
       path: '/entrar'
@@ -1976,6 +2019,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreTrocasEDevolucoesRouteImport
       parentRoute: typeof StoreRoute
     }
+    '/_store/turismo': {
+      id: '/_store/turismo'
+      path: '/turismo'
+      fullPath: '/turismo'
+      preLoaderRoute: typeof StoreTurismoRouteImport
+      parentRoute: typeof StoreRoute
+    }
     '/admin-master/': {
       id: '/admin-master/'
       path: '/'
@@ -2037,6 +2087,13 @@ declare module '@tanstack/react-router' {
       path: '/categoria/$slug'
       fullPath: '/categoria/$slug'
       preLoaderRoute: typeof StoreCategoriaSlugRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/classificados/': {
+      id: '/_store/classificados/'
+      path: '/classificados'
+      fullPath: '/classificados/'
+      preLoaderRoute: typeof StoreClassificadosIndexRouteImport
       parentRoute: typeof StoreRoute
     }
     '/_store/classificados/$id': {
@@ -2844,6 +2901,7 @@ interface StoreRouteChildren {
   StoreContatoRoute: typeof StoreContatoRoute
   StoreCriarNegocioRoute: typeof StoreCriarNegocioRoute
   StoreDiretorioRoute: typeof StoreDiretorioRoute
+  StoreEmpregosRoute: typeof StoreEmpregosRoute
   StoreEntrarRoute: typeof StoreEntrarRoute
   StoreFaqRoute: typeof StoreFaqRoute
   StoreMapaRoute: typeof StoreMapaRoute
@@ -2857,6 +2915,7 @@ interface StoreRouteChildren {
   StoreStoriesRoute: typeof StoreStoriesRoute
   StoreTermosRoute: typeof StoreTermosRoute
   StoreTrocasEDevolucoesRoute: typeof StoreTrocasEDevolucoesRoute
+  StoreTurismoRoute: typeof StoreTurismoRoute
   StoreIndexRoute: typeof StoreIndexRoute
   StoreBioSlugRoute: typeof StoreBioSlugRoute
   StoreCategoriaSlugRoute: typeof StoreCategoriaSlugRoute
@@ -2873,6 +2932,7 @@ interface StoreRouteChildren {
   StorePoliticasSlugRoute: typeof StorePoliticasSlugRoute
   StoreProdutoSlugRoute: typeof StoreProdutoSlugRoute
   StoreVendedoraSlugRoute: typeof StoreVendedoraSlugRoute
+  StoreClassificadosIndexRoute: typeof StoreClassificadosIndexRoute
   StoreNoticiasIndexRoute: typeof StoreNoticiasIndexRoute
   StorePedidoPublicTokenConfirmacaoRoute: typeof StorePedidoPublicTokenConfirmacaoRoute
 }
@@ -2888,6 +2948,7 @@ const StoreRouteChildren: StoreRouteChildren = {
   StoreContatoRoute: StoreContatoRoute,
   StoreCriarNegocioRoute: StoreCriarNegocioRoute,
   StoreDiretorioRoute: StoreDiretorioRoute,
+  StoreEmpregosRoute: StoreEmpregosRoute,
   StoreEntrarRoute: StoreEntrarRoute,
   StoreFaqRoute: StoreFaqRoute,
   StoreMapaRoute: StoreMapaRoute,
@@ -2901,6 +2962,7 @@ const StoreRouteChildren: StoreRouteChildren = {
   StoreStoriesRoute: StoreStoriesRoute,
   StoreTermosRoute: StoreTermosRoute,
   StoreTrocasEDevolucoesRoute: StoreTrocasEDevolucoesRoute,
+  StoreTurismoRoute: StoreTurismoRoute,
   StoreIndexRoute: StoreIndexRoute,
   StoreBioSlugRoute: StoreBioSlugRoute,
   StoreCategoriaSlugRoute: StoreCategoriaSlugRoute,
@@ -2917,6 +2979,7 @@ const StoreRouteChildren: StoreRouteChildren = {
   StorePoliticasSlugRoute: StorePoliticasSlugRoute,
   StoreProdutoSlugRoute: StoreProdutoSlugRoute,
   StoreVendedoraSlugRoute: StoreVendedoraSlugRoute,
+  StoreClassificadosIndexRoute: StoreClassificadosIndexRoute,
   StoreNoticiasIndexRoute: StoreNoticiasIndexRoute,
   StorePedidoPublicTokenConfirmacaoRoute:
     StorePedidoPublicTokenConfirmacaoRoute,

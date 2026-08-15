@@ -381,6 +381,8 @@ export const listHotpages = createServerFn({ method: "GET" })
     return dbData as HotpageDTO[];
   });
 
+export const listActiveHotpages = listHotpages;
+
 export const getHotpageBySlug = createServerFn({ method: "GET" })
   .validator(z.object({ slug: z.string() }))
   .handler(async ({ data: { slug } }): Promise<HotpageDTO | null> => {

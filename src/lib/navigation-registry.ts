@@ -32,6 +32,9 @@ import {
   Building,
   Car,
   Truck,
+  Mountain,
+  Laptop,
+  Briefcase,
 } from "lucide-react";
 
 export type ContentWidthMode =
@@ -264,6 +267,96 @@ export function resolveContextNavigation(pathname: string, session?: any): Conte
       },
       widthMode: "reading",
       showContextSidebar: true,
+    };
+  }
+
+  // 2.6. Turismo, Viagens & Lazer
+  if (pathname.startsWith("/turismo") || pathname.startsWith("/viagens")) {
+    return {
+      moduleId: "tourism",
+      title: "Turismo & Viagens",
+      subtitle: "Passeios, ecoturismo, cabanas e gastronomia regional",
+      groups: [
+        {
+          id: "tourism-categories",
+          title: "Experiências",
+          items: [
+            { to: "/turismo", label: "Todos os Roteiros", icon: Compass, exact: true },
+            { to: "/turismo?category=passeios", label: "Passeios & Catamarã", icon: Sparkles },
+            { to: "/turismo?category=hospedagens", label: "Pousadas & Cabanas", icon: Building },
+            { to: "/turismo?category=gastronomia_turistica", label: "Vinícolas & Sabores", icon: Utensils },
+            { to: "/turismo?category=aventura", label: "Trilhas & Aventura", icon: Mountain },
+          ],
+        },
+      ],
+      action: {
+        label: "Cadastrar Passeio",
+        type: "navigate",
+        to: "/workspace/agenda/servicos",
+        icon: Plus,
+      },
+      widthMode: "catalog",
+      showContextSidebar: true,
+    };
+  }
+
+  // 2.7. Vagas & Empregos
+  if (pathname.startsWith("/empregos") || pathname.startsWith("/vagas")) {
+    return {
+      moduleId: "jobs",
+      title: "Vagas & Empregos",
+      subtitle: "Oportunidades de trabalho e talentos locais",
+      groups: [
+        {
+          id: "jobs-categories",
+          title: "Carreiras",
+          items: [
+            { to: "/empregos", label: "Todas as Vagas", icon: Briefcase, exact: true },
+            { to: "/empregos?category=clt", label: "Comércio & CLT", icon: Store },
+            { to: "/empregos?category=tech", label: "Tech & Dev", icon: Laptop },
+            { to: "/empregos?category=comercial", label: "Vendas & B2B", icon: Flame },
+            { to: "/empregos?category=estagio", label: "Estágios", icon: User },
+          ],
+        },
+      ],
+      action: {
+        label: "Publicar Vaga",
+        type: "navigate",
+        to: "/conta/classificados/novo",
+        icon: Plus,
+      },
+      widthMode: "catalog",
+      showContextSidebar: true,
+    };
+  }
+
+  // 2.8. Classificados & Desapegos
+  if (pathname.startsWith("/classificados")) {
+    const isNew = pathname.startsWith("/classificados/novo");
+    return {
+      moduleId: "classifieds",
+      title: "Classificados & Desapegos",
+      subtitle: "Negociações diretas entre moradores da comunidade",
+      groups: [
+        {
+          id: "classifieds-categories",
+          title: "Categorias",
+          items: [
+            { to: "/classificados", label: "Todos os Anúncios", icon: Tag, exact: true },
+            { to: "/classificados?category=vehicle", label: "Veículos & Autos", icon: Car },
+            { to: "/classificados?category=real_estate", label: "Imóveis & Aluguel", icon: Home },
+            { to: "/classificados?category=sale", label: "Desapegos & Tech", icon: Laptop },
+          ],
+        },
+      ],
+      action: {
+        label: "Anunciar Grátis",
+        type: "navigate",
+        to: "/conta/classificados/novo",
+        icon: Plus,
+      },
+      widthMode: isNew ? "reading" : "catalog",
+      showContextSidebar: !isNew,
     };
   }
 

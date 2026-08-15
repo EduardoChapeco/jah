@@ -18,6 +18,7 @@ import {
   Tag,
   Bookmark,
   Newspaper,
+  Car,
 } from "lucide-react";
 
 export interface ContextSidebarProps {
@@ -29,19 +30,20 @@ const PRIMARY_DESTINATIONS = [
   { to: "/mural", label: "Mural Social", icon: MessageSquare },
   { to: "/noticias", label: "Notícias & Mídia", icon: Newspaper },
   { to: "/mercado", label: "Catálogo Geral", icon: ShoppingBag },
+  { to: "/mobilidade", label: "Mobilidade & Fretes", icon: Car },
   { to: "/mapa", label: "Mapa & Moments", icon: MapPin },
   { to: "/agenda", label: "Eventos & Agenda", icon: Calendar },
   { to: "/diretorio", label: "Guia & Diretório", icon: Compass },
 ];
 
 const CATEGORY_NICHES = [
+  { to: "/turismo", label: "Turismo & Lazer", icon: Plane },
+  { to: "/empregos", label: "Vagas & Empregos", icon: Briefcase },
+  { to: "/classificados", label: "Classificados", icon: Tag },
   { to: "/mercado?niche=ofertas", label: "Ofertas Relâmpago", icon: Flame },
   { to: "/mercado?niche=gastronomia", label: "Gastronomia", icon: Utensils },
   { to: "/mercado?niche=mercado", label: "Mercado & Horti", icon: Store },
   { to: "/mercado?niche=beleza", label: "Beleza & Estética", icon: Scissors },
-  { to: "/mercado?niche=empregos", label: "Vagas & Empregos", icon: Briefcase },
-  { to: "/mercado?niche=viagens", label: "Viagens & Lazer", icon: Plane },
-  { to: "/conta/classificados", label: "Classificados", icon: Tag },
 ];
 
 const USER_DESTINATIONS = [

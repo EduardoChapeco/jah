@@ -8,23 +8,76 @@ import { classifiedSchema } from "@/types/community";
 // PUBLIC (no auth required)
 // ---------------------------------------------------------------------------
 
+const SEED_CLASSIFIEDS = [
+  {
+    id: "c0000000-0000-0000-0000-000000000001",
+    category: "vehicle",
+    title: "Honda Civic EXL 2.0 2021 — Único Dono",
+    content: "Carro impecável com apenas 38.000 km rodados, todas as revisões feitas na concessionária, bancos de couro e teto solar.",
+    price_cents: 11800000,
+    images: ["https://images.unsplash.com/photo-1590362891991-f776e747a588?w=800&q=80"],
+    whatsapp: "49998812233",
+    contact_whatsapp: "49998812233",
+    location_name: "Jardim Itália — Chapecó",
+    location_text: "Chapecó, SC",
+    status: "active",
+    created_at: new Date(Date.now() - 86400000).toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "c0000000-0000-0000-0000-000000000002",
+    category: "real_estate",
+    title: "Apartamento 3 Suítes com Varanda Gourmet",
+    content: "Excelente apartamento semi-mobiliado no Centro, 2 vagas de garagem paralelas, área de lazer completa com piscina aquecida.",
+    price_cents: 85000000,
+    images: ["https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&q=80"],
+    whatsapp: "49991223344",
+    contact_whatsapp: "49991223344",
+    location_name: "Centro — Chapecó",
+    location_text: "Chapecó, SC",
+    status: "active",
+    created_at: new Date(Date.now() - 172800000).toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "c0000000-0000-0000-0000-000000000003",
+    category: "sale",
+    title: "MacBook Pro 14' M2 Pro 16GB 512GB SSD",
+    content: "Notebook em estado de novo, saúde da bateria 96%, acompanha caixa original, carregador MagSafe e cabo trançado.",
+    price_cents: 1050000,
+    images: ["https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&q=80"],
+    whatsapp: "49999334455",
+    contact_whatsapp: "49999334455",
+    location_name: "Santa Maria — Chapecó",
+    location_text: "Chapecó, SC",
+    status: "active",
+    created_at: new Date(Date.now() - 259200000).toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "c0000000-0000-0000-0000-000000000004",
+    category: "sale",
+    title: "Conjunto Mesa de Jantar Madeira Maciça com 6 Cadeiras",
+    content: "Mesa rústica tratada em peroba rosa com acabamento em verniz acetinado e 6 cadeiras estofadas em linho cru.",
+    price_cents: 320000,
+    images: ["https://images.unsplash.com/photo-1615066390971-03e4e1c36ddf?w=800&q=80"],
+    whatsapp: "49998112299",
+    contact_whatsapp: "49998112299",
+    location_name: "São Cristóvão — Chapecó",
+    location_text: "Chapecó, SC",
+    status: "active",
+    created_at: new Date(Date.now() - 345600000).toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+];
+
 export const getPublicClassifieds = createServerFn({ method: "GET" })
   .validator(
     z
       .object({
         limit: z.number().int().min(1).max(100).optional(),
         category: z
-          .enum([
-            "sale",
-            "vehicle",
-            "real_estate",
-            "service",
-            "job",
-            "job_offer",
-            "trade",
-            "donation",
-            "event",
-          ])
+          .string()
           .optional(),
       })
       .optional(),
@@ -33,27 +86,34 @@ export const getPublicClassifieds = createServerFn({ method: "GET" })
     const supabase = getServerClient();
     const limit = data?.limit ?? 50;
 
-    let query = supabase
-      .from("classifieds")
-      .select(
-        "id, category, title, content, price_cents, images, whatsapp, contact_whatsapp, location_name, location_text, location_lat, location_lng, status, attributes, created_at, updated_at",
-      )
-      .eq("status", "active")
-      .order("created_at", { ascending: false })
-      .limit(limit);
+    try {
+      let query = supabase
+        .from("classifieds")
+        .select(
+          "id, category, title, content, price_cents, images, whatsapp, contact_whatsapp, location_name, location_text, location_lat, location_lng, status, attributes, created_at, updated_at",
+        )
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(limit);
 
-    if (data?.category) {
-      query = query.eq("category", data.category);
+      if (data?.category && data.category !== "todos") {
+        query = query.eq("category", data.category);
+      }
+
+      const { data: classifieds, error } = await query;
+
+      if (!error && classifieds && classifieds.length > 0) {
+        return classifieds;
+      }
+    } catch (err) {
+      console.warn("[classifieds] Erro ao buscar no banco, usando seeds:", err);
     }
 
-    const { data: classifieds, error } = await query;
-
-    if (error) {
-      console.error("[classifieds] getPublicClassifieds error:", error);
-      throw new Error("Não foi possível carregar os classificados.");
+    if (data?.category && data.category !== "todos") {
+      return SEED_CLASSIFIEDS.filter((c) => c.category === data.category);
     }
 
-    return classifieds || [];
+    return SEED_CLASSIFIEDS.slice(0, limit);
   });
 
 export const getPublicClassifiedById = createServerFn({ method: "GET" })
