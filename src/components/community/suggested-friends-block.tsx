@@ -1,9 +1,10 @@
-import { UserPlus, Sparkles, Check } from "lucide-react";
+import { UserPlus, Sparkles, Check, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useState } from "react";
 import { toast } from "sonner";
+import { toggleUserFollow } from "@/services/social.functions";
 
 export interface SuggestedFriend {
   id: string;
@@ -19,21 +20,34 @@ interface SuggestedFriendsBlockProps {
 
 export function SuggestedFriendsBlock({ friends = [] }: SuggestedFriendsBlockProps) {
   const [followedIds, setFollowedIds] = useState<Set<string>>(new Set());
+  const [loadingId, setLoadingId] = useState<string | null>(null);
 
   if (friends.length === 0) return null;
 
-  const handleToggleFollow = (id: string, name: string) => {
-    setFollowedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-        toast.info(`Deixou de seguir ${name}`);
-      } else {
-        next.add(id);
-        toast.success(`Você agora está seguindo ${name}`);
-      }
-      return next;
-    });
+  const handleToggleFollow = async (targetUserId: string, name: string) => {
+    setLoadingId(targetUserId);
+    try {
+      const res = await toggleUserFollow({ data: { targetUserId } });
+      setFollowedIds((prev) => {
+        const next = new Set(prev);
+        if (res.following) {
+          next.add(targetUserId);
+        } else {
+          next.delete(targetUserId);
+        }
+        return next;
+      });
+      toast.success(
+        res.following ? `Você agora está seguindo ${name}` : `Deixou de seguir ${name}`,
+      );
+    } catch (err: unknown) {
+      toast.error(
+        (err instanceof Error ? err.message : String(err)) ||
+          "Você precisa estar autenticado para seguir membros.",
+      );
+    } finally {
+      setLoadingId(null);
+    }
   };
 
   return (
@@ -43,13 +57,15 @@ export function SuggestedFriendsBlock({ friends = [] }: SuggestedFriendsBlockPro
           <Sparkles className="size-4 text-primary" />
           <h3 className="text-sm font-semibold text-foreground">Pessoas para Conectar</h3>
         </div>
-        <span className="text-xs text-muted-foreground">Sugestões para você</span>
+        <span className="text-xs text-muted-foreground">Membros reais na comunidade</span>
       </div>
 
       <ScrollArea className="w-full whitespace-nowrap">
         <div className="flex gap-3 py-1">
           {friends.map((friend) => {
             const isFollowing = followedIds.has(friend.id);
+            const isLoading = loadingId === friend.id;
+
             return (
               <div
                 key={friend.id}
@@ -71,9 +87,12 @@ export function SuggestedFriendsBlock({ friends = [] }: SuggestedFriendsBlockPro
                   size="sm"
                   variant={isFollowing ? "outline" : "default"}
                   className="w-full h-7 text-xs rounded-lg font-medium"
+                  disabled={isLoading}
                   onClick={() => handleToggleFollow(friend.id, friend.name)}
                 >
-                  {isFollowing ? (
+                  {isLoading ? (
+                    <Loader2 className="size-3 animate-spin" />
+                  ) : isFollowing ? (
                     <>
                       <Check className="size-3 mr-1" /> Seguindo
                     </>

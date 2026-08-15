@@ -3,59 +3,71 @@ import { z } from "zod";
 import { getServerClient } from "@/lib/supabase";
 import { getCurrentIdentity } from "@/services/cart-helpers";
 
-export const toggleStoreFollow = createServerFn({ method: "POST" }).handler(async () => {
-  const supabase = getServerClient();
-  const identity = await getCurrentIdentity();
-  const { resolveTenantStoreId } = await import("@/lib/tenant.server");
-  const storeId = await resolveTenantStoreId();
-  if (!storeId) throw new Error("Loja não encontrada.");
+export const toggleStoreFollow = createServerFn({ method: "POST" })
+  .validator(z.object({ storeId: z.string().uuid().optional() }).optional())
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const identity = await getCurrentIdentity();
+    
+    let targetStoreId = data?.storeId;
+    if (!targetStoreId) {
+      const { resolveTenantStoreId } = await import("@/lib/tenant.server");
+      targetStoreId = (await resolveTenantStoreId()) || undefined;
+    }
+    if (!targetStoreId) throw new Error("Loja não encontrada.");
 
-  if (!identity.customer_id) {
-    throw new Error("Você precisa estar logado para seguir uma loja.");
-  }
+    if (!identity.customer_id) {
+      throw new Error("Você precisa estar logado para seguir uma loja.");
+    }
 
-  const { data: existing } = await supabase
-    .from("store_followers")
-    .select("store_id")
-    .eq("store_id", storeId)
-    .eq("customer_id", identity.customer_id)
-    .limit(1)
-    .maybeSingle();
-
-  if (existing) {
-    await supabase
+    const { data: existing } = await supabase
       .from("store_followers")
-      .delete()
-      .eq("store_id", storeId)
-      .eq("customer_id", identity.customer_id);
-    return { following: false };
-  } else {
-    await supabase
+      .select("store_id")
+      .eq("store_id", targetStoreId)
+      .eq("customer_id", identity.customer_id)
+      .limit(1)
+      .maybeSingle();
+
+    if (existing) {
+      await supabase
+        .from("store_followers")
+        .delete()
+        .eq("store_id", targetStoreId)
+        .eq("customer_id", identity.customer_id);
+      return { following: false };
+    } else {
+      await supabase
+        .from("store_followers")
+        .insert({ store_id: targetStoreId, customer_id: identity.customer_id });
+      return { following: true };
+    }
+  });
+
+export const getStoreFollowStatus = createServerFn({ method: "GET" })
+  .validator(z.object({ storeId: z.string().uuid().optional() }).optional())
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const identity = await getCurrentIdentity();
+
+    let targetStoreId = data?.storeId;
+    if (!targetStoreId) {
+      const { resolveTenantStoreId } = await import("@/lib/tenant.server");
+      targetStoreId = (await resolveTenantStoreId()) || undefined;
+    }
+    if (!targetStoreId) return { following: false };
+
+    if (!identity.customer_id) return { following: false };
+
+    const { data: existing } = await supabase
       .from("store_followers")
-      .insert({ store_id: storeId, customer_id: identity.customer_id });
-    return { following: true };
-  }
-});
+      .select("store_id")
+      .eq("store_id", targetStoreId)
+      .eq("customer_id", identity.customer_id)
+      .limit(1)
+      .maybeSingle();
 
-export const getStoreFollowStatus = createServerFn({ method: "GET" }).handler(async () => {
-  const supabase = getServerClient();
-  const identity = await getCurrentIdentity();
-  const { resolveTenantStoreId } = await import("@/lib/tenant.server");
-  const storeId = await resolveTenantStoreId();
-  if (!storeId) return { following: false };
-
-  if (!identity.customer_id) return { following: false };
-
-  const { data: existing } = await supabase
-    .from("store_followers")
-    .select("store_id")
-    .eq("store_id", storeId)
-    .eq("customer_id", identity.customer_id)
-    .limit(1)
-    .maybeSingle();
-
-  return { following: !!existing };
-});
+    return { following: !!existing };
+  });
 
 export const submitProductReview = createServerFn({ method: "POST" })
   .validator(
@@ -689,4 +701,69 @@ export const getPublicMemberProfile = createServerFn({ method: "GET" })
       posts: postsRes.data || [],
       classifieds: classifiedsRes.data || [],
     };
+  });
+
+/**
+ * Seguir ou deixar de seguir um membro real da comunidade com persistência no Supabase.
+ */
+export const toggleUserFollow = createServerFn({ method: "POST" })
+  .validator(z.object({ targetUserId: z.string().uuid() }))
+  .handler(async ({ data: { targetUserId } }) => {
+    const supabase = getServerClient();
+    const identity = await getCurrentIdentity();
+
+    if (!identity.customer_id) {
+      throw new Error("Você precisa estar logado para seguir um membro.");
+    }
+
+    if (identity.customer_id === targetUserId) {
+      throw new Error("Você não pode seguir seu próprio perfil.");
+    }
+
+    const { data: existing } = await supabase
+      .from("user_followers")
+      .select("following_user_id")
+      .eq("following_user_id", targetUserId)
+      .eq("follower_user_id", identity.customer_id)
+      .limit(1)
+      .maybeSingle();
+
+    if (existing) {
+      await supabase
+        .from("user_followers")
+        .delete()
+        .eq("following_user_id", targetUserId)
+        .eq("follower_user_id", identity.customer_id);
+      return { following: false };
+    } else {
+      await supabase
+        .from("user_followers")
+        .insert({
+          following_user_id: targetUserId,
+          follower_user_id: identity.customer_id,
+        });
+      return { following: true };
+    }
+  });
+
+/**
+ * Consulta status de seguimento de um membro da comunidade.
+ */
+export const getUserFollowStatus = createServerFn({ method: "GET" })
+  .validator(z.object({ targetUserId: z.string().uuid() }))
+  .handler(async ({ data: { targetUserId } }) => {
+    const supabase = getServerClient();
+    const identity = await getCurrentIdentity();
+
+    if (!identity.customer_id) return { following: false };
+
+    const { data: existing } = await supabase
+      .from("user_followers")
+      .select("following_user_id")
+      .eq("following_user_id", targetUserId)
+      .eq("follower_user_id", identity.customer_id)
+      .limit(1)
+      .maybeSingle();
+
+    return { following: !!existing };
   });

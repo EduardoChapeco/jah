@@ -276,46 +276,38 @@ function MarketplacePage() {
       {/* MODE 1: FEED DE DESCOBERTA NARRATIVA E RAILS HORIZONTAIS */}
       {currentView === "feed" && (
         <div className="space-y-10">
-          {/* Rail 1: Ofertas Relâmpago */}
-          <HorizontalRail
-            title="⚡ Ofertas Relâmpago"
-            subtitle="Preços promocionais por tempo limitado em Chapecó e região"
-            badge="Descontos até 40%"
-            actionLabel="Ver todas as ofertas"
-            onAction={() => setViewMode("grid")}
-          >
-            {feed.allProducts.slice(0, 8).map((product: any) => (
-              <OfferCard key={product.id} {...product} />
-            ))}
-          </HorizontalRail>
+          {/* Rail 1: Ofertas Relâmpago (Apenas se houver ofertas com timer ativas) */}
+          {feed.allProducts.filter((p: any) => p.has_flash_offer).length > 0 && (
+            <HorizontalRail
+              title="⚡ Ofertas Relâmpago"
+              subtitle="Preços promocionais por tempo limitado em Chapecó e região"
+              badge="Tempo Limitado"
+              actionLabel="Ver todas as ofertas"
+              onAction={() => setViewMode("grid")}
+            >
+              {feed.allProducts
+                .filter((p: any) => p.has_flash_offer)
+                .map((product: any) => (
+                  <OfferCard key={product.id} {...product} />
+                ))}
+            </HorizontalRail>
+          )}
 
           {/* Rail 2: Lojas & Produtores Locais */}
-          {feed.sections.find((s: any) => s.type === "store_rail") && (
+          {(feed?.sections?.find((s: any) => s.type === "store_rail")?.items?.length ?? 0) > 0 && (
             <HorizontalRail
               title="🏪 Lojas & Produtores da Comunidade"
               subtitle="Negócios locais com entrega rápida na sua região"
               actionLabel="Ver diretório"
               onAction={() => navigate({ to: "/diretorio" })}
             >
-              {(feed.sections.find((s: any) => s.type === "store_rail")?.items || []).map(
+              {(feed?.sections?.find((s: any) => s.type === "store_rail")?.items || []).map(
                 (store: any) => (
                   <StoreCard key={store.id} {...store} />
                 ),
               )}
             </HorizontalRail>
           )}
-
-          {/* Rail 3: Gastronomia & Artesanal */}
-          <HorizontalRail
-            title="🍔 Gastronomia & Sabores Autorais"
-            subtitle="Pratos especiais, cafés, lanches e doces artesanais"
-            actionLabel="Explorar menu"
-            onAction={() => setViewMode("grid")}
-          >
-            {feed.allProducts.slice(8, 16).map((product: any) => (
-              <OfferCard key={product.id} {...product} />
-            ))}
-          </HorizontalRail>
 
           {/* Grade de Lançamentos na Base do Feed */}
           <div className="space-y-4 pt-4 border-t border-border/60">
@@ -324,12 +316,21 @@ function MarketplacePage() {
                 ✨ Todos os Lançamentos da Comunidade
               </h2>
               <p className="text-xs text-muted-foreground">
-                Navegue pela coleção completa de produtos disponíveis para entrega e retirada
-                imediata.
+                Navegue pela coleção de produtos disponíveis para entrega e retirada.
               </p>
             </div>
 
             {result.status === "ok" && <ProductGrid result={result} />}
+            {result.status === "empty" && (
+              <div className="py-16 text-center space-y-3 bg-muted/10 rounded-3xl border border-dashed border-border p-8">
+                <EmptyState title="Nenhum produto publicado nesta categoria ainda." />
+                <div className="pt-2">
+                  <Button asChild size="sm" className="rounded-xl font-bold">
+                    <Link to="/criar-negocio">Cadastrar Primeira Loja</Link>
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

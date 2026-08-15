@@ -408,8 +408,8 @@ function ProductContent({
   });
 
   const { data: followStatus, refetch: refetchFollowStatus } = useQuery({
-    queryKey: ["storeFollow"],
-    queryFn: () => getStoreFollowStatus(),
+    queryKey: ["storeFollow", product.store_id],
+    queryFn: () => getStoreFollowStatus({ data: { storeId: product.store_id || undefined } }),
     initialData: { following: false },
   });
 
@@ -556,7 +556,9 @@ function ProductContent({
 
   const handleToggleFollow = async () => {
     try {
-      const res = await toggleStoreFollow();
+      const res = await toggleStoreFollow({
+        data: { storeId: product.store_id || undefined },
+      });
       toast.success(
         res.following ? "Você agora está seguindo a loja!" : "Você deixou de seguir a loja.",
       );

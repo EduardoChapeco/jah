@@ -31,12 +31,37 @@ export const getPublicDirectory = createServerFn({ method: "GET" })
       query = query.eq("category", data.category);
     }
 
-    const { data: listings, error } = await query;
+    const { data: listings } = await query;
 
-    if (error) {
-      console.error("[directory] getPublicDirectory error:", error);
-      return []; // Retorna array vazio em vez de throw Error para evitar quebra 500 no SSR
+    if (listings && listings.length > 0) {
+      return listings;
     }
 
-    return listings || [];
+    // Se a tabela directory_listings estiver sem registros específicos, busca diretamente as lojas ativas
+    const { data: storesData } = await supabase
+      .from("stores")
+      .select("id, name, slug, avatar_url, banner_url, niche, is_verified, active, created_at")
+      .eq("active", true)
+      .limit(limit);
+
+    if (storesData && storesData.length > 0) {
+      return storesData.map((s: any) => ({
+        id: s.id,
+        category: s.niche || "Comércio Local",
+        address: "Chapecó - SC",
+        latitude: null,
+        longitude: null,
+        contact_phone: null,
+        working_hours: null,
+        is_verified: !!s.is_verified,
+        status: "active",
+        created_at: s.created_at,
+        stores: {
+          name: s.name,
+          type: s.niche || "ecommerce",
+        },
+      }));
+    }
+
+    return [];
   });

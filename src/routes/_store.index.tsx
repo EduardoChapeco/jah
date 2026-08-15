@@ -14,6 +14,7 @@ import {
   Tag,
   Star,
   Plus,
+  Compass,
 } from "lucide-react";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
 import { HorizontalRail } from "@/components/commerce/horizontal-rail";
@@ -52,25 +53,28 @@ export const Route = createFileRoute("/_store/")({
 function CommercialHomePage() {
   const { banners, hotpages, marketFeed, stories } = Route.useLoaderData();
 
-  // Find flash offers section
-  const flashOffersSection = marketFeed.sections?.find(
-    (s: any) => s.type === "flash_deals" || s.title?.toLowerCase().includes("ofertas"),
-  );
+  // Find real flash deals rail
+  const flashOffersSection = marketFeed.sections?.find((s: any) => s.type === "flash_deal_rail");
+  const flashProducts = flashOffersSection?.items || [];
 
-  const flashProducts = flashOffersSection?.items || marketFeed.allProducts?.slice(0, 6) || [];
+  // Find real stores rail
+  const storeSection = marketFeed.sections?.find((s: any) => s.type === "store_rail");
+  const stores = storeSection?.items || [];
 
-  // Categorize products by niche for dedicated discovery rails
-  const foodProducts = marketFeed.allProducts?.filter((p: any) =>
-    p.categories?.some((c: any) => c.slug === "gastronomia" || c.name?.toLowerCase().includes("lanche")),
-  ) || [];
+  // Find real catalog highlights rail
+  const trendingSection = marketFeed.sections?.find((s: any) => s.type === "product_rail");
+  const catalogProducts = trendingSection?.items || [];
 
-  const marketProducts = marketFeed.allProducts?.filter((p: any) =>
-    p.categories?.some((c: any) => c.slug === "mercado" || c.slug === "hortifruti"),
-  ) || [];
+  const hasAnyCommercialData =
+    banners.length > 0 ||
+    hotpages.length > 0 ||
+    flashProducts.length > 0 ||
+    stores.length > 0 ||
+    catalogProducts.length > 0;
 
   return (
     <div className="w-full space-y-8 sm:space-y-12">
-      {/* ── 1. Top Banners Hero Carousel (Vídeo / GIF / Imagem com Aspect Ratio Fixo) ── */}
+      {/* ── 1. Top Banners Hero Carousel (100% Real do Supabase) ── */}
       {banners.length > 0 && (
         <section aria-label="Destaques Principais">
           <BannerHeroCarousel banners={banners} />
@@ -84,7 +88,7 @@ function CommercialHomePage() {
         </section>
       )}
 
-      {/* ── 3. Categorias / Hotpages em Formato Panorâmico & Retangular Ampliado ── */}
+      {/* ── 3. Categorias / Hotpages Panorâmicas ── */}
       {hotpages.length > 0 && (
         <section className="space-y-4" aria-label="Categorias em Destaque">
           <div className="flex items-center justify-between">
@@ -94,7 +98,7 @@ function CommercialHomePage() {
                 <span>Explorar por Categoria</span>
               </h2>
               <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                Navegue pelas principais áreas de consumo e serviços da cidade
+                Navegue pelas principais áreas de consumo e serviços da comunidade
               </p>
             </div>
             <Link
@@ -119,7 +123,7 @@ function CommercialHomePage() {
                   search={{ niche: hp.slug }}
                   className="group relative flex flex-col justify-end aspect-16/10 sm:aspect-4/3 w-full rounded-2xl sm:rounded-3xl border border-border/80 bg-card overflow-hidden shadow-xs hover-elevate transition-all duration-300"
                 >
-                  {/* Cover Image / Asset */}
+                  {/* Cover Image */}
                   {hp.cover_image_url ? (
                     <img
                       src={hp.cover_image_url}
@@ -133,7 +137,7 @@ function CommercialHomePage() {
                     </div>
                   )}
 
-                  {/* Gradient Overlay (Opcional se show_overlay !== false) */}
+                  {/* Gradient Overlay */}
                   {showOverlay && (
                     <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent pointer-events-none" />
                   )}
@@ -159,113 +163,131 @@ function CommercialHomePage() {
         </section>
       )}
 
-      {/* ── 4. Trilho de Ofertas Relâmpago (Cards Retangulares Espaçosos & Timer Dinâmico) ── */}
+      {/* ── 4. Trilho de Ofertas Relâmpago Reais ── */}
       {flashProducts.length > 0 && (
         <section aria-label="Ofertas Relâmpago">
           <HorizontalRail
             title="⚡ Ofertas Relâmpago na Sua Região"
-            badge="Preços Especiais"
-            subtitle="Preços promocionais por tempo limitado e estoque garantido"
+            badge="Tempo Limitado"
+            subtitle="Preços promocionais com contagem regressiva em tempo real"
             actionLabel="Ver todas as ofertas"
             actionTo="/mercado?niche=ofertas"
           >
-            {flashProducts.map((product: any, idx: number) => {
-              // Create dynamic future end timestamp for demo offers
-              const futureEndsAt = new Date(Date.now() + (idx + 1) * 3.5 * 3600 * 1000).toISOString();
-
-              return (
-                <OfferCard
-                  key={product.id}
-                  id={product.id}
-                  title={product.title}
-                  slug={product.slug}
-                  store_name={product.brand || "Loja Local"}
-                  price_cents={product.price_cents || 2990}
-                  original_price_cents={product.compare_at_cents || (product.price_cents ? Math.round(product.price_cents * 1.35) : 3990)}
-                  discount_percent={25}
-                  mechanic_label="OFERTA DO DIA"
-                  ends_at={product.flash_offer_ends_at || futureEndsAt}
-                  has_flash_offer={true}
-                  cover_image={
-                    product.product_media?.[0]?.url ||
-                    product.media?.[0]?.url ||
-                    "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop&q=80"
-                  }
-                  selling_unit={product.selling_unit || "un"}
-                  in_stock={product.stock_on_hand !== 0}
-                />
-              );
-            })}
-          </HorizontalRail>
-        </section>
-      )}
-
-      {/* ── 5. Lojas & Negócios Autorais em Destaque (Cards Ampliados) ── */}
-      {marketFeed.sections?.find((s: any) => s.type === "stores") && (
-        <section aria-label="Comércios Locais em Destaque">
-          <HorizontalRail
-            title="🏪 Lojas & Negócios Locais"
-            badge="Compre do Bairro"
-            subtitle="Conheça marcas autorais, artesãos e serviços recomendados"
-            actionLabel="Ver diretório completo"
-            actionTo="/diretorio"
-          >
-            {(marketFeed.sections.find((s: any) => s.type === "stores")?.items || []).map(
-              (store: any) => (
-                <StoreCard
-                  key={store.id}
-                  id={store.id}
-                  name={store.name}
-                  slug={store.slug}
-                  avatar_url={store.avatar_url}
-                  banner_url={store.banner_url}
-                  category={store.category}
-                  rating={store.rating}
-                  review_count={store.review_count}
-                  distance_km={store.distance_km}
-                  is_open={store.is_open}
-                  delivery_time_min={store.delivery_time_min}
-                />
-              ),
-            )}
-          </HorizontalRail>
-        </section>
-      )}
-
-      {/* ── 6. Gastronomia & Lanches Rápidos ── */}
-      {foodProducts.length > 0 && (
-        <section aria-label="Gastronomia Local">
-          <HorizontalRail
-            title="🍔 Gastronomia & Entregas Rápidas"
-            badge="Sabor Local"
-            subtitle="Hamburguerias, pizzarias, cafés e pratos especiais entregues quentinhos"
-            actionLabel="Ver cardápios"
-            actionTo="/mercado?niche=gastronomia"
-          >
-            {foodProducts.map((prod: any) => (
+            {flashProducts.map((product: any) => (
               <OfferCard
-                key={prod.id}
-                id={prod.id}
-                title={prod.title}
-                slug={prod.slug}
-                store_name={prod.brand || "Restaurante Local"}
-                price_cents={prod.price_cents || 3490}
-                original_price_cents={prod.compare_at_cents || 4200}
-                discount_percent={15}
-                mechanic_label="ENTREGA RÁPIDA"
-                has_flash_offer={false}
-                cover_image={
-                  prod.product_media?.[0]?.url ||
-                  prod.media?.[0]?.url ||
-                  "https://images.unsplash.com/photo-1550547660-d9450f859349?w=600&auto=format&fit=crop&q=80"
-                }
+                key={product.id}
+                id={product.id}
+                title={product.title}
+                slug={product.slug}
+                store_name={product.store_name}
+                price_cents={product.price_cents}
+                original_price_cents={product.original_price_cents}
+                discount_percent={product.discount_percent}
+                mechanic_label={product.mechanic_label}
+                ends_at={product.ends_at}
+                has_flash_offer={product.has_flash_offer}
+                cover_image={product.cover_image || "/banner-placeholder.png"}
+                selling_unit={product.selling_unit || "un"}
+                in_stock={product.in_stock}
               />
             ))}
           </HorizontalRail>
         </section>
       )}
 
-      {/* ── 7. Banner de Conversão Comercial: Venda no JAH ── */}
+      {/* ── 5. Lojas & Negócios Reais Cadastrados ── */}
+      {stores.length > 0 && (
+        <section aria-label="Comércios Locais em Destaque">
+          <HorizontalRail
+            title="🏪 Lojas & Negócios Locais"
+            badge="Compre do Bairro"
+            subtitle="Conheça negócios e produtores cadastrados na sua região"
+            actionLabel="Ver diretório completo"
+            actionTo="/diretorio"
+          >
+            {stores.map((store: any) => (
+              <StoreCard
+                key={store.id}
+                id={store.id}
+                name={store.name}
+                slug={store.slug}
+                avatar_url={store.avatar_url}
+                banner_url={store.banner_url}
+                category={store.category}
+                rating={store.rating}
+                review_count={store.review_count}
+                distance_km={store.distance_km}
+                is_open={store.is_open}
+                delivery_time_min={store.delivery_time_min}
+              />
+            ))}
+          </HorizontalRail>
+        </section>
+      )}
+
+      {/* ── 6. Produtos Destaque Reais ── */}
+      {catalogProducts.length > 0 && (
+        <section aria-label="Produtos em Destaque">
+          <HorizontalRail
+            title="🛍️ Destaques do Catálogo"
+            badge="Disponível"
+            subtitle="Itens adicionados recentemente pelos lojistas"
+            actionLabel="Explorar catálogo"
+            actionTo="/mercado"
+          >
+            {catalogProducts.map((prod: any) => (
+              <OfferCard
+                key={prod.id}
+                id={prod.id}
+                title={prod.title}
+                slug={prod.slug}
+                store_name={prod.store_name}
+                price_cents={prod.price_cents}
+                original_price_cents={prod.original_price_cents}
+                discount_percent={prod.discount_percent}
+                mechanic_label={prod.mechanic_label}
+                ends_at={prod.ends_at}
+                has_flash_offer={prod.has_flash_offer}
+                cover_image={prod.cover_image || "/banner-placeholder.png"}
+                selling_unit={prod.selling_unit || "un"}
+                in_stock={prod.in_stock}
+              />
+            ))}
+          </HorizontalRail>
+        </section>
+      )}
+
+      {/* ── 7. Estado Inicial / Onboarding Honesto (Sem mocks) ── */}
+      {!hasAnyCommercialData && (
+        <section className="py-12 px-6 rounded-3xl border border-dashed border-border bg-card/60 text-center space-y-4 max-w-xl mx-auto">
+          <div className="size-16 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
+            <Store className="size-8" />
+          </div>
+          <div className="space-y-1.5">
+            <h2 className="text-xl font-bold text-foreground">
+              Marketplace em Expansão na sua Região
+            </h2>
+            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+              Nenhuma loja ou produto foi publicado nesta localidade ainda. Você pode ser o primeiro lojista ou produtor a abrir seu catálogo digital.
+            </p>
+          </div>
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Button asChild className="w-full sm:w-auto rounded-2xl font-bold">
+              <Link to="/criar-negocio">
+                <Store className="size-4 mr-2" />
+                Cadastrar Minha Loja
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="w-full sm:w-auto rounded-2xl font-bold">
+              <Link to="/workspace">
+                Painel do Lojista
+              </Link>
+            </Button>
+          </div>
+        </section>
+      )}
+
+      {/* ── 8. Banner de Conversão Comercial: Venda no JAH ── */}
       <section className="relative overflow-hidden rounded-3xl bg-linear-to-br from-zinc-900 via-zinc-800 to-black text-white p-6 sm:p-10 lg:p-12 border border-border shadow-md">
         <div className="max-w-2xl space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs font-bold uppercase tracking-wider text-emerald-400 border border-white/15">

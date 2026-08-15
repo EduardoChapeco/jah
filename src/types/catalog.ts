@@ -145,6 +145,8 @@ export interface ProductDetailDTO {
   id: string;
   slug: string;
   title: string;
+  storeId?: string;
+  store_id?: string;
   description?: string | null;
   /** Brief summary for cards and structured data. */
   shortDescription?: string | null;
