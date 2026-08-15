@@ -1,14 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Car,
-  Bike,
   Star,
   ShieldCheck,
-  CheckCircle,
   Phone,
-  ArrowRight,
-  Sparkles,
-  MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +13,7 @@ export const Route = createFileRoute("/_store/motorista/$slug")({
   head: ({ loaderData }) => ({
     meta: [
       {
-        title: `${loaderData?.courier?.full_name || "Motorista Autônomo"} — JAH Mobilidade`,
+        title: `${loaderData?.courier?.full_name || "Motorista Parceiro"} — JAH Mobilidade`,
       },
     ],
   }),
@@ -30,15 +25,15 @@ export const Route = createFileRoute("/_store/motorista/$slug")({
 });
 
 function DriverDirectPage() {
-  const { courier, slug } = Route.useLoaderData();
+  const { courier } = Route.useLoaderData();
 
   if (!courier) {
     return (
-      <div className="py-24 text-center space-y-4">
-        <Car className="size-12 text-muted-foreground/40 mx-auto" />
-        <h1 className="text-xl font-bold text-foreground">Motorista não encontrado</h1>
+      <div className="py-24 text-center space-y-4 max-w-md mx-auto">
+        <Car className="size-10 text-muted-foreground/50 mx-auto" />
+        <h1 className="text-base font-semibold text-foreground">Motorista não encontrado</h1>
         <p className="text-xs text-muted-foreground">O link do motorista é inválido ou foi desativado.</p>
-        <Button asChild className="rounded-2xl">
+        <Button asChild className="rounded-xl h-10 px-4 bg-foreground text-background">
           <Link to="/mobilidade">Voltar para Mobilidade</Link>
         </Button>
       </div>
@@ -48,10 +43,10 @@ function DriverDirectPage() {
   const phoneDigits = courier.phone ? courier.phone.replace(/\D/g, "") : "";
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-8 pb-24">
+    <div className="w-full max-w-xl mx-auto space-y-6 pb-24">
       {/* Profile Card */}
-      <div className="rounded-3xl border border-border/80 bg-card p-6 sm:p-8 shadow-xs text-center space-y-6">
-        <div className="relative size-24 rounded-3xl mx-auto overflow-hidden border-2 border-primary/20 shadow-md">
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-xs text-center space-y-5">
+        <div className="size-20 rounded-2xl mx-auto overflow-hidden border border-border bg-muted flex items-center justify-center font-bold text-xl text-foreground">
           {courier.avatar_url ? (
             <img
               src={courier.avatar_url}
@@ -59,70 +54,67 @@ function DriverDirectPage() {
               className="size-full object-cover"
             />
           ) : (
-            <div className="size-full bg-primary/10 text-primary flex items-center justify-center font-black text-2xl">
-              {courier.full_name.charAt(0)}
-            </div>
+            courier.full_name.charAt(0)
           )}
         </div>
 
         <div className="space-y-1">
-          <div className="flex items-center justify-center gap-1.5 text-xs font-mono text-emerald-600 font-bold">
+          <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
             <ShieldCheck className="size-4" />
             <span>Motorista Parceiro Verificado</span>
           </div>
-          <h1 className="text-2xl font-black text-foreground tracking-tight">
+          <h1 className="text-xl font-semibold text-foreground tracking-tight">
             {courier.full_name}
           </h1>
-          <p className="text-xs text-muted-foreground font-mono">
+          <p className="text-xs text-muted-foreground">
             {courier.vehicle_model || courier.vehicle_type} • Placa {courier.vehicle_plate || "Verificada"}
           </p>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 p-4 rounded-2xl bg-muted/40 border border-border/50 text-center">
+        <div className="grid grid-cols-3 gap-3 p-3 rounded-xl bg-muted/40 border border-border text-center">
           <div>
-            <div className="flex items-center justify-center gap-1 text-amber-500 font-bold text-sm">
-              <Star className="size-4 fill-amber-500" />
+            <div className="flex items-center justify-center gap-1 font-semibold text-sm text-foreground">
+              <Star className="size-3.5 fill-foreground text-foreground" />
               <span>{courier.rating.toFixed(1)}</span>
             </div>
             <span className="text-[10px] text-muted-foreground">Avaliação</span>
           </div>
 
           <div>
-            <span className="font-bold text-foreground text-sm font-mono">{courier.total_rides}</span>
-            <p className="text-[10px] text-muted-foreground">Corridas Realizadas</p>
+            <span className="font-semibold text-foreground text-sm">{courier.total_rides}</span>
+            <p className="text-[10px] text-muted-foreground">Viagens</p>
           </div>
 
           <div>
-            <span className="inline-block size-2.5 rounded-full bg-emerald-500 my-1 animate-pulse" />
-            <p className="text-[10px] text-muted-foreground">Online Agora</p>
+            <Badge variant="secondary" className="text-[10px]">
+              Disponível
+            </Badge>
+            <p className="text-[10px] text-muted-foreground mt-0.5">Status</p>
           </div>
         </div>
 
         {/* Actions */}
-        <div className="space-y-3 pt-2">
-          <Button
-            asChild
-            className="w-full h-12 rounded-2xl font-bold text-xs bg-primary text-primary-foreground shadow-sm gap-2"
-          >
-            <Link to="/mobilidade">
-              <span>Chamar {courier.full_name.split(" ")[0]} Agora</span>
-              <ArrowRight className="size-4" />
-            </Link>
-          </Button>
-
-          {courier.phone && (
+        <div className="space-y-2 pt-2">
+          {phoneDigits && (
             <Button
               asChild
-              variant="outline"
-              className="w-full h-12 rounded-2xl font-bold text-xs border-emerald-500/30 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 gap-2"
+              className="w-full h-11 rounded-xl bg-foreground text-background font-semibold text-xs hover:opacity-90 transition-opacity gap-2"
             >
-              <a href={`https://wa.me/55${phoneDigits}`} target="_blank" rel="noreferrer">
-                <Phone className="size-4 text-emerald-600" />
-                <span>Conversar no WhatsApp</span>
+              <a
+                href={`https://wa.me/55${phoneDigits}?text=Ol%C3%A1%20${encodeURIComponent(courier.full_name)},%20encontrei%20seu%20perfil%20na%20JAH%20e%20gostaria%20de%20solicitar%20uma%20corrida/entrega!`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <Phone className="size-4" />
+                <span>Chamar via WhatsApp</span>
               </a>
             </Button>
           )}
+
+          <Button asChild variant="outline" className="w-full h-10 rounded-xl text-xs">
+            <Link to="/mobilidade">Solicitar pelo App com Cálculo de Rota</Link>
+          </Button>
         </div>
       </div>
     </div>

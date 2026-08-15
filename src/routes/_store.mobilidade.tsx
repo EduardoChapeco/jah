@@ -1,5 +1,5 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect, useRef, useMemo } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState, useMemo } from "react";
 import { useMutation } from "@tanstack/react-query";
 import {
   Car,
@@ -9,27 +9,16 @@ import {
   Boxes,
   MapPin,
   Clock,
-  DollarSign,
-  ShieldCheck,
-  ArrowRight,
-  Sparkles,
   CheckCircle2,
-  Calendar,
-  Users,
-  Package,
   Loader2,
-  Phone,
   Navigation,
   Crosshair,
-  Search,
   ChevronDown,
   ChevronUp,
   X,
   CreditCard,
   QrCode,
   Banknote,
-  AlertCircle,
-  Route as RouteIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,55 +26,38 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { formatMoney } from "@/lib/money";
 import {
-  calculateMobilityQuote,
   createMobilityRequest,
   type MobilityServiceType,
-  type MobilityQuoteEstimate,
   type MobilityRequestDTO,
 } from "@/services/mobility.functions";
+import { MapLibreCanvas, type MapPoint } from "@/components/mobility/maplibre-canvas";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/mobilidade")({
   head: () => ({
     meta: [
-      { title: "Mobilidade, Corridas, Entregas & Mudanças — JAH" },
+      { title: "Mobilidade, Corridas & Entregas — JAH" },
       {
         name: "description",
         content:
-          "Chame corridas de carro ou moto, entregas expressas ou fretes e mudanças completas com mapa interativo e tarifas transparentes.",
+          "Chame corridas de carro ou moto, entregas expressas ou mudanças completas com tarifas justas e transparentes.",
       },
     ],
   }),
-  component: FullMapMobilityPage,
+  component: MobilityPage,
 });
 
-interface GeoPoint {
-  lat: number;
-  lng: number;
-  label: string;
-}
-
-const DEFAULT_CENTER: GeoPoint = {
+const DEFAULT_ORIGIN: MapPoint = {
   lat: -27.1004,
   lng: -52.6152,
-  label: "Centro — Chapecó, SC",
+  label: "Av. Getúlio Vargas, 500 — Centro",
 };
-
-const PRESET_PLACES: Array<{ name: string; address: string; lat: number; lng: number }> = [
-  { name: "Centro / Praça Coronel Bertaso", address: "Av. Getúlio Vargas, Centro", lat: -27.1004, lng: -52.6152 },
-  { name: "Aeroporto Serafin Enoss Bertaso", address: "Acesso Florenal Ribeiro, Quedas do Palmital", lat: -27.1352, lng: -52.6565 },
-  { name: "Rodoviária de Chapecó", address: "Rua Líbano, 111, Passo dos Fortes", lat: -27.0875, lng: -52.6289 },
-  { name: "Shopping Pátio Chapecó", address: "Av. Fernando Machado, 4000, Líder", lat: -27.0812, lng: -52.6345 },
-  { name: "Parque da Efapi (Tancredo Neves)", address: "R. Senador Attilio Fontana, Efapi", lat: -27.0755, lng: -52.6712 },
-  { name: "Hospital Regional do Oeste (HRO)", address: "R. Florianópolis, 1448, Santa Maria", lat: -27.0934, lng: -52.6078 },
-];
 
 const MODALITIES: Array<{
   type: MobilityServiceType;
   title: string;
   subtitle: string;
   icon: typeof Car;
-  badge?: string;
   basePrice: number;
   pricePerKm: number;
   etaMins: number;
@@ -93,19 +65,17 @@ const MODALITIES: Array<{
   {
     type: "ride_car",
     title: "Carro Privado",
-    subtitle: "Até 4 passageiros com ar-condicionado",
+    subtitle: "Até 4 passageiros",
     icon: Car,
-    badge: "Popular",
     basePrice: 750,
     pricePerKm: 240,
     etaMins: 3,
   },
   {
     type: "ride_moto",
-    title: "Moto Passageiro",
-    subtitle: "Rápido e econômico para 1 pessoa",
+    title: "Moto",
+    subtitle: "Rápido e econômico",
     icon: Bike,
-    badge: "Mais Rápido",
     basePrice: 500,
     pricePerKm: 160,
     etaMins: 2,
@@ -113,66 +83,56 @@ const MODALITIES: Array<{
   {
     type: "delivery_express",
     title: "Entrega Flash",
-    subtitle: "Documentos, pacotes e compras urgentes",
+    subtitle: "Pacotes e encomendas",
     icon: Zap,
-    badge: "Express",
     basePrice: 600,
     pricePerKm: 180,
     etaMins: 4,
   },
   {
     type: "freight_van",
-    title: "Fiorino / Carga",
-    subtitle: "Caixas médias e mercadorias comerciais",
+    title: "Fiorino / Van",
+    subtitle: "Cargas médias",
     icon: Truck,
-    badge: "Cargas",
     basePrice: 2800,
     pricePerKm: 350,
     etaMins: 8,
   },
   {
     type: "moving_truck",
-    title: "Caminhão de Mudança",
-    subtitle: "Mudança residencial completa com ajudantes",
+    title: "Mudança",
+    subtitle: "Caminhão com ajudantes",
     icon: Boxes,
-    badge: "Mudanças",
     basePrice: 12000,
     pricePerKm: 550,
     etaMins: 15,
   },
 ];
 
-// Veículos simulados ao redor no mapa para efeito dinâmico
-const NEARBY_VEHICLES = [
-  { id: "v1", type: "car", lat: -27.098, lng: -52.613, angle: 45, label: "Carro 3 min" },
-  { id: "v2", type: "moto", lat: -27.103, lng: -52.617, angle: 120, label: "Moto 2 min" },
-  { id: "v3", type: "car", lat: -27.095, lng: -52.619, angle: 280, label: "Carro 5 min" },
-  { id: "v4", type: "van", lat: -27.106, lng: -52.611, angle: 15, label: "Fiorino 8 min" },
+const PRESET_PLACES = [
+  { name: "Centro", address: "Av. Getúlio Vargas, Centro", lat: -27.1004, lng: -52.6152 },
+  { name: "Aeroporto", address: "Acesso Florenal Ribeiro, Quedas do Palmital", lat: -27.1352, lng: -52.6565 },
+  { name: "Rodoviária", address: "Rua Líbano, 111, Passo dos Fortes", lat: -27.0875, lng: -52.6289 },
+  { name: "Shopping", address: "Av. Fernando Machado, 4000, Líder", lat: -27.0812, lng: -52.6345 },
+  { name: "Hospital Regional", address: "R. Florianópolis, 1448, Santa Maria", lat: -27.0934, lng: -52.6078 },
 ];
 
-function FullMapMobilityPage() {
-  const navigate = useNavigate();
-
-  // Selected Service
+function MobilityPage() {
   const [selectedService, setSelectedService] = useState<MobilityServiceType>("ride_car");
 
-  // Route Points
-  const [origin, setOrigin] = useState<GeoPoint>({
-    lat: -27.1004,
-    lng: -52.6152,
-    label: "Av. Getúlio Vargas, 500 — Centro",
-  });
-  const [destination, setDestination] = useState<GeoPoint | null>(null);
+  // Route Coordinates
+  const [origin, setOrigin] = useState<MapPoint>(DEFAULT_ORIGIN);
+  const [destination, setDestination] = useState<MapPoint | null>(null);
 
-  // Address Inputs Search text
-  const [originText, setOriginText] = useState(origin.label);
+  // Address Inputs
+  const [originText, setOriginText] = useState(origin.label || "");
   const [destinationText, setDestinationText] = useState("");
 
-  // Map Pin Picking Mode
+  // Map Pin Mode
   const [pinMode, setPinMode] = useState<"origin" | "destination" | null>(null);
 
-  // Additional Details Drawer / Accordion
-  const [showAddressDetails, setShowAddressDetails] = useState(false);
+  // Additional Details
+  const [showDetails, setShowDetails] = useState(false);
   const [buildingNumber, setBuildingNumber] = useState("");
   const [complement, setComplement] = useState("");
   const [referencePoint, setReferencePoint] = useState("");
@@ -180,30 +140,27 @@ function FullMapMobilityPage() {
   const [recipientPhone, setRecipientPhone] = useState("");
   const [helpersCount, setHelpersCount] = useState<number>(0);
   const [propertyType, setPropertyType] = useState<"ground" | "elevator" | "stairs">("ground");
-  const [paymentMethod, setPaymentMethod] = useState<"pix" | "card_app" | "money" | "card_driver">("pix");
+  const [paymentMethod, setPaymentMethod] = useState<string>("pix");
 
-  // Active Request Status
+  // Request State
   const [activeRequest, setActiveRequest] = useState<MobilityRequestDTO | null>(null);
   const [requestStatus, setRequestStatus] = useState<"idle" | "searching" | "confirmed">("idle");
 
-  // Distance & Estimate Calculation
+  // Distance Calculation
   const routeStats = useMemo(() => {
     if (!destination) {
-      return { distanceKm: 4.2, durationMin: 12 };
+      return { distanceKm: 3.8, durationMin: 10 };
     }
-    // Haversine rough estimate
     const dLat = (destination.lat - origin.lat) * 111;
     const dLng = (destination.lng - origin.lng) * 111 * Math.cos((origin.lat * Math.PI) / 180);
     const straightDist = Math.sqrt(dLat * dLat + dLng * dLng);
-    const distanceKm = Math.max(1.5, Math.round(straightDist * 1.35 * 10) / 10);
-    const durationMin = Math.max(4, Math.round(distanceKm * 2.5) + 3);
+    const distanceKm = Math.max(1.2, Math.round(straightDist * 1.3 * 10) / 10);
+    const durationMin = Math.max(3, Math.round(distanceKm * 2.5) + 2);
     return { distanceKm, durationMin };
   }, [origin, destination]);
 
-  // Current selected modality config
   const currentModality = MODALITIES.find((m) => m.type === selectedService) || MODALITIES[0];
 
-  // Calculated Price in Cents
   const computedPriceCents = useMemo(() => {
     let price = currentModality.basePrice + Math.round(routeStats.distanceKm * currentModality.pricePerKm);
     if (selectedService === "moving_truck") {
@@ -213,44 +170,43 @@ function FullMapMobilityPage() {
     return price;
   }, [currentModality, routeStats.distanceKm, selectedService, helpersCount, propertyType]);
 
-  // Create Request Mutation
   const createMutation = useMutation({
     mutationFn: (payload: any) => createMobilityRequest({ data: payload }),
     onSuccess: (data) => {
       setActiveRequest(data);
       setRequestStatus("confirmed");
-      toast.success("Corrida solicitada com sucesso! Conectando com motorista.");
+      toast.success("Solicitação enviada! Conectando com motoristas parceiros.");
     },
     onError: (err: any) => {
-      toast.error(err.message || "Erro ao solicitar corrida.");
+      toast.error(err.message || "Erro ao solicitar.");
       setRequestStatus("idle");
     },
   });
 
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
-      toast.info("Geolocalização não suportada no seu navegador.");
+      toast.info("Geolocalização não disponível.");
       return;
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const point = {
+        const point: MapPoint = {
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
           label: "Minha Localização Atual",
         };
         setOrigin(point);
-        setOriginText("Minha Localização Atual (GPS)");
+        setOriginText("Minha Localização (GPS)");
         toast.success("Localização atual identificada!");
       },
       () => {
-        toast.error("Não foi possível obter sua localização.");
+        toast.error("Não foi possível acessar a localização.");
       },
     );
   };
 
   const handleSelectPresetDestination = (place: typeof PRESET_PLACES[0]) => {
-    const point = {
+    const point: MapPoint = {
       lat: place.lat,
       lng: place.lng,
       label: place.address,
@@ -259,23 +215,15 @@ function FullMapMobilityPage() {
     setDestinationText(place.name);
   };
 
-  const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMapClick = (lat: number, lng: number) => {
     if (!pinMode) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
-
-    // Converte posição percentual na tela para coordenada em Chapecó
-    const lat = DEFAULT_CENTER.lat + (0.5 - y) * 0.06;
-    const lng = DEFAULT_CENTER.lng + (x - 0.5) * 0.08;
-
     if (pinMode === "origin") {
-      setOrigin({ lat, lng, label: `Ponto no Mapa (${lat.toFixed(4)}, ${lng.toFixed(4)})` });
-      setOriginText(`Local Coleta (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
+      setOrigin({ lat, lng, label: `Localização (${lat.toFixed(4)}, ${lng.toFixed(4)})` });
+      setOriginText(`Ponto de Partida (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
       toast.success("Origem fixada no mapa!");
     } else {
-      setDestination({ lat, lng, label: `Destino no Mapa (${lat.toFixed(4)}, ${lng.toFixed(4)})` });
-      setDestinationText(`Local Entrega (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
+      setDestination({ lat, lng, label: `Destino (${lat.toFixed(4)}, ${lng.toFixed(4)})` });
+      setDestinationText(`Ponto de Entrega (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
       toast.success("Destino fixado no mapa!");
     }
     setPinMode(null);
@@ -293,7 +241,7 @@ function FullMapMobilityPage() {
       customer_name: recipientName || "Cliente JAH",
       customer_phone: recipientPhone || "(49) 99999-9999",
       service_type: selectedService,
-      origin_address: originText || origin.label,
+      origin_address: originText || origin.label || "Origem selecionada",
       origin_lat: origin.lat,
       origin_lng: origin.lng,
       destination_address: destinationText || destination?.label || "Destino selecionado",
@@ -307,10 +255,9 @@ function FullMapMobilityPage() {
         buildingNumber ? `Nº: ${buildingNumber}` : "",
         complement ? `Compl: ${complement}` : "",
         referencePoint ? `Ref: ${referencePoint}` : "",
-        recipientName ? `Destinatário: ${recipientName}` : "",
+        recipientName ? `Contato: ${recipientName}` : "",
         recipientPhone ? `Tel: ${recipientPhone}` : "",
-        selectedService === "moving_truck" ? `Ajudantes: ${helpersCount} | Tipo: ${propertyType}` : "",
-        `Pagamento: ${paymentMethod}`,
+        selectedService === "moving_truck" ? `Ajudantes: ${helpersCount}` : "",
       ]
         .filter(Boolean)
         .join(" | "),
@@ -320,151 +267,71 @@ function FullMapMobilityPage() {
   };
 
   return (
-    <div className="relative w-full h-[calc(100vh-4rem)] bg-zinc-950 overflow-hidden flex flex-col md:flex-row select-none">
-      {/* ── 1. MAPA FULL-BLEED INTERATIVO ───────────────────────────── */}
-      <div
-        onClick={handleMapClick}
-        className={`relative flex-1 w-full h-full bg-[#12161a] overflow-hidden cursor-${pinMode ? "crosshair" : "grab"}`}
-      >
-        {/* Camada Visual de Ruas & Topografia Vetorial */}
-        <div className="absolute inset-0 opacity-25 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:32px_32px]" />
+    <div className="relative w-full h-[calc(100vh-4rem)] bg-background overflow-hidden flex flex-col md:flex-row">
+      {/* ── 1. MAPA FULL-SCREEN MAPLIBRE ───────────────────────────── */}
+      <div className="relative flex-1 w-full h-full">
+        <MapLibreCanvas
+          origin={origin}
+          destination={destination}
+          pinMode={pinMode}
+          onMapClick={handleMapClick}
+          className="w-full h-full"
+        />
 
-        {/* Linhas de Ruas & Grid Cartográfico Urbano */}
-        <svg className="absolute inset-0 size-full pointer-events-none opacity-40">
-          <line x1="0%" y1="30%" x2="100%" y2="30%" stroke="#334155" strokeWidth="3" />
-          <line x1="0%" y1="65%" x2="100%" y2="65%" stroke="#334155" strokeWidth="4" />
-          <line x1="35%" y1="0%" x2="35%" y2="100%" stroke="#334155" strokeWidth="4" />
-          <line x1="70%" y1="0%" x2="70%" y2="100%" stroke="#334155" strokeWidth="3" />
-          <line x1="15%" y1="15%" x2="85%" y2="85%" stroke="#1e293b" strokeWidth="6" />
+        {/* Floating Route Info Pill */}
+        {destination && (
+          <div className="absolute top-4 right-4 z-20 hidden sm:flex items-center gap-3 px-4 py-2 rounded-xl bg-card border border-border text-foreground shadow-xs text-xs font-medium">
+            <span className="font-semibold">{routeStats.distanceKm} km</span>
+            <span className="text-muted-foreground">•</span>
+            <span className="text-muted-foreground">~{routeStats.durationMin} min</span>
+          </div>
+        )}
 
-          {/* Rota traçada (Polyline animada quando houver destino) */}
-          <path
-            d="M 350 380 Q 480 320 620 420"
-            fill="none"
-            stroke="var(--color-primary, #10b981)"
-            strokeWidth="5"
-            strokeDasharray="8 4"
-            className="animate-pulse"
-          />
-        </svg>
-
-        {/* ── Veículos Animados no Mapa ── */}
-        {NEARBY_VEHICLES.map((v) => (
-          <div
-            key={v.id}
-            className="absolute z-20 flex flex-col items-center transition-all duration-1000"
-            style={{
-              top: `${45 + (v.lat - DEFAULT_CENTER.lat) * 2000}%`,
-              left: `${50 + (v.lng - DEFAULT_CENTER.lng) * 2000}%`,
-            }}
-          >
-            <div className="size-8 rounded-full bg-zinc-900 border-2 border-primary text-primary flex items-center justify-center shadow-lg shadow-primary/20">
-              {v.type === "moto" ? <Bike className="size-4" /> : v.type === "van" ? <Truck className="size-4" /> : <Car className="size-4" />}
-            </div>
-            <span className="mt-1 px-1.5 py-0.5 rounded bg-black/80 text-white text-[9px] font-mono whitespace-nowrap">
-              {v.label}
-            </span>
-          </div>
-        ))}
-
-        {/* ── Marcador de ORIGEM (Pin Verde) ── */}
-        <div
-          className="absolute z-30 flex flex-col items-center -translate-x-1/2 -translate-y-full"
-          style={{ top: "55%", left: "38%" }}
-        >
-          <div className="relative flex items-center justify-center">
-            <span className="absolute size-8 rounded-full bg-emerald-500/30 animate-ping" />
-            <div className="size-9 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-bold shadow-lg border-2 border-white">
-              <MapPin className="size-5" />
-            </div>
-          </div>
-          <div className="mt-1 px-2.5 py-1 rounded-xl bg-black/90 text-white text-[11px] font-bold shadow-md whitespace-nowrap border border-white/10">
-            Partida / Coleta
-          </div>
-        </div>
-
-        {/* ── Marcador de DESTINO (Pin Vermelho) ── */}
-        <div
-          className="absolute z-30 flex flex-col items-center -translate-x-1/2 -translate-y-full"
-          style={{ top: "42%", left: "68%" }}
-        >
-          <div className="relative flex items-center justify-center">
-            <span className="absolute size-8 rounded-full bg-red-500/30 animate-ping" />
-            <div className="size-9 rounded-2xl bg-red-600 text-white flex items-center justify-center font-bold shadow-lg border-2 border-white">
-              <Crosshair className="size-5" />
-            </div>
-          </div>
-          <div className="mt-1 px-2.5 py-1 rounded-xl bg-black/90 text-white text-[11px] font-bold shadow-md whitespace-nowrap border border-white/10">
-            {destinationText || "Destino Escolhido"}
-          </div>
-        </div>
-
-        {/* ── Tag Flutuante de Distância e Tempo na Rota ── */}
-        <div className="absolute top-20 right-6 z-30 hidden sm:flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-zinc-900/90 backdrop-blur-md border border-zinc-800 text-white shadow-xl">
-          <div className="flex items-center gap-1.5 text-xs font-mono text-emerald-400">
-            <RouteIcon className="size-4" />
-            <span>{routeStats.distanceKm} km</span>
-          </div>
-          <span className="text-zinc-600">•</span>
-          <div className="flex items-center gap-1.5 text-xs font-mono text-zinc-300">
-            <Clock className="size-4 text-primary" />
-            <span>~{routeStats.durationMin} min</span>
-          </div>
-        </div>
-
-        {/* ── Indicador de Modo Pin Ativo ── */}
+        {/* Pin Picking Mode Banner */}
         {pinMode && (
-          <div className="absolute top-6 left-1/2 -translate-x-1/2 z-40 px-5 py-2.5 rounded-2xl bg-primary text-primary-foreground font-bold text-xs shadow-2xl animate-bounce flex items-center gap-2">
-            <Crosshair className="size-4 animate-spin" />
-            <span>Clique em qualquer ponto do mapa para fixar {pinMode === "origin" ? "a Origem" : "o Destino"}</span>
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 px-4 py-2 rounded-xl bg-foreground text-background text-xs font-semibold shadow-md flex items-center gap-2">
+            <span>Clique no mapa para posicionar {pinMode === "origin" ? "a Origem" : "o Destino"}</span>
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setPinMode(null);
-              }}
-              className="ml-2 size-5 rounded-full bg-black/30 flex items-center justify-center"
+              onClick={() => setPinMode(null)}
+              className="ml-2 hover:opacity-75"
+              aria-label="Cancelar seleção no mapa"
             >
-              <X className="size-3" />
+              <X className="size-3.5" />
             </button>
           </div>
         )}
       </div>
 
-      {/* ── 2. FLOATING ACTION PANEL (MODAL DE PEDIDO COMPLETO) ────────── */}
-      <div className="relative md:absolute md:top-4 md:left-4 z-40 w-full md:w-[440px] max-h-[calc(100vh-6rem)] overflow-y-auto scrollbar-none rounded-3xl border border-zinc-800/90 bg-zinc-950/95 backdrop-blur-xl p-5 text-white shadow-2xl space-y-4">
+      {/* ── 2. PAINEL FLUTUANTE DE PEDIDO (ULTRA CLEAN DESIGN) ────────── */}
+      <div className="relative md:absolute md:top-4 md:left-4 z-30 w-full md:w-[400px] max-h-[calc(100vh-6rem)] overflow-y-auto rounded-2xl border border-border bg-card/95 backdrop-blur-md p-5 text-foreground shadow-xs space-y-4">
         {/* Cabeçalho */}
-        <div className="flex items-center justify-between pb-2 border-b border-zinc-800/80">
-          <div className="flex items-center gap-2.5">
-            <div className="size-9 rounded-2xl bg-primary/20 text-primary flex items-center justify-center font-bold">
-              <Car className="size-5" />
-            </div>
-            <div>
-              <h2 className="text-sm font-black uppercase tracking-wider text-white">
-                Mobilidade & Entregas
-              </h2>
-              <p className="text-[11px] text-zinc-400">
-                Tarifas diretas sem intermediários
-              </p>
-            </div>
+        <div className="flex items-center justify-between pb-3 border-b border-border">
+          <div>
+            <h1 className="text-base font-semibold text-foreground tracking-tight">
+              Mobilidade & Entregas
+            </h1>
+            <p className="text-xs text-muted-foreground">
+              Tarifas diretas e motoristas locais
+            </p>
           </div>
 
           <Button
             asChild
             variant="ghost"
             size="sm"
-            className="h-8 text-xs font-bold text-zinc-400 hover:text-white"
+            className="h-8 text-xs font-medium text-muted-foreground hover:text-foreground rounded-lg"
           >
             <Link to="/conta/mobilidade">
-              <Clock className="size-3.5 mr-1 text-primary" />
+              <Clock className="size-3.5 mr-1.5" />
               Minhas Corridas
             </Link>
           </Button>
         </div>
 
-        {/* ── SELETOR DE MODALIDADES (CARRO / MOTO / FIORINO / MUDANÇA) ── */}
+        {/* ── SELETOR DE MODALIDADES ── */}
         <div className="space-y-1.5">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-            Escolha o Serviço
+          <span className="text-xs font-medium text-muted-foreground">
+            Modalidade
           </span>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {MODALITIES.map((mod) => {
@@ -473,169 +340,169 @@ function FullMapMobilityPage() {
               return (
                 <button
                   key={mod.type}
+                  type="button"
                   onClick={() => setSelectedService(mod.type)}
-                  className={`p-2.5 rounded-2xl border text-left transition-all relative flex flex-col justify-between ${
+                  className={`p-3 rounded-xl border text-left transition-colors flex flex-col justify-between ${
                     isSelected
-                      ? "bg-primary/15 border-primary text-white shadow-md ring-1 ring-primary"
-                      : "bg-zinc-900/70 border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-900"
+                      ? "bg-muted border-foreground/30 text-foreground"
+                      : "bg-background border-border text-muted-foreground hover:text-foreground hover:bg-muted/50"
                   }`}
                 >
-                  <div className="flex items-center justify-between w-full mb-1">
-                    <Icon className={`size-4 ${isSelected ? "text-primary" : "text-zinc-400"}`} />
-                    {mod.badge && (
-                      <span className="px-1.5 py-0.2 rounded text-[8px] font-black uppercase bg-primary text-primary-foreground">
-                        {mod.badge}
-                      </span>
-                    )}
+                  <Icon className={`size-4 mb-2 ${isSelected ? "text-foreground" : "text-muted-foreground"}`} />
+                  <div>
+                    <span className="text-xs font-semibold text-foreground block leading-tight">
+                      {mod.title}
+                    </span>
+                    <span className="text-[11px] font-medium text-muted-foreground mt-0.5 block">
+                      {formatMoney(
+                        mod.basePrice + Math.round(routeStats.distanceKm * mod.pricePerKm),
+                      )}
+                    </span>
                   </div>
-                  <span className="text-xs font-bold text-white block leading-tight">{mod.title}</span>
-                  <span className="text-[10px] font-mono text-emerald-400 font-bold mt-1">
-                    {formatMoney(
-                      mod.basePrice + Math.round(routeStats.distanceKm * mod.pricePerKm),
-                    )}
-                  </span>
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* ── CAMPOS DE ORIGEM & DESTINO COM AUTO-COMPLETE & PIN ── */}
-        <div className="space-y-3 pt-2">
+        {/* ── CAMPOS DE ENDEREÇO ── */}
+        <div className="space-y-3 pt-1">
           {/* Origem */}
           <div className="space-y-1">
-            <div className="flex items-center justify-between">
-              <Label className="text-[10px] font-bold uppercase text-zinc-400 flex items-center gap-1">
-                <span className="size-2 rounded-full bg-emerald-500" />
-                Origem (Partida / Coleta)
+            <div className="flex items-center justify-between text-xs">
+              <Label className="font-medium text-foreground">
+                Ponto de Partida
               </Label>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2">
                 <button
+                  type="button"
                   onClick={handleUseCurrentLocation}
-                  className="text-[10px] text-emerald-400 hover:underline flex items-center gap-0.5"
-                  title="Usar GPS"
+                  className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
                 >
                   <Navigation className="size-3" />
-                  <span>Meu GPS</span>
+                  <span>GPS</span>
                 </button>
-                <span className="text-zinc-600">|</span>
+                <span className="text-border">|</span>
                 <button
+                  type="button"
                   onClick={() => setPinMode("origin")}
-                  className={`text-[10px] flex items-center gap-0.5 ${pinMode === "origin" ? "text-primary font-bold" : "text-zinc-400 hover:text-white"}`}
+                  className={`text-xs flex items-center gap-1 ${pinMode === "origin" ? "text-foreground font-semibold" : "text-muted-foreground hover:text-foreground"}`}
                 >
                   <Crosshair className="size-3" />
-                  <span>Pin Mapa</span>
+                  <span>Pin</span>
                 </button>
               </div>
             </div>
             <Input
               value={originText}
               onChange={(e) => setOriginText(e.target.value)}
-              placeholder="Ex: Av. Getúlio Vargas, 500 — Centro"
-              className="h-10 rounded-2xl bg-zinc-900 border-zinc-800 text-xs text-white"
+              placeholder="Endereço de partida..."
+              className="h-10 rounded-xl bg-background border-border text-sm"
             />
           </div>
 
           {/* Destino */}
           <div className="space-y-1">
-            <div className="flex items-center justify-between">
-              <Label className="text-[10px] font-bold uppercase text-zinc-400 flex items-center gap-1">
-                <span className="size-2 rounded-full bg-red-500" />
-                Destino (Chegada / Entrega)
+            <div className="flex items-center justify-between text-xs">
+              <Label className="font-medium text-foreground">
+                Destino / Entrega
               </Label>
               <button
+                type="button"
                 onClick={() => setPinMode("destination")}
-                className={`text-[10px] flex items-center gap-0.5 ${pinMode === "destination" ? "text-primary font-bold" : "text-zinc-400 hover:text-white"}`}
+                className={`text-xs flex items-center gap-1 ${pinMode === "destination" ? "text-foreground font-semibold" : "text-muted-foreground hover:text-foreground"}`}
               >
                 <Crosshair className="size-3" />
-                <span>Pin no Mapa</span>
+                <span>Fixar no Mapa</span>
               </button>
             </div>
             <Input
               value={destinationText}
               onChange={(e) => setDestinationText(e.target.value)}
-              placeholder="Ex: Rua Marechal Deodoro ou Shopping..."
-              className="h-10 rounded-2xl bg-zinc-900 border-zinc-800 text-xs text-white"
+              placeholder="Para onde vamos?"
+              className="h-10 rounded-xl bg-background border-border text-sm"
             />
           </div>
 
-          {/* Locais Rápidos / Atalhos Frequentes */}
+          {/* Atalhos Rápidos */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
             {PRESET_PLACES.slice(0, 4).map((p, idx) => (
               <button
                 key={idx}
+                type="button"
                 onClick={() => handleSelectPresetDestination(p)}
-                className="px-2.5 py-1 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-[10px] font-medium text-zinc-300 whitespace-nowrap transition-colors"
+                className="px-2.5 py-1 rounded-lg bg-muted/60 hover:bg-muted text-xs text-muted-foreground hover:text-foreground whitespace-nowrap transition-colors"
               >
-                📍 {p.name.split("/")[0]}
+                {p.name}
               </button>
             ))}
           </div>
         </div>
 
-        {/* ── IDENTIFICAÇÃO COMPLETA DO ENDEREÇO (OPCIONAL/DETALHES) ── */}
+        {/* ── IDENTIFICAÇÃO COMPLETA DO IMÓVEL (ACCORDION) ── */}
         <div className="pt-1">
           <button
-            onClick={() => setShowAddressDetails(!showAddressDetails)}
-            className="w-full flex items-center justify-between py-2 text-xs font-bold text-zinc-300 hover:text-white border-t border-zinc-800/60"
+            type="button"
+            onClick={() => setShowDetails(!showDetails)}
+            className="w-full flex items-center justify-between py-2 text-xs font-medium text-muted-foreground hover:text-foreground border-t border-border"
           >
             <span className="flex items-center gap-1.5">
-              <MapPin className="size-3.5 text-primary" />
-              <span>Identificação Completa (Nº, Apto, Contato)</span>
+              <MapPin className="size-3.5" />
+              <span>Número, complemento e contato</span>
             </span>
-            {showAddressDetails ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+            {showDetails ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
           </button>
 
-          {showAddressDetails && (
-            <div className="p-3.5 rounded-2xl bg-zinc-900/90 border border-zinc-800 space-y-2.5 mt-2 animate-in fade-in-50">
+          {showDetails && (
+            <div className="p-3.5 rounded-xl bg-muted/40 border border-border space-y-2.5 mt-2">
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <Label className="text-[10px] text-zinc-400">Número do Imóvel</Label>
+                  <Label className="text-xs text-muted-foreground">Número</Label>
                   <Input
                     value={buildingNumber}
                     onChange={(e) => setBuildingNumber(e.target.value)}
-                    placeholder="Ex: 1420"
-                    className="h-8 rounded-xl bg-zinc-950 border-zinc-800 text-xs text-white"
+                    placeholder="Ex: 500"
+                    className="h-8 rounded-lg bg-background text-xs"
                   />
                 </div>
                 <div>
-                  <Label className="text-[10px] text-zinc-400">Complemento / Apto</Label>
+                  <Label className="text-xs text-muted-foreground">Complemento</Label>
                   <Input
                     value={complement}
                     onChange={(e) => setComplement(e.target.value)}
-                    placeholder="Ex: Bloco B Apto 302"
-                    className="h-8 rounded-xl bg-zinc-950 border-zinc-800 text-xs text-white"
+                    placeholder="Ex: Apto 102"
+                    className="h-8 rounded-lg bg-background text-xs"
                   />
                 </div>
               </div>
 
               <div>
-                <Label className="text-[10px] text-zinc-400">Ponto de Referência</Label>
+                <Label className="text-xs text-muted-foreground">Ponto de Referência</Label>
                 <Input
                   value={referencePoint}
                   onChange={(e) => setReferencePoint(e.target.value)}
-                  placeholder="Ex: Em frente à farmácia São João"
-                  className="h-8 rounded-xl bg-zinc-950 border-zinc-800 text-xs text-white"
+                  placeholder="Ex: Em frente à praça"
+                  className="h-8 rounded-lg bg-background text-xs"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <Label className="text-[10px] text-zinc-400">Quem recebe / Passageiro</Label>
+                  <Label className="text-xs text-muted-foreground">Nome do Passageiro/Contato</Label>
                   <Input
                     value={recipientName}
                     onChange={(e) => setRecipientName(e.target.value)}
-                    placeholder="Nome da pessoa"
-                    className="h-8 rounded-xl bg-zinc-950 border-zinc-800 text-xs text-white"
+                    placeholder="Nome"
+                    className="h-8 rounded-lg bg-background text-xs"
                   />
                 </div>
                 <div>
-                  <Label className="text-[10px] text-zinc-400">Telefone / WhatsApp</Label>
+                  <Label className="text-xs text-muted-foreground">Telefone / WhatsApp</Label>
                   <Input
                     value={recipientPhone}
                     onChange={(e) => setRecipientPhone(e.target.value)}
                     placeholder="(49) 99999-9999"
-                    className="h-8 rounded-xl bg-zinc-950 border-zinc-800 text-xs text-white"
+                    className="h-8 rounded-lg bg-background text-xs"
                   />
                 </div>
               </div>
@@ -643,23 +510,24 @@ function FullMapMobilityPage() {
           )}
         </div>
 
-        {/* ── AJUDANTES PARA MUDANÇA (SE MUDANÇA SELECIONADA) ── */}
+        {/* ── AJUDANTES PARA MUDANÇA (QUANDO APLICÁVEL) ── */}
         {selectedService === "moving_truck" && (
-          <div className="p-3.5 rounded-2xl bg-zinc-900/90 border border-zinc-800 space-y-3">
-            <span className="text-[10px] font-bold uppercase text-primary tracking-wider block">
+          <div className="p-3.5 rounded-xl bg-muted/40 border border-border space-y-3">
+            <span className="text-xs font-semibold text-foreground block">
               Configurações da Mudança
             </span>
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-zinc-300">Ajudantes de Carga:</span>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">Ajudantes de Carga:</span>
               <div className="flex items-center gap-1">
                 {[0, 1, 2, 3].map((num) => (
                   <button
                     key={num}
+                    type="button"
                     onClick={() => setHelpersCount(num)}
-                    className={`size-7 rounded-xl text-xs font-bold transition-colors ${
+                    className={`size-7 rounded-lg text-xs font-medium transition-colors ${
                       helpersCount === num
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-zinc-800 text-zinc-400 hover:text-white"
+                        ? "bg-foreground text-background font-semibold"
+                        : "bg-background border border-border text-muted-foreground hover:text-foreground"
                     }`}
                   >
                     {num}
@@ -668,52 +536,55 @@ function FullMapMobilityPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-zinc-800">
-              <span className="text-xs text-zinc-300">Tipo de Imóvel:</span>
+            <div className="flex items-center justify-between text-xs pt-2 border-t border-border">
+              <span className="text-muted-foreground">Tipo de Acesso:</span>
               <select
                 value={propertyType}
                 onChange={(e: any) => setPropertyType(e.target.value)}
-                className="bg-zinc-950 border border-zinc-800 rounded-xl px-2 py-1 text-xs text-white"
+                className="bg-background border border-border rounded-lg px-2 py-1 text-xs text-foreground"
               >
                 <option value="ground">Casa Térrea</option>
-                <option value="elevator">Apê c/ Elevador</option>
-                <option value="stairs">Apê c/ Escadas (+R$ 35)</option>
+                <option value="elevator">Com Elevador</option>
+                <option value="stairs">Com Escadas (+R$ 35)</option>
               </select>
             </div>
           </div>
         )}
 
-        {/* ── FORMA DE PAGAMENTO & PREÇO TOTAL ── */}
-        <div className="p-4 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-between">
+        {/* ── PREÇO ESTIMADO & PAGAMENTO ── */}
+        <div className="p-3.5 rounded-xl border border-border bg-muted/20 flex items-center justify-between">
           <div>
-            <span className="text-[10px] text-zinc-400 uppercase font-bold block">
-              Tarifa Estimada
+            <span className="text-xs text-muted-foreground block">
+              Valor Estimado
             </span>
-            <span className="font-mono font-black text-xl text-emerald-400">
+            <span className="font-semibold text-lg text-foreground">
               {formatMoney(computedPriceCents)}
             </span>
           </div>
 
-          <div className="flex items-center gap-1 bg-zinc-950 p-1 rounded-xl border border-zinc-800">
+          <div className="flex items-center gap-1 bg-background p-1 rounded-lg border border-border">
             <button
+              type="button"
               onClick={() => setPaymentMethod("pix")}
-              className={`p-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 ${paymentMethod === "pix" ? "bg-primary text-primary-foreground" : "text-zinc-400 hover:text-white"}`}
-              title="Pix Automático"
+              className={`p-1.5 rounded-md text-xs font-medium flex items-center gap-1 ${paymentMethod === "pix" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              title="Pix"
             >
               <QrCode className="size-3.5" />
               <span>Pix</span>
             </button>
             <button
-              onClick={() => setPaymentMethod("card_driver")}
-              className={`p-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 ${paymentMethod === "card_driver" ? "bg-primary text-primary-foreground" : "text-zinc-400 hover:text-white"}`}
-              title="Maquininha do Motorista"
+              type="button"
+              onClick={() => setPaymentMethod("card")}
+              className={`p-1.5 rounded-md text-xs font-medium flex items-center gap-1 ${paymentMethod === "card" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              title="Cartão"
             >
               <CreditCard className="size-3.5" />
               <span>Cartão</span>
             </button>
             <button
-              onClick={() => setPaymentMethod("money")}
-              className={`p-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 ${paymentMethod === "money" ? "bg-primary text-primary-foreground" : "text-zinc-400 hover:text-white"}`}
+              type="button"
+              onClick={() => setPaymentMethod("cash")}
+              className={`p-1.5 rounded-md text-xs font-medium flex items-center gap-1 ${paymentMethod === "cash" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"}`}
               title="Dinheiro"
             >
               <Banknote className="size-3.5" />
@@ -724,41 +595,39 @@ function FullMapMobilityPage() {
 
         {/* ── BOTÃO DE AÇÃO PRINCIPAL ── */}
         <Button
+          type="button"
           onClick={handleSubmitRequest}
           disabled={createMutation.isPending || requestStatus === "searching"}
-          className="w-full h-12 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-black text-sm uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-2"
+          className="w-full h-11 rounded-xl bg-foreground text-background font-semibold text-sm hover:opacity-90 transition-opacity"
         >
           {createMutation.isPending || requestStatus === "searching" ? (
-            <>
-              <Loader2 className="size-5 animate-spin" />
-              <span>Localizando Motorista Próximo...</span>
-            </>
+            <div className="flex items-center gap-2">
+              <Loader2 className="size-4 animate-spin" />
+              <span>Conectando com motoristas...</span>
+            </div>
           ) : (
-            <>
-              <Car className="size-5" />
-              <span>Confirmar e Chamar {currentModality.title}</span>
-            </>
+            <span>Confirmar e Chamar {currentModality.title}</span>
           )}
         </Button>
 
-        {/* ── MODAL / STATUS QUANDO O CHAMADO É CRIADO ── */}
+        {/* ── STATUS APÓS SOLICITAÇÃO ── */}
         {requestStatus === "confirmed" && activeRequest && (
-          <div className="p-4 rounded-2xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-100 space-y-3 animate-in slide-in-from-bottom-5">
+          <div className="p-4 rounded-xl border border-border bg-muted/40 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="size-5 text-emerald-400" />
-                <span className="text-xs font-bold">Chamado Registrado!</span>
+                <CheckCircle2 className="size-4 text-foreground" />
+                <span className="text-xs font-semibold text-foreground">Chamado Enviado</span>
               </div>
-              <Badge className="bg-emerald-600 text-white text-[10px]">
-                Código: #{activeRequest.id.slice(0, 6).toUpperCase()}
+              <Badge variant="secondary" className="text-[10px] font-mono">
+                #{activeRequest.id.slice(0, 8)}
               </Badge>
             </div>
-            <p className="text-[11px] text-emerald-200">
-              Despachando para motoristas e transportadores na sua região. Você pode acompanhar o status ao vivo.
+            <p className="text-xs text-muted-foreground">
+              Sua solicitação foi enviada. Você pode acompanhar o deslocamento em tempo real.
             </p>
             <div className="flex gap-2">
-              <Button asChild size="sm" className="flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs">
-                <Link to="/conta/mobilidade">Acompanhar ao Vivo</Link>
+              <Button asChild size="sm" className="flex-1 rounded-lg text-xs font-semibold bg-foreground text-background">
+                <Link to="/conta/mobilidade">Acompanhar Trajeto</Link>
               </Button>
               <Button
                 size="sm"
@@ -767,7 +636,7 @@ function FullMapMobilityPage() {
                   setRequestStatus("idle");
                   setActiveRequest(null);
                 }}
-                className="rounded-xl border-emerald-700 text-emerald-300 text-xs font-bold"
+                className="rounded-lg text-xs font-medium"
               >
                 Novo
               </Button>
