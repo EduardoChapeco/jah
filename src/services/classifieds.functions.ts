@@ -76,9 +76,9 @@ export const getPublicClassifieds = createServerFn({ method: "GET" })
     z
       .object({
         limit: z.number().int().min(1).max(100).optional(),
-        category: z
-          .string()
-          .optional(),
+        category: z.string().optional(),
+        dealType: z.string().optional(),
+        search: z.string().optional(),
       })
       .optional(),
   )
@@ -90,7 +90,11 @@ export const getPublicClassifieds = createServerFn({ method: "GET" })
       let query = supabase
         .from("classifieds")
         .select(
-          "id, category, title, content, price_cents, images, whatsapp, contact_whatsapp, location_name, location_text, location_lat, location_lng, status, attributes, created_at, updated_at",
+          `id, category, deal_type, property_type, title, content, price_cents,
+           rental_period, bedrooms, bathrooms, suites, parking_spots, area_sqm,
+           amenities, max_guests, cleaning_fee_cents, images, whatsapp, contact_whatsapp,
+           location_name, location_text, location_lat, location_lng, status, condition, negotiable,
+           attributes, created_at, updated_at`,
         )
         .eq("status", "active")
         .order("created_at", { ascending: false })
@@ -100,20 +104,25 @@ export const getPublicClassifieds = createServerFn({ method: "GET" })
         query = query.eq("category", data.category);
       }
 
+      if (data?.dealType && data.dealType !== "todos") {
+        query = query.eq("deal_type", data.dealType);
+      }
+
+      if (data?.search && data.search.trim()) {
+        const q = `%${data.search.trim()}%`;
+        query = query.or(`title.ilike.${q},content.ilike.${q},location_name.ilike.${q}`);
+      }
+
       const { data: classifieds, error } = await query;
 
       if (!error && classifieds && classifieds.length > 0) {
         return classifieds;
       }
     } catch (err) {
-      console.warn("[classifieds] Erro ao buscar no banco, usando seeds:", err);
+      console.warn("[classifieds] Erro ao buscar no banco:", err);
     }
 
-    if (data?.category && data.category !== "todos") {
-      return SEED_CLASSIFIEDS.filter((c) => c.category === data.category);
-    }
-
-    return SEED_CLASSIFIEDS.slice(0, limit);
+    return [];
   });
 
 export const getPublicClassifiedById = createServerFn({ method: "GET" })
@@ -126,7 +135,9 @@ export const getPublicClassifiedById = createServerFn({ method: "GET" })
       .from("classifieds")
       .select(
         `
-        id, category, title, content, price_cents, images, whatsapp, contact_whatsapp,
+        id, category, deal_type, property_type, title, content, price_cents,
+        rental_period, bedrooms, bathrooms, suites, parking_spots, area_sqm,
+        amenities, max_guests, cleaning_fee_cents, images, whatsapp, contact_whatsapp,
         location_name, location_text, location_lat, location_lng, condition, negotiable,
         attributes, status, author_profile_id, created_at, updated_at,
         profiles:author_profile_id (id, full_name, avatar_url, phone)

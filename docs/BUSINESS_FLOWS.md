@@ -1049,3 +1049,49 @@ Permite criar grupos de escolhas reutilizáveis para lanches, restaurantes e pro
 - **Faturas & Repasses:** Fechamento financeiro quinzenal/mensal com cálculo de taxa da plataforma e baixa PIX comprovada.
 - **Links Mágicos:** Motoristas autônomos possuem URL direta (`/motorista/:slug`) e links de acompanhamento sem necessidade de aplicativo pesado.
 
+---
+
+## Módulo 22 — Imóveis, Aluguel Residencial/Comercial, Venda e Hospedagem por Temporada (Airbnb Engine)
+
+### 22.1 Taxonomia Canônica e Verticais Imobiliárias
+A vertical de Imóveis na JAH é tratada como um ecossistema de alto valor agregado, dividido em três modalidades canônicas (`deal_type`):
+
+1. **Aluguel Mensal (Residencial & Comercial):**
+   - **Preço:** Base mensal em centavos (`price_cents` / mês).
+   - **Especificações Estruturadas:** Quartos, banheiros, suítes, vagas de garagem, área privativa em m² (`area_sqm`).
+   - **Fluxo de Locação:** Anúncio ➔ Proposta de Locação (`deals`) ➔ Análise de Crédito / Fiador / Caução ➔ Emissão de Contrato Digital com Assinatura Eletrônica (Módulo 19) ➔ Geração do Carnê de Mensalidades em Receivables P2P (Módulo 20).
+
+2. **Venda / Aquisição de Imóveis:**
+   - **Preço:** Valor total à vista ou financiamento bancário (`price_cents`).
+   - **Atributos:** Ano de construção, valor de condomínio, IPTU anual, aceitação de permuta / veículo como parte de pagamento (`negotiable = true`).
+   - **Fluxo de Compra:** Anúncio ➔ Agendamento de Visita Presencial ➔ Proposta Formal de Compra ➔ Minuta de Promessa de Compra e Venda ➔ Conclusão com Escritura.
+
+3. **Hospedagem & Aluguel por Temporada (Airbnb-Style Engine):**
+   - **Preço:** Diária em centavos (`rental_period = 'diaria'`) + Taxa Única de Limpeza (`cleaning_fee_cents`).
+   - **Parâmetros de Estadia:** Capacidade máxima de hóspedes (`max_guests`), horário de Check-in (ex: 14:00) e Check-out (ex: 11:00), estadia mínima (ex: 2 diárias).
+   - **Comodidades & Amenidades:** Array estruturado (`amenities`): Jacuzzi Aquecida, Lareira a Lenha, Wi-Fi Alta Velocidade, Fechadura Digital (Check-in Autônomo), Piscina, Ar Condicionado, Pet Friendly, Cozinha Completa, Estacionamento Coberto.
+   - **Conexão Cruzada com Turismo & Lazer:** Todas as hospedagens de temporada são expostas tanto em **Classificados > Imóveis (`/classificados?categoria=real_estate&dealType=temporada`)** quanto na aba de **Hospedagens Exclusivas em Turismo (`/turismo`)**.
+
+### 22.2 As 4 Personas e Casos de Uso
+
+| Persona | Papel no Módulo de Imóveis & Hospedagem | Ações Principais |
+| :--- | :--- | :--- |
+| **Autor / Anfitrião / Corretor** | Dono do imóvel, imobiliária ou host Airbnb | Publica fotos em alta definição, define tipo de negócio (Venda, Aluguel ou Temporada), regras da casa, comodidades e valores. |
+| **Consumidor / Hóspede / Inquilino** | Usuário buscando moradia ou lazer | Filtra por quartos, vagas, m² ou diárias, calcula custo total de hospedagem com taxa de limpeza, agenda visitas ou reserva direto via WhatsApp / Lead. |
+| **Operador / Gestor Imobiliário** | Imobiliária parceira ou Administradora | Gerencia carteira de imóveis, aprova propostas de locação, envia contratos digitais para assinatura e controla recebíveis mensais. |
+| **Administrador da Plataforma** | Conselho de Moderação JAH | Valida corretores (verificação CRECI), modera anúncios contra duplicidade ou fraudes e audita denúncias de usuários. |
+
+### 22.3 Máquina de Estados Canônica do Imóvel
+```text
+[ draft ] ──( Publicar )──> [ published / active ]
+                                   │
+                ┌──────────────────┼──────────────────┐
+                ▼                  ▼                  ▼
+        ( Em Proposta )     ( Reservado Temporada ) ( Pausado pelo Autor )
+        [ negotiating ]       [ reserved ]             [ paused ]
+                │                  │                  │
+                ▼                  ▼                  ▼
+          [ completed ]      [ active (pós check-out) ]
+          ( Vendido / Locado )
+```
+

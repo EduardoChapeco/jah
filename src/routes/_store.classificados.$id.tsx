@@ -497,34 +497,72 @@ function ClassifiedDetailPage() {
               </div>
             )}
 
-            {/* Ficha Técnica de Imóvel */}
-            {classified.category === "real_estate" && classified.attributes && (
-              <div className="border-t border-border pt-4 space-y-3">
-                <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
-                  Detalhes do Imóvel
-                </h3>
+            {/* Ficha Técnica de Imóvel & Hospedagem */}
+            {classified.category === "real_estate" && (
+              <div className="border-t border-border pt-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                    {classified.deal_type === "temporada"
+                      ? "Detalhes da Hospedagem (Temporada)"
+                      : "Detalhes do Imóvel"}
+                  </h3>
+                  <Badge variant="outline" className="text-[10px] uppercase font-mono font-bold">
+                    {classified.deal_type === "temporada"
+                      ? "Temporada (Airbnb)"
+                      : classified.deal_type === "aluguel"
+                        ? "Aluguel Mensal"
+                        : "Venda"}
+                  </Badge>
+                </div>
+
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-muted/30 p-3.5 rounded-xl border border-border text-center">
                   <div>
                     <span className="text-muted-foreground block text-[10px]">Área Útil</span>
                     <span className="font-bold">
-                      {classified.attributes.area_sqm
-                        ? `${classified.attributes.area_sqm} m²`
+                      {(classified.area_sqm || classified.attributes?.area_sqm)
+                        ? `${classified.area_sqm || classified.attributes?.area_sqm} m²`
                         : "-"}
                     </span>
                   </div>
                   <div>
-                    <span className="text-muted-foreground block text-[10px]">Quartos</span>
-                    <span className="font-bold">{classified.attributes.bedrooms || "-"}</span>
+                    <span className="text-muted-foreground block text-[10px]">
+                      {classified.deal_type === "temporada" ? "Hóspedes" : "Quartos"}
+                    </span>
+                    <span className="font-bold">
+                      {classified.deal_type === "temporada"
+                        ? `Até ${classified.max_guests || 2}`
+                        : (classified.bedrooms ?? classified.attributes?.bedrooms ?? "-")}
+                    </span>
                   </div>
                   <div>
-                    <span className="text-muted-foreground block text-[10px]">Suítes</span>
-                    <span className="font-bold">{classified.attributes.suites || "-"}</span>
+                    <span className="text-muted-foreground block text-[10px]">Suítes / Banheiros</span>
+                    <span className="font-bold">
+                      {(classified.suites ?? classified.attributes?.suites) || (classified.bathrooms ?? 1)}
+                    </span>
                   </div>
                   <div>
-                    <span className="text-muted-foreground block text-[10px]">Vagas</span>
-                    <span className="font-bold">{classified.attributes.parking_spots || "-"}</span>
+                    <span className="text-muted-foreground block text-[10px]">Vagas de Garagem</span>
+                    <span className="font-bold">
+                      {classified.parking_spots ?? classified.attributes?.parking_spots ?? "-"}
+                    </span>
                   </div>
                 </div>
+
+                {/* Comodidades & Diferenciais */}
+                {((classified.amenities && classified.amenities.length > 0) || (classified.attributes?.amenities && classified.attributes.amenities.length > 0)) && (
+                  <div className="space-y-2 pt-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
+                      Comodidades & Diferenciais
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {(classified.amenities || classified.attributes?.amenities || []).map((amenity: string, idx: number) => (
+                        <Badge key={idx} variant="secondary" className="text-xs font-semibold px-2.5 py-1 rounded-lg">
+                          ✓ {amenity}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -562,13 +600,32 @@ function ClassifiedDetailPage() {
             {/* Bloco de Preço */}
             <div className="border-t border-border pt-4">
               <span className="text-xs uppercase font-bold text-muted-foreground tracking-wider block mb-1">
-                Valor
+                {classified.deal_type === "aluguel"
+                  ? "Valor do Aluguel Mensal"
+                  : classified.deal_type === "temporada"
+                    ? "Valor por Diária (Airbnb-style)"
+                    : "Valor"}
               </span>
-              <div className="text-3xl font-black text-primary font-mono">
-                {classified.price_cents !== null && classified.price_cents !== undefined
-                  ? formatMoney(classified.price_cents)
-                  : "A Combinar"}
+              <div className="text-3xl font-black text-primary font-mono flex items-baseline gap-1">
+                {classified.price_cents !== null && classified.price_cents !== undefined ? (
+                  <>
+                    <span>{formatMoney(classified.price_cents)}</span>
+                    {classified.deal_type === "aluguel" && (
+                      <span className="text-sm font-normal text-muted-foreground">/mês</span>
+                    )}
+                    {classified.deal_type === "temporada" && (
+                      <span className="text-sm font-normal text-muted-foreground">/diária</span>
+                    )}
+                  </>
+                ) : (
+                  "A Combinar"
+                )}
               </div>
+              {classified.deal_type === "temporada" && classified.cleaning_fee_cents > 0 && (
+                <span className="text-xs text-muted-foreground block mt-1 font-mono">
+                  + {formatMoney(classified.cleaning_fee_cents)} taxa de limpeza única
+                </span>
+              )}
               {classified.negotiable && (
                 <span className="text-xs text-muted-foreground font-medium mt-1 block">
                   Aceita negociação / contraproposta

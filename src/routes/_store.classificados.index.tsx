@@ -14,6 +14,13 @@ import {
   Armchair,
   Wrench,
   Sparkle,
+  Bed,
+  Car,
+  Ruler,
+  Users,
+  Buildings,
+  Tree,
+  CalendarCheck,
 } from "@phosphor-icons/react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -28,11 +35,11 @@ import { getPublicClassifieds } from "@/services/classifieds.functions";
 export const Route = createFileRoute("/_store/classificados/")({
   head: () => ({
     meta: [
-      { title: "Classificados & Desapegos — JAH" },
+      { title: "Classificados, Imóveis & Hospedagem — JAH" },
       {
         name: "description",
         content:
-          "Compre e venda veículos, imóveis, eletrônicos, móveis e serviços direto com quem mora em Chapecó e região.",
+          "Compre, alugue imóveis, reserve hospedagens por temporada estilo Airbnb, compre veículos e desapegos direto em Chapecó e região.",
       },
     ],
   }),
@@ -51,6 +58,24 @@ export const Route = createFileRoute("/_store/classificados/")({
 const CLASSIFIEDS_HOTPAGES = [
   {
     id: "hp-class-1",
+    title: "Imóveis & Moradia",
+    slug: "real_estate",
+    cover_image_url: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80",
+    badge_label: "Venda & Aluguel",
+    show_title: true,
+    show_overlay: true,
+  },
+  {
+    id: "hp-class-2",
+    title: "Hospedagem por Temporada",
+    slug: "real_estate_temporada",
+    cover_image_url: "https://images.unsplash.com/photo-1587061949409-02df41d5e562?w=800&q=80",
+    badge_label: "Estilo Airbnb",
+    show_title: true,
+    show_overlay: true,
+  },
+  {
+    id: "hp-class-3",
     title: "Veículos & Autos",
     slug: "vehicle",
     cover_image_url: "https://images.unsplash.com/photo-1590362891991-f776e747a588?w=800&q=80",
@@ -59,38 +84,11 @@ const CLASSIFIEDS_HOTPAGES = [
     show_overlay: true,
   },
   {
-    id: "hp-class-2",
-    title: "Imóveis & Aluguel",
-    slug: "real_estate",
-    cover_image_url: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&q=80",
-    badge_label: "Casas & Apês",
-    show_title: true,
-    show_overlay: true,
-  },
-  {
-    id: "hp-class-3",
-    title: "Eletrônicos & Celulares",
+    id: "hp-class-4",
+    title: "Desapegos & Tech",
     slug: "sale",
     cover_image_url: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&q=80",
-    badge_label: "Tech & Apple",
-    show_title: true,
-    show_overlay: true,
-  },
-  {
-    id: "hp-class-4",
-    title: "Móveis & Decoração",
-    slug: "sale",
-    cover_image_url: "https://images.unsplash.com/photo-1615066390971-03e4e1c36ddf?w=800&q=80",
-    badge_label: "Casa & Jardim",
-    show_title: true,
-    show_overlay: true,
-  },
-  {
-    id: "hp-class-5",
-    title: "Ferramentas & Negócios",
-    slug: "sale",
-    cover_image_url: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&q=80",
-    badge_label: "Indústria & Máquinas",
+    badge_label: "Eletrônicos",
     show_title: true,
     show_overlay: true,
   },
@@ -98,29 +96,39 @@ const CLASSIFIEDS_HOTPAGES = [
 
 const CLASSIFIED_CHIPS = [
   { id: "todos", label: "Todos Anúncios", icon: Sparkle },
+  { id: "real_estate", label: "Imóveis & Moradia", icon: House },
   { id: "vehicle", label: "Veículos & Autos", icon: CarProfile },
-  { id: "real_estate", label: "Imóveis & Aluguel", icon: House },
   { id: "sale", label: "Desapegos & Tech", icon: Laptop },
-  { id: "service", label: "Serviços & Bicos", icon: Wrench },
+  { id: "service", label: "Serviços & B2B", icon: Wrench },
+];
+
+const REAL_ESTATE_DEAL_TYPES = [
+  { id: "todos", label: "Todos Imóveis" },
+  { id: "aluguel", label: "Aluguel Mensal" },
+  { id: "venda", label: "Comprar / Venda" },
+  { id: "temporada", label: "Hospedagem & Temporada" },
 ];
 
 function ClassifiedsMasterPage() {
   const { banners, classifieds: initialClassifieds } = Route.useLoaderData();
   const [selectedCategory, setSelectedCategory] = useState("todos");
+  const [selectedDealType, setSelectedDealType] = useState("todos");
   const [search, setSearch] = useState("");
 
   const { data: classifieds } = useQuery({
-    queryKey: ["classifieds-master-list", selectedCategory, search],
+    queryKey: ["classifieds-master-list", selectedCategory, selectedDealType, search],
     queryFn: () =>
       getPublicClassifieds({
         data: {
           category: selectedCategory !== "todos" ? selectedCategory : undefined,
+          dealType: selectedCategory === "real_estate" && selectedDealType !== "todos" ? selectedDealType : undefined,
+          search: search || undefined,
         },
       }),
     initialData: initialClassifieds,
   });
 
-  const filtered = (classifieds || []).filter((item) => {
+  const filtered = (classifieds || []).filter((item: any) => {
     if (!search) return true;
     const q = search.toLowerCase();
     return (
@@ -132,27 +140,35 @@ function ClassifiedsMasterPage() {
 
   return (
     <div className="w-full space-y-8 pb-24">
-      {/* 1. Banners Contextuais de Classificados (Clean Media Mode) */}
+      {/* 1. Banners Contextuais */}
       <section aria-label="Banners de Classificados">
         <BannerHeroCarousel banners={banners} />
       </section>
 
-      {/* 2. Hotpages Contextuais de Classificados */}
-      <section aria-label="Categorias de Classificados">
+      {/* 2. Hotpages */}
+      <section aria-label="Destaques de Classificados">
         <HotpagesRail
           hotpages={CLASSIFIEDS_HOTPAGES as any}
           activeSlug={selectedCategory}
-          onSelect={(slug) => setSelectedCategory(slug)}
+          onSelect={(slug) => {
+            if (slug === "real_estate_temporada") {
+              setSelectedCategory("real_estate");
+              setSelectedDealType("temporada");
+            } else {
+              setSelectedCategory(slug);
+              setSelectedDealType("todos");
+            }
+          }}
         />
       </section>
 
-      {/* 3. Filtros em Cards Gordinhos & Barra de Busca & Botão de Anunciar */}
+      {/* 3. Filtros Principais Squircle */}
       <section className="space-y-4 pt-2">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Tag size={16} weight="bold" className="text-foreground" />
             <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground font-mono">
-              Categorias de Classificados
+              Categorias Principais
             </h3>
           </div>
 
@@ -160,22 +176,23 @@ function ClassifiedsMasterPage() {
             <div className="relative w-full md:w-64">
               <MagnifyingGlass size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Buscar veículo, imóvel, produto..."
+                placeholder="Buscar casa, apê, carro, chalé..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9 h-10 rounded-xl text-xs bg-card"
               />
             </div>
 
-            <Button asChild size="sm" className="rounded-xl font-bold gap-2 text-xs shrink-0 h-10 px-4">
+            <Button asChild size="sm" className="rounded-xl font-bold gap-2 text-xs shrink-0 h-10 px-4 bg-foreground text-background">
               <Link to="/conta/classificados/novo">
                 <Plus size={16} weight="bold" />
-                <span>Anunciar Grátis</span>
+                <span>Anunciar Imóvel / Item</span>
               </Link>
             </Button>
           </div>
         </div>
 
+        {/* Squircle Categories */}
         <div className="flex items-center gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 w-full px-0.5">
           {CLASSIFIED_CHIPS.map((chip) => {
             const isActive = selectedCategory === chip.id;
@@ -184,8 +201,11 @@ function ClassifiedsMasterPage() {
               <button
                 key={chip.id}
                 type="button"
-                onClick={() => setSelectedCategory(chip.id)}
-                className={`min-w-[104px] sm:min-w-[114px] h-[94px] sm:h-[100px] p-3 rounded-2xl flex flex-col items-center justify-between border cursor-pointer select-none shrink-0 transition-all group ${
+                onClick={() => {
+                  setSelectedCategory(chip.id);
+                  if (chip.id !== "real_estate") setSelectedDealType("todos");
+                }}
+                className={`min-w-[104px] sm:min-w-[124px] h-[94px] sm:h-[100px] p-3 rounded-2xl flex flex-col items-center justify-between border cursor-pointer select-none shrink-0 transition-all group ${
                   isActive
                     ? "bg-foreground text-background border-foreground shadow-xs font-bold scale-102"
                     : "bg-card text-muted-foreground border-border hover:bg-muted/70 hover:text-foreground hover:border-foreground/30 shadow-2xs"
@@ -205,67 +225,163 @@ function ClassifiedsMasterPage() {
             );
           })}
         </div>
+
+        {/* ── Subfiltros de Imóveis (Aluguel, Venda, Temporada/Airbnb) ── */}
+        {selectedCategory === "real_estate" && (
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pt-1 pb-1">
+            <span className="text-xs font-bold text-muted-foreground font-mono uppercase mr-1">
+              Finalidade:
+            </span>
+            {REAL_ESTATE_DEAL_TYPES.map((dt) => {
+              const isSelected = selectedDealType === dt.id;
+              return (
+                <button
+                  key={dt.id}
+                  type="button"
+                  onClick={() => setSelectedDealType(dt.id)}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold font-mono transition-all shrink-0 ${
+                    isSelected
+                      ? "bg-foreground text-background shadow-xs"
+                      : "bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted border border-border"
+                  }`}
+                >
+                  {dt.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </section>
 
-      {/* 4. Grid de Classificados */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {filtered.map((item) => {
-          const img =
-            item.images && item.images.length > 0
-              ? item.images[0]
-              : "https://images.unsplash.com/photo-1526367790999-0150786686a2?w=800&q=80";
+      {/* 4. Grid de Anúncios */}
+      {filtered.length === 0 ? (
+        <div className="py-24 text-center space-y-3 bg-muted/10 rounded-3xl border border-border p-8">
+          <House size={40} className="text-muted-foreground/40 mx-auto" />
+          <h2 className="text-base font-bold text-foreground">
+            Nenhum anúncio encontrado com estes filtros
+          </h2>
+          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+            Tente selecionar outra finalidade ou categoria no menu acima.
+          </p>
+        </div>
+      ) : (
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filtered.map((item: any) => {
+            const img =
+              item.images && item.images.length > 0
+                ? item.images[0]
+                : "https://images.unsplash.com/photo-1526367790999-0150786686a2?w=800&q=80";
 
-          return (
-            <Link
-              key={item.id}
-              to="/classificados/$id"
-              params={{ id: item.id }}
-              className="group rounded-3xl border border-border/80 bg-card overflow-hidden shadow-xs hover-elevate transition-all flex flex-col justify-between"
-            >
-              <div className="space-y-2.5">
-                {/* Imagem */}
-                <div className="relative aspect-4/3 w-full overflow-hidden bg-muted">
-                  <img
-                    src={img}
-                    alt={item.title}
-                    className="size-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    loading="lazy"
-                  />
-                  <div className="absolute top-2.5 left-2.5">
-                    <Badge variant="secondary" className="text-[9px] uppercase font-mono bg-black/60 text-white backdrop-blur-md border-none">
-                      {item.category}
-                    </Badge>
+            const isRealEstate = item.category === "real_estate";
+            const isTemporada = item.deal_type === "temporada";
+            const isAluguel = item.deal_type === "aluguel";
+
+            return (
+              <Link
+                key={item.id}
+                to="/classificados/$id"
+                params={{ id: item.id }}
+                className="group rounded-3xl border border-border bg-card overflow-hidden shadow-2xs hover:border-foreground/30 transition-all flex flex-col justify-between"
+              >
+                <div className="space-y-3">
+                  {/* Imagem */}
+                  <div className="relative aspect-16/10 w-full overflow-hidden bg-muted">
+                    <img
+                      src={img}
+                      alt={item.title}
+                      className="size-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                    />
+                    <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                      {isRealEstate && (
+                        <Badge
+                          variant="secondary"
+                          className={`text-[9px] uppercase font-mono font-bold px-2 py-0.5 backdrop-blur-md border-none ${
+                            isTemporada
+                              ? "bg-amber-500/90 text-white"
+                              : isAluguel
+                                ? "bg-blue-600/90 text-white"
+                                : "bg-emerald-600/90 text-white"
+                          }`}
+                        >
+                          {isTemporada
+                            ? "Temporada (Airbnb)"
+                            : isAluguel
+                              ? "Aluguel Mensal"
+                              : "Venda"}
+                        </Badge>
+                      )}
+                      {!isRealEstate && (
+                        <Badge variant="secondary" className="text-[9px] uppercase font-mono bg-black/60 text-white backdrop-blur-md border-none">
+                          {item.category}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Conteúdo */}
+                  <div className="p-5 pt-1 space-y-2">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="text-lg font-mono font-black text-foreground">
+                        {formatMoney(item.price_cents || 0)}
+                        {isAluguel && <span className="text-xs font-normal text-muted-foreground">/mês</span>}
+                        {isTemporada && <span className="text-xs font-normal text-muted-foreground">/diária</span>}
+                      </span>
+                    </div>
+
+                    <h3 className="text-sm font-bold text-foreground line-clamp-2 leading-snug group-hover:underline">
+                      {item.title}
+                    </h3>
+
+                    {/* Especificações Imobiliárias Estruturadas */}
+                    {isRealEstate && (
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground font-mono pt-1">
+                        {isTemporada && item.max_guests > 0 && (
+                          <span className="flex items-center gap-1">
+                            <Users size={14} weight="bold" />
+                            <span>Até {item.max_guests} hóspedes</span>
+                          </span>
+                        )}
+                        {!isTemporada && item.bedrooms > 0 && (
+                          <span className="flex items-center gap-1">
+                            <Bed size={14} weight="bold" />
+                            <span>{item.bedrooms} {item.bedrooms === 1 ? "quarto" : "quartos"}</span>
+                          </span>
+                        )}
+                        {item.parking_spots > 0 && (
+                          <span className="flex items-center gap-1">
+                            <Car size={14} weight="bold" />
+                            <span>{item.parking_spots} {item.parking_spots === 1 ? "vaga" : "vagas"}</span>
+                          </span>
+                        )}
+                        {item.area_sqm > 0 && (
+                          <span className="flex items-center gap-1">
+                            <Ruler size={14} weight="bold" />
+                            <span>{item.area_sqm} m²</span>
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                      {item.content}
+                    </p>
                   </div>
                 </div>
 
-                {/* Conteúdo */}
-                <div className="p-4 pt-1 space-y-1.5">
-                  <span className="text-base font-mono font-black text-foreground block">
-                    {formatMoney(item.price_cents || 0)}
+                {/* Localização & Rodapé */}
+                <div className="p-5 pt-3 text-xs text-muted-foreground font-mono flex items-center justify-between border-t border-border mt-2">
+                  <span className="flex items-center gap-1.5 truncate">
+                    <MapPin size={13} weight="bold" className="text-foreground shrink-0" />
+                    <span className="truncate">{item.location_name || item.location_text || "Chapecó, SC"}</span>
                   </span>
-
-                  <h3 className="text-xs sm:text-sm font-bold text-foreground line-clamp-2 leading-tight group-hover:text-primary transition-colors">
-                    {item.title}
-                  </h3>
-
-                  <p className="text-[11px] text-muted-foreground line-clamp-1">
-                    {item.content}
-                  </p>
+                  <span className="text-foreground font-bold shrink-0 text-xs">Ver Detalhes ➔</span>
                 </div>
-              </div>
-
-              {/* Localização & Rodapé */}
-              <div className="p-4 pt-0 text-[10px] text-muted-foreground font-mono flex items-center justify-between border-t border-border/40 mt-2">
-                <span className="flex items-center gap-1 truncate">
-                  <MapPin className="size-3 text-primary shrink-0" />
-                  <span className="truncate">{item.location_name || item.location_text || "Chapecó, SC"}</span>
-                </span>
-                <span className="text-primary font-bold shrink-0">Ver Detalhes ➔</span>
-              </div>
-            </Link>
-          );
-        })}
-      </section>
+              </Link>
+            );
+          })}
+        </section>
+      )}
     </div>
   );
 }
