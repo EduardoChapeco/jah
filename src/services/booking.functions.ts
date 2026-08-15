@@ -28,31 +28,49 @@ export const createAppointmentSchema = z.object({
 // --- FUNCTIONS ---
 
 /**
- * Lista serviços de agendamento disponíveis na loja atual.
+ * Lista serviços de agendamento disponíveis na loja atual ou na comunidade.
  */
-export const listBookingServices = createServerFn({ method: "GET" }).handler(async () => {
-  try {
-    const storeId = await resolveTenantStoreId();
-    if (!storeId) throw new Error("Loja não encontrada no contexto.");
+export const listBookingServices = createServerFn({ method: "GET" })
+  .validator(
+    z
+      .object({
+        category: z.string().optional(),
+        gender_target: z.string().optional(),
+        search: z.string().optional(),
+      })
+      .optional(),
+  )
+  .handler(async ({ data: params }) => {
+    try {
+      const db = getServerClient();
+      let query = db
+        .from("booking_services")
+        .select("*, stores(id, name, slug, avatar_url)")
+        .eq("status", "active")
+        .order("title");
 
-    const db = getServerClient();
-    const { data, error } = await db
-      .from("booking_services")
-      .select("*")
-      .eq("store_id", storeId)
-      .eq("status", "active")
-      .order("title");
+      if (params?.category && params.category !== "todos") {
+        query = query.eq("category", params.category);
+      }
 
-    if (error) throw error;
-    return { status: "success" as const, data };
-  } catch (error: unknown) {
-    console.error("[booking.functions] listBookingServices error:", error);
-    throw new Error(
-      (error instanceof Error ? error.message : String(error)) ||
-        "Erro ao listar serviços de agendamento.",
-    );
-  }
-});
+      if (params?.gender_target && params.gender_target !== "todos") {
+        query = query.or(`gender_target.eq.${params.gender_target},gender_target.eq.unissex,gender_target.eq.todos`);
+      }
+
+      if (params?.search && params.search.trim()) {
+        const q = `%${params.search.trim()}%`;
+        query = query.or(`title.ilike.${q},description.ilike.${q}`);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      return { status: "success" as const, data: data || [] };
+    } catch (error: unknown) {
+      console.error("[booking.functions] listBookingServices error:", error);
+      return { status: "success" as const, data: [] };
+    }
+  });
 
 /**
  * Busca horários disponíveis para um serviço em uma data específica.

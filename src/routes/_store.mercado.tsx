@@ -66,14 +66,14 @@ const SORT_LABELS: Record<string, string> = {
 const CATEGORIES_TAXONOMY = [
   { label: "Tudo", icon: Sparkle, niche: undefined },
   { label: "Ofertas", icon: Flame, niche: "ofertas" },
-  { label: "Mercado & Horti", icon: Storefront, niche: "mercado" },
   { label: "Gastronomia", icon: ForkKnife, niche: "gastronomia" },
+  { label: "Mercado & Horti", icon: Storefront, niche: "mercado" },
   { label: "Farmácia", icon: Heartbeat, niche: "farmacia" },
-  { label: "Conveniência", icon: Coffee, niche: "conveniencia" },
   { label: "Moda & Roupas", icon: TShirt, niche: "moda" },
-  { label: "Alugue", icon: Key, niche: "aluguel" },
-  { label: "Beleza & Estética", icon: Scissors, niche: "beleza" },
-  { label: "Serviços Locais", icon: Wrench, niche: "servicos" },
+  { label: "Conveniência", icon: Coffee, niche: "conveniencia" },
+  { label: "Pet Shop", icon: Heartbeat, niche: "pet" },
+  { label: "Beleza & Cosméticos", icon: Scissors, niche: "beleza" },
+  { label: "Eletrônicos & Casa", icon: Sparkle, niche: "eletronicos" },
 ];
 
 export const Route = createFileRoute("/_store/mercado")({
@@ -105,7 +105,7 @@ export const Route = createFileRoute("/_store/mercado")({
       }),
       listPublishedCategories(),
       listAvailableAttributes(),
-      getMarketplaceFeed(),
+      getMarketplaceFeed({ data: { niche: search.niche } }),
       listActiveBanners({ data: { placement: "mercado" } }).catch(() => []),
       listHotpages({ data: { module: "mercado" } }).catch(() => []),
     ]);

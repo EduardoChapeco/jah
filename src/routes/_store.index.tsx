@@ -42,18 +42,18 @@ interface MasterCategoryItem {
 }
 
 const DEFAULT_MASTER_CATEGORIES: MasterCategoryItem[] = [
+  { to: "/mercado?niche=gastronomia", slug: "gastronomia", label: "Delivery", icon: ForkKnife, badge: "Comida" },
   { to: "/mercado?niche=mercado", slug: "mercado", label: "Mercado", icon: Storefront, badge: "Essencial" },
   { to: "/mercado?niche=farmacia", slug: "farmacia", label: "Farmácia", icon: Heartbeat, badge: "Saúde" },
-  { to: "/mercado?niche=gastronomia", slug: "gastronomia", label: "Delivery", icon: ForkKnife, badge: "Comida" },
-  { to: "/mercado?niche=conveniencia", slug: "conveniencia", label: "Bebidas", icon: Coffee },
   { to: "/mercado?niche=moda", slug: "moda", label: "Roupas & Moda", icon: TShirt },
-  { to: "/mercado?niche=aluguel", slug: "aluguel", label: "Alugue", icon: Key },
-  { to: "/empregos", slug: "empregos", label: "Empregos", icon: Briefcase, badge: "Vagas" },
-  { to: "/agenda", slug: "agenda", label: "Eventos", icon: CalendarDots },
-  { to: "/mobilidade", slug: "mobilidade", label: "Mobilidade", icon: CarProfile },
+  { to: "/mercado?niche=conveniencia", slug: "conveniencia", label: "Bebidas", icon: Coffee },
+  { to: "/agendar", slug: "agendar", label: "Agendamentos", icon: Scissors, badge: "Beleza" },
   { to: "/classificados", slug: "classificados", label: "Classificados", icon: Tag },
-  { to: "/mercado?niche=beleza", slug: "beleza", label: "Beleza", icon: Scissors },
+  { to: "/agenda", slug: "agenda", label: "Eventos", icon: CalendarDots },
+  { to: "/turismo", slug: "turismo", label: "Turismo", icon: AirplaneTilt, badge: "Lazer" },
+  { to: "/empregos", slug: "empregos", label: "Empregos", icon: Briefcase, badge: "Vagas" },
   { to: "/diretorio", slug: "diretorio", label: "Serviços", icon: Compass },
+  { to: "/mobilidade", slug: "mobilidade", label: "Mobilidade", icon: CarProfile },
 ];
 
 export const Route = createFileRoute("/_store/")({

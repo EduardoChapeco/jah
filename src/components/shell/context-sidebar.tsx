@@ -41,12 +41,11 @@ const PRIMARY_DESTINATIONS = [
   { to: "/classificados", label: "Classificados", icon: Tag, exact: true },
   { to: "/mapa", label: "Moments", icon: MapPin },
   { to: "/agenda", label: "Agenda", icon: CalendarDots },
+  { to: "/agendar", label: "Agendamentos", icon: Scissors },
   { to: "/turismo", label: "Turismo", icon: AirplaneTilt },
   { to: "/empregos", label: "Empregos", icon: Briefcase },
-  { to: "/mobilidade", label: "Mobilidade", icon: CarProfile },
-  { to: "/mercado?niche=aluguel", label: "Alugue", icon: Key },
-  { to: "/mercado?niche=moda", label: "Roupas & Moda", icon: TShirt },
   { to: "/diretorio", label: "Guia & Diretório", icon: Compass },
+  { to: "/mobilidade", label: "Mobilidade", icon: CarProfile },
 ];
 
 // ── 2. Categorias Master & Nichos de Alto Consumo ──
@@ -54,11 +53,11 @@ const CATEGORY_NICHES = [
   { to: "/mercado?niche=gastronomia", label: "Gastronomia & Delivery", icon: ForkKnife },
   { to: "/mercado?niche=mercado", label: "Mercado & Hortifruti", icon: ShoppingBag },
   { to: "/mercado?niche=farmacia", label: "Farmácia & Saúde", icon: Heartbeat },
+  { to: "/mercado?niche=moda", label: "Moda & Vestuário", icon: TShirt },
   { to: "/mercado?niche=conveniencia", label: "Conveniência & Bebidas", icon: Coffee },
-  { to: "/mercado?niche=beleza", label: "Beleza & Estética", icon: Scissors },
-  { to: "/classificados?categoria=veiculos", label: "Veículos (Auto)", icon: Jeep },
-  { to: "/classificados?categoria=imoveis", label: "Imóveis", icon: Buildings },
-  { to: "/diretorio", label: "Prestadores de Serviços", icon: Wrench },
+  { to: "/agendar", label: "Barbearia & Estética", icon: Scissors },
+  { to: "/classificados?categoria=imoveis", label: "Imóveis & Aluguel", icon: Buildings },
+  { to: "/classificados?categoria=veiculos", label: "Veículos & Autos", icon: Jeep },
   { to: "/mercado?niche=ofertas", label: "Ofertas Relâmpago", icon: Flame },
 ];
 
