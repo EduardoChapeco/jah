@@ -265,8 +265,8 @@ export function resolveContextNavigation(pathname: string, session?: any): Conte
         to: "/mobilidade",
         icon: Plus,
       },
-      widthMode: "reading",
-      showContextSidebar: true,
+      widthMode: "full",
+      showContextSidebar: false,
     };
   }
 
