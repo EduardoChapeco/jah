@@ -30,6 +30,8 @@ import {
   HelpCircle,
   ShieldCheck,
   Building,
+  Car,
+  Truck,
 } from "lucide-react";
 
 export type ContentWidthMode =
@@ -75,6 +77,7 @@ export const GLOBAL_DESTINATIONS: NavigationItem[] = [
   { to: "/", label: "Mural", icon: Home, exact: true },
   { to: "/mapa", label: "Mapa", icon: MapPin },
   { to: "/mercado", label: "Mercado", icon: ShoppingBag },
+  { to: "/mobilidade", label: "Mobilidade & Fretes", icon: Car },
   { to: "/agenda", label: "Eventos", icon: Calendar },
   { to: "/diretorio", label: "Diretório", icon: Compass },
 ];
@@ -106,6 +109,7 @@ export const PERSONAL_NAV_GROUPS: NavigationGroup[] = [
     title: "Compras & Pagamentos",
     items: [
       { to: "/conta/pedidos", label: "Minhas Compras", icon: Package },
+      { to: "/conta/mobilidade", label: "Corridas & Mudanças", icon: Car },
       { to: "/conta/pagamentos", label: "Pagamentos & Parcelas", icon: CreditCard },
       { to: "/conta/creditos", label: "Carteira & Créditos", icon: Coins },
       { to: "/conta/gift-cards", label: "Vales-Presente", icon: Gift },
@@ -231,6 +235,34 @@ export function resolveContextNavigation(pathname: string, session?: any): Conte
         icon: Plus,
       },
       widthMode: "catalog",
+      showContextSidebar: true,
+    };
+  }
+
+  // 2.5. Mobilidade & Fretes
+  if (pathname.startsWith("/mobilidade")) {
+    return {
+      moduleId: "mobility",
+      title: "Mobilidade & Fretes",
+      subtitle: "Corridas, entregas flash e mudanças na cidade",
+      groups: [
+        {
+          id: "mobility-services",
+          title: "Serviços",
+          items: [
+            { to: "/mobilidade", label: "Chamar Agora", icon: Car, exact: true },
+            { to: "/conta/mobilidade", label: "Minhas Corridas", icon: Clock },
+            { to: "/workspace/pedidos/frota", label: "Central de Despacho", icon: Truck },
+          ],
+        },
+      ],
+      action: {
+        label: "Novo Chamado",
+        type: "navigate",
+        to: "/mobilidade",
+        icon: Plus,
+      },
+      widthMode: "reading",
       showContextSidebar: true,
     };
   }

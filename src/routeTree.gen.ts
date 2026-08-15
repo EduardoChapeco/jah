@@ -29,6 +29,7 @@ import { Route as StoreFaqRouteImport } from './routes/_store.faq'
 import { Route as StoreMapaRouteImport } from './routes/_store.mapa'
 import { Route as StoreMatchTimeRouteImport } from './routes/_store.match-time'
 import { Route as StoreMercadoRouteImport } from './routes/_store.mercado'
+import { Route as StoreMobilidadeRouteImport } from './routes/_store.mobilidade'
 import { Route as StoreMuralRouteImport } from './routes/_store.mural'
 import { Route as StorePerfilDaLojaRouteImport } from './routes/_store.perfil-da-loja'
 import { Route as StorePrivacidadeRouteImport } from './routes/_store.privacidade'
@@ -52,6 +53,7 @@ import { Route as StoreContaAvaliacoesRouteImport } from './routes/_store.conta.
 import { Route as StoreContaCreditosRouteImport } from './routes/_store.conta.creditos'
 import { Route as StoreContaEnderecosRouteImport } from './routes/_store.conta.enderecos'
 import { Route as StoreContaGiftCardsRouteImport } from './routes/_store.conta.gift-cards'
+import { Route as StoreContaMobilidadeRouteImport } from './routes/_store.conta.mobilidade'
 import { Route as StoreContaNegociacoesRouteImport } from './routes/_store.conta.negociacoes'
 import { Route as StoreContaPagamentosRouteImport } from './routes/_store.conta.pagamentos'
 import { Route as StoreContaPerfilRouteImport } from './routes/_store.conta.perfil'
@@ -63,6 +65,7 @@ import { Route as StoreEntregaTokenRouteImport } from './routes/_store.entrega.$
 import { Route as StoreEventoIdRouteImport } from './routes/_store.evento.$id'
 import { Route as StoreGiftCardClaimTokenRouteImport } from './routes/_store.gift-card.$claimToken'
 import { Route as StoreMembroIdRouteImport } from './routes/_store.membro.$id'
+import { Route as StoreMotoristaSlugRouteImport } from './routes/_store.motorista.$slug'
 import { Route as StoreNoticiasIndexRouteImport } from './routes/_store.noticias.index'
 import { Route as StoreNoticiasSlugRouteImport } from './routes/_store.noticias.$slug'
 import { Route as StorePaginasSlugRouteImport } from './routes/_store.paginas.$slug'
@@ -97,6 +100,8 @@ import { Route as WorkspaceFinanceiroComissoesRouteImport } from './routes/works
 import { Route as WorkspaceFinanceiroComprovantesRouteImport } from './routes/workspace.financeiro.comprovantes'
 import { Route as WorkspaceFinanceiroFuncionariosRouteImport } from './routes/workspace.financeiro.funcionarios'
 import { Route as WorkspaceFinanceiroPagamentosRouteImport } from './routes/workspace.financeiro.pagamentos'
+import { Route as WorkspaceLogisticaFaturasRouteImport } from './routes/workspace.logistica.faturas'
+import { Route as WorkspaceLogisticaTabelasRouteImport } from './routes/workspace.logistica.tabelas'
 import { Route as WorkspaceMarketingAnunciosRouteImport } from './routes/workspace.marketing.anuncios'
 import { Route as WorkspaceMarketingBannersRouteImport } from './routes/workspace.marketing.banners'
 import { Route as WorkspaceMarketingCarrinhosRouteImport } from './routes/workspace.marketing.carrinhos'
@@ -246,6 +251,11 @@ const StoreMercadoRoute = StoreMercadoRouteImport.update({
   path: '/mercado',
   getParentRoute: () => StoreRoute,
 } as any)
+const StoreMobilidadeRoute = StoreMobilidadeRouteImport.update({
+  id: '/mobilidade',
+  path: '/mobilidade',
+  getParentRoute: () => StoreRoute,
+} as any)
 const StoreMuralRoute = StoreMuralRouteImport.update({
   id: '/mural',
   path: '/mural',
@@ -361,6 +371,11 @@ const StoreContaGiftCardsRoute = StoreContaGiftCardsRouteImport.update({
   path: '/gift-cards',
   getParentRoute: () => StoreContaRoute,
 } as any)
+const StoreContaMobilidadeRoute = StoreContaMobilidadeRouteImport.update({
+  id: '/mobilidade',
+  path: '/mobilidade',
+  getParentRoute: () => StoreContaRoute,
+} as any)
 const StoreContaNegociacoesRoute = StoreContaNegociacoesRouteImport.update({
   id: '/negociacoes',
   path: '/negociacoes',
@@ -414,6 +429,11 @@ const StoreGiftCardClaimTokenRoute = StoreGiftCardClaimTokenRouteImport.update({
 const StoreMembroIdRoute = StoreMembroIdRouteImport.update({
   id: '/membro/$id',
   path: '/membro/$id',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StoreMotoristaSlugRoute = StoreMotoristaSlugRouteImport.update({
+  id: '/motorista/$slug',
+  path: '/motorista/$slug',
   getParentRoute: () => StoreRoute,
 } as any)
 const StoreNoticiasIndexRoute = StoreNoticiasIndexRouteImport.update({
@@ -594,6 +614,18 @@ const WorkspaceFinanceiroPagamentosRoute =
   WorkspaceFinanceiroPagamentosRouteImport.update({
     id: '/financeiro/pagamentos',
     path: '/financeiro/pagamentos',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
+const WorkspaceLogisticaFaturasRoute =
+  WorkspaceLogisticaFaturasRouteImport.update({
+    id: '/logistica/faturas',
+    path: '/logistica/faturas',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
+const WorkspaceLogisticaTabelasRoute =
+  WorkspaceLogisticaTabelasRouteImport.update({
+    id: '/logistica/tabelas',
+    path: '/logistica/tabelas',
     getParentRoute: () => WorkspaceRoute,
   } as any)
 const WorkspaceMarketingAnunciosRoute =
@@ -896,6 +928,7 @@ export interface FileRoutesByFullPath {
   '/mapa': typeof StoreMapaRoute
   '/match-time': typeof StoreMatchTimeRoute
   '/mercado': typeof StoreMercadoRoute
+  '/mobilidade': typeof StoreMobilidadeRoute
   '/mural': typeof StoreMuralRoute
   '/perfil-da-loja': typeof StorePerfilDaLojaRoute
   '/privacidade': typeof StorePrivacidadeRoute
@@ -917,6 +950,7 @@ export interface FileRoutesByFullPath {
   '/conta/creditos': typeof StoreContaCreditosRoute
   '/conta/enderecos': typeof StoreContaEnderecosRoute
   '/conta/gift-cards': typeof StoreContaGiftCardsRoute
+  '/conta/mobilidade': typeof StoreContaMobilidadeRoute
   '/conta/negociacoes': typeof StoreContaNegociacoesRoute
   '/conta/pagamentos': typeof StoreContaPagamentosRoute
   '/conta/perfil': typeof StoreContaPerfilRoute
@@ -928,6 +962,7 @@ export interface FileRoutesByFullPath {
   '/evento/$id': typeof StoreEventoIdRoute
   '/gift-card/$claimToken': typeof StoreGiftCardClaimTokenRoute
   '/membro/$id': typeof StoreMembroIdRoute
+  '/motorista/$slug': typeof StoreMotoristaSlugRoute
   '/noticias/$slug': typeof StoreNoticiasSlugRoute
   '/paginas/$slug': typeof StorePaginasSlugRoute
   '/politicas/$slug': typeof StorePoliticasSlugRoute
@@ -957,6 +992,8 @@ export interface FileRoutesByFullPath {
   '/workspace/financeiro/comprovantes': typeof WorkspaceFinanceiroComprovantesRoute
   '/workspace/financeiro/funcionarios': typeof WorkspaceFinanceiroFuncionariosRoute
   '/workspace/financeiro/pagamentos': typeof WorkspaceFinanceiroPagamentosRoute
+  '/workspace/logistica/faturas': typeof WorkspaceLogisticaFaturasRoute
+  '/workspace/logistica/tabelas': typeof WorkspaceLogisticaTabelasRoute
   '/workspace/marketing/anuncios': typeof WorkspaceMarketingAnunciosRouteWithChildren
   '/workspace/marketing/banners': typeof WorkspaceMarketingBannersRoute
   '/workspace/marketing/carrinhos': typeof WorkspaceMarketingCarrinhosRoute
@@ -1029,6 +1066,7 @@ export interface FileRoutesByTo {
   '/mapa': typeof StoreMapaRoute
   '/match-time': typeof StoreMatchTimeRoute
   '/mercado': typeof StoreMercadoRoute
+  '/mobilidade': typeof StoreMobilidadeRoute
   '/mural': typeof StoreMuralRoute
   '/perfil-da-loja': typeof StorePerfilDaLojaRoute
   '/privacidade': typeof StorePrivacidadeRoute
@@ -1051,6 +1089,7 @@ export interface FileRoutesByTo {
   '/conta/creditos': typeof StoreContaCreditosRoute
   '/conta/enderecos': typeof StoreContaEnderecosRoute
   '/conta/gift-cards': typeof StoreContaGiftCardsRoute
+  '/conta/mobilidade': typeof StoreContaMobilidadeRoute
   '/conta/negociacoes': typeof StoreContaNegociacoesRoute
   '/conta/pagamentos': typeof StoreContaPagamentosRoute
   '/conta/perfil': typeof StoreContaPerfilRoute
@@ -1062,6 +1101,7 @@ export interface FileRoutesByTo {
   '/evento/$id': typeof StoreEventoIdRoute
   '/gift-card/$claimToken': typeof StoreGiftCardClaimTokenRoute
   '/membro/$id': typeof StoreMembroIdRoute
+  '/motorista/$slug': typeof StoreMotoristaSlugRoute
   '/noticias/$slug': typeof StoreNoticiasSlugRoute
   '/paginas/$slug': typeof StorePaginasSlugRoute
   '/politicas/$slug': typeof StorePoliticasSlugRoute
@@ -1091,6 +1131,8 @@ export interface FileRoutesByTo {
   '/workspace/financeiro/comprovantes': typeof WorkspaceFinanceiroComprovantesRoute
   '/workspace/financeiro/funcionarios': typeof WorkspaceFinanceiroFuncionariosRoute
   '/workspace/financeiro/pagamentos': typeof WorkspaceFinanceiroPagamentosRoute
+  '/workspace/logistica/faturas': typeof WorkspaceLogisticaFaturasRoute
+  '/workspace/logistica/tabelas': typeof WorkspaceLogisticaTabelasRoute
   '/workspace/marketing/anuncios': typeof WorkspaceMarketingAnunciosRouteWithChildren
   '/workspace/marketing/banners': typeof WorkspaceMarketingBannersRoute
   '/workspace/marketing/carrinhos': typeof WorkspaceMarketingCarrinhosRoute
@@ -1169,6 +1211,7 @@ export interface FileRoutesById {
   '/_store/mapa': typeof StoreMapaRoute
   '/_store/match-time': typeof StoreMatchTimeRoute
   '/_store/mercado': typeof StoreMercadoRoute
+  '/_store/mobilidade': typeof StoreMobilidadeRoute
   '/_store/mural': typeof StoreMuralRoute
   '/_store/perfil-da-loja': typeof StorePerfilDaLojaRoute
   '/_store/privacidade': typeof StorePrivacidadeRoute
@@ -1191,6 +1234,7 @@ export interface FileRoutesById {
   '/_store/conta/creditos': typeof StoreContaCreditosRoute
   '/_store/conta/enderecos': typeof StoreContaEnderecosRoute
   '/_store/conta/gift-cards': typeof StoreContaGiftCardsRoute
+  '/_store/conta/mobilidade': typeof StoreContaMobilidadeRoute
   '/_store/conta/negociacoes': typeof StoreContaNegociacoesRoute
   '/_store/conta/pagamentos': typeof StoreContaPagamentosRoute
   '/_store/conta/perfil': typeof StoreContaPerfilRoute
@@ -1202,6 +1246,7 @@ export interface FileRoutesById {
   '/_store/evento/$id': typeof StoreEventoIdRoute
   '/_store/gift-card/$claimToken': typeof StoreGiftCardClaimTokenRoute
   '/_store/membro/$id': typeof StoreMembroIdRoute
+  '/_store/motorista/$slug': typeof StoreMotoristaSlugRoute
   '/_store/noticias/$slug': typeof StoreNoticiasSlugRoute
   '/_store/paginas/$slug': typeof StorePaginasSlugRoute
   '/_store/politicas/$slug': typeof StorePoliticasSlugRoute
@@ -1231,6 +1276,8 @@ export interface FileRoutesById {
   '/workspace/financeiro/comprovantes': typeof WorkspaceFinanceiroComprovantesRoute
   '/workspace/financeiro/funcionarios': typeof WorkspaceFinanceiroFuncionariosRoute
   '/workspace/financeiro/pagamentos': typeof WorkspaceFinanceiroPagamentosRoute
+  '/workspace/logistica/faturas': typeof WorkspaceLogisticaFaturasRoute
+  '/workspace/logistica/tabelas': typeof WorkspaceLogisticaTabelasRoute
   '/workspace/marketing/anuncios': typeof WorkspaceMarketingAnunciosRouteWithChildren
   '/workspace/marketing/banners': typeof WorkspaceMarketingBannersRoute
   '/workspace/marketing/carrinhos': typeof WorkspaceMarketingCarrinhosRoute
@@ -1310,6 +1357,7 @@ export interface FileRouteTypes {
     | '/mapa'
     | '/match-time'
     | '/mercado'
+    | '/mobilidade'
     | '/mural'
     | '/perfil-da-loja'
     | '/privacidade'
@@ -1331,6 +1379,7 @@ export interface FileRouteTypes {
     | '/conta/creditos'
     | '/conta/enderecos'
     | '/conta/gift-cards'
+    | '/conta/mobilidade'
     | '/conta/negociacoes'
     | '/conta/pagamentos'
     | '/conta/perfil'
@@ -1342,6 +1391,7 @@ export interface FileRouteTypes {
     | '/evento/$id'
     | '/gift-card/$claimToken'
     | '/membro/$id'
+    | '/motorista/$slug'
     | '/noticias/$slug'
     | '/paginas/$slug'
     | '/politicas/$slug'
@@ -1371,6 +1421,8 @@ export interface FileRouteTypes {
     | '/workspace/financeiro/comprovantes'
     | '/workspace/financeiro/funcionarios'
     | '/workspace/financeiro/pagamentos'
+    | '/workspace/logistica/faturas'
+    | '/workspace/logistica/tabelas'
     | '/workspace/marketing/anuncios'
     | '/workspace/marketing/banners'
     | '/workspace/marketing/carrinhos'
@@ -1443,6 +1495,7 @@ export interface FileRouteTypes {
     | '/mapa'
     | '/match-time'
     | '/mercado'
+    | '/mobilidade'
     | '/mural'
     | '/perfil-da-loja'
     | '/privacidade'
@@ -1465,6 +1518,7 @@ export interface FileRouteTypes {
     | '/conta/creditos'
     | '/conta/enderecos'
     | '/conta/gift-cards'
+    | '/conta/mobilidade'
     | '/conta/negociacoes'
     | '/conta/pagamentos'
     | '/conta/perfil'
@@ -1476,6 +1530,7 @@ export interface FileRouteTypes {
     | '/evento/$id'
     | '/gift-card/$claimToken'
     | '/membro/$id'
+    | '/motorista/$slug'
     | '/noticias/$slug'
     | '/paginas/$slug'
     | '/politicas/$slug'
@@ -1505,6 +1560,8 @@ export interface FileRouteTypes {
     | '/workspace/financeiro/comprovantes'
     | '/workspace/financeiro/funcionarios'
     | '/workspace/financeiro/pagamentos'
+    | '/workspace/logistica/faturas'
+    | '/workspace/logistica/tabelas'
     | '/workspace/marketing/anuncios'
     | '/workspace/marketing/banners'
     | '/workspace/marketing/carrinhos'
@@ -1582,6 +1639,7 @@ export interface FileRouteTypes {
     | '/_store/mapa'
     | '/_store/match-time'
     | '/_store/mercado'
+    | '/_store/mobilidade'
     | '/_store/mural'
     | '/_store/perfil-da-loja'
     | '/_store/privacidade'
@@ -1604,6 +1662,7 @@ export interface FileRouteTypes {
     | '/_store/conta/creditos'
     | '/_store/conta/enderecos'
     | '/_store/conta/gift-cards'
+    | '/_store/conta/mobilidade'
     | '/_store/conta/negociacoes'
     | '/_store/conta/pagamentos'
     | '/_store/conta/perfil'
@@ -1615,6 +1674,7 @@ export interface FileRouteTypes {
     | '/_store/evento/$id'
     | '/_store/gift-card/$claimToken'
     | '/_store/membro/$id'
+    | '/_store/motorista/$slug'
     | '/_store/noticias/$slug'
     | '/_store/paginas/$slug'
     | '/_store/politicas/$slug'
@@ -1644,6 +1704,8 @@ export interface FileRouteTypes {
     | '/workspace/financeiro/comprovantes'
     | '/workspace/financeiro/funcionarios'
     | '/workspace/financeiro/pagamentos'
+    | '/workspace/logistica/faturas'
+    | '/workspace/logistica/tabelas'
     | '/workspace/marketing/anuncios'
     | '/workspace/marketing/banners'
     | '/workspace/marketing/carrinhos'
@@ -1858,6 +1920,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreMercadoRouteImport
       parentRoute: typeof StoreRoute
     }
+    '/_store/mobilidade': {
+      id: '/_store/mobilidade'
+      path: '/mobilidade'
+      fullPath: '/mobilidade'
+      preLoaderRoute: typeof StoreMobilidadeRouteImport
+      parentRoute: typeof StoreRoute
+    }
     '/_store/mural': {
       id: '/_store/mural'
       path: '/mural'
@@ -2019,6 +2088,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreContaGiftCardsRouteImport
       parentRoute: typeof StoreContaRoute
     }
+    '/_store/conta/mobilidade': {
+      id: '/_store/conta/mobilidade'
+      path: '/mobilidade'
+      fullPath: '/conta/mobilidade'
+      preLoaderRoute: typeof StoreContaMobilidadeRouteImport
+      parentRoute: typeof StoreContaRoute
+    }
     '/_store/conta/negociacoes': {
       id: '/_store/conta/negociacoes'
       path: '/negociacoes'
@@ -2094,6 +2170,13 @@ declare module '@tanstack/react-router' {
       path: '/membro/$id'
       fullPath: '/membro/$id'
       preLoaderRoute: typeof StoreMembroIdRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/motorista/$slug': {
+      id: '/_store/motorista/$slug'
+      path: '/motorista/$slug'
+      fullPath: '/motorista/$slug'
+      preLoaderRoute: typeof StoreMotoristaSlugRouteImport
       parentRoute: typeof StoreRoute
     }
     '/_store/noticias/': {
@@ -2332,6 +2415,20 @@ declare module '@tanstack/react-router' {
       path: '/financeiro/pagamentos'
       fullPath: '/workspace/financeiro/pagamentos'
       preLoaderRoute: typeof WorkspaceFinanceiroPagamentosRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/logistica/faturas': {
+      id: '/workspace/logistica/faturas'
+      path: '/logistica/faturas'
+      fullPath: '/workspace/logistica/faturas'
+      preLoaderRoute: typeof WorkspaceLogisticaFaturasRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/logistica/tabelas': {
+      id: '/workspace/logistica/tabelas'
+      path: '/logistica/tabelas'
+      fullPath: '/workspace/logistica/tabelas'
+      preLoaderRoute: typeof WorkspaceLogisticaTabelasRouteImport
       parentRoute: typeof WorkspaceRoute
     }
     '/workspace/marketing/anuncios': {
@@ -2697,6 +2794,7 @@ interface StoreContaRouteChildren {
   StoreContaCreditosRoute: typeof StoreContaCreditosRoute
   StoreContaEnderecosRoute: typeof StoreContaEnderecosRoute
   StoreContaGiftCardsRoute: typeof StoreContaGiftCardsRoute
+  StoreContaMobilidadeRoute: typeof StoreContaMobilidadeRoute
   StoreContaNegociacoesRoute: typeof StoreContaNegociacoesRoute
   StoreContaPagamentosRoute: typeof StoreContaPagamentosRoute
   StoreContaPerfilRoute: typeof StoreContaPerfilRoute
@@ -2716,6 +2814,7 @@ const StoreContaRouteChildren: StoreContaRouteChildren = {
   StoreContaCreditosRoute: StoreContaCreditosRoute,
   StoreContaEnderecosRoute: StoreContaEnderecosRoute,
   StoreContaGiftCardsRoute: StoreContaGiftCardsRoute,
+  StoreContaMobilidadeRoute: StoreContaMobilidadeRoute,
   StoreContaNegociacoesRoute: StoreContaNegociacoesRoute,
   StoreContaPagamentosRoute: StoreContaPagamentosRoute,
   StoreContaPerfilRoute: StoreContaPerfilRoute,
@@ -2750,6 +2849,7 @@ interface StoreRouteChildren {
   StoreMapaRoute: typeof StoreMapaRoute
   StoreMatchTimeRoute: typeof StoreMatchTimeRoute
   StoreMercadoRoute: typeof StoreMercadoRoute
+  StoreMobilidadeRoute: typeof StoreMobilidadeRoute
   StoreMuralRoute: typeof StoreMuralRoute
   StorePerfilDaLojaRoute: typeof StorePerfilDaLojaRoute
   StorePrivacidadeRoute: typeof StorePrivacidadeRoute
@@ -2767,6 +2867,7 @@ interface StoreRouteChildren {
   StoreEventoIdRoute: typeof StoreEventoIdRoute
   StoreGiftCardClaimTokenRoute: typeof StoreGiftCardClaimTokenRoute
   StoreMembroIdRoute: typeof StoreMembroIdRoute
+  StoreMotoristaSlugRoute: typeof StoreMotoristaSlugRoute
   StoreNoticiasSlugRoute: typeof StoreNoticiasSlugRoute
   StorePaginasSlugRoute: typeof StorePaginasSlugRoute
   StorePoliticasSlugRoute: typeof StorePoliticasSlugRoute
@@ -2792,6 +2893,7 @@ const StoreRouteChildren: StoreRouteChildren = {
   StoreMapaRoute: StoreMapaRoute,
   StoreMatchTimeRoute: StoreMatchTimeRoute,
   StoreMercadoRoute: StoreMercadoRoute,
+  StoreMobilidadeRoute: StoreMobilidadeRoute,
   StoreMuralRoute: StoreMuralRoute,
   StorePerfilDaLojaRoute: StorePerfilDaLojaRoute,
   StorePrivacidadeRoute: StorePrivacidadeRoute,
@@ -2809,6 +2911,7 @@ const StoreRouteChildren: StoreRouteChildren = {
   StoreEventoIdRoute: StoreEventoIdRoute,
   StoreGiftCardClaimTokenRoute: StoreGiftCardClaimTokenRoute,
   StoreMembroIdRoute: StoreMembroIdRoute,
+  StoreMotoristaSlugRoute: StoreMotoristaSlugRoute,
   StoreNoticiasSlugRoute: StoreNoticiasSlugRoute,
   StorePaginasSlugRoute: StorePaginasSlugRoute,
   StorePoliticasSlugRoute: StorePoliticasSlugRoute,
@@ -2873,6 +2976,8 @@ interface WorkspaceRouteChildren {
   WorkspaceFinanceiroComprovantesRoute: typeof WorkspaceFinanceiroComprovantesRoute
   WorkspaceFinanceiroFuncionariosRoute: typeof WorkspaceFinanceiroFuncionariosRoute
   WorkspaceFinanceiroPagamentosRoute: typeof WorkspaceFinanceiroPagamentosRoute
+  WorkspaceLogisticaFaturasRoute: typeof WorkspaceLogisticaFaturasRoute
+  WorkspaceLogisticaTabelasRoute: typeof WorkspaceLogisticaTabelasRoute
   WorkspaceMarketingAnunciosRoute: typeof WorkspaceMarketingAnunciosRouteWithChildren
   WorkspaceMarketingBannersRoute: typeof WorkspaceMarketingBannersRoute
   WorkspaceMarketingCarrinhosRoute: typeof WorkspaceMarketingCarrinhosRoute
@@ -2943,6 +3048,8 @@ const WorkspaceRouteChildren: WorkspaceRouteChildren = {
   WorkspaceFinanceiroComprovantesRoute: WorkspaceFinanceiroComprovantesRoute,
   WorkspaceFinanceiroFuncionariosRoute: WorkspaceFinanceiroFuncionariosRoute,
   WorkspaceFinanceiroPagamentosRoute: WorkspaceFinanceiroPagamentosRoute,
+  WorkspaceLogisticaFaturasRoute: WorkspaceLogisticaFaturasRoute,
+  WorkspaceLogisticaTabelasRoute: WorkspaceLogisticaTabelasRoute,
   WorkspaceMarketingAnunciosRoute: WorkspaceMarketingAnunciosRouteWithChildren,
   WorkspaceMarketingBannersRoute: WorkspaceMarketingBannersRoute,
   WorkspaceMarketingCarrinhosRoute: WorkspaceMarketingCarrinhosRoute,

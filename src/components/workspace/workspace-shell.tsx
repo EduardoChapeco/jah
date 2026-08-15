@@ -96,6 +96,8 @@ const WORKSPACE_MODULES: NavGroup[] = [
       { path: "/workspace/pedidos", label: "Todos os Pedidos", icon: ShoppingBag },
       { path: "/workspace/pedidos/gestor", label: "Gestor (Kanban)", icon: ClipboardList },
       { path: "/workspace/pedidos/frota", label: "Frota & Despacho", icon: Truck },
+      { path: "/workspace/logistica/tabelas", label: "Tabelas de Frete & KM", icon: DollarSign },
+      { path: "/workspace/logistica/faturas", label: "Faturas de Frota", icon: Banknote },
       { path: "/workspace/pdv", label: "PDV (Frente de Caixa)", icon: Store },
       { path: "/workspace/clientes", label: "Clientes / CRM", icon: Users },
       { path: "/workspace/orcamentos", label: "Orçamentos", icon: FileText },

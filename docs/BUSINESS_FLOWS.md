@@ -1027,3 +1027,25 @@ Permite criar grupos de escolhas reutilizáveis para lanches, restaurantes e pro
 2. O locador/vendedor acompanha as parcelas vincendas e quitadas no painel.
 3. Pagamentos manuais (PIX/Transferência) são registrados com anexo do comprovante e quitação atômica.
 4. Lembretes automáticos in-app notificam o pagador sobre datas de vencimento.
+
+---
+
+## Módulo 21 — Mobilidade Urbana, Entregas Expressas, Mudanças & Frotas de Logística (Weasy/Wider Integration)
+
+### 21.1 Tipos de Serviços Suportados
+1. **Moto Passageiro (`ride_moto`):** Deslocamento rápido e econômico para 1 passageiro.
+2. **Carro Privado (`ride_car`):** Transporte individual ou até 4 pessoas com ar condicionado e conforto.
+3. **Entrega Flash (`delivery_express`):** Documentos, compras de restaurantes, chaves e encomendas leves em minutos.
+4. **Fiorino & Utilitários (`freight_van`):** Eletrodomésticos, cargas médias comerciais e materiais de construção leve.
+5. **Caminhão de Mudança (`moving_truck`):** Mudanças completas residenciais ou empresariais com opção de ajudantes de carga/descarga e materiais de embalagem.
+
+### 21.2 Motor de Precificação Híbrido
+- **Cálculo Automático por KM + Minuto:** Base rate + tarifa por quilômetro rodado + tempo estimado.
+- **Tabelas de Frete por Empresa / Motorista:** Permite que operadores configurem taxas mínimas, adicionais de ajudante (R$ 50/ajudante) e tarifas customizadas por rota.
+- **Negociação Direta & Contrapropostas:** Para mudanças e fretes de grande porte, o cliente pode solicitar orçamentos e receber contrapropostas de motoristas locais.
+
+### 21.3 Cockpit Operacional e Despacho no Workspace
+- **Dispatch Board:** Central em tempo real para visualizar chamados, alocar motoristas da frota ou despachar para o pool aberto.
+- **Faturas & Repasses:** Fechamento financeiro quinzenal/mensal com cálculo de taxa da plataforma e baixa PIX comprovada.
+- **Links Mágicos:** Motoristas autônomos possuem URL direta (`/motorista/:slug`) e links de acompanhamento sem necessidade de aplicativo pesado.
+
