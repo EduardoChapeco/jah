@@ -103,7 +103,7 @@ function Page() {
   };
 
   return (
-    <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12 min-h-[70vh]">
+    <div className="w-full space-y-8 min-h-[70vh]">
       {stories.length === 0 ? (
         <div className="mt-8">
           <EmptyState title="Nenhum story ativo" />

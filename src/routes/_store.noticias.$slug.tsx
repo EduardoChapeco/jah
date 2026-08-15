@@ -105,7 +105,7 @@ function NoticiaDetailPage() {
         style={{ width: `${scrollProgress}%` }}
       />
 
-      <article className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      <article className="max-w-3xl mx-auto space-y-8">
         {/* ── Breadcrumb de Navegação ── */}
         <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
           <Link to="/noticias" className="hover:text-foreground transition-colors">

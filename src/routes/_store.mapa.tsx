@@ -108,7 +108,7 @@ function MapaPage() {
               <button
                 key={chip.id}
                 onClick={() => setActiveCategory(chip.id)}
-                className={`px-3 py-1 rounded-full text-xs font-medium shrink-0 transition-colors ${
+                className={`px-3 py-1 rounded-xl text-xs font-medium shrink-0 transition-colors ${
                   activeCategory === chip.id
                     ? "bg-primary text-primary-foreground font-semibold"
                     : "bg-muted text-muted-foreground hover:bg-muted/80"
