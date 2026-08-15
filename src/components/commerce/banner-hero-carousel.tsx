@@ -75,43 +75,46 @@ export function BannerHeroCarousel({
       onMouseEnter={() => setIsPlaying(false)}
       onMouseLeave={() => setIsPlaying(true)}
     >
-      {/* ── Fixed Aspect Ratio Container: 21:9 on desktop, 16:9 on tablet, 16:9 on mobile ── */}
-      <div className="relative w-full aspect-16/9 sm:aspect-21/9 max-h-[420px] overflow-hidden">
-        {/* Clickable entire card link if no CTA or always */}
+      {/* ── Fixed Aspect Ratio Container: 21:9 on desktop, 16:9 on mobile ── */}
+      <div className="relative w-full aspect-16/9 sm:aspect-21/9 max-h-[420px] overflow-hidden bg-muted">
+        {/* Render Actual Image / Video */}
+        {renderMedia(currentBanner)}
+
+        {/* Clickable entire card link */}
         <Link
           to={targetLink as any}
-          className="absolute inset-0 z-0"
-          aria-label={currentBanner.title}
+          className="absolute inset-0 z-10"
+          aria-label={currentBanner.title || "Banner em Destaque"}
         />
 
-        {/* Gradient Overlay for Text Readability (Optional / Configurable) */}
-        {currentBanner.show_overlay !== false &&
-          (currentBanner.show_title !== false ||
-            currentBanner.show_description !== false ||
-            currentBanner.show_badge !== false ||
-            currentBanner.show_cta !== false) && (
-            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent sm:bg-gradient-to-r sm:from-black/90 sm:via-black/50 sm:to-transparent flex flex-col justify-end sm:justify-center p-6 sm:p-10 lg:p-12 text-white pointer-events-none">
+        {/* Gradient Overlay & Text (Apenas se o lojista/admin ativou explicitamente) */}
+        {currentBanner.show_overlay &&
+          (currentBanner.show_title ||
+            currentBanner.show_description ||
+            currentBanner.show_badge ||
+            currentBanner.show_cta) && (
+            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent sm:bg-gradient-to-r sm:from-black/90 sm:via-black/50 sm:to-transparent flex flex-col justify-end sm:justify-center p-6 sm:p-10 lg:p-12 text-white pointer-events-none z-10">
               <div className="max-w-xl space-y-2 sm:space-y-3 z-10 pointer-events-auto">
-                {currentBanner.show_badge !== false && currentBanner.badge_text && (
+                {currentBanner.show_badge && currentBanner.badge_text && (
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[10px] sm:text-xs font-bold uppercase tracking-wider text-white border border-white/30 shadow-xs">
                     <Sparkles className="size-3 text-amber-300" />
                     <span>{currentBanner.badge_text}</span>
                   </div>
                 )}
 
-                {currentBanner.show_title !== false && (
+                {currentBanner.show_title && currentBanner.title && (
                   <h2 className="text-xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-tight line-clamp-2 text-white drop-shadow-sm">
                     {currentBanner.title}
                   </h2>
                 )}
 
-                {currentBanner.show_description !== false && currentBanner.subtitle && (
+                {currentBanner.show_description && currentBanner.subtitle && (
                   <p className="text-xs sm:text-sm text-zinc-200 line-clamp-2 leading-relaxed max-w-lg">
                     {currentBanner.subtitle}
                   </p>
                 )}
 
-                {currentBanner.show_cta !== false && (
+                {currentBanner.show_cta && (
                   <div className="pt-2">
                     <Link
                       to={targetLink as any}

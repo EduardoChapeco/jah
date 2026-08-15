@@ -64,12 +64,12 @@ function WorkspaceBannersPage() {
   const [badgeText, setBadgeText] = useState("Destaque");
   const [ctaLabel, setCtaLabel] = useState("Conferir");
 
-  // Customization Switches (Clean Media Mode)
-  const [showTitle, setShowTitle] = useState(true);
-  const [showDescription, setShowDescription] = useState(true);
-  const [showOverlay, setShowOverlay] = useState(true);
-  const [showBadge, setShowBadge] = useState(true);
-  const [showCta, setShowCta] = useState(true);
+  // Customization Switches (Clean Media Mode — Desativado por padrão para visual clean)
+  const [showTitle, setShowTitle] = useState(false);
+  const [showDescription, setShowDescription] = useState(false);
+  const [showOverlay, setShowOverlay] = useState(false);
+  const [showBadge, setShowBadge] = useState(false);
+  const [showCta, setShowCta] = useState(false);
 
   const refreshBanners = async () => {
     const updated = await listActiveBanners({ data: { placement: "all" } }).catch(() => []);
