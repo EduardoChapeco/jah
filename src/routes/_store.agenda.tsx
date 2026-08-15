@@ -1,7 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Calendar, Loader2, AlertCircle, Ticket, MapPin, Search } from "lucide-react";
+import {
+  Calendar as CalendarIcon,
+  Loader2,
+  AlertCircle,
+  MapPin,
+  Search,
+  Sparkles,
+  CalendarDays,
+  X,
+  ChevronRight,
+  Clock,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -13,11 +24,36 @@ import { HotpagesRail } from "@/components/commerce/hotpages-rail";
 import { formatDate } from "@/lib/datetime";
 
 const EVENT_CATEGORIES = [
-  { id: "todos", label: "Todos os Eventos" },
+  { id: "todos", label: "Todas as Categorias" },
   { id: "shows", label: "Shows & Festivais" },
   { id: "gastronomico", label: "Gastronomia & Feiras" },
   { id: "feiras", label: "Bazaares & Pets" },
   { id: "workshops", label: "Cursos & Workshops" },
+];
+
+const PRESET_DATE_FILTERS = [
+  { id: "all", label: "Todos os Dias" },
+  { id: "today", label: "Hoje" },
+  { id: "tomorrow", label: "Amanhã" },
+  { id: "weekend", label: "Este Fim de Semana" },
+  { id: "next7", label: "Próximos 7 Dias" },
+  { id: "month", label: "Este Mês" },
+];
+
+const WEEKDAY_NAMES = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
+const MONTH_NAMES = [
+  "JAN",
+  "FEV",
+  "MAR",
+  "ABR",
+  "MAI",
+  "JUN",
+  "JUL",
+  "AGO",
+  "SET",
+  "OUT",
+  "NOV",
+  "DEZ",
 ];
 
 export const Route = createFileRoute("/_store/agenda")({
@@ -26,7 +62,7 @@ export const Route = createFileRoute("/_store/agenda")({
       { title: "Agenda Cultural & Shows — JAH" },
       {
         name: "description",
-        content: "Descubra os principais shows, festivais gastronômicos, feiras e workshops da cidade.",
+        content: "Descubra os principais shows, festivais gastronômicos, feiras e workshops da cidade filtrados por dia.",
       },
     ],
   }),
@@ -43,6 +79,7 @@ export const Route = createFileRoute("/_store/agenda")({
 function AgendaPage() {
   const { banners, hotpages } = Route.useLoaderData();
   const [selectedCategory, setSelectedCategory] = useState("todos");
+  const [selectedDateFilter, setSelectedDateFilter] = useState("all"); // 'all' | 'today' | 'tomorrow' | 'weekend' | 'next7' | 'month' | 'YYYY-MM-DD'
   const [searchQuery, setSearchQuery] = useState("");
 
   const {
@@ -61,74 +98,295 @@ function AgendaPage() {
     staleTime: 60_000,
   });
 
-  const filteredEvents = (events || []).filter((e) => {
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      e.title.toLowerCase().includes(q) ||
-      (e.description && e.description.toLowerCase().includes(q)) ||
-      (e.location && e.location.toLowerCase().includes(q))
-    );
-  });
+  // Gera a lista dos próximos 14 dias para o seletor de dias grande
+  const nextDays = useMemo(() => {
+    const days = [];
+    const now = new Date();
+
+    for (let i = 0; i < 14; i++) {
+      const d = new Date(now);
+      d.setDate(now.getDate() + i);
+
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      const dateKey = `${year}-${month}-${day}`;
+
+      days.push({
+        dateKey,
+        dayNumber: d.getDate(),
+        weekday: WEEKDAY_NAMES[d.getDay()],
+        monthName: MONTH_NAMES[d.getMonth()],
+        isToday: i === 0,
+        isTomorrow: i === 1,
+        isWeekend: d.getDay() === 0 || d.getDay() === 6,
+      });
+    }
+    return days;
+  }, []);
+
+  // Filtra os eventos por Categoria, Dia/Período e Busca
+  const filteredEvents = useMemo(() => {
+    if (!events || events.length === 0) return [];
+
+    const now = new Date();
+    const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+
+    const tomorrow = new Date(now);
+    tomorrow.setDate(now.getDate() + 1);
+    const tomorrowIso = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, "0")}-${String(tomorrow.getDate()).padStart(2, "0")}`;
+
+    const next7Days = new Date(now);
+    next7Days.setDate(now.getDate() + 7);
+
+    return events.filter((e) => {
+      const eventDate = new Date(e.event_date);
+      const eventIso = e.event_date ? e.event_date.split("T")[0] : "";
+
+      // 1. Filtro de Data
+      if (selectedDateFilter === "today") {
+        if (eventIso !== todayIso) return false;
+      } else if (selectedDateFilter === "tomorrow") {
+        if (eventIso !== tomorrowIso) return false;
+      } else if (selectedDateFilter === "weekend") {
+        const dayOfWeek = eventDate.getDay();
+        const diffDays = Math.ceil((eventDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        if (!((dayOfWeek === 0 || dayOfWeek === 6) && diffDays >= 0 && diffDays <= 7)) {
+          return false;
+        }
+      } else if (selectedDateFilter === "next7") {
+        if (eventDate < now || eventDate > next7Days) return false;
+      } else if (selectedDateFilter === "month") {
+        if (eventDate.getMonth() !== now.getMonth() || eventDate.getFullYear() !== now.getFullYear()) {
+          return false;
+        }
+      } else if (selectedDateFilter !== "all") {
+        // Data específica 'YYYY-MM-DD'
+        if (eventIso !== selectedDateFilter) return false;
+      }
+
+      // 2. Filtro de Busca
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matchesTitle = e.title?.toLowerCase().includes(q);
+        const matchesDesc = e.description?.toLowerCase().includes(q);
+        const matchesLoc = e.location?.toLowerCase().includes(q);
+        if (!matchesTitle && !matchesDesc && !matchesLoc) return false;
+      }
+
+      return true;
+    });
+  }, [events, selectedDateFilter, searchQuery]);
+
+  // Contagem de eventos por dia para os badges
+  const eventsCountByDateKey = useMemo(() => {
+    const counts: Record<string, number> = {};
+    if (!events) return counts;
+    events.forEach((e) => {
+      if (e.event_date) {
+        const key = e.event_date.split("T")[0];
+        counts[key] = (counts[key] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [events]);
+
+  const activeDateLabel = useMemo(() => {
+    if (selectedDateFilter === "all") return "Todos os Dias";
+    if (selectedDateFilter === "today") return "Hoje";
+    if (selectedDateFilter === "tomorrow") return "Amanhã";
+    if (selectedDateFilter === "weekend") return "Este Fim de Semana";
+    if (selectedDateFilter === "next7") return "Próximos 7 Dias";
+    if (selectedDateFilter === "month") return "Este Mês";
+    const foundDay = nextDays.find((d) => d.dateKey === selectedDateFilter);
+    if (foundDay) {
+      return `${foundDay.weekday}, ${foundDay.dayNumber} de ${foundDay.monthName}`;
+    }
+    return selectedDateFilter;
+  }, [selectedDateFilter, nextDays]);
+
+  const isFilterActive = selectedDateFilter !== "all" || selectedCategory !== "todos" || searchQuery.trim() !== "";
 
   return (
-    <div className="w-full space-y-6">
-      {/* ── Top Universal Banner Hero ── */}
+    <div className="w-full space-y-7">
+      {/* ── 1. Top Universal Banner Hero ── */}
       {banners && banners.length > 0 && (
         <BannerHeroCarousel banners={banners} className="w-full" />
       )}
 
-      {/* ── Hotpages & Categorias ── */}
+      {/* ── 2. Hotpages & Categorias ── */}
       {hotpages && hotpages.length > 0 && (
         <section aria-label="Categorias">
           <HotpagesRail hotpages={hotpages} />
         </section>
       )}
 
-      {/* ── Barra Superior de Filtros & Busca ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 border-t border-border">
-        <div className="flex items-center gap-2">
-          <span className="px-2.5 py-1 rounded-lg text-xs font-semibold uppercase tracking-wider bg-foreground text-background">
-            Agenda Cultural
-          </span>
-          <span className="text-xs text-muted-foreground">Programação Oficial</span>
-        </div>
+      {/* ── 3. FILTRO DE DIAS PROEMINENTE & GRANDE (CANÔNICO) ── */}
+      <section aria-label="Filtrar por Dias" className="space-y-3 pt-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CalendarDays className="size-4 text-foreground" />
+            <h2 className="text-sm font-bold text-foreground tracking-tight">
+              Filtrar por Data & Programação
+            </h2>
+          </div>
 
-        {/* Busca de Eventos */}
-        <div className="flex gap-2 w-full sm:w-72">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por show, local..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 rounded-xl h-10 bg-background border-border text-xs"
-            />
+          {/* Presets Rápidos */}
+          <div className="hidden sm:flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+            {PRESET_DATE_FILTERS.map((preset) => {
+              const isSelected = selectedDateFilter === preset.id;
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => setSelectedDateFilter(preset.id)}
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${
+                    isSelected
+                      ? "bg-foreground text-background shadow-xs"
+                      : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              );
+            })}
           </div>
         </div>
-      </div>
 
-      {/* ── Chips de Categorias de Eventos (Scroll Invisível & Contraste Seguro) ── */}
-      <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1">
-        {EVENT_CATEGORIES.map((cat) => {
-          const isSelected = selectedCategory === cat.id;
-          return (
+        {/* ── Trilho Panorâmico de Cards de Dias Grandes ── */}
+        <div className="flex items-center gap-2.5 overflow-x-auto pb-2 pt-1 scrollbar-none">
+          {/* Card 'Todos os Dias' */}
+          <button
+            type="button"
+            onClick={() => setSelectedDateFilter("all")}
+            className={`min-w-[84px] sm:min-w-[94px] h-[92px] sm:h-[100px] p-2.5 rounded-2xl flex flex-col items-center justify-between border cursor-pointer select-none shrink-0 transition-all ${
+              selectedDateFilter === "all"
+                ? "bg-foreground text-background border-foreground shadow-md scale-102 font-bold"
+                : "bg-card border-border text-foreground hover:bg-muted/60 hover:border-foreground/30"
+            }`}
+          >
+            <span className="text-[10px] font-mono uppercase tracking-wider opacity-80">
+              Geral
+            </span>
+            <CalendarIcon className="size-5 my-0.5" />
+            <span className="text-xs font-semibold">Todos</span>
+          </button>
+
+          {/* Cards dos Próximos 14 Dias */}
+          {nextDays.map((day) => {
+            const isSelected = selectedDateFilter === day.dateKey;
+            const count = eventsCountByDateKey[day.dateKey] || 0;
+
+            return (
+              <button
+                key={day.dateKey}
+                type="button"
+                onClick={() => setSelectedDateFilter(day.dateKey)}
+                className={`min-w-[80px] sm:min-w-[90px] h-[92px] sm:h-[100px] p-2.5 rounded-2xl flex flex-col items-center justify-between border cursor-pointer select-none shrink-0 transition-all ${
+                  isSelected
+                    ? "bg-foreground text-background border-foreground shadow-md scale-102 font-bold"
+                    : "bg-card border-border text-foreground hover:bg-muted/60 hover:border-foreground/30"
+                }`}
+              >
+                {/* Header: Dia da Semana ou Badge 'Hoje' / 'Amanhã' */}
+                <span className="text-[10px] font-mono font-bold tracking-wider uppercase opacity-80">
+                  {day.isToday ? "HOJE" : day.isTomorrow ? "AMANHÃ" : day.weekday}
+                </span>
+
+                {/* Número do Dia Bem Grande */}
+                <span className="text-xl sm:text-2xl font-black leading-none my-0.5">
+                  {day.dayNumber}
+                </span>
+
+                {/* Footer: Mês e Indicador de Eventos */}
+                <div className="flex items-center gap-1 text-[10px] font-mono font-medium">
+                  <span>{day.monthName}</span>
+                  {count > 0 && (
+                    <span
+                      className={`size-1.5 rounded-full ${
+                        isSelected ? "bg-background" : "bg-foreground"
+                      }`}
+                    />
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ── 4. BARRA DE CATEGORIAS & BUSCA ── */}
+      <div className="space-y-3 pt-2 border-t border-border">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          {/* Categorias Chips */}
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1">
+            {EVENT_CATEGORIES.map((cat) => {
+              const isSelected = selectedCategory === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors border cursor-pointer shrink-0 ${
+                    isSelected
+                      ? "bg-foreground text-background border-foreground font-semibold shadow-xs"
+                      : "bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground"
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Busca de Eventos */}
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por show, local, artista..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 rounded-xl h-9.5 bg-background border-border text-xs"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                aria-label="Limpar busca"
+              >
+                <X className="size-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* ── 5. Status do Filtro & Contador ── */}
+        <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
+          <div className="flex items-center gap-2">
+            <span>
+              Exibindo <strong className="text-foreground">{filteredEvents.length}</strong> eventos para{" "}
+              <strong className="text-foreground">{activeDateLabel}</strong>
+            </span>
+          </div>
+
+          {isFilterActive && (
             <button
-              key={cat.id}
               type="button"
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors border cursor-pointer ${
-                isSelected
-                  ? "bg-foreground text-background border-foreground font-semibold"
-                  : "bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground"
-              }`}
+              onClick={() => {
+                setSelectedDateFilter("all");
+                setSelectedCategory("todos");
+                setSearchQuery("");
+              }}
+              className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-1 underline-offset-2 hover:underline cursor-pointer"
             >
-              {cat.label}
+              <X className="size-3" />
+              <span>Limpar filtros</span>
             </button>
-          );
-        })}
+          )}
+        </div>
       </div>
 
+      {/* ── 6. ESTADOS DE CARREGAMENTO, ERRO E VAZIO ── */}
       {isLoading && (
         <div className="flex justify-center py-24">
           <Loader2 className="size-6 animate-spin text-muted-foreground" />
@@ -143,23 +401,38 @@ function AgendaPage() {
       )}
 
       {!isLoading && !isError && filteredEvents.length === 0 && (
-        <div className="py-20 text-center space-y-2 bg-muted/20 rounded-2xl border border-border p-8">
-          <Calendar className="size-8 text-muted-foreground/50 mx-auto" />
+        <div className="py-20 text-center space-y-2.5 bg-muted/20 rounded-2xl border border-border p-8">
+          <CalendarIcon className="size-8 text-muted-foreground/50 mx-auto" />
           <h2 className="text-sm font-semibold text-foreground">
-            Nenhum evento encontrado nesta categoria
+            Nenhum evento agendado para {activeDateLabel}
           </h2>
           <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-            Tente selecionar outra categoria ou buscar por outro termo.
+            Tente selecionar outro dia no calendário acima ou limpar os filtros de busca.
           </p>
+          <div className="pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSelectedDateFilter("all");
+                setSelectedCategory("todos");
+                setSearchQuery("");
+              }}
+              className="rounded-xl text-xs"
+            >
+              Ver Todos os Eventos
+            </Button>
+          </div>
         </div>
       )}
 
+      {/* ── 7. GRADE DE EVENTOS ── */}
       {!isLoading && !isError && filteredEvents.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
           {filteredEvents.map((event) => (
             <div
               key={event.id}
-              className="flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-xs hover:border-foreground/20 transition-colors"
+              className="flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-xs hover:border-foreground/20 transition-colors group"
             >
               {/* Cover Image */}
               <div className="aspect-16/10 relative overflow-hidden bg-muted">
@@ -167,13 +440,13 @@ function AgendaPage() {
                   <img
                     src={event.cover_image}
                     alt={event.title}
-                    className="absolute inset-0 size-full object-cover"
+                    className="absolute inset-0 size-full object-cover group-hover:scale-103 transition-transform duration-500"
                   />
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
 
-                <div className="absolute top-3 left-3 flex items-center gap-2">
-                  <span className="bg-black/60 backdrop-blur-md text-white text-[10px] font-mono font-medium px-2.5 py-1 rounded-lg border border-white/20">
+                <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                  <span className="bg-black/60 backdrop-blur-md text-white text-[10px] font-mono font-bold px-2.5 py-1 rounded-lg border border-white/20">
                     {formatDate(event.event_date)}
                   </span>
                 </div>
@@ -190,7 +463,7 @@ function AgendaPage() {
                 <div className="space-y-1.5">
                   {event.location && (
                     <p className="flex items-center gap-1.5 text-muted-foreground">
-                      <MapPin className="size-3.5 shrink-0" />
+                      <MapPin className="size-3.5 shrink-0 text-foreground" />
                       <span className="truncate">{event.location}</span>
                     </p>
                   )}
@@ -202,7 +475,7 @@ function AgendaPage() {
                   )}
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-border">
+                <div className="flex items-center justify-between pt-2.5 border-t border-border">
                   <Badge variant={event.is_free ? "secondary" : "outline"} className="text-[10px]">
                     {event.is_free ? "Gratuito" : "Ingresso Pago"}
                   </Badge>
@@ -210,6 +483,7 @@ function AgendaPage() {
                   <Button asChild size="sm" variant="outline" className="h-8 rounded-lg text-xs">
                     <Link to="/evento/$id" params={{ id: event.id }}>
                       <span>Detalhes</span>
+                      <ChevronRight className="size-3.5 ml-1" />
                     </Link>
                   </Button>
                 </div>
