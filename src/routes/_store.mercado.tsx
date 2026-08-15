@@ -27,6 +27,7 @@ import { PageSkeleton } from "@/components/state/loading";
 import { HorizontalRail } from "@/components/commerce/horizontal-rail";
 import { OfferCard } from "@/components/commerce/offer-card";
 import { StoreCard } from "@/components/commerce/store-card";
+import { HotpagesRail } from "@/components/commerce/hotpages-rail";
 import {
   listPublishedProducts,
   listPublishedCategories,
@@ -34,6 +35,7 @@ import {
 } from "@/services/catalog.functions";
 import { getMarketplaceFeed } from "@/services/marketplace.functions";
 import { listActiveBanners } from "@/services/banner.functions";
+import { listHotpages } from "@/services/hotpage.functions";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
 import type { ProductListResult, CategoryDTO } from "@/types/catalog";
 import { formatMoney } from "@/lib/money";
@@ -82,7 +84,7 @@ export const Route = createFileRoute("/_store/mercado")({
   loaderDeps: ({ search }) => search,
   loader: async ({ location }) => {
     const search = location.search as CatalogSearch;
-    const [productsRes, categoriesRes, attributesRes, feedRes, bannersRes] = await Promise.all([
+    const [productsRes, categoriesRes, attributesRes, feedRes, bannersRes, hotpagesRes] = await Promise.all([
       listPublishedProducts({
         data: {
           categorySlug: search.categoria,
@@ -98,6 +100,7 @@ export const Route = createFileRoute("/_store/mercado")({
       listAvailableAttributes(),
       getMarketplaceFeed(),
       listActiveBanners({ data: { placement: "marketplace" } }).catch(() => []),
+      listHotpages().catch(() => []),
     ]);
 
     return {
@@ -106,6 +109,7 @@ export const Route = createFileRoute("/_store/mercado")({
       availableAttributes: attributesRes || [],
       feed: feedRes,
       banners: bannersRes || [],
+      hotpages: hotpagesRes || [],
     };
   },
   pendingComponent: PageSkeleton,
@@ -119,6 +123,7 @@ function MarketplacePage() {
     availableAttributes,
     feed,
     banners,
+    hotpages,
   } = Route.useLoaderData();
   const search = Route.useSearch();
   const navigate = useNavigate();
@@ -133,34 +138,20 @@ function MarketplacePage() {
   };
 
   return (
-    <div className="w-full space-y-8">
-      {/* ── 1. Top Universal Banner Hero ────────────────────────── */}
-      {banners && banners.length > 0 ? (
+    <div className="w-full space-y-6">
+      {/* ── 1. Top Universal Banner Hero (Apenas se houver banners ativos) ── */}
+      {banners && banners.length > 0 && (
         <BannerHeroCarousel banners={banners} className="w-full" />
-      ) : (
-        <div className="relative overflow-hidden rounded-3xl border border-border bg-linear-to-br from-primary/10 via-card to-background p-6 md:p-10 shadow-xs w-full">
-          <div className="max-w-2xl space-y-3 relative z-10">
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-black uppercase tracking-wider text-primary font-mono bg-primary/10 px-2.5 py-1 rounded-full inline-block border border-primary/20">
-                JAH Central Market
-              </span>
-              <span className="text-xs text-muted-foreground font-semibold flex items-center gap-1">
-                <MapPin className="size-3 text-primary" />
-                Chapecó & Região
-              </span>
-            </div>
-            <h1 className="text-2xl md:text-4xl font-black text-foreground tracking-tight leading-tight">
-              Descoberta viva, gastronomia e comércio da comunidade.
-            </h1>
-            <p className="text-xs md:text-sm text-muted-foreground leading-relaxed max-w-xl">
-              Compre direto de produtores locais, aproveite ofertas relâmpago e fortaleça a cena da
-              sua cidade.
-            </p>
-          </div>
-        </div>
       )}
 
-      {/* ── 2. Category Chips Bar ───────────────────────────────── */}
+      {/* ── 1.5. Hotpages & Categorias Visuais ── */}
+      {hotpages && hotpages.length > 0 && (
+        <section aria-label="Categorias em Destaque">
+          <HotpagesRail hotpages={hotpages} activeSlug={search.niche} />
+        </section>
+      )}
+
+      {/* ── 2. Category Chips Bar ── */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
         {CATEGORIES_TAXONOMY.map((item) => {
           const Icon = item.icon;
@@ -276,11 +267,10 @@ function MarketplacePage() {
       {/* MODE 1: FEED DE DESCOBERTA NARRATIVA E RAILS HORIZONTAIS */}
       {currentView === "feed" && (
         <div className="space-y-10">
-          {/* Rail 1: Ofertas Relâmpago (Apenas se houver ofertas com timer ativas) */}
+          {/* Rail 1: Ofertas Relâmpago */}
           {feed.allProducts.filter((p: any) => p.has_flash_offer).length > 0 && (
             <HorizontalRail
-              title="⚡ Ofertas Relâmpago"
-              subtitle="Preços promocionais por tempo limitado em Chapecó e região"
+              title="Ofertas Relâmpago"
               badge="Tempo Limitado"
               actionLabel="Ver todas as ofertas"
               onAction={() => setViewMode("grid")}
@@ -296,8 +286,7 @@ function MarketplacePage() {
           {/* Rail 2: Lojas & Produtores Locais */}
           {(feed?.sections?.find((s: any) => s.type === "store_rail")?.items?.length ?? 0) > 0 && (
             <HorizontalRail
-              title="🏪 Lojas & Produtores da Comunidade"
-              subtitle="Negócios locais com entrega rápida na sua região"
+              title="Lojas & Produtores da Comunidade"
               actionLabel="Ver diretório"
               onAction={() => navigate({ to: "/diretorio" })}
             >
@@ -311,14 +300,9 @@ function MarketplacePage() {
 
           {/* Grade de Lançamentos na Base do Feed */}
           <div className="space-y-4 pt-4 border-t border-border/60">
-            <div className="space-y-1">
-              <h2 className="text-lg md:text-xl font-bold tracking-tight text-foreground">
-                ✨ Todos os Lançamentos da Comunidade
-              </h2>
-              <p className="text-xs text-muted-foreground">
-                Navegue pela coleção de produtos disponíveis para entrega e retirada.
-              </p>
-            </div>
+            <h2 className="text-lg font-bold tracking-tight text-foreground">
+              Lançamentos da Comunidade
+            </h2>
 
             {result.status === "ok" && <ProductGrid result={result} />}
             {result.status === "empty" && (

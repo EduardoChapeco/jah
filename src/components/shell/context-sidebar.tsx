@@ -35,13 +35,13 @@ const PRIMARY_DESTINATIONS = [
 ];
 
 const CATEGORY_NICHES = [
-  { to: "/mercado?niche=ofertas", label: "⚡ Ofertas Relâmpago", icon: Flame },
-  { to: "/mercado?niche=gastronomia", label: "🍔 Gastronomia", icon: Utensils },
-  { to: "/mercado?niche=mercado", label: "🛍️ Mercado & Horti", icon: Store },
-  { to: "/mercado?niche=beleza", label: "✂️ Beleza & Estética", icon: Scissors },
-  { to: "/mercado?niche=empregos", label: "💼 Vagas & Empregos", icon: Briefcase },
-  { to: "/mercado?niche=viagens", label: "✈️ Viagens & Lazer", icon: Plane },
-  { to: "/conta/classificados", label: "🏷️ Classificados", icon: Tag },
+  { to: "/mercado?niche=ofertas", label: "Ofertas Relâmpago", icon: Flame },
+  { to: "/mercado?niche=gastronomia", label: "Gastronomia", icon: Utensils },
+  { to: "/mercado?niche=mercado", label: "Mercado & Horti", icon: Store },
+  { to: "/mercado?niche=beleza", label: "Beleza & Estética", icon: Scissors },
+  { to: "/mercado?niche=empregos", label: "Vagas & Empregos", icon: Briefcase },
+  { to: "/mercado?niche=viagens", label: "Viagens & Lazer", icon: Plane },
+  { to: "/conta/classificados", label: "Classificados", icon: Tag },
 ];
 
 const USER_DESTINATIONS = [

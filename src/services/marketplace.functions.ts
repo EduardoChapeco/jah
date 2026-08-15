@@ -131,7 +131,7 @@ export const getMarketplaceFeed = createServerFn({ method: "GET" }).handler(asyn
     sections.push({
       id: "sec-flash-deals",
       type: "flash_deal_rail",
-      title: "⚡ Ofertas Relâmpago",
+      title: "Ofertas Relâmpago",
       subtitle: "Preços especiais com tempo e estoques limitados",
       layout_variant: "rail_standard",
       items: flashDeals,
@@ -142,7 +142,7 @@ export const getMarketplaceFeed = createServerFn({ method: "GET" }).handler(asyn
     sections.push({
       id: "sec-local-stores",
       type: "store_rail",
-      title: "🏪 Lojas & Negócios Locais",
+      title: "Lojas & Negócios Locais",
       subtitle: "Negócios cadastrados com entrega e retirada na sua região",
       layout_variant: "rail_compact",
       items: stores,
@@ -153,7 +153,7 @@ export const getMarketplaceFeed = createServerFn({ method: "GET" }).handler(asyn
     sections.push({
       id: "sec-trending",
       type: "product_rail",
-      title: "✨ Destaques do Catálogo",
+      title: "Destaques do Catálogo",
       subtitle: "Produtos disponíveis para compra imediata",
       layout_variant: "rail_standard",
       items: products,

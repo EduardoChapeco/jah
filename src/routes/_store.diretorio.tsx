@@ -4,13 +4,25 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, Loader2, AlertCircle, Phone, CheckCircle, Store } from "lucide-react";
 import { getPublicDirectory } from "@/services/directory.functions";
+import { listHotpages } from "@/services/hotpage.functions";
+import { listActiveBanners } from "@/services/banner.functions";
+import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
+import { HotpagesRail } from "@/components/commerce/hotpages-rail";
 
 export const Route = createFileRoute("/_store/diretorio")({
   head: () => ({ meta: [{ title: "Diretório de Membros & Negócios — JAH" }] }),
+  loader: async () => {
+    const [banners, hotpages] = await Promise.all([
+      listActiveBanners({ data: { placement: "all" } }).catch(() => []),
+      listHotpages().catch(() => []),
+    ]);
+    return { banners, hotpages };
+  },
   component: DirectoryPage,
 });
 
 function DirectoryPage() {
+  const { banners, hotpages } = Route.useLoaderData();
   const {
     data: listings,
     isLoading,
@@ -22,21 +34,18 @@ function DirectoryPage() {
   });
 
   return (
-    <div className="w-full space-y-8">
-      {/* Header Editorial do Diretório */}
-      <div className="relative overflow-hidden rounded-3xl border border-border bg-linear-to-br from-primary/10 via-card to-background p-6 md:p-10 shadow-xs">
-        <div className="max-w-2xl space-y-3 relative z-10">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-primary font-mono bg-primary/10 px-2.5 py-1 rounded-full inline-block">
-            Diretório da Rede JAH
-          </span>
-          <h1 className="text-2xl md:text-4xl font-black text-foreground tracking-tight">
-            Membros, produtores e iniciativas locais.
-          </h1>
-          <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
-            Conheça as pessoas, negócios e marcas que compõem a nossa comunidade.
-          </p>
-        </div>
-      </div>
+    <div className="w-full space-y-6">
+      {/* ── Banners Hero ── */}
+      {banners && banners.length > 0 && (
+        <BannerHeroCarousel banners={banners} className="w-full" />
+      )}
+
+      {/* ── Hotpages & Categorias ── */}
+      {hotpages && hotpages.length > 0 && (
+        <section aria-label="Categorias">
+          <HotpagesRail hotpages={hotpages} />
+        </section>
+      )}
 
       {isLoading && (
         <div className="flex justify-center py-24">

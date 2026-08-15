@@ -328,7 +328,7 @@ function WorkspaceBannersPage() {
             {/* Customization Switches: Clean Media vs Text Overlay */}
             <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/80 space-y-2">
               <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
-                🎨 Estilo Visual do Banner (Mídia Limpa vs Textos)
+                Estilo Visual do Banner (Mídia Limpa vs Textos)
               </span>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1 text-xs">
                 <label className="flex items-center gap-2 cursor-pointer select-none">

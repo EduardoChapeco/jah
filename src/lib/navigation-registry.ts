@@ -140,7 +140,7 @@ export const MARKET_NAV_GROUPS: NavigationGroup[] = [
     title: "Explorar Mercado",
     items: [
       { to: "/mercado", label: "Todos os Produtos", icon: ShoppingBag, exact: true },
-      { to: "/mercado?niche=ofertas", label: "⚡ Ofertas Relâmpago", icon: Flame },
+      { to: "/mercado?niche=ofertas", label: "Ofertas Relâmpago", icon: Flame },
       { to: "/mercado?sort=newest", label: "Novidades da Cidade", icon: Clock },
       { to: "/conta/salvos", label: "Lista de Desejos", icon: Heart },
     ],

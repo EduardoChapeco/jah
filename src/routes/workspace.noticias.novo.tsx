@@ -187,13 +187,13 @@ function WorkspaceNovaMateriaPage() {
                 onChange={(e) => setCategory(e.target.value)}
                 className="w-full h-10 px-3 rounded-xl border border-border bg-background text-xs font-semibold"
               >
-                <option value="cidade">🏙️ Cidade & Região</option>
-                <option value="politica">🏛️ Política</option>
-                <option value="economia">📈 Economia & Negócios</option>
-                <option value="cultura">🎨 Cultura & Lazer</option>
-                <option value="esportes">⚽ Esportes</option>
-                <option value="tecnologia">💡 Inovação & Tecnologia</option>
-                <option value="geral">📰 Geral</option>
+                <option value="cidade">Cidade & Região</option>
+                <option value="politica">Política</option>
+                <option value="economia">Economia & Negócios</option>
+                <option value="cultura">Cultura & Lazer</option>
+                <option value="esportes">Esportes</option>
+                <option value="tecnologia">Inovação & Tecnologia</option>
+                <option value="geral">Geral</option>
               </select>
             </div>
           </div>

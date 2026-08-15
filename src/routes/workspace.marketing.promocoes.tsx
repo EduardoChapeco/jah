@@ -180,14 +180,14 @@ function WorkspacePromotionsPage() {
                     </SelectTrigger>
                     <SelectContent className="rounded-xl text-xs">
                       <SelectItem value="flash_offer">
-                        ⚡ Oferta Relâmpago (Contagem Regressiva)
+                        Oferta Relâmpago (Contagem Regressiva)
                       </SelectItem>
                       <SelectItem value="percentage_discount">
-                        % Desconto Percentual Direto
+                        Desconto Percentual Direto (%)
                       </SelectItem>
-                      <SelectItem value="buy_x_get_y">🎁 Compre X e Leve Y (Combo)</SelectItem>
+                      <SelectItem value="buy_x_get_y">Compre X e Leve Y (Combo)</SelectItem>
                       <SelectItem value="progressive_quantity">
-                        📈 Desconto Progressivo por Quantidade
+                        Desconto Progressivo por Quantidade
                       </SelectItem>
                     </SelectContent>
                   </Select>

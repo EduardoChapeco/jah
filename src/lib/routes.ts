@@ -1102,7 +1102,7 @@ export interface AdminNavGroup {
  */
 export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
   {
-    title: "🏠 Meu Estúdio",
+    title: "Meu Estúdio",
     items: [
       { path: "/admin", label: "Visão Geral", icon: "LayoutDashboard" },
       { path: "/admin/perfil-publico", label: "Meu Portfólio", icon: "Store" },
@@ -1110,7 +1110,7 @@ export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
     ],
   },
   {
-    title: "🎟️ Eventos & Cultura",
+    title: "Eventos & Cultura",
     items: [
       { path: "/admin/events", label: "Meus Eventos", icon: "Calendar" },
       { path: "/admin/destaques", label: "Destaques (Highlights)", icon: "CircleDot" },
@@ -1118,7 +1118,7 @@ export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
     ],
   },
   {
-    title: "📦 Mercado & Estoque",
+    title: "Mercado & Estoque",
     items: [
       { path: "/admin/catalogo/produtos", label: "Mercadorias", icon: "Package" },
       { path: "/admin/estoque", label: "Estoque", icon: "Boxes" },
@@ -1130,7 +1130,7 @@ export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
     ],
   },
   {
-    title: "🛍️ Vendas & Caixa",
+    title: "Vendas & Caixa",
     items: [
       { path: "/admin/pedidos", label: "Pedidos & Compras", icon: "ShoppingBag" },
       { path: "/admin/caixa", label: "PDV / Caixa Rápido", icon: "MonitorSmartphone" },
@@ -1141,7 +1141,7 @@ export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
     ],
   },
   {
-    title: "💬 Comunidade",
+    title: "Comunidade",
     items: [
       { path: "/admin/clientes", label: "Público & Clientes", icon: "Users" },
       { path: "/admin/conversas", label: "Chat & Mensagens", icon: "MessagesSquare" },
@@ -1151,7 +1151,7 @@ export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
     ],
   },
   {
-    title: "✨ Design & Presença",
+    title: "Design & Presença",
     items: [
       { path: "/admin/vitrine", label: "Editor da Home", icon: "MonitorPlay" },
       { path: "/admin/cms/tema", label: "Cores & Estilo", icon: "Palette" },
@@ -1161,7 +1161,7 @@ export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
     ],
   },
   {
-    title: "🚀 Crescimento",
+    title: "Crescimento",
     items: [
       { path: "/admin/marketing/cupons", label: "Cupons de Desconto", icon: "Ticket" },
       { path: "/admin/match-time", label: "Ofertas Relâmpago", icon: "Zap" },
@@ -1174,7 +1174,7 @@ export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
     ],
   },
   {
-    title: "⚙️ Ajustes do Coletivo",
+    title: "Ajustes do Coletivo",
     items: [
       { path: "/admin/configuracoes/loja", label: "Dados e Setup", icon: "Store" },
       { path: "/admin/configuracoes/pagamentos", label: "Taxas & Pix Manual", icon: "Landmark" },

@@ -13,7 +13,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { listPublicArticles, type NewsArticleDTO } from "@/services/news.functions";
 import { listActiveBanners } from "@/services/banner.functions";
+import { listHotpages } from "@/services/hotpage.functions";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
+import { HotpagesRail } from "@/components/commerce/hotpages-rail";
 import { NewsCard } from "@/components/news/news-card";
 
 export const Route = createFileRoute("/_store/noticias/")({
@@ -27,27 +29,28 @@ export const Route = createFileRoute("/_store/noticias/")({
     ],
   }),
   loader: async () => {
-    const [articles, banners] = await Promise.all([
+    const [articles, banners, hotpages] = await Promise.all([
       listPublicArticles({ data: { limit: 30 } }).catch(() => []),
       listActiveBanners({ data: { placement: "all" } }).catch(() => []),
+      listHotpages().catch(() => []),
     ]);
-    return { articles, banners };
+    return { articles, banners, hotpages };
   },
   component: NoticiasFeedPage,
 });
 
 const CATEGORIES = [
   { id: "todas", label: "Todas" },
-  { id: "cidade", label: "🏙️ Cidade & Região" },
-  { id: "politica", label: "🏛️ Política" },
-  { id: "economia", label: "📈 Economia & Negócios" },
-  { id: "cultura", label: "🎨 Cultura & Lazer" },
-  { id: "esportes", label: "⚽ Esportes" },
-  { id: "tecnologia", label: "💡 Inovação" },
+  { id: "cidade", label: "Cidade & Região" },
+  { id: "politica", label: "Política" },
+  { id: "economia", label: "Economia & Negócios" },
+  { id: "cultura", label: "Cultura & Lazer" },
+  { id: "esportes", label: "Esportes" },
+  { id: "tecnologia", label: "Inovação" },
 ];
 
 function NoticiasFeedPage() {
-  const { articles: initialArticles, banners } = Route.useLoaderData();
+  const { articles: initialArticles, banners, hotpages } = Route.useLoaderData();
   const [articles, setArticles] = useState<NewsArticleDTO[]>(initialArticles || []);
   const [selectedCategory, setSelectedCategory] = useState("todas");
   const [searchQuery, setSearchQuery] = useState("");
@@ -90,6 +93,13 @@ function NoticiasFeedPage() {
       {banners && banners.length > 0 && (
         <section aria-label="Banners e Anúncios">
           <BannerHeroCarousel banners={banners} />
+        </section>
+      )}
+
+      {/* ── 1.5. Hotpages & Categorias Visuais ── */}
+      {hotpages && hotpages.length > 0 && (
+        <section aria-label="Categorias">
+          <HotpagesRail hotpages={hotpages} />
         </section>
       )}
 

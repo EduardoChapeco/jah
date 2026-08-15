@@ -166,14 +166,14 @@ function getActiveGroup(pathname: string): string {
   }
   // 3. Prefix fallbacks for deep screens not directly listed
   if (pathname.startsWith("/admin/events")) {
-    return "🎟️ Eventos & Cultura";
+    return "Eventos & Cultura";
   }
   if (
     pathname.startsWith("/admin/catalogo") ||
     pathname.startsWith("/admin/estoque") ||
     pathname.startsWith("/admin/midias")
   ) {
-    return "📦 Produtos & Estoque";
+    return "Produtos & Estoque";
   }
   if (
     pathname.startsWith("/admin/pedidos") ||
@@ -182,7 +182,7 @@ function getActiveGroup(pathname: string): string {
     pathname.startsWith("/admin/comissoes") ||
     pathname.startsWith("/admin/match-time")
   ) {
-    return "🛍️ Pedidos & Vendas";
+    return "Pedidos & Vendas";
   }
   if (
     pathname.startsWith("/admin/clientes") ||
@@ -190,7 +190,7 @@ function getActiveGroup(pathname: string): string {
     pathname.startsWith("/admin/suporte") ||
     pathname.startsWith("/admin/avaliacoes")
   ) {
-    return "💬 Clientes & Atendimento";
+    return "Clientes & Atendimento";
   }
   if (
     pathname.startsWith("/admin/vitrine") ||
@@ -199,71 +199,71 @@ function getActiveGroup(pathname: string): string {
     pathname.startsWith("/admin/link-da-bio") ||
     pathname.startsWith("/admin/destaques")
   ) {
-    return "✨ Vitrine & Design";
+    return "Vitrine & Design";
   }
   if (
     pathname.startsWith("/admin/marketing") ||
     pathname.startsWith("/admin/stories") ||
     pathname.startsWith("/admin/criador")
   ) {
-    return "🚀 Marketing & Crescimento";
+    return "Marketing & Crescimento";
   }
   if (
     pathname.startsWith("/admin/configuracoes") ||
     pathname.startsWith("/admin/fretes") ||
     pathname.startsWith("/admin/integracoes")
   ) {
-    return "⚙️ Ajustes da Loja";
+    return "Ajustes da Loja";
   }
   if (pathname.startsWith("/admin/caixa")) {
-    return "🏠 Início";
+    return "Início";
   }
-  return "🏠 Início";
+  return "Início";
 }
 
 const MODULES = [
-  { label: "Visão Geral", path: "/admin", icon: "LayoutDashboard", group: "🏠 Meu Estúdio" },
+  { label: "Visão Geral", path: "/admin", icon: "LayoutDashboard", group: "Meu Estúdio" },
   {
     label: "Eventos & Cultura",
     path: "/admin/events",
     icon: "Calendar",
-    group: "🎟️ Eventos & Cultura",
+    group: "Eventos & Cultura",
   },
   {
     label: "Mercado & Estoque",
     path: "/admin/catalogo/produtos",
     icon: "Package",
-    group: "📦 Mercado & Estoque",
+    group: "Mercado & Estoque",
   },
   {
     label: "Vendas & Caixa",
     path: "/admin/pedidos",
     icon: "ShoppingBag",
-    group: "🛍️ Vendas & Caixa",
+    group: "Vendas & Caixa",
   },
   {
     label: "Comunidade",
     path: "/admin/clientes",
     icon: "Users",
-    group: "💬 Comunidade",
+    group: "Comunidade",
   },
   {
     label: "Design",
     path: "/admin/builder",
     icon: "Store",
-    group: "✨ Design & Presença",
+    group: "Design & Presença",
   },
   {
     label: "Crescimento",
     path: "/admin/marketing/cupons",
     icon: "Megaphone",
-    group: "🚀 Crescimento",
+    group: "Crescimento",
   },
   {
     label: "Ajustes",
     path: "/admin/configuracoes/loja",
     icon: "Settings",
-    group: "⚙️ Ajustes do Coletivo",
+    group: "Ajustes do Coletivo",
   },
 ];
 

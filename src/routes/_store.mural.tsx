@@ -6,8 +6,12 @@ import { Button } from "@/components/ui/button";
 import { InlinePostComposer } from "@/components/community/inline-post-composer";
 import { PostCard } from "@/components/community/post-card";
 import { StoryRail } from "@/components/community/story-rail";
+import { HotpagesRail } from "@/components/commerce/hotpages-rail";
+import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
 import { getMuralFeed, getFeedStories, type MuralFeedItem } from "@/services/social.functions";
 import { getUserSession } from "@/services/auth.functions";
+import { listHotpages } from "@/services/hotpage.functions";
+import { listActiveBanners } from "@/services/banner.functions";
 
 export const Route = createFileRoute("/_store/mural")({
   head: () => ({
@@ -20,7 +24,7 @@ export const Route = createFileRoute("/_store/mural")({
     ],
   }),
   loader: async () => {
-    const [firstPage, stories, session] = await Promise.all([
+    const [firstPage, stories, session, hotpages, banners] = await Promise.all([
       getMuralFeed({ data: { limit: 15 } }).catch(() => ({
         items: [],
         hasMore: false,
@@ -28,14 +32,16 @@ export const Route = createFileRoute("/_store/mural")({
       })),
       getFeedStories().catch(() => []),
       getUserSession().catch(() => null),
+      listHotpages().catch(() => []),
+      listActiveBanners({ data: { placement: "all" } }).catch(() => []),
     ]);
-    return { firstPage, stories, session };
+    return { firstPage, stories, session, hotpages, banners };
   },
   component: MuralPage,
 });
 
 function MuralPage() {
-  const { firstPage, stories, session } = Route.useLoaderData();
+  const { firstPage, stories, session, hotpages, banners } = Route.useLoaderData();
   const [activeFeedTab, setActiveFeedTab] = useState<"for_you" | "moments" | "classifieds">(
     "for_you",
   );
@@ -66,6 +72,20 @@ function MuralPage() {
 
   return (
     <div className="w-full max-w-3xl mx-auto space-y-6 pb-24">
+      {/* 0. Banners de Destaque */}
+      {banners && banners.length > 0 && (
+        <section aria-label="Banners da Comunidade">
+          <BannerHeroCarousel banners={banners} />
+        </section>
+      )}
+
+      {/* 0.5. Hotpages & Categorias da Comunidade */}
+      {hotpages && hotpages.length > 0 && (
+        <section aria-label="Categorias">
+          <HotpagesRail hotpages={hotpages} />
+        </section>
+      )}
+
       {/* 1. Stories da Comunidade */}
       {stories && stories.length > 0 && (
         <section aria-label="Stories Locais">

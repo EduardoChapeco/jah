@@ -4,12 +4,12 @@ import { UtilityCluster } from "@/components/shell/utility-cluster";
 import { Flame, ShoppingBag, Calendar, Sparkles, Utensils, Scissors, Compass, Search } from "lucide-react";
 
 const MOBILE_QUICK_CHIPS = [
-  { to: "/mercado?niche=ofertas", label: "⚡ Ofertas", icon: Flame },
-  { to: "/mercado?niche=gastronomia", label: "🍔 Gastronomia", icon: Utensils },
-  { to: "/mercado", label: "🛍️ Mercado", icon: ShoppingBag },
-  { to: "/agenda", label: "📅 Eventos", icon: Calendar },
-  { to: "/mercado?niche=beleza", label: "✂️ Beleza", icon: Scissors },
-  { to: "/mercado?niche=viagens", label: "✈️ Viagens", icon: Compass },
+  { to: "/mercado?niche=ofertas", label: "Ofertas", icon: Flame },
+  { to: "/mercado?niche=gastronomia", label: "Gastronomia", icon: Utensils },
+  { to: "/mercado", label: "Mercado", icon: ShoppingBag },
+  { to: "/agenda", label: "Eventos", icon: Calendar },
+  { to: "/mercado?niche=beleza", label: "Beleza", icon: Scissors },
+  { to: "/mercado?niche=viagens", label: "Viagens", icon: Compass },
 ];
 
 export interface TopBarProps {
