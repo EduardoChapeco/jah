@@ -127,10 +127,10 @@ function DirectoryPage() {
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all border cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors border cursor-pointer ${
                 isSelected
-                  ? "bg-primary text-primary-foreground border-primary shadow-xs scale-105"
-                  : "bg-card text-muted-foreground border-border/80 hover:bg-muted hover:text-foreground"
+                  ? "bg-foreground text-background border-foreground font-semibold shadow-xs"
+                  : "bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground"
               }`}
             >
               {cat.label}

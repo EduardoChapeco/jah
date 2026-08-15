@@ -82,14 +82,14 @@ export function ContextSidebar({ config }: ContextSidebarProps) {
                 <Link
                   key={item.to}
                   to={item.to as any}
-                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all ${
+                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                     active
-                      ? "bg-zinc-100 dark:bg-zinc-800 text-foreground shadow-2xs"
-                      : "text-muted-foreground hover:text-foreground hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                      ? "bg-foreground text-background shadow-2xs"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                   }`}
                 >
                   <Icon
-                    className={`size-4 shrink-0 ${active ? "text-foreground" : "text-muted-foreground"}`}
+                    className={`size-4 shrink-0 ${active ? "text-background" : "text-muted-foreground"}`}
                   />
                   <span className="truncate">{item.label}</span>
                 </Link>
@@ -99,7 +99,7 @@ export function ContextSidebar({ config }: ContextSidebarProps) {
         </div>
 
         {/* 2. Categorias & Nichos */}
-        <div className="space-y-1 pt-3 border-t border-border/40">
+        <div className="space-y-1 pt-3 border-t border-border">
           <span className="px-3 text-[10px] font-bold tracking-wider uppercase text-muted-foreground/80">
             Categorias
           </span>
@@ -112,14 +112,14 @@ export function ContextSidebar({ config }: ContextSidebarProps) {
                 <Link
                   key={item.to}
                   to={item.to as any}
-                  className={`flex items-center gap-3 px-3.5 py-2 rounded-2xl text-xs font-semibold transition-all ${
+                  className={`flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
                     active
-                      ? "bg-primary/10 text-primary font-bold shadow-2xs"
-                      : "text-muted-foreground hover:text-foreground hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                      ? "bg-foreground text-background shadow-2xs"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                   }`}
                 >
                   <Icon
-                    className={`size-3.5 shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`}
+                    className={`size-3.5 shrink-0 ${active ? "text-background" : "text-muted-foreground"}`}
                   />
                   <span className="truncate">{item.label}</span>
                 </Link>
@@ -129,7 +129,7 @@ export function ContextSidebar({ config }: ContextSidebarProps) {
         </div>
 
         {/* 3. Minha Área */}
-        <div className="space-y-1 pt-2 border-t border-border/60">
+        <div className="space-y-1 pt-2 border-t border-border">
           <span className="px-3 text-[10px] font-bold tracking-wider uppercase text-muted-foreground">
             Pessoal
           </span>
@@ -142,14 +142,14 @@ export function ContextSidebar({ config }: ContextSidebarProps) {
                 <Link
                   key={item.to}
                   to={item.to as any}
-                  className={`flex items-center gap-3 px-3.5 py-2 rounded-2xl text-xs font-semibold transition-all ${
+                  className={`flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
                     active
-                      ? "bg-zinc-100 dark:bg-zinc-800 text-foreground font-bold shadow-2xs"
-                      : "text-muted-foreground hover:text-foreground hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                      ? "bg-foreground text-background shadow-2xs"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                   }`}
                 >
                   <Icon
-                    className={`size-3.5 shrink-0 ${active ? "text-foreground" : "text-muted-foreground"}`}
+                    className={`size-3.5 shrink-0 ${active ? "text-background" : "text-muted-foreground"}`}
                   />
                   <span className="truncate">{item.label}</span>
                 </Link>
@@ -160,10 +160,9 @@ export function ContextSidebar({ config }: ContextSidebarProps) {
       </div>
 
       {/* ── Botão de Ação Primária (+ PUBLICAR) ─────────────── */}
-      <div className="pt-4 border-t border-border/60">
+      <div className="pt-4 border-t border-border">
         <PublishSheet />
       </div>
     </aside>
   );
 }
-

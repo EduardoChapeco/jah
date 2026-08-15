@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Calendar, Loader2, AlertCircle, Ticket, MapPin, Search, Sparkles, Clock } from "lucide-react";
+import { Calendar, Loader2, AlertCircle, Ticket, MapPin, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -72,7 +72,7 @@ function AgendaPage() {
   });
 
   return (
-    <div className="w-full space-y-8">
+    <div className="w-full space-y-6">
       {/* ── Top Universal Banner Hero ── */}
       {banners && banners.length > 0 && (
         <BannerHeroCarousel banners={banners} className="w-full" />
@@ -86,40 +86,41 @@ function AgendaPage() {
       )}
 
       {/* ── Barra Superior de Filtros & Busca ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 border-t border-border">
         <div className="flex items-center gap-2">
-          <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-primary text-primary-foreground">
+          <span className="px-2.5 py-1 rounded-lg text-xs font-semibold uppercase tracking-wider bg-foreground text-background">
             Agenda Cultural
           </span>
-          <span className="text-xs text-muted-foreground font-mono">Programação Oficial</span>
+          <span className="text-xs text-muted-foreground">Programação Oficial</span>
         </div>
 
         {/* Busca de Eventos */}
         <div className="flex gap-2 w-full sm:w-72">
-          <Input
-            placeholder="Buscar por show, local..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="rounded-2xl h-10 bg-card text-xs"
-          />
-          <Button size="icon" className="h-10 w-10 rounded-2xl shrink-0 font-bold">
-            <Search className="size-4" />
-          </Button>
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por show, local..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 rounded-xl h-10 bg-background border-border text-xs"
+            />
+          </div>
         </div>
       </div>
 
-      {/* ── Chips de Categorias de Eventos ── */}
-      <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1">
+      {/* ── Chips de Categorias de Eventos (Scroll Invisível & Contraste Seguro) ── */}
+      <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1">
         {EVENT_CATEGORIES.map((cat) => {
           const isSelected = selectedCategory === cat.id;
           return (
             <button
               key={cat.id}
+              type="button"
               onClick={() => setSelectedCategory(cat.id)}
-              className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all border cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors border cursor-pointer ${
                 isSelected
-                  ? "bg-primary text-primary-foreground border-primary shadow-xs scale-105"
-                  : "bg-card text-muted-foreground border-border/80 hover:bg-muted hover:text-foreground"
+                  ? "bg-foreground text-background border-foreground font-semibold"
+                  : "bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground"
               }`}
             >
               {cat.label}
@@ -130,21 +131,21 @@ function AgendaPage() {
 
       {isLoading && (
         <div className="flex justify-center py-24">
-          <Loader2 className="size-8 animate-spin text-primary" />
+          <Loader2 className="size-6 animate-spin text-muted-foreground" />
         </div>
       )}
 
       {isError && (
-        <div className="py-12 px-6 rounded-2xl border border-destructive/20 bg-destructive/5 text-center space-y-3">
-          <AlertCircle className="size-8 text-destructive mx-auto" />
-          <p className="font-bold text-foreground text-sm">Erro ao carregar a Agenda Cultural</p>
+        <div className="py-12 px-6 rounded-2xl border border-destructive/20 bg-destructive/5 text-center space-y-2">
+          <AlertCircle className="size-6 text-destructive mx-auto" />
+          <p className="font-semibold text-foreground text-sm">Erro ao carregar a Agenda Cultural</p>
         </div>
       )}
 
       {!isLoading && !isError && filteredEvents.length === 0 && (
-        <div className="py-24 text-center space-y-3 bg-muted/10 rounded-3xl border border-border p-8">
-          <Calendar className="size-10 text-muted-foreground/40 mx-auto" />
-          <h2 className="text-base font-bold text-foreground">
+        <div className="py-20 text-center space-y-2 bg-muted/20 rounded-2xl border border-border p-8">
+          <Calendar className="size-8 text-muted-foreground/50 mx-auto" />
+          <h2 className="text-sm font-semibold text-foreground">
             Nenhum evento encontrado nesta categoria
           </h2>
           <p className="text-xs text-muted-foreground max-w-sm mx-auto">
@@ -154,11 +155,11 @@ function AgendaPage() {
       )}
 
       {!isLoading && !isError && filteredEvents.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
           {filteredEvents.map((event) => (
             <div
               key={event.id}
-              className="flex flex-col overflow-hidden rounded-3xl border border-border/80 bg-card shadow-xs group hover-elevate transition-all"
+              className="flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-xs hover:border-foreground/20 transition-colors"
             >
               {/* Cover Image */}
               <div className="aspect-16/10 relative overflow-hidden bg-muted">
@@ -166,54 +167,49 @@ function AgendaPage() {
                   <img
                     src={event.cover_image}
                     alt={event.title}
-                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="absolute inset-0 size-full object-cover"
                   />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
                 <div className="absolute top-3 left-3 flex items-center gap-2">
-                  <span className="bg-black/60 backdrop-blur-md text-white text-[10px] font-mono font-bold px-3 py-1 rounded-full border border-white/20">
+                  <span className="bg-black/60 backdrop-blur-md text-white text-[10px] font-mono font-medium px-2.5 py-1 rounded-lg border border-white/20">
                     {formatDate(event.event_date)}
                   </span>
                 </div>
 
                 <div className="absolute bottom-3 left-3 right-3">
-                  <h3 className="text-lg font-black text-white leading-tight drop-shadow-md line-clamp-2">
+                  <h3 className="text-sm font-semibold text-white leading-tight drop-shadow-xs line-clamp-2">
                     {event.title}
                   </h3>
                 </div>
               </div>
 
               {/* Event Details */}
-              <div className="p-5 flex flex-col gap-4 flex-1 justify-between">
-                <div className="space-y-2.5">
+              <div className="p-4 flex flex-col gap-3 flex-1 justify-between text-xs">
+                <div className="space-y-1.5">
                   {event.location && (
-                    <p className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
-                      <MapPin className="size-3.5 text-primary shrink-0" />
+                    <p className="flex items-center gap-1.5 text-muted-foreground">
+                      <MapPin className="size-3.5 shrink-0" />
                       <span className="truncate">{event.location}</span>
                     </p>
                   )}
 
                   {event.description && (
-                    <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                    <p className="text-muted-foreground line-clamp-2 leading-relaxed">
                       {event.description}
                     </p>
                   )}
                 </div>
 
-                <div className="pt-3 border-t border-border/60 flex items-center justify-between gap-3">
-                  <span className="text-xs font-bold text-foreground bg-muted px-2.5 py-1 rounded-xl">
-                    {(event as any).ticket_price || "Entrada Franca"}
-                  </span>
+                <div className="flex items-center justify-between pt-2 border-t border-border">
+                  <Badge variant={event.is_free ? "secondary" : "outline"} className="text-[10px]">
+                    {event.is_free ? "Gratuito" : "Ingresso Pago"}
+                  </Badge>
 
-                  <Button
-                    asChild
-                    size="sm"
-                    className="rounded-xl text-xs font-bold gap-1.5 bg-primary text-primary-foreground px-4"
-                  >
+                  <Button asChild size="sm" variant="outline" className="h-8 rounded-lg text-xs">
                     <Link to="/evento/$id" params={{ id: event.id }}>
-                      <Ticket className="size-3.5" />
-                      <span>Ingressos & Detalhes</span>
+                      <span>Detalhes</span>
                     </Link>
                   </Button>
                 </div>

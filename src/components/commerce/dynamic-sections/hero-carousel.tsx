@@ -176,16 +176,6 @@ export function HeroCarousel({
 
       {banners.length > 1 && (
         <>
-          <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 gap-2 z-20">
-            {banners.map((_, index) => (
-              <button
-                key={index}
-                className={`size-2.5 rounded-full transition-colors ${index === selectedIndex ? "bg-white" : "bg-white/40"}`}
-                onClick={() => emblaApi?.scrollTo(index)}
-                aria-label={`Ir para banner ${index + 1}`}
-              />
-            ))}
-          </div>
           <button
             onClick={scrollPrev}
             className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-black/20 p-2 text-white backdrop-blur hover:bg-black/40 z-20 hidden @md:block transition-all"

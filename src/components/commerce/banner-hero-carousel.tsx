@@ -148,24 +148,6 @@ export function BannerHeroCarousel({
             </button>
           </>
         )}
-
-        {/* Pagination Dots */}
-        {activeBanners.length > 1 && (
-          <div className="absolute bottom-3 right-4 sm:bottom-4 sm:right-6 flex items-center gap-1.5 z-20 bg-black/30 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
-            {activeBanners.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setCurrentIndex(idx)}
-                aria-label={`Ir para o banner ${idx + 1}`}
-                className={`transition-all rounded-full ${
-                  idx === currentIndex
-                    ? "w-5 h-1.5 bg-white"
-                    : "size-1.5 bg-white/40 hover:bg-white/70"
-                }`}
-              />
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
