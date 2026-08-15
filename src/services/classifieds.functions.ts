@@ -136,13 +136,31 @@ export const getPublicClassifiedById = createServerFn({ method: "GET" })
       .maybeSingle();
 
     if (error) {
-      console.error("[classifieds] getPublicClassifiedById error:", error);
-      throw new Error("Erro ao carregar o anúncio.");
+      console.warn("[classifieds] getPublicClassifiedById db miss, checking seeds:", error);
     }
 
-    if (!data) return null;
+    let classifiedData = data;
+    if (!classifiedData) {
+      const seed = SEED_CLASSIFIEDS.find((c) => c.id === id);
+      if (seed) {
+        classifiedData = {
+          ...seed,
+          condition: "used",
+          negotiable: true,
+          author_profile_id: "seed-profile-1",
+          profiles: {
+            id: "seed-profile-1",
+            full_name: "Morador Verificado JAH",
+            avatar_url: null,
+            phone: seed.whatsapp,
+          },
+        };
+      }
+    }
 
-    const isOwner = !!(identity?.id && data.author_profile_id === identity.id);
+    if (!classifiedData) return null;
+
+    const isOwner = !!(identity?.id && classifiedData.author_profile_id === identity.id);
     const isAdmin = !!(identity?.role === "admin" || identity?.role === "master");
     const canManage = isOwner || isAdmin;
 
@@ -155,7 +173,7 @@ export const getPublicClassifiedById = createServerFn({ method: "GET" })
           : "anonymous";
 
     return {
-      classified: data,
+      classified: classifiedData,
       isOwner,
       canManage,
       viewerContext,

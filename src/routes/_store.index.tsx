@@ -29,6 +29,7 @@ import { getFeedStories } from "@/services/social.functions";
 import { Button } from "@/components/ui/button";
 
 import { listPublicArticles, type NewsArticleDTO } from "@/services/news.functions";
+import { NewsCard } from "@/components/news/news-card";
 
 export const Route = createFileRoute("/_store/")({
   head: () => ({
