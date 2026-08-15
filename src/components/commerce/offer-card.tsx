@@ -113,34 +113,34 @@ export function OfferCard({
   };
 
   return (
-    <div className="group relative flex flex-col justify-between w-72 sm:w-80 shrink-0 snap-start squircle-card border border-border/80 bg-card hover:border-primary/50 transition-all duration-200 overflow-hidden shadow-xs hover-elevate p-3">
-      {/* ── Imagem Panorâmica 16:10 com Badges ────────────────── */}
+    <div className="group relative flex flex-col sm:flex-row items-stretch sm:items-center w-[300px] sm:w-[380px] shrink-0 snap-start rounded-3xl border border-border/80 bg-card hover:border-primary/50 transition-all duration-300 overflow-hidden shadow-xs hover-elevate p-3 gap-3">
+      {/* ── Imagem Panorâmica / Quadrada com Badges ────────────────── */}
       <Link
         to="/produto/$slug"
         params={{ slug }}
-        className="block relative aspect-16/10 w-full bg-muted overflow-hidden rounded-2xl"
+        className="relative aspect-16/10 sm:aspect-square w-full sm:w-32 sm:h-32 bg-muted overflow-hidden rounded-2xl shrink-0 block"
       >
         <img
           src={cover_image}
           alt={title}
-          className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
+          className="size-full object-cover group-hover:scale-105 transition-transform duration-500"
           loading="lazy"
         />
 
         {/* Badge de Desconto / Mecânica */}
-        <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 z-10">
-          <span className="px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider bg-black/75 backdrop-blur-md text-white border border-white/20 shadow-xs">
+        <div className="absolute top-2 left-2 z-10">
+          <span className="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-black/80 backdrop-blur-md text-white border border-white/20 shadow-xs">
             {mechanic_label}
           </span>
         </div>
 
-        {/* Timer de Oferta Relâmpago Dinâmico (Verde / Amarelo / Vermelho) */}
+        {/* Timer de Oferta Relâmpago Dinâmico */}
         {timeLeft && (
-          <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-center z-10">
+          <div className="absolute bottom-2 left-2 right-2 flex items-center justify-center z-10">
             <div
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold backdrop-blur-md shadow-xs ${timerColorClasses[timerColor]}`}
+              className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold backdrop-blur-md shadow-xs ${timerColorClasses[timerColor]}`}
             >
-              <Clock className="size-3.5" />
+              <Clock className="size-3" />
               <span>{timeLeft}</span>
             </div>
           </div>
@@ -148,29 +148,29 @@ export function OfferCard({
       </Link>
 
       {/* ── Conteúdo & Preço Espaçoso ────────────────────────── */}
-      <div className="pt-3 space-y-2 flex-1 flex flex-col justify-between">
+      <div className="flex-1 flex flex-col justify-between min-w-0 space-y-2 py-0.5">
         <div className="space-y-1">
-          <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider line-clamp-1">
+          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider line-clamp-1">
             {store_name}
           </span>
           <Link to="/produto/$slug" params={{ slug }}>
-            <h3 className="text-sm font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors leading-snug">
+            <h3 className="text-xs sm:text-sm font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors leading-snug">
               {title}
             </h3>
           </Link>
         </div>
 
         {/* Bloco de Preços & Quick Add */}
-        <div className="flex items-center justify-between gap-3 pt-2 border-t border-border/40">
+        <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/40">
           <div>
             {original_price_cents > price_cents && (
-              <span className="text-xs text-muted-foreground line-through block font-mono">
+              <span className="text-[11px] text-muted-foreground line-through block font-mono">
                 {formatMoney(original_price_cents)}
               </span>
             )}
-            <div className="text-base sm:text-lg font-black text-foreground font-mono leading-tight">
+            <div className="text-sm sm:text-base font-black text-foreground font-mono leading-tight">
               {formatMoney(price_cents)}
-              <span className="text-xs text-muted-foreground font-normal ml-0.5">
+              <span className="text-[10px] text-muted-foreground font-normal ml-0.5">
                 /{selling_unit}
               </span>
             </div>
@@ -180,13 +180,13 @@ export function OfferCard({
             size="sm"
             onClick={handleQuickAdd}
             disabled={isAdding || !in_stock}
-            className="size-10 squircle-action p-0 font-bold bg-primary text-primary-foreground shadow-xs shrink-0 hover:scale-105 active:scale-95 transition-all"
+            className="size-9 rounded-xl p-0 font-bold bg-primary text-primary-foreground shadow-xs shrink-0 hover:scale-105 active:scale-95 transition-all"
             aria-label={`Adicionar ${title} ao carrinho`}
           >
             {isAdding ? (
-              <span className="size-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <span className="size-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
-              <Plus className="size-5" />
+              <Plus className="size-4" />
             )}
           </Button>
         </div>

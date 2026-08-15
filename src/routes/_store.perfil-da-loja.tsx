@@ -139,19 +139,19 @@ function StorePerfil() {
           )}
         </div>
 
-        {/* Contact Info */}
+        {/* Contact Info & Details */}
         <div className="mt-8 space-y-3">
           {store.phone && (
             <a
               href={`tel:${store.phone}`}
-              className="flex items-center gap-4 p-3 border border-border rounded-xl hover:bg-muted/50 transition-colors"
+              className="flex items-center gap-4 p-4 border border-border/80 rounded-2xl hover:bg-muted/50 transition-colors"
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary shrink-0">
-                <Phone className="h-4 w-4" />
+              <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
+                <Phone className="size-5" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">Telefone</p>
-                <p className="text-sm font-medium">{store.phone}</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Telefone</p>
+                <p className="text-sm font-semibold">{store.phone}</p>
               </div>
             </a>
           )}
@@ -160,28 +160,28 @@ function StorePerfil() {
               href={`https://wa.me/${store.phone.replace(/\D/g, "")}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-4 p-3 border border-border rounded-xl hover:bg-muted/50 transition-colors"
+              className="flex items-center gap-4 p-4 border border-border/80 rounded-2xl hover:bg-muted/50 transition-colors"
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-success/10 text-success shrink-0">
-                <MessageCircle className="h-4 w-4" />
+              <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 shrink-0">
+                <MessageCircle className="size-5" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">WhatsApp</p>
-                <p className="text-sm font-medium">{store.phone}</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">WhatsApp</p>
+                <p className="text-sm font-semibold">{store.phone}</p>
               </div>
             </a>
           )}
 
           {extendedHours.length > 0 && (
-            <div className="p-4 border">
-              <div className="flex items-center gap-2 mb-3">
-                <Clock className="h-4 w-4 text-primary" />
-                <p className="text-sm font-semibold">Horários de Funcionamento</p>
+            <div className="p-5 border border-border/80 rounded-2xl bg-card space-y-3">
+              <div className="flex items-center gap-2">
+                <Clock className="size-4 text-primary" />
+                <p className="text-sm font-bold">Horários de Funcionamento</p>
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 {extendedHours.map((day: any) => (
-                  <div key={day.day} className="flex justify-between text-sm">
-                    <span className={`${!day.open ? "text-muted-foreground" : "font-medium"}`}>
+                  <div key={day.day} className="flex justify-between text-xs sm:text-sm">
+                    <span className={`${!day.open ? "text-muted-foreground" : "font-semibold"}`}>
                       {day.day}
                     </span>
                     <span
