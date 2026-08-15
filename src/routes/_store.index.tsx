@@ -136,16 +136,16 @@ function CommercialHomePage() {
           </h2>
         </div>
 
-        <div className="flex items-center gap-2.5 overflow-x-auto pb-2 scrollbar-none">
+        <div className="flex items-center gap-3 overflow-x-auto pb-2 pt-1 scrollbar-none w-full px-0.5">
           {categoriesList.map((cat) => {
             const Icon = cat.icon;
             return (
               <Link
                 key={cat.label}
                 to={cat.to as any}
-                className="h-20 min-w-[88px] sm:min-w-[96px] p-2.5 rounded-2xl border border-border bg-card hover:bg-muted/60 hover:border-foreground/30 flex flex-col items-center justify-between transition-all select-none group cursor-pointer shrink-0 shadow-2xs active:scale-[0.97]"
+                className="min-w-[104px] sm:min-w-[114px] h-[94px] sm:h-[100px] p-3 rounded-2xl border border-border bg-card hover:bg-muted/70 hover:border-foreground/30 flex flex-col items-center justify-between transition-all select-none group cursor-pointer shrink-0 shadow-2xs active:scale-[0.98]"
               >
-                <div className="relative size-8 rounded-xl bg-muted flex items-center justify-center text-foreground group-hover:scale-110 transition-transform overflow-hidden">
+                <div className="relative size-9 sm:size-10 rounded-xl bg-muted flex items-center justify-center text-foreground group-hover:scale-110 transition-transform overflow-hidden">
                   {cat.icon_url ? (
                     <img
                       src={cat.icon_url}
@@ -154,7 +154,7 @@ function CommercialHomePage() {
                       loading="lazy"
                     />
                   ) : (
-                    <Icon size={18} weight="bold" />
+                    <Icon size={20} weight="bold" />
                   )}
                   {cat.badge && (
                     <span className="absolute -top-1.5 -right-1 px-1 py-0.2 text-[8px] font-mono font-bold uppercase rounded-sm bg-foreground text-background">
@@ -162,7 +162,7 @@ function CommercialHomePage() {
                     </span>
                   )}
                 </div>
-                <span className="text-[11px] font-semibold text-center text-foreground line-clamp-1">
+                <span className="text-xs font-bold text-center text-foreground line-clamp-1 leading-tight">
                   {cat.label}
                 </span>
               </Link>

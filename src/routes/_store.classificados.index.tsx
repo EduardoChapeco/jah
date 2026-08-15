@@ -97,11 +97,11 @@ const CLASSIFIEDS_HOTPAGES = [
 ];
 
 const CLASSIFIED_CHIPS = [
-  { id: "todos", label: "Todos os Anúncios" },
-  { id: "vehicle", label: "Veículos" },
-  { id: "real_estate", label: "Imóveis" },
-  { id: "sale", label: "Desapegos & Tech" },
-  { id: "service", label: "Serviços & Bicos" },
+  { id: "todos", label: "Todos Anúncios", icon: Sparkle },
+  { id: "vehicle", label: "Veículos & Autos", icon: CarProfile },
+  { id: "real_estate", label: "Imóveis & Aluguel", icon: House },
+  { id: "sale", label: "Desapegos & Tech", icon: Laptop },
+  { id: "service", label: "Serviços & Bicos", icon: Wrench },
 ];
 
 function ClassifiedsMasterPage() {
@@ -146,47 +146,64 @@ function ClassifiedsMasterPage() {
         />
       </section>
 
-      {/* 3. Filtros em Chips & Barra de Busca & Botão de Anunciar */}
-      <section className="flex flex-col md:flex-row items-center justify-between gap-4 pt-2">
-        <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto scrollbar-none pb-1">
+      {/* 3. Filtros em Cards Gordinhos & Barra de Busca & Botão de Anunciar */}
+      <section className="space-y-4 pt-2">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <Tag size={16} weight="bold" className="text-foreground" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground font-mono">
+              Categorias de Classificados
+            </h3>
+          </div>
+
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <div className="relative w-full md:w-64">
+              <MagnifyingGlass size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Buscar veículo, imóvel, produto..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9 h-10 rounded-xl text-xs bg-card"
+              />
+            </div>
+
+            <Button asChild size="sm" className="rounded-xl font-bold gap-2 text-xs shrink-0 h-10 px-4">
+              <Link to="/conta/classificados/novo">
+                <Plus size={16} weight="bold" />
+                <span>Anunciar Grátis</span>
+              </Link>
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 w-full px-0.5">
           {CLASSIFIED_CHIPS.map((chip) => {
             const isActive = selectedCategory === chip.id;
+            const Icon = chip.icon;
             return (
               <button
                 key={chip.id}
+                type="button"
                 onClick={() => setSelectedCategory(chip.id)}
-                className={`h-11 px-5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all border cursor-pointer shrink-0 flex items-center justify-center ${
+                className={`min-w-[104px] sm:min-w-[114px] h-[94px] sm:h-[100px] p-3 rounded-2xl flex flex-col items-center justify-between border cursor-pointer select-none shrink-0 transition-all group ${
                   isActive
-                    ? "bg-foreground text-background border-foreground font-semibold shadow-xs scale-102"
-                    : "bg-card text-muted-foreground border-border hover:bg-muted/70 hover:text-foreground hover:border-foreground/20"
+                    ? "bg-foreground text-background border-foreground shadow-xs font-bold scale-102"
+                    : "bg-card text-muted-foreground border-border hover:bg-muted/70 hover:text-foreground hover:border-foreground/30 shadow-2xs"
                 }`}
               >
-                {chip.label}
+                <div
+                  className={`size-9 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 ${
+                    isActive ? "bg-background/20 text-background" : "bg-muted text-foreground"
+                  }`}
+                >
+                  <Icon size={20} weight={isActive ? "fill" : "bold"} />
+                </div>
+                <span className="text-xs font-bold text-center leading-tight line-clamp-1">
+                  {chip.label}
+                </span>
               </button>
             );
           })}
-        </div>
-
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          <div className="relative w-full md:w-64">
-            <MagnifyingGlass size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Buscar veículo, imóvel, produto..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-10 rounded-xl text-xs bg-card"
-            />
-          </div>
-
-          <Button
-            asChild
-            className="h-10 px-4 rounded-xl font-bold text-xs bg-foreground text-background shrink-0 gap-1.5"
-          >
-            <Link to="/conta/classificados/novo">
-              <Plus size={16} weight="bold" />
-              <span>Anunciar</span>
-            </Link>
-          </Button>
         </div>
       </section>
 

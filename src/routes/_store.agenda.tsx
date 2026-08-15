@@ -10,6 +10,9 @@ import {
   CaretRight,
   Clock,
   Ticket,
+  ForkKnife,
+  Tag,
+  GraduationCap,
 } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,11 +25,11 @@ import { HotpagesRail } from "@/components/commerce/hotpages-rail";
 import { formatDate } from "@/lib/datetime";
 
 const EVENT_CATEGORIES = [
-  { id: "todos", label: "Todas as Categorias" },
-  { id: "shows", label: "Shows & Festivais" },
-  { id: "gastronomico", label: "Gastronomia & Feiras" },
-  { id: "feiras", label: "Bazaares & Pets" },
-  { id: "workshops", label: "Cursos & Workshops" },
+  { id: "todos", label: "Todas Categorias", icon: Sparkle },
+  { id: "shows", label: "Shows & Festivais", icon: Ticket },
+  { id: "gastronomico", label: "Gastronomia & Feiras", icon: ForkKnife },
+  { id: "feiras", label: "Bazaares & Pets", icon: Tag },
+  { id: "workshops", label: "Cursos & Workshops", icon: GraduationCap },
 ];
 
 const PRESET_DATE_FILTERS = [
@@ -318,27 +321,13 @@ function AgendaPage() {
       </section>
 
       {/* ── 4. BARRA DE CATEGORIAS & BUSCA ── */}
-      <div className="space-y-3 pt-2 border-t border-border">
+      <div className="space-y-4 pt-2 border-t border-border">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          {/* Categorias Chips — Squircle Retangular Gordinho */}
-          <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1">
-            {EVENT_CATEGORIES.map((cat) => {
-              const isSelected = selectedCategory === cat.id;
-              return (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className={`h-11 px-5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all border cursor-pointer shrink-0 flex items-center justify-center ${
-                    isSelected
-                      ? "bg-foreground text-background border-foreground font-semibold shadow-xs scale-102"
-                      : "bg-card text-muted-foreground border-border hover:bg-muted/70 hover:text-foreground hover:border-foreground/20"
-                  }`}
-                >
-                  {cat.label}
-                </button>
-              );
-            })}
+          <div className="flex items-center gap-2">
+            <Tag size={16} weight="bold" className="text-foreground" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground font-mono">
+              Categorias de Eventos
+            </h3>
           </div>
 
           {/* Busca de Eventos */}
@@ -348,7 +337,7 @@ function AgendaPage() {
               placeholder="Buscar por show, local, artista..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 rounded-xl h-9.5 bg-background border-border text-xs"
+              className="pl-9 rounded-xl h-10 bg-background border-border text-xs"
             />
             {searchQuery && (
               <button
@@ -360,6 +349,37 @@ function AgendaPage() {
               </button>
             )}
           </div>
+        </div>
+
+        {/* Categorias Cards — Squircle Retangular Gordinho */}
+        <div className="flex items-center gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 w-full px-0.5">
+          {EVENT_CATEGORIES.map((cat) => {
+            const isSelected = selectedCategory === cat.id;
+            const Icon = cat.icon;
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`min-w-[104px] sm:min-w-[114px] h-[94px] sm:h-[100px] p-3 rounded-2xl flex flex-col items-center justify-between border cursor-pointer select-none shrink-0 transition-all group ${
+                  isSelected
+                    ? "bg-foreground text-background border-foreground shadow-xs font-bold scale-102"
+                    : "bg-card text-muted-foreground border-border hover:bg-muted/70 hover:text-foreground hover:border-foreground/30 shadow-2xs"
+                }`}
+              >
+                <div
+                  className={`size-9 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 ${
+                    isSelected ? "bg-background/20 text-background" : "bg-muted text-foreground"
+                  }`}
+                >
+                  <Icon size={20} weight={isSelected ? "fill" : "bold"} />
+                </div>
+                <span className="text-xs font-bold text-center leading-tight line-clamp-1">
+                  {cat.label}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         {/* ── 5. Status do Filtro & Contador ── */}

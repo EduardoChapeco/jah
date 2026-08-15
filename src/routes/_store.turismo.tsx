@@ -95,12 +95,12 @@ const TOURISM_HOTPAGES = [
 ];
 
 const CATEGORY_CHIPS = [
-  { id: "todos", label: "Todas as Experiências" },
-  { id: "passeios", label: "Passeios & Catamarã" },
-  { id: "hospedagens", label: "Cabanas & Pousadas" },
-  { id: "gastronomia_turistica", label: "Vinícolas & Sabores" },
-  { id: "aventura", label: "Aventura & Trilhas" },
-  { id: "agencias", label: "Agências de Viagens" },
+  { id: "todos", label: "Todas Experiências", icon: Sparkle },
+  { id: "passeios", label: "Passeios & Barco", icon: AirplaneTilt },
+  { id: "hospedagens", label: "Cabanas & Pousadas", icon: Buildings },
+  { id: "gastronomia_turistica", label: "Vinícolas & Sabores", icon: ForkKnife },
+  { id: "aventura", label: "Aventura & Trilhas", icon: Mountains },
+  { id: "agencias", label: "Agências & Guias", icon: Compass },
 ];
 
 function TourismMasterPage() {
@@ -136,35 +136,55 @@ function TourismMasterPage() {
         />
       </section>
 
-      {/* 3. Filtros em Chips & Barra de Busca */}
-      <section className="flex flex-col md:flex-row items-center justify-between gap-4 pt-2">
-        <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto scrollbar-none pb-1">
+      {/* 3. Filtros em Cards Gordinhos & Barra de Busca */}
+      <section className="space-y-4 pt-2">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <Compass size={16} weight="bold" className="text-foreground" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground font-mono">
+              Categorias Turísticas
+            </h3>
+          </div>
+
+          <div className="relative w-full md:w-72">
+            <MagnifyingGlass size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Buscar destino, pousada, passeio..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 h-10 rounded-xl text-xs bg-card"
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 w-full px-0.5">
           {CATEGORY_CHIPS.map((chip) => {
             const isActive = selectedCategory === chip.id;
+            const Icon = chip.icon;
             return (
               <button
                 key={chip.id}
+                type="button"
                 onClick={() => setSelectedCategory(chip.id)}
-                className={`h-11 px-5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all border cursor-pointer shrink-0 flex items-center justify-center ${
+                className={`min-w-[104px] sm:min-w-[114px] h-[94px] sm:h-[100px] p-3 rounded-2xl flex flex-col items-center justify-between border cursor-pointer select-none shrink-0 transition-all group ${
                   isActive
-                    ? "bg-foreground text-background border-foreground font-semibold shadow-xs scale-102"
-                    : "bg-card text-muted-foreground border-border hover:bg-muted/70 hover:text-foreground hover:border-foreground/20"
+                    ? "bg-foreground text-background border-foreground shadow-xs font-bold scale-102"
+                    : "bg-card text-muted-foreground border-border hover:bg-muted/70 hover:text-foreground hover:border-foreground/30 shadow-2xs"
                 }`}
               >
-                {chip.label}
+                <div
+                  className={`size-9 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 ${
+                    isActive ? "bg-background/20 text-background" : "bg-muted text-foreground"
+                  }`}
+                >
+                  <Icon size={20} weight={isActive ? "fill" : "bold"} />
+                </div>
+                <span className="text-xs font-bold text-center leading-tight line-clamp-1">
+                  {chip.label}
+                </span>
               </button>
             );
           })}
-        </div>
-
-        <div className="relative w-full md:w-72">
-          <MagnifyingGlass size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Buscar destino, pousada, passeio..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-10 rounded-xl text-xs bg-card"
-          />
         </div>
       </section>
 

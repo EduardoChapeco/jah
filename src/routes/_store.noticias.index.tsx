@@ -7,6 +7,11 @@ import {
   ArrowRight,
   Sparkle,
   Lightning,
+  Buildings,
+  CalendarDots,
+  Briefcase,
+  Trophy,
+  Laptop,
 } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,14 +44,14 @@ export const Route = createFileRoute("/_store/noticias/")({
 });
 
 const CATEGORIES = [
-  { id: "todas", label: "Todas as Notícias" },
-  { id: "urgente", label: "Última Hora" },
-  { id: "cidade", label: "Cidade & Região" },
-  { id: "cultura", label: "Cultura & Lazer" },
-  { id: "economia", label: "Economia & Negócios" },
-  { id: "esportes", label: "Esportes" },
-  { id: "politica", label: "Política" },
-  { id: "tecnologia", label: "Inovação" },
+  { id: "todas", label: "Todas Notícias", icon: Sparkle },
+  { id: "urgente", label: "Última Hora", icon: Lightning },
+  { id: "cidade", label: "Cidade & Região", icon: Buildings },
+  { id: "cultura", label: "Cultura & Lazer", icon: CalendarDots },
+  { id: "economia", label: "Economia & Negócios", icon: Briefcase },
+  { id: "esportes", label: "Esportes", icon: Trophy },
+  { id: "politica", label: "Política", icon: NewspaperClipping },
+  { id: "tecnologia", label: "Inovação", icon: Laptop },
 ];
 
 export function NoticiasFeedPage() {
@@ -124,26 +129,39 @@ export function NoticiasFeedPage() {
         </form>
       </div>
 
-      {/* ── 3. Categorias & Editorias Chips (Squircle Retangular Gordinho) ── */}
-      <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1">
-        {CATEGORIES.map((cat) => {
-          const isSelected = selectedCategory === cat.id;
+      {/* ── 3. Categorias & Editorias Cards (Squircle Retangular Gordinho) ── */}
+      <section aria-label="Editorias de Notícias" className="space-y-2">
+        <div className="flex items-center gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 w-full px-0.5">
+          {CATEGORIES.map((cat) => {
+            const isSelected = selectedCategory === cat.id;
+            const Icon = cat.icon;
 
-          return (
-            <button
-              key={cat.id}
-              onClick={() => handleFilterCategory(cat.id)}
-              className={`h-11 px-5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all border cursor-pointer shrink-0 flex items-center justify-center ${
-                isSelected
-                  ? "bg-foreground text-background border-foreground font-semibold shadow-xs scale-102"
-                  : "bg-card text-muted-foreground border-border hover:bg-muted/70 hover:text-foreground hover:border-foreground/20"
-              }`}
-            >
-              {cat.label}
-            </button>
-          );
-        })}
-      </div>
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => handleFilterCategory(cat.id)}
+                className={`min-w-[104px] sm:min-w-[114px] h-[94px] sm:h-[100px] p-3 rounded-2xl flex flex-col items-center justify-between border cursor-pointer select-none shrink-0 transition-all group ${
+                  isSelected
+                    ? "bg-foreground text-background border-foreground shadow-xs font-bold scale-102"
+                    : "bg-card text-muted-foreground border-border hover:bg-muted/70 hover:text-foreground hover:border-foreground/30 shadow-2xs"
+                }`}
+              >
+                <div
+                  className={`size-9 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 ${
+                    isSelected ? "bg-background/20 text-background" : "bg-muted text-foreground"
+                  }`}
+                >
+                  <Icon size={20} weight={isSelected ? "fill" : "bold"} />
+                </div>
+                <span className="text-xs font-bold text-center leading-tight line-clamp-1">
+                  {cat.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
 
       {/* ── 3.5. Hotpages & Coleções Visuais de Notícias ── */}
       {hotpages && hotpages.length > 0 && (

@@ -158,38 +158,49 @@ function MarketplacePage() {
         </section>
       )}
 
-      {/* ── 2. Category Chips Bar ── */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-        {CATEGORIES_TAXONOMY.map((item) => {
-          const Icon = item.icon;
-          const isSelected =
-            item.niche === search.niche || (!item.niche && !search.niche && !search.categoria);
+      {/* ── 2. Category Cards Bar (Cards Gordinhos Squircle) ── */}
+      <section aria-label="Categorias do Mercado" className="space-y-2">
+        <div className="flex items-center gap-3 overflow-x-auto pb-2 pt-1 scrollbar-none w-full px-0.5">
+          {CATEGORIES_TAXONOMY.map((item) => {
+            const Icon = item.icon;
+            const isSelected =
+              item.niche === search.niche || (!item.niche && !search.niche && !search.categoria);
 
-          return (
-            <button
-              key={item.label}
-              onClick={() =>
-                navigate({
-                  to: Route.fullPath,
-                  search: (s: Record<string, any>) => ({
-                    ...s,
-                    niche: item.niche,
-                    categoria: undefined,
-                  }),
-                })
-              }
-              className={`flex items-center gap-2.5 h-11 px-5 rounded-xl text-xs sm:text-sm font-semibold shrink-0 transition-all border cursor-pointer ${
-                isSelected
-                  ? "bg-foreground text-background border-foreground font-semibold shadow-xs scale-102"
-                  : "bg-card text-muted-foreground border-border hover:bg-muted/70 hover:text-foreground hover:border-foreground/20"
-              }`}
-            >
-              <Icon size={16} weight="bold" />
-              <span>{item.label}</span>
-            </button>
-          );
-        })}
-      </div>
+            return (
+              <button
+                key={item.label}
+                type="button"
+                onClick={() =>
+                  navigate({
+                    to: Route.fullPath,
+                    search: (s: Record<string, any>) => ({
+                      ...s,
+                      niche: item.niche,
+                      categoria: undefined,
+                    }),
+                  })
+                }
+                className={`min-w-[104px] sm:min-w-[114px] h-[94px] sm:h-[100px] p-3 rounded-2xl flex flex-col items-center justify-between border cursor-pointer select-none shrink-0 transition-all group ${
+                  isSelected
+                    ? "bg-foreground text-background border-foreground shadow-xs font-bold scale-102"
+                    : "bg-card text-muted-foreground border-border hover:bg-muted/70 hover:text-foreground hover:border-foreground/30 shadow-2xs"
+                }`}
+              >
+                <div
+                  className={`size-9 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 ${
+                    isSelected ? "bg-background/20 text-background" : "bg-muted text-foreground"
+                  }`}
+                >
+                  <Icon size={20} weight={isSelected ? "fill" : "bold"} />
+                </div>
+                <span className="text-xs font-bold text-center leading-tight line-clamp-1">
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
 
       {/* ── 3. Toolbar: View Mode Switcher & Ordenação ───────────── */}
       <div className="flex flex-wrap items-center justify-between gap-4 pt-1 border-t border-border/60">

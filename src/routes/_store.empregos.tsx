@@ -13,6 +13,11 @@ import {
   Sparkle,
   Users,
   PaperPlaneTilt,
+  Laptop,
+  GraduationCap,
+  Heartbeat,
+  Truck,
+  Storefront,
 } from "@phosphor-icons/react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -94,13 +99,13 @@ const JOBS_HOTPAGES = [
 ];
 
 const JOB_CATEGORY_CHIPS = [
-  { id: "todos", label: "Todas as Vagas" },
-  { id: "clt", label: "CLT & Comércio" },
-  { id: "tech", label: "Tecnologia & Dev" },
-  { id: "comercial", label: "Vendas & B2B" },
-  { id: "estagio", label: "Estágios" },
-  { id: "saude", label: "Saúde & Clínica" },
-  { id: "operacional", label: "Logística & Produção" },
+  { id: "todos", label: "Todas as Vagas", icon: Sparkle },
+  { id: "clt", label: "CLT & Comércio", icon: Storefront },
+  { id: "tech", label: "Tecnologia & Dev", icon: Laptop },
+  { id: "comercial", label: "Vendas & B2B", icon: Briefcase },
+  { id: "estagio", label: "Estágios & Trainee", icon: GraduationCap },
+  { id: "saude", label: "Saúde & Clínica", icon: Heartbeat },
+  { id: "operacional", label: "Logística & Frota", icon: Truck },
 ];
 
 function JobsMasterPage() {
@@ -136,35 +141,55 @@ function JobsMasterPage() {
         />
       </section>
 
-      {/* 3. Filtros em Chips & Barra de Busca */}
-      <section className="flex flex-col md:flex-row items-center justify-between gap-4 pt-2">
-        <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto scrollbar-none pb-1">
+      {/* 3. Filtros em Cards Gordinhos & Barra de Busca */}
+      <section className="space-y-4 pt-2">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <Briefcase size={16} weight="bold" className="text-foreground" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground font-mono">
+              Categorias de Carreiras
+            </h3>
+          </div>
+
+          <div className="relative w-full md:w-72">
+            <MagnifyingGlass size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Buscar cargo, empresa, área..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 h-10 rounded-xl text-xs bg-card"
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 w-full px-0.5">
           {JOB_CATEGORY_CHIPS.map((chip) => {
             const isActive = selectedCategory === chip.id;
+            const Icon = chip.icon;
             return (
               <button
                 key={chip.id}
+                type="button"
                 onClick={() => setSelectedCategory(chip.id)}
-                className={`h-11 px-5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all border cursor-pointer shrink-0 flex items-center justify-center ${
+                className={`min-w-[104px] sm:min-w-[114px] h-[94px] sm:h-[100px] p-3 rounded-2xl flex flex-col items-center justify-between border cursor-pointer select-none shrink-0 transition-all group ${
                   isActive
-                    ? "bg-foreground text-background border-foreground font-semibold shadow-xs scale-102"
-                    : "bg-card text-muted-foreground border-border hover:bg-muted/70 hover:text-foreground hover:border-foreground/20"
+                    ? "bg-foreground text-background border-foreground shadow-xs font-bold scale-102"
+                    : "bg-card text-muted-foreground border-border hover:bg-muted/70 hover:text-foreground hover:border-foreground/30 shadow-2xs"
                 }`}
               >
-                {chip.label}
+                <div
+                  className={`size-9 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 ${
+                    isActive ? "bg-background/20 text-background" : "bg-muted text-foreground"
+                  }`}
+                >
+                  <Icon size={20} weight={isActive ? "fill" : "bold"} />
+                </div>
+                <span className="text-xs font-bold text-center leading-tight line-clamp-1">
+                  {chip.label}
+                </span>
               </button>
             );
           })}
-        </div>
-
-        <div className="relative w-full md:w-72">
-          <MagnifyingGlass size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Buscar cargo, empresa, tecnologia..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-10 rounded-xl text-xs bg-card"
-          />
         </div>
       </section>
 

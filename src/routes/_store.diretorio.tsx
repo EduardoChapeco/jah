@@ -14,6 +14,14 @@ import {
   MagnifyingGlass,
   ArrowSquareOut,
   WhatsappLogo,
+  Sparkle,
+  Heartbeat,
+  Wrench,
+  CarProfile,
+  Tag,
+  Briefcase,
+  CircleNotch,
+  WarningCircle,
 } from "@phosphor-icons/react";
 import { getPublicDirectory } from "@/services/directory.functions";
 import { listHotpages } from "@/services/hotpage.functions";
@@ -22,12 +30,12 @@ import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
 import { HotpagesRail } from "@/components/commerce/hotpages-rail";
 
 const DIRECTORY_CATEGORIES = [
-  { id: "todos", label: "Todos os Negócios" },
-  { id: "saude", label: "Saúde & Bem-Estar" },
-  { id: "reformas", label: "Reformas & Obras" },
-  { id: "auto", label: "Auto & Mecânica" },
-  { id: "pet", label: "Pet & Veterinária" },
-  { id: "servicos", label: "Serviços Profissionais" },
+  { id: "todos", label: "Todos os Negócios", icon: Sparkle },
+  { id: "saude", label: "Saúde & Bem-Estar", icon: Heartbeat },
+  { id: "reformas", label: "Reformas & Obras", icon: Wrench },
+  { id: "auto", label: "Auto & Mecânica", icon: CarProfile },
+  { id: "pet", label: "Pet & Veterinária", icon: Tag },
+  { id: "servicos", label: "Serviços & B2B", icon: Briefcase },
 ];
 
 export const Route = createFileRoute("/_store/diretorio")({
@@ -99,10 +107,11 @@ function DirectoryPage() {
       )}
 
       {/* ── Barra Superior de Filtros & Busca ── */}
+      {/* ── 2. Barra Superior & Busca ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-primary text-primary-foreground">
-            Diretório de Membros
+          <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider bg-foreground text-background">
+            Diretório
           </span>
           <span className="text-xs text-muted-foreground font-mono">Guia Local Verificado</span>
         </div>
@@ -113,43 +122,63 @@ function DirectoryPage() {
             placeholder="Buscar por especialista, serviço..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="rounded-2xl h-10 bg-card text-xs"
+            className="rounded-xl h-10 bg-card text-xs border-border"
           />
-          <Button size="icon" className="h-10 w-10 rounded-2xl shrink-0 font-bold">
-            <Search className="size-4" />
+          <Button size="icon" className="h-10 w-10 rounded-xl shrink-0 font-bold">
+            <MagnifyingGlass size={16} weight="bold" />
           </Button>
         </div>
       </div>
 
-      {/* ── Chips de Categorias de Serviços ── */}
-      <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1">
-        {DIRECTORY_CATEGORIES.map((cat) => {
-          const isSelected = selectedCategory === cat.id;
-          return (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`h-11 px-5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all border cursor-pointer shrink-0 flex items-center justify-center ${
-                isSelected
-                  ? "bg-foreground text-background border-foreground font-semibold shadow-xs scale-102"
-                  : "bg-card text-muted-foreground border-border hover:bg-muted/70 hover:text-foreground hover:border-foreground/20"
-              }`}
-            >
-              {cat.label}
-            </button>
-          );
-        })}
-      </div>
+      {/* ── Cards Gordinhos de Categorias de Serviços ── */}
+      <section className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Compass size={16} weight="bold" className="text-foreground" />
+          <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground font-mono">
+            Categorias de Especialistas
+          </h3>
+        </div>
+
+        <div className="flex items-center gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 w-full px-0.5">
+          {DIRECTORY_CATEGORIES.map((cat) => {
+            const isSelected = selectedCategory === cat.id;
+            const Icon = cat.icon;
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`min-w-[104px] sm:min-w-[114px] h-[94px] sm:h-[100px] p-3 rounded-2xl flex flex-col items-center justify-between border cursor-pointer select-none shrink-0 transition-all group ${
+                  isSelected
+                    ? "bg-foreground text-background border-foreground shadow-xs font-bold scale-102"
+                    : "bg-card text-muted-foreground border-border hover:bg-muted/70 hover:text-foreground hover:border-foreground/30 shadow-2xs"
+                }`}
+              >
+                <div
+                  className={`size-9 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 ${
+                    isSelected ? "bg-background/20 text-background" : "bg-muted text-foreground"
+                  }`}
+                >
+                  <Icon size={20} weight={isSelected ? "fill" : "bold"} />
+                </div>
+                <span className="text-xs font-bold text-center leading-tight line-clamp-1">
+                  {cat.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
 
       {isLoading && (
         <div className="flex justify-center py-24">
-          <Loader2 className="size-8 animate-spin text-primary" />
+          <CircleNotch size={32} className="animate-spin text-muted-foreground" />
         </div>
       )}
 
       {isError && (
         <div className="py-12 px-6 rounded-2xl border border-destructive/20 bg-destructive/5 text-center space-y-3">
-          <AlertCircle className="size-8 text-destructive mx-auto" />
+          <WarningCircle size={32} className="text-destructive mx-auto" />
           <p className="font-bold text-foreground text-sm">Erro ao carregar o Diretório</p>
         </div>
       )}
