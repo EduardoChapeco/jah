@@ -45,12 +45,24 @@ const ORDER_STATUS_LABELS: Record<string, string> = {
 
 const QUICK_ACCESS = [
   {
+    to: "/conta/salvos",
+    label: "Itens Salvos",
+    icon: Heart,
+    description: "Produtos, posts e anúncios favoritos",
+  },
+  {
     to: "/conta/classificados",
     label: "Meus Anúncios",
     icon: Tag,
     description: "Gerencie seus classificados",
   },
   { to: "/conta/pedidos", label: "Pedidos", icon: Package, description: "Acompanhe seus pedidos" },
+  {
+    to: "/conta/creditos",
+    label: "Carteira & Créditos",
+    icon: CreditCard,
+    description: "Saldo em conta e cashback",
+  },
   {
     to: "/conta/gift-cards",
     label: "Vales-Presente",
@@ -71,9 +83,9 @@ const QUICK_ACCESS = [
   },
   {
     to: "/conta/negociacoes",
-    label: "Negociações",
+    label: "Negociações P2P",
     icon: Handshake,
-    description: "Propostas e trocas",
+    description: "Propostas, trocas e contratos",
   },
   {
     to: "/conta/avaliacoes",

@@ -40,6 +40,7 @@ import { Route as AdminMasterIndexRouteImport } from './routes/admin-master.inde
 import { Route as AdminMasterFaturasRouteImport } from './routes/admin-master.faturas'
 import { Route as AdminMasterLojasRouteImport } from './routes/admin-master.lojas'
 import { Route as AssinarTokenRouteImport } from './routes/assinar.$token'
+import { Route as WorkspaceIndexRouteImport } from './routes/workspace.index'
 import { Route as WorkspaceSimulacaoRouteImport } from './routes/workspace.simulacao'
 import { Route as StoreAgendarIndexRouteImport } from './routes/_store.agendar.index'
 import { Route as StoreBioSlugRouteImport } from './routes/_store.bio.$slug'
@@ -292,6 +293,11 @@ const AssinarTokenRoute = AssinarTokenRouteImport.update({
   id: '/assinar/$token',
   path: '/assinar/$token',
   getParentRoute: () => rootRouteImport,
+} as any)
+const WorkspaceIndexRoute = WorkspaceIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => WorkspaceRoute,
 } as any)
 const WorkspaceSimulacaoRoute = WorkspaceSimulacaoRouteImport.update({
   id: '/simulacao',
@@ -857,6 +863,7 @@ export interface FileRoutesByFullPath {
   '/assinar/$token': typeof AssinarTokenRoute
   '/workspace/simulacao': typeof WorkspaceSimulacaoRoute
   '/admin-master/': typeof AdminMasterIndexRoute
+  '/workspace/': typeof WorkspaceIndexRoute
   '/bio/$slug': typeof StoreBioSlugRoute
   '/categoria/$slug': typeof StoreCategoriaSlugRoute
   '/classificados/$id': typeof StoreClassificadosIdRoute
@@ -957,7 +964,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/workspace': typeof WorkspaceRouteWithChildren
   '/agenda': typeof StoreAgendaRoute
   '/buscar': typeof StoreBuscarRoute
   '/cadastro': typeof StoreCadastroRoute
@@ -984,6 +990,7 @@ export interface FileRoutesByTo {
   '/workspace/simulacao': typeof WorkspaceSimulacaoRoute
   '/': typeof StoreIndexRoute
   '/admin-master': typeof AdminMasterIndexRoute
+  '/workspace': typeof WorkspaceIndexRoute
   '/bio/$slug': typeof StoreBioSlugRoute
   '/categoria/$slug': typeof StoreCategoriaSlugRoute
   '/classificados/$id': typeof StoreClassificadosIdRoute
@@ -1116,6 +1123,7 @@ export interface FileRoutesById {
   '/workspace/simulacao': typeof WorkspaceSimulacaoRoute
   '/_store/': typeof StoreIndexRoute
   '/admin-master/': typeof AdminMasterIndexRoute
+  '/workspace/': typeof WorkspaceIndexRoute
   '/_store/bio/$slug': typeof StoreBioSlugRoute
   '/_store/categoria/$slug': typeof StoreCategoriaSlugRoute
   '/_store/classificados/$id': typeof StoreClassificadosIdRoute
@@ -1248,6 +1256,7 @@ export interface FileRouteTypes {
     | '/assinar/$token'
     | '/workspace/simulacao'
     | '/admin-master/'
+    | '/workspace/'
     | '/bio/$slug'
     | '/categoria/$slug'
     | '/classificados/$id'
@@ -1348,7 +1357,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/sitemap.xml'
-    | '/workspace'
     | '/agenda'
     | '/buscar'
     | '/cadastro'
@@ -1375,6 +1383,7 @@ export interface FileRouteTypes {
     | '/workspace/simulacao'
     | '/'
     | '/admin-master'
+    | '/workspace'
     | '/bio/$slug'
     | '/categoria/$slug'
     | '/classificados/$id'
@@ -1506,6 +1515,7 @@ export interface FileRouteTypes {
     | '/workspace/simulacao'
     | '/_store/'
     | '/admin-master/'
+    | '/workspace/'
     | '/_store/bio/$slug'
     | '/_store/categoria/$slug'
     | '/_store/classificados/$id'
@@ -1837,6 +1847,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/assinar/$token'
       preLoaderRoute: typeof AssinarTokenRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/workspace/': {
+      id: '/workspace/'
+      path: '/'
+      fullPath: '/workspace/'
+      preLoaderRoute: typeof WorkspaceIndexRouteImport
+      parentRoute: typeof WorkspaceRoute
     }
     '/workspace/simulacao': {
       id: '/workspace/simulacao'
@@ -2696,6 +2713,7 @@ const WorkspaceMarketingAnunciosRouteWithChildren =
 
 interface WorkspaceRouteChildren {
   WorkspaceSimulacaoRoute: typeof WorkspaceSimulacaoRoute
+  WorkspaceIndexRoute: typeof WorkspaceIndexRoute
   WorkspaceAgendaRecursosRoute: typeof WorkspaceAgendaRecursosRoute
   WorkspaceCatalogoAtributosRoute: typeof WorkspaceCatalogoAtributosRoute
   WorkspaceCatalogoTiposRoute: typeof WorkspaceCatalogoTiposRoute
@@ -2759,6 +2777,7 @@ interface WorkspaceRouteChildren {
 
 const WorkspaceRouteChildren: WorkspaceRouteChildren = {
   WorkspaceSimulacaoRoute: WorkspaceSimulacaoRoute,
+  WorkspaceIndexRoute: WorkspaceIndexRoute,
   WorkspaceAgendaRecursosRoute: WorkspaceAgendaRecursosRoute,
   WorkspaceCatalogoAtributosRoute: WorkspaceCatalogoAtributosRoute,
   WorkspaceCatalogoTiposRoute: WorkspaceCatalogoTiposRoute,
