@@ -20,6 +20,75 @@ export interface HotpageDTO {
   show_badge?: boolean;
 }
 
+const SEED_HOTPAGES: HotpageDTO[] = [
+  {
+    id: "f0000000-0000-0000-0000-000000000001",
+    slug: "ofertas",
+    title: "Ofertas Relâmpago",
+    badge_label: "Até 40% OFF",
+    description: "Descontos exclusivos por tempo limitado na sua região.",
+    cover_image_url: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=600&q=80",
+    icon_name: "Flame",
+    is_active: true,
+    sort_order: 1,
+  },
+  {
+    id: "f0000000-0000-0000-0000-000000000002",
+    slug: "gastronomia",
+    title: "Gastronomia & Lanches",
+    badge_label: "Sabor Local",
+    description: "Burgers, pizzas, cafés especiais, sobremesas e pratos autorais.",
+    cover_image_url: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=80",
+    icon_name: "Utensils",
+    is_active: true,
+    sort_order: 2,
+  },
+  {
+    id: "f0000000-0000-0000-0000-000000000003",
+    slug: "mercado",
+    title: "Mercado & Hortifruti",
+    badge_label: "Produtor Direto",
+    description: "Alimentos frescos, mercearia fina e produtos da colônia.",
+    cover_image_url: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&q=80",
+    icon_name: "Store",
+    is_active: true,
+    sort_order: 3,
+  },
+  {
+    id: "f0000000-0000-0000-0000-000000000004",
+    slug: "beleza",
+    title: "Beleza & Bem-Estar",
+    badge_label: "Cuidados",
+    description: "Barbearias, salões de beleza, massoterapia e estética.",
+    cover_image_url: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600&q=80",
+    icon_name: "Scissors",
+    is_active: true,
+    sort_order: 4,
+  },
+  {
+    id: "f0000000-0000-0000-0000-000000000005",
+    slug: "empregos",
+    title: "Vagas & Oportunidades",
+    badge_label: "Contratação",
+    description: "Empregos locais, freelas e oportunidades no comércio.",
+    cover_image_url: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&q=80",
+    icon_name: "Briefcase",
+    is_active: true,
+    sort_order: 5,
+  },
+  {
+    id: "f0000000-0000-0000-0000-000000000006",
+    slug: "viagens",
+    title: "Viagens & Passeios",
+    badge_label: "Turismo Regional",
+    description: "Passeios rurais, ecoturismo, cabanas e estadias na região.",
+    cover_image_url: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600&q=80",
+    icon_name: "Compass",
+    is_active: true,
+    sort_order: 6,
+  },
+];
+
 export const listHotpages = createServerFn({ method: "GET" }).handler(
   async (): Promise<HotpageDTO[]> => {
     const supabase = getAnonServerClient();
@@ -30,7 +99,7 @@ export const listHotpages = createServerFn({ method: "GET" }).handler(
       .eq("is_active", true)
       .order("sort_order", { ascending: true });
 
-    if (error || !data) return [];
+    if (error || !data || data.length === 0) return SEED_HOTPAGES;
     return data as HotpageDTO[];
   },
 );

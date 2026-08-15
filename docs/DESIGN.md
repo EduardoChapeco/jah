@@ -75,16 +75,34 @@ A JAH unifica dois universos complementares sob a mesma fundação de tokens sem
 
 ---
 
-## 3. Geometria Orgânica (Superelipses & Pillow Tiles)
+## 3. Geometria Orgânica & Padrão de Botões Squircle ("Quadrado Inflado")
 
-- **`shape.soft` (`.squircle-soft` / `rounded-xl` ~16px):** Inputs, selects, células de tabela e cards do Workspace.
-- **`shape.squircle` (`.squircle` / `rounded-3xl` ~28px-32px):** Cards de categorias, banners e caixas de descoberta.
-- **`shape.media` (`.squircle-media` / `rounded-2xl` ~20px-24px):** Imagens de capa de notícias, stories, avatares e produtos.
-- **`shape.action` (`rounded-2xl` / `rounded-full`):** Botões e controles de navegação.
+- **Botões Squircle / Gordinhos (`rounded-2xl` ~16px-20px com h-10/h-11):** Todos os botões interativos de ação, triggers de busca/sacola/perfil e botões de adicionar ao carrinho usam geometria squircle tátil ("quadrado inflado", estilo Apple / VisionOS / Linear), NUNCA pílulas compridas finas ou cápsulas verticais estranhas.
+- **`shape.soft` (`.squircle-soft` / `rounded-xl` ~12px-14px):** Chips internos, tags, selects, pequenos badges e inputs.
+- **`shape.media` (`.squircle-media` / `rounded-2xl` ~18px-22px):** Fotos de produtos, mídias de post, avatares e miniaturas de stories.
+- **`shape.card` (`.squircle-card` / `rounded-3xl` ~24px-32px):** Containers de posts do Mural, caixas de banners herói, cards de lojas e trilhos de produtos.
 
 ---
 
-## 4. Telemetria de Audiência & Padrões Antifraude
+## 4. Largura Canônica Única & Fim do Efeito Sanfona
+
+Para eliminar qualquer variação abrupta de largura ao navegar entre abas ("efeito sanfona"):
+- **Container Canônico Único:** `max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 space-y-8`.
+- Todas as rotas de descoberta (`Home`, `Mercado`, `Mural`, `Notícias`, `Agenda`, `Diretório`, `Mapa`) utilizam rigorosamente essa mesma largura máxima e mesmo ritmo de padding.
+
+---
+
+## 5. Anatomia Canônica Quádrupla de Páginas de Descoberta
+
+Toda página pública de exploração segue o mesmo ritmo visual hierárquico:
+1. **Camada 1 — Top Banner Hero:** Banner dinâmico carrossel com fotos reais do Supabase (16:9 / 21:9) e fallback curado.
+2. **Camada 2 — HotpagesRail Contextual:** Trilho de cartões visuais de categorias/nichos da região.
+3. **Camada 3 — Chips de Subcategorias & Filtros:** Barra horizontal de filtros rápidos com scroll suave.
+4. **Camada 4 — Trilhos & Grades de Cards Grandes:** Sliders horizontais e grades com proporção generosa para produtos, ofertas relâmpago, lojas e publicações.
+
+---
+
+## 6. Telemetria de Audiência & Padrões Antifraude
 
 1. **Visualizações Únicas:** Calculadas combinando `user_id` autenticado com `session_hash` (IP + User-Agent mascarados via hash SHA-256 no backend).
 2. **Tempo de Visualização Ativo:** Monitorado via evento de heartbeat a cada 5 segundos enquanto o elemento estiver visível no viewport (IntersectionObserver com ratio > 0.5 e document em foco).

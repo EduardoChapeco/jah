@@ -88,7 +88,7 @@ function NoticiasFeedPage() {
   const gridArticles = articles.slice(1);
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-6 sm:space-y-8">
+    <div className="w-full space-y-8">
       {/* ── 1. Banners no Portal de Notícias ── */}
       {banners && banners.length > 0 && (
         <section aria-label="Banners e Anúncios">

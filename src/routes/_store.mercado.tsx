@@ -138,7 +138,7 @@ function MarketplacePage() {
   };
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-8">
       {/* ── 1. Top Universal Banner Hero (Apenas se houver banners ativos) ── */}
       {banners && banners.length > 0 && (
         <BannerHeroCarousel banners={banners} className="w-full" />

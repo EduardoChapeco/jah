@@ -167,10 +167,10 @@ export function LocationMasterPill({ className = "" }: { className?: string }) {
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
         title="Clique para escolher cidade/CEP/mapa ou segure para ativar GPS"
-        className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border select-none cursor-pointer ${
+        className={`inline-flex items-center gap-1.5 px-3.5 h-10 rounded-2xl text-xs font-bold transition-all border select-none cursor-pointer ${
           isHolding
             ? "scale-95 bg-primary/20 border-primary text-primary"
-            : "bg-muted/70 hover:bg-muted text-foreground border-border/80 hover:border-primary/40 shadow-2xs"
+            : "bg-muted/60 hover:bg-muted text-foreground border-border/80 hover:border-primary/40 shadow-2xs"
         } ${className}`}
       >
         {isLocating ? (

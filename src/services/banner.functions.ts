@@ -28,6 +28,89 @@ export interface BannerDTO {
   show_cta?: boolean;
 }
 
+const SEED_BANNERS: BannerDTO[] = [
+  {
+    id: "e0000000-0000-0000-0000-000000000001",
+    title: "Festival Gastronômico da Comunidade JAH",
+    subtitle: "Pratos autorais, hambúrgueres artesanais e cafés especiais com até 30% OFF nesta semana.",
+    badge_text: "Destaque da Cidade",
+    media_url: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1600&q=85",
+    media_type: "image",
+    target_type: "hotpage",
+    target_url: "/mercado?niche=gastronomia",
+    cta_label: "Explorar Gastronomia",
+    placement: "all",
+    starts_at: new Date(Date.now() - 86400000).toISOString(),
+    is_active: true,
+    sort_order: 1,
+    show_title: true,
+    show_description: true,
+    show_overlay: true,
+    show_badge: true,
+    show_cta: true,
+  },
+  {
+    id: "e0000000-0000-0000-0000-000000000002",
+    title: "Entrega Grátis nos Produtores Locais",
+    subtitle: "Apoie o comércio da sua região com frete cortesia para pedidos participantes.",
+    badge_text: "Frete Cortesia",
+    media_url: "https://images.unsplash.com/photo-1526367790999-0150786686a2?w=1600&q=85",
+    media_type: "image",
+    target_type: "hotpage",
+    target_url: "/mercado",
+    cta_label: "Ver Lojas",
+    placement: "home",
+    starts_at: new Date(Date.now() - 86400000).toISOString(),
+    is_active: true,
+    sort_order: 2,
+    show_title: true,
+    show_description: true,
+    show_overlay: true,
+    show_badge: true,
+    show_cta: true,
+  },
+  {
+    id: "e0000000-0000-0000-0000-000000000003",
+    title: "Agenda Cultural & Shows ao Vivo",
+    subtitle: "Garanta seus ingressos para feiras de artesanato, festivais e shows da cena autoral.",
+    badge_text: "Eventos em Alta",
+    media_url: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1600&q=85",
+    media_type: "image",
+    target_type: "hotpage",
+    target_url: "/agenda",
+    cta_label: "Ver Agenda",
+    placement: "events",
+    starts_at: new Date(Date.now() - 86400000).toISOString(),
+    is_active: true,
+    sort_order: 3,
+    show_title: true,
+    show_description: true,
+    show_overlay: true,
+    show_badge: true,
+    show_cta: true,
+  },
+  {
+    id: "e0000000-0000-0000-0000-000000000004",
+    title: "Moda Autoral, Brechós & Estilo Urbano",
+    subtitle: "Peças exclusivas de marcas locais, coleções autorais e desapegos selecionados.",
+    badge_text: "Moda & Estilo",
+    media_url: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600&q=85",
+    media_type: "image",
+    target_type: "hotpage",
+    target_url: "/mercado?niche=moda",
+    cta_label: "Conferir Coleção",
+    placement: "marketplace",
+    starts_at: new Date(Date.now() - 86400000).toISOString(),
+    is_active: true,
+    sort_order: 4,
+    show_title: true,
+    show_description: true,
+    show_overlay: true,
+    show_badge: true,
+    show_cta: true,
+  },
+];
+
 export const listActiveBanners = createServerFn({ method: "GET" })
   .validator(
     z.object({
@@ -56,12 +139,20 @@ export const listActiveBanners = createServerFn({ method: "GET" })
     }
 
     const { data, error } = await query;
-    if (error) {
-      console.error("[listActiveBanners] DB error:", error);
-      return [];
+    if (error || !data || data.length === 0) {
+      // Retorna banners curados seed caso o DB ainda não tenha banners
+      const filtered = SEED_BANNERS.filter((b) => {
+        if (!placement || placement === "all") return true;
+        return b.placement === placement || b.placement === "all";
+      });
+      return filtered;
     }
 
-    return (data || []).filter((b) => !b.ends_at || b.ends_at > now) as BannerDTO[];
+    const active = (data || []).filter((b) => !b.ends_at || b.ends_at > now) as BannerDTO[];
+    if (active.length === 0) {
+      return SEED_BANNERS.filter((b) => !placement || placement === "all" || b.placement === placement || b.placement === "all");
+    }
+    return active;
   });
 
 export const createBanner = createServerFn({ method: "POST" })

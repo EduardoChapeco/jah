@@ -142,7 +142,7 @@ export function InlinePostComposer({ session }: InlinePostComposerProps) {
   };
 
   return (
-    <div className="bg-card rounded-2xl border border-border p-4 mb-4 shadow-sm flex flex-col gap-3 relative">
+    <div className="bg-card rounded-3xl border border-border p-4 sm:p-5 shadow-xs flex flex-col gap-3 relative">
       <Textarea
         placeholder="O que você vai colar no mural hoje?"
         value={content}
@@ -155,7 +155,7 @@ export function InlinePostComposer({ session }: InlinePostComposerProps) {
           {mediaPreviews.map((preview, index) => (
             <div
               key={index}
-              className="relative border border-border overflow-hidden rounded-xl bg-black inline-block w-[120px] aspect-square shrink-0"
+              className="relative border border-border/80 overflow-hidden rounded-2xl bg-black inline-block w-[120px] aspect-square shrink-0"
             >
               {isUploadingMedia && index === mediaPreviews.length - 1 && (
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center z-20 gap-1 text-white">
@@ -182,7 +182,7 @@ export function InlinePostComposer({ session }: InlinePostComposerProps) {
               )}
 
               {preview.type === "video" && (
-                <div className="absolute bottom-1 left-1 bg-black/70 text-white p-1 rounded-md text-[10px] flex items-center gap-1">
+                <div className="absolute bottom-1.5 left-1.5 bg-black/70 text-white px-2 py-0.5 rounded-lg text-[10px] flex items-center gap-1 font-bold">
                   <Film className="size-3" />
                   <span>Vídeo</span>
                 </div>
@@ -191,23 +191,23 @@ export function InlinePostComposer({ session }: InlinePostComposerProps) {
               <button
                 type="button"
                 onClick={() => removeMedia(index)}
-                className="absolute top-1.5 right-1.5 bg-black/70 text-white rounded-full p-1 hover:bg-black z-30 transition-colors"
+                className="absolute top-1.5 right-1.5 bg-black/70 text-white rounded-xl p-1.5 hover:bg-black z-30 transition-all hover:scale-105"
                 aria-label="Remover mídia"
               >
-                <X className="size-3" />
+                <X className="size-3.5" />
               </button>
             </div>
           ))}
         </div>
       )}
 
-      <div className="flex justify-between items-center border-t border-border pt-3 mt-1">
+      <div className="flex justify-between items-center border-t border-border/60 pt-3 mt-1">
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => fileInputRef.current?.click()}
-            className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl h-8 text-xs font-semibold"
+            className="text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-2xl h-10 px-3.5 text-xs font-bold"
           >
             <ImagePlus className="size-4 mr-1.5 text-primary" />
             Foto / Vídeo
@@ -225,7 +225,7 @@ export function InlinePostComposer({ session }: InlinePostComposerProps) {
             <select
               value={layoutStyle}
               onChange={(e) => setLayoutStyle(e.target.value as "grid" | "carousel")}
-              className="text-xs border border-border bg-background rounded-lg px-2 py-1 outline-none focus:ring-1 focus:ring-primary text-foreground font-medium"
+              className="text-xs border border-border/80 bg-background rounded-2xl px-3 h-10 outline-none focus:ring-1 focus:ring-primary text-foreground font-medium"
             >
               <option value="grid">Layout em Grid</option>
               <option value="carousel">Layout em Carrossel</option>
@@ -237,7 +237,7 @@ export function InlinePostComposer({ session }: InlinePostComposerProps) {
           onClick={onSubmit}
           disabled={isSubmitting || isUploadingMedia || (!content.trim() && mediaUrls.length === 0)}
           size="sm"
-          className="bg-primary text-primary-foreground font-bold rounded-xl h-8 px-4 text-xs shadow-sm"
+          className="bg-primary text-primary-foreground font-bold rounded-2xl h-10 px-6 text-xs shadow-xs hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
         >
           {isSubmitting ? (
             <>

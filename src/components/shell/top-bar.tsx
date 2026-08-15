@@ -69,7 +69,7 @@ export function TopBar({ session }: TopBarProps) {
             <Link
               key={chip.label}
               to={chip.to as any}
-              className={`px-3 py-1 rounded-full text-[11px] font-bold shrink-0 transition-all border ${
+              className={`px-3 py-1 rounded-xl text-[11px] font-bold shrink-0 transition-all border ${
                 isSelected
                   ? "bg-primary text-primary-foreground border-primary shadow-2xs"
                   : "bg-card text-muted-foreground border-border/60 hover:text-foreground hover:bg-muted/60"

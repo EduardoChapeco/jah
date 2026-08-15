@@ -34,7 +34,7 @@ function DirectoryPage() {
   });
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-8">
       {/* ── Banners Hero ── */}
       {banners && banners.length > 0 && (
         <BannerHeroCarousel banners={banners} className="w-full" />

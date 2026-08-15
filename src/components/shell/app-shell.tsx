@@ -42,9 +42,9 @@ export function AppShell({ children, session }: AppShellProps) {
         {/* Coluna Contextual Fixa à Esquerda */}
         <ContextSidebar config={contextConfig} />
 
-        {/* Viewport Central com Largura Ampliada no Desktop */}
-        <main className="flex-1 flex flex-col min-w-0 px-3 sm:px-6 md:px-8 py-4 sm:py-6 w-full pb-24 md:pb-12 overflow-x-hidden">
-          <div className="w-full max-w-7xl 2xl:max-w-[1440px] mx-auto flex-1 flex flex-col items-stretch">
+        {/* Viewport Central com Largura Padronizada Única (Fim do Efeito Sanfona) */}
+        <main className="flex-1 flex flex-col min-w-0 px-4 sm:px-6 py-6 w-full pb-24 md:pb-12 overflow-x-hidden">
+          <div className="w-full max-w-6xl mx-auto flex-1 flex flex-col items-stretch">
             {children}
           </div>
         </main>

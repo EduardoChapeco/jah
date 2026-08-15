@@ -77,7 +77,7 @@ function CommercialHomePage() {
     catalogProducts.length > 0;
 
   return (
-    <div className="w-full space-y-8 sm:space-y-12">
+    <div className="w-full space-y-8">
       {/* ── 1. Top Banners Hero Carousel (100% Real do Supabase) ── */}
       {banners.length > 0 && (
         <section aria-label="Destaques Principais">

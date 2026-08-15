@@ -35,7 +35,7 @@ function AgendaPage() {
   });
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-8">
       {/* ── Top Universal Banner Hero ── */}
       {banners && banners.length > 0 && (
         <BannerHeroCarousel banners={banners} className="w-full" />

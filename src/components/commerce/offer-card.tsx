@@ -180,11 +180,11 @@ export function OfferCard({
             size="sm"
             onClick={handleQuickAdd}
             disabled={isAdding || !in_stock}
-            className="size-9 rounded-xl p-0 font-bold bg-primary text-primary-foreground shadow-xs shrink-0 hover:scale-105 active:scale-95 transition-all"
+            className="size-10 rounded-2xl p-0 font-bold bg-primary text-primary-foreground shadow-xs shrink-0 hover:scale-105 active:scale-95 transition-all cursor-pointer"
             aria-label={`Adicionar ${title} ao carrinho`}
           >
             {isAdding ? (
-              <span className="size-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <span className="size-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
               <Plus className="size-4" />
             )}

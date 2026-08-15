@@ -71,7 +71,7 @@ function MuralPage() {
   });
 
   return (
-    <div className="w-full max-w-3xl mx-auto space-y-6 pb-24">
+    <div className="w-full space-y-8">
       {/* 0. Banners de Destaque */}
       {banners && banners.length > 0 && (
         <section aria-label="Banners da Comunidade">
