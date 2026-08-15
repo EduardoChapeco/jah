@@ -90,8 +90,8 @@ export function UtilityCluster({ session, embedded = false, className = "" }: Ut
       <div
         className={
           embedded
-            ? `flex items-center gap-2 bg-background/90 px-2 py-1 rounded-full border border-border/80 shadow-2xs ${className}`
-            : `fixed top-4 right-4 md:right-8 z-40 flex items-center gap-2 bg-background/90 backdrop-blur-md px-2.5 py-1.5 rounded-full border border-border/80 shadow-xs ${className}`
+            ? `flex items-center gap-1.5 bg-background/80 backdrop-blur-md px-2 py-1 rounded-full border border-border/60 shadow-2xs shrink-0 ${className}`
+            : `fixed top-3.5 right-4 md:right-8 z-40 flex items-center gap-1.5 bg-background/90 backdrop-blur-md px-2.5 py-1 rounded-full border border-border/60 shadow-xs ${className}`
         }
       >
         {/* 1. Busca Rápida */}
@@ -99,10 +99,10 @@ export function UtilityCluster({ session, embedded = false, className = "" }: Ut
           variant="ghost"
           size="icon"
           onClick={() => setSearchOpen(true)}
-          className="size-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted"
+          className="size-7.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
           title="Buscar"
         >
-          <Search className="size-4" />
+          <Search className="size-3.5" />
         </Button>
 
         {/* 2. Sacola de Compras */}
@@ -110,18 +110,18 @@ export function UtilityCluster({ session, embedded = false, className = "" }: Ut
           variant="ghost"
           size="icon"
           onClick={() => setIsCartOpen(true)}
-          className="size-8 rounded-full relative text-muted-foreground hover:text-foreground hover:bg-muted"
+          className="size-7.5 rounded-full relative text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
           title="Sacola de Compras"
         >
-          <ShoppingBag className="size-4" />
+          <ShoppingBag className="size-3.5" />
           {totalItemCount > 0 && (
-            <span className="absolute -top-1 -right-1 size-4 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 size-4 bg-primary text-primary-foreground text-[9px] font-bold rounded-full flex items-center justify-center shadow-xs animate-scale-in">
               {totalItemCount}
             </span>
           )}
         </Button>
 
-        <div className="h-4 w-px bg-border/80 mx-0.5" />
+        <div className="h-4 w-px bg-border/60 mx-0.5" />
 
         {/* 3. Perfil / Auth Menu */}
         {session ? (
@@ -129,11 +129,11 @@ export function UtilityCluster({ session, embedded = false, className = "" }: Ut
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="size-8 rounded-full overflow-hidden border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all hover:scale-105"
+                className="size-7 rounded-full overflow-hidden border border-border/80 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all hover:scale-105"
               >
                 <Avatar className="size-full">
                   <AvatarImage src="" alt={userHandle} />
-                  <AvatarFallback className="text-xs font-bold bg-primary text-primary-foreground">
+                  <AvatarFallback className="text-[11px] font-bold bg-primary text-primary-foreground">
                     {userInitial}
                   </AvatarFallback>
                 </Avatar>

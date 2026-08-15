@@ -7,6 +7,7 @@ import { InlinePostComposer } from "@/components/community/inline-post-composer"
 import { PostCard } from "@/components/community/post-card";
 import { StoryRail } from "@/components/community/story-rail";
 import { getMuralFeed, getFeedStories, type MuralFeedItem } from "@/services/social.functions";
+import { getUserSession } from "@/services/auth.functions";
 
 export const Route = createFileRoute("/_store/mural")({
   head: () => ({
@@ -19,21 +20,22 @@ export const Route = createFileRoute("/_store/mural")({
     ],
   }),
   loader: async () => {
-    const [firstPage, stories] = await Promise.all([
+    const [firstPage, stories, session] = await Promise.all([
       getMuralFeed({ data: { limit: 15 } }).catch(() => ({
         items: [],
         hasMore: false,
         nextCursor: null,
       })),
       getFeedStories().catch(() => []),
+      getUserSession().catch(() => null),
     ]);
-    return { firstPage, stories };
+    return { firstPage, stories, session };
   },
   component: MuralPage,
 });
 
 function MuralPage() {
-  const { firstPage, stories } = Route.useLoaderData();
+  const { firstPage, stories, session } = Route.useLoaderData();
   const [activeFeedTab, setActiveFeedTab] = useState<"for_you" | "moments" | "classifieds">(
     "for_you",
   );
@@ -71,9 +73,9 @@ function MuralPage() {
         </section>
       )}
 
-      {/* 2. Composer Inline de Publicação */}
+      {/* 2. Composer Inline de Publicação (com proteção para visitantes) */}
       <section aria-label="Criar Publicação">
-        <InlinePostComposer />
+        <InlinePostComposer session={session} />
       </section>
 
       {/* 3. Filtros do Feed Social */}

@@ -95,15 +95,10 @@ function CommercialHomePage() {
       {hotpages.length > 0 && (
         <section className="space-y-4" aria-label="Categorias em Destaque">
           <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl sm:text-2xl font-black tracking-tight text-foreground flex items-center gap-2">
-                <Sparkles className="size-5 text-primary" />
-                <span>Explorar por Categoria</span>
-              </h2>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                Navegue pelas principais áreas de consumo e serviços da comunidade
-              </p>
-            </div>
+            <h2 className="text-lg sm:text-xl font-black tracking-tight text-foreground flex items-center gap-2">
+              <Sparkles className="size-5 text-primary" />
+              <span>Explorar Categorias</span>
+            </h2>
             <Link
               to="/mercado"
               className="text-xs sm:text-sm font-bold text-primary hover:underline inline-flex items-center gap-1"
@@ -140,21 +135,20 @@ function CommercialHomePage() {
                     </div>
                   )}
 
-                  {/* Gradient Overlay */}
+                  {/* Optional Overlay Mask */}
                   {showOverlay && (
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent pointer-events-none" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/35 to-transparent transition-opacity" />
                   )}
 
-                  {/* Content Container */}
-                  <div className="relative p-3 sm:p-4 z-10 space-y-1">
-                    {hp.show_badge !== false && hp.badge_label && (
-                      <span className="px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-black uppercase tracking-wider bg-primary text-primary-foreground shadow-xs">
+                  {/* Card Content & Badge */}
+                  <div className="relative z-10 p-3 sm:p-4 space-y-1">
+                    {hp.badge_label && (
+                      <span className="inline-block px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-primary text-primary-foreground shadow-2xs">
                         {hp.badge_label}
                       </span>
                     )}
-
                     {showTitle && (
-                      <h3 className="text-xs sm:text-sm font-black text-white line-clamp-1 drop-shadow-xs">
+                      <h3 className="text-xs sm:text-sm font-bold text-white leading-tight drop-shadow-xs truncate">
                         {hp.title}
                       </h3>
                     )}
@@ -166,13 +160,12 @@ function CommercialHomePage() {
         </section>
       )}
 
-      {/* ── 4. Trilho de Ofertas Relâmpago Reais ── */}
+      {/* ── 4. Ofertas Relâmpago ── */}
       {flashProducts.length > 0 && (
         <section aria-label="Ofertas Relâmpago">
           <HorizontalRail
-            title="⚡ Ofertas Relâmpago na Sua Região"
+            title="⚡ Ofertas Relâmpago"
             badge="Tempo Limitado"
-            subtitle="Preços promocionais com contagem regressiva em tempo real"
             actionLabel="Ver todas as ofertas"
             actionTo="/mercado?niche=ofertas"
           >
@@ -198,13 +191,12 @@ function CommercialHomePage() {
         </section>
       )}
 
-      {/* ── 5. Lojas & Negócios Reais Cadastrados ── */}
+      {/* ── 5. Lojas & Negócios ── */}
       {stores.length > 0 && (
         <section aria-label="Comércios Locais em Destaque">
           <HorizontalRail
             title="🏪 Lojas & Negócios Locais"
             badge="Compre do Bairro"
-            subtitle="Conheça negócios e produtores cadastrados na sua região"
             actionLabel="Ver diretório completo"
             actionTo="/diretorio"
           >
@@ -228,13 +220,12 @@ function CommercialHomePage() {
         </section>
       )}
 
-      {/* ── 6. Produtos Destaque Reais ── */}
+      {/* ── 6. Produtos Destaque ── */}
       {catalogProducts.length > 0 && (
         <section aria-label="Produtos em Destaque">
           <HorizontalRail
             title="🛍️ Destaques do Catálogo"
             badge="Disponível"
-            subtitle="Itens adicionados recentemente pelos lojistas"
             actionLabel="Explorar catálogo"
             actionTo="/mercado"
           >

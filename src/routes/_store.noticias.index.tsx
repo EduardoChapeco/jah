@@ -12,12 +12,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { listPublicArticles, type NewsArticleDTO } from "@/services/news.functions";
+import { listActiveBanners } from "@/services/banner.functions";
+import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
 import { NewsCard } from "@/components/news/news-card";
 
 export const Route = createFileRoute("/_store/noticias/")({
   head: () => ({
     meta: [
-      { title: "Portal de Notícias & Jornalismo Local | JAH" },
+      { title: "Notícias & Editorial | JAH" },
       {
         name: "description",
         content: "Acompanhe as últimas notícias, reportagens e destaques da sua região no JAH.",
@@ -25,8 +27,11 @@ export const Route = createFileRoute("/_store/noticias/")({
     ],
   }),
   loader: async () => {
-    const articles = await listPublicArticles({ data: { limit: 30 } }).catch(() => []);
-    return { articles };
+    const [articles, banners] = await Promise.all([
+      listPublicArticles({ data: { limit: 30 } }).catch(() => []),
+      listActiveBanners({ data: { placement: "all" } }).catch(() => []),
+    ]);
+    return { articles, banners };
   },
   component: NoticiasFeedPage,
 });
@@ -42,7 +47,7 @@ const CATEGORIES = [
 ];
 
 function NoticiasFeedPage() {
-  const { articles: initialArticles } = Route.useLoaderData();
+  const { articles: initialArticles, banners } = Route.useLoaderData();
   const [articles, setArticles] = useState<NewsArticleDTO[]>(initialArticles || []);
   const [selectedCategory, setSelectedCategory] = useState("todas");
   const [searchQuery, setSearchQuery] = useState("");
@@ -80,33 +85,32 @@ function NoticiasFeedPage() {
   const gridArticles = articles.slice(1);
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-8">
-      {/* ── Header Principal do Portal ── */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border/80 pb-6">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-primary text-primary-foreground">
-              Editorial Comunitário
-            </span>
-            <span className="text-xs text-muted-foreground font-mono">Cobertura Local & Região</span>
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-foreground font-display">
-            Portal de Notícias & Matérias
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
-            Informações verificadas, colunas e acontecimentos dos comércios, produtores e comunidade local.
-          </p>
+    <div className="w-full max-w-6xl mx-auto space-y-6 sm:space-y-8">
+      {/* ── 1. Banners no Portal de Notícias ── */}
+      {banners && banners.length > 0 && (
+        <section aria-label="Banners e Anúncios">
+          <BannerHeroCarousel banners={banners} />
+        </section>
+      )}
+
+      {/* ── 2. Barra Superior Editorial & Busca ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-primary text-primary-foreground">
+            Notícias
+          </span>
+          <span className="text-xs text-muted-foreground font-mono">Cobertura em Tempo Real</span>
         </div>
 
         {/* Busca Rápida de Notícias */}
-        <form onSubmit={handleSearch} className="flex gap-2 w-full md:w-80">
+        <form onSubmit={handleSearch} className="flex gap-2 w-full sm:w-72">
           <Input
-            placeholder="Buscar notícias..."
+            placeholder="Buscar matérias..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="rounded-2xl h-11 bg-card text-xs"
+            className="rounded-2xl h-10 bg-card text-xs"
           />
-          <Button type="submit" size="icon" className="h-11 w-11 rounded-2xl shrink-0 font-bold">
+          <Button type="submit" size="icon" className="h-10 w-10 rounded-2xl shrink-0 font-bold">
             <Search className="size-4" />
           </Button>
         </form>

@@ -64,11 +64,11 @@ export function ContextSidebar({ config }: ContextSidebarProps) {
   };
 
   return (
-    <aside className="hidden lg:flex flex-col w-[260px] shrink-0 h-screen sticky top-0 py-6 px-4 bg-background border-r border-border/80 justify-between select-none overflow-y-auto scrollbar-none z-20">
+    <aside className="hidden lg:flex flex-col w-[260px] shrink-0 h-screen sticky top-0 py-6 px-4 bg-background justify-between select-none overflow-y-auto scrollbar-none z-20">
       <div className="space-y-6">
         {/* 1. Módulos Principais */}
         <div className="space-y-1">
-          <span className="px-3 text-[10px] font-bold tracking-wider uppercase text-muted-foreground">
+          <span className="px-3 text-[10px] font-bold tracking-wider uppercase text-muted-foreground/80">
             Explorar
           </span>
           <nav className="flex flex-col space-y-0.5 pt-1">
@@ -97,8 +97,8 @@ export function ContextSidebar({ config }: ContextSidebarProps) {
         </div>
 
         {/* 2. Categorias & Nichos */}
-        <div className="space-y-1 pt-2 border-t border-border/60">
-          <span className="px-3 text-[10px] font-bold tracking-wider uppercase text-muted-foreground">
+        <div className="space-y-1 pt-3 border-t border-border/40">
+          <span className="px-3 text-[10px] font-bold tracking-wider uppercase text-muted-foreground/80">
             Categorias
           </span>
           <nav className="flex flex-col space-y-0.5 pt-1">

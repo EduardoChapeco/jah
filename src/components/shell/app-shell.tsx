@@ -34,13 +34,10 @@ export function AppShell({ children, session }: AppShellProps) {
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-primary-foreground font-sans antialiased relative flex flex-col">
-      {/* ── Barra de Topo Horizontal (Jah | Localização | Categorias | Utility) ── */}
-      <TopBar />
+      {/* ── Barra de Topo Horizontal (Jah | Localização | Busca | Utility Integrado) ── */}
+      <TopBar session={session} />
 
-      {/* ── Utility Cluster (Busca, Carrinho, Perfil) ── */}
-      <UtilityCluster session={session} />
-
-      {/* ── Corpo Principal: Coluna Contextual à Esquerda + Conteúdo Centralizado ── */}
+      {/* ── Corpo Principal: Coluna Contextual à Esquerda + Conteúdo Centralizado (In-page) ── */}
       <div className="flex-1 flex min-w-0 w-full relative">
         {/* Coluna Contextual Fixa à Esquerda */}
         <ContextSidebar config={contextConfig} />

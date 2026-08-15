@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { ImagePlus, X, Loader2, Video, Film } from "lucide-react";
+import { ImagePlus, X, Loader2, Video, Film, LogIn, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { createPost } from "@/services/social.functions";
@@ -12,7 +13,11 @@ interface MediaPreviewItem {
   type: "image" | "video";
 }
 
-export function InlinePostComposer() {
+export interface InlinePostComposerProps {
+  session?: any;
+}
+
+export function InlinePostComposer({ session }: InlinePostComposerProps) {
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingMedia, setIsUploadingMedia] = useState(false);
@@ -21,6 +26,32 @@ export function InlinePostComposer() {
   const [layoutStyle, setLayoutStyle] = useState<"grid" | "carousel">("grid");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
+
+  if (!session?.id && !session?.email) {
+    return (
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-3xl border border-border/80 bg-card/60 backdrop-blur-md shadow-xs">
+        <div className="flex items-center gap-3.5">
+          <div className="size-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <MessageSquare className="size-5" />
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-foreground">
+              Participe da conversa na comunidade
+            </h4>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Entre ou cadastre-se para publicar fotos, vídeos e novidades no Mural.
+            </p>
+          </div>
+        </div>
+        <Button asChild className="rounded-2xl font-bold gap-2 text-xs shrink-0 w-full sm:w-auto">
+          <Link to="/entrar">
+            <LogIn className="size-4" />
+            <span>Entrar / Cadastrar</span>
+          </Link>
+        </Button>
+      </div>
+    );
+  }
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
