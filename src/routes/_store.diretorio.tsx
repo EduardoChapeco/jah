@@ -92,7 +92,11 @@ function DirectoryPage() {
       {/* ── Hotpages & Categorias ── */}
       {hotpages && hotpages.length > 0 && (
         <section aria-label="Categorias">
-          <HotpagesRail hotpages={hotpages} />
+          <HotpagesRail
+            hotpages={hotpages}
+            activeSlug={selectedCategory}
+            onSelect={(slug) => setSelectedCategory(slug)}
+          />
         </section>
       )}
 

@@ -129,7 +129,11 @@ function TourismMasterPage() {
 
       {/* 2. Hotpages Contextuais de Turismo */}
       <section aria-label="Categorias de Turismo">
-        <HotpagesRail hotpages={TOURISM_HOTPAGES as any} activeSlug={selectedCategory} />
+        <HotpagesRail
+          hotpages={TOURISM_HOTPAGES as any}
+          activeSlug={selectedCategory}
+          onSelect={(slug) => setSelectedCategory(slug)}
+        />
       </section>
 
       {/* 3. Filtros em Chips & Barra de Busca */}

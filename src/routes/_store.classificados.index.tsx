@@ -139,7 +139,11 @@ function ClassifiedsMasterPage() {
 
       {/* 2. Hotpages Contextuais de Classificados */}
       <section aria-label="Categorias de Classificados">
-        <HotpagesRail hotpages={CLASSIFIEDS_HOTPAGES as any} activeSlug={selectedCategory} />
+        <HotpagesRail
+          hotpages={CLASSIFIEDS_HOTPAGES as any}
+          activeSlug={selectedCategory}
+          onSelect={(slug) => setSelectedCategory(slug)}
+        />
       </section>
 
       {/* 3. Filtros em Chips & Barra de Busca & Botão de Anunciar */}

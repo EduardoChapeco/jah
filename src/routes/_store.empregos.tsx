@@ -129,7 +129,11 @@ function JobsMasterPage() {
 
       {/* 2. Hotpages Contextuais de Empregos */}
       <section aria-label="Categorias de Vagas">
-        <HotpagesRail hotpages={JOBS_HOTPAGES as any} activeSlug={selectedCategory} />
+        <HotpagesRail
+          hotpages={JOBS_HOTPAGES as any}
+          activeSlug={selectedCategory}
+          onSelect={(slug) => setSelectedCategory(slug)}
+        />
       </section>
 
       {/* 3. Filtros em Chips & Barra de Busca */}

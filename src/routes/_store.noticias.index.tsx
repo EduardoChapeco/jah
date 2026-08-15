@@ -99,7 +99,11 @@ function NoticiasFeedPage() {
       {/* ── 1.5. Hotpages & Categorias Visuais ── */}
       {hotpages && hotpages.length > 0 && (
         <section aria-label="Categorias">
-          <HotpagesRail hotpages={hotpages} />
+          <HotpagesRail
+            hotpages={hotpages}
+            activeSlug={selectedCategory}
+            onSelect={(slug) => handleFilterCategory(slug)}
+          />
         </section>
       )}
 
