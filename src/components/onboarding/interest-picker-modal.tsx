@@ -20,7 +20,7 @@ import {
   Check,
   ArrowRight,
 } from "lucide-react";
-import { saveUserPreferences } from "@/services/hotpage.functions";
+import { saveUserPreferences, getUserPreferences } from "@/services/hotpage.functions";
 import { toast } from "sonner";
 
 const NICHES_LIST = [
@@ -81,14 +81,31 @@ export function InterestPickerModal() {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const done = localStorage.getItem("jah_onboarding_interests_done");
-      if (!done) {
-        // First access: trigger modal after 800ms
-        const t = setTimeout(() => setOpen(true), 800);
-        return () => clearTimeout(t);
-      }
+    if (typeof window === "undefined") return;
+
+    const localDone = localStorage.getItem("jah_onboarding_interests_done");
+    if (localDone === "true") {
+      return;
     }
+
+    // Verifica no servidor se o usuário já tem preferências gravadas
+    getUserPreferences()
+      .then((prefs) => {
+        if (prefs && prefs.onboarding_done) {
+          localStorage.setItem("jah_onboarding_interests_done", "true");
+          if (prefs.selected_niches && prefs.selected_niches.length > 0) {
+            localStorage.setItem("jah_user_niches", JSON.stringify(prefs.selected_niches));
+          }
+        } else {
+          // Primeiro acesso: abre modal suavemente
+          const t = setTimeout(() => setOpen(true), 900);
+          return () => clearTimeout(t);
+        }
+      })
+      .catch(() => {
+        const t = setTimeout(() => setOpen(true), 900);
+        return () => clearTimeout(t);
+      });
   }, []);
 
   const toggleNiche = (id: string) => {
@@ -107,20 +124,38 @@ export function InterestPickerModal() {
     setSelectedNiches(updated);
   };
 
-  const handleConfirm = async () => {
-    setIsSaving(true);
-    try {
+  const handleClose = (newOpen: boolean) => {
+    if (!newOpen) {
       localStorage.setItem("jah_onboarding_interests_done", "true");
-      localStorage.setItem("jah_user_niches", JSON.stringify(selectedNiches));
-      await saveUserPreferences({
+      saveUserPreferences({
         data: {
           selected_niches: selectedNiches,
           onboarding_done: true,
         },
       }).catch(() => null);
+    }
+    setOpen(newOpen);
+  };
+
+  const handleConfirm = async () => {
+    setIsSaving(true);
+    try {
+      localStorage.setItem("jah_onboarding_interests_done", "true");
+      localStorage.setItem("jah_user_niches", JSON.stringify(selectedNiches));
+
+      await saveUserPreferences({
+        data: {
+          selected_niches: selectedNiches,
+          onboarding_done: true,
+        },
+      });
 
       toast.success("Preferências salvas com sucesso! Seu feed foi personalizado.");
       setOpen(false);
+
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("jah:preferences-updated", { detail: selectedNiches }));
+      }
     } catch {
       setOpen(false);
     } finally {
@@ -129,7 +164,7 @@ export function InterestPickerModal() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-xl p-6 sm:p-8 rounded-3xl border border-border bg-background shadow-2xl">
         <DialogHeader className="space-y-2 text-center sm:text-left">
           <div className="size-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold mx-auto sm:mx-0">
@@ -181,10 +216,7 @@ export function InterestPickerModal() {
         <div className="flex items-center justify-between pt-2 border-t border-border/60">
           <button
             type="button"
-            onClick={() => {
-              localStorage.setItem("jah_onboarding_interests_done", "true");
-              setOpen(false);
-            }}
+            onClick={() => handleClose(false)}
             className="text-xs text-muted-foreground hover:text-foreground font-semibold"
           >
             Pular por enquanto

@@ -414,29 +414,47 @@ export const saveUserPreferences = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const supabase = getServerClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { getCurrentIdentity } = await import("@/services/cart-helpers");
+    const identity = await getCurrentIdentity().catch(() => null);
+    const userId = identity?.customer_id || null;
 
-    if (!user) {
-      return { success: true, guest: true };
+    // 1. Grava no banco se o usuário estiver autenticado
+    if (userId) {
+      const { error } = await supabase.from("user_preferences").upsert(
+        {
+          user_id: userId,
+          selected_niches: data.selected_niches,
+          default_city: data.default_city || "Chapecó - SC",
+          default_lat: data.default_lat || null,
+          default_lng: data.default_lng || null,
+          onboarding_done: data.onboarding_done,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id" },
+      );
+
+      if (error) {
+        console.error("[PREFERENCES] Falha ao salvar preferências no Supabase:", error);
+      }
     }
 
-    const { error } = await supabase.from("user_preferences").upsert({
-      user_id: user.id,
-      selected_niches: data.selected_niches,
-      default_city: data.default_city,
-      default_lat: data.default_lat,
-      default_lng: data.default_lng,
-      onboarding_done: data.onboarding_done,
-      updated_at: new Date().toISOString(),
-    });
-
-    if (error) {
-      console.error("[PREFERENCES] Failed to save user preferences:", error);
+    // 2. Alimenta o motor de afinidade preditiva para os nichos selecionados
+    for (const niche of data.selected_niches) {
+      if (niche !== "all") {
+        await supabase.rpc("record_user_behavior_event", {
+          p_user_id: userId,
+          p_session_id: userId ? null : "anon_session",
+          p_event_type: "search",
+          p_entity_type: "product",
+          p_entity_id: null,
+          p_category_slug: niche,
+          p_niche: niche,
+          p_metadata: { source: "onboarding_picker", weight_boost: 10 },
+        }).catch(() => null);
+      }
     }
 
-    return { success: !error };
+    return { success: true };
   });
 
 export const getUserPreferences = createServerFn({ method: "GET" }).handler(
@@ -446,24 +464,24 @@ export const getUserPreferences = createServerFn({ method: "GET" }).handler(
     onboarding_done: boolean;
   } | null> => {
     const supabase = getServerClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { getCurrentIdentity } = await import("@/services/cart-helpers");
+    const identity = await getCurrentIdentity().catch(() => null);
+    const userId = identity?.customer_id || null;
 
-    if (!user) return null;
+    if (!userId) return null;
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("user_preferences")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .limit(1)
       .maybeSingle();
 
-    if (!data) return null;
+    if (error || !data) return null;
     return {
       selected_niches: data.selected_niches || [],
       default_city: data.default_city || "Chapecó - SC",
-      onboarding_done: data.onboarding_done || false,
+      onboarding_done: !!data.onboarding_done,
     };
   },
 );
