@@ -97,6 +97,7 @@ import { Route as WorkspaceCmsStoriesRouteImport } from './routes/workspace.cms.
 import { Route as WorkspaceConfiguracoesAiRouteImport } from './routes/workspace.configuracoes.ai'
 import { Route as WorkspaceConfiguracoesIntegracoesRouteImport } from './routes/workspace.configuracoes.integracoes'
 import { Route as WorkspaceConfiguracoesParceirosRouteImport } from './routes/workspace.configuracoes.parceiros'
+import { Route as WorkspaceEmpregosCandidatosRouteImport } from './routes/workspace.empregos.candidatos'
 import { Route as WorkspaceEstoqueIndexRouteImport } from './routes/workspace.estoque.index'
 import { Route as WorkspaceEstoqueAlertasRouteImport } from './routes/workspace.estoque.alertas'
 import { Route as WorkspaceEstoqueMovimentosRouteImport } from './routes/workspace.estoque.movimentos'
@@ -601,6 +602,12 @@ const WorkspaceConfiguracoesParceirosRoute =
     path: '/configuracoes/parceiros',
     getParentRoute: () => WorkspaceRoute,
   } as any)
+const WorkspaceEmpregosCandidatosRoute =
+  WorkspaceEmpregosCandidatosRouteImport.update({
+    id: '/empregos/candidatos',
+    path: '/empregos/candidatos',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
 const WorkspaceEstoqueIndexRoute = WorkspaceEstoqueIndexRouteImport.update({
   id: '/estoque/',
   path: '/estoque/',
@@ -1026,6 +1033,7 @@ export interface FileRoutesByFullPath {
   '/workspace/configuracoes/ai': typeof WorkspaceConfiguracoesAiRoute
   '/workspace/configuracoes/integracoes': typeof WorkspaceConfiguracoesIntegracoesRoute
   '/workspace/configuracoes/parceiros': typeof WorkspaceConfiguracoesParceirosRoute
+  '/workspace/empregos/candidatos': typeof WorkspaceEmpregosCandidatosRoute
   '/workspace/estoque/alertas': typeof WorkspaceEstoqueAlertasRoute
   '/workspace/estoque/movimentos': typeof WorkspaceEstoqueMovimentosRoute
   '/workspace/financeiro/afiliados': typeof WorkspaceFinanceiroAfiliadosRoute
@@ -1171,6 +1179,7 @@ export interface FileRoutesByTo {
   '/workspace/configuracoes/ai': typeof WorkspaceConfiguracoesAiRoute
   '/workspace/configuracoes/integracoes': typeof WorkspaceConfiguracoesIntegracoesRoute
   '/workspace/configuracoes/parceiros': typeof WorkspaceConfiguracoesParceirosRoute
+  '/workspace/empregos/candidatos': typeof WorkspaceEmpregosCandidatosRoute
   '/workspace/estoque/alertas': typeof WorkspaceEstoqueAlertasRoute
   '/workspace/estoque/movimentos': typeof WorkspaceEstoqueMovimentosRoute
   '/workspace/financeiro/afiliados': typeof WorkspaceFinanceiroAfiliadosRoute
@@ -1322,6 +1331,7 @@ export interface FileRoutesById {
   '/workspace/configuracoes/ai': typeof WorkspaceConfiguracoesAiRoute
   '/workspace/configuracoes/integracoes': typeof WorkspaceConfiguracoesIntegracoesRoute
   '/workspace/configuracoes/parceiros': typeof WorkspaceConfiguracoesParceirosRoute
+  '/workspace/empregos/candidatos': typeof WorkspaceEmpregosCandidatosRoute
   '/workspace/estoque/alertas': typeof WorkspaceEstoqueAlertasRoute
   '/workspace/estoque/movimentos': typeof WorkspaceEstoqueMovimentosRoute
   '/workspace/financeiro/afiliados': typeof WorkspaceFinanceiroAfiliadosRoute
@@ -1473,6 +1483,7 @@ export interface FileRouteTypes {
     | '/workspace/configuracoes/ai'
     | '/workspace/configuracoes/integracoes'
     | '/workspace/configuracoes/parceiros'
+    | '/workspace/empregos/candidatos'
     | '/workspace/estoque/alertas'
     | '/workspace/estoque/movimentos'
     | '/workspace/financeiro/afiliados'
@@ -1618,6 +1629,7 @@ export interface FileRouteTypes {
     | '/workspace/configuracoes/ai'
     | '/workspace/configuracoes/integracoes'
     | '/workspace/configuracoes/parceiros'
+    | '/workspace/empregos/candidatos'
     | '/workspace/estoque/alertas'
     | '/workspace/estoque/movimentos'
     | '/workspace/financeiro/afiliados'
@@ -1768,6 +1780,7 @@ export interface FileRouteTypes {
     | '/workspace/configuracoes/ai'
     | '/workspace/configuracoes/integracoes'
     | '/workspace/configuracoes/parceiros'
+    | '/workspace/empregos/candidatos'
     | '/workspace/estoque/alertas'
     | '/workspace/estoque/movimentos'
     | '/workspace/financeiro/afiliados'
@@ -2468,6 +2481,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspaceConfiguracoesParceirosRouteImport
       parentRoute: typeof WorkspaceRoute
     }
+    '/workspace/empregos/candidatos': {
+      id: '/workspace/empregos/candidatos'
+      path: '/empregos/candidatos'
+      fullPath: '/workspace/empregos/candidatos'
+      preLoaderRoute: typeof WorkspaceEmpregosCandidatosRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
     '/workspace/estoque/': {
       id: '/workspace/estoque/'
       path: '/estoque'
@@ -3125,6 +3145,7 @@ interface WorkspaceRouteChildren {
   WorkspaceConfiguracoesAiRoute: typeof WorkspaceConfiguracoesAiRoute
   WorkspaceConfiguracoesIntegracoesRoute: typeof WorkspaceConfiguracoesIntegracoesRoute
   WorkspaceConfiguracoesParceirosRoute: typeof WorkspaceConfiguracoesParceirosRoute
+  WorkspaceEmpregosCandidatosRoute: typeof WorkspaceEmpregosCandidatosRoute
   WorkspaceEstoqueAlertasRoute: typeof WorkspaceEstoqueAlertasRoute
   WorkspaceEstoqueMovimentosRoute: typeof WorkspaceEstoqueMovimentosRoute
   WorkspaceFinanceiroAfiliadosRoute: typeof WorkspaceFinanceiroAfiliadosRoute
@@ -3197,6 +3218,7 @@ const WorkspaceRouteChildren: WorkspaceRouteChildren = {
   WorkspaceConfiguracoesIntegracoesRoute:
     WorkspaceConfiguracoesIntegracoesRoute,
   WorkspaceConfiguracoesParceirosRoute: WorkspaceConfiguracoesParceirosRoute,
+  WorkspaceEmpregosCandidatosRoute: WorkspaceEmpregosCandidatosRoute,
   WorkspaceEstoqueAlertasRoute: WorkspaceEstoqueAlertasRoute,
   WorkspaceEstoqueMovimentosRoute: WorkspaceEstoqueMovimentosRoute,
   WorkspaceFinanceiroAfiliadosRoute: WorkspaceFinanceiroAfiliadosRoute,

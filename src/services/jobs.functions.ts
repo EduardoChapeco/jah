@@ -193,3 +193,140 @@ export const applyToJob = createServerFn({ method: "POST" })
       message: "Candidatura enviada com sucesso!",
     };
   });
+
+export const listStoreJobApplications = createServerFn({ method: "GET" })
+  .validator(z.object({ jobId: z.string().uuid().optional() }).optional())
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const identity = await getCurrentIdentity();
+
+    if (!identity.user_id) {
+      return [];
+    }
+
+    let query = supabase
+      .from("job_applications")
+      .select("*, jobs!inner(id, title, company_name, author_profile_id, store_id)")
+      .order("created_at", { ascending: false });
+
+    if (data?.jobId) {
+      query = query.eq("job_id", data.jobId);
+    }
+
+    const { data: rows, error } = await query;
+
+    if (error) {
+      console.error("Erro ao buscar candidaturas do lojista:", error);
+      return [];
+    }
+
+    return (rows || []).map((row: any) => ({
+      id: row.id,
+      job_id: row.job_id,
+      job_title: row.jobs?.title || "Vaga",
+      candidate_profile_id: row.candidate_profile_id,
+      candidate_name: row.candidate_name,
+      candidate_email: row.candidate_email,
+      candidate_phone: row.candidate_phone,
+      resume_url: row.resume_url,
+      cover_letter: row.cover_letter,
+      status: row.status,
+      rating: row.rating || null,
+      internal_notes: row.internal_notes || "",
+      interview_at: row.interview_at || null,
+      interview_meeting_url: row.interview_meeting_url || "",
+      hired_role: row.hired_role || null,
+      hired_salary_cents: row.hired_salary_cents ? Number(row.hired_salary_cents) : null,
+      created_at: row.created_at,
+    }));
+  });
+
+export const updateJobApplication = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      applicationId: z.string().uuid(),
+      status: z.enum([
+        "pending",
+        "reviewed",
+        "shortlisted",
+        "interview_scheduled",
+        "approved",
+        "rejected",
+        "hired",
+      ]),
+      rating: z.number().int().min(1).max(5).optional().nullable(),
+      internalNotes: z.string().optional().nullable(),
+      interviewAt: z.string().optional().nullable(),
+      interviewMeetingUrl: z.string().url().optional().or(z.literal("")).nullable(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const identity = await getCurrentIdentity();
+
+    if (!identity.user_id) {
+      throw new Error("Não autorizado.");
+    }
+
+    const { data: updated, error } = await supabase
+      .from("job_applications")
+      .update({
+        status: data.status,
+        rating: data.rating !== undefined ? data.rating : undefined,
+        internal_notes: data.internalNotes !== undefined ? data.internalNotes : undefined,
+        interview_at: data.interviewAt !== undefined ? data.interviewAt : undefined,
+        interview_meeting_url:
+          data.interviewMeetingUrl !== undefined ? data.interviewMeetingUrl : undefined,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", data.applicationId)
+      .select("id, status")
+      .single();
+
+    if (error) {
+      console.error("Erro ao atualizar candidatura:", error);
+      throw new Error("Erro ao atualizar candidatura do candidato.");
+    }
+
+    return { success: true, application: updated };
+  });
+
+export const hireJobCandidate = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      applicationId: z.string().uuid(),
+      role: z.string().min(2, "Cargo é obrigatório"),
+      salaryCents: z.number().int().min(0, "Salário inválido"),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const identity = await getCurrentIdentity();
+
+    if (!identity.user_id) {
+      throw new Error("Não autorizado.");
+    }
+
+    const { data: app, error } = await supabase
+      .from("job_applications")
+      .update({
+        status: "hired",
+        hired_role: data.role,
+        hired_salary_cents: data.salaryCents,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", data.applicationId)
+      .select("id, candidate_name, candidate_email")
+      .single();
+
+    if (error) {
+      console.error("Erro ao contratar candidato:", error);
+      throw new Error("Não foi possível concluir a contratação.");
+    }
+
+    return {
+      success: true,
+      message: `Candidato ${app.candidate_name} contratado com sucesso como ${data.role}!`,
+    };
+  });
+
