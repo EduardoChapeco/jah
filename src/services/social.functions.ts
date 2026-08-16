@@ -597,60 +597,41 @@ export const getMomentsMap = createServerFn({ method: "GET" })
   });
 
 /**
- * Retorna stories rápidos da comunidade (pessoas, negócios, eventos).
+ * Retorna stories reais e autênticos publicados nas últimas 24 horas.
+ * Se nenhuma loja ou usuário publicou nada nas últimas 24h, retorna lista vazia [] (zero mocks).
  */
 export const getFeedStories = createServerFn({ method: "GET" }).handler(async () => {
   const db = getServerClient();
 
-  const [recentPosts, featuredStores, upcomingEvents] = await Promise.all([
-    db
-      .from("posts")
-      .select("id, media_urls, profiles(full_name, avatar_url), created_at")
-      .eq("status", "active")
-      .not("media_urls", "eq", "{}")
-      .order("created_at", { ascending: false })
-      .limit(10),
-    db.from("stores").select("id, name, settings").limit(8),
-    db
-      .from("events")
-      .select("id, title, cover_image, event_date")
-      .eq("status", "published")
-      .order("event_date", { ascending: true })
-      .limit(6),
-  ]);
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-  const stories = [
-    ...(recentPosts.data || []).map((p: any) => ({
-      id: `post-${p.id}`,
-      type: "user" as const,
-      title: p.profiles?.full_name?.split(" ")[0] || "Membro",
-      image_url: p.media_urls?.[0] || "",
-      avatar_url: p.profiles?.avatar_url || null,
-      created_at: p.created_at,
-    })),
-    ...(featuredStores.data || []).map((s: any) => {
-      const storeLogo = s.settings?.avatar_url || s.settings?.logo_url || "";
-      return {
-        id: `store-${s.id}`,
-        type: "store" as const,
-        title: s.name,
-        image_url: storeLogo,
-        avatar_url: storeLogo || null,
-        badge: "Loja",
-      };
-    }),
-    ...(upcomingEvents.data || []).map((e: any) => ({
-      id: `event-${e.id}`,
-      type: "event" as const,
-      title: e.title,
-      image_url: e.cover_image || "",
-      avatar_url: null,
-      badge: "Evento",
-      date: e.event_date,
-    })),
-  ];
+  // Consulta apenas stories reais ativos publicados nas últimas 24 horas
+  const { data: realStories, error } = await db
+    .from("stories")
+    .select("id, store_id, media_url, link_url, created_at, stores(id, name, avatar_url, settings)")
+    .eq("status", "active")
+    .gte("created_at", twentyFourHoursAgo)
+    .order("created_at", { ascending: false })
+    .limit(20);
 
-  return stories;
+  if (error || !realStories || realStories.length === 0) {
+    return [];
+  }
+
+  return realStories.map((s: any) => {
+    const store = s.stores;
+    const storeLogo = store?.avatar_url || store?.settings?.avatar_url || store?.settings?.logo_url || "";
+    return {
+      id: `story-${s.id}`,
+      type: "store" as const,
+      title: store?.name || "Loja",
+      image_url: s.media_url,
+      avatar_url: storeLogo || null,
+      link_url: s.link_url || null,
+      badge: "Loja",
+      created_at: s.created_at,
+    };
+  });
 });
 
 /**

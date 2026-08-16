@@ -23,6 +23,11 @@ interface StoryRailProps {
 export function StoryRail({ stories = [], onCreateStory }: StoryRailProps) {
   const [selectedStory, setSelectedStory] = useState<StoryItem | null>(null);
 
+  // Se não houver nenhum story real ativo publicado hoje, não renderiza nada
+  if (!stories || stories.length === 0) {
+    return null;
+  }
+
   return (
     <div className="w-full py-2">
       <ScrollArea className="w-full whitespace-nowrap">
