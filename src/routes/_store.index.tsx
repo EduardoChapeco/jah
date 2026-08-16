@@ -15,6 +15,7 @@ import {
   CalendarDots,
   Sparkle,
   ArrowRight,
+  Flame,
 } from "@phosphor-icons/react";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
 import { HorizontalRail } from "@/components/commerce/horizontal-rail";
@@ -42,6 +43,7 @@ interface MasterCategoryItem {
 }
 
 const DEFAULT_MASTER_CATEGORIES: MasterCategoryItem[] = [
+  { to: "/mercado?niche=ofertas", slug: "ofertas", label: "Ofertas Relâmpago", icon: Flame, badge: "Até 60% OFF" },
   { to: "/mercado?niche=gastronomia", slug: "gastronomia", label: "Delivery", icon: ForkKnife, badge: "Comida" },
   { to: "/mercado?niche=mercado", slug: "mercado", label: "Mercado", icon: Storefront, badge: "Essencial" },
   { to: "/mercado?niche=farmacia", slug: "farmacia", label: "Farmácia", icon: Heartbeat, badge: "Saúde" },

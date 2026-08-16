@@ -143,37 +143,115 @@ export const getMarketplaceFeed = createServerFn({ method: "GET" })
       delivery_time_min: "Disponível",
     }));
 
-  // 3. Monta as seções apenas se houver dados reais
-  const sections: MarketplaceSectionDTO[] = [];
+    // 3. Busca afinidade do usuário para personalização algorítmica
+    let topAffinityNiche: string | null = null;
+    try {
+      const { data: affRows } = await supabase.rpc("get_user_top_affinities", {
+        p_user_id: null,
+        p_session_id: "anon_session",
+        p_limit: 1,
+      });
+      if (affRows && affRows.length > 0 && affRows[0].total_score > 3) {
+        topAffinityNiche = affRows[0].niche;
+      }
+    } catch {
+      // Fallback silencioso
+    }
 
-  const flashDeals = products.filter((p) => p.has_flash_offer);
+    // 4. Monta as seções dinâmicas e personalizadas
+    const sections: MarketplaceSectionDTO[] = [];
+
+    // Se houver afinidade comportamental forte (ex: gastronomia ou moda)
+    if (topAffinityNiche && !nicheFilter) {
+      const affinityProducts = products.filter(
+        (p: any) => p.store?.niche === topAffinityNiche || p.attributes?.tipo === topAffinityNiche,
+      );
+      if (affinityProducts.length > 0) {
+        const nicheTitleMap: Record<string, string> = {
+          gastronomia: "🍔 Recomendados para Você: Gastronomia & Lanches",
+          moda: "👗 Baseado no Seu Perfil: Moda & Vestuário",
+          mercado: "🛒 Seus Essenciais de Supermercado & Horti",
+          farmacia: "💊 Saúde & Cuidados Pessoais Recomendados",
+          pet: "🐾 Para o Seu Pet: Cuidados & Acessórios",
+        };
+        sections.push({
+          id: "sec-personalized-affinity",
+          type: "product_rail",
+          title: nicheTitleMap[topAffinityNiche] || `✨ Sugestões em ${topAffinityNiche.toUpperCase()}`,
+          subtitle: "Seleção algorítmica baseada no seu comportamento recente de navegação",
+          layout_variant: "rail_standard",
+          items: affinityProducts.slice(0, 10),
+        });
+      }
+    }
+
+    const flashDeals = products.filter((p) => p.has_flash_offer || p.discount_percent > 0);
+    const bestDiscountDeals = [...products].sort((a, b) => b.discount_percent - a.discount_percent);
+    const budgetDeals = products.filter((p) => p.price_cents <= 9900); // até R$ 99
+
+  // Seção 1: Ofertas Relâmpago
   if (flashDeals.length > 0) {
     sections.push({
       id: "sec-flash-deals",
       type: "flash_deal_rail",
-      title: "Ofertas Relâmpago",
+      title: "⚡️ Ofertas Relâmpago do Dia",
       subtitle: "Preços especiais com tempo e estoques limitados",
       layout_variant: "rail_standard",
       items: flashDeals,
     });
+  } else if (products.length > 0) {
+    sections.push({
+      id: "sec-flash-deals",
+      type: "flash_deal_rail",
+      title: "⚡️ Ofertas em Destaque",
+      subtitle: "Oportunidades com preço especial selecionadas para você",
+      layout_variant: "rail_standard",
+      items: products.slice(0, 8),
+    });
   }
 
+  // Seção 2: Super Descontos
+  if (bestDiscountDeals.length > 0 && bestDiscountDeals.some((p) => p.discount_percent > 0)) {
+    sections.push({
+      id: "sec-super-discounts",
+      type: "product_rail",
+      title: "🔥 Queima de Estoque & Maiores Descontos",
+      subtitle: "Itens com as maiores reduções de preço no catálogo",
+      layout_variant: "rail_standard",
+      items: bestDiscountDeals.slice(0, 10),
+    });
+  }
+
+  // Seção 3: Lojas e Estabelecimentos
   if (stores.length > 0) {
     sections.push({
       id: "sec-local-stores",
       type: "store_rail",
-      title: "Lojas & Negócios Locais",
+      title: "🏪 Lojas & Negócios com Ofertas Ativas",
       subtitle: "Negócios cadastrados com entrega e retirada na sua região",
       layout_variant: "rail_compact",
       items: stores,
     });
   }
 
-  if (products.length > 0) {
+  // Seção 4: Achadinhos por menos de R$ 99
+  if (budgetDeals.length > 0) {
+    sections.push({
+      id: "sec-budget-deals",
+      type: "product_rail",
+      title: "🏷️ Achadinhos por Menos de R$ 99",
+      subtitle: "Economia garantida direto dos produtores e lojistas locais",
+      layout_variant: "rail_standard",
+      items: budgetDeals,
+    });
+  }
+
+  // Seção 5: Destaques Gerais do Catálogo
+  if (products.length > 0 && sections.length < 5) {
     sections.push({
       id: "sec-trending",
       type: "product_rail",
-      title: "Destaques do Catálogo",
+      title: "✨ Destaques do Catálogo",
       subtitle: "Produtos disponíveis para compra imediata",
       layout_variant: "rail_standard",
       items: products,

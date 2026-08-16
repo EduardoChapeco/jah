@@ -1095,3 +1095,35 @@ A vertical de Imóveis na JAH é tratada como um ecossistema de alto valor agreg
           ( Vendido / Locado )
 ```
 
+---
+
+## Módulo 23 — Motor de Telemetria Comportamental, Pontuação de Afinidade e Algoritmo de Recomendação Preditiva
+
+### 23.1 Matriz de Pesos por Evento (Scoring Matrix)
+O algoritmo JAH Behavioral Engine aprende continuamente com cada interação do usuário na plataforma, atribuindo pontos de afinidade (`weight_score`) por categoria/nicho:
+
+| Evento de Comportamento (`event_type`) | Peso Atribuído (`weight_score`) | Intenção Capturada |
+| :--- | :---: | :--- |
+| `view_item` (Visualizar produto/imóvel/turismo) | **+1 ponto** | Interesse de descoberta |
+| `search` (Pesquisa textual por termo ou categoria) | **+2 pontos** | Intenção ativa de compra |
+| `click_banner` (Clique em flyer ou hotpage) | **+2 pontos** | Atração visual / campanha |
+| `click_whatsapp` (Iniciar contato direto com lojista) | **+5 pontos** | Alta probabilidade de conversão |
+| `add_to_cart` (Adicionar produto à sacola) | **+5 pontos** | Pré-transacional |
+| `quote_request` (Solicitar orçamento no Diretório) | **+10 pontos** | Contratação de serviço |
+| `booking_complete` (Agendamento em salão/barbearia) | **+15 pontos** | Compromisso de presença |
+| `order_complete` (Conclusão de pedido no checkout) | **+20 pontos** | Conversão máxima consumada |
+
+### 23.2 Algoritmo de Decaimento Temporal Exponencial (Exponential Time Decay)
+Para evitar que compras antigas dominem eternamente as recomendações, o algoritmo aplica decaimento temporal atômico a cada nova interação:
+$$\text{Score}_{\text{novo}} = (\text{Score}_{\text{anterior}} \times 0.95) + \text{Peso}_{\text{novo\_evento}}$$
+- Isso garante que os interesses das últimas 48 a 72 horas tenham peso muito superior a buscas realizadas meses atrás.
+
+### 23.3 Organização do Feed Dinâmico e Seções Randomizadas
+1. **Trilho Personalizado de Top Afinidade:** Se o usuário acumulou `Score > 3` em um nicho (ex: Gastronomia ou Moda), o topo do marketplace renderiza automaticamente um trilho personalizado: *"🍔 Recomendados para Você: Gastronomia & Lanches"* ou *"👗 Baseado no Seu Perfil: Moda & Vestuário"*.
+2. **Exploração Dinâmica (Bandit Multi-Braços):** Para usuários neutros ou sem histórico dominante, o feed alterna dinamicamente seções de:
+   - *⚡️ Ofertas Relâmpago do Dia* (com contadores regressivos)
+   - *🔥 Queima de Estoque & Maiores Descontos*
+   - *🏷️ Achadinhos por Menos de R$ 99*
+   - *🏪 Lojas & Negócios com Ofertas Ativas*
+
+
