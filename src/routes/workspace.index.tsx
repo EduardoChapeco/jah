@@ -231,33 +231,40 @@ export default function WorkspaceDashboardPage() {
               <div className="p-2 rounded-lg bg-purple-500/10 text-purple-600">
                 <Sparkles className="h-4 w-4" />
               </div>
-              <h3 className="font-semibold text-sm">Serviços & IA</h3>
+              <h3 className="font-semibold text-sm">Serviços & Ecossistema</h3>
             </div>
-            <Badge variant="secondary" className="text-[10px]">SimLab</Badge>
+            <Badge variant="secondary" className="text-[10px]">Multi-Vertical</Badge>
           </div>
           <p className="text-xs text-muted-foreground">
-            Enxame de simulação com IA, grade de agendamentos e moderação comunitária.
+            Recrutamento (ATS), pontos de coleta urbana (PUDO), imóveis e moderação.
           </p>
           <div className="space-y-2 pt-2 border-t border-border">
+            <Link
+              to="/workspace/empregos/candidatos"
+              className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/60 text-xs font-medium transition-colors"
+            >
+              <span className="font-bold text-foreground">Recrutamento & Vagas (ATS)</span>
+              <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
+            </Link>
+            <Link
+              to="/workspace/logistica/pudo"
+              className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/60 text-xs font-medium transition-colors"
+            >
+              <span className="font-bold text-foreground">Ponto de Retirada (PUDO)</span>
+              <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
+            </Link>
+            <Link
+              to="/workspace/imoveis/manutencoes"
+              className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/60 text-xs font-medium transition-colors"
+            >
+              <span>Chamados de Manutenção</span>
+              <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
+            </Link>
             <Link
               to="/workspace/simulacao"
               className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/60 text-xs font-medium transition-colors"
             >
               <span>SimLab (Simulação em Tempo Real)</span>
-              <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
-            </Link>
-            <Link
-              to="/workspace/agenda"
-              className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/60 text-xs font-medium transition-colors"
-            >
-              <span>Grade de Agendamentos</span>
-              <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
-            </Link>
-            <Link
-              to="/workspace/moderacao"
-              className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/60 text-xs font-medium transition-colors"
-            >
-              <span>Painel de Moderação</span>
               <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
             </Link>
           </div>
@@ -266,3 +273,4 @@ export default function WorkspaceDashboardPage() {
     </div>
   );
 }
+

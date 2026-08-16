@@ -107,7 +107,9 @@ import { Route as WorkspaceFinanceiroComissoesRouteImport } from './routes/works
 import { Route as WorkspaceFinanceiroComprovantesRouteImport } from './routes/workspace.financeiro.comprovantes'
 import { Route as WorkspaceFinanceiroFuncionariosRouteImport } from './routes/workspace.financeiro.funcionarios'
 import { Route as WorkspaceFinanceiroPagamentosRouteImport } from './routes/workspace.financeiro.pagamentos'
+import { Route as WorkspaceImoveisManutencoesRouteImport } from './routes/workspace.imoveis.manutencoes'
 import { Route as WorkspaceLogisticaFaturasRouteImport } from './routes/workspace.logistica.faturas'
+import { Route as WorkspaceLogisticaPudoRouteImport } from './routes/workspace.logistica.pudo'
 import { Route as WorkspaceLogisticaTabelasRouteImport } from './routes/workspace.logistica.tabelas'
 import { Route as WorkspaceMarketingAnunciosRouteImport } from './routes/workspace.marketing.anuncios'
 import { Route as WorkspaceMarketingBannersRouteImport } from './routes/workspace.marketing.banners'
@@ -659,12 +661,23 @@ const WorkspaceFinanceiroPagamentosRoute =
     path: '/financeiro/pagamentos',
     getParentRoute: () => WorkspaceRoute,
   } as any)
+const WorkspaceImoveisManutencoesRoute =
+  WorkspaceImoveisManutencoesRouteImport.update({
+    id: '/imoveis/manutencoes',
+    path: '/imoveis/manutencoes',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
 const WorkspaceLogisticaFaturasRoute =
   WorkspaceLogisticaFaturasRouteImport.update({
     id: '/logistica/faturas',
     path: '/logistica/faturas',
     getParentRoute: () => WorkspaceRoute,
   } as any)
+const WorkspaceLogisticaPudoRoute = WorkspaceLogisticaPudoRouteImport.update({
+  id: '/logistica/pudo',
+  path: '/logistica/pudo',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
 const WorkspaceLogisticaTabelasRoute =
   WorkspaceLogisticaTabelasRouteImport.update({
     id: '/logistica/tabelas',
@@ -1041,7 +1054,9 @@ export interface FileRoutesByFullPath {
   '/workspace/financeiro/comprovantes': typeof WorkspaceFinanceiroComprovantesRoute
   '/workspace/financeiro/funcionarios': typeof WorkspaceFinanceiroFuncionariosRoute
   '/workspace/financeiro/pagamentos': typeof WorkspaceFinanceiroPagamentosRoute
+  '/workspace/imoveis/manutencoes': typeof WorkspaceImoveisManutencoesRoute
   '/workspace/logistica/faturas': typeof WorkspaceLogisticaFaturasRoute
+  '/workspace/logistica/pudo': typeof WorkspaceLogisticaPudoRoute
   '/workspace/logistica/tabelas': typeof WorkspaceLogisticaTabelasRoute
   '/workspace/marketing/anuncios': typeof WorkspaceMarketingAnunciosRouteWithChildren
   '/workspace/marketing/banners': typeof WorkspaceMarketingBannersRoute
@@ -1187,7 +1202,9 @@ export interface FileRoutesByTo {
   '/workspace/financeiro/comprovantes': typeof WorkspaceFinanceiroComprovantesRoute
   '/workspace/financeiro/funcionarios': typeof WorkspaceFinanceiroFuncionariosRoute
   '/workspace/financeiro/pagamentos': typeof WorkspaceFinanceiroPagamentosRoute
+  '/workspace/imoveis/manutencoes': typeof WorkspaceImoveisManutencoesRoute
   '/workspace/logistica/faturas': typeof WorkspaceLogisticaFaturasRoute
+  '/workspace/logistica/pudo': typeof WorkspaceLogisticaPudoRoute
   '/workspace/logistica/tabelas': typeof WorkspaceLogisticaTabelasRoute
   '/workspace/marketing/anuncios': typeof WorkspaceMarketingAnunciosRouteWithChildren
   '/workspace/marketing/banners': typeof WorkspaceMarketingBannersRoute
@@ -1339,7 +1356,9 @@ export interface FileRoutesById {
   '/workspace/financeiro/comprovantes': typeof WorkspaceFinanceiroComprovantesRoute
   '/workspace/financeiro/funcionarios': typeof WorkspaceFinanceiroFuncionariosRoute
   '/workspace/financeiro/pagamentos': typeof WorkspaceFinanceiroPagamentosRoute
+  '/workspace/imoveis/manutencoes': typeof WorkspaceImoveisManutencoesRoute
   '/workspace/logistica/faturas': typeof WorkspaceLogisticaFaturasRoute
+  '/workspace/logistica/pudo': typeof WorkspaceLogisticaPudoRoute
   '/workspace/logistica/tabelas': typeof WorkspaceLogisticaTabelasRoute
   '/workspace/marketing/anuncios': typeof WorkspaceMarketingAnunciosRouteWithChildren
   '/workspace/marketing/banners': typeof WorkspaceMarketingBannersRoute
@@ -1491,7 +1510,9 @@ export interface FileRouteTypes {
     | '/workspace/financeiro/comprovantes'
     | '/workspace/financeiro/funcionarios'
     | '/workspace/financeiro/pagamentos'
+    | '/workspace/imoveis/manutencoes'
     | '/workspace/logistica/faturas'
+    | '/workspace/logistica/pudo'
     | '/workspace/logistica/tabelas'
     | '/workspace/marketing/anuncios'
     | '/workspace/marketing/banners'
@@ -1637,7 +1658,9 @@ export interface FileRouteTypes {
     | '/workspace/financeiro/comprovantes'
     | '/workspace/financeiro/funcionarios'
     | '/workspace/financeiro/pagamentos'
+    | '/workspace/imoveis/manutencoes'
     | '/workspace/logistica/faturas'
+    | '/workspace/logistica/pudo'
     | '/workspace/logistica/tabelas'
     | '/workspace/marketing/anuncios'
     | '/workspace/marketing/banners'
@@ -1788,7 +1811,9 @@ export interface FileRouteTypes {
     | '/workspace/financeiro/comprovantes'
     | '/workspace/financeiro/funcionarios'
     | '/workspace/financeiro/pagamentos'
+    | '/workspace/imoveis/manutencoes'
     | '/workspace/logistica/faturas'
+    | '/workspace/logistica/pudo'
     | '/workspace/logistica/tabelas'
     | '/workspace/marketing/anuncios'
     | '/workspace/marketing/banners'
@@ -2551,11 +2576,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspaceFinanceiroPagamentosRouteImport
       parentRoute: typeof WorkspaceRoute
     }
+    '/workspace/imoveis/manutencoes': {
+      id: '/workspace/imoveis/manutencoes'
+      path: '/imoveis/manutencoes'
+      fullPath: '/workspace/imoveis/manutencoes'
+      preLoaderRoute: typeof WorkspaceImoveisManutencoesRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
     '/workspace/logistica/faturas': {
       id: '/workspace/logistica/faturas'
       path: '/logistica/faturas'
       fullPath: '/workspace/logistica/faturas'
       preLoaderRoute: typeof WorkspaceLogisticaFaturasRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/logistica/pudo': {
+      id: '/workspace/logistica/pudo'
+      path: '/logistica/pudo'
+      fullPath: '/workspace/logistica/pudo'
+      preLoaderRoute: typeof WorkspaceLogisticaPudoRouteImport
       parentRoute: typeof WorkspaceRoute
     }
     '/workspace/logistica/tabelas': {
@@ -3153,7 +3192,9 @@ interface WorkspaceRouteChildren {
   WorkspaceFinanceiroComprovantesRoute: typeof WorkspaceFinanceiroComprovantesRoute
   WorkspaceFinanceiroFuncionariosRoute: typeof WorkspaceFinanceiroFuncionariosRoute
   WorkspaceFinanceiroPagamentosRoute: typeof WorkspaceFinanceiroPagamentosRoute
+  WorkspaceImoveisManutencoesRoute: typeof WorkspaceImoveisManutencoesRoute
   WorkspaceLogisticaFaturasRoute: typeof WorkspaceLogisticaFaturasRoute
+  WorkspaceLogisticaPudoRoute: typeof WorkspaceLogisticaPudoRoute
   WorkspaceLogisticaTabelasRoute: typeof WorkspaceLogisticaTabelasRoute
   WorkspaceMarketingAnunciosRoute: typeof WorkspaceMarketingAnunciosRouteWithChildren
   WorkspaceMarketingBannersRoute: typeof WorkspaceMarketingBannersRoute
@@ -3226,7 +3267,9 @@ const WorkspaceRouteChildren: WorkspaceRouteChildren = {
   WorkspaceFinanceiroComprovantesRoute: WorkspaceFinanceiroComprovantesRoute,
   WorkspaceFinanceiroFuncionariosRoute: WorkspaceFinanceiroFuncionariosRoute,
   WorkspaceFinanceiroPagamentosRoute: WorkspaceFinanceiroPagamentosRoute,
+  WorkspaceImoveisManutencoesRoute: WorkspaceImoveisManutencoesRoute,
   WorkspaceLogisticaFaturasRoute: WorkspaceLogisticaFaturasRoute,
+  WorkspaceLogisticaPudoRoute: WorkspaceLogisticaPudoRoute,
   WorkspaceLogisticaTabelasRoute: WorkspaceLogisticaTabelasRoute,
   WorkspaceMarketingAnunciosRoute: WorkspaceMarketingAnunciosRouteWithChildren,
   WorkspaceMarketingBannersRoute: WorkspaceMarketingBannersRoute,
