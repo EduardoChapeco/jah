@@ -23,6 +23,8 @@ import { OfferCard } from "@/components/commerce/offer-card";
 import { StoreCard } from "@/components/commerce/store-card";
 import { StoryRail } from "@/components/community/story-rail";
 import { HotpagesRail } from "@/components/commerce/hotpages-rail";
+import { MasterHeroCards } from "@/components/commerce/master-hero-cards";
+import { HitsLeadCard } from "@/components/commerce/hits-lead-card";
 import { listActiveBanners } from "@/services/banner.functions";
 import { listHotpages, type HotpageDTO } from "@/services/hotpage.functions";
 import { getMarketplaceFeed } from "@/services/marketplace.functions";
@@ -115,65 +117,26 @@ function CommercialHomePage() {
 
   return (
     <div className="w-full space-y-8 pb-10">
-      {/* ── 1. Top Banners Hero Carousel (100% Real do Supabase) ── */}
+      {/* ── 1. Top Big Squircle Master Cards & Category Rail (Estilo iFood) ── */}
+      <section aria-label="Acesso Rápido Master">
+        <MasterHeroCards customCategories={categoriesList} />
+      </section>
+
+      {/* ── 2. Top Banners Hero Carousel (100% Real do Supabase) ── */}
       {banners.length > 0 && (
         <section aria-label="Destaques Principais">
           <BannerHeroCarousel banners={banners} />
         </section>
       )}
 
-      {/* ── 2. Stories Rápidos de Lojas & Membros Locais ── */}
+      {/* ── 3. Stories Rápidos de Lojas & Membros Locais ── */}
       {stories && stories.length > 0 && (
         <section aria-label="Stories Locais" className="py-1">
           <StoryRail stories={stories} />
         </section>
       )}
 
-      {/* ── 3. Categorias Master Diárias Estilo iFood (com Suporte a Upload Customizado) ── */}
-      <section aria-label="Acesso Rápido Master" className="space-y-3">
-        <div className="flex items-center gap-2">
-          <Sparkle size={16} weight="fill" className="text-foreground" />
-          <h2 className="text-sm font-bold text-foreground tracking-tight">
-            Categorias em Destaque
-          </h2>
-        </div>
-
-        <div className="flex items-center gap-3 overflow-x-auto pb-2 pt-1 scrollbar-none w-full px-0.5">
-          {categoriesList.map((cat) => {
-            const Icon = cat.icon;
-            return (
-              <Link
-                key={cat.label}
-                to={cat.to as any}
-                className="min-w-[104px] sm:min-w-[114px] h-[94px] sm:h-[100px] p-3 rounded-2xl border border-border bg-card hover:bg-muted/70 hover:border-foreground/30 flex flex-col items-center justify-between transition-all select-none group cursor-pointer shrink-0 shadow-2xs active:scale-[0.98]"
-              >
-                <div className="relative size-9 sm:size-10 rounded-xl bg-muted flex items-center justify-center text-foreground group-hover:scale-110 transition-transform overflow-hidden">
-                  {cat.icon_url ? (
-                    <img
-                      src={cat.icon_url}
-                      alt={cat.label}
-                      className="size-5 object-contain"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <Icon size={20} weight="bold" />
-                  )}
-                  {cat.badge && (
-                    <span className="absolute -top-1.5 -right-1 px-1 py-0.2 text-[8px] font-mono font-bold uppercase rounded-sm bg-foreground text-background">
-                      {cat.badge}
-                    </span>
-                  )}
-                </div>
-                <span className="text-xs font-bold text-center text-foreground line-clamp-1 leading-tight">
-                  {cat.label}
-                </span>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* ── 4. Categorias / Hotpages Panorâmicas Clean (Sem poluição de texto) ── */}
+      {/* ── 4. Categorias / Hotpages Panorâmicas Clean ── */}
       {hotpages.length > 0 && (
         <section className="space-y-3" aria-label="Coleções & Hotpages">
           <div className="flex items-center justify-between">
@@ -191,7 +154,7 @@ function CommercialHomePage() {
         </section>
       )}
 
-      {/* ── 5. Ofertas Relâmpago ── */}
+      {/* ── 5. Ofertas Relâmpago com Card Vertical Líder (Hits iFood Style) ── */}
       {flashProducts.length > 0 && (
         <section aria-label="Ofertas Relâmpago">
           <HorizontalRail
@@ -199,6 +162,15 @@ function CommercialHomePage() {
             badge="Tempo Limitado"
             actionLabel="Ver todas as ofertas"
             actionTo="/mercado?niche=ofertas"
+            leadCard={
+              <HitsLeadCard
+                badge="HITS DO DIA"
+                title="Super Ofertas"
+                subtitle="Descontos de até 60% com entrega rápida hoje"
+                actionTo="/mercado?niche=ofertas"
+                gradient="from-red-600 via-orange-600 to-amber-600"
+              />
+            }
           >
             {flashProducts.map((product: any) => (
               <OfferCard
@@ -256,9 +228,18 @@ function CommercialHomePage() {
         <section aria-label="Produtos em Destaque">
           <HorizontalRail
             title="Destaques do Catálogo"
-            badge="Disponível"
+            badge="Top Escolhas"
             actionLabel="Explorar catálogo"
             actionTo="/mercado"
+            leadCard={
+              <HitsLeadCard
+                badge="POPULARES"
+                title="Mais Pedidos"
+                subtitle="Os produtos mais bem avaliados pelos clientes locais"
+                actionTo="/mercado"
+                gradient="from-indigo-600 via-purple-600 to-pink-600"
+              />
+            }
           >
             {catalogProducts.map((prod: any) => (
               <OfferCard

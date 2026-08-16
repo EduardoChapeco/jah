@@ -13,6 +13,13 @@ import {
   ReceiptText,
   Clock,
   Filter,
+  Volume2,
+  VolumeX,
+  Printer,
+  LayoutGrid,
+  List,
+  ChefHat,
+  ArrowRight,
 } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
@@ -63,9 +70,9 @@ function getStatusLabel(status: string) {
     awaiting_payment: { label: "Aguardando Pagto", variant: "warning" },
     payment_processing: { label: "Processando Pagto", variant: "info" },
     paid: { label: "Pago", variant: "success" },
-    processing: { label: "Em Separação", variant: "secondary" },
+    processing: { label: "Em Preparo", variant: "secondary" },
     ready_for_pickup: { label: "Pronto p/ Retirada", variant: "success" },
-    shipped: { label: "Enviado", variant: "info" },
+    shipped: { label: "Em Entrega", variant: "info" },
     delivered: { label: "Entregue", variant: "success" },
     cancelled: { label: "Cancelado", variant: "destructive" },
   };
@@ -78,7 +85,9 @@ function AdminOrdersPage() {
   const [orders, setOrders] = useState<any[]>(initialOrders);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusTab, setStatusTab] = useState<string>("all");
+  const [viewMode, setViewMode] = useState<"kitchen" | "table">("kitchen");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
 
   // Filter orders by search & tab
   const filteredOrders = useMemo(() => {
@@ -112,7 +121,7 @@ function AdminOrdersPage() {
       const res = await updateOrderStatus({ data: { orderId, status: newStatus } });
       if (res) {
         setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)));
-        toast.success(`Status do pedido alterado com sucesso!`);
+        toast.success(`Status do pedido alterado para ${getStatusLabel(newStatus).label}!`);
         router.invalidate();
       } else {
         toast.error((res as any).message || "Erro ao atualizar status.");
@@ -130,7 +139,7 @@ function AdminOrdersPage() {
     try {
       const res = await approvePayment({ data: { orderId, receivedMethod: "cash" } });
       if (res) {
-        toast.success("Pagamento aprovado! Pedido avançou para separação.");
+        toast.success("Pedido aceito e enviado para preparo!");
         setOrders((prev) =>
           prev.map((o) => (o.id === orderId ? { ...o, status: "processing" } : o)),
         );
@@ -145,58 +154,290 @@ function AdminOrdersPage() {
     }
   };
 
+  // Kitchen column orders
+  const newOrders = orders.filter(
+    (o) => o.status === "awaiting_payment" || o.status === "payment_processing" || o.status === "paid",
+  );
+  const preparingOrders = orders.filter((o) => o.status === "processing");
+  const readyOrders = orders.filter(
+    (o) => o.status === "ready_for_pickup" || o.status === "shipped",
+  );
+
   return (
     <div className="space-y-6">
-      <PageHeader eyebrow="Gestão Comercial de Vendas" title="Painel de Pedidos" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <PageHeader eyebrow="Gestão Comercial de Vendas" title="Painel & Expedição de Pedidos" />
 
-      {/* Toolbar & Filtros de Status */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
-        <Tabs
-          defaultValue="all"
-          value={statusTab}
-          onValueChange={setStatusTab}
-          className="w-full sm:w-auto"
-        >
-          <TabsList className="grid grid-cols-6 w-full sm:w-auto h-9">
-            <TabsTrigger value="all" className="text-xs">
-              Todos ({orders.length})
-            </TabsTrigger>
-            <TabsTrigger value="awaiting" className="text-xs">
-              Aguardando ({orders.filter((o) => o.status === "awaiting_payment").length})
-            </TabsTrigger>
-            <TabsTrigger value="processing" className="text-xs">
-              Separação (
-              {orders.filter((o) => o.status === "processing" || o.status === "paid").length})
-            </TabsTrigger>
-            <TabsTrigger value="shipped" className="text-xs">
-              Enviados ({orders.filter((o) => o.status === "shipped").length})
-            </TabsTrigger>
-            <TabsTrigger value="delivered" className="text-xs">
-              Entregues ({orders.filter((o) => o.status === "delivered").length})
-            </TabsTrigger>
-            <TabsTrigger value="cancelled" className="text-xs">
-              Cancelados ({orders.filter((o) => o.status === "cancelled").length})
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        {/* Action Controls */}
+        <div className="flex items-center gap-2 shrink-0">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setSoundEnabled(!soundEnabled)}
+            className={`rounded-xl text-xs gap-1.5 font-bold ${soundEnabled ? "border-primary/40 text-primary" : "text-muted-foreground"}`}
+          >
+            {soundEnabled ? <Volume2 className="size-4" /> : <VolumeX className="size-4" />}
+            <span>{soundEnabled ? "Som Ativo" : "Mudo"}</span>
+          </Button>
 
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" aria-hidden />
-          <Input
-            type="search"
-            placeholder="Buscar por #pedido ou nome da cliente..."
-            className="pl-9 text-xs bg-card"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+          <div className="flex items-center border border-border rounded-xl p-0.5 bg-muted/40">
+            <button
+              onClick={() => setViewMode("kitchen")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                viewMode === "kitchen"
+                  ? "bg-card text-foreground shadow-2xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <ChefHat className="size-3.5" />
+              <span>Cockpit / Cozinha</span>
+            </button>
+            <button
+              onClick={() => setViewMode("table")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                viewMode === "table"
+                  ? "bg-card text-foreground shadow-2xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <List className="size-3.5" />
+              <span>Tabela</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Tabela de Pedidos */}
-      {filteredOrders.length === 0 ? (
-        <EmptyState title="Nenhum pedido encontrado" />
+      {/* ── Visualização Cockpit de Cozinha (iFood Merchant Mode) ── */}
+      {viewMode === "kitchen" ? (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Coluna 1: Novos Pedidos */}
+          <div className="space-y-3 p-4 rounded-2xl border border-border bg-card/60">
+            <div className="flex items-center justify-between pb-2 border-b border-border">
+              <div className="flex items-center gap-2">
+                <span className="size-2.5 rounded-full bg-red-600 animate-pulse" />
+                <h3 className="text-sm font-bold text-foreground">Novos Pedidos</h3>
+              </div>
+              <Badge variant="secondary" className="font-bold text-xs">
+                {newOrders.length}
+              </Badge>
+            </div>
+
+            <div className="space-y-3">
+              {newOrders.length === 0 ? (
+                <div className="py-8 text-center text-xs text-muted-foreground">
+                  Nenhum pedido novo pendente
+                </div>
+              ) : (
+                newOrders.map((order) => (
+                  <div
+                    key={order.id}
+                    className="p-4 rounded-2xl border border-border bg-card shadow-xs space-y-3 hover:border-primary/50 transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-black text-sm text-foreground">
+                            #{order.public_token || order.id.slice(0, 6)}
+                          </span>
+                          <span className="font-bold text-xs text-foreground">
+                            {order.customer_snapshot?.name || "Cliente"}
+                          </span>
+                        </div>
+                        <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-primary/10 text-primary uppercase">
+                          {order.shipping_method === "pickup" ? "Retirada Balcão" : "Entrega Parceira"}
+                        </span>
+                      </div>
+
+                      <div className="text-right">
+                        <span className="text-xs font-black text-foreground">
+                          {formatMoney(order.total_cents)}
+                        </span>
+                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-0.5">
+                          <Clock className="size-3" />
+                          <span>Hoje</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-2 border-t border-border/60">
+                      <Button
+                        size="sm"
+                        onClick={() => handleQuickApprove(order.id)}
+                        disabled={isProcessing}
+                        className="flex-1 rounded-xl font-bold bg-foreground text-background text-xs h-9"
+                      >
+                        Aceitar Pedido
+                      </Button>
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="icon"
+                        className="size-9 rounded-xl shrink-0"
+                        title="Ver Comanda"
+                      >
+                        <Link to={`/workspace/pedidos/${order.id}/recibo` as never} target="_blank">
+                          <Printer className="size-4" />
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Coluna 2: Em Preparo */}
+          <div className="space-y-3 p-4 rounded-2xl border border-border bg-card/60">
+            <div className="flex items-center justify-between pb-2 border-b border-border">
+              <div className="flex items-center gap-2">
+                <span className="size-2.5 rounded-full bg-amber-500" />
+                <h3 className="text-sm font-bold text-foreground">Em Preparo</h3>
+              </div>
+              <Badge variant="secondary" className="font-bold text-xs">
+                {preparingOrders.length}
+              </Badge>
+            </div>
+
+            <div className="space-y-3">
+              {preparingOrders.length === 0 ? (
+                <div className="py-8 text-center text-xs text-muted-foreground">
+                  Nenhum pedido em produção
+                </div>
+              ) : (
+                preparingOrders.map((order) => (
+                  <div
+                    key={order.id}
+                    className="p-4 rounded-2xl border border-border bg-card shadow-xs space-y-3 hover:border-primary/50 transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-black text-sm text-foreground">
+                            #{order.public_token || order.id.slice(0, 6)}
+                          </span>
+                          <span className="font-bold text-xs text-foreground">
+                            {order.customer_snapshot?.name || "Cliente"}
+                          </span>
+                        </div>
+                        <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/10 text-amber-600 uppercase">
+                          Cozinha Produzindo
+                        </span>
+                      </div>
+
+                      <div className="text-right">
+                        <span className="text-xs font-black text-foreground">
+                          {formatMoney(order.total_cents)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-2 border-t border-border/60">
+                      <Button
+                        size="sm"
+                        onClick={() =>
+                          handleStatusChange(
+                            order.id,
+                            order.shipping_method === "pickup" ? "ready_for_pickup" : "shipped",
+                          )
+                        }
+                        disabled={isProcessing}
+                        className="flex-1 rounded-xl font-bold bg-primary text-primary-foreground text-xs h-9 gap-1"
+                      >
+                        <span>Pronto p/ Despacho</span>
+                        <ArrowRight className="size-3.5" />
+                      </Button>
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="icon"
+                        className="size-9 rounded-xl shrink-0"
+                      >
+                        <Link to={`/workspace/pedidos/${order.id}/recibo` as never} target="_blank">
+                          <Printer className="size-4" />
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Coluna 3: Prontos / Em Entrega */}
+          <div className="space-y-3 p-4 rounded-2xl border border-border bg-card/60">
+            <div className="flex items-center justify-between pb-2 border-b border-border">
+              <div className="flex items-center gap-2">
+                <span className="size-2.5 rounded-full bg-emerald-500" />
+                <h3 className="text-sm font-bold text-foreground">Prontos / Em Rota</h3>
+              </div>
+              <Badge variant="secondary" className="font-bold text-xs">
+                {readyOrders.length}
+              </Badge>
+            </div>
+
+            <div className="space-y-3">
+              {readyOrders.length === 0 ? (
+                <div className="py-8 text-center text-xs text-muted-foreground">
+                  Nenhum pedido despachado
+                </div>
+              ) : (
+                readyOrders.map((order) => (
+                  <div
+                    key={order.id}
+                    className="p-4 rounded-2xl border border-border bg-card shadow-xs space-y-3"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-black text-sm text-foreground">
+                            #{order.public_token || order.id.slice(0, 6)}
+                          </span>
+                          <span className="font-bold text-xs text-foreground">
+                            {order.customer_snapshot?.name || "Cliente"}
+                          </span>
+                        </div>
+                        <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/10 text-emerald-600 uppercase">
+                          {order.status === "ready_for_pickup"
+                            ? "Aguardando Retirada"
+                            : "Entregador a Caminho"}
+                        </span>
+                      </div>
+
+                      <span className="text-xs font-black text-foreground">
+                        {formatMoney(order.total_cents)}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-2 border-t border-border/60">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleStatusChange(order.id, "delivered")}
+                        disabled={isProcessing}
+                        className="flex-1 rounded-xl font-bold text-xs h-9 border-success/40 text-success hover:bg-success/10"
+                      >
+                        Confirmar Entrega
+                      </Button>
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="icon"
+                        className="size-9 rounded-xl shrink-0"
+                      >
+                        <Link to={`/workspace/pedidos/${order.id}` as never}>
+                          <Eye className="size-4" />
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
       ) : (
-        <div className="border border-border bg-card overflow-hidden ">
+        /* ── Visualização Tabela Clássica ── */
+        <div className="border border-border bg-card overflow-hidden rounded-2xl">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/40">

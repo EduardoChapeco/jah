@@ -20,6 +20,8 @@ import { listActiveBanners } from "@/services/banner.functions";
 import { listHotpages } from "@/services/hotpage.functions";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
 import { HotpagesRail } from "@/components/commerce/hotpages-rail";
+import { HorizontalRail } from "@/components/commerce/horizontal-rail";
+import { HitsLeadCard } from "@/components/commerce/hits-lead-card";
 import { NewsCard } from "@/components/news/news-card";
 
 export const Route = createFileRoute("/_store/noticias/")({
@@ -175,24 +177,28 @@ export function NoticiasFeedPage() {
         </section>
       )}
 
-      {/* ── 4. Plantão & Notícias de Última Hora (Trilho Horizontal de Destaque) ── */}
+      {/* ── 4. Plantão & Notícias de Última Hora (Trilho com Lead Card) ── */}
       {breakingNews.length > 0 && !searchQuery && (
         <section aria-label="Plantão de Notícias" className="space-y-3">
-          <div className="flex items-center gap-2">
-            <div className="size-2 rounded-full bg-red-600 animate-ping" />
-            <Lightning size={16} weight="fill" className="text-foreground" />
-            <h2 className="text-sm font-bold text-foreground tracking-tight uppercase font-mono">
-              Plantão & Última Hora
-            </h2>
-          </div>
-
-          <div className="flex items-center gap-4 overflow-x-auto pb-2 scrollbar-none">
+          <HorizontalRail
+            title="Plantão & Última Hora"
+            badge="Tempo Real"
+            leadCard={
+              <HitsLeadCard
+                badge="URGENTE"
+                title="Plantão JAH"
+                subtitle="Fatos que acabaram de acontecer na sua região em tempo real"
+                actionTo="/noticias"
+                gradient="from-red-600 via-rose-600 to-orange-600"
+              />
+            }
+          >
             {breakingNews.map((article) => (
-              <div key={article.id} className="min-w-[280px] sm:min-w-[340px] shrink-0">
+              <div key={article.id} className="min-w-[290px] sm:min-w-[340px] shrink-0">
                 <NewsCard article={article} />
               </div>
             ))}
-          </div>
+          </HorizontalRail>
         </section>
       )}
 
@@ -251,45 +257,80 @@ export function NoticiasFeedPage() {
         </section>
       )}
 
-      {/* ── 6. Carrossel Editorial de Cultura & Lazer ── */}
-      {cultureArticles.length > 0 && !searchQuery && (
-        <section aria-label="Cultura & Lazer" className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-foreground tracking-tight">
-              Cultura & Lazer na Cidade
-            </h2>
-            <button
-              onClick={() => handleFilterCategory("cultura")}
-              className="text-xs font-semibold text-muted-foreground hover:text-foreground"
-            >
-              Ver mais
-            </button>
-          </div>
-          <div className="flex items-center gap-4 overflow-x-auto pb-2 scrollbar-none">
-            {cultureArticles.map((article) => (
-              <div key={article.id} className="min-w-[280px] sm:min-w-[320px] shrink-0">
+      {/* ── 6. Carrossel Editorial de Economia & Negócios ── */}
+      {economyArticles.length > 0 && !searchQuery && (
+        <section aria-label="Economia & Negócios" className="space-y-3">
+          <HorizontalRail
+            title="Economia & Negócios"
+            badge="Mercado Local"
+            leadCard={
+              <HitsLeadCard
+                badge="MERCADO"
+                title="Negócios & Agro"
+                subtitle="Oportunidades, mercado financeiro local e desenvolvimento regional"
+                actionTo="/noticias"
+                gradient="from-emerald-600 via-teal-600 to-green-700"
+              />
+            }
+          >
+            {economyArticles.map((article) => (
+              <div key={article.id} className="min-w-[290px] sm:min-w-[340px] shrink-0">
                 <NewsCard article={article} />
               </div>
             ))}
-          </div>
+          </HorizontalRail>
         </section>
       )}
 
-      {/* ── 7. Grade Geral de Notícias ── */}
+      {/* ── 7. Carrossel Editorial de Cultura & Lazer ── */}
+      {cultureArticles.length > 0 && !searchQuery && (
+        <section aria-label="Cultura & Lazer" className="space-y-3">
+          <HorizontalRail
+            title="Cultura, Noite & Lazer"
+            badge="Agenda Cultural"
+            leadCard={
+              <HitsLeadCard
+                badge="VIBE LOCAL"
+                title="Cultura & Arte"
+                subtitle="Shows, festivais, gastronomia e eventos imperdíveis"
+                actionTo="/noticias"
+                gradient="from-violet-600 via-purple-600 to-pink-600"
+              />
+            }
+          >
+            {cultureArticles.map((article) => (
+              <div key={article.id} className="min-w-[290px] sm:min-w-[340px] shrink-0">
+                <NewsCard article={article} />
+              </div>
+            ))}
+          </HorizontalRail>
+        </section>
+      )}
+
+      {/* ── 8. Feed Social Editorial & Timeline Contínua de Notícias ── */}
       {articles.length === 0 ? (
         <div className="py-16 text-center rounded-3xl border border-dashed border-border bg-card/50 space-y-3">
-          <Newspaper className="size-10 text-muted-foreground/40 mx-auto" />
+          <NewspaperClipping className="size-10 text-muted-foreground/40 mx-auto" />
           <h3 className="text-base font-bold text-foreground">Nenhuma notícia encontrada</h3>
           <p className="text-xs text-muted-foreground max-w-sm mx-auto">
             Não há publicações cadastradas para o filtro selecionado no momento.
           </p>
         </div>
       ) : (
-        <section aria-label="Todas as Notícias" className="space-y-4">
-          <h2 className="text-sm font-bold text-foreground tracking-tight">
-            Todas as Matérias
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <section aria-label="Feed de Notícias" className="space-y-4 max-w-3xl mx-auto">
+          <div className="flex items-center justify-between pb-2 border-b border-border">
+            <div className="flex items-center gap-2">
+              <Sparkle size={16} weight="fill" className="text-primary" />
+              <h2 className="text-sm font-bold text-foreground tracking-tight">
+                {searchQuery ? "Resultados da Busca" : "Feed Editorial em Tempo Real"}
+              </h2>
+            </div>
+            <span className="text-xs text-muted-foreground font-mono">
+              {(searchQuery ? articles : gridArticles).length} matérias
+            </span>
+          </div>
+
+          <div className="space-y-6">
             {(searchQuery ? articles : gridArticles).map((article) => (
               <NewsCard key={article.id} article={article} />
             ))}

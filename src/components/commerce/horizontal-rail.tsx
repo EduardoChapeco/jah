@@ -10,6 +10,7 @@ interface HorizontalRailProps {
   actionLabel?: string;
   actionTo?: string;
   onAction?: () => void;
+  leadCard?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
 }
@@ -21,6 +22,7 @@ export function HorizontalRail({
   actionLabel,
   actionTo,
   onAction,
+  leadCard,
   children,
   className = "",
 }: HorizontalRailProps) {
@@ -102,6 +104,7 @@ export function HorizontalRail({
         tabIndex={0}
         aria-label={`Carrossel de ${title}`}
       >
+        {leadCard && <div className="shrink-0 snap-start">{leadCard}</div>}
         {children}
       </div>
     </section>
