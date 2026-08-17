@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate, useSearch, Link } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   Tag,
@@ -236,6 +237,7 @@ function SpecializedClassifiedEditor({
   onBack: () => void;
 }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [mobileTab, setMobileTab] = useState<"edit" | "preview">("edit");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingMedia, setIsUploadingMedia] = useState(false);
@@ -401,6 +403,10 @@ function SpecializedClassifiedEditor({
       });
 
       toast.success("Anúncio publicado com sucesso!");
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["classifieds-master-list"] }),
+        queryClient.invalidateQueries({ queryKey: ["classifieds"] }),
+      ]).catch(() => null);
       navigate({ to: "/classificados/$id", params: { id: res.id } });
     } catch (err: any) {
       console.error("Erro ao publicar classificado:", err);

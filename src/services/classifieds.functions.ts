@@ -89,13 +89,7 @@ export const getPublicClassifieds = createServerFn({ method: "GET" })
     try {
       let query = supabase
         .from("classifieds")
-        .select(
-          `id, category, deal_type, property_type, title, content, price_cents,
-           rental_period, bedrooms, bathrooms, suites, parking_spots, area_sqm,
-           amenities, max_guests, cleaning_fee_cents, images, whatsapp, contact_whatsapp,
-           location_name, location_text, location_lat, location_lng, status, condition, negotiable,
-           attributes, created_at, updated_at`,
-        )
+        .select("*")
         .eq("status", "active")
         .order("created_at", { ascending: false })
         .limit(limit);
@@ -131,64 +125,71 @@ export const getPublicClassifiedById = createServerFn({ method: "GET" })
     const supabase = getServerClient();
     const identity = await getIdentity().catch(() => null);
 
-    const { data, error } = await supabase
-      .from("classifieds")
-      .select(
-        `
-        id, category, deal_type, property_type, title, content, price_cents,
-        rental_period, bedrooms, bathrooms, suites, parking_spots, area_sqm,
-        amenities, max_guests, cleaning_fee_cents, images, whatsapp, contact_whatsapp,
-        location_name, location_text, location_lat, location_lng, condition, negotiable,
-        attributes, status, author_profile_id, created_at, updated_at,
-        profiles:author_profile_id (id, full_name, avatar_url, phone)
-      `,
-      )
-      .eq("id", id)
-      .maybeSingle();
+    try {
+      const { data, error } = await supabase
+        .from("classifieds")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
 
-    if (error) {
-      console.warn("[classifieds] getPublicClassifiedById db miss, checking seeds:", error);
-    }
+      if (error) {
+        console.warn("[classifieds] getPublicClassifiedById db error:", error);
+      }
 
-    let classifiedData: any = data;
-    if (!classifiedData) {
-      const seed = SEED_CLASSIFIEDS.find((c) => c.id === id);
-      if (seed) {
-        classifiedData = {
-          ...seed,
-          condition: "used",
-          negotiable: true,
-          author_profile_id: "seed-profile-1",
-          profiles: {
-            id: "seed-profile-1",
-            full_name: "Morador Verificado JAH",
-            avatar_url: null,
-            phone: seed.whatsapp,
-          } as any,
+      let classifiedData: any = data;
+      if (!classifiedData) {
+        const seed = SEED_CLASSIFIEDS.find((c) => c.id === id);
+        if (seed) {
+          classifiedData = {
+            ...seed,
+            condition: "used",
+            negotiable: true,
+            author_profile_id: "seed-profile-1",
+          };
+        }
+      }
+
+      if (!classifiedData) return null;
+
+      // Busca perfil do autor de forma desacoplada para evitar quebras por nome de constraint FK
+      if (classifiedData.author_profile_id && !classifiedData.profiles) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("id, full_name, avatar_url, phone")
+          .eq("id", classifiedData.author_profile_id)
+          .maybeSingle()
+          .catch(() => ({ data: null }));
+
+        classifiedData.profiles = profile || {
+          id: classifiedData.author_profile_id,
+          full_name: "Morador Verificado JAH",
+          avatar_url: null,
+          phone: classifiedData.contact_whatsapp || classifiedData.whatsapp,
         };
       }
+
+      const isOwner = !!(identity?.id && classifiedData.author_profile_id === identity.id);
+      const isAdmin = !!(identity?.role === "admin" || identity?.role === "master");
+      const canManage = isOwner || isAdmin;
+
+      const viewerContext: "owner" | "admin" | "visitor" | "anonymous" = isOwner
+        ? "owner"
+        : isAdmin
+          ? "admin"
+          : identity?.id
+            ? "visitor"
+            : "anonymous";
+
+      return {
+        classified: classifiedData,
+        isOwner,
+        canManage,
+        viewerContext,
+      };
+    } catch (err) {
+      console.error("[classifieds] Falha em getPublicClassifiedById:", err);
+      return null;
     }
-
-    if (!classifiedData) return null;
-
-    const isOwner = !!(identity?.id && classifiedData.author_profile_id === identity.id);
-    const isAdmin = !!(identity?.role === "admin" || identity?.role === "master");
-    const canManage = isOwner || isAdmin;
-
-    const viewerContext: "owner" | "admin" | "visitor" | "anonymous" = isOwner
-      ? "owner"
-      : isAdmin
-        ? "admin"
-        : identity?.id
-          ? "visitor"
-          : "anonymous";
-
-    return {
-      classified: classifiedData,
-      isOwner,
-      canManage,
-      viewerContext,
-    };
   });
 
 export const updateClassifiedStatus = createServerFn({ method: "POST" })
@@ -334,8 +335,22 @@ export const upsertClassified = createServerFn({ method: "POST" })
     const { id, ...rest } = input;
     const isUpdating = !!id;
 
-    const payload = {
-      ...rest,
+    // Sanitiza e mapeia os campos para colunas existentes estritamente na tabela classifieds
+    const payload: Record<string, any> = {
+      title: rest.title,
+      content: rest.content,
+      category: rest.category,
+      price_cents: rest.price_cents ?? null,
+      contact_whatsapp: rest.contact_whatsapp || rest.whatsapp || null,
+      location_name: rest.location_name || null,
+      location_text: rest.location_text || rest.location_name || null,
+      location_lat: rest.location_lat ?? null,
+      location_lng: rest.location_lng ?? null,
+      images: Array.isArray(rest.images) ? rest.images : [],
+      condition: rest.condition || null,
+      negotiable: rest.negotiable ?? true,
+      attributes: rest.attributes || {},
+      status: rest.status || "active",
       author_profile_id: identity.id,
     };
 
@@ -349,16 +364,20 @@ export const upsertClassified = createServerFn({ method: "POST" })
         .single();
 
       if (error) {
-        console.error("Error upserting classified:", error);
-        throw new Error("Failed to save classified");
+        console.error("Error updating classified:", error);
+        throw new Error(error.message || "Falha ao atualizar anúncio.");
       }
       return data;
     } else {
-      const { data, error } = await supabase.from("classifieds").insert(payload).select().single();
+      const { data, error } = await supabase
+        .from("classifieds")
+        .insert(payload)
+        .select()
+        .single();
 
       if (error) {
-        console.error("Error upserting classified:", error);
-        throw new Error("Failed to save classified");
+        console.error("Error inserting classified:", error);
+        throw new Error(error.message || "Falha ao salvar anúncio.");
       }
       return data;
     }

@@ -58,7 +58,13 @@ function StoreRouteError({ error }: { error: Error }) {
 
   return (
     <div className="mx-auto max-w-xl px-4 py-20">
-      <ErrorState title="Erro inesperado" />
+      <ErrorState
+        title="Página em Atualização"
+        description="Não foi possível concluir o carregamento desta página no momento. Tente atualizar a página."
+        onRetry={() => {
+          if (typeof window !== "undefined") window.location.reload();
+        }}
+      />
     </div>
   );
 }

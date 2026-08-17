@@ -88,7 +88,30 @@ export const Route = createFileRoute("/_store/classificados/$id")({
     };
   },
   component: ClassifiedDetailPage,
+  errorComponent: ClassifiedDetailError,
 });
+
+function ClassifiedDetailError({ error }: { error: Error }) {
+  return (
+    <div className="mx-auto max-w-4xl px-4 py-16 text-center space-y-4">
+      <div className="inline-flex size-16 items-center justify-center rounded-2xl bg-muted text-muted-foreground mb-2">
+        <Tag className="size-8 text-primary" />
+      </div>
+      <h1 className="text-xl font-bold text-foreground">Anúncio em Carregamento ou Indisponível</h1>
+      <p className="text-xs text-muted-foreground max-w-md mx-auto">
+        Não foi possível carregar os dados deste anúncio no momento. Tente novamente em instantes.
+      </p>
+      <div className="pt-2 flex items-center justify-center gap-3">
+        <Button asChild variant="outline" className="rounded-xl text-xs">
+          <Link to="/classificados">
+            <ArrowLeft className="size-4 mr-1.5" />
+            <span>Voltar aos Classificados</span>
+          </Link>
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 const CATEGORY_LABELS: Record<string, string> = {
   sale: "Desapego / Item Geral",
