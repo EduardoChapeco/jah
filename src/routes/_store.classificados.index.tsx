@@ -31,6 +31,7 @@ import { formatMoney } from "@/lib/money";
 import { listActiveBanners } from "@/services/banner.functions";
 import { listActiveHotpages } from "@/services/hotpage.functions";
 import { getPublicClassifieds } from "@/services/classifieds.functions";
+import { CANONICAL_CITIES } from "@/lib/constants/cities";
 
 export const Route = createFileRoute("/_store/classificados/")({
   head: () => ({
@@ -113,6 +114,7 @@ function ClassifiedsMasterPage() {
   const { banners, classifieds: initialClassifieds } = Route.useLoaderData();
   const [selectedCategory, setSelectedCategory] = useState("todos");
   const [selectedDealType, setSelectedDealType] = useState("todos");
+  const [selectedCity, setSelectedCity] = useState("todos");
   const [search, setSearch] = useState("");
 
   const { data: classifieds } = useQuery({
@@ -129,13 +131,25 @@ function ClassifiedsMasterPage() {
   });
 
   const filtered = (classifieds || []).filter((item: any) => {
-    if (!search) return true;
-    const q = search.toLowerCase();
-    return (
-      item.title.toLowerCase().includes(q) ||
-      item.content.toLowerCase().includes(q) ||
-      (item.location_name && item.location_name.toLowerCase().includes(q))
-    );
+    // Filtro por busca de texto
+    if (search) {
+      const q = search.toLowerCase();
+      const matchText =
+        item.title?.toLowerCase().includes(q) ||
+        item.content?.toLowerCase().includes(q) ||
+        (item.location_name && item.location_name.toLowerCase().includes(q));
+      if (!matchText) return false;
+    }
+
+    // Filtro por cidade canônica
+    if (selectedCity !== "todos") {
+      const itemCity = item.attributes?.city || item.location_name || "";
+      if (!itemCity.toLowerCase().includes(selectedCity.toLowerCase())) {
+        return false;
+      }
+    }
+
+    return true;
   });
 
   return (
@@ -251,6 +265,42 @@ function ClassifiedsMasterPage() {
             })}
           </div>
         )}
+
+        {/* ── Filtro por Cidades Principais ── */}
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pt-1 pb-1">
+          <span className="text-xs font-bold text-muted-foreground font-mono uppercase mr-1 flex items-center gap-1">
+            <MapPin size={14} weight="bold" />
+            <span>Cidade:</span>
+          </span>
+          <button
+            type="button"
+            onClick={() => setSelectedCity("todos")}
+            className={`px-3 py-1 rounded-xl text-xs font-semibold font-mono transition-all shrink-0 ${
+              selectedCity === "todos"
+                ? "bg-foreground text-background shadow-2xs font-bold"
+                : "bg-muted/60 text-muted-foreground hover:text-foreground border border-border"
+            }`}
+          >
+            Todas Cidades
+          </button>
+          {CANONICAL_CITIES.slice(0, 8).map((city) => {
+            const isSelected = selectedCity === city.name;
+            return (
+              <button
+                key={city.id}
+                type="button"
+                onClick={() => setSelectedCity(isSelected ? "todos" : city.name)}
+                className={`px-3 py-1 rounded-xl text-xs font-semibold font-mono transition-all shrink-0 ${
+                  isSelected
+                    ? "bg-foreground text-background shadow-2xs font-bold"
+                    : "bg-muted/60 text-muted-foreground hover:text-foreground border border-border"
+                }`}
+              >
+                {city.name}
+              </button>
+            );
+          })}
+        </div>
       </section>
 
       {/* 4. Grid de Anúncios */}

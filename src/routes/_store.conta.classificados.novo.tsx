@@ -43,6 +43,7 @@ import {
 import { MediaUploader } from "@/components/ui/media-uploader";
 import { ChoiceCard } from "@/components/ui/choice-card";
 import { SquircleCard } from "@/components/ui/squircle-card";
+import { CityCombobox, type StructuredLocationValue } from "@/components/ui/city-combobox";
 import { upsertClassified } from "@/services/classifieds.functions";
 import { z } from "zod";
 import { formatMoney } from "@/lib/money";
@@ -239,6 +240,7 @@ function SpecializedClassifiedEditor({
   const [priceReal, setPriceReal] = useState("");
   const [negotiable, setNegotiable] = useState(true);
   const [locationName, setLocationName] = useState("");
+  const [structuredLoc, setStructuredLoc] = useState<StructuredLocationValue | null>(null);
   const [whatsapp, setWhatsapp] = useState("");
   const [images, setImages] = useState<string[]>([]);
   const [activePreviewImage, setActivePreviewImage] = useState(0);
@@ -314,6 +316,9 @@ function SpecializedClassifiedEditor({
       // Monta os atributos dinâmicos específicos da categoria
       const attributes: Record<string, any> = {
         niche: niche.id,
+        city: structuredLoc?.city || undefined,
+        state: structuredLoc?.state || undefined,
+        neighborhood: structuredLoc?.neighborhood || undefined,
       };
 
       if (niche.id === "imovel") {
@@ -733,29 +738,23 @@ function SpecializedClassifiedEditor({
             />
           </div>
 
-          {/* Section 4: Localização & WhatsApp */}
+          {/* Section 4: Localização Padronizada & WhatsApp */}
           <div className="border border-border bg-card rounded-2xl p-5 space-y-4 shadow-2xs">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
               <MapPin className="size-4 text-primary" />
               <span>4. Localização & Contato</span>
             </div>
 
-            <div className="space-y-1.5">
-              <Label className="text-xs text-foreground font-medium">
-                Bairro / Cidade (Público)
-              </Label>
-              <Input
-                value={locationName}
-                onChange={(e) => setLocationName(e.target.value)}
-                placeholder="Ex: Centro, Chapecó - SC"
-                className="h-10 rounded-xl text-xs bg-background"
-              />
-              <p className="text-[10px] text-muted-foreground">
-                Para sua privacidade, o número da residência nunca é divulgado.
-              </p>
-            </div>
+            <CityCombobox
+              value={locationName}
+              onChange={(formatted, struct) => {
+                setLocationName(formatted);
+                if (struct) setStructuredLoc(struct);
+              }}
+              label="Bairro e Cidade do Anúncio *"
+            />
 
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 pt-1">
               <Label className="text-xs text-foreground font-medium">
                 WhatsApp para Contato Direto
               </Label>
