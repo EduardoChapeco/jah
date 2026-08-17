@@ -271,7 +271,7 @@ function CommercialHomePage() {
               <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider bg-foreground text-background">
                 Notícias
               </span>
-              <span className="text-xs font-bold text-foreground">Últimos Acontecimentos</span>
+              <span className="text-xs font-bold text-foreground">Últimas Notícias da Região</span>
             </div>
             <Button asChild variant="ghost" size="sm" className="font-bold text-xs">
               <Link to="/noticias">Ver todas</Link>

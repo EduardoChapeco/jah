@@ -282,7 +282,7 @@ export function NoticiasFeedPage() {
         </section>
       )}
 
-      {/* ── 7. Carrossel Editorial de Cultura & Lazer ── */}
+      {/* ── 7. Carrossel de Cultura & Lazer ── */}
       {cultureArticles.length > 0 && !searchQuery && (
         <section aria-label="Cultura & Lazer" className="space-y-3">
           <HorizontalRail
@@ -290,7 +290,7 @@ export function NoticiasFeedPage() {
             badge="Agenda Cultural"
             leadCard={
               <HitsLeadCard
-                badge="VIBE LOCAL"
+                badge="CULTURA"
                 title="Cultura & Arte"
                 subtitle="Shows, festivais, gastronomia e eventos imperdíveis"
                 actionTo="/noticias"
@@ -307,7 +307,7 @@ export function NoticiasFeedPage() {
         </section>
       )}
 
-      {/* ── 8. Feed Social Editorial & Timeline Contínua de Notícias ── */}
+      {/* ── 8. Lista de Notícias Mais Recentes ── */}
       {articles.length === 0 ? (
         <div className="py-16 text-center rounded-3xl border border-dashed border-border bg-card/50 space-y-3">
           <NewspaperClipping className="size-10 text-muted-foreground/40 mx-auto" />
@@ -322,7 +322,7 @@ export function NoticiasFeedPage() {
             <div className="flex items-center gap-2">
               <Sparkle size={16} weight="fill" className="text-primary" />
               <h2 className="text-sm font-bold text-foreground tracking-tight">
-                {searchQuery ? "Resultados da Busca" : "Feed Editorial em Tempo Real"}
+                {searchQuery ? "Resultados da Busca" : "Últimas Notícias"}
               </h2>
             </div>
             <span className="text-xs text-muted-foreground font-mono">
