@@ -23,7 +23,7 @@ export const Route = createFileRoute("/api/auth/confirm")({
         const url = new URL(request.url);
         const token_hash = url.searchParams.get("token_hash");
         const type = url.searchParams.get("type") as "signup" | "recovery" | "email" | null;
-        const next = normalizeInternalReturnPath(url.searchParams.get("next"), "/conta");
+        const next = normalizeInternalReturnPath(url.searchParams.get("next"), "/");
 
         // Extract guest session token from headers BEFORE async bounds
         const guestSessionToken = readCookieFromRequest(request, "jah_guest_session");

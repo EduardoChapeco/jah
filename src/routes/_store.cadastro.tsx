@@ -51,7 +51,7 @@ function RegisterPage() {
   const navigate = useNavigate();
   const router = useRouter();
   const search = Route.useSearch();
-  const returnUrl = search.returnUrl ?? "/conta";
+  const returnUrl = search.returnUrl ?? "/";
   const errorParam = search.error;
   const [showPassword, setShowPassword] = useState(false);
 
@@ -97,7 +97,7 @@ function RegisterPage() {
       }
       await new Promise((r) => setTimeout(r, 100));
       await getUserSession();
-      window.location.href = returnUrl || "/conta";
+      window.location.href = returnUrl || "/";
     } catch (e: unknown) {
       toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao cadastrar.");
     }

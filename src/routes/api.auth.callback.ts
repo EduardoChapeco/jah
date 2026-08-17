@@ -10,7 +10,7 @@ export const Route = createFileRoute("/api/auth/callback")({
       GET: async ({ request }) => {
         const url = new URL(request.url);
         const code = url.searchParams.get("code");
-        const next = normalizeInternalReturnPath(url.searchParams.get("next"), "/conta");
+        const next = normalizeInternalReturnPath(url.searchParams.get("next"), "/");
 
         // Extract guest session token from headers BEFORE async bounds
         const guestSessionToken = readCookieFromRequest(request, "jah_guest_session");

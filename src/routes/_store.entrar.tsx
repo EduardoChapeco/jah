@@ -34,7 +34,7 @@ export const Route = createFileRoute("/_store/entrar")({
       if (search.returnUrl) {
         throw redirect({ to: search.returnUrl as any });
       }
-      throw redirect({ to: "/conta" });
+      throw redirect({ to: "/" });
     }
   },
   component: LoginPage,
@@ -51,7 +51,7 @@ function LoginPage() {
   const navigate = useNavigate();
   const router = useRouter();
   const search = Route.useSearch();
-  const returnUrl = search.returnUrl ?? "/conta";
+  const returnUrl = search.returnUrl ?? "/";
   const errorParam = search.error;
   const [rateLimitedUntil, setRateLimitedUntil] = useState<number | null>(null);
   const [countdown, setCountdown] = useState(0);
@@ -105,7 +105,7 @@ function LoginPage() {
       }
 
       toast.success("Login efetuado com sucesso!");
-      window.location.href = returnUrl || "/conta";
+      window.location.href = returnUrl || "/";
     } catch (e: unknown) {
       toast.error((e instanceof Error ? e.message : String(e)) || "Erro inesperado ao fazer login");
     }
