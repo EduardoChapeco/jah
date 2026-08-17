@@ -128,11 +128,17 @@ async function _federatedSearch(input: FederatedSearchInput): Promise<FederatedS
       (async () => {
         let q = db
           .from("products")
-          .select("id, title, slug, price_cents, status, store_id")
+          .select("id, title, slug, price_cents, status, store_id, product_media(url, is_cover, sort_order)")
           .eq("status", "published")
           .limit(limit);
 
         if (store_id) q = q.eq("store_id", store_id);
+
+        const extractCover = (mediaList: any[] = []) => {
+          if (!mediaList || mediaList.length === 0) return null;
+          const cover = mediaList.find((m) => m.is_cover);
+          return cover?.url || mediaList[0]?.url || null;
+        };
 
         // Tenta FTS primeiro, cai para ILIKE se search_vector não existir
         try {
@@ -141,13 +147,13 @@ async function _federatedSearch(input: FederatedSearchInput): Promise<FederatedS
             config: "portuguese",
           });
           if (!error && data) {
-            results.products = data.map((p) => ({
+            results.products = data.map((p: any) => ({
               type: "product" as const,
               id: p.id,
               title: p.title,
               slug: p.slug,
               price_cents: p.price_cents,
-              cover_url: null, // TODO: join product_media
+              cover_url: extractCover(p.product_media),
               store_id: p.store_id,
               status: p.status,
             }));
@@ -159,13 +165,13 @@ async function _federatedSearch(input: FederatedSearchInput): Promise<FederatedS
 
         // Fallback ILIKE
         const { data } = await q.ilike("title", ilikeTerm);
-        results.products = (data || []).map((p) => ({
+        results.products = (data || []).map((p: any) => ({
           type: "product" as const,
           id: p.id,
           title: p.title,
           slug: p.slug,
           price_cents: p.price_cents,
-          cover_url: null,
+          cover_url: extractCover(p.product_media),
           store_id: p.store_id,
           status: p.status,
         }));
