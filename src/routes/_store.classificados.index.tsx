@@ -21,6 +21,9 @@ import {
   Buildings,
   Tree,
   CalendarCheck,
+  Truck,
+  CreditCard,
+  ArrowsLeftRight,
 } from "@phosphor-icons/react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -115,6 +118,9 @@ function ClassifiedsMasterPage() {
   const [selectedCategory, setSelectedCategory] = useState("todos");
   const [selectedDealType, setSelectedDealType] = useState("todos");
   const [selectedCity, setSelectedCity] = useState("todos");
+  const [selectedDelivery, setSelectedDelivery] = useState<"todos" | "local" | "shipping">("todos");
+  const [onlyInstallments, setOnlyInstallments] = useState(false);
+  const [onlyTrade, setOnlyTrade] = useState(false);
   const [search, setSearch] = useState("");
 
   const { data: classifieds } = useQuery({
@@ -145,6 +151,35 @@ function ClassifiedsMasterPage() {
     if (selectedCity !== "todos") {
       const itemCity = item.attributes?.city || item.location_name || "";
       if (!itemCity.toLowerCase().includes(selectedCity.toLowerCase())) {
+        return false;
+      }
+    }
+
+    // Filtro por modalidade de entrega
+    if (selectedDelivery === "local") {
+      const mode = item.attributes?.delivery_mode;
+      if (mode !== "local_delivery" && mode !== "both" && mode !== undefined) {
+        return false;
+      }
+    } else if (selectedDelivery === "shipping") {
+      const mode = item.attributes?.delivery_mode;
+      if (mode !== "shipping" && mode !== "both") {
+        return false;
+      }
+    }
+
+    // Filtro por parcelamento
+    if (onlyInstallments) {
+      const acceptsCard = item.attributes?.accepts_card;
+      const maxInst = item.attributes?.max_installments;
+      if (!acceptsCard || (maxInst && maxInst <= 1)) {
+        return false;
+      }
+    }
+
+    // Filtro por aceita troca
+    if (onlyTrade) {
+      if (!item.attributes?.accepts_trade) {
         return false;
       }
     }
@@ -301,6 +336,65 @@ function ClassifiedsMasterPage() {
             );
           })}
         </div>
+
+        {/* ── Filtros Rápidos de Logística & Pagamento ── */}
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pt-1 pb-1">
+          <span className="text-xs font-bold text-muted-foreground font-mono uppercase mr-1 flex items-center gap-1">
+            <Truck size={14} weight="bold" />
+            <span>Condições:</span>
+          </span>
+
+          <button
+            type="button"
+            onClick={() => setSelectedDelivery(selectedDelivery === "local" ? "todos" : "local")}
+            className={`px-3 py-1 rounded-xl text-xs font-semibold font-mono transition-all shrink-0 flex items-center gap-1.5 ${
+              selectedDelivery === "local"
+                ? "bg-primary text-primary-foreground shadow-2xs font-bold"
+                : "bg-muted/60 text-muted-foreground hover:text-foreground border border-border"
+            }`}
+          >
+            <Truck size={13} weight="bold" />
+            <span>Entrega JAH Express</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSelectedDelivery(selectedDelivery === "shipping" ? "todos" : "shipping")}
+            className={`px-3 py-1 rounded-xl text-xs font-semibold font-mono transition-all shrink-0 flex items-center gap-1.5 ${
+              selectedDelivery === "shipping"
+                ? "bg-primary text-primary-foreground shadow-2xs font-bold"
+                : "bg-muted/60 text-muted-foreground hover:text-foreground border border-border"
+            }`}
+          >
+            <span>Envio Nacional</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setOnlyInstallments(!onlyInstallments)}
+            className={`px-3 py-1 rounded-xl text-xs font-semibold font-mono transition-all shrink-0 flex items-center gap-1.5 ${
+              onlyInstallments
+                ? "bg-primary text-primary-foreground shadow-2xs font-bold"
+                : "bg-muted/60 text-muted-foreground hover:text-foreground border border-border"
+            }`}
+          >
+            <CreditCard size={13} weight="bold" />
+            <span>Aceita Parcelamento</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setOnlyTrade(!onlyTrade)}
+            className={`px-3 py-1 rounded-xl text-xs font-semibold font-mono transition-all shrink-0 flex items-center gap-1.5 ${
+              onlyTrade
+                ? "bg-primary text-primary-foreground shadow-2xs font-bold"
+                : "bg-muted/60 text-muted-foreground hover:text-foreground border border-border"
+            }`}
+          >
+            <ArrowsLeftRight size={13} weight="bold" />
+            <span>Aceita Troca</span>
+          </button>
+        </div>
       </section>
 
       {/* 4. Grid de Anúncios */}
@@ -371,12 +465,33 @@ function ClassifiedsMasterPage() {
 
                   {/* Conteúdo */}
                   <div className="p-5 pt-1 space-y-2">
-                    <div className="flex items-baseline justify-between gap-2">
-                      <span className="text-lg font-mono font-black text-foreground">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-xl font-black text-foreground font-mono">
                         {formatMoney(item.price_cents || 0)}
                         {isAluguel && <span className="text-xs font-normal text-muted-foreground">/mês</span>}
                         {isTemporada && <span className="text-xs font-normal text-muted-foreground">/diária</span>}
                       </span>
+                      {item.price_cents && item.attributes?.accepts_card && (item.attributes?.max_installments || 12) > 1 && (
+                        <span className="text-[10px] text-muted-foreground font-mono">
+                          ou {item.attributes?.max_installments || 12}x de {formatMoney(Math.round(item.price_cents / (item.attributes?.max_installments || 12)))}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Badges de Condições do Anúncio */}
+                    <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                      {(item.attributes?.delivery_mode === "local_delivery" || item.attributes?.delivery_mode === "both") && (
+                        <Badge variant="outline" className="text-[9px] font-mono font-medium px-1.5 py-0 bg-muted/30">
+                          <Truck size={10} weight="bold" className="mr-0.5" />
+                          <span>Entrega JAH</span>
+                        </Badge>
+                      )}
+                      {item.attributes?.accepts_trade && (
+                        <Badge variant="secondary" className="text-[9px] font-mono font-medium px-1.5 py-0">
+                          <ArrowsLeftRight size={10} weight="bold" className="mr-0.5" />
+                          <span>Troca</span>
+                        </Badge>
+                      )}
                     </div>
 
                     <h3 className="text-sm font-bold text-foreground line-clamp-2 leading-snug group-hover:underline">

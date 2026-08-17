@@ -20,6 +20,11 @@ import {
   Maximize2,
   ExternalLink,
   Edit3,
+  Truck,
+  Package,
+  CreditCard,
+  QrCode,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -626,12 +631,108 @@ function ClassifiedDetailPage() {
                   + {formatMoney(classified.cleaning_fee_cents)} taxa de limpeza única
                 </span>
               )}
+              {classified.price_cents && classified.attributes?.accepts_card && (classified.attributes?.max_installments || 12) > 1 && (
+                <p className="text-[11px] text-muted-foreground font-medium flex items-center gap-1 mt-1">
+                  <CreditCard className="size-3 text-primary" />
+                  <span>
+                    ou em até <strong>{classified.attributes?.max_installments || 12}x de {formatMoney(Math.round(classified.price_cents / (classified.attributes?.max_installments || 12)))}</strong>
+                  </span>
+                </p>
+              )}
+
+              {/* Badges de Modalidade & Pagamento */}
+              <div className="flex flex-wrap gap-1.5 pt-2.5">
+                {(classified.attributes?.delivery_mode === "both" || !classified.attributes?.delivery_mode) && (
+                  <Badge variant="outline" className="text-[10px] font-medium gap-1 bg-muted/40">
+                    <Truck className="size-3 text-primary" />
+                    <span>Retirada & Entrega Local</span>
+                  </Badge>
+                )}
+                {classified.attributes?.delivery_mode === "local_delivery" && (
+                  <Badge variant="outline" className="text-[10px] font-medium gap-1 bg-muted/40">
+                    <Truck className="size-3 text-primary" />
+                    <span>Entrega JAH Express</span>
+                  </Badge>
+                )}
+                {classified.attributes?.delivery_mode === "pickup" && (
+                  <Badge variant="outline" className="text-[10px] font-medium gap-1 bg-muted/40">
+                    <Package className="size-3 text-primary" />
+                    <span>Somente Retirada</span>
+                  </Badge>
+                )}
+                {classified.attributes?.delivery_mode === "shipping" && (
+                  <Badge variant="outline" className="text-[10px] font-medium gap-1 bg-muted/40">
+                    <Truck className="size-3 text-primary" />
+                    <span>Envio Nacional</span>
+                  </Badge>
+                )}
+                {classified.attributes?.accepts_pix !== false && (
+                  <Badge variant="secondary" className="text-[10px] font-medium gap-1">
+                    <QrCode className="size-3 text-emerald-600" />
+                    <span>PIX</span>
+                  </Badge>
+                )}
+                {classified.attributes?.accepts_trade && (
+                  <Badge variant="secondary" className="text-[10px] font-medium gap-1">
+                    <RefreshCw className="size-3 text-amber-600" />
+                    <span>Aceita Troca</span>
+                  </Badge>
+                )}
+              </div>
+
               {classified.negotiable && (
-                <span className="text-xs text-muted-foreground font-medium mt-1 block">
-                  Aceita negociação / contraproposta
+                <span className="text-xs text-muted-foreground font-medium mt-2 block">
+                  ✓ Vendedor aceita propostas e negociação
                 </span>
               )}
             </div>
+
+            {/* Simulador de Frete & Logística JAH Express */}
+            {(classified.attributes?.delivery_mode !== "pickup" && classified.category !== "real_estate") && (
+              <div className="border border-primary/20 rounded-2xl p-4 bg-primary/5 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-foreground">
+                    <Truck className="size-4 text-primary" />
+                    <span>Calcular Entrega no seu Endereço</span>
+                  </div>
+                  <Badge variant="default" className="text-[9px] font-mono bg-primary text-primary-foreground">
+                    JAH Express
+                  </Badge>
+                </div>
+
+                <div className="space-y-1.5 text-xs pt-1">
+                  <div className="flex items-center justify-between p-2 rounded-xl bg-background border border-border/60">
+                    <div className="flex items-center gap-2">
+                      <div className="size-6 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                        <Truck className="size-3.5" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-xs text-foreground">Entrega Expressa Motoboy</p>
+                        <p className="text-[10px] text-muted-foreground">Chega hoje em até 2 horas</p>
+                      </div>
+                    </div>
+                    <span className="font-bold text-xs text-primary font-mono">
+                      {classified.attributes?.free_shipping_local ? "Grátis" : "R$ 12,00"}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-2 rounded-xl bg-background border border-border/60">
+                    <div className="flex items-center gap-2">
+                      <div className="size-6 rounded-lg bg-muted flex items-center justify-center text-foreground">
+                        <Package className="size-3.5" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-xs text-foreground">Ponto PUDO / Locker JAH</p>
+                        <p className="text-[10px] text-muted-foreground">Retire no ponto credenciado</p>
+                      </div>
+                    </div>
+                    <span className="font-bold text-xs text-foreground font-mono">
+                      R$ 5,00
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Ações de Negociação & Contato */}
             <div className="space-y-3 pt-2">

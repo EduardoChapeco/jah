@@ -25,6 +25,12 @@ import {
   ChevronLeft,
   Building,
   Key,
+  Truck,
+  Package,
+  CreditCard,
+  QrCode,
+  RefreshCw,
+  Banknote,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -270,12 +276,20 @@ function SpecializedClassifiedEditor({
   const [vehicleColor, setVehicleColor] = useState("");
   const [vehicleFeatures, setVehicleFeatures] = useState<string[]>([]);
 
-  // Specialized: Desapego
+  // Specialized: Desapego & Itens Gerais
   const [itemCondition, setItemCondition] = useState<
     "novo" | "usado_excelente" | "usado_bom" | "com_marcas"
   >("usado_excelente");
-  const [itemDelivery, setItemDelivery] = useState<"retirada" | "envio" | "ambos">("ambos");
   const [itemWarranty, setItemWarranty] = useState("");
+
+  // Specialized: Logística Avançada & Formas de Pagamento
+  const [deliveryMode, setDeliveryMode] = useState<"both" | "pickup" | "local_delivery" | "shipping">("both");
+  const [acceptsPix, setAcceptsPix] = useState(true);
+  const [acceptsCard, setAcceptsCard] = useState(true);
+  const [acceptsCash, setAcceptsCash] = useState(true);
+  const [acceptsTrade, setAcceptsTrade] = useState(false);
+  const [maxInstallments, setMaxInstallments] = useState("12");
+  const [freeShippingLocal, setFreeShippingLocal] = useState(false);
 
   // Specialized: Serviço
   const [serviceModality, setServiceModality] = useState<"presencial" | "remoto" | "domicilio">(
@@ -319,6 +333,13 @@ function SpecializedClassifiedEditor({
         city: structuredLoc?.city || undefined,
         state: structuredLoc?.state || undefined,
         neighborhood: structuredLoc?.neighborhood || undefined,
+        delivery_mode: deliveryMode,
+        accepts_pix: acceptsPix,
+        accepts_card: acceptsCard,
+        accepts_cash: acceptsCash,
+        accepts_trade: acceptsTrade,
+        max_installments: acceptsCard ? parseInt(maxInstallments) || 12 : 1,
+        free_shipping_local: freeShippingLocal,
       };
 
       if (niche.id === "imovel") {
@@ -346,7 +367,6 @@ function SpecializedClassifiedEditor({
         attributes.features = vehicleFeatures;
       } else if (niche.id === "desapego") {
         attributes.condition = itemCondition;
-        attributes.delivery_method = itemDelivery;
         attributes.warranty = itemWarranty;
       } else if (niche.id === "servico") {
         attributes.modality = serviceModality;
@@ -536,6 +556,115 @@ function SpecializedClassifiedEditor({
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Section: Logística de Entrega & Formas de Pagamento */}
+          <div className="border border-border bg-card rounded-2xl p-5 space-y-4 shadow-2xs">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
+                <Truck className="size-4 text-primary" />
+                <span>Logística de Entrega & Pagamento</span>
+              </div>
+              <Badge variant="outline" className="text-[10px] font-mono text-muted-foreground">
+                JAH Logística
+              </Badge>
+            </div>
+
+            {/* Modalidade de Entrega */}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-foreground font-medium">Modalidade de Envio / Retirada</Label>
+              <Select value={deliveryMode} onValueChange={(v: any) => setDeliveryMode(v)}>
+                <SelectTrigger className="h-10 rounded-xl text-xs bg-background font-medium">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="both">📦 Entrega Expressa JAH & Retirada em Mãos (Recomendado)</SelectItem>
+                  <SelectItem value="pickup">🏠 Somente Retirada no Local</SelectItem>
+                  <SelectItem value="local_delivery">🛵 Somente Entrega Local (Motoboy / Frota)</SelectItem>
+                  <SelectItem value="shipping">🚚 Envio Nacional (Correios / Transportadora)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Formas de Pagamento Aceitas */}
+            <div className="space-y-2 pt-1">
+              <Label className="text-xs text-foreground font-medium">Formas de Pagamento Aceitas</Label>
+              <div className="grid grid-cols-2 gap-2.5">
+                <div
+                  className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${
+                    acceptsPix ? "border-primary/50 bg-primary/5 text-foreground" : "border-border/80 bg-background/50 text-muted-foreground"
+                  }`}
+                  onClick={() => setAcceptsPix(!acceptsPix)}
+                >
+                  <Checkbox checked={acceptsPix} onCheckedChange={(c) => setAcceptsPix(!!c)} />
+                  <div className="flex items-center gap-1.5 text-xs font-medium select-none">
+                    <QrCode className="size-3.5 text-primary" />
+                    <span>PIX Direto</span>
+                  </div>
+                </div>
+
+                <div
+                  className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${
+                    acceptsCard ? "border-primary/50 bg-primary/5 text-foreground" : "border-border/80 bg-background/50 text-muted-foreground"
+                  }`}
+                  onClick={() => setAcceptsCard(!acceptsCard)}
+                >
+                  <Checkbox checked={acceptsCard} onCheckedChange={(c) => setAcceptsCard(!!c)} />
+                  <div className="flex items-center gap-1.5 text-xs font-medium select-none">
+                    <CreditCard className="size-3.5 text-primary" />
+                    <span>Cartão</span>
+                  </div>
+                </div>
+
+                <div
+                  className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${
+                    acceptsTrade ? "border-primary/50 bg-primary/5 text-foreground" : "border-border/80 bg-background/50 text-muted-foreground"
+                  }`}
+                  onClick={() => setAcceptsTrade(!acceptsTrade)}
+                >
+                  <Checkbox checked={acceptsTrade} onCheckedChange={(c) => setAcceptsTrade(!!c)} />
+                  <div className="flex items-center gap-1.5 text-xs font-medium select-none">
+                    <RefreshCw className="size-3.5 text-primary" />
+                    <span>Aceita Troca</span>
+                  </div>
+                </div>
+
+                <div
+                  className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${
+                    acceptsCash ? "border-primary/50 bg-primary/5 text-foreground" : "border-border/80 bg-background/50 text-muted-foreground"
+                  }`}
+                  onClick={() => setAcceptsCash(!acceptsCash)}
+                >
+                  <Checkbox checked={acceptsCash} onCheckedChange={(c) => setAcceptsCash(!!c)} />
+                  <div className="flex items-center gap-1.5 text-xs font-medium select-none">
+                    <Banknote className="size-3.5 text-primary" />
+                    <span>Dinheiro</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Parcelamento se aceitar cartão */}
+            {acceptsCard && (
+              <div className="space-y-1.5 pt-1">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs text-foreground font-medium">Parcelamento Máximo</Label>
+                  <span className="text-[11px] text-muted-foreground font-mono">Em até {maxInstallments}x</span>
+                </div>
+                <Select value={maxInstallments} onValueChange={setMaxInstallments}>
+                  <SelectTrigger className="h-9 rounded-xl text-xs bg-background font-medium">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1x (À Vista)</SelectItem>
+                    <SelectItem value="3">Até 3x</SelectItem>
+                    <SelectItem value="6">Até 6x</SelectItem>
+                    <SelectItem value="10">Até 10x</SelectItem>
+                    <SelectItem value="12">Até 12x</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
 
           {/* Section 2: Campos Especializados do Domínio */}
@@ -849,13 +978,64 @@ function SpecializedClassifiedEditor({
                   {title || "Título do Anúncio aparecerá aqui..."}
                 </h1>
 
-                <div className="flex items-baseline gap-2 pt-1">
-                  <span className="text-2xl font-black text-primary font-mono">
-                    {parsedPriceCents ? formatMoney(parsedPriceCents) : "A Combinar"}
-                  </span>
-                  {negotiable && (
-                    <Badge variant="secondary" className="text-[10px]">
-                      Aceita Propostas
+                <div className="space-y-1 pt-1">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-black text-primary font-mono">
+                      {parsedPriceCents ? formatMoney(parsedPriceCents) : "A Combinar"}
+                    </span>
+                    {negotiable && (
+                      <Badge variant="secondary" className="text-[10px]">
+                        Aceita Propostas
+                      </Badge>
+                    )}
+                  </div>
+
+                  {parsedPriceCents && acceptsCard && parseInt(maxInstallments) > 1 && (
+                    <p className="text-[11px] text-muted-foreground font-medium flex items-center gap-1">
+                      <CreditCard className="size-3 text-primary" />
+                      <span>
+                        ou em até <strong>{maxInstallments}x de {formatMoney(Math.round(parsedPriceCents / (parseInt(maxInstallments) || 1)))}</strong>
+                      </span>
+                    </p>
+                  )}
+                </div>
+
+                {/* Badges de Formas de Pagamento e Entrega */}
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {deliveryMode === "both" && (
+                    <Badge variant="outline" className="text-[10px] font-medium gap-1 bg-muted/40">
+                      <Truck className="size-3 text-primary" />
+                      <span>Retirada & Entrega Local</span>
+                    </Badge>
+                  )}
+                  {deliveryMode === "local_delivery" && (
+                    <Badge variant="outline" className="text-[10px] font-medium gap-1 bg-muted/40">
+                      <Truck className="size-3 text-primary" />
+                      <span>Entrega JAH Express</span>
+                    </Badge>
+                  )}
+                  {deliveryMode === "pickup" && (
+                    <Badge variant="outline" className="text-[10px] font-medium gap-1 bg-muted/40">
+                      <Package className="size-3 text-primary" />
+                      <span>Somente Retirada</span>
+                    </Badge>
+                  )}
+                  {deliveryMode === "shipping" && (
+                    <Badge variant="outline" className="text-[10px] font-medium gap-1 bg-muted/40">
+                      <Truck className="size-3 text-primary" />
+                      <span>Envio Nacional</span>
+                    </Badge>
+                  )}
+                  {acceptsPix && (
+                    <Badge variant="secondary" className="text-[10px] font-medium gap-1">
+                      <QrCode className="size-3 text-emerald-600" />
+                      <span>PIX</span>
+                    </Badge>
+                  )}
+                  {acceptsTrade && (
+                    <Badge variant="secondary" className="text-[10px] font-medium gap-1">
+                      <RefreshCw className="size-3 text-amber-600" />
+                      <span>Aceita Troca</span>
                     </Badge>
                   )}
                 </div>
@@ -865,6 +1045,53 @@ function SpecializedClassifiedEditor({
                     "A descrição detalhada do anúncio aparecerá aqui conforme você digita no formulário à esquerda..."}
                 </p>
               </div>
+
+              {/* Simulador de Frete & Logística JAH Express na Prévia */}
+              {(deliveryMode === "both" || deliveryMode === "local_delivery" || deliveryMode === "shipping") && (
+                <div className="border border-primary/30 rounded-2xl p-4 bg-primary/5 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-foreground">
+                      <Truck className="size-4 text-primary" />
+                      <span>Simulação de Frete & Entrega (Comprador)</span>
+                    </div>
+                    <Badge variant="default" className="text-[9px] font-mono bg-primary text-primary-foreground">
+                      JAH Express
+                    </Badge>
+                  </div>
+
+                  <div className="space-y-1.5 text-xs pt-1">
+                    <div className="flex items-center justify-between p-2 rounded-xl bg-background border border-border/60">
+                      <div className="flex items-center gap-2">
+                        <div className="size-6 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                          <Truck className="size-3.5" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-xs text-foreground">Entrega Expressa Motoboy</p>
+                          <p className="text-[10px] text-muted-foreground">Chega hoje em até 2 horas</p>
+                        </div>
+                      </div>
+                      <span className="font-bold text-xs text-primary font-mono">
+                        {freeShippingLocal ? "Grátis" : "R$ 12,00"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between p-2 rounded-xl bg-background border border-border/60">
+                      <div className="flex items-center gap-2">
+                        <div className="size-6 rounded-lg bg-muted flex items-center justify-center text-foreground">
+                          <Package className="size-3.5" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-xs text-foreground">Ponto PUDO / Locker JAH</p>
+                          <p className="text-[10px] text-muted-foreground">Retire no ponto credenciado</p>
+                        </div>
+                      </div>
+                      <span className="font-bold text-xs text-foreground font-mono">
+                        R$ 5,00
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Ficha Técnica na Prévia */}
               {niche.id === "imovel" && (
