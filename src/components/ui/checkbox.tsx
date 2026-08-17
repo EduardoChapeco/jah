@@ -11,16 +11,17 @@ const Checkbox = React.forwardRef<
   <CheckboxPrimitive.Root
     ref={ref}
     className={cn(
-      "grid place-content-center peer size-5 aspect-square shrink-0 rounded-[6px] border border-border/90 bg-card shadow-xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-foreground data-[state=checked]:text-background data-[state=checked]:border-foreground transition-all duration-150 hover:border-foreground/50",
+      "inline-flex items-center justify-center shrink-0 w-5 h-5 min-w-[20px] max-w-[20px] min-h-[20px] max-h-[20px] rounded-[7px] border-2 border-border/90 bg-card shadow-2xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-foreground data-[state=checked]:text-background data-[state=checked]:border-foreground transition-all duration-150 hover:border-foreground/60 select-none overflow-hidden",
       className,
     )}
     {...props}
   >
-    <CheckboxPrimitive.Indicator className={cn("grid place-content-center text-current")}>
-      <Check className="size-3.5 stroke-[3]" />
+    <CheckboxPrimitive.Indicator className={cn("flex items-center justify-center text-current")}>
+      <Check className="w-3.5 h-3.5 stroke-[3.5]" />
     </CheckboxPrimitive.Indicator>
   </CheckboxPrimitive.Root>
 ));
 Checkbox.displayName = CheckboxPrimitive.Root.displayName;
 
 export { Checkbox };
+

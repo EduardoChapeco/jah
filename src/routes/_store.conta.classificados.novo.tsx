@@ -511,18 +511,24 @@ function SpecializedClassifiedEditor({
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2 pt-6">
-                <Checkbox
-                  id="neg-check"
-                  checked={negotiable}
-                  onCheckedChange={(c) => setNegotiable(!!c)}
-                />
-                <Label
-                  htmlFor="neg-check"
-                  className="text-xs text-foreground cursor-pointer font-medium"
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground font-medium block">&nbsp;</Label>
+                <div
+                  className="flex items-center gap-2.5 h-10 px-3 rounded-xl border border-border/80 bg-background/60 hover:bg-muted/30 transition-colors cursor-pointer"
+                  onClick={() => setNegotiable(!negotiable)}
                 >
-                  Aceita Propostas
-                </Label>
+                  <Checkbox
+                    id="neg-check"
+                    checked={negotiable}
+                    onCheckedChange={(c) => setNegotiable(!!c)}
+                  />
+                  <Label
+                    htmlFor="neg-check"
+                    className="text-xs text-foreground cursor-pointer font-medium select-none"
+                  >
+                    Aceita Propostas
+                  </Label>
+                </div>
               </div>
             </div>
           </div>
