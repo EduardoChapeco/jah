@@ -205,49 +205,38 @@ export const listPublicArticles = createServerFn({ method: "GET" })
       }
 
       const { data: articles, error } = await q;
-      if (!error && articles && articles.length > 0) {
-        return articles.map((a: any) => ({
-          id: a.id,
-          store_id: a.store_id,
-          store_name: a.stores?.name || "Portal de Notícias",
-          store_avatar: a.stores?.avatar_url || null,
-          author_profile_id: a.author_profile_id,
-          author_name: a.profiles?.full_name || "Redação",
-          title: a.title,
-          slug: a.slug,
-          kicker: a.kicker,
-          subtitle: a.subtitle,
-          content_sections: a.content_sections || [],
-          cover_media_url: a.cover_media_url,
-          cover_media_type: a.cover_media_type || "image",
-          category: a.category,
-          tags: a.tags || [],
-          reading_time_minutes: a.reading_time_minutes || 3,
-          views_count: a.views_count || 0,
-          unique_views_count: a.unique_views_count || 0,
-          status: a.status,
-          published_at: a.published_at,
-          created_at: a.created_at,
-        }));
+      if (error) {
+        console.warn("[news] Erro ao buscar artigos no banco:", error);
+        return [];
       }
-    } catch (err) {
-      console.warn("[news] Erro ao buscar artigos no banco, usando fallback seed:", err);
-    }
 
-    let items = [...SEED_ARTICLES];
-    if (data?.category && data.category !== "todas") {
-      items = items.filter((a) => a.category === data.category);
+      return (articles || []).map((a: any) => ({
+        id: a.id,
+        store_id: a.store_id,
+        store_name: a.stores?.name || "Portal de Notícias",
+        store_avatar: a.stores?.avatar_url || null,
+        author_profile_id: a.author_profile_id,
+        author_name: a.profiles?.full_name || "Redação",
+        title: a.title,
+        slug: a.slug,
+        kicker: a.kicker,
+        subtitle: a.subtitle,
+        content_sections: a.content_sections || [],
+        cover_media_url: a.cover_media_url,
+        cover_media_type: a.cover_media_type || "image",
+        category: a.category,
+        tags: a.tags || [],
+        reading_time_minutes: a.reading_time_minutes || 3,
+        views_count: a.views_count || 0,
+        unique_views_count: a.unique_views_count || 0,
+        status: a.status,
+        published_at: a.published_at,
+        created_at: a.created_at,
+      }));
+    } catch (err) {
+      console.warn("[news] Erro ao buscar artigos no banco:", err);
+      return [];
     }
-    if (data?.query) {
-      const q = data.query.toLowerCase();
-      items = items.filter(
-        (a) =>
-          a.title.toLowerCase().includes(q) ||
-          (a.subtitle && a.subtitle.toLowerCase().includes(q)) ||
-          a.tags.some((t) => t.toLowerCase().includes(q)),
-      );
-    }
-    return items.slice(0, limit);
   });
 
 export const getArticleDetail = createServerFn({ method: "GET" })

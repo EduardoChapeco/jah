@@ -1,17 +1,6 @@
-import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import {
-  Clock,
-  Eye,
-  ArrowRight,
-  ChevronDown,
-  ChevronUp,
-  Share2,
-  Newspaper,
-  Sparkles,
-} from "lucide-react";
+import { Clock, Eye, ArrowRight, Share2, Newspaper } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { type NewsArticleDTO } from "@/services/news.functions";
 import { toast } from "sonner";
 
@@ -21,8 +10,6 @@ export interface NewsCardProps {
 }
 
 export function NewsCard({ article, compact = false }: NewsCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-
   const handleShare = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -40,58 +27,15 @@ export function NewsCard({ article, compact = false }: NewsCardProps) {
     : "Recente";
 
   return (
-    <article className="group relative flex flex-col rounded-3xl border border-border/80 bg-card overflow-hidden shadow-xs hover-elevate transition-all duration-300">
-      {/* ── 1. Header do Portal / Jornal ── */}
-      <div className="p-4 pb-3 flex items-center justify-between gap-3 border-b border-border/40">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="size-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-            {article.store_avatar ? (
-              <img
-                src={article.store_avatar}
-                alt={article.store_name}
-                className="size-full rounded-full object-cover"
-              />
-            ) : (
-              <Newspaper className="size-4 text-primary" />
-            )}
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs font-black text-foreground truncate">
-              {article.store_name || "Portal de Notícias"}
-            </p>
-            <p className="text-[10px] text-muted-foreground truncate">
-              {article.author_name ? `Por ${article.author_name} · ` : ""}
-              {formattedDate}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-1.5 shrink-0">
-          {article.kicker && (
-            <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
-              {article.kicker}
-            </span>
-          )}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleShare}
-            className="size-7 rounded-full text-muted-foreground hover:text-foreground"
-            title="Compartilhar notícia"
-          >
-            <Share2 className="size-3.5" />
-          </Button>
-        </div>
-      </div>
-
-      {/* ── 2. Imagem / Vídeo de Capa ── */}
-      {article.cover_media_url && (
-        <Link
-          to="/noticias/$slug"
-          params={{ slug: article.slug }}
-          className="relative aspect-16/9 w-full overflow-hidden bg-muted block"
-        >
-          {article.cover_media_type === "video" ? (
+    <article className="group relative flex flex-col rounded-2xl border border-border/70 bg-card overflow-hidden shadow-xs hover-elevate transition-all duration-300">
+      {/* ── 1. Imagem / Vídeo Full Bleed ── */}
+      <Link
+        to="/noticias/$slug"
+        params={{ slug: article.slug }}
+        className="relative aspect-16/10 w-full overflow-hidden bg-muted block"
+      >
+        {article.cover_media_url ? (
+          article.cover_media_type === "video" ? (
             <video
               src={article.cover_media_url}
               autoPlay
@@ -105,60 +49,92 @@ export function NewsCard({ article, compact = false }: NewsCardProps) {
               src={article.cover_media_url}
               alt={article.title}
               loading="lazy"
-              className="size-full object-cover group-hover:scale-103 transition-transform duration-500"
+              className="size-full object-cover group-hover:scale-104 transition-transform duration-500"
             />
-          )}
-          <div className="absolute bottom-2 right-2 px-2 py-1 rounded-lg bg-black/75 backdrop-blur-md text-[10px] font-mono text-white flex items-center gap-1 shadow-xs">
-            <Clock className="size-3" />
-            <span>{article.reading_time_minutes} min</span>
+          )
+        ) : (
+          <div className="size-full flex items-center justify-center bg-muted/40 text-muted-foreground">
+            <Newspaper className="size-10 opacity-30" />
           </div>
-        </Link>
-      )}
+        )}
 
-      {/* ── 3. Conteúdo Principal ── */}
+        {/* Badges Flutuantes sobre a Imagem */}
+        <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none">
+          {article.kicker ? (
+            <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-black/70 backdrop-blur-md text-white border border-white/10 shadow-xs">
+              {article.kicker}
+            </span>
+          ) : (
+            <span />
+          )}
+
+          <div className="flex items-center gap-1.5 pointer-events-auto">
+            <span className="px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-md text-[10px] font-mono text-white flex items-center gap-1 shadow-xs border border-white/10">
+              <Clock className="size-2.5" />
+              {article.reading_time_minutes || 3} min
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleShare}
+              className="size-7 rounded-full bg-black/70 backdrop-blur-md text-white hover:bg-black/90 border border-white/10 shadow-xs"
+              title="Compartilhar notícia"
+            >
+              <Share2 className="size-3" />
+            </Button>
+          </div>
+        </div>
+      </Link>
+
+      {/* ── 2. Conteúdo Editorial Conciso ── */}
       <div className="p-4 space-y-2.5 flex-1 flex flex-col justify-between">
         <div className="space-y-1.5">
+          {/* Autor & Data */}
+          <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+            {article.store_avatar && (
+              <img
+                src={article.store_avatar}
+                alt={article.store_name || "Autor"}
+                className="size-4 rounded-full object-cover"
+              />
+            )}
+            <span className="font-semibold text-foreground truncate max-w-[140px]">
+              {article.store_name || article.author_name || "Redação"}
+            </span>
+            <span>•</span>
+            <span>{formattedDate}</span>
+          </div>
+
+          {/* Título Principal */}
           <Link
             to="/noticias/$slug"
             params={{ slug: article.slug }}
             className="block group-hover:text-primary transition-colors"
           >
-            <h3 className="text-base sm:text-lg font-black tracking-tight text-foreground leading-snug line-clamp-2">
+            <h3 className="text-base font-bold tracking-tight text-foreground leading-snug line-clamp-2">
               {article.title}
             </h3>
           </Link>
 
-          {/* Subtítulo / Lead com expansão inline estilo WhatsApp */}
+          {/* Subtítulo / Descrição Curta (1 a 2 linhas) */}
           {article.subtitle && (
-            <div className="text-xs text-muted-foreground leading-relaxed">
-              <p className={isExpanded ? "" : "line-clamp-2"}>{article.subtitle}</p>
-              {article.subtitle.length > 90 && (
-                <button
-                  type="button"
-                  onClick={() => setIsExpanded(!isExpanded)}
-                  className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-primary hover:underline cursor-pointer"
-                >
-                  <span>{isExpanded ? "Recolher resumo" : "Ver mais (resumo)"}</span>
-                  {isExpanded ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
-                </button>
-              )}
-            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
+              {article.subtitle}
+            </p>
           )}
         </div>
 
-        {/* ── 4. Rodapé & Ações ── */}
+        {/* ── 3. Rodapé ── */}
         <div className="pt-3 border-t border-border/40 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-3 text-[11px] text-muted-foreground font-medium">
-            <span className="flex items-center gap-1">
-              <Eye className="size-3.5" />
-              <span>{article.views_count} lidas</span>
-            </span>
+          <div className="flex items-center gap-1 text-[11px] text-muted-foreground font-medium">
+            <Eye className="size-3.5 opacity-60" />
+            <span>{article.views_count || 0} leituras</span>
           </div>
 
-          <Button asChild size="sm" className="rounded-xl font-bold gap-1.5 text-xs">
+          <Button asChild size="sm" variant="ghost" className="h-8 px-2 text-xs font-bold gap-1 group/btn hover:text-primary">
             <Link to="/noticias/$slug" params={{ slug: article.slug }}>
               <span>Ler Matéria</span>
-              <ArrowRight className="size-3.5" />
+              <ArrowRight className="size-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
             </Link>
           </Button>
         </div>
