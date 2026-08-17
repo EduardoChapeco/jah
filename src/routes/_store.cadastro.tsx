@@ -92,6 +92,9 @@ function RegisterPage() {
       }
 
       toast.success("Conta criada com sucesso!");
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("jah_just_registered", "true");
+      }
       await new Promise((r) => setTimeout(r, 100));
       await getUserSession();
       window.location.href = returnUrl || "/conta";

@@ -83,28 +83,44 @@ export function InterestPickerModal() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
+    // 1. Se já foi concluído ou dispensado no localStorage ou em Cookie persistente, NUNCA abre
     const localDone = localStorage.getItem("jah_onboarding_interests_done");
-    if (localDone === "true") {
+    const hasCookie = document.cookie.includes("jah_onboarding_interests_done=true");
+    if (localDone === "true" || hasCookie) {
       return;
     }
 
-    // Verifica no servidor se o usuário já tem preferências gravadas
+    // 2. O modal só deve abrir se o usuário ACABOU de fazer cadastro (onboarding inicial)
+    const justRegistered = sessionStorage.getItem("jah_just_registered") === "true";
+    const hasOnboardingParam = window.location.search.includes("onboarding=true") || window.location.search.includes("welcome=true");
+
+    // Verifica no servidor se é um usuário autenticado que ainda não completou o onboarding
     getUserPreferences()
       .then((prefs) => {
         if (prefs && prefs.onboarding_done) {
           localStorage.setItem("jah_onboarding_interests_done", "true");
+          document.cookie = "jah_onboarding_interests_done=true; path=/; max-age=315360000; SameSite=Lax";
           if (prefs.selected_niches && prefs.selected_niches.length > 0) {
             localStorage.setItem("jah_user_niches", JSON.stringify(prefs.selected_niches));
           }
-        } else {
-          // Primeiro acesso: abre modal suavemente
-          const t = setTimeout(() => setOpen(true), 900);
+        } else if (prefs && !prefs.onboarding_done) {
+          // Usuário logado em fase de primeiro onboarding
+          const t = setTimeout(() => setOpen(true), 600);
           return () => clearTimeout(t);
+        } else if (justRegistered || hasOnboardingParam) {
+          // Recém-cadastrado via fluxo visual
+          const t = setTimeout(() => setOpen(true), 600);
+          return () => clearTimeout(t);
+        } else {
+          // Usuário anônimo comum navegando no site: não interrompe a experiência com popup
+          localStorage.setItem("jah_onboarding_interests_done", "true");
+          document.cookie = "jah_onboarding_interests_done=true; path=/; max-age=315360000; SameSite=Lax";
         }
       })
       .catch(() => {
-        const t = setTimeout(() => setOpen(true), 900);
-        return () => clearTimeout(t);
+        // Erro ou anônimo: suprime popup e grava flag
+        localStorage.setItem("jah_onboarding_interests_done", "true");
+        document.cookie = "jah_onboarding_interests_done=true; path=/; max-age=315360000; SameSite=Lax";
       });
   }, []);
 
@@ -127,6 +143,8 @@ export function InterestPickerModal() {
   const handleClose = (newOpen: boolean) => {
     if (!newOpen) {
       localStorage.setItem("jah_onboarding_interests_done", "true");
+      document.cookie = "jah_onboarding_interests_done=true; path=/; max-age=315360000; SameSite=Lax";
+      sessionStorage.removeItem("jah_just_registered");
       saveUserPreferences({
         data: {
           selected_niches: selectedNiches,
@@ -141,6 +159,8 @@ export function InterestPickerModal() {
     setIsSaving(true);
     try {
       localStorage.setItem("jah_onboarding_interests_done", "true");
+      document.cookie = "jah_onboarding_interests_done=true; path=/; max-age=315360000; SameSite=Lax";
+      sessionStorage.removeItem("jah_just_registered");
       localStorage.setItem("jah_user_niches", JSON.stringify(selectedNiches));
 
       await saveUserPreferences({
