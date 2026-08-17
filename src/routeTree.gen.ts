@@ -40,8 +40,11 @@ import { Route as StoreTermosRouteImport } from './routes/_store.termos'
 import { Route as StoreTrocasEDevolucoesRouteImport } from './routes/_store.trocas-e-devolucoes'
 import { Route as StoreTurismoRouteImport } from './routes/_store.turismo'
 import { Route as AdminMasterIndexRouteImport } from './routes/admin-master.index'
+import { Route as AdminMasterDenunciasRouteImport } from './routes/admin-master.denuncias'
 import { Route as AdminMasterFaturasRouteImport } from './routes/admin-master.faturas'
+import { Route as AdminMasterKycRouteImport } from './routes/admin-master.kyc'
 import { Route as AdminMasterLojasRouteImport } from './routes/admin-master.lojas'
+import { Route as AdminMasterUsuariosRouteImport } from './routes/admin-master.usuarios'
 import { Route as AssinarTokenRouteImport } from './routes/assinar.$token'
 import { Route as WorkspaceIndexRouteImport } from './routes/workspace.index'
 import { Route as WorkspaceSimulacaoRouteImport } from './routes/workspace.simulacao'
@@ -315,14 +318,29 @@ const AdminMasterIndexRoute = AdminMasterIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminMasterRoute,
 } as any)
+const AdminMasterDenunciasRoute = AdminMasterDenunciasRouteImport.update({
+  id: '/denuncias',
+  path: '/denuncias',
+  getParentRoute: () => AdminMasterRoute,
+} as any)
 const AdminMasterFaturasRoute = AdminMasterFaturasRouteImport.update({
   id: '/faturas',
   path: '/faturas',
   getParentRoute: () => AdminMasterRoute,
 } as any)
+const AdminMasterKycRoute = AdminMasterKycRouteImport.update({
+  id: '/kyc',
+  path: '/kyc',
+  getParentRoute: () => AdminMasterRoute,
+} as any)
 const AdminMasterLojasRoute = AdminMasterLojasRouteImport.update({
   id: '/lojas',
   path: '/lojas',
+  getParentRoute: () => AdminMasterRoute,
+} as any)
+const AdminMasterUsuariosRoute = AdminMasterUsuariosRouteImport.update({
+  id: '/usuarios',
+  path: '/usuarios',
   getParentRoute: () => AdminMasterRoute,
 } as any)
 const AssinarTokenRoute = AssinarTokenRouteImport.update({
@@ -994,8 +1012,11 @@ export interface FileRoutesByFullPath {
   '/termos': typeof StoreTermosRoute
   '/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
   '/turismo': typeof StoreTurismoRouteWithChildren
+  '/admin-master/denuncias': typeof AdminMasterDenunciasRoute
   '/admin-master/faturas': typeof AdminMasterFaturasRoute
+  '/admin-master/kyc': typeof AdminMasterKycRoute
   '/admin-master/lojas': typeof AdminMasterLojasRoute
+  '/admin-master/usuarios': typeof AdminMasterUsuariosRoute
   '/assinar/$token': typeof AssinarTokenRoute
   '/workspace/simulacao': typeof WorkspaceSimulacaoRoute
   '/admin-master/': typeof AdminMasterIndexRoute
@@ -1141,8 +1162,11 @@ export interface FileRoutesByTo {
   '/termos': typeof StoreTermosRoute
   '/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
   '/turismo': typeof StoreTurismoRouteWithChildren
+  '/admin-master/denuncias': typeof AdminMasterDenunciasRoute
   '/admin-master/faturas': typeof AdminMasterFaturasRoute
+  '/admin-master/kyc': typeof AdminMasterKycRoute
   '/admin-master/lojas': typeof AdminMasterLojasRoute
+  '/admin-master/usuarios': typeof AdminMasterUsuariosRoute
   '/assinar/$token': typeof AssinarTokenRoute
   '/workspace/simulacao': typeof WorkspaceSimulacaoRoute
   '/': typeof StoreIndexRoute
@@ -1295,8 +1319,11 @@ export interface FileRoutesById {
   '/_store/termos': typeof StoreTermosRoute
   '/_store/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
   '/_store/turismo': typeof StoreTurismoRouteWithChildren
+  '/admin-master/denuncias': typeof AdminMasterDenunciasRoute
   '/admin-master/faturas': typeof AdminMasterFaturasRoute
+  '/admin-master/kyc': typeof AdminMasterKycRoute
   '/admin-master/lojas': typeof AdminMasterLojasRoute
+  '/admin-master/usuarios': typeof AdminMasterUsuariosRoute
   '/assinar/$token': typeof AssinarTokenRoute
   '/workspace/simulacao': typeof WorkspaceSimulacaoRoute
   '/_store/': typeof StoreIndexRoute
@@ -1450,8 +1477,11 @@ export interface FileRouteTypes {
     | '/termos'
     | '/trocas-e-devolucoes'
     | '/turismo'
+    | '/admin-master/denuncias'
     | '/admin-master/faturas'
+    | '/admin-master/kyc'
     | '/admin-master/lojas'
+    | '/admin-master/usuarios'
     | '/assinar/$token'
     | '/workspace/simulacao'
     | '/admin-master/'
@@ -1597,8 +1627,11 @@ export interface FileRouteTypes {
     | '/termos'
     | '/trocas-e-devolucoes'
     | '/turismo'
+    | '/admin-master/denuncias'
     | '/admin-master/faturas'
+    | '/admin-master/kyc'
     | '/admin-master/lojas'
+    | '/admin-master/usuarios'
     | '/assinar/$token'
     | '/workspace/simulacao'
     | '/'
@@ -1750,8 +1783,11 @@ export interface FileRouteTypes {
     | '/_store/termos'
     | '/_store/trocas-e-devolucoes'
     | '/_store/turismo'
+    | '/admin-master/denuncias'
     | '/admin-master/faturas'
+    | '/admin-master/kyc'
     | '/admin-master/lojas'
+    | '/admin-master/usuarios'
     | '/assinar/$token'
     | '/workspace/simulacao'
     | '/_store/'
@@ -2107,6 +2143,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMasterIndexRouteImport
       parentRoute: typeof AdminMasterRoute
     }
+    '/admin-master/denuncias': {
+      id: '/admin-master/denuncias'
+      path: '/denuncias'
+      fullPath: '/admin-master/denuncias'
+      preLoaderRoute: typeof AdminMasterDenunciasRouteImport
+      parentRoute: typeof AdminMasterRoute
+    }
     '/admin-master/faturas': {
       id: '/admin-master/faturas'
       path: '/faturas'
@@ -2114,11 +2157,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMasterFaturasRouteImport
       parentRoute: typeof AdminMasterRoute
     }
+    '/admin-master/kyc': {
+      id: '/admin-master/kyc'
+      path: '/kyc'
+      fullPath: '/admin-master/kyc'
+      preLoaderRoute: typeof AdminMasterKycRouteImport
+      parentRoute: typeof AdminMasterRoute
+    }
     '/admin-master/lojas': {
       id: '/admin-master/lojas'
       path: '/lojas'
       fullPath: '/admin-master/lojas'
       preLoaderRoute: typeof AdminMasterLojasRouteImport
+      parentRoute: typeof AdminMasterRoute
+    }
+    '/admin-master/usuarios': {
+      id: '/admin-master/usuarios'
+      path: '/usuarios'
+      fullPath: '/admin-master/usuarios'
+      preLoaderRoute: typeof AdminMasterUsuariosRouteImport
       parentRoute: typeof AdminMasterRoute
     }
     '/assinar/$token': {
@@ -3140,14 +3197,20 @@ const StoreRouteChildren: StoreRouteChildren = {
 const StoreRouteWithChildren = StoreRoute._addFileChildren(StoreRouteChildren)
 
 interface AdminMasterRouteChildren {
+  AdminMasterDenunciasRoute: typeof AdminMasterDenunciasRoute
   AdminMasterFaturasRoute: typeof AdminMasterFaturasRoute
+  AdminMasterKycRoute: typeof AdminMasterKycRoute
   AdminMasterLojasRoute: typeof AdminMasterLojasRoute
+  AdminMasterUsuariosRoute: typeof AdminMasterUsuariosRoute
   AdminMasterIndexRoute: typeof AdminMasterIndexRoute
 }
 
 const AdminMasterRouteChildren: AdminMasterRouteChildren = {
+  AdminMasterDenunciasRoute: AdminMasterDenunciasRoute,
   AdminMasterFaturasRoute: AdminMasterFaturasRoute,
+  AdminMasterKycRoute: AdminMasterKycRoute,
   AdminMasterLojasRoute: AdminMasterLojasRoute,
+  AdminMasterUsuariosRoute: AdminMasterUsuariosRoute,
   AdminMasterIndexRoute: AdminMasterIndexRoute,
 }
 

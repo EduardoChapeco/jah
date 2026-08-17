@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, redirect, Link } from "@tanstack/react-router";
 import { getProfile } from "@/services/auth.functions";
-import { Shield, Home, DollarSign, Store } from "lucide-react";
+import { Shield, Home, DollarSign, Store, AlertTriangle, Users, UserCheck, Scale } from "lucide-react";
 
 export const Route = createFileRoute("/admin-master")({
   beforeLoad: async () => {
@@ -26,12 +26,30 @@ function AdminMasterLayout() {
           <Shield className="size-6" />
           <span className="font-black text-xl tracking-tighter uppercase">Jah Master</span>
         </div>
-        <nav className="flex-1 p-4 space-y-2">
+        <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
           <Link
             to="/admin-master"
             className="flex items-center gap-3 p-3 rounded-xl text-sm font-semibold hover:bg-muted/50 [&.active]:bg-primary [&.active]:text-primary-foreground transition-colors"
           >
             <Home className="size-4" /> Dashboard Global
+          </Link>
+          <Link
+            to="/admin-master/denuncias"
+            className="flex items-center gap-3 p-3 rounded-xl text-sm font-semibold hover:bg-muted/50 [&.active]:bg-primary [&.active]:text-primary-foreground transition-colors"
+          >
+            <AlertTriangle className="size-4" /> Trust & Denúncias
+          </Link>
+          <Link
+            to="/admin-master/usuarios"
+            className="flex items-center gap-3 p-3 rounded-xl text-sm font-semibold hover:bg-muted/50 [&.active]:bg-primary [&.active]:text-primary-foreground transition-colors"
+          >
+            <Users className="size-4" /> Usuários & Sanções
+          </Link>
+          <Link
+            to="/admin-master/kyc"
+            className="flex items-center gap-3 p-3 rounded-xl text-sm font-semibold hover:bg-muted/50 [&.active]:bg-primary [&.active]:text-primary-foreground transition-colors"
+          >
+            <UserCheck className="size-4" /> Verificação Facial / KYC
           </Link>
           <Link
             to="/admin-master/lojas"

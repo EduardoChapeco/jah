@@ -55,47 +55,68 @@ function AdminMasterDashboard() {
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="border border-border bg-card rounded-xl p-6 flex items-center gap-4 relative overflow-hidden">
-          <div className="absolute -right-4 -top-4 opacity-5">
-            <DollarSign className="size-32" />
-          </div>
-          <div className="p-4 bg-primary/10 text-primary rounded-xl">
-            <DollarSign className="size-8" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="border border-border bg-card rounded-xl p-5 flex items-center gap-4 relative overflow-hidden shadow-xs">
+          <div className="p-3.5 bg-primary/10 text-primary rounded-xl">
+            <DollarSign className="size-6" />
           </div>
           <div>
-            <p className="text-sm font-bold text-muted-foreground">Receita (Paga)</p>
-            <p className="text-3xl font-black text-foreground">
+            <p className="text-xs font-bold text-muted-foreground">Receita Faturada</p>
+            <p className="text-2xl font-black text-foreground">
               {formatMoney(metrics.totalRevenueCents)}
             </p>
           </div>
         </div>
 
-        <div className="border border-border bg-card rounded-xl p-6 flex items-center gap-4 relative overflow-hidden">
-          <div className="absolute -right-4 -top-4 opacity-5">
-            <Activity className="size-32" />
-          </div>
-          <div className="p-4 bg-warning/10 text-warning rounded-xl">
-            <Activity className="size-8" />
+        <div className="border border-border bg-card rounded-xl p-5 flex items-center gap-4 relative overflow-hidden shadow-xs">
+          <div className="p-3.5 bg-warning/10 text-warning rounded-xl">
+            <Activity className="size-6" />
           </div>
           <div>
-            <p className="text-sm font-bold text-muted-foreground">Receita Pendente</p>
-            <p className="text-3xl font-black text-foreground">
+            <p className="text-xs font-bold text-muted-foreground">Receita Pendente</p>
+            <p className="text-2xl font-black text-foreground">
               {formatMoney(metrics.pendingRevenueCents)}
             </p>
           </div>
         </div>
 
-        <div className="border border-border bg-card rounded-xl p-6 flex items-center gap-4 relative overflow-hidden">
-          <div className="absolute -right-4 -top-4 opacity-5">
-            <Store className="size-32" />
-          </div>
-          <div className="p-4 bg-primary/10 text-foreground rounded-xl">
-            <Store className="size-8" />
+        <div className="border border-border bg-card rounded-xl p-5 flex items-center gap-4 relative overflow-hidden shadow-xs">
+          <div className="p-3.5 bg-primary/10 text-foreground rounded-xl">
+            <Store className="size-6" />
           </div>
           <div>
-            <p className="text-sm font-bold text-muted-foreground">Total de Lojas</p>
-            <p className="text-3xl font-black text-foreground">{metrics.totalStores}</p>
+            <p className="text-xs font-bold text-muted-foreground">Total de Lojas</p>
+            <p className="text-2xl font-black text-foreground">{metrics.totalStores}</p>
+          </div>
+        </div>
+
+        <div className="border border-border bg-card rounded-xl p-5 flex items-center gap-4 relative overflow-hidden shadow-xs">
+          <div className="p-3.5 bg-blue-500/10 text-blue-600 rounded-xl">
+            <ShieldCheck className="size-6" />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-muted-foreground">Usuários Cadastrados</p>
+            <p className="text-2xl font-black text-foreground">{metrics.totalUsers}</p>
+          </div>
+        </div>
+
+        <div className="border border-border bg-card rounded-xl p-5 flex items-center gap-4 relative overflow-hidden shadow-xs">
+          <div className="p-3.5 bg-amber-500/10 text-amber-600 rounded-xl">
+            <AlertTriangle className="size-6" />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-muted-foreground">Denúncias Pendentes</p>
+            <p className="text-2xl font-black text-foreground">{metrics.pendingReports}</p>
+          </div>
+        </div>
+
+        <div className="border border-border bg-card rounded-xl p-5 flex items-center gap-4 relative overflow-hidden shadow-xs">
+          <div className="p-3.5 bg-indigo-500/10 text-indigo-600 rounded-xl">
+            <ShieldCheck className="size-6" />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-muted-foreground">KYC Facial Pendente</p>
+            <p className="text-2xl font-black text-foreground">{metrics.pendingKyc}</p>
           </div>
         </div>
       </div>
