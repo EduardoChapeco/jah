@@ -11,6 +11,10 @@ export type HotpageModule =
   | "agenda"
   | "events"
   | "diretorio"
+  | "turismo"
+  | "empregos"
+  | "classificados"
+  | "mobilidade"
   | "all";
 
 export interface HotpageDTO {
@@ -441,16 +445,20 @@ export const saveUserPreferences = createServerFn({ method: "POST" })
     // 2. Alimenta o motor de afinidade preditiva para os nichos selecionados
     for (const niche of data.selected_niches) {
       if (niche !== "all") {
-        await supabase.rpc("record_user_behavior_event", {
-          p_user_id: userId,
-          p_session_id: userId ? null : "anon_session",
-          p_event_type: "search",
-          p_entity_type: "product",
-          p_entity_id: null,
-          p_category_slug: niche,
-          p_niche: niche,
-          p_metadata: { source: "onboarding_picker", weight_boost: 10 },
-        }).catch(() => null);
+        try {
+          await supabase.rpc("record_user_behavior_event", {
+            p_user_id: userId,
+            p_session_id: userId ? null : "anon_session",
+            p_event_type: "search",
+            p_entity_type: "product",
+            p_entity_id: null,
+            p_category_slug: niche,
+            p_niche: niche,
+            p_metadata: { source: "onboarding_picker", weight_boost: 10 },
+          });
+        } catch {
+          // rpc telemetry optional
+        }
       }
     }
 

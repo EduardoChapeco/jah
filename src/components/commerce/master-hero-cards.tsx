@@ -125,7 +125,7 @@ export function MasterHeroCards({ customCategories }: MasterHeroCardsProps) {
           {MASTER_SQUIRCLE_ITEMS.map((item) => {
             const Icon = item.icon;
             const customMatch = customCategories?.find((c) => c.slug === item.slug);
-            const iconUrl = customMatch?.icon_url || item.custom_icon_url;
+            const iconUrl = customMatch?.icon_url || (item as any).custom_icon_url;
 
             return (
               <Link

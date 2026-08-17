@@ -287,8 +287,8 @@ export const createMobilityRequest = createServerFn({ method: "POST" })
     }
 
     const payload = {
-      customer_id: identity?.user_id || null,
-      customer_name: data.customer_name || identity?.full_name || "Cliente JAH",
+      customer_id: identity?.id || null,
+      customer_name: data.customer_name || "Cliente JAH",
       customer_phone: data.customer_phone || "(49) 99999-9999",
       service_type: data.service_type,
       status: assignedCourierProfileId ? "accepted" : "searching",
@@ -340,13 +340,13 @@ export const createMobilityRequest = createServerFn({ method: "POST" })
 export const listCustomerMobilityRequests = createServerFn({ method: "GET" }).handler(
   async () => {
     const identity = await getServerIdentity().catch(() => null);
-    if (!identity?.user_id) return [];
+    if (!identity?.id) return [];
 
     const supabase = getServerClient();
     const { data: rows, error } = await supabase
       .from("mobility_requests")
       .select(`*, courier_profiles(full_name, phone, vehicle_type, vehicle_model, vehicle_plate, rating)`)
-      .eq("customer_id", identity.user_id)
+      .eq("customer_id", identity.id)
       .order("created_at", { ascending: false })
       .limit(30);
 

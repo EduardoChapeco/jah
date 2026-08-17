@@ -501,8 +501,8 @@ function AgendaPage() {
                 </div>
 
                 <div className="flex items-center justify-between pt-2.5 border-t border-border">
-                  <Badge variant={event.is_free ? "secondary" : "outline"} className="text-[10px]">
-                    {event.is_free ? "Gratuito" : "Ingresso Pago"}
+                  <Badge variant={(event as any).is_free ? "secondary" : "outline"} className="text-[10px]">
+                    {(event as any).is_free ? "Gratuito" : "Ingresso Pago"}
                   </Badge>
 
                   <Button asChild size="sm" variant="outline" className="h-8 rounded-lg text-xs">

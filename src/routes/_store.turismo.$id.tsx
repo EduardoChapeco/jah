@@ -172,7 +172,7 @@ function TourismDetailPage() {
 
         {images.length > 1 && (
           <div className="flex items-center gap-3 overflow-x-auto pb-1 scrollbar-none">
-            {images.map((img, idx) => (
+            {images.map((img: string, idx: number) => (
               <button
                 key={idx}
                 type="button"
@@ -258,7 +258,7 @@ function TourismDetailPage() {
                 <span>O que está incluso</span>
               </h2>
               <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {experience.included_items.map((inc, idx) => (
+                {experience.included_items.map((inc: string, idx: number) => (
                   <li key={idx} className="flex items-start gap-2.5 text-xs font-semibold text-foreground/90 p-2.5 rounded-xl bg-muted/30 border border-border">
                     <CheckCircle size={16} weight="bold" className="text-foreground shrink-0 mt-0.5" />
                     <span>{inc}</span>
@@ -276,7 +276,7 @@ function TourismDetailPage() {
                 <span>O que levar & Recomendações</span>
               </h2>
               <ul className="space-y-2">
-                {experience.what_to_bring.map((item, idx) => (
+                {experience.what_to_bring.map((item: string, idx: number) => (
                   <li key={idx} className="flex items-center gap-2.5 text-xs text-foreground/90">
                     <div className="size-1.5 rounded-full bg-foreground shrink-0" />
                     <span>{item}</span>

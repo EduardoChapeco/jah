@@ -207,11 +207,11 @@ function MapaPage() {
                 ) : (
                   <div className="size-11 rounded-lg bg-background border border-border flex items-center justify-center text-foreground">
                     {selectedItem.kind === "event" ? (
-                      <Calendar className="size-5" />
+                      <CalendarDots className="size-5" />
                     ) : selectedItem.kind === "place" ? (
-                      <Store className="size-5" />
+                      <Storefront className="size-5" />
                     ) : (
-                      <Sparkles className="size-5" />
+                      <Sparkle className="size-5" />
                     )}
                   </div>
                 )}
@@ -308,11 +308,11 @@ function MapaPage() {
                     ) : (
                       <div className="size-9 rounded-lg bg-muted flex items-center justify-center shrink-0 text-foreground">
                         {item.kind === "event" ? (
-                          <Calendar className="size-4" />
+                          <CalendarDots className="size-4" />
                         ) : item.kind === "place" ? (
-                          <Store className="size-4" />
+                          <Storefront className="size-4" />
                         ) : (
-                          <Sparkles className="size-4" />
+                          <Sparkle className="size-4" />
                         )}
                       </div>
                     )}

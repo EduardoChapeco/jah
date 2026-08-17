@@ -167,7 +167,7 @@ export function InlinePostComposer({ session }: InlinePostComposerProps) {
             >
               {isUploadingMedia && index === mediaPreviews.length - 1 && (
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center z-20 gap-1 text-white">
-                  <Loader2 className="size-5 animate-spin text-primary" />
+                  <CircleNotch className="size-5 animate-spin text-primary" />
                   <span className="text-[10px] font-medium">Enviando...</span>
                 </div>
               )}

@@ -38,7 +38,7 @@ import { getUserSession } from "@/services/auth.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/diretorio/$id")({
-  head: ({ loaderData }) => ({
+  head: ({ loaderData }: any) => ({
     meta: [
       {
         title: loaderData?.listing
@@ -64,7 +64,7 @@ export const Route = createFileRoute("/_store/diretorio/$id")({
 });
 
 function DirectoryDetailPage() {
-  const { listing, session } = Route.useLoaderData();
+  const { listing, session } = Route.useLoaderData() as any;
   const [isQuoteOpen, setIsQuoteOpen] = useState(false);
   const [customerName, setCustomerName] = useState(session?.user_metadata?.full_name || "");
   const [customerEmail, setCustomerEmail] = useState(session?.email || "");
@@ -234,7 +234,7 @@ function DirectoryDetailPage() {
                 <span>Especialidades & Serviços Prestados</span>
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {listing.specialties.map((spec, idx) => (
+                {listing.specialties.map((spec: string, idx: number) => (
                   <div
                     key={idx}
                     className="p-3.5 rounded-2xl border border-border bg-muted/30 flex items-center gap-3 text-xs font-semibold text-foreground"

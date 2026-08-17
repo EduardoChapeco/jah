@@ -91,7 +91,7 @@ function DirectoryPage() {
       {/* ── Hotpages & Categorias ── */}
       {hotpages && hotpages.length > 0 && (
         <section aria-label="Destaques">
-          <HotpagesRail hotpages={hotpages} title="Especialistas em Destaque" />
+          <HotpagesRail hotpages={hotpages} />
         </section>
       )}
 

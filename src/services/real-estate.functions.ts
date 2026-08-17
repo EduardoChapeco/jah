@@ -31,7 +31,7 @@ export const listPropertyMaintenanceRequests = createServerFn({ method: "GET" })
     const supabase = getServerClient();
     const identity = await getCurrentIdentity();
 
-    if (!identity.user_id) {
+    if (!identity.customer_id) {
       return [];
     }
 
@@ -93,7 +93,7 @@ export const createMaintenanceRequest = createServerFn({ method: "POST" })
     const supabase = getServerClient();
     const identity = await getCurrentIdentity();
 
-    if (!identity.user_id) {
+    if (!identity.customer_id) {
       throw new Error("Você precisa estar logado para abrir um chamado.");
     }
 
@@ -101,7 +101,7 @@ export const createMaintenanceRequest = createServerFn({ method: "POST" })
       .from("property_maintenance_requests")
       .insert({
         property_id: data.propertyId,
-        tenant_profile_id: identity.customer_id || identity.user_id,
+        tenant_profile_id: identity.customer_id,
         title: data.title.trim(),
         category: data.category,
         urgency: data.urgency,
@@ -109,38 +109,35 @@ export const createMaintenanceRequest = createServerFn({ method: "POST" })
         photos: data.photos || [],
         status: "open",
       })
-      .select("id, created_at")
+      .select("id")
       .single();
 
     if (error) {
-      console.error("Erro ao criar chamado:", error);
+      console.error("Erro ao criar chamado de manutenção:", error);
       throw new Error("Não foi possível registrar o chamado de manutenção.");
     }
 
-    return { success: true, maintenanceId: created.id };
+    return {
+      success: true,
+      requestId: created.id,
+      message: "Chamado de manutenção aberto com sucesso!",
+    };
   });
 
-export const updateMaintenanceRequestStatus = createServerFn({ method: "POST" })
+export const resolveMaintenanceRequest = createServerFn({ method: "POST" })
   .validator(
     z.object({
       requestId: z.string().uuid(),
-      status: z.enum([
-        "open",
-        "in_review",
-        "quote_approved",
-        "in_progress",
-        "resolved",
-        "cancelled",
-      ]),
-      adminNotes: z.string().optional().nullable(),
+      status: z.enum(["in_progress", "resolved", "cancelled"]),
       estimatedCostCents: z.number().int().min(0).optional().nullable(),
+      adminNotes: z.string().optional().nullable(),
     }),
   )
   .handler(async ({ data }) => {
     const supabase = getServerClient();
     const identity = await getCurrentIdentity();
 
-    if (!identity.user_id) {
+    if (!identity.customer_id) {
       throw new Error("Não autorizado.");
     }
 
@@ -167,3 +164,5 @@ export const updateMaintenanceRequestStatus = createServerFn({ method: "POST" })
 
     return { success: true, request: updated };
   });
+
+export const updateMaintenanceRequestStatus = resolveMaintenanceRequest;

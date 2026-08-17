@@ -96,7 +96,7 @@ export const listStorePudoPackages = createServerFn({ method: "GET" })
     const supabase = getServerClient();
     const identity = await getCurrentIdentity();
 
-    if (!identity.user_id) {
+    if (!identity.customer_id) {
       return [];
     }
 
@@ -153,7 +153,7 @@ export const checkInPudoPackage = createServerFn({ method: "POST" })
     const supabase = getServerClient();
     const identity = await getCurrentIdentity();
 
-    if (!identity.user_id) {
+    if (!identity.customer_id) {
       throw new Error("Não autorizado.");
     }
 
@@ -200,7 +200,7 @@ export const deliverPudoPackageToCustomer = createServerFn({ method: "POST" })
     const supabase = getServerClient();
     const identity = await getCurrentIdentity();
 
-    if (!identity.user_id) {
+    if (!identity.customer_id) {
       throw new Error("Não autorizado.");
     }
 
@@ -249,7 +249,7 @@ export const reportPackageDamageAndReturn = createServerFn({ method: "POST" })
     const supabase = getServerClient();
     const identity = await getCurrentIdentity();
 
-    if (!identity.user_id) {
+    if (!identity.customer_id) {
       throw new Error("Não autorizado.");
     }
 

@@ -150,7 +150,7 @@ export const getPublicClassifiedById = createServerFn({ method: "GET" })
       console.warn("[classifieds] getPublicClassifiedById db miss, checking seeds:", error);
     }
 
-    let classifiedData = data;
+    let classifiedData: any = data;
     if (!classifiedData) {
       const seed = SEED_CLASSIFIEDS.find((c) => c.id === id);
       if (seed) {
@@ -164,7 +164,7 @@ export const getPublicClassifiedById = createServerFn({ method: "GET" })
             full_name: "Morador Verificado JAH",
             avatar_url: null,
             phone: seed.whatsapp,
-          },
+          } as any,
         };
       }
     }

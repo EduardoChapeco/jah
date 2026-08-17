@@ -93,7 +93,7 @@ export function NoticiasFeedPage() {
 
   const featuredArticle = articles[0];
   const breakingNews = articles.filter(
-    (a) => a.is_breaking || a.category === "urgente" || a.kicker?.toLowerCase().includes("urgente"),
+    (a) => (a as any).is_breaking || a.category === "urgente" || a.kicker?.toLowerCase().includes("urgente"),
   );
   const cultureArticles = articles.filter((a) => a.category === "cultura");
   const economyArticles = articles.filter((a) => a.category === "economia");

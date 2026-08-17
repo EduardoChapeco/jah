@@ -10,6 +10,7 @@ import {
   Facebook,
   Calendar,
   MessageCircle,
+  MapPin,
 } from "lucide-react";
 import { toast } from "sonner";
 

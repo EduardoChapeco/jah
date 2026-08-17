@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -15,12 +15,21 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Link } from "@tanstack/react-router";
 import { provisionBusiness } from "@/services/onboarding.functions";
+import { getUserSession } from "@/services/auth.functions";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_store/criar-negocio")({
   head: () => ({ meta: [{ title: "Criar Espaço de Trabalho | JAH" }] }),
+  beforeLoad: async ({ location }) => {
+    const session = await getUserSession();
+    if (!session) {
+      throw redirect({
+        to: "/entrar",
+        search: { returnUrl: location.pathname },
+      });
+    }
+  },
   component: CriarNegocioPage,
 });
 

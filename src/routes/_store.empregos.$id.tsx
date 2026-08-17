@@ -39,7 +39,7 @@ import { formatDate } from "@/lib/datetime";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/empregos/$id")({
-  head: ({ loaderData }) => ({
+  head: ({ loaderData }: any) => ({
     meta: [
       {
         title: loaderData?.job
@@ -65,7 +65,7 @@ export const Route = createFileRoute("/_store/empregos/$id")({
 });
 
 function JobDetailPage() {
-  const { job, session } = Route.useLoaderData();
+  const { job, session } = Route.useLoaderData() as any;
   const [isApplyOpen, setIsApplyOpen] = useState(false);
   const [candidateName, setCandidateName] = useState(session?.user_metadata?.full_name || "");
   const [candidateEmail, setCandidateEmail] = useState(session?.email || "");
@@ -249,7 +249,7 @@ function JobDetailPage() {
                 <span>Requisitos & Conhecimentos</span>
               </h2>
               <ul className="space-y-2.5">
-                {job.requirements.map((req, idx) => (
+                {job.requirements.map((req: string, idx: number) => (
                   <li key={idx} className="flex items-start gap-3 text-sm text-foreground/90">
                     <div className="size-5 rounded-lg bg-foreground text-background flex items-center justify-center shrink-0 mt-0.5">
                       <CheckCircle size={13} weight="bold" />
@@ -269,7 +269,7 @@ function JobDetailPage() {
                 <span>Benefícios & Vantagens</span>
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {job.benefits.map((ben, idx) => (
+                {job.benefits.map((ben: string, idx: number) => (
                   <div
                     key={idx}
                     className="p-3.5 rounded-2xl border border-border bg-muted/30 flex items-center gap-3 text-xs font-semibold text-foreground"

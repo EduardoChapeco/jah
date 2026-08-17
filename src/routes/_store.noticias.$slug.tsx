@@ -20,7 +20,7 @@ import { recordAdTelemetry } from "@/services/telemetry.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/noticias/$slug")({
-  head: ({ loaderData }) => ({
+  head: ({ loaderData }: any) => ({
     meta: [
       { title: loaderData?.article ? `${loaderData.article.title} | JAH Notícias` : "Notícia | JAH" },
       { name: "description", content: loaderData?.article?.subtitle || "Notícia local no JAH." },
@@ -37,7 +37,7 @@ export const Route = createFileRoute("/_store/noticias/$slug")({
 });
 
 function NoticiaDetailPage() {
-  const { article, sponsors, related } = Route.useLoaderData();
+  const { article, sponsors, related } = Route.useLoaderData() as any;
   const [scrollProgress, setScrollProgress] = useState(0);
   const scrollTrackedRefs = useRef<Set<number>>(new Set());
 
@@ -211,7 +211,7 @@ function NoticiaDetailPage() {
         {/* ── Corpo do Artigo / Seções Estruturadas ── */}
         <div className="space-y-6 text-sm sm:text-base leading-relaxed text-foreground/90">
           {article.content_sections && article.content_sections.length > 0 ? (
-            article.content_sections.map((section, idx) => {
+            article.content_sections.map((section: any, idx: number) => {
               // Insere patrocinador no meio do artigo (após o 2º bloco)
               const showMidSponsor = idx === 1 && secondarySponsor;
 
@@ -243,7 +243,7 @@ function NoticiaDetailPage() {
 
                   {section.type === "gallery" && Array.isArray(section.content) && (
                     <div className="grid grid-cols-2 gap-3 my-4">
-                      {section.content.map((imgUrl, i) => (
+                      {section.content.map((imgUrl: string, i: number) => (
                         <div
                           key={i}
                           className="aspect-4/3 rounded-2xl overflow-hidden bg-muted shadow-2xs"
@@ -278,7 +278,7 @@ function NoticiaDetailPage() {
         {/* ── Tags / Assuntos Relacionados ── */}
         {article.tags && article.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 pt-4 border-t border-border/60">
-            {article.tags.map((tag) => (
+            {article.tags.map((tag: string) => (
               <span
                 key={tag}
                 className="px-3 py-1 rounded-full text-xs font-semibold bg-muted text-muted-foreground"
@@ -297,7 +297,7 @@ function NoticiaDetailPage() {
           <div className="mt-12 pt-8 border-t border-border/80 space-y-4">
             <h3 className="text-lg font-black text-foreground">Leia Também</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {related.map((rel) => (
+              {related.map((rel: any) => (
                 <Link
                   key={rel.id}
                   to="/noticias/$slug"

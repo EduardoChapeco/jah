@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { getCourierBySlug } from "@/services/mobility.functions";
 
 export const Route = createFileRoute("/_store/motorista/$slug")({
-  head: ({ loaderData }) => ({
+  head: ({ loaderData }: any) => ({
     meta: [
       {
         title: `${loaderData?.courier?.full_name || "Motorista Parceiro"} — JAH Mobilidade`,
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/_store/motorista/$slug")({
 });
 
 function DriverDirectPage() {
-  const { courier } = Route.useLoaderData();
+  const { courier } = Route.useLoaderData() as any;
 
   if (!courier) {
     return (

@@ -29,6 +29,7 @@ import {
   Plus,
   Sliders,
   BarChart3,
+  DollarSign,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
