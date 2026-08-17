@@ -10,6 +10,7 @@ import {
   Eye,
   Edit3,
   Image as ImageIcon,
+  Play,
 } from "lucide-react";
 
 import { getClassifieds } from "@/services/classifieds.functions";
@@ -18,6 +19,11 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { formatMoney } from "@/lib/money";
 import { formatDate } from "@/lib/datetime";
+
+function isVideoUrl(url?: string | null): boolean {
+  if (!url) return false;
+  return /\.(mp4|webm|ogg|mov|m4v)(\?.*)?$/i.test(url);
+}
 
 export const Route = createFileRoute("/_store/conta/classificados/")({
   head: () => ({ meta: [{ title: "Meus Anúncios — JAH" }] }),
@@ -116,15 +122,31 @@ function ClassificadosIndex() {
                 className="border border-border bg-card rounded-2xl overflow-hidden shadow-2xs hover:shadow-sm transition-shadow flex flex-col justify-between"
               >
                 <div>
-                  {/* Foto de Capa */}
-                  <div className="relative aspect-video bg-muted border-b border-border overflow-hidden flex items-center justify-center">
+                  {/* Foto ou Vídeo de Capa */}
+                  <div className="relative aspect-video bg-black/95 border-b border-border overflow-hidden flex items-center justify-center">
                     {coverImage ? (
-                      <img
-                        src={coverImage}
-                        alt={ad.title}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
+                      isVideoUrl(coverImage) ? (
+                        <div className="relative size-full">
+                          <video
+                            src={coverImage}
+                            className="size-full object-cover pointer-events-none"
+                            preload="metadata"
+                            muted
+                          />
+                          <div className="absolute inset-0 bg-black/25 flex items-center justify-center">
+                            <div className="size-8 rounded-full bg-black/60 backdrop-blur-xs flex items-center justify-center text-white">
+                              <Play className="size-3.5 fill-white ml-0.5" />
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <img
+                          src={coverImage}
+                          alt={ad.title}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      )
                     ) : (
                       <div className="flex flex-col items-center gap-1 text-muted-foreground/60">
                         <ImageIcon className="size-8 stroke-[1.5]" />
@@ -134,7 +156,7 @@ function ClassificadosIndex() {
 
                     <Badge
                       variant={statusInfo.variant}
-                      className="absolute top-2.5 right-2.5 text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm"
+                      className="absolute top-2.5 right-2.5 z-10 text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm"
                     >
                       {statusInfo.label}
                     </Badge>

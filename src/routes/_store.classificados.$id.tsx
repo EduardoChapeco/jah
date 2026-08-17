@@ -272,7 +272,6 @@ function ClassifiedDetailPage() {
         `Olá! Vi seu anúncio "${classified.title}" na JAH e tenho interesse em negociar.`,
       )}`
     : null;
-
   const author = classified.profiles as any;
   const authorInitial = author?.full_name?.charAt(0)?.toUpperCase() ?? "J";
   const statusInfo = STATUS_LABELS[classified.status] || {
@@ -282,9 +281,19 @@ function ClassifiedDetailPage() {
 
   return (
     <div className="w-full space-y-6">
-      {/* ── Barra Superior Natural: Sem Breadcrumbs Administrativos ── */}
-      <div className="flex items-center justify-between gap-4 border-b border-border/60 pb-3">
-        <div className="flex items-center gap-2">
+      {/* ── Barra Superior de Navegação & Ações Perfeitas ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-4">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link
+            to="/classificados"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors mr-1"
+          >
+            <ArrowLeft className="size-3.5" />
+            <span>Classificados</span>
+          </Link>
+
+          <span className="text-muted-foreground/40 text-xs">/</span>
+
           <Badge variant="outline" className="text-xs font-semibold">
             {CATEGORY_LABELS[classified.category] || classified.category}
           </Badge>
@@ -306,14 +315,35 @@ function ClassifiedDetailPage() {
           )}
         </div>
 
-        {/* Menu de Ações de Três Pontos Canônico */}
-        <div className="flex items-center gap-2">
+        {/* Ações de Compartilhamento, Edição & Menu */}
+        <div className="flex items-center gap-2 self-end sm:self-auto">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (navigator.share) {
+                navigator.share({
+                  title: classified.title,
+                  text: classified.content,
+                  url: window.location.href,
+                }).catch(() => {});
+              } else {
+                navigator.clipboard.writeText(window.location.href);
+                toast.success("Link do anúncio copiado!");
+              }
+            }}
+            className="rounded-xl text-xs font-semibold h-8 gap-1.5"
+          >
+            <Share2 className="size-3.5 text-muted-foreground" />
+            <span className="hidden sm:inline">Compartilhar</span>
+          </Button>
+
           {isOwner && (
             <Button
               asChild
               variant="outline"
               size="sm"
-              className="rounded-xl text-xs font-semibold h-8 gap-1.5 hidden sm:inline-flex"
+              className="rounded-xl text-xs font-semibold h-8 gap-1.5"
             >
               <Link to="/conta/classificados/novo" search={{ editId: classified.id } as any}>
                 <Edit3 className="size-3.5 text-muted-foreground" />
@@ -348,21 +378,30 @@ function ClassifiedDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Coluna Esquerda: Mídias & Detalhes (7 colunas) */}
         <div className="lg:col-span-7 space-y-6">
-          {/* Galeria de Mídias Dominante */}
-          <div className="border border-border bg-card rounded-2xl overflow-hidden shadow-2xs">
-            <div className="relative aspect-4/3 sm:aspect-16/10 bg-muted/30 flex items-center justify-center overflow-hidden group">
+          {/* Galeria de Mídias Dominante com Ambient Backdrop */}
+          <div className="border border-border bg-card rounded-3xl overflow-hidden shadow-2xs">
+            <div className="relative aspect-[16/10] bg-black/95 flex items-center justify-center overflow-hidden group">
+              {/* Ambient Blurred Backdrop para mídias verticais ou formatos mistos */}
+              {images.length > 0 && !isVideoUrl(images[activeImage]) && (
+                <div
+                  className="absolute inset-0 bg-cover bg-center blur-2xl opacity-40 scale-125 pointer-events-none transition-all duration-500"
+                  style={{ backgroundImage: `url(${images[activeImage]})` }}
+                />
+              )}
+
               {images.length > 0 ? (
                 isVideoUrl(images[activeImage]) ? (
                   <video
                     src={images[activeImage]}
                     controls
-                    className="w-full h-full object-contain bg-black"
+                    playsInline
+                    className="relative z-10 size-full max-h-full max-w-full object-contain"
                   />
                 ) : (
                   <img
                     src={images[activeImage]}
                     alt={`${classified.title} - Imagem ${activeImage + 1}`}
-                    className="w-full h-full object-cover select-none cursor-pointer transition-transform duration-300 group-hover:scale-[1.01]"
+                    className="relative z-10 size-full max-h-full max-w-full object-contain select-none cursor-pointer transition-transform duration-300 group-hover:scale-[1.01]"
                     onClick={() => setFullscreenImage(images[activeImage])}
                   />
                 )
@@ -373,12 +412,19 @@ function ClassifiedDetailPage() {
                 </div>
               )}
 
+              {/* Indicador Numérico de Fotos */}
+              {images.length > 1 && (
+                <div className="absolute top-3 right-3 z-20 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-[11px] font-mono font-bold tracking-wider">
+                  {activeImage + 1} / {images.length}
+                </div>
+              )}
+
               {/* Botão de Expansão Fullscreen */}
               {images.length > 0 && !isVideoUrl(images[activeImage]) && (
                 <button
                   type="button"
                   onClick={() => setFullscreenImage(images[activeImage])}
-                  className="absolute bottom-3 right-3 p-2 rounded-xl bg-black/60 hover:bg-black/80 text-white backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute bottom-3 right-3 z-20 p-2 rounded-xl bg-black/60 hover:bg-black/80 text-white backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
                   aria-label="Ver imagem cheia"
                 >
                   <Maximize2 className="size-4" />
@@ -393,7 +439,7 @@ function ClassifiedDetailPage() {
                     onClick={() =>
                       setActiveImage((prev) => (prev > 0 ? prev - 1 : images.length - 1))
                     }
-                    className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white backdrop-blur-sm transition-opacity"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 z-20 size-9 rounded-full bg-black/50 hover:bg-black/75 text-white backdrop-blur-md flex items-center justify-center transition-all opacity-80 hover:opacity-100"
                     aria-label="Imagem anterior"
                   >
                     <ChevronLeft className="size-5" />
@@ -403,7 +449,7 @@ function ClassifiedDetailPage() {
                     onClick={() =>
                       setActiveImage((prev) => (prev < images.length - 1 ? prev + 1 : 0))
                     }
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white backdrop-blur-sm transition-opacity"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 z-20 size-9 rounded-full bg-black/50 hover:bg-black/75 text-white backdrop-blur-md flex items-center justify-center transition-all opacity-80 hover:opacity-100"
                     aria-label="Próxima imagem"
                   >
                     <ChevronRight className="size-5" />
@@ -412,29 +458,39 @@ function ClassifiedDetailPage() {
               )}
             </div>
 
-            {/* Carrossel de Miniaturas */}
+            {/* Carrossel de Miniaturas Alinhado e Consistente */}
             {images.length > 1 && (
-              <div className="flex items-center gap-2 p-3 overflow-x-auto border-t border-border bg-muted/20 scrollbar-none">
+              <div className="flex items-center gap-2.5 p-3.5 overflow-x-auto border-t border-border bg-muted/20 scrollbar-none">
                 {images.map((img, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => setActiveImage(idx)}
-                    className={`relative size-16 sm:size-20 rounded-xl overflow-hidden border-2 shrink-0 transition-all ${
+                    className={`relative size-16 sm:size-20 aspect-square rounded-xl overflow-hidden border-2 shrink-0 transition-all bg-black/20 ${
                       activeImage === idx
                         ? "border-primary ring-2 ring-primary/20 scale-105"
-                        : "border-transparent opacity-60 hover:opacity-100"
+                        : "border-border/60 opacity-70 hover:opacity-100 hover:border-border"
                     }`}
                   >
                     {isVideoUrl(img) ? (
-                      <div className="w-full h-full bg-muted flex items-center justify-center">
-                        <Play className="size-5 text-primary" />
+                      <div className="relative size-full flex items-center justify-center bg-black/40">
+                        <video
+                          src={img}
+                          className="size-full object-cover pointer-events-none"
+                          preload="metadata"
+                          muted
+                        />
+                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                          <div className="size-6 rounded-full bg-black/60 backdrop-blur-xs flex items-center justify-center text-white">
+                            <Play className="size-3 fill-white ml-0.5" />
+                          </div>
+                        </div>
                       </div>
                     ) : (
                       <img
                         src={img}
                         alt={`Miniatura ${idx + 1}`}
-                        className="w-full h-full object-cover"
+                        className="size-full object-cover"
                       />
                     )}
                   </button>
@@ -444,8 +500,10 @@ function ClassifiedDetailPage() {
           </div>
 
           {/* Descrição & Especificações */}
-          <div className="border border-border bg-card rounded-2xl p-6 space-y-4">
-            <h2 className="text-base font-bold text-foreground">Descrição do Anúncio</h2>
+          <div className="border border-border bg-card rounded-3xl p-6 sm:p-7 space-y-4 shadow-2xs">
+            <h2 className="text-base font-bold text-foreground border-b border-border/50 pb-2">
+              Descrição do Anúncio
+            </h2>
             <div className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed">
               {classified.content}
             </div>
@@ -594,7 +652,7 @@ function ClassifiedDetailPage() {
           </div>
 
           {/* Localização Aproximada */}
-          <div className="border border-border bg-card rounded-2xl p-6 space-y-2">
+          <div className="border border-border bg-card rounded-3xl p-6 space-y-2 shadow-2xs">
             <div className="flex items-center gap-2">
               <MapPin className="size-4 text-primary" />
               <h2 className="text-sm font-bold text-foreground">Localização Aproximada</h2>
@@ -611,14 +669,19 @@ function ClassifiedDetailPage() {
 
         {/* Coluna Direita: Informações Essenciais & Ações (5 colunas) */}
         <div className="lg:col-span-5 space-y-5 lg:sticky lg:top-24">
-          <div className="border border-border bg-card rounded-2xl p-6 shadow-2xs space-y-6">
+          <div className="border border-border bg-card rounded-3xl p-6 sm:p-7 shadow-2xs space-y-6">
             <div className="space-y-2">
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Clock className="size-3.5" />
-                <span>Publicado {formatRelativeTime(classified.created_at)}</span>
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <div className="flex items-center gap-1.5">
+                  <Clock className="size-3.5" />
+                  <span>Publicado {formatRelativeTime(classified.created_at)}</span>
+                </div>
+                <Badge variant="outline" className="text-[10px] font-bold">
+                  {CATEGORY_LABELS[classified.category] || classified.category}
+                </Badge>
               </div>
 
-              <h1 className="text-xl sm:text-2xl font-bold text-foreground leading-tight">
+              <h1 className="text-2xl sm:text-3xl font-black text-foreground leading-tight tracking-tight">
                 {classified.title}
               </h1>
             </div>

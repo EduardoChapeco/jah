@@ -24,6 +24,7 @@ import {
   Truck,
   CreditCard,
   ArrowsLeftRight,
+  Play,
 } from "@phosphor-icons/react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,11 @@ import { listActiveBanners } from "@/services/banner.functions";
 import { listActiveHotpages } from "@/services/hotpage.functions";
 import { getPublicClassifieds } from "@/services/classifieds.functions";
 import { CANONICAL_CITIES } from "@/lib/constants/cities";
+
+function isVideoUrl(url?: string | null): boolean {
+  if (!url) return false;
+  return /\.(mp4|webm|ogg|mov|m4v)(\?.*)?$/i.test(url);
+}
 
 export const Route = createFileRoute("/_store/classificados/")({
   head: () => ({
@@ -428,15 +434,31 @@ function ClassifiedsMasterPage() {
                 className="group rounded-3xl border border-border bg-card overflow-hidden shadow-2xs hover:border-foreground/30 transition-all flex flex-col justify-between"
               >
                 <div className="space-y-3">
-                  {/* Imagem */}
-                  <div className="relative aspect-16/10 w-full overflow-hidden bg-muted">
-                    <img
-                      src={img}
-                      alt={item.title}
-                      className="size-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      loading="lazy"
-                    />
-                    <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                  {/* Imagem ou Vídeo de Capa Consistente */}
+                  <div className="relative aspect-16/10 w-full overflow-hidden bg-black/95 flex items-center justify-center">
+                    {isVideoUrl(img) ? (
+                      <div className="relative size-full">
+                        <video
+                          src={img}
+                          className="size-full object-cover group-hover:scale-105 transition-transform duration-500 pointer-events-none"
+                          preload="metadata"
+                          muted
+                        />
+                        <div className="absolute inset-0 bg-black/25 flex items-center justify-center">
+                          <div className="size-8 rounded-full bg-black/60 backdrop-blur-xs flex items-center justify-center text-white">
+                            <Play size={14} weight="fill" className="ml-0.5" />
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <img
+                        src={img}
+                        alt={item.title}
+                        className="size-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        loading="lazy"
+                      />
+                    )}
+                    <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5">
                       {isRealEstate && (
                         <Badge
                           variant="secondary"
