@@ -127,9 +127,9 @@ const NICHE_CARDS: NicheDefinition[] = [
 ];
 
 function NovoClassificadoPage() {
-  const navigate = useNavigate();
-  const search = useSearch({ from: "/_store/conta/classificados/novo" });
-  const selectedType = search.tipo as ClassifiedNicheType | undefined;
+  const navigate = Route.useNavigate();
+  const search = Route.useSearch();
+  const selectedType = search?.tipo as ClassifiedNicheType | undefined;
 
   const activeNiche = useMemo(() => {
     return NICHE_CARDS.find((n) => n.id === selectedType);
