@@ -30,6 +30,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { CurrencyField } from "@/components/ui/currency-field";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
@@ -161,9 +162,11 @@ function ClassifiedDetailPage() {
 
   // Proposal Dialog State
   const [proposalOpen, setProposalOpen] = useState(false);
-  const [proposalPriceReal, setProposalPriceReal] = useState("");
+  const [proposalPriceCents, setProposalPriceCents] = useState<number | undefined>(
+    classified?.price_cents || undefined,
+  );
   const [proposalInstallments, setProposalInstallments] = useState("1");
-  const [proposalDepositReal, setProposalDepositReal] = useState("");
+  const [proposalDepositCents, setProposalDepositCents] = useState<number | undefined>(undefined);
   const [proposalTerms, setProposalTerms] = useState("");
   const [isSendingProposal, setIsSendingProposal] = useState(false);
 
@@ -202,19 +205,14 @@ function ClassifiedDetailPage() {
 
   const handleSendProposal = async () => {
     if (!classified) return;
-    const priceCents = proposalPriceReal
-      ? Math.round(parseFloat(proposalPriceReal.replace(/\D/g, "")) || 0)
-      : classified.price_cents || 0;
+    const priceCents = proposalPriceCents ?? classified.price_cents ?? 0;
 
     if (!priceCents || priceCents <= 0) {
       toast.error("Informe um valor válido para a proposta.");
       return;
     }
 
-    const depositCents = proposalDepositReal
-      ? Math.round(parseFloat(proposalDepositReal.replace(/\D/g, "")) || 0)
-      : 0;
-
+    const depositCents = proposalDepositCents ?? 0;
     const installments = parseInt(proposalInstallments) || 1;
 
     setIsSendingProposal(true);
@@ -813,17 +811,12 @@ function ClassifiedDetailPage() {
                           <label className="text-xs font-semibold text-foreground">
                             Sua Oferta de Preço (R$) *
                           </label>
-                          <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">
-                              R$
-                            </span>
-                            <Input
-                              value={proposalPriceReal}
-                              onChange={(e) => setProposalPriceReal(e.target.value)}
-                              placeholder="0,00"
-                              className="pl-9 h-10 rounded-xl text-xs bg-background font-mono font-bold"
-                            />
-                          </div>
+                          <CurrencyField
+                            value={proposalPriceCents}
+                            onChange={setProposalPriceCents}
+                            placeholder="0,00"
+                            className="h-10 rounded-xl text-xs bg-background"
+                          />
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
@@ -842,11 +835,11 @@ function ClassifiedDetailPage() {
                             <label className="text-xs font-semibold text-foreground">
                               Sinal / Entrada (R$)
                             </label>
-                            <Input
-                              value={proposalDepositReal}
-                              onChange={(e) => setProposalDepositReal(e.target.value)}
+                            <CurrencyField
+                              value={proposalDepositCents}
+                              onChange={setProposalDepositCents}
                               placeholder="0,00"
-                              className="h-9 rounded-xl text-xs bg-background font-mono"
+                              className="h-9 rounded-xl text-xs bg-background"
                             />
                           </div>
                         </div>

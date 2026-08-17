@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/sheet";
 import { Surface } from "@/components/ui/surface";
 import { Input } from "@/components/ui/input";
+import { CurrencyField } from "@/components/ui/currency-field";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { EmptyState } from "@/components/state/states";
@@ -381,21 +382,16 @@ function OptionGroupsPage() {
                             </div>
                             <div className="space-y-1">
                               <Label className="text-xs">Preço Adicional (R$)</Label>
-                              <Input
-                                type="number"
-                                step="0.01"
+                              <CurrencyField
                                 className="h-8 text-sm"
-                                placeholder="0.00"
-                                onChange={(e) => {
-                                  const val = parseFloat(e.target.value);
+                                placeholder="0,00"
+                                value={form.watch(`values.${index}.price_modifier_cents`)}
+                                onChange={(val) =>
                                   form.setValue(
                                     `values.${index}.price_modifier_cents`,
-                                    isNaN(val) ? 0 : Math.round(val * 100),
-                                  );
-                                }}
-                                defaultValue={(
-                                  (form.watch(`values.${index}.price_modifier_cents`) || 0) / 100
-                                ).toFixed(2)}
+                                    val || 0,
+                                  )
+                                }
                               />
                             </div>
                           </div>

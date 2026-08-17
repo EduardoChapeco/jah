@@ -21,6 +21,7 @@ import { getDealsByUser, respondToDealProposal } from "@/services/deals.function
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { CurrencyField } from "@/components/ui/currency-field";
 import { formatMoney } from "@/lib/money";
 import { formatDate } from "@/lib/datetime";
 
@@ -43,7 +44,7 @@ const STATUS_CONFIG: Record<
 function NegociacoesPage() {
   const queryClient = useQueryClient();
   const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
-  const [counterPriceReal, setCounterPriceReal] = useState("");
+  const [counterPriceCents, setCounterPriceCents] = useState<number | undefined>(undefined);
   const [counterMessage, setCounterMessage] = useState("");
 
   const { data: deals, isLoading } = useQuery({
@@ -57,7 +58,7 @@ function NegociacoesPage() {
       queryClient.invalidateQueries({ queryKey: ["user-deals"] });
       toast.success("Resposta à proposta enviada com sucesso!");
       setSelectedDealId(null);
-      setCounterPriceReal("");
+      setCounterPriceCents(undefined);
       setCounterMessage("");
     },
     onError: (err: any) => {
@@ -67,10 +68,8 @@ function NegociacoesPage() {
 
   const handleAction = (dealId: string, action: "accept" | "reject" | "counter_proposal") => {
     if (action === "counter_proposal") {
-      const counterCents = counterPriceReal
-        ? Math.round(parseFloat(counterPriceReal.replace(/\D/g, "")) || 0)
-        : undefined;
-      if (!counterCents) {
+      const counterCents = counterPriceCents;
+      if (!counterCents || counterCents <= 0) {
         toast.error("Informe o valor da contraproposta.");
         return;
       }
@@ -230,11 +229,11 @@ function NegociacoesPage() {
                         <label className="text-[11px] font-medium text-foreground">
                           Novo Valor (R$)
                         </label>
-                        <Input
-                          value={counterPriceReal}
-                          onChange={(e) => setCounterPriceReal(e.target.value)}
-                          placeholder="Ex: 1.200,00"
-                          className="h-9 rounded-xl text-xs bg-background font-mono"
+                        <CurrencyField
+                          value={counterPriceCents}
+                          onChange={setCounterPriceCents}
+                          placeholder="0,00"
+                          className="h-9 rounded-xl text-xs bg-background"
                         />
                       </div>
 

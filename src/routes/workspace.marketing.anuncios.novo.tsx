@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyField } from "@/components/ui/currency-field";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { createAdCampaign } from "@/services/ads.functions";
@@ -45,6 +46,12 @@ const AD_FORMATS = [
     reachMultiplier: 1.2,
   },
   {
+    id: "stories_sponsor",
+    title: "Stories Patrocinados",
+    desc: "Story imersivo na barra superior com botão direto para WhatsApp ou Vitrine.",
+    reachMultiplier: 1.8,
+  },
+  {
     id: "busca_topo",
     title: "Destaque no Topo da Busca",
     desc: "Exibido prioritariamente quando alguém pesquisa palavras-chave relacionadas.",
@@ -58,12 +65,12 @@ function NovoAnuncioPage() {
   const [format, setFormat] = useState<any>("post_patrocinado");
   const [location, setLocation] = useState("Chapecó / SC e Região");
   const [radiusKm, setRadiusKm] = useState(15);
-  const [dailyBudget, setDailyBudget] = useState("20.00");
-  const [totalBudget, setTotalBudget] = useState("100.00");
+  const [dailyBudgetCents, setDailyBudgetCents] = useState<number | undefined>(2000);
+  const [totalBudgetCents, setTotalBudgetCents] = useState<number | undefined>(10000);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Estimativa de alcance baseada no orçamento diário
-  const dailyNum = parseFloat(dailyBudget || "0");
+  const dailyNum = (dailyBudgetCents || 0) / 100;
   const selectedFormat = AD_FORMATS.find((f) => f.id === format);
   const multiplier = selectedFormat?.reachMultiplier || 1.0;
   const estimatedDailyReachMin = Math.round(dailyNum * 45 * multiplier);
@@ -77,8 +84,8 @@ function NovoAnuncioPage() {
       return;
     }
 
-    const dailyCents = Math.round(parseFloat(dailyBudget || "0") * 100);
-    const totalCents = Math.round(parseFloat(totalBudget || "0") * 100);
+    const dailyCents = dailyBudgetCents || 0;
+    const totalCents = totalBudgetCents || 0;
 
     if (dailyCents < 500) {
       toast.error("O orçamento diário mínimo é de R$ 5,00.");
@@ -213,40 +220,28 @@ function NovoAnuncioPage() {
                 <Label htmlFor="ad-daily" className="text-xs font-semibold">
                   Orçamento Diário (R$)
                 </Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-semibold">
-                    R$
-                  </span>
-                  <Input
-                    id="ad-daily"
-                    type="number"
-                    step="1.00"
-                    value={dailyBudget}
-                    onChange={(e) => setDailyBudget(e.target.value)}
-                    className="h-10 pl-9 text-xs rounded-xl font-mono font-semibold"
-                    required
-                  />
-                </div>
+                <CurrencyField
+                  id="ad-daily"
+                  value={dailyBudgetCents}
+                  onChange={setDailyBudgetCents}
+                  placeholder="0,00"
+                  className="h-10 text-xs rounded-xl"
+                  required
+                />
               </div>
 
               <div className="space-y-1.5">
                 <Label htmlFor="ad-total" className="text-xs font-semibold">
                   Orçamento Limite Total (R$)
                 </Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-semibold">
-                    R$
-                  </span>
-                  <Input
-                    id="ad-total"
-                    type="number"
-                    step="1.00"
-                    value={totalBudget}
-                    onChange={(e) => setTotalBudget(e.target.value)}
-                    className="h-10 pl-9 text-xs rounded-xl font-mono font-semibold"
-                    required
-                  />
-                </div>
+                <CurrencyField
+                  id="ad-total"
+                  value={totalBudgetCents}
+                  onChange={setTotalBudgetCents}
+                  placeholder="0,00"
+                  className="h-10 text-xs rounded-xl"
+                  required
+                />
               </div>
             </div>
           </div>

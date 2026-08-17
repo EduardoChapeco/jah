@@ -18,6 +18,7 @@ import {
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyField } from "@/components/ui/currency-field";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -38,15 +39,12 @@ import {
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/imoveis/manutencoes")({
-  head: () => ({ meta: [{ title: "Central de Manutenção Imobiliária | Workspace" }] }),
-  loader: async () => {
-    const requests = await listPropertyMaintenanceRequests().catch(() => []);
-    return requests || [];
-  },
-  component: WorkspaceMaintenancePage,
+  head: () => ({ meta: [{ title: "Manutenções & Reparos de Imóveis" }] }),
+  loader: () => listPropertyMaintenanceRequests(),
+  component: PropertyMaintenanceDashboard,
 });
 
-function WorkspaceMaintenancePage() {
+function PropertyMaintenanceDashboard() {
   const initialData = Route.useLoaderData();
   const router = useRouter();
   const [requests, setRequests] = useState<PropertyMaintenanceDTO[]>(initialData);
@@ -57,7 +55,7 @@ function WorkspaceMaintenancePage() {
   // Modal: Atualizar Chamado / Orçamento
   const [editModalReq, setEditModalReq] = useState<PropertyMaintenanceDTO | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
-  const [estimatedCostBrl, setEstimatedCostBrl] = useState("");
+  const [estimatedCostCents, setEstimatedCostCents] = useState<number | undefined>(undefined);
 
   // Modal: Nova Solicitação de Manutenção
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
@@ -89,16 +87,14 @@ function WorkspaceMaintenancePage() {
     if (!editModalReq) return;
     setIsProcessing(true);
     try {
-      const costCents = estimatedCostBrl
-        ? Math.round(parseFloat(estimatedCostBrl.replace(",", ".")) * 100)
-        : undefined;
+      const costCents = estimatedCostCents;
 
       await updateMaintenanceRequestStatus({
         data: {
           requestId: editModalReq.id,
           status,
           adminNotes: adminNotes.trim() || undefined,
-          estimatedCostCents: isNaN(costCents as number) ? undefined : costCents,
+          estimatedCostCents: costCents,
         },
       });
 
@@ -306,9 +302,7 @@ function WorkspaceMaintenancePage() {
                   onClick={() => {
                     setEditModalReq(req);
                     setAdminNotes(req.admin_notes || "");
-                    setEstimatedCostBrl(
-                      req.estimated_cost_cents ? (req.estimated_cost_cents / 100).toFixed(2) : "",
-                    );
+                    setEstimatedCostCents(req.estimated_cost_cents || undefined);
                   }}
                   className="rounded-xl text-xs font-bold h-8"
                 >
@@ -333,11 +327,11 @@ function WorkspaceMaintenancePage() {
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Orçamento Estimado (R$)</Label>
-              <Input
-                value={estimatedCostBrl}
-                onChange={(e) => setEstimatedCostBrl(e.target.value)}
-                placeholder="Ex: 350,00"
-                className="rounded-xl text-xs font-mono"
+              <CurrencyField
+                value={estimatedCostCents}
+                onChange={setEstimatedCostCents}
+                placeholder="0,00"
+                className="rounded-xl text-xs"
               />
             </div>
 

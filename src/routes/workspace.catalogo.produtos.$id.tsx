@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useState, useMemo, useEffect, Fragment } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyField } from "@/components/ui/currency-field";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ImageUpload } from "@/components/ui/image-upload";
@@ -340,15 +341,16 @@ function GeneralForm({
     handleSubmit,
     setValue,
     watch,
+    control,
     formState: { errors },
   } = useForm({
     defaultValues: {
       title: product.title,
       description: product.description || "",
       brand: product.brand || "",
-      price_cents: (product.price_cents / 100).toFixed(2),
-      compare_at_cents: product.compare_at_cents ? (product.compare_at_cents / 100).toFixed(2) : "",
-      cost_cents: product.cost_cents ? (product.cost_cents / 100).toFixed(2) : "",
+      price_cents: product.price_cents || 0,
+      compare_at_cents: product.compare_at_cents || undefined,
+      cost_cents: product.cost_cents || undefined,
       status: product.status,
       short_description: product.short_description || "",
       manufacturer: product.manufacturer || "",
@@ -393,20 +395,24 @@ function GeneralForm({
   }, [watchBrand, onBrandChange]);
 
   useEffect(() => {
-    const p = parseFloat((watchPrice || "0").replace(",", "."));
-    onPriceChange(isNaN(p) ? 0 : Math.round(p * 100));
+    const val = typeof watchPrice === "number" ? watchPrice : parseInt(String(watchPrice || "").replace(/\D/g, ""), 10);
+    onPriceChange(isNaN(val) ? 0 : val);
   }, [watchPrice, onPriceChange]);
 
   useEffect(() => {
-    if (!watchCompare) return onCompareChange(null);
-    const c = parseFloat(watchCompare.replace(",", "."));
-    onCompareChange(isNaN(c) ? null : Math.round(c * 100));
+    if (watchCompare === undefined || watchCompare === null || watchCompare === ("" as any)) {
+      return onCompareChange(null);
+    }
+    const val = typeof watchCompare === "number" ? watchCompare : parseInt(String(watchCompare).replace(/\D/g, ""), 10);
+    onCompareChange(isNaN(val) ? null : val);
   }, [watchCompare, onCompareChange]);
 
   useEffect(() => {
-    if (!watchCost) return onCostChange(null);
-    const cost = parseFloat(watchCost.replace(",", "."));
-    onCostChange(isNaN(cost) ? null : Math.round(cost * 100));
+    if (watchCost === undefined || watchCost === null || watchCost === ("" as any)) {
+      return onCostChange(null);
+    }
+    const val = typeof watchCost === "number" ? watchCost : parseInt(String(watchCost).replace(/\D/g, ""), 10);
+    onCostChange(isNaN(val) ? null : val);
   }, [watchCost, onCostChange]);
 
   useEffect(() => {
@@ -416,12 +422,18 @@ function GeneralForm({
   const onSubmit = async (values: any) => {
     setIsSubmitting(true);
     try {
-      const price_cents = Math.round(parseFloat(values.price_cents.replace(",", ".")) * 100);
-      const compare_at_cents = values.compare_at_cents
-        ? Math.round(parseFloat(values.compare_at_cents.replace(",", ".")) * 100)
+      const price_cents = typeof values.price_cents === "number"
+        ? values.price_cents
+        : parseInt(String(values.price_cents || "").replace(/\D/g, ""), 10) || 0;
+      const compare_at_cents = values.compare_at_cents !== undefined && values.compare_at_cents !== null && values.compare_at_cents !== ""
+        ? (typeof values.compare_at_cents === "number"
+            ? values.compare_at_cents
+            : parseInt(String(values.compare_at_cents).replace(/\D/g, ""), 10) || null)
         : null;
-      const cost_cents = values.cost_cents
-        ? Math.round(parseFloat(values.cost_cents.replace(",", ".")) * 100)
+      const cost_cents = values.cost_cents !== undefined && values.cost_cents !== null && values.cost_cents !== ""
+        ? (typeof values.cost_cents === "number"
+            ? values.cost_cents
+            : parseInt(String(values.cost_cents).replace(/\D/g, ""), 10) || null)
         : null;
       const res = await updateProduct({
         data: {
@@ -601,20 +613,49 @@ function GeneralForm({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="space-y-2">
             <Label>Preço de Venda (R$) *</Label>
-            <Input step="0.01" type="number" {...register("price_cents", { required: true })} />
+            <Controller
+              name="price_cents"
+              control={control}
+              rules={{ required: true }}
+              render={({ field }) => (
+                <CurrencyField
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="0,00"
+                  className="h-10"
+                />
+              )}
+            />
           </div>
           <div className="space-y-2">
             <Label>Preço Comparativo De (R$)</Label>
-            <Input
-              step="0.01"
-              type="number"
-              placeholder="Ex: 299.90"
-              {...register("compare_at_cents")}
+            <Controller
+              name="compare_at_cents"
+              control={control}
+              render={({ field }) => (
+                <CurrencyField
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="0,00"
+                  className="h-10"
+                />
+              )}
             />
           </div>
           <div className="space-y-2">
             <Label>Custo por Item (R$)</Label>
-            <Input step="0.01" type="number" placeholder="Ex: 80.00" {...register("cost_cents")} />
+            <Controller
+              name="cost_cents"
+              control={control}
+              render={({ field }) => (
+                <CurrencyField
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="0,00"
+                  className="h-10"
+                />
+              )}
+            />
           </div>
         </div>
       </div>

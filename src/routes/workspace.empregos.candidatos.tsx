@@ -21,6 +21,7 @@ import {
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyField } from "@/components/ui/currency-field";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -40,7 +41,7 @@ import {
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/empregos/candidatos")({
-  head: () => ({ meta: [{ title: "Gestão de Candidatos & Vagas | Workspace" }] }),
+  head: () => ({ meta: [{ title: "Gestão de Candidaturas & RH | Workspace" }] }),
   loader: async () => {
     const apps = await listStoreJobApplications().catch(() => []);
     return apps || [];
@@ -63,7 +64,7 @@ function WorkspaceCandidatesPage() {
 
   const [hireModalApp, setHireModalApp] = useState<any | null>(null);
   const [hiredRole, setHiredRole] = useState("");
-  const [hiredSalaryBrl, setHiredSalaryBrl] = useState("2500");
+  const [hiredSalaryCents, setHiredSalaryCents] = useState<number | undefined>(250000);
 
   const filteredApps = useMemo(() => {
     return applications.filter((app) => {
@@ -170,7 +171,7 @@ function WorkspaceCandidatesPage() {
     }
     setIsProcessing(true);
     try {
-      const salaryCents = Math.round(parseFloat(hiredSalaryBrl.replace(",", ".")) * 100);
+      const salaryCents = hiredSalaryCents || 0;
       const res = await hireJobCandidate({
         data: {
           applicationId: hireModalApp.id,
@@ -505,11 +506,11 @@ function WorkspaceCandidatesPage() {
 
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Salário Base Mensal (R$)</Label>
-              <Input
-                value={hiredSalaryBrl}
-                onChange={(e) => setHiredSalaryBrl(e.target.value)}
-                placeholder="2500,00"
-                className="rounded-xl text-xs font-mono"
+              <CurrencyField
+                value={hiredSalaryCents}
+                onChange={setHiredSalaryCents}
+                placeholder="0,00"
+                className="rounded-xl text-xs"
               />
             </div>
           </div>

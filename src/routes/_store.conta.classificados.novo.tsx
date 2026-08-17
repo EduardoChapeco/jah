@@ -36,10 +36,12 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyField } from "@/components/ui/currency-field";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { formatMoney } from "@/lib/money";
 import {
   Select,
   SelectContent,
@@ -53,7 +55,6 @@ import { SquircleCard } from "@/components/ui/squircle-card";
 import { CityCombobox, type StructuredLocationValue } from "@/components/ui/city-combobox";
 import { upsertClassified } from "@/services/classifieds.functions";
 import { z } from "zod";
-import { formatMoney } from "@/lib/money";
 
 const ClassifiedSearchSchema = z.object({
   tipo: z.string().optional(),
@@ -245,7 +246,7 @@ function SpecializedClassifiedEditor({
   // Common Form States
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [priceReal, setPriceReal] = useState("");
+  const [priceCents, setPriceCents] = useState<number | undefined>(undefined);
   const [negotiable, setNegotiable] = useState(true);
   const [locationName, setLocationName] = useState("");
   const [structuredLoc, setStructuredLoc] = useState<StructuredLocationValue | null>(null);
@@ -261,8 +262,8 @@ function SpecializedClassifiedEditor({
   const [reSuites, setReSuites] = useState("1");
   const [reBathrooms, setReBathrooms] = useState("2");
   const [reParking, setReParking] = useState("1");
-  const [reCondoReal, setReCondoReal] = useState("");
-  const [reIptuReal, setReIptuReal] = useState("");
+  const [reCondoCents, setReCondoCents] = useState<number | undefined>(undefined);
+  const [reIptuCents, setReIptuCents] = useState<number | undefined>(undefined);
   const [reFurnished, setReFurnished] = useState("Semi-mobiliado");
   const [reAmenities, setReAmenities] = useState<string[]>([]);
 
@@ -352,8 +353,8 @@ function SpecializedClassifiedEditor({
         attributes.suites = reSuites;
         attributes.bathrooms = reBathrooms;
         attributes.parking_spots = reParking;
-        attributes.condo_cents = reCondoReal ? parseInt(reCondoReal.replace(/\D/g, "")) : null;
-        attributes.iptu_cents = reIptuReal ? parseInt(reIptuReal.replace(/\D/g, "")) : null;
+        attributes.condo_cents = reCondoCents ?? null;
+        attributes.iptu_cents = reIptuCents ?? null;
         attributes.furnished = reFurnished;
         attributes.amenities = reAmenities;
       } else if (niche.id === "veiculo") {
@@ -382,16 +383,12 @@ function SpecializedClassifiedEditor({
         attributes.salary_range = jobSalaryRange;
       }
 
-      const priceCents = priceReal
-        ? Math.round(parseFloat(priceReal.replace(/\D/g, "")) || 0)
-        : null;
-
       const res = await upsertClassified({
         data: {
           category: niche.canonicalCategory,
           title: title.trim(),
           content: description.trim(),
-          price_cents: priceCents,
+          price_cents: priceCents ?? null,
           negotiable,
           whatsapp: whatsapp.trim() || undefined,
           contact_whatsapp: whatsapp.trim() || undefined,
@@ -416,9 +413,7 @@ function SpecializedClassifiedEditor({
     }
   };
 
-  const parsedPriceCents = priceReal
-    ? Math.round(parseFloat(priceReal.replace(/\D/g, "")) || 0)
-    : null;
+  const parsedPriceCents = priceCents ?? null;
 
   return (
     <div className="space-y-4">
@@ -529,17 +524,12 @@ function SpecializedClassifiedEditor({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
               <div className="space-y-1.5">
                 <Label className="text-xs text-foreground font-medium">Valor (R$)</Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-semibold">
-                    R$
-                  </span>
-                  <Input
-                    value={priceReal}
-                    onChange={(e) => setPriceReal(e.target.value)}
-                    placeholder="0,00"
-                    className="pl-9 h-10 rounded-xl text-xs bg-background font-mono font-semibold"
-                  />
-                </div>
+                <CurrencyField
+                  value={priceCents}
+                  onChange={setPriceCents}
+                  placeholder="0,00"
+                  className="h-10 rounded-xl text-xs bg-background"
+                />
               </div>
 
               <div className="space-y-1.5">
@@ -740,20 +730,20 @@ function SpecializedClassifiedEditor({
               <div className="grid grid-cols-2 gap-3 pt-1">
                 <div className="space-y-1">
                   <Label className="text-[11px] text-muted-foreground">Condomínio (R$)</Label>
-                  <Input
-                    value={reCondoReal}
-                    onChange={(e) => setReCondoReal(e.target.value)}
-                    placeholder="Ex: 350,00"
-                    className="h-9 rounded-xl text-xs bg-background font-mono"
+                  <CurrencyField
+                    value={reCondoCents}
+                    onChange={setReCondoCents}
+                    placeholder="0,00"
+                    className="h-9 rounded-xl text-xs bg-background"
                   />
                 </div>
                 <div className="space-y-1">
                   <Label className="text-[11px] text-muted-foreground">IPTU Mensal (R$)</Label>
-                  <Input
-                    value={reIptuReal}
-                    onChange={(e) => setReIptuReal(e.target.value)}
-                    placeholder="Ex: 80,00"
-                    className="h-9 rounded-xl text-xs bg-background font-mono"
+                  <CurrencyField
+                    value={reIptuCents}
+                    onChange={setReIptuCents}
+                    placeholder="0,00"
+                    className="h-9 rounded-xl text-xs bg-background"
                   />
                 </div>
               </div>

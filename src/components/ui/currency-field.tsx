@@ -1,100 +1,72 @@
 import React, { useState, useEffect, forwardRef } from "react";
 import { Input } from "./input";
 import { cn } from "@/lib/utils";
+import { formatCentsToBRL, parseBRLToCents } from "@/lib/money";
 
 export interface CurrencyFieldProps extends Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
   "value" | "onChange"
 > {
-  value?: number; // Valor em centavos
+  value?: number | null; // Valor em centavos inteiros (ex: 80000 = R$ 800,00)
   onChange?: (value: number | undefined) => void;
   currencySymbol?: string;
 }
 
 /**
  * CurrencyField
- * Componente canônico para moedas.
- * Armazena o valor externamente como inteiro (centavos).
- * Internamente lida com a digitação livre e aplica máscara no blur.
+ * Componente canônico para entrada monetária em BRL.
+ * Aplica máscara progressiva em tempo real enquanto o usuário digita.
+ * Armazena e emite o valor externamente sempre como inteiro (centavos).
  */
 export const CurrencyField = forwardRef<HTMLInputElement, CurrencyFieldProps>(
-  ({ className, value, onChange, currencySymbol = "R$", onBlur, onFocus, ...props }, ref) => {
-    // Estado interno string para permitir digitação livre (ex: "123,45")
+  ({ className, value, onChange, currencySymbol = "R$", onBlur, onFocus, placeholder = "0,00", ...props }, ref) => {
     const [displayValue, setDisplayValue] = useState("");
-    const [isFocused, setIsFocused] = useState(false);
 
-    // Sincroniza o valor externo (centavos) para o display
+    // Sincroniza o valor externo (centavos) para a máscara visual
     useEffect(() => {
-      if (!isFocused) {
-        if (value === undefined || value === null) {
-          setDisplayValue("");
-        } else {
-          // Converte centavos para decimal formatado (ex: 123456 -> "1.234,56")
-          const decimalValue = value / 100;
-          setDisplayValue(
-            new Intl.NumberFormat("pt-BR", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }).format(decimalValue),
-          );
-        }
+      if (value === undefined || value === null || isNaN(value)) {
+        setDisplayValue("");
+      } else {
+        setDisplayValue(formatCentsToBRL(value));
       }
-    }, [value, isFocused]);
+    }, [value]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      // Remove tudo que não for dígito ou vírgula
-      let raw = e.target.value.replace(/[^\d,]/g, "");
+      const rawDigits = e.target.value.replace(/\D/g, "");
 
-      // Garante que só exista uma vírgula
-      const parts = raw.split(",");
-      if (parts.length > 2) {
-        raw = parts[0] + "," + parts.slice(1).join("");
-      }
-      // Limita a 2 casas decimais
-      if (parts[1]?.length > 2) {
-        raw = parts[0] + "," + parts[1].slice(0, 2);
-      }
-
-      setDisplayValue(raw);
-
-      if (!raw) {
+      if (!rawDigits || rawDigits === "0" || rawDigits === "00") {
+        setDisplayValue("");
         onChange?.(undefined);
         return;
       }
 
-      // Converte a string digitada de volta para centavos
-      const normalized = raw.replace(",", ".");
-      const floatVal = parseFloat(normalized);
-      if (!isNaN(floatVal)) {
-        const cents = Math.round(floatVal * 100);
-        onChange?.(cents);
+      const cents = parseInt(rawDigits, 10);
+      if (isNaN(cents)) {
+        setDisplayValue("");
+        onChange?.(undefined);
+        return;
       }
-    };
 
-    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-      setIsFocused(false);
-      onBlur?.(e);
-    };
-
-    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-      setIsFocused(true);
-      onFocus?.(e);
+      const formatted = formatCentsToBRL(cents);
+      setDisplayValue(formatted);
+      onChange?.(cents);
     };
 
     return (
       <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground pointer-events-none select-none">
           {currencySymbol}
         </span>
         <Input
           ref={ref}
           type="text"
-          inputMode="decimal"
-          className={cn("pl-9", className)}
+          inputMode="numeric"
+          placeholder={placeholder}
+          className={cn("pl-9 font-mono font-semibold", className)}
           value={displayValue}
           onChange={handleChange}
-          onBlur={handleBlur}
-          onFocus={handleFocus}
+          onBlur={onBlur}
+          onFocus={onFocus}
           {...props}
         />
       </div>

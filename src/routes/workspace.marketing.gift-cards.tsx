@@ -13,6 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyField } from "@/components/ui/currency-field";
 import { Label } from "@/components/ui/label";
 import {
   Sheet,
@@ -28,9 +29,9 @@ import { formatDate } from "../lib/datetime";
 import { Search, Plus, Gift, CheckCircle, XCircle } from "lucide-react";
 
 export const Route = createFileRoute("/workspace/marketing/gift-cards")({
-  head: () => ({ meta: [{ title: "Vales-Presente" }] }),
+  head: () => ({ meta: [{ title: "Vale-Presentes" }] }),
   loader: async () => {
-    return await listGiftCards();
+    return { giftCards: await listGiftCards() };
   },
   component: GiftCardsDashboardPage,
 });
@@ -59,12 +60,12 @@ function NewGiftCardDrawer({
   onCreated: () => void;
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [balance, setBalance] = useState("100.00");
+  const [balanceCents, setBalanceCents] = useState<number | undefined>(10000);
   const [email, setEmail] = useState("");
 
   const handleCreate = async () => {
-    const valCents = Math.round(parseFloat(balance.replace(",", ".")) * 100);
-    if (isNaN(valCents) || valCents < 100) {
+    const valCents = balanceCents || 0;
+    if (valCents < 100) {
       toast.error("O valor mínimo é R$ 1,00");
       return;
     }
@@ -101,12 +102,10 @@ function NewGiftCardDrawer({
           <div className="space-y-4">
             <div className="space-y-2">
               <Label className="text-sm font-semibold">Valor do Cartão (R$)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                min="1"
-                value={balance}
-                onChange={(e) => setBalance(e.target.value)}
+              <CurrencyField
+                value={balanceCents}
+                onChange={setBalanceCents}
+                placeholder="0,00"
                 className="font-bold text-lg h-12"
               />
             </div>

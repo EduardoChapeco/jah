@@ -1,12 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { toast } from "sonner";
 import { ArrowLeft, CheckCircle2, Plus, X, Upload } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyField } from "@/components/ui/currency-field";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -135,19 +136,21 @@ function QuickNewProductPage() {
     handleSubmit,
     setValue,
     watch,
+    control,
     formState: { errors },
   } = useForm({
     defaultValues: {
       title: "",
       slug: "",
-      price_cents: "",
+      price_cents: undefined as number | undefined,
       status: "draft",
       category_id: "none",
       type_id: "none",
     },
   });
 
-  const basePriceCents = parseInt(watch("price_cents").replace(/\D/g, ""), 10) || 0;
+  const watchPrice = watch("price_cents");
+  const basePriceCents = typeof watchPrice === "number" ? watchPrice : parseInt(String(watchPrice || "").replace(/\D/g, ""), 10) || 0;
   const targetSlug = watch("slug") || slugify(watch("title"));
 
   // --- Manipulação de Atributos ---
@@ -212,7 +215,9 @@ function QuickNewProductPage() {
   const onSubmit = async (values: any) => {
     setIsSubmitting(true);
     try {
-      const priceCents = parseInt(values.price_cents.replace(/\D/g, ""), 10) || 0;
+      const priceCents = typeof values.price_cents === "number"
+        ? values.price_cents
+        : parseInt(String(values.price_cents || "").replace(/\D/g, ""), 10) || 0;
       const finalSlug = values.slug || slugify(values.title);
 
       // Garante que se o usuário digitou variações no cadastro inicial mas esqueceu de clicar
@@ -523,27 +528,19 @@ function QuickNewProductPage() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label className="text-sm font-semibold">Preço Base (R$) *</Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
-                    R$
-                  </span>
-                  <Input
-                    {...register("price_cents", { required: "Obrigatório" })}
-                    className="pl-9 h-12 text-xl font-bold"
-                    placeholder="0,00"
-                    onChange={(e) => {
-                      let val = e.target.value.replace(/\D/g, "");
-                      if (val) {
-                        val = (parseInt(val, 10) / 100).toLocaleString("pt-BR", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        });
-                      }
-                      e.target.value = val;
-                      register("price_cents").onChange(e);
-                    }}
-                  />
-                </div>
+                <Controller
+                  name="price_cents"
+                  control={control}
+                  rules={{ required: "Obrigatório" }}
+                  render={({ field }) => (
+                    <CurrencyField
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="0,00"
+                      className="h-12 text-xl font-bold"
+                    />
+                  )}
+                />
               </div>
 
               <div className="space-y-2">

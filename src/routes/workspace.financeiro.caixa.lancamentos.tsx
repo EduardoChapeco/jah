@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyField } from "@/components/ui/currency-field";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -36,15 +37,11 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/state/states";
 import { getActiveRegister, addRegisterEntry } from "@/services/cash.functions";
 import { formatDateTime } from "@/lib/datetime";
-import { parseCurrencyInputToCents } from "@/lib/cash";
 import { formatMoney } from "@/lib/money";
-import { formatDate } from "../lib/datetime";
 
 export const Route = createFileRoute("/workspace/financeiro/caixa/lancamentos")({
-  head: () => ({ meta: [{ title: "Lançamentos do Caixa" }] }),
-  loader: async () => {
-    return await getActiveRegister();
-  },
+  head: () => ({ meta: [{ title: "Lançamentos de Caixa" }] }),
+  loader: () => getActiveRegister(),
   component: CaixaLancamentosPage,
 });
 
@@ -65,7 +62,7 @@ function CaixaLancamentosPage() {
   const [open, setOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [form, setForm] = useState({
-    amountCents: "",
+    amountCents: undefined as number | undefined,
     method: "cash" as "cash" | "credit" | "debit" | "pix" | "other",
     description: "",
     type: "in" as "in" | "out",
@@ -86,9 +83,9 @@ function CaixaLancamentosPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const cents = parseCurrencyInputToCents(form.amountCents);
+    const cents = form.amountCents || 0;
     if (cents <= 0) {
-      toast.error("Valor inválido");
+      toast.error("Informe um valor maior que zero.");
       return;
     }
     setIsSaving(true);
@@ -96,17 +93,23 @@ function CaixaLancamentosPage() {
       await addRegisterEntry({
         data: {
           registerId: register.id,
-          amountCents: form.type === "out" ? -cents : cents,
+          amountCents: cents,
+          type: form.type,
           method: form.method,
           description: form.description,
         },
       });
-      toast.success("Lançamento registrado!");
+      toast.success("Lançamento adicionado!");
       setOpen(false);
-      setForm({ amountCents: "", method: "cash", description: "", type: "in" });
+      setForm({
+        amountCents: undefined,
+        method: "cash",
+        description: "",
+        type: "in",
+      });
       router.invalidate();
-    } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Erro ao registrar");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao salvar lançamento");
     } finally {
       setIsSaving(false);
     }
@@ -173,11 +176,11 @@ function CaixaLancamentosPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="entry-amount">Valor (R$)</Label>
-                <Input
+                <CurrencyField
                   id="entry-amount"
                   placeholder="0,00"
                   value={form.amountCents}
-                  onChange={(e) => setForm((f) => ({ ...f, amountCents: e.target.value }))}
+                  onChange={(val) => setForm((f) => ({ ...f, amountCents: val }))}
                   required
                 />
               </div>
