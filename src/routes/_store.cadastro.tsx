@@ -282,30 +282,29 @@ function RegisterPage() {
                 control={form.control}
                 name="isConsentLgpd"
                 render={({ field }) => (
-                  <FormItem className="flex items-start gap-2.5 space-y-0 pt-2">
+                  <FormItem className="flex items-center gap-3 space-y-0 pt-2">
                     <FormControl>
                       <Checkbox
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        className="rounded-md mt-0.5"
                       />
                     </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel className="text-xs text-muted-foreground font-normal leading-relaxed cursor-pointer">
+                    <div className="leading-none">
+                      <FormLabel className="text-xs text-muted-foreground font-normal leading-normal cursor-pointer select-none">
                         Concordo com os{" "}
-                        <Link to="/termos" className="text-primary font-semibold hover:underline">
+                        <Link to="/termos" className="text-foreground font-semibold hover:underline">
                           Termos de Uso
                         </Link>{" "}
                         e{" "}
                         <Link
                           to="/privacidade"
-                          className="text-primary font-semibold hover:underline"
+                          className="text-foreground font-semibold hover:underline"
                         >
                           Política de Privacidade
                         </Link>
                         .
                       </FormLabel>
-                      <FormMessage className="text-xs font-semibold" />
+                      <FormMessage className="text-xs font-semibold mt-1" />
                     </div>
                   </FormItem>
                 )}
