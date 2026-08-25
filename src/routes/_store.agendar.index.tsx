@@ -15,7 +15,7 @@ import {
   PawPrint,
   Barbell,
 } from "@phosphor-icons/react";
-import { listBookingServices, createAppointment } from "@/services/booking.functions";
+import { listBookingServices, createAppointment, listMyPassesForService } from "@/services/booking.functions";
 import { listActiveBanners } from "@/services/banner.functions";
 import { listHotpages } from "@/services/hotpage.functions";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
@@ -24,6 +24,7 @@ import { formatMoney } from "@/lib/money";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -76,6 +77,7 @@ function BookingIndexPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [search, setSearch] = useState("");
   const [selectedService, setSelectedService] = useState<any | null>(null);
+  const [selectedPassId, setSelectedPassId] = useState<string | null>(null);
   const [guestName, setGuestName] = useState("");
   const [guestPhone, setGuestPhone] = useState("");
   const [scheduledDate, setScheduledDate] = useState(() => new Date().toISOString().split("T")[0]);
@@ -94,6 +96,12 @@ function BookingIndexPage() {
       }),
   });
 
+  const { data: activePasses } = useQuery({
+    queryKey: ["my-service-passes", selectedService?.id],
+    queryFn: () => listMyPassesForService({ data: { service_id: selectedService.id } }),
+    enabled: !!selectedService?.id,
+  });
+
   const services = servicesResult?.data || [];
 
   const appointmentMutation = useMutation({
@@ -106,12 +114,17 @@ function BookingIndexPage() {
           guest_phone: guestPhone,
           scheduled_at: scheduledIso,
           notes: notes || undefined,
+          pass_id: selectedPassId || undefined,
         },
       });
     },
     onSuccess: () => {
       setIsSuccess(true);
-      toast.success("Agendamento confirmado com sucesso!");
+      toast.success(
+        selectedPassId
+          ? "Agendamento confirmado com 1 crédito do seu pacote!"
+          : "Agendamento confirmado com sucesso!"
+      );
     },
     onError: (err: any) => {
       toast.error(err.message || "Erro ao agendar horário.");
@@ -120,6 +133,7 @@ function BookingIndexPage() {
 
   const handleOpenBooking = (service: any) => {
     setSelectedService(service);
+    setSelectedPassId(null);
     setIsSuccess(false);
   };
 
@@ -293,20 +307,45 @@ function BookingIndexPage() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-              <div className="bg-muted/40 p-3.5 rounded-2xl  space-y-1">
+              <div className="bg-muted/40 p-3.5 rounded-2xl space-y-1">
                 <span className="text-[10px] font-mono font-bold uppercase text-muted-foreground block">
                   Serviço Selecionado
                 </span>
-                <p className="text-sm font-bold text-foreground">{selectedService?.name}</p>
+                <p className="text-sm font-bold text-foreground">{selectedService?.title || selectedService?.name}</p>
                 <div className="flex items-center justify-between pt-1">
                   <span className="text-xs text-muted-foreground font-mono">
                     Duração: {selectedService?.duration_minutes || 30} min
                   </span>
                   <span className="font-mono font-black text-primary text-sm">
-                    {formatMoney(selectedService?.price_cents || 0)}
+                    {selectedPassId ? "1 Crédito do Pacote" : formatMoney(selectedService?.price_cents || 0)}
                   </span>
                 </div>
               </div>
+
+              {/* Opção de Usar Pacote de Créditos */}
+              {activePasses && activePasses.length > 0 && (
+                <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                        🎉 Você possui pacote ativo!
+                      </p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {activePasses[0].remaining_credits} créditos restantes de {activePasses[0].total_credits}
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={selectedPassId ? "default" : "outline"}
+                      onClick={() => setSelectedPassId(selectedPassId ? null : activePasses[0].id)}
+                      className="rounded-xl text-xs font-semibold h-8"
+                    >
+                      {selectedPassId ? "✓ Usando Pacote" : "Usar Crédito"}
+                    </Button>
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">

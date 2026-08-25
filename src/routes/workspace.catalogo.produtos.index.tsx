@@ -121,6 +121,65 @@ function EditablePriceCell({
   );
 }
 
+function EditableStockCell({
+  productId,
+  initialStock,
+  onSave,
+}: {
+  productId: string;
+  initialStock: number;
+  onSave: (val: number) => Promise<boolean>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [val, setVal] = useState(String(initialStock ?? 0));
+  const [isSaving, setIsSaving] = useState(false);
+
+  const save = async () => {
+    setIsSaving(true);
+    const qty = parseInt(val, 10);
+    if (!isNaN(qty) && qty >= 0) {
+      const ok = await onSave(qty);
+      if (ok) {
+        setEditing(false);
+      } else {
+        setVal(String(initialStock ?? 0));
+      }
+    } else {
+      setVal(String(initialStock ?? 0));
+    }
+    setIsSaving(false);
+    setEditing(false);
+  };
+
+  if (editing) {
+    return (
+      <Input
+        type="number"
+        step="1"
+        autoFocus
+        className="h-7 w-16 px-2 text-xs"
+        value={val}
+        onChange={(e) => setVal(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && save()}
+        onBlur={save}
+        disabled={isSaving}
+      />
+    );
+  }
+
+  return (
+    <div
+      onClick={() => setEditing(true)}
+      className="font-mono text-xs cursor-text hover:bg-muted/50 px-1.5 py-0.5 rounded transition-colors border border-transparent hover:border-border inline-flex items-center gap-1"
+      title="Clique para editar estoque"
+    >
+      <span className={initialStock > 0 ? "text-foreground font-semibold" : "text-destructive font-bold"}>
+        {initialStock ?? 0} un
+      </span>
+    </div>
+  );
+}
+
 function AdminProductsPage() {
   const initialProducts = Route.useLoaderData();
   const [products, setProducts] = useState<AdminProductRow[]>(initialProducts);
@@ -187,6 +246,31 @@ function AdminProductsPage() {
     }
     toast.error("Erro ao atualizar preço.");
     return false;
+  };
+
+  // Action: Edit Stock Inline
+  const handleUpdateStock = async (productId: string, stock: number) => {
+    try {
+      const res = await updateProduct({
+        data: {
+          id: productId,
+          variants: [
+            {
+              stock,
+            },
+          ],
+        },
+      });
+      if (res?.id) {
+        setProducts((prev) => prev.map((p) => (p.id === productId ? { ...p, stock } : p)));
+        toast.success("Estoque atualizado!");
+        return true;
+      }
+      return false;
+    } catch {
+      toast.error("Erro ao atualizar estoque.");
+      return false;
+    }
   };
 
   // Action: Change Single Status
@@ -504,12 +588,20 @@ function AdminProductsPage() {
                           {typeName}
                         </span>
                       </div>
-                      <div className="mt-auto flex items-center gap-2">
+                      <div className="mt-auto flex items-center flex-wrap gap-2 pt-1">
                         <EditablePriceCell
                           productId={product.id}
                           initialCents={product.price_cents}
                           onSave={(cents) => handleUpdatePrice(product.id, cents)}
                         />
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground border-l border-border/50 pl-2">
+                          <span>Estoque:</span>
+                          <EditableStockCell
+                            productId={product.id}
+                            initialStock={(product as any).stock ?? 0}
+                            onSave={(stock) => handleUpdateStock(product.id, stock)}
+                          />
+                        </div>
                         {product.compare_at_cents ? (
                           <span className="text-[11px] text-muted-foreground line-through">
                             {formatMoney(product.compare_at_cents)}
@@ -542,6 +634,7 @@ function AdminProductsPage() {
                   <TableHead>Status</TableHead>
                   <TableHead>Tipo / Marca</TableHead>
                   <TableHead>Preço de Venda</TableHead>
+                  <TableHead>Estoque</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -630,6 +723,14 @@ function AdminProductsPage() {
                             </span>
                           ) : null}
                         </div>
+                      </TableCell>
+
+                      <TableCell>
+                        <EditableStockCell
+                          productId={product.id}
+                          initialStock={(product as any).stock ?? 0}
+                          onSave={(stock) => handleUpdateStock(product.id, stock)}
+                        />
                       </TableCell>
 
                       <TableCell className="text-right">

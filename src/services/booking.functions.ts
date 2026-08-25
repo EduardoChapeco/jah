@@ -23,9 +23,46 @@ export const createAppointmentSchema = z.object({
   guest_phone: z.string().min(10, "Telefone é obrigatório"),
   scheduled_at: z.string().datetime(),
   notes: z.string().optional(),
+  pass_id: z.string().uuid().optional(),
 });
 
 // --- FUNCTIONS ---
+
+/**
+ * Consulta passes ativos do cliente logado para um serviço específico.
+ */
+export const listMyPassesForService = createServerFn({ method: "GET" })
+  .validator(z.object({ service_id: z.string().uuid() }))
+  .handler(async ({ data: { service_id } }) => {
+    try {
+      const identity = await getServerIdentity();
+      if (!identity?.id) return [];
+
+      const db = getServerClient();
+      const { data: passes, error } = await db
+        .from("customer_service_passes")
+        .select(`
+          id, package_id, total_credits, remaining_credits, expires_at, status,
+          service_packages!inner (
+            id, title, service_id
+          )
+        `)
+        .eq("customer_id", identity.id)
+        .eq("status", "active")
+        .gt("remaining_credits", 0)
+        .gt("expires_at", new Date().toISOString())
+        .eq("service_packages.service_id", service_id);
+
+      if (error) {
+        console.error("[booking.functions] listMyPassesForService error:", error);
+        return [];
+      }
+
+      return passes || [];
+    } catch {
+      return [];
+    }
+  });
 
 /**
  * Lista serviços de agendamento disponíveis na loja atual ou na comunidade.
@@ -181,6 +218,33 @@ export const createAppointment = createServerFn({ method: "POST" })
 
       const db = getServerClient();
 
+      let apptStatus = "pending";
+      let passRow: any = null;
+
+      if (input.pass_id) {
+        // Debita 1 crédito do passe do cliente
+        const { data: pData } = await db
+          .from("customer_service_passes")
+          .select("id, remaining_credits")
+          .eq("id", input.pass_id)
+          .single();
+
+        passRow = pData;
+        if (passRow && passRow.remaining_credits > 0) {
+          const newBalance = passRow.remaining_credits - 1;
+          await db
+            .from("customer_service_passes")
+            .update({
+              remaining_credits: newBalance,
+              status: newBalance === 0 ? "exhausted" : "active",
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", input.pass_id);
+
+          apptStatus = "confirmed";
+        }
+      }
+
       const { data, error } = await db
         .from("booking_appointments")
         .insert({
@@ -191,11 +255,25 @@ export const createAppointment = createServerFn({ method: "POST" })
           guest_phone: input.guest_phone,
           scheduled_at: input.scheduled_at,
           notes: input.notes,
+          pass_id: input.pass_id || null,
+          status: apptStatus,
         })
         .select()
         .single();
 
       if (error) throw error;
+
+      if (input.pass_id && data && passRow) {
+        // Grava no ledger de auditoria
+        await db.from("service_pass_ledger").insert({
+          pass_id: input.pass_id,
+          appointment_id: data.id,
+          movement_type: "session_booked",
+          credits_delta: -1,
+          balance_after: Math.max(0, passRow.remaining_credits - 1),
+          reason: `Agendamento confirmado para ${input.scheduled_at}`,
+        });
+      }
 
       return { status: "success" as const, data };
     } catch (error: unknown) {

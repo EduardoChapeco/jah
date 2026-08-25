@@ -9,12 +9,12 @@ import {
   Navigation,
   KeyRound,
   Loader2,
-  DollarSign,
-  Package,
+  Camera,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { MediaUploader } from "@/components/ui/media-uploader";
 import { getDeliveryByToken, confirmDeliveryByPin } from "@/services/dispatch.functions";
 import { formatMoney } from "@/lib/money";
 
@@ -31,6 +31,7 @@ function DeliveryCourierPage() {
   const { token } = Route.useParams();
 
   const [pin, setPin] = useState("");
+  const [proofPhotoUrl, setProofPhotoUrl] = useState("");
   const [isConfirming, setIsConfirming] = useState(false);
   const [isDelivered, setIsDelivered] = useState(delivery.status === "delivered");
   const [deliveredAt, setDeliveredAt] = useState((delivery as any).delivered_at);
@@ -59,11 +60,31 @@ function DeliveryCourierPage() {
     }
 
     setIsConfirming(true);
+
+    // Tenta capturar geolocalização se disponível no navegador
+    let latitude: number | undefined;
+    let longitude: number | undefined;
+
+    if ("geolocation" in navigator) {
+      try {
+        const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 4000 });
+        });
+        latitude = pos.coords.latitude;
+        longitude = pos.coords.longitude;
+      } catch {
+        // Ignora erro de timeout/permissão de GPS e segue
+      }
+    }
+
     try {
       const res = await confirmDeliveryByPin({
         data: {
           token,
           pin,
+          proofPhotoUrl: proofPhotoUrl || undefined,
+          latitude,
+          longitude,
         },
       });
 
@@ -83,7 +104,7 @@ function DeliveryCourierPage() {
     <div className="min-h-screen bg-muted/20 flex flex-col justify-between p-4 max-w-lg mx-auto">
       <div className="space-y-4">
         {/* Header da Corrida */}
-        <div className="squircle-soft bg-card  p-4 flex items-center justify-between ">
+        <div className="bg-card rounded-2xl p-4 flex items-center justify-between border border-border/60 shadow-2xs">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-primary/10 text-primary rounded-xl">
               <Truck className="size-6" />
@@ -104,7 +125,7 @@ function DeliveryCourierPage() {
         </div>
 
         {/* Taxa da Corrida */}
-        <div className="squircle-soft bg-card  p-4 flex items-center justify-between ">
+        <div className="bg-card rounded-2xl p-4 flex items-center justify-between border border-border/60 shadow-2xs">
           <div>
             <span className="text-xs text-muted-foreground">Sua Taxa de Entrega</span>
             <p className="text-xl font-black text-primary">
@@ -117,7 +138,7 @@ function DeliveryCourierPage() {
         </div>
 
         {/* Dados do Destinatário & Endereço */}
-        <div className="squircle-soft bg-card  p-4 space-y-4 ">
+        <div className="bg-card rounded-2xl p-4 space-y-4 border border-border/60 shadow-2xs">
           <div className="space-y-1">
             <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
               Cliente / Destinatário
@@ -128,7 +149,7 @@ function DeliveryCourierPage() {
             )}
           </div>
 
-          <div className="space-y-1 pt-2 ">
+          <div className="space-y-1 pt-2 border-t border-border/40">
             <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
               <MapPin className="size-3 text-primary" /> Endereço de Entrega
             </span>
@@ -174,8 +195,8 @@ function DeliveryCourierPage() {
           </div>
         </div>
 
-        {/* Confirmação de Entrega por PIN */}
-        <div className="squircle-soft bg-card  p-5 space-y-4 ">
+        {/* Confirmação de Entrega por PIN & Foto de Prova */}
+        <div className="bg-card rounded-2xl p-5 space-y-4 border border-border/60 shadow-2xs">
           {isDelivered ? (
             <div className="text-center py-4 space-y-2">
               <div className="size-12 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center mx-auto">
@@ -210,10 +231,25 @@ function DeliveryCourierPage() {
                 required
               />
 
+              {/* Foto de Comprovante Opcional */}
+              <div className="space-y-1.5 text-left pt-2 border-t border-border/40">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                  <Camera className="size-3.5 text-muted-foreground" />
+                  Foto do Pacote / Destinatário (Opcional)
+                </div>
+                <MediaUploader
+                  value={proofPhotoUrl ? [proofPhotoUrl] : []}
+                  onChange={(urls) => setProofPhotoUrl(urls[0] || "")}
+                  bucket="post-media"
+                  folder="delivery_proofs"
+                  maxFiles={1}
+                />
+              </div>
+
               <Button
                 type="submit"
                 disabled={isConfirming || pin.length !== 4}
-                className="w-full h-11 rounded-xl font-bold gap-2 text-sm "
+                className="w-full h-11 rounded-xl font-bold gap-2 text-sm"
               >
                 {isConfirming ? (
                   <>
@@ -233,7 +269,7 @@ function DeliveryCourierPage() {
       </div>
 
       <div className="py-4 text-center text-[10px] text-muted-foreground">
-        JAH Delivery Network • Despacho Seguro em Tempo Real
+        Wider Delivery Network • Despacho Seguro em Tempo Real
       </div>
     </div>
   );

@@ -20,24 +20,27 @@ import { ReviewModal } from "@/components/commerce/review-modal";
 import { RmaWizard } from "@/components/commerce/rma-wizard";
 import { ErrorState, EmptyState } from "@/components/state/states";
 import { formatMoney } from "@/lib/money";
+import { formatDate } from "@/lib/datetime";
 import { getCustomerOrder, getOrderPaymentInstructions } from "@/services/order.functions";
 import { uploadPaymentReceipt } from "@/services/payment.functions";
-import { formatDate } from "../lib/datetime";
+import { getDeliveryProofsByOrderId, type DeliveryProof } from "@/services/dispatch.functions";
 
 export const Route = createFileRoute("/_store/conta/pedidos/$id")({
   head: () => ({ meta: [{ title: "Detalhes do Pedido" }] }),
   loader: async ({ params }) => {
-    const [orderRes, instrRes] = await Promise.all([
+    const [orderRes, instrRes, proofs] = await Promise.all([
       getCustomerOrder({ data: { orderId: params.id } }),
       getOrderPaymentInstructions({ data: { orderId: params.id } }).catch(() => ({
         status: "error" as const,
         data: null,
       })),
+      getDeliveryProofsByOrderId({ data: { orderId: params.id } }).catch(() => []),
     ]);
 
     return {
       order: orderRes,
       paymentInstructions: instrRes || { pix_key: null, payment_instructions: null },
+      proofs: (proofs || []) as DeliveryProof[],
     };
   },
   component: CustomerOrderDetailPage,
@@ -69,9 +72,10 @@ function getStatusVariant(status: string): "default" | "secondary" | "destructiv
 }
 
 function CustomerOrderDetailPage() {
-  const { order, paymentInstructions } = Route.useLoaderData() as {
+  const { order, paymentInstructions, proofs } = Route.useLoaderData() as {
     order: any;
     paymentInstructions: { pix_key: string | null; payment_instructions: string | null };
+    proofs: DeliveryProof[];
   };
   const router = useRouter();
   const [uploading, setUploading] = useState(false);
@@ -217,22 +221,22 @@ function CustomerOrderDetailPage() {
           </div>
 
           {/* Delivery & Shipping Address */}
-          <div className=" bg-background p-5 space-y-3 mb-6">
-            <h3 className="font-semibold text-xl font-bold flex items-center gap-2  pb-3">
-              <MapPin className="h-6 w-6 text-primary" strokeWidth={2.5} />
+          <div className="bg-card rounded-2xl border border-border/60 p-5 space-y-4 mb-6 shadow-2xs">
+            <h3 className="font-semibold text-base font-bold flex items-center gap-2 pb-2 border-b border-border/40">
+              <MapPin className="size-5 text-primary" />
               Entrega / Retirada
             </h3>
             {order.shipping_method === "pickup" ? (
-              <p className="text-sm text-foreground/80">
+              <p className="text-sm text-muted-foreground">
                 Modalidade: <strong className="text-foreground">Retirada na Loja</strong>
               </p>
             ) : (
-              <div className="text-sm text-foreground/80 space-y-1">
+              <div className="text-xs text-muted-foreground space-y-1">
                 <p>
                   <strong className="text-foreground">Modalidade:</strong> Entrega domiciliar
                 </p>
                 {address.street && (
-                  <p>
+                  <p className="text-foreground">
                     {address.street}, {address.number}
                     {address.complement && ` — ${address.complement}`}
                   </p>
@@ -243,10 +247,49 @@ function CustomerOrderDetailPage() {
                   </p>
                 )}
                 {address.zipcode && (
-                  <p className="font-mono text-xs mt-1 font-bold text-foreground">
+                  <p className="font-mono text-[11px] font-medium text-muted-foreground">
                     CEP: {address.zipcode}
                   </p>
                 )}
+              </div>
+            )}
+
+            {/* Delivery Proofs if any */}
+            {proofs && proofs.length > 0 && (
+              <div className="pt-3 border-t border-border/40 space-y-2.5">
+                <span className="text-[11px] font-bold text-foreground flex items-center gap-1.5">
+                  <Package className="size-3.5 text-emerald-600" />
+                  Comprovante de Entrega Confirmada
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {proofs.map((pr: any) => (
+                    <div
+                      key={pr.id}
+                      className="rounded-xl overflow-hidden border border-border/60 bg-muted/20 p-2 space-y-2"
+                    >
+                      <a href={pr.storage_path} target="_blank" rel="noopener noreferrer">
+                        <img
+                          src={pr.storage_path}
+                          alt="Comprovante de Entrega"
+                          className="w-full aspect-video object-cover rounded-lg hover:opacity-90 transition-opacity"
+                        />
+                      </a>
+                      <div className="text-[10px] text-muted-foreground flex items-center justify-between">
+                        <span>Foto capturada pelo entregador</span>
+                        {pr.latitude && pr.longitude && (
+                          <a
+                            href={`https://www.google.com/maps/search/?api=1&query=${pr.latitude},${pr.longitude}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline font-mono"
+                          >
+                            Ver GPS ↗
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

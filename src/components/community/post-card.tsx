@@ -652,10 +652,11 @@ export function PostCard(props: PostCardProps) {
       {/* Referência: Produto */}
       {item.reference_data && item.reference_type === "product" && (
         <Link
-          to="/mercado"
+          to={item.reference_data.slug ? "/produto/$slug" : "/mercado"}
+          params={item.reference_data.slug ? { slug: item.reference_data.slug } : undefined}
           className="mb-3 flex items-center gap-3 p-3 rounded-2xl bg-muted/30 hover:bg-muted/60 transition-colors group border border-border/40"
         >
-          <div className="size-14 rounded-xl overflow-hidden bg-background shrink-0">
+          <div className="size-14 rounded-xl overflow-hidden bg-background shrink-0 border border-border/40">
             {item.reference_data.images?.[0] ? (
               <img
                 src={item.reference_data.images[0]}
@@ -667,17 +668,63 @@ export function PostCard(props: PostCardProps) {
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <span className="text-[10px] font-bold uppercase text-primary tracking-wider">
-              Produto da Comunidade
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-bold uppercase text-primary tracking-wider">
+                {item.reference_data.stores?.name || "Produto da Comunidade"}
+              </span>
+            </div>
+            <p className="text-sm font-bold text-foreground truncate">
+              {item.reference_data.title}
+            </p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="text-xs font-bold text-foreground">
+                {formatMoney(item.reference_data.price_cents)}
+              </span>
+              {item.reference_data.compare_at_price_cents && (
+                <span className="text-[11px] text-muted-foreground line-through">
+                  {formatMoney(item.reference_data.compare_at_price_cents)}
+                </span>
+              )}
+            </div>
+          </div>
+          <Button size="sm" className="h-8 px-3 rounded-xl text-xs font-semibold shrink-0 cursor-pointer">
+            Comprar
+          </Button>
+        </Link>
+      )}
+
+      {/* Referência: Classificado / Desapego */}
+      {item.reference_data && item.reference_type === "classified" && (
+        <Link
+          to="/classificados/$id"
+          params={{ id: item.reference_data.id }}
+          className="mb-3 flex items-center gap-3 p-3 rounded-2xl bg-muted/30 hover:bg-muted/60 transition-colors group border border-border/40"
+        >
+          <div className="size-14 rounded-xl overflow-hidden bg-background shrink-0 border border-border/40">
+            {item.reference_data.images?.[0] ? (
+              <img
+                src={item.reference_data.images[0]}
+                alt={item.reference_data.title}
+                className="size-full object-cover group-hover:scale-105 transition-transform"
+              />
+            ) : (
+              <Tag className="size-6 text-muted-foreground m-auto mt-4" />
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <span className="text-[10px] font-bold uppercase text-amber-600 tracking-wider">
+              Anúncio & Desapego
             </span>
             <p className="text-sm font-bold text-foreground truncate">
               {item.reference_data.title}
             </p>
-            <p className="text-xs font-semibold text-foreground/80 mt-0.5">
+            <p className="text-xs font-bold text-foreground mt-0.5">
               {formatMoney(item.reference_data.price_cents)}
             </p>
           </div>
-          <ExternalLink className="size-4 text-muted-foreground group-hover:text-foreground shrink-0 mr-1" />
+          <Button size="sm" variant="outline" className="h-8 px-3 rounded-xl text-xs font-semibold shrink-0 cursor-pointer bg-card">
+            Ver Oferta
+          </Button>
         </Link>
       )}
 

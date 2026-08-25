@@ -21,6 +21,17 @@ export type DispatchRecord = {
   delivered_at?: string;
 };
 
+export type DeliveryProof = {
+  id: string;
+  magic_link_id?: string | null;
+  fulfillment_id?: string | null;
+  proof_type: "photo_package" | "photo_recipient" | "photo_location" | "signature";
+  storage_path: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  captured_at: string;
+};
+
 export const listDispatches = createServerFn({ method: "GET" }).handler(async () => {
   const supabase = getServerClient();
   const identity = await getServerIdentity();
@@ -89,6 +100,7 @@ export const createDispatch = createServerFn({ method: "POST" })
       .from("delivery_magic_links")
       .insert({
         store_id: identity.store_id,
+        fulfillment_id: input.orderId,
         token: deliveryToken,
         courier_name: input.courierName,
         courier_phone: input.courierPhone,
@@ -130,7 +142,7 @@ export const getDeliveryByToken = createServerFn({ method: "GET" })
     const { data: magicLink, error } = await supabase
       .from("delivery_magic_links")
       .select(
-        "id, store_id, token, courier_name, courier_phone, expires_at, delivery_confirmed_at, created_at",
+        "id, store_id, fulfillment_id, token, courier_name, courier_phone, expires_at, delivery_confirmed_at, created_at",
       )
       .eq("token", token)
       .maybeSingle();
@@ -141,7 +153,7 @@ export const getDeliveryByToken = createServerFn({ method: "GET" })
         order_number: "PED-9821",
         courier_name: "Entregador Parceiro",
         delivery_address: "Av. Fernando Machado, 450 - Centro, Chapecó / SC",
-        recipient_name: "Juliana Santos",
+        recipient_name: "Cliente Final",
         recipient_phone: "(49) 98844-2211",
         delivery_fee_cents: 1200,
         status: "in_transit" as const,
@@ -152,6 +164,7 @@ export const getDeliveryByToken = createServerFn({ method: "GET" })
     const isDelivered = Boolean(magicLink.delivery_confirmed_at);
     return {
       id: magicLink.id,
+      order_id: magicLink.fulfillment_id,
       order_number: "PED-" + magicLink.id.slice(0, 4).toUpperCase(),
       courier_name: magicLink.courier_name || "Entregador Parceiro",
       delivery_address: "Endereço registrado na rota",
@@ -164,14 +177,81 @@ export const getDeliveryByToken = createServerFn({ method: "GET" })
     };
   });
 
+export const recordDeliveryProof = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      token: z.string(),
+      proofType: z.enum(["photo_package", "photo_recipient", "photo_location", "signature"]),
+      storagePath: z.string().min(5),
+      latitude: z.number().optional(),
+      longitude: z.number().optional(),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    const supabase = getServerClient();
+
+    // Localiza o magic link
+    const { data: link } = await supabase
+      .from("delivery_magic_links")
+      .select("id, fulfillment_id, store_id")
+      .eq("token", input.token)
+      .maybeSingle();
+
+    if (!link) {
+      throw new Error("Link de entrega não encontrado ou expirado.");
+    }
+
+    const { data: proof, error } = await supabase
+      .from("delivery_proofs")
+      .insert({
+        magic_link_id: link.id,
+        fulfillment_id: link.fulfillment_id,
+        proof_type: input.proofType,
+        storage_path: input.storagePath,
+        latitude: input.latitude,
+        longitude: input.longitude,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("[dispatch] Error inserting delivery proof:", error);
+      throw new Error("Erro ao salvar comprovante fotográfico de entrega.");
+    }
+
+    return proof;
+  });
+
+export const getDeliveryProofsByOrderId = createServerFn({ method: "GET" })
+  .validator(z.object({ orderId: z.string() }))
+  .handler(async ({ data: { orderId } }) => {
+    const supabase = getServerClient();
+
+    const { data: proofs, error } = await supabase
+      .from("delivery_proofs")
+      .select("*")
+      .eq("fulfillment_id", orderId)
+      .order("captured_at", { ascending: false });
+
+    if (error) {
+      console.error("[dispatch] Error getting delivery proofs:", error);
+      return [];
+    }
+
+    return (proofs || []) as DeliveryProof[];
+  });
+
 export const confirmDeliveryByPin = createServerFn({ method: "POST" })
   .validator(
     z.object({
       token: z.string(),
       pin: z.string().length(4),
+      proofPhotoUrl: z.string().optional(),
+      latitude: z.number().optional(),
+      longitude: z.number().optional(),
     }),
   )
-  .handler(async ({ data: { token, pin } }) => {
+  .handler(async ({ data: { token, pin, proofPhotoUrl, latitude, longitude } }) => {
     const supabase = getServerClient();
     const expectedPin = token.slice(-4);
 
@@ -180,16 +260,36 @@ export const confirmDeliveryByPin = createServerFn({ method: "POST" })
     }
 
     const now = new Date().toISOString();
-    const { error } = await supabase
+    const { data: link, error } = await supabase
       .from("delivery_magic_links")
       .update({
         delivery_confirmed_at: now,
         used_at: now,
       })
-      .eq("token", token);
+      .eq("token", token)
+      .select("id, fulfillment_id")
+      .single();
 
     if (error) {
       console.error("[dispatch] Error confirming delivery in DB:", error);
+    }
+
+    // Se houver foto do comprovante, grava na tabela delivery_proofs
+    if (proofPhotoUrl && link) {
+      try {
+        await supabase
+          .from("delivery_proofs")
+          .insert({
+            magic_link_id: link.id,
+            fulfillment_id: link.fulfillment_id,
+            proof_type: "photo_package",
+            storage_path: proofPhotoUrl,
+            latitude: latitude || null,
+            longitude: longitude || null,
+          });
+      } catch (err) {
+        console.error("[dispatch] Failed to insert proof:", err);
+      }
     }
 
     return { success: true, deliveredAt: now };

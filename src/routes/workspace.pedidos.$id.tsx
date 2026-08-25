@@ -38,6 +38,7 @@ import {
   updateOrderShippingQuote,
 } from "@/services/order.functions";
 import { approvePayment, rejectPayment } from "@/services/payment.functions";
+import { getDeliveryProofsByOrderId, type DeliveryProof } from "@/services/dispatch.functions";
 import { PickingWizard } from "@/components/admin/orders/picking-wizard";
 import { RmaRequestWizard } from "@/components/admin/orders/rma-request-wizard";
 import { OrderEditWizard } from "@/components/admin/orders/order-edit-wizard";
@@ -47,10 +48,13 @@ export const Route = createFileRoute("/workspace/pedidos/$id")({
   head: () => ({ meta: [{ title: "Detalhes do Pedido" }] }),
   loader: async ({ params }: { params: { id: string } }) => {
     try {
-      const order = await getOrderById({ data: { orderId: params.id } });
-      return order;
+      const [order, proofs] = await Promise.all([
+        getOrderById({ data: { orderId: params.id } }),
+        getDeliveryProofsByOrderId({ data: { orderId: params.id } }).catch(() => []),
+      ]);
+      return { order, proofs: (proofs || []) as DeliveryProof[] };
     } catch {
-      return null;
+      return { order: null, proofs: [] as DeliveryProof[] };
     }
   },
   component: AdminOrderDetailPage,
@@ -83,7 +87,7 @@ function getStatusLabel(status: string) {
 }
 
 function AdminOrderDetailPage() {
-  const order = Route.useLoaderData();
+  const { order, proofs } = Route.useLoaderData() as { order: any; proofs: DeliveryProof[] };
   const router = useRouter();
   const [isConfirming, setIsConfirming] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
@@ -570,6 +574,44 @@ function AdminOrderDetailPage() {
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">Nenhum pacote enviado ainda.</p>
+              )}
+
+              {/* Comprovantes de Entrega com Foto & GPS */}
+              {proofs && proofs.length > 0 && (
+                <div className="pt-4 border-t border-border/40 space-y-3">
+                  <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <Package className="size-3.5 text-emerald-600" /> Evidência Fotográfica de Entrega
+                  </span>
+                  <div className="grid grid-cols-1 gap-2.5">
+                    {proofs.map((pr: any) => (
+                      <div
+                        key={pr.id}
+                        className="rounded-xl overflow-hidden border border-border/60 bg-muted/20 p-2 space-y-2"
+                      >
+                        <a href={pr.storage_path} target="_blank" rel="noopener noreferrer">
+                          <img
+                            src={pr.storage_path}
+                            alt="Comprovante de Entrega"
+                            className="w-full aspect-video object-cover rounded-lg hover:opacity-90 transition-opacity"
+                          />
+                        </a>
+                        <div className="text-[10px] text-muted-foreground flex items-center justify-between">
+                          <span>Foto do pacote/destinatário</span>
+                          {pr.latitude && pr.longitude && (
+                            <a
+                              href={`https://www.google.com/maps/search/?api=1&query=${pr.latitude},${pr.longitude}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary hover:underline font-mono"
+                            >
+                              Ver Localização ↗
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           </div>

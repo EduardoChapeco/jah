@@ -10,6 +10,7 @@ import { getCurrentIdentity } from "@/services/cart-helpers";
 export interface DirectoryListingDTO {
   id: string;
   store_id?: string | null;
+  store?: { id: string; name: string; slug: string; avatar_url?: string | null } | null;
   author_profile_id?: string | null;
   business_name: string;
   category: string;
@@ -48,7 +49,7 @@ export const getPublicDirectory = createServerFn({ method: "GET" })
 
     let query = supabase
       .from("directory_listings")
-      .select("*")
+      .select("*, stores(id, name, slug, avatar_url)")
       .eq("status", "active")
       .order("is_verified", { ascending: false })
       .order("rating", { ascending: false })
@@ -73,8 +74,9 @@ export const getPublicDirectory = createServerFn({ method: "GET" })
     return (rows || []).map((row: any) => ({
       id: row.id,
       store_id: row.store_id,
+      store: row.stores || null,
       author_profile_id: row.author_profile_id,
-      business_name: row.business_name || "Negócio Local",
+      business_name: row.business_name || row.stores?.name || "Negócio Local",
       category: row.category,
       description: row.description || "",
       specialties: row.specialties || [],
@@ -89,7 +91,7 @@ export const getPublicDirectory = createServerFn({ method: "GET" })
       is_verified: !!row.is_verified,
       rating: Number(row.rating || 5.0),
       reviews_count: Number(row.reviews_count || 0),
-      avatar_url: row.avatar_url,
+      avatar_url: row.avatar_url || row.stores?.avatar_url,
       banner_url: row.banner_url,
       status: row.status,
       created_at: row.created_at,
@@ -102,7 +104,7 @@ export const getPublicDirectoryById = createServerFn({ method: "GET" })
     const supabase = getServerClient();
 
     // 1. Tenta buscar em directory_listings por ID ou store_id
-    let query = supabase.from("directory_listings").select("*");
+    let query = supabase.from("directory_listings").select("*, stores(id, name, slug, avatar_url)");
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(listingId);
 
     if (isUuid) {
@@ -117,8 +119,9 @@ export const getPublicDirectoryById = createServerFn({ method: "GET" })
       return {
         id: row.id,
         store_id: row.store_id,
+        store: row.stores || null,
         author_profile_id: row.author_profile_id,
-        business_name: row.business_name || "Negócio Local",
+        business_name: row.business_name || row.stores?.name || "Negócio Local",
         category: row.category,
         description: row.description || "",
         specialties: row.specialties || [],
@@ -133,7 +136,7 @@ export const getPublicDirectoryById = createServerFn({ method: "GET" })
         is_verified: !!row.is_verified,
         rating: Number(row.rating || 5.0),
         reviews_count: Number(row.reviews_count || 0),
-        avatar_url: row.avatar_url,
+        avatar_url: row.avatar_url || row.stores?.avatar_url,
         banner_url: row.banner_url,
         status: row.status,
         created_at: row.created_at,

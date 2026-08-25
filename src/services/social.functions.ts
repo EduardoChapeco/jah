@@ -375,7 +375,7 @@ export const getMuralFeed = createServerFn({ method: "GET" })
     if (productIds.length > 0) {
       const { data } = await db
         .from("products")
-        .select("id, title, price_cents, images")
+        .select("id, title, slug, price_cents, images, compare_at_price_cents, stores(id, name, slug)")
         .in("id", productIds);
       (data ?? []).forEach((r: any) => productMap.set(r.id, r));
     }

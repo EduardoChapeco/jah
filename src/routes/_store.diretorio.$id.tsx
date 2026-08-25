@@ -258,6 +258,33 @@ function CanonicalDirectoryDetailPage() {
           </div>
         </div>
 
+        {/* ── 2.5 LOJA OFICIAL INTEGRADA (SE CONECTADA NO BANCO) ── */}
+        {listing.store && (
+          <div className="p-4 rounded-2xl bg-card border border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+            <div className="flex items-center gap-3">
+              <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0">
+                {listing.store.name?.slice(0, 2).toUpperCase()}
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-bold text-foreground">{listing.store.name}</p>
+                  <span className="bg-emerald-600/90 text-white text-[9px] font-semibold px-2 py-0.5 rounded-md">
+                    Loja Oficial
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Esta empresa possui loja e catálogo de produtos ativos no marketplace.
+                </p>
+              </div>
+            </div>
+            <Button asChild size="sm" className="rounded-xl font-semibold text-xs h-9 px-4 shrink-0">
+              <Link to="/mercado">
+                Abrir Loja & Catálogo ↗
+              </Link>
+            </Button>
+          </div>
+        )}
+
         {/* ── 3. BOTÕES DE AÇÃO RÁPIDA (CONVERSÃO NO TOPO) ── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
           {listing.whatsapp && (
