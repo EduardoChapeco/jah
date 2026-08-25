@@ -1,8 +1,7 @@
 import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { getPlatformStoresList, toggleStoreStatus } from "@/services/master.functions";
 import { setTenantContext } from "@/services/identity.functions";
-import { Surface } from "@/components/ui/surface";
-import { Store, Search, Filter, Eye, Download, ExternalLink, ShieldAlert, Sparkles } from "lucide-react";
+import { Store, Search, Download, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,9 +9,10 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin-master/lojas")({
-  head: () => ({ meta: [{ title: "Lojas - Master" }] }),
+  head: () => ({ meta: [{ title: "Lojas & Empresas | Admin Master" }] }),
   loader: async () => {
     const stores = await getPlatformStoresList();
     return { stores };
@@ -35,7 +35,7 @@ function MasterLojasPage() {
   const handleToggleStore = async (storeId: string, currentStatus: boolean) => {
     if (
       !confirm(
-        `Deseja realmente ${currentStatus ? "bloquear" : "desbloquear"} esta loja no ecossistema?`,
+        `Deseja realmente ${currentStatus ? "bloquear" : "desbloquear"} esta loja?`,
       )
     )
       return;
@@ -59,10 +59,10 @@ function MasterLojasPage() {
         window.document.cookie = `wider_active_tenant=${storeId}; path=/; max-age=31536000; SameSite=Lax`;
       }
       await setTenantContext({ data: { store_id: storeId } }).catch(() => null);
-      toast.success(`Acessando painel de "${storeName}" em modo Olho de Deus...`);
+      toast.success(`Acessando painel de "${storeName}"...`);
       window.location.href = "/workspace";
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Erro ao assumir contexto da loja.");
+      toast.error(e instanceof Error ? e.message : "Erro ao acessar contexto da loja.");
       setLoadingId(null);
     }
   };
@@ -82,133 +82,123 @@ function MasterLojasPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `lojas_wider_master_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute("download", `lojas_wider_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success("Arquivo CSV exportado com sucesso!");
+    toast.success("Arquivo CSV exportado.");
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex flex-col md:flex-row gap-4 justify-between md:items-end">
+    <div className="space-y-6 animate-in fade-in duration-300">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border/40">
         <div>
-          <h1 className="text-3xl font-black uppercase tracking-tight flex items-center gap-2">
-            <Store className="size-8 text-primary" />
-            Ecossistema de Lojas & Empresas
-          </h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Gestão global, modo Olho de Deus (impersonate), bloqueio e auditoria de todos os negócios registrados.
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">Lojas & Empresas</h1>
+            <Badge variant="secondary" className="text-xs font-normal">
+              {stores.length} cadastradas
+            </Badge>
+          </div>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Governança e auditoria de todos os negócios registrados na plataforma.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleExportStoresCsv}
-            className="h-10 px-4 rounded-xl font-bold text-xs gap-2 cursor-pointer bg-card"
-          >
-            <Download className="size-4 text-primary" />
-            <span>Exportar CSV Geral</span>
-          </Button>
-        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleExportStoresCsv}
+          className="h-9 px-3.5 rounded-xl text-xs font-medium gap-1.5 cursor-pointer bg-card border-border/60"
+        >
+          <Download className="size-3.5" />
+          <span>Exportar CSV</span>
+        </Button>
       </div>
 
-      <div className="bg-card rounded-2xl border border-border/70 overflow-hidden shadow-xs">
-        <div className="p-4 border-b border-border/40 bg-muted/20 flex flex-col sm:flex-row gap-4 justify-between sm:items-center">
-          <div className="relative max-w-sm w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+      {/* Table Card */}
+      <div className="bg-card rounded-2xl border border-border/60 overflow-hidden shadow-2xs">
+        <div className="p-3.5 border-b border-border/40 bg-muted/20 flex items-center justify-between gap-3">
+          <div className="relative max-w-xs w-full">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
             <Input
               placeholder="Buscar por nome ou slug..."
-              className="pl-9 bg-background h-10 rounded-xl text-xs"
+              className="pl-8 bg-background h-8.5 rounded-xl text-xs border-border/60"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <span className="text-xs font-mono font-bold text-muted-foreground">
-            {filteredStores.length} lojas registradas
+          <span className="text-xs text-muted-foreground font-mono">
+            {filteredStores.length} {filteredStores.length === 1 ? "loja" : "lojas"}
           </span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-muted/40 text-muted-foreground border-b border-border/40 font-bold uppercase text-[10px] tracking-wider">
+          <table className="w-full text-xs text-left">
+            <thead className="bg-muted/30 text-muted-foreground border-b border-border/40 font-semibold uppercase text-[10px] tracking-wider">
               <tr>
-                <th className="px-6 py-4">Negócio</th>
-                <th className="px-6 py-4">Acesso (Slug)</th>
-                <th className="px-6 py-4">Registro</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-right">Ações & Olho de Deus</th>
+                <th className="px-5 py-3">Loja</th>
+                <th className="px-5 py-3">Slug</th>
+                <th className="px-5 py-3">Cadastro</th>
+                <th className="px-5 py-3">Status</th>
+                <th className="px-5 py-3 text-right">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/40">
               {filteredStores.map((store: any) => (
-                <tr key={store.id} className="hover:bg-muted/20 transition-colors">
-                  <td className="px-6 py-4">
-                    <p className="font-bold text-foreground">{store.name}</p>
-                    <span className="text-[10px] text-muted-foreground font-mono">ID: {store.id.slice(0, 8)}...</span>
+                <tr key={store.id} className="hover:bg-muted/30 transition-colors">
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center gap-3">
+                      <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0">
+                        {store.name?.slice(0, 2).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-foreground">{store.name}</p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {store.city ? `${store.city} - ${store.state || "SC"}` : "Santa Catarina"}
+                        </p>
+                      </div>
+                    </div>
                   </td>
-                  <td className="px-6 py-4 font-mono text-xs text-muted-foreground">
+                  <td className="px-5 py-3.5 font-mono text-[11px] text-muted-foreground">
                     /{store.slug}
                   </td>
-                  <td className="px-6 py-4 text-muted-foreground text-xs">
-                    {format(new Date(store.created_at), "dd 'de' MMM, yyyy", { locale: ptBR })}
+                  <td className="px-5 py-3.5 text-muted-foreground text-[11px]">
+                    {format(new Date(store.created_at || Date.now()), "dd/MM/yyyy", { locale: ptBR })}
                   </td>
-                  <td className="px-6 py-4">
-                    {store.is_active ? (
-                      <Badge
-                        variant="default"
-                        className="bg-emerald-600 text-white uppercase text-[9px] tracking-wider font-bold"
-                      >
-                        Operante
-                      </Badge>
-                    ) : (
-                      <Badge
-                        variant="destructive"
-                        className="uppercase text-[9px] tracking-wider font-bold"
-                      >
-                        Bloqueada
-                      </Badge>
-                    )}
+                  <td className="px-5 py-3.5">
+                    <Badge
+                      variant={store.is_active ? "default" : "destructive"}
+                      className={cn(
+                        "text-[10px] font-medium px-2 py-0.5",
+                        store.is_active ? "bg-emerald-600/90 text-white" : ""
+                      )}
+                    >
+                      {store.is_active ? "Ativa" : "Bloqueada"}
+                    </Badge>
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-5 py-3.5 text-right">
                     <div className="flex items-center justify-end gap-1.5">
-                      {/* Botão Olho de Deus (Impersonate) */}
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleImpersonateStore(store.id, store.name)}
+                        className="h-7 px-2.5 rounded-lg text-xs font-medium bg-card"
                         disabled={loadingId === store.id}
-                        className="h-8 px-3 rounded-xl font-bold text-xs gap-1.5 cursor-pointer bg-primary/5 hover:bg-primary hover:text-primary-foreground border-primary/30 transition-all"
-                        title="Entrar no painel de gestão desta loja com plenos poderes (Olho de Deus)"
+                        onClick={() => handleImpersonateStore(store.id, store.name)}
                       >
-                        <Eye className="size-3.5" />
-                        <span className="hidden xl:inline">Olho de Deus</span>
+                        Acessar
                       </Button>
-
-                      {/* Ver Vitrine Pública */}
                       <Button
-                        asChild
                         size="sm"
                         variant="ghost"
-                        className="h-8 px-2.5 rounded-xl text-xs font-bold gap-1 cursor-pointer"
-                        title="Ver página pública da loja"
-                      >
-                        <Link to="/perfil-da-loja" search={{ storeId: store.id }}>
-                          <ExternalLink className="size-3.5 text-muted-foreground" />
-                        </Link>
-                      </Button>
-
-                      {/* Bloquear / Desbloquear */}
-                      <Button
-                        size="sm"
-                        variant={store.is_active ? "outline" : "default"}
+                        className={cn(
+                          "h-7 px-2 rounded-lg text-xs font-medium",
+                          store.is_active ? "text-destructive hover:bg-destructive/10" : "text-emerald-600"
+                        )}
                         disabled={loadingId === store.id}
                         onClick={() => handleToggleStore(store.id, store.is_active)}
-                        className="h-8 px-3 rounded-xl font-bold text-xs cursor-pointer"
                       >
-                        {store.is_active ? "Bloquear" : "Desbloquear"}
+                        {store.is_active ? "Bloquear" : "Ativar"}
                       </Button>
                     </div>
                   </td>
@@ -216,8 +206,8 @@ function MasterLojasPage() {
               ))}
               {filteredStores.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground text-xs">
-                    Nenhuma loja encontrada para sua busca.
+                  <td colSpan={5} className="px-5 py-8 text-center text-muted-foreground">
+                    Nenhuma loja encontrada.
                   </td>
                 </tr>
               )}

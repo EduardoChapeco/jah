@@ -6,8 +6,7 @@ import {
   createPlatformInvoice,
 } from "@/services/master.functions";
 import { formatMoney, parseMoney } from "@/lib/money";
-import { Surface } from "@/components/ui/surface";
-import { DollarSign, FileText, Plus, Receipt } from "lucide-react";
+import { DollarSign, Plus, Receipt } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,9 +22,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin-master/faturas")({
-  head: () => ({ meta: [{ title: "Faturamentos - Master" }] }),
+  head: () => ({ meta: [{ title: "Faturas & Planos | Admin Master" }] }),
   loader: async () => {
     const [invoices, stores] = await Promise.all([
       getPlatformInvoicesList(),
@@ -43,7 +43,7 @@ function MasterFaturasPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
 
-  // Form states for manual invoice
+  // Form states
   const [storeId, setStoreId] = useState("");
   const [description, setDescription] = useState("");
   const [amountStr, setAmountStr] = useState("");
@@ -58,7 +58,7 @@ function MasterFaturasPage() {
     setLoadingAction(invoiceId);
     try {
       await updateInvoiceStatus({ data: { invoiceId, status: newStatus } });
-      toast.success("Status atualizado com sucesso.");
+      toast.success("Status da fatura atualizado.");
       router.invalidate();
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : String(e));
@@ -70,13 +70,13 @@ function MasterFaturasPage() {
   const handleCreateInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!storeId || !description || !amountStr || !dueDate) {
-      toast.error("Preencha todos os campos para emitir a fatura.");
+      toast.error("Preencha todos os campos da fatura.");
       return;
     }
 
     const amountCents = parseMoney(amountStr);
     if (amountCents <= 0) {
-      toast.error("O valor deve ser maior que zero.");
+      toast.error("Valor inválido.");
       return;
     }
 
@@ -105,47 +105,47 @@ function MasterFaturasPage() {
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex flex-col md:flex-row gap-4 justify-between md:items-end">
+    <div className="space-y-6 animate-in fade-in duration-300">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border/40">
         <div>
-          <h1 className="text-3xl font-black uppercase tracking-tight flex items-center gap-2">
-            <DollarSign className="size-8" />
-            Faturamentos da Plataforma
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Gestão de cobranças, repasses e assinaturas das lojas do ecossistema.
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">Faturas & Planos</h1>
+            <Badge variant="secondary" className="text-xs font-normal">
+              {invoices.length} {invoices.length === 1 ? "fatura" : "faturas"}
+            </Badge>
+          </div>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Gestão de cobranças, repasses e faturamento do ecossistema.
           </p>
         </div>
-        <Button onClick={() => setIsCreating(!isCreating)} className="font-bold">
-          {isCreating ? (
-            "Cancelar"
-          ) : (
-            <>
-              <Plus className="size-4 mr-2" /> Emitir Nova Fatura
-            </>
-          )}
+        <Button
+          onClick={() => setIsCreating(!isCreating)}
+          size="sm"
+          className="rounded-xl font-medium gap-1.5 h-9 px-4 cursor-pointer"
+        >
+          <Plus className="size-4" />
+          <span>{isCreating ? "Fechar Formulário" : "Emitir Fatura"}</span>
         </Button>
       </div>
 
+      {/* Manual Invoice Form */}
       {isCreating && (
-        <div className=" bg-card rounded-xl p-6 bg-muted/20 border-primary/20">
-          <h2 className="text-lg font-bold flex items-center gap-2 mb-4">
-            <Receipt className="size-5 text-primary" />
-            Emitir Fatura Avulsa
-          </h2>
+        <div className="bg-card rounded-2xl p-5 border border-border/60 shadow-2xs space-y-4 animate-in fade-in duration-200">
+          <p className="text-sm font-semibold text-foreground">Nova Cobrança Manual</p>
           <form
             onSubmit={handleCreateInvoice}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end"
           >
-            <div className="space-y-2">
-              <Label>Loja Destinatária</Label>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold">Loja</Label>
               <Select value={storeId} onValueChange={setStoreId}>
-                <SelectTrigger>
+                <SelectTrigger className="h-9 rounded-xl bg-background text-xs">
                   <SelectValue placeholder="Selecione a loja" />
                 </SelectTrigger>
                 <SelectContent>
                   {stores.map((s: any) => (
-                    <SelectItem key={s.id} value={s.id}>
+                    <SelectItem key={s.id} value={s.id} className="text-xs">
                       {s.name}
                     </SelectItem>
                   ))}
@@ -153,144 +153,128 @@ function MasterFaturasPage() {
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label>Descrição da Cobrança</Label>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold">Descrição</Label>
               <Input
                 placeholder="Ex: Mensalidade - Outubro"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                className="h-9 rounded-xl bg-background text-xs"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label>Valor (R$)</Label>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold">Valor (R$)</Label>
               <Input
                 placeholder="0,00"
                 value={amountStr}
                 onChange={(e) => setAmountStr(e.target.value)}
+                className="h-9 rounded-xl bg-background text-xs"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label>Vencimento</Label>
-              <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold">Vencimento</Label>
+              <Input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="h-9 rounded-xl bg-background text-xs"
+              />
             </div>
 
-            <Button
-              type="submit"
-              disabled={loadingAction === "creating"}
-              className="w-full lg:col-span-4"
-            >
-              {loadingAction === "creating" ? "Emitindo..." : "Emitir Cobrança"}
-            </Button>
+            <div className="sm:col-span-2 lg:col-span-4 flex justify-end pt-2">
+              <Button
+                type="submit"
+                size="sm"
+                disabled={loadingAction === "creating"}
+                className="rounded-xl text-xs font-semibold px-4"
+              >
+                {loadingAction === "creating" ? "Emitindo..." : "Confirmar Emissão"}
+              </Button>
+            </div>
           </form>
         </div>
       )}
 
-      <div className=" bg-card rounded-xl overflow-hidden">
-        <div className="p-4 border-b bg-muted/30">
-          <h3 className="font-bold flex items-center gap-2">
-            <FileText className="size-4 text-primary" /> Histórico de Faturas
-          </h3>
-        </div>
-
+      {/* Invoices Table Card */}
+      <div className="bg-card rounded-2xl border border-border/60 overflow-hidden shadow-2xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-muted text-muted-foreground border-b font-medium uppercase text-[10px] tracking-wider">
+          <table className="w-full text-xs text-left">
+            <thead className="bg-muted/30 text-muted-foreground border-b border-border/40 font-semibold uppercase text-[10px] tracking-wider">
               <tr>
-                <th className="px-6 py-4">Fatura</th>
-                <th className="px-6 py-4">Negócio</th>
-                <th className="px-6 py-4">Emissão</th>
-                <th className="px-6 py-4">Vencimento</th>
-                <th className="px-6 py-4 text-right">Valor</th>
-                <th className="px-6 py-4 text-center">Status</th>
-                <th className="px-6 py-4 text-right">Ação Rápida</th>
+                <th className="px-5 py-3">Descrição</th>
+                <th className="px-5 py-3">Loja</th>
+                <th className="px-5 py-3">Valor</th>
+                <th className="px-5 py-3">Vencimento</th>
+                <th className="px-5 py-3">Status</th>
+                <th className="px-5 py-3 text-right">Ação</th>
               </tr>
             </thead>
-            <tbody className="divide-y">
-              {invoices.map((inv: any) => {
-                const isPaid = inv.status === "paid";
-                const isOverdue = inv.status === "overdue";
-                const isCancelled = inv.status === "cancelled";
-
-                return (
-                  <tr key={inv.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="px-6 py-4 font-semibold text-foreground">{inv.description}</td>
-                    <td className="px-6 py-4 text-muted-foreground">
-                      {inv.stores?.name}
-                      {""}
-                      <span className="text-[10px] block opacity-70">/{inv.stores?.slug}</span>
-                    </td>
-                    <td className="px-6 py-4 text-muted-foreground text-xs">
-                      {format(new Date(inv.created_at), "dd/MM/yyyy")}
-                    </td>
-                    <td className="px-6 py-4 font-mono text-xs">
-                      {format(new Date(inv.due_date), "dd/MM/yyyy")}
-                    </td>
-                    <td className="px-6 py-4 text-right font-black text-foreground text-base">
-                      {formatMoney(inv.amount_cents)}
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <Badge
-                        variant={
-                          isPaid
-                            ? "default"
-                            : isOverdue
-                              ? "destructive"
-                              : isCancelled
-                                ? "outline"
-                                : "secondary"
-                        }
-                        className={
-                          isPaid ? "bg-success text-white" : isCancelled ? "opacity-50" : ""
-                        }
-                      >
-                        {inv.status.toUpperCase()}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      {isPaid ? (
+            <tbody className="divide-y divide-border/40">
+              {invoices.map((inv: any) => (
+                <tr key={inv.id} className="hover:bg-muted/30 transition-colors">
+                  <td className="px-5 py-3 font-semibold text-foreground">
+                    {inv.description || "Assinatura Mensal"}
+                  </td>
+                  <td className="px-5 py-3 text-muted-foreground">{inv.stores?.name || "Global"}</td>
+                  <td className="px-5 py-3 font-bold text-foreground">{formatMoney(inv.amount_cents)}</td>
+                  <td className="px-5 py-3 text-muted-foreground text-[11px]">
+                    {format(new Date(inv.due_date || inv.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                  </td>
+                  <td className="px-5 py-3">
+                    <Badge
+                      variant={
+                        inv.status === "paid"
+                          ? "default"
+                          : inv.status === "overdue"
+                            ? "destructive"
+                            : "secondary"
+                      }
+                      className={cn(
+                        "text-[10px] font-medium px-2 py-0.5",
+                        inv.status === "paid" ? "bg-emerald-600/90 text-white" : ""
+                      )}
+                    >
+                      {inv.status === "paid"
+                        ? "Pago"
+                        : inv.status === "overdue"
+                          ? "Vencido"
+                          : "Pendente"}
+                    </Badge>
+                  </td>
+                  <td className="px-5 py-3 text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      {inv.status !== "paid" && (
                         <Button
                           size="sm"
-                          variant="outline"
+                          variant="ghost"
+                          className="h-7 px-2 rounded-lg text-xs font-medium text-emerald-600 hover:bg-emerald-500/10"
                           disabled={loadingAction === inv.id}
-                          onClick={() => handleUpdateStatus(inv.id, "pending")}
-                          className="font-bold text-[10px]"
+                          onClick={() => handleUpdateStatus(inv.id, "paid")}
                         >
-                          Reverter Pago
+                          Marcar Pago
                         </Button>
-                      ) : isCancelled ? (
-                        <span className="text-muted-foreground text-xs font-mono">-</span>
-                      ) : (
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            className="bg-success text-white hover:bg-success/90 font-bold text-[10px]"
-                            disabled={loadingAction === inv.id}
-                            onClick={() => handleUpdateStatus(inv.id, "paid")}
-                          >
-                            Marcar Paga
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10 text-[10px]"
-                            disabled={loadingAction === inv.id}
-                            onClick={() => handleUpdateStatus(inv.id, "cancelled")}
-                          >
-                            Cancelar
-                          </Button>
-                        </div>
                       )}
-                    </td>
-                  </tr>
-                );
-              })}
+                      {inv.status === "pending" && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 px-2 rounded-lg text-xs font-medium text-destructive hover:bg-destructive/10"
+                          disabled={loadingAction === inv.id}
+                          onClick={() => handleUpdateStatus(inv.id, "cancelled")}
+                        >
+                          Cancelar
+                        </Button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
               {invoices.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground">
-                    Nenhuma fatura encontrada.
+                  <td colSpan={6} className="px-5 py-8 text-center text-muted-foreground">
+                    Nenhuma fatura registrada.
                   </td>
                 </tr>
               )}

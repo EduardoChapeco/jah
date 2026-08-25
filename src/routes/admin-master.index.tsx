@@ -6,15 +6,15 @@ import {
   toggleStoreStatus,
 } from "@/services/master.functions";
 import { formatMoney } from "@/lib/money";
-import { Surface } from "@/components/ui/surface";
-import { DollarSign, Store, Activity, AlertTriangle, ShieldCheck } from "lucide-react";
+import { DollarSign, Store, Activity, AlertTriangle, Users, UserCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin-master/")({
-  head: () => ({ meta: [{ title: "Master Dashboard" }] }),
+  head: () => ({ meta: [{ title: "Dashboard Global | Admin Master" }] }),
   loader: async () => {
     const [metrics, stores, invoices] = await Promise.all([
       getPlatformMetrics(),
@@ -47,121 +47,120 @@ function AdminMasterDashboard() {
     }
   };
 
+  const METRIC_CARDS = [
+    {
+      label: "Receita Faturada",
+      value: formatMoney(metrics.totalRevenueCents),
+      icon: DollarSign,
+      color: "text-primary bg-primary/10",
+    },
+    {
+      label: "Receita Pendente",
+      value: formatMoney(metrics.pendingRevenueCents),
+      icon: Activity,
+      color: "text-amber-600 bg-amber-500/10",
+    },
+    {
+      label: "Total de Lojas",
+      value: metrics.totalStores,
+      icon: Store,
+      color: "text-emerald-600 bg-emerald-500/10",
+    },
+    {
+      label: "Usuários Cadastrados",
+      value: metrics.totalUsers,
+      icon: Users,
+      color: "text-blue-600 bg-blue-500/10",
+    },
+    {
+      label: "Denúncias Pendentes",
+      value: metrics.pendingReports,
+      icon: AlertTriangle,
+      color: "text-rose-600 bg-rose-500/10",
+    },
+    {
+      label: "KYC Pendente",
+      value: metrics.pendingKyc,
+      icon: UserCheck,
+      color: "text-purple-600 bg-purple-500/10",
+    },
+  ];
+
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div>
-        <h1 className="text-3xl font-black uppercase tracking-tight">Visão Global</h1>
-        <p className="text-muted-foreground mt-1">Supervisão da plataforma Wider Community.</p>
+    <div className="space-y-6 animate-in fade-in duration-300">
+      {/* Header */}
+      <div className="pb-4 border-b border-border/40">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Visão Global</h1>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Indicadores executivos e governança em tempo real da plataforma.
+        </p>
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        <div className=" bg-card rounded-xl p-5 flex items-center gap-4 relative overflow-hidden ">
-          <div className="p-3.5 bg-primary/10 text-primary rounded-xl">
-            <DollarSign className="size-6" />
-          </div>
-          <div>
-            <p className="text-xs font-bold text-muted-foreground">Receita Faturada</p>
-            <p className="text-2xl font-black text-foreground">
-              {formatMoney(metrics.totalRevenueCents)}
-            </p>
-          </div>
-        </div>
-
-        <div className=" bg-card rounded-xl p-5 flex items-center gap-4 relative overflow-hidden ">
-          <div className="p-3.5 bg-warning/10 text-warning rounded-xl">
-            <Activity className="size-6" />
-          </div>
-          <div>
-            <p className="text-xs font-bold text-muted-foreground">Receita Pendente</p>
-            <p className="text-2xl font-black text-foreground">
-              {formatMoney(metrics.pendingRevenueCents)}
-            </p>
-          </div>
-        </div>
-
-        <div className=" bg-card rounded-xl p-5 flex items-center gap-4 relative overflow-hidden ">
-          <div className="p-3.5 bg-primary/10 text-foreground rounded-xl">
-            <Store className="size-6" />
-          </div>
-          <div>
-            <p className="text-xs font-bold text-muted-foreground">Total de Lojas</p>
-            <p className="text-2xl font-black text-foreground">{metrics.totalStores}</p>
-          </div>
-        </div>
-
-        <div className=" bg-card rounded-xl p-5 flex items-center gap-4 relative overflow-hidden ">
-          <div className="p-3.5 bg-blue-500/10 text-blue-600 rounded-xl">
-            <ShieldCheck className="size-6" />
-          </div>
-          <div>
-            <p className="text-xs font-bold text-muted-foreground">Usuários Cadastrados</p>
-            <p className="text-2xl font-black text-foreground">{metrics.totalUsers}</p>
-          </div>
-        </div>
-
-        <div className=" bg-card rounded-xl p-5 flex items-center gap-4 relative overflow-hidden ">
-          <div className="p-3.5 bg-amber-500/10 text-amber-600 rounded-xl">
-            <AlertTriangle className="size-6" />
-          </div>
-          <div>
-            <p className="text-xs font-bold text-muted-foreground">Denúncias Pendentes</p>
-            <p className="text-2xl font-black text-foreground">{metrics.pendingReports}</p>
-          </div>
-        </div>
-
-        <div className=" bg-card rounded-xl p-5 flex items-center gap-4 relative overflow-hidden ">
-          <div className="p-3.5 bg-indigo-500/10 text-indigo-600 rounded-xl">
-            <ShieldCheck className="size-6" />
-          </div>
-          <div>
-            <p className="text-xs font-bold text-muted-foreground">KYC Facial Pendente</p>
-            <p className="text-2xl font-black text-foreground">{metrics.pendingKyc}</p>
-          </div>
-        </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        {METRIC_CARDS.map((card, i) => {
+          const Icon = card.icon;
+          return (
+            <div
+              key={i}
+              className="bg-card rounded-2xl p-4 border border-border/60 shadow-2xs space-y-2 flex flex-col justify-between"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-medium text-muted-foreground">{card.label}</span>
+                <div className={cn("size-7 rounded-lg flex items-center justify-center", card.color)}>
+                  <Icon className="size-3.5" />
+                </div>
+              </div>
+              <p className="text-xl font-bold text-foreground tracking-tight">{card.value}</p>
+            </div>
+          );
+        })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* Lists Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Stores Table */}
-        <div className=" bg-card rounded-xl overflow-hidden">
-          <div className="p-4 border-b bg-muted/30">
-            <h3 className="font-bold flex items-center gap-2">
-              <Store className="size-4 text-primary" /> Ecossistema de Lojas
-            </h3>
+        <div className="bg-card rounded-2xl border border-border/60 overflow-hidden shadow-2xs">
+          <div className="p-3.5 border-b border-border/40 bg-muted/20 flex items-center justify-between">
+            <span className="text-xs font-bold text-foreground">Lojas Recentes</span>
+            <span className="text-xs text-muted-foreground font-mono">{stores.length} lojas</span>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-muted text-muted-foreground border-b font-medium uppercase text-xs">
+            <table className="w-full text-xs text-left">
+              <thead className="bg-muted/30 text-muted-foreground border-b border-border/40 font-semibold uppercase text-[10px]">
                 <tr>
-                  <th className="px-4 py-3">Loja</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3 text-right">Ação</th>
+                  <th className="px-4 py-2.5">Loja</th>
+                  <th className="px-4 py-2.5">Status</th>
+                  <th className="px-4 py-2.5 text-right">Ação</th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
-                {stores.map((store: any) => (
+              <tbody className="divide-y divide-border/40">
+                {stores.slice(0, 8).map((store: any) => (
                   <tr key={store.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="px-4 py-3 font-semibold">
-                      {store.name}
-                      <p className="text-xs text-muted-foreground font-normal">/{store.slug}</p>
+                    <td className="px-4 py-3">
+                      <p className="font-semibold text-foreground">{store.name}</p>
+                      <p className="text-[11px] text-muted-foreground font-mono">/{store.slug}</p>
                     </td>
                     <td className="px-4 py-3">
-                      {store.is_active ? (
-                        <Badge variant="default" className="bg-success text-white">
-                          Ativa
-                        </Badge>
-                      ) : (
-                        <Badge variant="destructive">Bloqueada</Badge>
-                      )}
+                      <Badge
+                        variant={store.is_active ? "default" : "destructive"}
+                        className={cn(
+                          "text-[10px] font-medium px-2 py-0.5",
+                          store.is_active ? "bg-emerald-600/90 text-white" : ""
+                        )}
+                      >
+                        {store.is_active ? "Ativa" : "Bloqueada"}
+                      </Badge>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <Button
                         size="sm"
                         variant={store.is_active ? "outline" : "default"}
+                        className="h-7 px-2.5 rounded-lg text-xs font-medium"
                         disabled={loadingId === store.id}
                         onClick={() => handleToggleStore(store.id, store.is_active)}
                       >
-                        {store.is_active ? "Bloquear" : "Desbloquear"}
+                        {store.is_active ? "Bloquear" : "Ativar"}
                       </Button>
                     </td>
                   </tr>
@@ -172,42 +171,38 @@ function AdminMasterDashboard() {
         </div>
 
         {/* Invoices Table */}
-        <div className=" bg-card rounded-xl overflow-hidden">
-          <div className="p-4 border-b bg-muted/30">
-            <h3 className="font-bold flex items-center gap-2">
-              <DollarSign className="size-4 text-warning" /> Últimas Faturas Geradas
-            </h3>
+        <div className="bg-card rounded-2xl border border-border/60 overflow-hidden shadow-2xs">
+          <div className="p-3.5 border-b border-border/40 bg-muted/20 flex items-center justify-between">
+            <span className="text-xs font-bold text-foreground">Últimas Faturas</span>
+            <span className="text-xs text-muted-foreground font-mono">{invoices.length} faturas</span>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-muted text-muted-foreground border-b font-medium uppercase text-xs">
+            <table className="w-full text-xs text-left">
+              <thead className="bg-muted/30 text-muted-foreground border-b border-border/40 font-semibold uppercase text-[10px]">
                 <tr>
-                  <th className="px-4 py-3">Descrição</th>
-                  <th className="px-4 py-3">Loja</th>
-                  <th className="px-4 py-3">Valor</th>
-                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-2.5">Descrição</th>
+                  <th className="px-4 py-2.5">Loja</th>
+                  <th className="px-4 py-2.5">Valor</th>
+                  <th className="px-4 py-2.5">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
-                {invoices.map((inv: any) => (
+              <tbody className="divide-y divide-border/40">
+                {invoices.slice(0, 8).map((inv: any) => (
                   <tr key={inv.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="px-4 py-3 font-semibold text-xs">
-                      {inv.description || "Fatura"}
+                    <td className="px-4 py-3 font-medium text-foreground">
+                      {inv.description || "Assinatura Mensal"}
                     </td>
-                    <td className="px-4 py-3 text-xs text-muted-foreground">{inv.stores?.name}</td>
-                    <td className="px-4 py-3 font-bold">{formatMoney(inv.amount_cents)}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{inv.stores?.name || "Global"}</td>
+                    <td className="px-4 py-3 font-semibold">{formatMoney(inv.amount_cents)}</td>
                     <td className="px-4 py-3">
                       <Badge
-                        variant={
-                          inv.status === "paid"
-                            ? "default"
-                            : inv.status === "overdue"
-                              ? "destructive"
-                              : "secondary"
-                        }
-                        className={inv.status === "paid" ? "bg-success" : ""}
+                        variant={inv.status === "paid" ? "default" : "secondary"}
+                        className={cn(
+                          "text-[10px] font-medium px-2 py-0.5",
+                          inv.status === "paid" ? "bg-emerald-600/90 text-white" : ""
+                        )}
                       >
-                        {inv.status}
+                        {inv.status === "paid" ? "Pago" : "Pendente"}
                       </Badge>
                     </td>
                   </tr>
@@ -215,7 +210,7 @@ function AdminMasterDashboard() {
                 {invoices.length === 0 && (
                   <tr>
                     <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-                      Nenhuma fatura gerada.
+                      Nenhuma fatura registrada.
                     </td>
                   </tr>
                 )}

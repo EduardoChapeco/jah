@@ -4,20 +4,10 @@ import {
   Image as ImageIcon,
   Plus,
   Trash2,
-  Sparkles,
-  Layers,
-  CheckCircle2,
-  Loader2,
-  Eye,
-  EyeOff,
-  Tag,
-  ArrowRight,
-  Tv,
   Pencil,
   Search,
-  Filter,
-  Sliders,
   ExternalLink,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,7 +35,7 @@ import { MediaUploader } from "@/components/ui/media-uploader";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin-master/banners")({
-  head: () => ({ meta: [{ title: "Banners Globais & Vitrines por Nicho | Admin Master" }] }),
+  head: () => ({ meta: [{ title: "Banners & Vitrines | Admin Master" }] }),
   loader: async () => {
     const banners = await listActiveBanners({ data: { placement: "all" } }).catch(() => []);
     return { banners };
@@ -53,32 +43,32 @@ export const Route = createFileRoute("/admin-master/banners")({
   component: AdminMasterBannersPage,
 });
 
-export const PLACEMENT_OPTIONS: { id: BannerPlacement; label: string; emoji: string }[] = [
-  { id: "all", label: "Todas as Vitrines", emoji: "🌐" },
-  { id: "home", label: "Início (Home Principal)", emoji: "🏠" },
-  { id: "gastronomia", label: "Gastronomia & Delivery", emoji: "🍽️" },
-  { id: "mercado", label: "Supermercado & Feira", emoji: "🛒" },
-  { id: "farmacia", label: "Farmácia & Saúde", emoji: "💊" },
-  { id: "bebidas", label: "Bebidas & Adega", emoji: "🍻" },
-  { id: "acougue", label: "Açougue & Carnes", emoji: "🥩" },
-  { id: "moda", label: "Moda & Vestuário", emoji: "👗" },
-  { id: "eletronicos", label: "Eletrônicos & Tech", emoji: "📱" },
-  { id: "pet", label: "Pet Shop & Animais", emoji: "🐾" },
-  { id: "servicos", label: "Serviços & Profissionais", emoji: "💼" },
-  { id: "imoveis", label: "Imóveis & Locação", emoji: "🏢" },
-  { id: "construcao", label: "Construção & Reforma", emoji: "🔨" },
-  { id: "casa", label: "Casa & Decoração", emoji: "🛋️" },
-  { id: "beleza", label: "Beleza & Estética", emoji: "✂️" },
-  { id: "limpeza", label: "Limpeza & Utilidades", emoji: "🧹" },
-  { id: "livros", label: "Livros & Papelaria", emoji: "📚" },
-  { id: "noticias", label: "Portal de Notícias", emoji: "📰" },
-  { id: "agenda", label: "Agenda & Eventos", emoji: "📅" },
-  { id: "turismo", label: "Turismo & Hospedagem", emoji: "✈️" },
-  { id: "empregos", label: "Empregos & Vagas", emoji: "💼" },
-  { id: "classificados", label: "Classificados P2P", emoji: "🏷️" },
-  { id: "diretorio", label: "Diretório Comercial", emoji: "🧭" },
-  { id: "mobilidade", label: "Mobilidade & Corridas", emoji: "🚗" },
-  { id: "ofertas", label: "Ofertas & Promoções", emoji: "⚡" },
+export const PLACEMENT_OPTIONS: { id: BannerPlacement; label: string }[] = [
+  { id: "all", label: "Todas as Vitrines" },
+  { id: "home", label: "Início" },
+  { id: "gastronomia", label: "Gastronomia" },
+  { id: "mercado", label: "Supermercado" },
+  { id: "farmacia", label: "Farmácia" },
+  { id: "bebidas", label: "Bebidas" },
+  { id: "acougue", label: "Açougue" },
+  { id: "moda", label: "Moda" },
+  { id: "eletronicos", label: "Eletrônicos" },
+  { id: "pet", label: "Pet Shop" },
+  { id: "servicos", label: "Serviços" },
+  { id: "imoveis", label: "Imóveis" },
+  { id: "construcao", label: "Construção" },
+  { id: "casa", label: "Casa & Decoração" },
+  { id: "beleza", label: "Beleza" },
+  { id: "limpeza", label: "Limpeza" },
+  { id: "livros", label: "Livros" },
+  { id: "noticias", label: "Notícias" },
+  { id: "agenda", label: "Agenda" },
+  { id: "turismo", label: "Turismo" },
+  { id: "empregos", label: "Empregos" },
+  { id: "classificados", label: "Classificados" },
+  { id: "diretorio", label: "Diretório" },
+  { id: "mobilidade", label: "Mobilidade" },
+  { id: "ofertas", label: "Ofertas" },
 ];
 
 function AdminMasterBannersPage() {
@@ -102,10 +92,8 @@ function AdminMasterBannersPage() {
   const [placement, setPlacement] = useState<BannerPlacement>("home");
   const [badgeText, setBadgeText] = useState("Destaque");
   const [ctaLabel, setCtaLabel] = useState("Conferir");
-  const [bannerFormat, setBannerFormat] = useState<"hero" | "slim">("hero");
-  const [gradientStyle, setGradientStyle] = useState<string>("blue");
 
-  // Customization Switches (PADRÃO: DESATIVADO PARA VISUAL 100% CLEAN)
+  // Customization Switches
   const [showOverlay, setShowOverlay] = useState(false);
   const [showTitle, setShowTitle] = useState(false);
   const [showDescription, setShowDescription] = useState(false);
@@ -126,8 +114,6 @@ function AdminMasterBannersPage() {
         : "home";
 
     setEditingId(null);
-    setBannerFormat("hero");
-    setGradientStyle("blue");
     setTitle("");
     setSubtitle("");
     setMediaUrl("");
@@ -143,8 +129,6 @@ function AdminMasterBannersPage() {
 
   const handleOpenEdit = (banner: BannerDTO) => {
     setEditingId(banner.id);
-    setBannerFormat((banner as any).format || "hero");
-    setGradientStyle((banner as any).gradient_style || "blue");
     setTitle(banner.title || "");
     setSubtitle(banner.subtitle || "");
     setMediaType(banner.media_type || "image");
@@ -174,17 +158,17 @@ function AdminMasterBannersPage() {
           show_cta: newOverlayValue,
         },
       });
-      toast.success(newOverlayValue ? "Textos ativados no banner." : "Banner configurado como Arte Limpa.");
+      toast.success(newOverlayValue ? "Texto ativado no banner." : "Banner em modo arte limpa.");
       refreshBanners();
     } catch (err: any) {
-      toast.error(err?.message || "Erro ao atualizar modo do banner.");
+      toast.error(err?.message || "Erro ao atualizar banner.");
     }
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!mediaUrl.trim()) {
-      toast.error("Selecione ou informe a URL da mídia do banner.");
+      toast.error("Informe a mídia do banner.");
       return;
     }
 
@@ -194,7 +178,7 @@ function AdminMasterBannersPage() {
         await updateBanner({
           data: {
             id: editingId,
-            title: title || "Banner Oficial Wider",
+            title: title || "Banner Oficial",
             subtitle: subtitle || null,
             media_type: mediaType,
             media_url: mediaUrl,
@@ -210,11 +194,11 @@ function AdminMasterBannersPage() {
             show_cta: showCta,
           },
         });
-        toast.success("Banner atualizado com sucesso!");
+        toast.success("Banner atualizado.");
       } else {
         await createBanner({
           data: {
-            title: title || "Banner Oficial Wider",
+            title: title || "Banner Oficial",
             subtitle: subtitle || undefined,
             media_type: mediaType,
             media_url: mediaUrl,
@@ -231,7 +215,7 @@ function AdminMasterBannersPage() {
             is_active: true,
           },
         });
-        toast.success(`Banner publicado para ${placement.toUpperCase()} com sucesso!`);
+        toast.success("Banner publicado.");
       }
 
       setIsModalOpen(false);
@@ -244,7 +228,7 @@ function AdminMasterBannersPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Tem certeza que deseja desativar este banner?")) return;
+    if (!confirm("Deseja realmente remover este banner?")) return;
     try {
       await deleteBanner({ data: { id } });
       toast.success("Banner removido.");
@@ -254,7 +238,6 @@ function AdminMasterBannersPage() {
     }
   };
 
-  // Filtragem por Nicho / Placement selecionado e busca
   const filteredBanners = banners.filter((b) => {
     const matchesPlacement =
       selectedPlacementTab === "all" ? true : b.placement === selectedPlacementTab;
@@ -269,50 +252,34 @@ function AdminMasterBannersPage() {
   const activePlacementInfo = PLACEMENT_OPTIONS.find((p) => p.id === selectedPlacementTab);
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-border/40">
+    <div className="space-y-6 animate-in fade-in duration-300">
+      {/* Clean Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border/40">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider">
-              Governança de Vitrines & Banners
-            </span>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">Banners & Vitrines</h1>
+            <Badge variant="secondary" className="text-xs font-normal">
+              {banners.length} {banners.length === 1 ? "ativo" : "ativos"}
+            </Badge>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground mt-1">
-            Banners Segmentados por Nicho & Mercado
-          </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-            Cada marketplace e página possui seus próprios banners independentes. Selecione o nicho abaixo para gerenciar sua vitrine.
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Gerencie os banners visuais segmentados por vitrine e nicho de mercado.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
-          <Button
-            onClick={() => handleOpenCreate()}
-            className="rounded-xl font-bold gap-2 text-xs h-10 px-4 bg-primary text-primary-foreground cursor-pointer shadow-xs"
-          >
-            <Plus className="size-4" />
-            <span>
-              {selectedPlacementTab === "all"
-                ? "Novo Banner Global"
-                : `+ Banner em ${activePlacementInfo?.label.split(" ")[0]}`}
-            </span>
-          </Button>
-        </div>
+        <Button
+          onClick={() => handleOpenCreate()}
+          size="sm"
+          className="rounded-xl font-medium gap-1.5 h-9 px-4 cursor-pointer"
+        >
+          <Plus className="size-4" />
+          <span>Novo Banner</span>
+        </Button>
       </div>
 
-      {/* ── SELETOR DE NICHOS / NAVEGADOR DE MERCADOS (TABS) ── */}
+      {/* Clean Niche Tabs */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-mono font-bold uppercase tracking-wider text-muted-foreground">
-            Filtrar por Nicho de Mercado ({PLACEMENT_OPTIONS.length - 1} nichos)
-          </span>
-          <span className="text-xs text-muted-foreground">
-            Exibindo <strong>{filteredBanners.length}</strong> banners
-          </span>
-        </div>
-
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
           {PLACEMENT_OPTIONS.map((opt) => {
             const count =
               opt.id === "all"
@@ -325,20 +292,17 @@ function AdminMasterBannersPage() {
                 key={opt.id}
                 onClick={() => setSelectedPlacementTab(opt.id)}
                 className={cn(
-                  "px-3.5 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer shrink-0 border",
+                  "px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 border",
                   isActive
                     ? "bg-primary text-primary-foreground border-primary shadow-xs"
-                    : "bg-card hover:bg-muted/70 text-muted-foreground hover:text-foreground border-border/60"
+                    : "bg-card hover:bg-muted/60 text-muted-foreground hover:text-foreground border-border/60"
                 )}
               >
-                <span>{opt.emoji}</span>
                 <span>{opt.label}</span>
                 <span
                   className={cn(
-                    "px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold",
-                    isActive
-                      ? "bg-primary-foreground/20 text-primary-foreground"
-                      : "bg-muted text-muted-foreground"
+                    "text-[10px] font-mono",
+                    isActive ? "text-primary-foreground/80" : "text-muted-foreground"
                   )}
                 >
                   {count}
@@ -349,295 +313,286 @@ function AdminMasterBannersPage() {
         </div>
       </div>
 
-      {/* Barra de Busca Rápida */}
+      {/* Search Input */}
       <div className="flex items-center gap-3">
-        <div className="relative flex-1 max-w-md">
+        <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por título, destino ou nicho..."
+            placeholder="Buscar banners..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 h-10 rounded-xl bg-card text-xs border-border/70"
+            className="pl-9 h-9 rounded-xl bg-card text-xs border-border/60"
           />
         </div>
       </div>
 
-      {/* Grid de Banners Ativos do Nicho */}
+      {/* Banners Grid */}
       {filteredBanners.length === 0 ? (
-        <div className="p-12 text-center rounded-3xl bg-card border border-border/60 space-y-4">
-          <div className="size-14 rounded-2xl bg-muted text-muted-foreground flex items-center justify-center mx-auto text-2xl">
-            {activePlacementInfo?.emoji || "🖼️"}
+        <div className="py-12 px-6 text-center rounded-2xl bg-card/50 border border-border/60 space-y-3">
+          <div className="size-10 rounded-xl bg-muted text-muted-foreground flex items-center justify-center mx-auto">
+            <ImageIcon className="size-5" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-base font-bold text-foreground">
-              Nenhum banner personalizado em {activePlacementInfo?.label}
-            </h3>
-            <p className="text-xs text-muted-foreground max-w-md mx-auto">
-              Neste momento, esta página está exibindo os banners de fallback padrão do sistema. Crie o primeiro banner exclusivo para este mercado!
+            <p className="text-sm font-semibold text-foreground">
+              Nenhum banner cadastrado em {activePlacementInfo?.label}
+            </p>
+            <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+              Crie um banner dedicado para esta seção da plataforma.
             </p>
           </div>
           <Button
             onClick={() => handleOpenCreate(selectedPlacementTab)}
-            className="rounded-xl font-bold text-xs gap-2"
+            size="sm"
+            variant="outline"
+            className="rounded-xl text-xs font-medium gap-1.5"
           >
-            <Plus className="size-4" /> Criar Banner para {activePlacementInfo?.label}
+            <Plus className="size-3.5" /> Adicionar Banner
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredBanners.map((banner) => {
-            const placementObj = PLACEMENT_OPTIONS.find((p) => p.id === banner.placement);
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredBanners.map((banner) => (
+            <div
+              key={banner.id}
+              className="group relative rounded-2xl bg-card border border-border/60 overflow-hidden flex flex-col hover:border-primary/40 transition-colors shadow-2xs"
+            >
+              {/* Media Preview (21:9) */}
+              <div className="relative aspect-21/9 w-full bg-muted overflow-hidden">
+                {banner.media_type === "video" ? (
+                  <video
+                    src={banner.media_url}
+                    className="size-full object-cover"
+                    muted
+                    loop
+                    autoPlay
+                    playsInline
+                  />
+                ) : (
+                  <img
+                    src={banner.media_url}
+                    alt={banner.title}
+                    className="size-full object-cover"
+                  />
+                )}
 
-            return (
-              <div
-                key={banner.id}
-                className="group relative rounded-3xl bg-card border border-border/70 overflow-hidden flex flex-col shadow-2xs hover:border-primary/50 transition-all"
-              >
-                {/* Media Preview (21:9) */}
-                <div className="relative aspect-21/9 w-full bg-muted overflow-hidden">
-                  {banner.media_type === "video" ? (
-                    <video
-                      src={banner.media_url}
-                      className="size-full object-cover"
-                      muted
-                      loop
-                      autoPlay
-                      playsInline
-                    />
-                  ) : (
-                    <img
-                      src={banner.media_url}
-                      alt={banner.title}
-                      className="size-full object-cover group-hover:scale-102 transition-transform duration-500"
-                    />
+                {/* Placement Tag */}
+                <div className="absolute top-2 left-2 z-10 flex items-center gap-1.5">
+                  <span className="bg-black/75 text-white backdrop-blur-md text-[10px] font-mono px-2 py-0.5 rounded-md border border-white/10">
+                    {banner.placement.toUpperCase()}
+                  </span>
+                  {banner.show_overlay && (
+                    <span className="bg-emerald-600/90 text-white text-[9px] font-medium px-1.5 py-0.5 rounded-md">
+                      Texto Ativo
+                    </span>
                   )}
-
-                  {/* Badges de Nicho e Modo */}
-                  <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1.5 flex-wrap">
-                    <Badge
-                      variant="secondary"
-                      className="bg-black/75 text-white backdrop-blur-md text-[10px] font-mono font-bold flex items-center gap-1 px-2 py-0.5 rounded-lg border border-white/10"
-                    >
-                      <span>{placementObj?.emoji || "🏷️"}</span>
-                      <span>{banner.placement.toUpperCase()}</span>
-                    </Badge>
-                    {banner.show_overlay ? (
-                      <Badge className="bg-emerald-600 text-white text-[9px] font-bold">
-                        Texto Ativado
-                      </Badge>
-                    ) : (
-                      <Badge
-                        variant="outline"
-                        className="bg-black/50 text-white border-white/20 text-[9px] font-bold backdrop-blur-xs"
-                      >
-                        Arte Limpa
-                      </Badge>
-                    )}
-                  </div>
-
-                  {/* Delete Button */}
-                  <button
-                    onClick={() => handleDelete(banner.id)}
-                    className="absolute top-2.5 right-2.5 z-10 size-7 rounded-full bg-red-600/90 hover:bg-red-600 text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 cursor-pointer shadow-xs"
-                    title="Desativar banner"
-                  >
-                    <Trash2 className="size-3.5" />
-                  </button>
                 </div>
 
-                {/* Info & Action Footer */}
-                <div className="p-4 flex flex-col justify-between gap-3 text-xs flex-1">
-                  <div className="space-y-0.5">
-                    <p className="font-bold text-foreground truncate text-xs">{banner.title}</p>
-                    <p className="text-muted-foreground truncate text-[11px] font-mono">
-                      {banner.target_url || "/"}
-                    </p>
+                {/* Delete Button */}
+                <button
+                  onClick={() => handleDelete(banner.id)}
+                  className="absolute top-2 right-2 z-10 size-6 rounded-md bg-black/60 hover:bg-red-600 text-white flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+                  title="Remover banner"
+                >
+                  <Trash2 className="size-3" />
+                </button>
+              </div>
+
+              {/* Card Footer */}
+              <div className="p-3.5 flex flex-col justify-between gap-3 text-xs flex-1">
+                <div>
+                  <p className="font-semibold text-foreground truncate">{banner.title}</p>
+                  <p className="text-muted-foreground truncate text-[11px] font-mono mt-0.5">
+                    {banner.target_url || "/"}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-border/40">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] text-muted-foreground">Texto:</span>
+                    <Switch
+                      checked={banner.show_overlay === true}
+                      onCheckedChange={(checked) => handleToggleOverlay(banner.id, checked)}
+                    />
                   </div>
 
-                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/40">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] font-bold text-muted-foreground">Texto:</span>
-                      <Switch
-                        checked={banner.show_overlay === true}
-                        onCheckedChange={(checked) => handleToggleOverlay(banner.id, checked)}
-                      />
-                    </div>
-
-                    <div className="flex items-center gap-1.5">
-                      {banner.target_url && (
-                        <Button
-                          asChild
-                          size="sm"
-                          variant="ghost"
-                          className="size-8 p-0 rounded-xl text-muted-foreground hover:text-foreground cursor-pointer"
-                          title="Testar link de destino"
-                        >
-                          <a href={banner.target_url} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="size-3.5" />
-                          </a>
-                        </Button>
-                      )}
+                  <div className="flex items-center gap-1">
+                    {banner.target_url && (
                       <Button
+                        asChild
                         size="sm"
-                        variant="outline"
-                        onClick={() => handleOpenEdit(banner)}
-                        className="h-8 px-3 rounded-xl text-xs font-bold gap-1 cursor-pointer"
+                        variant="ghost"
+                        className="size-7 p-0 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer"
+                        title="Ver destino"
                       >
-                        <Pencil className="size-3" />
-                        <span>Editar</span>
+                        <a href={banner.target_url} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="size-3" />
+                        </a>
                       </Button>
-                    </div>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleOpenEdit(banner)}
+                      className="size-7 p-0 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer"
+                      title="Editar"
+                    >
+                      <Pencil className="size-3" />
+                    </Button>
                   </div>
                 </div>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       )}
 
-      {/* Modal / Sheet de Criação & Edição */}
+      {/* Editor Drawer */}
       <SheetPage
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
-        title={editingId ? "Editar Banner do Nicho" : "Criar Banner para Vitrine"}
-        description="Selecione o nicho de mercado correto, envie a arte limpa 21:9 e informe o link de destino."
-        size="lg"
-        footer={
-          <>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsModalOpen(false)}
-              className="h-10 px-4 rounded-xl text-xs font-bold cursor-pointer"
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleSave}
-              disabled={isSubmitting}
-              className="h-10 px-6 rounded-xl text-xs font-bold bg-primary text-primary-foreground cursor-pointer"
-            >
-              {isSubmitting
-                ? "Salvando..."
-                : editingId
-                ? "Salvar Alterações"
-                : "Publicar no Nicho"}
-            </Button>
-          </>
-        }
+        title={editingId ? "Editar Banner" : "Novo Banner"}
+        description="Configure a mídia e os direcionamentos do banner."
       >
-        <form onSubmit={handleSave} className="space-y-5 pt-2">
-          {/* Upload de Mídia */}
-          <div className="space-y-2">
-            <Label className="text-xs font-bold">Mídia do Banner (Foto ou Vídeo 21:9)</Label>
-            <MediaUploader
-              bucket="cms-media"
-              folder="banners"
-              maxFiles={1}
-              accept="all"
-              aspect={21 / 9}
-              enableCrop={true}
-              lockAspect={true}
-              value={mediaUrl ? [mediaUrl] : []}
-              onChange={(urls) => {
-                if (urls.length > 0) setMediaUrl(urls[0]);
-              }}
-            />
-            {mediaUrl && (
-              <p className="text-[11px] text-emerald-600 font-mono truncate">
-                Mídia selecionada: {mediaUrl}
-              </p>
-            )}
+        <form onSubmit={handleSave} className="space-y-5 p-1">
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold">Vitrine / Nicho</Label>
+            <Select value={placement} onValueChange={(v) => setPlacement(v as BannerPlacement)}>
+              <SelectTrigger className="h-9 rounded-xl bg-card text-xs">
+                <SelectValue placeholder="Selecione o nicho" />
+              </SelectTrigger>
+              <SelectContent>
+                {PLACEMENT_OPTIONS.filter((p) => p.id !== "all").map((p) => (
+                  <SelectItem key={p.id} value={p.id} className="text-xs">
+                    {p.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* Nicho / Onde Exibir */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold">Mídia do Banner (Imagem / Vídeo)</Label>
+            <MediaUploader
+              value={mediaUrl ? [mediaUrl] : []}
+              onChange={(urls) => {
+                const url = urls[0] || "";
+                setMediaUrl(url);
+                const isVideo = url.endsWith(".mp4") || url.endsWith(".webm");
+                setMediaType(isVideo ? "video" : "image");
+              }}
+              bucket="banners"
+              folder="destaques"
+              maxFiles={1}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold">Título Interno</Label>
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Ex: Campanha de Primavera"
+              className="h-9 rounded-xl bg-card text-xs"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Nicho / Vitrine de Destino *</Label>
-              <Select value={placement} onValueChange={(val: any) => setPlacement(val)}>
-                <SelectTrigger className="rounded-xl h-10 text-xs bg-muted/20">
-                  <SelectValue placeholder="Selecione o nicho" />
+              <Label className="text-xs font-semibold">Tipo de Destino</Label>
+              <Select value={targetType} onValueChange={(v: any) => setTargetType(v)}>
+                <SelectTrigger className="h-9 rounded-xl bg-card text-xs">
+                  <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="max-h-72">
-                  {PLACEMENT_OPTIONS.filter((p) => p.id !== "all").map((opt) => (
-                    <SelectItem key={opt.id} value={opt.id} className="text-xs cursor-pointer">
-                      <div className="flex items-center gap-2">
-                        <span>{opt.emoji}</span>
-                        <span>{opt.label}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
+                <SelectContent>
+                  <SelectItem value="hotpage" className="text-xs">Hotpage / Botão</SelectItem>
+                  <SelectItem value="category" className="text-xs">Categoria</SelectItem>
+                  <SelectItem value="product" className="text-xs">Produto</SelectItem>
+                  <SelectItem value="store" className="text-xs">Loja</SelectItem>
+                  <SelectItem value="external_url" className="text-xs">Link Externo</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Link de Destino ao Clicar *</Label>
+              <Label className="text-xs font-semibold">URL de Destino</Label>
               <Input
-                placeholder="Ex: /gastronomia?categoria=burgers"
                 value={targetUrl}
                 onChange={(e) => setTargetUrl(e.target.value)}
-                className="rounded-xl h-10 text-xs bg-muted/20"
+                placeholder="/mercado ou https://"
+                className="h-9 rounded-xl bg-card text-xs"
               />
             </div>
           </div>
 
-          {/* Configuração de Textos & Overlay */}
-          <div className="p-4 rounded-2xl bg-muted/30 border border-border/60 space-y-4">
+          {/* Overlay Text Settings */}
+          <div className="rounded-xl border border-border/60 bg-muted/20 p-3.5 space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold text-foreground">Exibir Textos Sobre a Imagem</p>
-                <p className="text-[11px] text-muted-foreground">
-                  Por padrão, desativado para manter arte limpa 100% visual.
-                </p>
+                <p className="text-xs font-semibold">Exibir Textos sobre o Banner</p>
+                <p className="text-[11px] text-muted-foreground">Desative para manter a arte 100% limpa.</p>
               </div>
               <Switch checked={showOverlay} onCheckedChange={setShowOverlay} />
             </div>
 
             {showOverlay && (
-              <div className="space-y-3 pt-2 border-t border-border/40">
+              <div className="space-y-3 pt-2 border-t border-border/40 animate-in fade-in duration-200">
                 <div className="space-y-1">
-                  <Label className="text-xs font-bold">Título Principal</Label>
+                  <Label className="text-[11px]">Subtítulo / Descrição</Label>
                   <Input
-                    placeholder="Ex: Festival Gastronômico da Comunidade"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="rounded-xl h-9 text-xs"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <Label className="text-xs font-bold">Subtítulo / Descrição</Label>
-                  <Input
-                    placeholder="Ex: Pratos autorais com até 30% OFF nesta semana"
                     value={subtitle}
                     onChange={(e) => setSubtitle(e.target.value)}
-                    className="rounded-xl h-9 text-xs"
+                    placeholder="Descrição complementar..."
+                    className="h-8 rounded-lg bg-card text-xs"
                   />
                 </div>
-
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-1">
-                    <Label className="text-[11px] text-muted-foreground">Texto da Tag</Label>
+                    <Label className="text-[11px]">Badge</Label>
                     <Input
-                      placeholder="Ex: Destaque"
                       value={badgeText}
                       onChange={(e) => setBadgeText(e.target.value)}
-                      className="rounded-xl h-8 text-xs"
+                      placeholder="Destaque"
+                      className="h-8 rounded-lg bg-card text-xs"
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[11px] text-muted-foreground">Texto do Botão CTA</Label>
+                    <Label className="text-[11px]">Texto do Botão (CTA)</Label>
                     <Input
-                      placeholder="Ex: Conferir"
                       value={ctaLabel}
                       onChange={(e) => setCtaLabel(e.target.value)}
-                      className="rounded-xl h-8 text-xs"
+                      placeholder="Conferir"
+                      className="h-8 rounded-lg bg-card text-xs"
                     />
                   </div>
                 </div>
               </div>
             )}
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-border/40">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsModalOpen(false)}
+              className="rounded-xl text-xs"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              size="sm"
+              disabled={isSubmitting}
+              className="rounded-xl text-xs font-semibold px-4"
+            >
+              {isSubmitting ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : editingId ? (
+                "Atualizar"
+              ) : (
+                "Publicar"
+              )}
+            </Button>
           </div>
         </form>
       </SheetPage>

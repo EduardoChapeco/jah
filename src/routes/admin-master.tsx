@@ -2,23 +2,24 @@ import { createFileRoute, Outlet, redirect, Link, isRedirect } from "@tanstack/r
 import { getProfile, getUserSession } from "@/services/auth.functions";
 import {
   Shield,
-  Home,
+  LayoutDashboard,
   DollarSign,
   Store,
   AlertTriangle,
   Users,
   UserCheck,
   Scale,
-  Layers,
+  Image as ImageIcon,
   Palette,
   Plug,
   Sparkles,
-  ArrowLeft,
+  ArrowUpRight,
   ExternalLink,
-  Crown,
+  Menu,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
 
 export const Route = createFileRoute("/admin-master")({
   beforeLoad: async () => {
@@ -59,112 +60,74 @@ export const Route = createFileRoute("/admin-master")({
   component: AdminMasterLayout,
 });
 
+const NAV_ITEMS = [
+  { to: "/admin-master", label: "Dashboard Global", icon: LayoutDashboard },
+  { to: "/admin-master/banners", label: "Banners & Vitrines", icon: ImageIcon },
+  { to: "/admin-master/marca", label: "Identidade & Marca", icon: Palette },
+  { to: "/admin-master/botoes", label: "Botões & Hotpages", icon: Sparkles },
+  { to: "/admin-master/lojas", label: "Lojas & Empresas", icon: Store },
+  { to: "/admin-master/usuarios", label: "Usuários & Perfis", icon: Users },
+  { to: "/admin-master/kyc", label: "Verificação KYC", icon: UserCheck },
+  { to: "/admin-master/denuncias", label: "Denúncias & Moderação", icon: AlertTriangle },
+  { to: "/admin-master/faturas", label: "Faturas & Planos", icon: DollarSign },
+  { to: "/admin-master/termos", label: "Termos & LGPD", icon: Scale },
+  { to: "/admin-master/integracoes", label: "API & Conectores", icon: Plug },
+];
+
 function AdminMasterLayout() {
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+
   return (
-    <div className="min-h-screen bg-background text-foreground flex">
-      {/* Sidebar */}
-      <aside className="w-64 border-r border-border/60 bg-muted/20 flex flex-col hidden md:flex shrink-0">
-        <div className="p-5 border-b border-border/40 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-primary">
-            <Shield className="size-6 text-primary" />
+    <div className="h-screen w-screen overflow-hidden bg-background text-foreground flex">
+      {/* Desktop Fixed Sidebar */}
+      <aside className="w-64 border-r border-border/50 bg-card/40 backdrop-blur-sm flex-col hidden md:flex shrink-0 h-full">
+        {/* Header */}
+        <div className="h-14 px-5 border-b border-border/40 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+              <Shield className="size-4.5" />
+            </div>
             <div>
-              <span className="font-black text-lg tracking-tighter uppercase block leading-none">Wider Master</span>
-              <span className="text-[9px] font-mono font-bold text-muted-foreground uppercase">Gestão Global</span>
+              <span className="font-bold text-sm tracking-tight block leading-tight">Wider Master</span>
+              <span className="text-[10px] text-muted-foreground font-medium">Administração Global</span>
             </div>
           </div>
-          <Badge variant="outline" className="text-[9px] font-mono font-bold bg-amber-500/10 text-amber-600 border-amber-500/30">
+          <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border/40">
             ROOT
-          </Badge>
+          </span>
         </div>
 
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          <Link
-            to="/admin-master"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold hover:bg-muted/60 [&.active]:bg-primary [&.active]:text-primary-foreground transition-all cursor-pointer"
-          >
-            <Home className="size-4 shrink-0" /> Dashboard Global
-          </Link>
-          <Link
-            to="/admin-master/banners"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold hover:bg-muted/60 [&.active]:bg-primary [&.active]:text-primary-foreground transition-all cursor-pointer"
-          >
-            <Layers className="size-4 shrink-0" /> Banners & Vitrines
-          </Link>
-          <Link
-            to="/admin-master/marca"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold hover:bg-muted/60 [&.active]:bg-primary [&.active]:text-primary-foreground transition-all cursor-pointer"
-          >
-            <Palette className="size-4 shrink-0" /> Identidade da Marca & Logo
-          </Link>
-          <Link
-            to="/admin-master/hubs"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold hover:bg-muted/60 [&.active]:bg-primary [&.active]:text-primary-foreground transition-all cursor-pointer"
-          >
-            <Layers className="size-4 shrink-0" /> Hubs & Categorias Globais
-          </Link>
-          <Link
-            to="/admin-master/botoes"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold hover:bg-muted/60 [&.active]:bg-primary [&.active]:text-primary-foreground transition-all cursor-pointer"
-          >
-            <Sparkles className="size-4 shrink-0" /> Botões & Hotpages Globais
-          </Link>
-          <Link
-            to="/admin-master/denuncias"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold hover:bg-muted/60 [&.active]:bg-primary [&.active]:text-primary-foreground transition-all cursor-pointer"
-          >
-            <AlertTriangle className="size-4 shrink-0" /> Trust & Denúncias
-          </Link>
-          <Link
-            to="/admin-master/usuarios"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold hover:bg-muted/60 [&.active]:bg-primary [&.active]:text-primary-foreground transition-all cursor-pointer"
-          >
-            <Users className="size-4 shrink-0" /> Usuários & Sanções
-          </Link>
-          <Link
-            to="/admin-master/kyc"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold hover:bg-muted/60 [&.active]:bg-primary [&.active]:text-primary-foreground transition-all cursor-pointer"
-          >
-            <UserCheck className="size-4 shrink-0" /> Verificação Facial / KYC
-          </Link>
-          <Link
-            to="/admin-master/lojas"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold hover:bg-muted/60 [&.active]:bg-primary [&.active]:text-primary-foreground transition-all cursor-pointer"
-          >
-            <Store className="size-4 shrink-0" /> Todas as Lojas (Olho de Deus)
-          </Link>
-          <Link
-            to="/admin-master/faturas"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold hover:bg-muted/60 [&.active]:bg-primary [&.active]:text-primary-foreground transition-all cursor-pointer"
-          >
-            <DollarSign className="size-4 shrink-0" /> Faturamento & Planos
-          </Link>
-          <Link
-            to="/admin-master/termos"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold hover:bg-muted/60 [&.active]:bg-primary [&.active]:text-primary-foreground transition-all cursor-pointer"
-          >
-            <Scale className="size-4 shrink-0" /> Termos & Compliance LGPD
-          </Link>
-          <Link
-            to="/admin-master/integracoes"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold hover:bg-muted/60 [&.active]:bg-primary [&.active]:text-primary-foreground transition-all cursor-pointer"
-          >
-            <Plug className="size-4 shrink-0" /> API & Integrações
-          </Link>
+        {/* Navigation with Independent Internal Scroll */}
+        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto min-h-0">
+          {NAV_ITEMS.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 [&.active]:bg-primary [&.active]:text-primary-foreground transition-colors cursor-pointer"
+              >
+                <Icon className="size-4 shrink-0" />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
         </nav>
 
-        <div className="p-3 border-t border-border/40 space-y-1.5">
+        {/* Footer Quick Links */}
+        <div className="p-3 border-t border-border/40 space-y-1 shrink-0 bg-background/50">
           <Button
             asChild
             variant="outline"
             size="sm"
-            className="w-full justify-between h-9 px-3 text-xs font-bold rounded-xl bg-card cursor-pointer"
+            className="w-full justify-between h-8 px-3 text-xs font-medium rounded-xl bg-card border-border/60 cursor-pointer"
           >
             <Link to="/workspace">
-              <div className="flex items-center gap-2">
+              <span className="flex items-center gap-2">
                 <Store className="size-3.5 text-primary" />
-                <span>Ir para o Workspace</span>
-              </div>
-              <ArrowLeft className="size-3 text-muted-foreground rotate-180" />
+                <span>Ir ao Workspace</span>
+              </span>
+              <ArrowUpRight className="size-3 text-muted-foreground" />
             </Link>
           </Button>
 
@@ -172,31 +135,77 @@ function AdminMasterLayout() {
             asChild
             variant="ghost"
             size="sm"
-            className="w-full justify-between h-9 px-3 text-xs font-semibold rounded-xl text-muted-foreground hover:text-foreground cursor-pointer"
+            className="w-full justify-between h-8 px-3 text-xs font-medium rounded-xl text-muted-foreground hover:text-foreground cursor-pointer"
           >
-            <Link to="/">
-              <div className="flex items-center gap-2">
+            <Link to="/" target="_blank" rel="noopener noreferrer">
+              <span className="flex items-center gap-2">
                 <ExternalLink className="size-3.5" />
                 <span>Ver Vitrine Pública</span>
-              </div>
+              </span>
             </Link>
           </Button>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0">
-        <header className="h-14 border-b border-border/40 bg-background/90 backdrop-blur-md px-4 md:px-8 flex items-center justify-between sticky top-0 z-30 shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="flex items-center gap-2 text-primary md:hidden">
-              <Shield className="size-5" />
-              <span className="font-black text-sm">WIDER MASTER</span>
+      {/* Mobile Drawer */}
+      {isMobileOpen && (
+        <div className="fixed inset-0 z-50 flex md:hidden">
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs"
+            onClick={() => setIsMobileOpen(false)}
+          />
+          <aside className="relative w-72 max-w-[80vw] bg-background border-r border-border h-full flex flex-col z-10 shadow-2xl">
+            <div className="h-14 px-4 border-b border-border/40 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2 text-primary font-bold text-sm">
+                <Shield className="size-5" />
+                <span>Wider Master</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="size-8 p-0"
+                onClick={() => setIsMobileOpen(false)}
+              >
+                <X className="size-4" />
+              </Button>
             </div>
-            <div className="hidden md:flex items-center gap-2">
-              <Crown className="size-4 text-amber-500" />
-              <span className="text-xs font-bold text-foreground">
-                Painel Administrativo Supremo da Plataforma
-              </span>
+            <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto min-h-0">
+              {NAV_ITEMS.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    onClick={() => setIsMobileOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 [&.active]:bg-primary [&.active]:text-primary-foreground transition-colors cursor-pointer"
+                  >
+                    <Icon className="size-4 shrink-0" />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+          </aside>
+        </div>
+      )}
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+        {/* Top Header */}
+        <header className="h-14 border-b border-border/40 bg-background/80 backdrop-blur-md px-4 md:px-8 flex items-center justify-between shrink-0 z-20">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="size-8 p-0 md:hidden"
+              onClick={() => setIsMobileOpen(true)}
+            >
+              <Menu className="size-4" />
+            </Button>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-muted-foreground hidden sm:inline">Plataforma</span>
+              <span className="text-xs text-muted-foreground/60 hidden sm:inline">/</span>
+              <span className="text-xs font-bold text-foreground">Gestão Master</span>
             </div>
           </div>
 
@@ -205,31 +214,34 @@ function AdminMasterLayout() {
               asChild
               size="sm"
               variant="outline"
-              className="h-8 rounded-xl text-xs font-bold gap-1.5 bg-card hover:bg-muted cursor-pointer"
+              className="h-8 rounded-xl text-xs font-medium gap-1.5 bg-card hover:bg-muted border-border/60 cursor-pointer"
             >
               <Link to="/workspace">
                 <Store className="size-3.5 text-primary" />
-                <span>Workspace Matriz</span>
+                <span className="hidden sm:inline">Workspace</span>
               </Link>
             </Button>
             <Button
               asChild
               size="sm"
               variant="ghost"
-              className="h-8 rounded-xl text-xs font-bold gap-1 cursor-pointer hidden sm:inline-flex"
+              className="h-8 rounded-xl text-xs font-medium gap-1 text-muted-foreground hover:text-foreground cursor-pointer"
             >
               <Link to="/" target="_blank" rel="noopener noreferrer">
-                <span>Super App</span>
-                <ExternalLink className="size-3 text-muted-foreground ml-0.5" />
+                <span>Vitrine</span>
+                <ExternalLink className="size-3 ml-0.5" />
               </Link>
             </Button>
           </div>
         </header>
 
-        <div className="p-6 md:p-8 flex-1 overflow-y-auto">
-          <Outlet />
-        </div>
-      </main>
+        {/* Content Container with Independent Internal Scroll */}
+        <main className="flex-1 overflow-y-auto min-h-0 p-4 sm:p-6 md:p-8 bg-background">
+          <div className="max-w-7xl mx-auto w-full">
+            <Outlet />
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
