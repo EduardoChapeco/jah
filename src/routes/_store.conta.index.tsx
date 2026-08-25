@@ -46,6 +46,8 @@ const ORDER_STATUS_LABELS: Record<string, string> = {
 const ACCOUNT_SECTIONS = [
   { to: "/conta/metricas", label: "Painel Profissional & Métricas", badge: "Insights" },
   { to: "/conta/pedidos", label: "Meus Pedidos", badge: null },
+  { to: "/conta/agendamentos", label: "Minha Agenda & Horários", badge: "Serviços" },
+  { to: "/conta/pacotes", label: "Meus Pacotes & Sessões", badge: null },
   { to: "/conta/salvos", label: "Itens Salvos", badge: null },
   { to: "/conta/classificados", label: "Meus Desapegos", badge: null },
   { to: "/conta/viagens", label: "Minhas Viagens", badge: null },

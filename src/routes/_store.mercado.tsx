@@ -69,28 +69,28 @@ const SearchSchema = z.object({
 
 type CatalogSearch = z.infer<typeof SearchSchema>;
 
-// ─── Departamentos e Corredores do Supermercado ──────────────────────────────
+// ─── Departamentos e Corredores do Supermercado (Clean Apple HIG) ─────────────
 const SUPERMARKET_DEPARTMENTS: FilterChipOption[] = [
-  { id: "todos", label: "Tudo", emoji: "🛒", icon: Sparkle },
-  { id: "tabloide", label: "Tabloide da Semana", emoji: "⚡️", icon: Flame, badge: "Economia" },
-  { id: "hortifruti", label: "Hortifrúti & Feira", emoji: "🥦", icon: Storefront },
-  { id: "carnes", label: "Açougue & Carnes", emoji: "🥩", icon: ForkKnife },
-  { id: "padaria", label: "Padaria & Frios", emoji: "🍞", icon: Coffee },
-  { id: "laticinios", label: "Laticínios & Queijos", emoji: "🧀", icon: Storefront },
-  { id: "bebidas", label: "Bebidas & Adega", emoji: "🍻", icon: Package },
-  { id: "mercearia", label: "Mercearia & Despensa", emoji: "🥫", icon: Package },
-  { id: "limpeza", label: "Limpeza & Lavanderia", emoji: "🧼", icon: Broom },
-  { id: "higiene", label: "Higiene & Cuidados", emoji: "🧴", icon: Heartbeat },
-  { id: "congelados", label: "Congelados & Prontos", emoji: "🧊", icon: Package },
-  { id: "pet", label: "Pet Shop & Ração", emoji: "🐾", icon: Heartbeat },
+  { id: "todos", label: "Tudo" },
+  { id: "tabloide", label: "Tabloide da Semana", badge: "Ofertas" },
+  { id: "hortifruti", label: "Hortifrúti" },
+  { id: "carnes", label: "Açougue" },
+  { id: "padaria", label: "Padaria & Frios" },
+  { id: "laticinios", label: "Laticínios" },
+  { id: "bebidas", label: "Bebidas" },
+  { id: "mercearia", label: "Mercearia" },
+  { id: "limpeza", label: "Limpeza" },
+  { id: "higiene", label: "Higiene Pessoal" },
+  { id: "congelados", label: "Congelados" },
+  { id: "pet", label: "Pet Shop" },
 ];
 
 const DIETARY_FILTERS = [
-  { id: "todos", label: "Todos os Itens" },
-  { id: "organico", label: "Orgânicos & Locais", icon: Leaf },
-  { id: "sem_gluten", label: "Sem Glúten", icon: Grains },
-  { id: "sem_lactose", label: "Sem Lactose", icon: Drop },
-  { id: "oferta_relampago", label: "Ofertas da Semana", icon: Flame },
+  { id: "todos", label: "Todos" },
+  { id: "organico", label: "Orgânicos" },
+  { id: "sem_gluten", label: "Sem Glúten" },
+  { id: "sem_lactose", label: "Sem Lactose" },
+  { id: "oferta_relampago", label: "Ofertas Relâmpago" },
 ];
 
 export const Route = createFileRoute("/_store/mercado")({
@@ -248,53 +248,33 @@ function SupermarketMasterPage() {
 
       {/* ── 3. Seletor de Supermercados Parceiros (Multi-Store Filter) ── */}
       {availableStores.length > 0 && (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
-              <Buildings size={14} weight="bold" className="text-primary" />
-              <span>Filtrar por Supermercado Parceiro</span>
-            </span>
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+          <button
+            type="button"
+            onClick={() => setSelectedStore("todos")}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+              selectedStore === "todos"
+                ? "bg-foreground text-background shadow-2xs"
+                : "bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted"
+            }`}
+          >
+            Todos os Mercados
+          </button>
 
-            {selectedStore !== "todos" && (
-              <button
-                type="button"
-                onClick={() => setSelectedStore("todos")}
-                className="text-[11px] font-bold text-primary hover:underline cursor-pointer"
-              >
-                Ver todos os mercados
-              </button>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+          {availableStores.map((store) => (
             <button
+              key={store}
               type="button"
-              onClick={() => setSelectedStore("todos")}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
-                selectedStore === "todos"
-                  ? "bg-foreground text-background "
-                  : "bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted "
+              onClick={() => setSelectedStore(store)}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+                selectedStore === store
+                  ? "bg-foreground text-background shadow-2xs"
+                  : "bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted"
               }`}
             >
-              Todos os Supermercados
+              {store}
             </button>
-
-            {availableStores.map((store) => (
-              <button
-                key={store}
-                type="button"
-                onClick={() => setSelectedStore(store)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
-                  selectedStore === store
-                    ? "bg-foreground text-background "
-                    : "bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted "
-                }`}
-              >
-                <Storefront size={14} weight="bold" />
-                <span>{store}</span>
-              </button>
-            ))}
-          </div>
+          ))}
         </div>
       )}
 
@@ -326,22 +306,20 @@ function SupermarketMasterPage() {
       />
 
       {/* ── 6. Filtros Especiais de Dieta & Estilo de Vida (Pills) ── */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
         {DIETARY_FILTERS.map((f) => {
           const isSelected = selectedDietary === f.id;
-          const Icon = f.icon;
           return (
             <button
               key={f.id}
               type="button"
               onClick={() => setSelectedDietary(f.id)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all shrink-0 cursor-pointer ${
                 isSelected
-                  ? "bg-foreground text-background "
-                  : "bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted "
+                  ? "bg-foreground text-background shadow-2xs"
+                  : "bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted"
               }`}
             >
-              {Icon && <Icon size={14} weight="bold" />}
               <span>{f.label}</span>
             </button>
           );

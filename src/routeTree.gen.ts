@@ -77,6 +77,7 @@ import { Route as StoreClassificadosIndexRouteImport } from './routes/_store.cla
 import { Route as StoreClassificadosIdRouteImport } from './routes/_store.classificados.$id'
 import { Route as StoreColecaoSlugRouteImport } from './routes/_store.colecao.$slug'
 import { Route as StoreContaIndexRouteImport } from './routes/_store.conta.index'
+import { Route as StoreContaAgendamentosRouteImport } from './routes/_store.conta.agendamentos'
 import { Route as StoreContaAvaliacoesRouteImport } from './routes/_store.conta.avaliacoes'
 import { Route as StoreContaCreditosRouteImport } from './routes/_store.conta.creditos'
 import { Route as StoreContaEnderecosRouteImport } from './routes/_store.conta.enderecos'
@@ -536,6 +537,11 @@ const StoreColecaoSlugRoute = StoreColecaoSlugRouteImport.update({
 const StoreContaIndexRoute = StoreContaIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => StoreContaRoute,
+} as any)
+const StoreContaAgendamentosRoute = StoreContaAgendamentosRouteImport.update({
+  id: '/agendamentos',
+  path: '/agendamentos',
   getParentRoute: () => StoreContaRoute,
 } as any)
 const StoreContaAvaliacoesRoute = StoreContaAvaliacoesRouteImport.update({
@@ -1259,6 +1265,7 @@ export interface FileRoutesByFullPath {
   '/categoria/$slug': typeof StoreCategoriaSlugRoute
   '/classificados/$id': typeof StoreClassificadosIdRoute
   '/colecao/$slug': typeof StoreColecaoSlugRoute
+  '/conta/agendamentos': typeof StoreContaAgendamentosRoute
   '/conta/avaliacoes': typeof StoreContaAvaliacoesRoute
   '/conta/creditos': typeof StoreContaCreditosRoute
   '/conta/enderecos': typeof StoreContaEnderecosRoute
@@ -1442,6 +1449,7 @@ export interface FileRoutesByTo {
   '/categoria/$slug': typeof StoreCategoriaSlugRoute
   '/classificados/$id': typeof StoreClassificadosIdRoute
   '/colecao/$slug': typeof StoreColecaoSlugRoute
+  '/conta/agendamentos': typeof StoreContaAgendamentosRoute
   '/conta/avaliacoes': typeof StoreContaAvaliacoesRoute
   '/conta/creditos': typeof StoreContaCreditosRoute
   '/conta/enderecos': typeof StoreContaEnderecosRoute
@@ -1634,6 +1642,7 @@ export interface FileRoutesById {
   '/_store/categoria/$slug': typeof StoreCategoriaSlugRoute
   '/_store/classificados/$id': typeof StoreClassificadosIdRoute
   '/_store/colecao/$slug': typeof StoreColecaoSlugRoute
+  '/_store/conta/agendamentos': typeof StoreContaAgendamentosRoute
   '/_store/conta/avaliacoes': typeof StoreContaAvaliacoesRoute
   '/_store/conta/creditos': typeof StoreContaCreditosRoute
   '/_store/conta/enderecos': typeof StoreContaEnderecosRoute
@@ -1826,6 +1835,7 @@ export interface FileRouteTypes {
     | '/categoria/$slug'
     | '/classificados/$id'
     | '/colecao/$slug'
+    | '/conta/agendamentos'
     | '/conta/avaliacoes'
     | '/conta/creditos'
     | '/conta/enderecos'
@@ -2009,6 +2019,7 @@ export interface FileRouteTypes {
     | '/categoria/$slug'
     | '/classificados/$id'
     | '/colecao/$slug'
+    | '/conta/agendamentos'
     | '/conta/avaliacoes'
     | '/conta/creditos'
     | '/conta/enderecos'
@@ -2200,6 +2211,7 @@ export interface FileRouteTypes {
     | '/_store/categoria/$slug'
     | '/_store/classificados/$id'
     | '/_store/colecao/$slug'
+    | '/_store/conta/agendamentos'
     | '/_store/conta/avaliacoes'
     | '/_store/conta/creditos'
     | '/_store/conta/enderecos'
@@ -2816,6 +2828,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/conta/'
       preLoaderRoute: typeof StoreContaIndexRouteImport
+      parentRoute: typeof StoreContaRoute
+    }
+    '/_store/conta/agendamentos': {
+      id: '/_store/conta/agendamentos'
+      path: '/agendamentos'
+      fullPath: '/conta/agendamentos'
+      preLoaderRoute: typeof StoreContaAgendamentosRouteImport
       parentRoute: typeof StoreContaRoute
     }
     '/_store/conta/avaliacoes': {
@@ -3681,6 +3700,7 @@ const StoreAgendarRouteWithChildren = StoreAgendarRoute._addFileChildren(
 )
 
 interface StoreContaRouteChildren {
+  StoreContaAgendamentosRoute: typeof StoreContaAgendamentosRoute
   StoreContaAvaliacoesRoute: typeof StoreContaAvaliacoesRoute
   StoreContaCreditosRoute: typeof StoreContaCreditosRoute
   StoreContaEnderecosRoute: typeof StoreContaEnderecosRoute
@@ -3706,6 +3726,7 @@ interface StoreContaRouteChildren {
 }
 
 const StoreContaRouteChildren: StoreContaRouteChildren = {
+  StoreContaAgendamentosRoute: StoreContaAgendamentosRoute,
   StoreContaAvaliacoesRoute: StoreContaAvaliacoesRoute,
   StoreContaCreditosRoute: StoreContaCreditosRoute,
   StoreContaEnderecosRoute: StoreContaEnderecosRoute,

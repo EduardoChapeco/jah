@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
@@ -298,12 +298,21 @@ function BookingIndexPage() {
               <p className="text-xs text-muted-foreground">
                 Seu horário para <strong>{selectedService?.name}</strong> foi reservado para dia {scheduledDate} às {scheduledTime}.
               </p>
-              <Button
-                onClick={() => setSelectedService(null)}
-                className="w-full rounded-xl font-bold text-xs h-10 mt-2 cursor-pointer"
-              >
-                Concluir
-              </Button>
+              <div className="flex items-center gap-2 pt-2">
+                <Button
+                  asChild
+                  variant="outline"
+                  className="flex-1 rounded-xl font-semibold text-xs h-10 cursor-pointer"
+                >
+                  <Link to="/conta/agendamentos">Ver Minha Agenda</Link>
+                </Button>
+                <Button
+                  onClick={() => setSelectedService(null)}
+                  className="flex-1 rounded-xl font-semibold text-xs h-10 cursor-pointer"
+                >
+                  Concluir
+                </Button>
+              </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4 pt-2">

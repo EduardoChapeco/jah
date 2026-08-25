@@ -65,6 +65,136 @@ export const listMyPassesForService = createServerFn({ method: "GET" })
   });
 
 /**
+ * Lista todos os agendamentos do cliente logado (Próximos ou Histórico).
+ */
+export const listCustomerAppointments = createServerFn({ method: "GET" })
+  .validator(
+    z
+      .object({
+        status: z.enum(["all", "upcoming", "past"]).default("all").optional(),
+      })
+      .optional(),
+  )
+  .handler(async ({ data: params }) => {
+    try {
+      const identity = await getServerIdentity();
+      if (!identity?.id) return [];
+
+      const db = getServerClient();
+      let query = db
+        .from("booking_appointments")
+        .select(`
+          id, scheduled_at, status, notes, guest_name, guest_phone, pass_id, created_at,
+          booking_services (
+            id, title, duration_minutes, price_cents, category
+          ),
+          stores (
+            id, name, slug, avatar_url, settings
+          )
+        `)
+        .eq("customer_id", identity.id)
+        .order("scheduled_at", { ascending: params?.status === "past" ? false : true });
+
+      const now = new Date().toISOString();
+      if (params?.status === "upcoming") {
+        query = query.gte("scheduled_at", now);
+      } else if (params?.status === "past") {
+        query = query.lt("scheduled_at", now);
+      }
+
+      const { data, error } = await query;
+      if (error) {
+        console.error("[booking.functions] listCustomerAppointments error:", error);
+        return [];
+      }
+
+      return data || [];
+    } catch (e) {
+      console.error("[booking.functions] listCustomerAppointments caught error:", e);
+      return [];
+    }
+  });
+
+/**
+ * Cancela um agendamento do cliente e estorna créditos de pacotes se aplicável.
+ */
+export const cancelCustomerAppointment = createServerFn({ method: "POST" })
+  .validator(z.object({ appointmentId: z.string().uuid(), reason: z.string().optional() }))
+  .handler(async ({ data: { appointmentId, reason } }) => {
+    try {
+      const identity = await getServerIdentity();
+      if (!identity?.id) throw new Error("Não autorizado.");
+
+      const db = getServerClient();
+
+      // Busca o agendamento pertencente ao cliente
+      const { data: appt, error: fetchErr } = await db
+        .from("booking_appointments")
+        .select("id, status, scheduled_at, pass_id, customer_id")
+        .eq("id", appointmentId)
+        .eq("customer_id", identity.id)
+        .single();
+
+      if (fetchErr || !appt) {
+        throw new Error("Agendamento não encontrado.");
+      }
+
+      if (appt.status === "cancelled") {
+        return { success: true, message: "Agendamento já estava cancelado." };
+      }
+
+      // Atualiza o status para cancelado
+      const { error: updateErr } = await db
+        .from("booking_appointments")
+        .update({
+          status: "cancelled",
+          notes: reason ? `Cancelado pelo cliente: ${reason}` : "Cancelado pelo cliente",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", appointmentId);
+
+      if (updateErr) throw updateErr;
+
+      // Se foi agendado com passe de sessões (pass_id), estorna 1 crédito
+      if (appt.pass_id) {
+        const { data: passRow } = await db
+          .from("customer_service_passes")
+          .select("id, remaining_credits, total_credits")
+          .eq("id", appt.pass_id)
+          .single();
+
+        if (passRow) {
+          const restoredBalance = Math.min(passRow.total_credits, passRow.remaining_credits + 1);
+          await db
+            .from("customer_service_passes")
+            .update({
+              remaining_credits: restoredBalance,
+              status: "active",
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", appt.pass_id);
+
+          await db.from("service_pass_ledger").insert({
+            pass_id: appt.pass_id,
+            appointment_id: appt.id,
+            movement_type: "session_cancelled_refund",
+            credits_delta: 1,
+            balance_after: restoredBalance,
+            reason: "Reembolso de crédito por cancelamento do agendamento",
+          });
+        }
+      }
+
+      return { success: true, message: "Agendamento cancelado com sucesso." };
+    } catch (e: unknown) {
+      console.error("[booking.functions] cancelCustomerAppointment error:", e);
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao cancelar agendamento.",
+      );
+    }
+  });
+
+/**
  * Lista serviços de agendamento disponíveis na loja atual ou na comunidade.
  */
 export const listBookingServices = createServerFn({ method: "GET" })

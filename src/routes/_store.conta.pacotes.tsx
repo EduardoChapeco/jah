@@ -102,27 +102,27 @@ function CustomerPassesPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-20">
-      {/* ── 1. Top Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4  pb-6">
-        <div>
-          <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-mono font-bold uppercase bg-primary text-primary-foreground">
-            Carteira de Sessões
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight mt-1">
-            Meus Pacotes & Aulas
+      {/* ── 1. Top Navigation & Minimalist Header ── */}
+      <div className="flex items-center justify-between pt-2">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Link
+              to="/conta"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Minha Conta
+            </Link>
+            <span className="text-xs text-muted-foreground">/</span>
+            <span className="text-xs font-semibold text-foreground">Pacotes & Sessões</span>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            Meus Pacotes
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-            Acompanhe seus créditos restantes de treinos, aulas e atendimentos e agende seus horários em 1-clique.
-          </p>
         </div>
 
-        <Link
-          to="/servicos"
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold bg-foreground text-background hover:bg-foreground/90 transition-all shrink-0"
-        >
-          <Plus size={15} />
-          Explorar Novos Pacotes
-        </Link>
+        <Button asChild size="sm" className="rounded-xl text-xs font-semibold h-9 px-4 cursor-pointer">
+          <Link to="/servicos">Explorar Pacotes</Link>
+        </Button>
       </div>
 
       {/* ── 2. Lista de Passes do Cliente ── */}
