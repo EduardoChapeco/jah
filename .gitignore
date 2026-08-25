@@ -64,4 +64,4 @@ dist-ssr
 .env.production 
 .secrets.json
 wrangler.toml  
- 
+scratch/

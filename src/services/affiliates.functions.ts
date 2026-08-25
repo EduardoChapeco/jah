@@ -8,7 +8,7 @@
  * - Integração com o motor de comissões já existente na tabela `commissions`
  *
  * Regras:
- * - Cookie `jah_affiliate_id` é lido no checkout e passado ao RPC atômico.
+ * - Cookie `wider_affiliate_id` é lido no checkout e passado ao RPC atômico.
  * - Comissão só é gerada quando o pedido atinge status 'paid/processing'.
  * - Cálculo de comissão é feito no servidor (commission_rate no profiles).
  * - Afiliados não têm acesso a dados de outros afiliados.

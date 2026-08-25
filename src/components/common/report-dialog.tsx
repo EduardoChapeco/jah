@@ -97,7 +97,7 @@ export function ReportDialog({
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
                 Nossa equipe de moderação e Trust & Safety analisará o conteúdo com base nos Termos
-                de Uso e Diretrizes da Comunidade JAH.
+                de Uso e Diretrizes da Comunidade Wider.
               </DialogDescription>
             </DialogHeader>
 

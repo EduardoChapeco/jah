@@ -1,6 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { Star, MapPin, Clock, Store, ShieldCheck, ChevronRight } from "lucide-react";
+import { Star, MapPin, Clock, Store, ShieldCheck } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { StoreCardDTO } from "@/services/marketplace.functions";
+
+export interface StoreCardProps extends StoreCardDTO {
+  className?: string;
+}
 
 export function StoreCard({
   id,
@@ -8,20 +13,25 @@ export function StoreCard({
   slug,
   avatar_url,
   banner_url,
-  category,
-  rating,
-  review_count,
-  distance_km,
-  is_open,
-  delivery_time_min,
-}: StoreCardDTO) {
+  category = "Comércio",
+  rating = 4.9,
+  review_count = 128,
+  distance_km = 1.2,
+  is_open = true,
+  delivery_time_min = "30-45",
+  className,
+}: StoreCardProps) {
   return (
     <Link
-      to="/perfil-da-loja"
-      className="group relative flex flex-col justify-between w-80 sm:w-96 shrink-0 snap-start rounded-3xl border border-border/80 bg-card hover:border-primary/50 transition-all duration-200 overflow-hidden shadow-xs hover-elevate"
+      to="/diretorio/$id"
+      params={{ id }}
+      className={cn(
+        "group relative flex flex-col justify-between w-[280px] sm:w-[320px] md:w-[350px] shrink-0 snap-start rounded-3xl  bg-card hover:border-primary/50 transition-all duration-200 overflow-hidden select-none block",
+        className,
+      )}
     >
       {/* ── Banner de Destaque Ampliado ─────────────────────── */}
-      <div className="relative h-36 sm:h-44 w-full bg-linear-to-r from-zinc-800 to-zinc-900 overflow-hidden">
+      <div className="relative h-36 sm:h-44 w-full bg-linear-to-r from-muted to-muted/80 overflow-hidden">
         {banner_url ? (
           <img
             src={banner_url}
@@ -33,15 +43,15 @@ export function StoreCard({
             <Store className="size-12 text-muted-foreground/30" />
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-black/20" />
 
         {/* Status Badge */}
         <div className="absolute top-3 right-3 z-10">
           <span
-            className={`px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider backdrop-blur-md shadow-xs ${
+            className={`px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider backdrop-blur-md ${
               is_open
-                ? "bg-emerald-500/90 text-white"
-                : "bg-zinc-800/80 text-zinc-300 border border-zinc-700"
+                ? "bg-emerald-600/95 text-white "
+                : "bg-black/60 text-white/80 border border-white/20"
             }`}
           >
             {is_open ? "● Aberto Agora" : "Fechado"}
@@ -52,7 +62,7 @@ export function StoreCard({
       {/* ── Store Info & Large Avatar ───────────────────────── */}
       <div className="p-5 pt-0 relative space-y-3">
         {/* Floating Avatar 64px - 72px */}
-        <div className="size-16 sm:size-18 rounded-2xl border-4 border-card bg-background overflow-hidden -mt-8 sm:-mt-9 shadow-md relative z-10 flex items-center justify-center">
+        <div className="size-16 sm:size-18 rounded-2xl  bg-background overflow-hidden -mt-8 sm:-mt-9 relative z-10 flex items-center justify-center">
           {avatar_url ? (
             <img src={avatar_url} alt={name} className="size-full object-cover" />
           ) : (
@@ -71,7 +81,7 @@ export function StoreCard({
         </div>
 
         {/* Badges de Distância, Avaliação e Tempo */}
-        <div className="flex items-center justify-between text-xs text-muted-foreground pt-2.5 border-t border-border/40">
+        <div className="flex items-center justify-between text-xs text-muted-foreground pt-2.5 ">
           <div className="flex items-center gap-1 font-bold text-foreground">
             <Star className="size-3.5 fill-amber-400 text-amber-400" />
             <span>{rating.toFixed(1)}</span>

@@ -248,7 +248,7 @@ export const calculateMobilityQuote = createServerFn({ method: "POST" })
 export const createMobilityRequest = createServerFn({ method: "POST" })
   .validator(
     z.object({
-      customer_name: z.string().min(1).default("Cliente JAH"),
+      customer_name: z.string().min(1).default("Cliente Wider"),
       customer_phone: z.string().min(1).default("(49) 99999-9999"),
       service_type: mobilityServiceTypeEnum,
       origin_address: z.string().min(3),
@@ -288,7 +288,7 @@ export const createMobilityRequest = createServerFn({ method: "POST" })
 
     const payload = {
       customer_id: identity?.id || null,
-      customer_name: data.customer_name || "Cliente JAH",
+      customer_name: data.customer_name || "Cliente Wider",
       customer_phone: data.customer_phone || "(49) 99999-9999",
       service_type: data.service_type,
       status: assignedCourierProfileId ? "accepted" : "searching",
@@ -321,14 +321,8 @@ export const createMobilityRequest = createServerFn({ method: "POST" })
       .single();
 
     if (error) {
-      console.error("[mobility] Erro ao criar request:", error);
-      // Fallback gracioso para garantir experiência ininterrupta
-      return {
-        id: `mock-${Date.now()}`,
-        ...payload,
-        created_at: new Date().toISOString(),
-        courier_profiles: null,
-      } as MobilityRequestDTO;
+      console.error("[mobility] Erro ao criar request no banco:", error);
+      throw new Error("Erro ao criar solicitação de mobilidade no banco: " + error.message);
     }
 
     return request as MobilityRequestDTO;

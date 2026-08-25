@@ -1,44 +1,39 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getPageBySlug } from "@/services/cms.functions";
-import { PageHeader } from "@/components/commerce/page-header";
+import { getLegalDocumentBySlug } from "@/services/legal.functions";
+import { LegalDocumentViewer } from "@/components/legal/legal-document-viewer";
 import { EmptyState } from "@/components/state/states";
 
 export const Route = createFileRoute("/_store/privacidade")({
   head: ({ loaderData }) => ({
     meta: [
       {
-        title: loaderData?.title ? `${loaderData.title}` : "Política de privacidade",
+        title: loaderData?.title
+          ? `${loaderData.title} | Wider`
+          : "Política de Privacidade e Proteção de Dados (LGPD) | Wider",
       },
     ],
   }),
   loader: async () => {
-    const res = await getPageBySlug({ data: { slug: "privacidade" } });
-    if (res && "status" in res && res.status === "not_found") return null;
-    return res as { title?: string; sections?: any[] } | null;
+    try {
+      const doc = await getLegalDocumentBySlug({ data: { slug: "privacidade" } });
+      return doc;
+    } catch {
+      return null;
+    }
   },
-  component: Page,
+  component: PrivacidadePage,
 });
 
-function Page() {
-  const page = Route.useLoaderData();
+function PrivacidadePage() {
+  const doc = Route.useLoaderData();
 
-  return (
-    <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
-      <div className="max-w-4xl mx-auto">
-        {!page ? (
-          <EmptyState title="Página não encontrada" />
-        ) : (
-          <div className="prose prose-neutral max-w-none">
-            {page.sections?.map((section: any) => (
-              <div key={section.id}>
-                {section.section_type === "text" && (
-                  <div dangerouslySetInnerHTML={{ __html: section.content.html || "" }} />
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+  if (!doc) {
+    return (
+      <div className="container py-20">
+        <EmptyState title="Documento de privacidade não encontrado" />
       </div>
-    </div>
-  );
+    );
+  }
+
+  return <LegalDocumentViewer document={doc} />;
 }

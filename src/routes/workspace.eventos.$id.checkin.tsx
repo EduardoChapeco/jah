@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/workspace/eventos/$id/checkin")({
-  head: () => ({ meta: [{ title: "Portaria / Check-in de Ingressos — JAH" }] }),
+  head: () => ({ meta: [{ title: "Portaria / Check-in de Ingressos — Wider" }] }),
   loader: async ({ params }) => {
     try {
       const event = await getEventWithLots({ data: { eventId: (params as any).id } });
@@ -112,7 +112,7 @@ function EventCheckinPage() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       {/* Topbar Operacional */}
-      <header className="h-16 border-b border-border bg-card px-4 flex items-center justify-between sticky top-0 z-30">
+      <header className="h-16  bg-card px-4 flex items-center justify-between sticky top-0 z-30">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" asChild>
             <Link to="/workspace">
@@ -138,7 +138,7 @@ function EventCheckinPage() {
         {/* Lado Esquerdo: Scanner / Validador Rápido */}
         <div className="md:col-span-7 space-y-5">
           {/* Card de Leitura */}
-          <div className="p-5 rounded-2xl border border-border bg-card shadow-sm space-y-4">
+          <div className="p-5 rounded-2xl  bg-card  space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <QrCode className="size-5 text-primary" />
@@ -229,8 +229,8 @@ function EventCheckinPage() {
         </div>
 
         {/* Lado Direito: Histórico de Entradas Recentes */}
-        <div className="md:col-span-5 p-5 rounded-2xl border border-border bg-card shadow-sm space-y-3">
-          <div className="flex items-center justify-between border-b border-border pb-3">
+        <div className="md:col-span-5 p-5 rounded-2xl  bg-card  space-y-3">
+          <div className="flex items-center justify-between  pb-3">
             <h3 className="text-sm font-bold text-foreground">Entradas Recentes</h3>
             <Badge variant="secondary" className="text-xs font-mono">
               {history.filter((h) => h.success).length} válidas

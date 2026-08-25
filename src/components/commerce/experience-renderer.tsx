@@ -231,7 +231,7 @@ function ExperienceNodeRenderer({
             />
           ))
         ) : isEditing ? (
-          <div className="p-8 text-center border border-dashed border-border/50 text-muted-foreground text-sm">
+          <div className="p-8 text-center border-0/50 text-muted-foreground text-sm">
             Seção Vazia — adicione um Container
           </div>
         ) : null}
@@ -324,7 +324,7 @@ function ExperienceNodeRenderer({
             />
           ))
         ) : isEditing ? (
-          <div className="p-4 text-center border border-dashed border-border/50 text-muted-foreground text-sm w-full">
+          <div className="p-4 text-center border-0/50 text-muted-foreground text-sm w-full">
             Container Vazio — selecione este container e adicione um bloco
           </div>
         ) : null}

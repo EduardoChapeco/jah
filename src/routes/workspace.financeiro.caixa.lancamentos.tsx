@@ -90,13 +90,13 @@ function CaixaLancamentosPage() {
     }
     setIsSaving(true);
     try {
+      const finalCents = form.type === "out" ? -Math.abs(cents) : Math.abs(cents);
       await addRegisterEntry({
         data: {
           registerId: register.id,
-          amountCents: cents,
-          type: form.type,
+          amountCents: finalCents,
           method: form.method,
-          description: form.description,
+          description: form.description || (form.type === "out" ? "Sangria de caixa" : "Suprimento de caixa"),
         },
       });
       toast.success("Lançamento adicionado!");
@@ -206,19 +206,19 @@ function CaixaLancamentosPage() {
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        <div className="border border-border rounded-xl bg-card p-4">
+        <div className=" rounded-xl bg-card p-4">
           <p className="text-sm text-muted-foreground">Saldo Inicial</p>
           <p className="mt-1 text-2xl font-semibold">
             {formatMoney(register.initial_balance_cents)}
           </p>
         </div>
-        <div className="border border-border rounded-xl bg-card p-4">
+        <div className=" rounded-xl bg-card p-4">
           <p className="text-sm text-muted-foreground">Saldo Atual</p>
           <p className="mt-1 text-2xl font-semibold text-success">
             {formatMoney(register.currentBalanceCents)}
           </p>
         </div>
-        <div className="border border-border rounded-xl bg-card p-4 flex items-center gap-3">
+        <div className=" rounded-xl bg-card p-4 flex items-center gap-3">
           <Wallet className="h-8 w-8 text-muted-foreground" />
           <div>
             <p className="text-sm text-muted-foreground">Status</p>
@@ -230,8 +230,8 @@ function CaixaLancamentosPage() {
       </div>
 
       {/* Lançamentos Table */}
-      <div className="border border-border bg-card rounded-xl overflow-hidden">
-        <div className="p-4 border-b border-border">
+      <div className=" bg-card rounded-xl overflow-hidden">
+        <div className="p-4 ">
           <h3 className="font-semibold text-foreground">Extrato do Turno</h3>
         </div>
         <div className="overflow-x-auto">

@@ -84,24 +84,24 @@ export function InterestPickerModal() {
     if (typeof window === "undefined") return;
 
     // 1. Se já foi concluído ou dispensado no localStorage ou em Cookie persistente, NUNCA abre
-    const localDone = localStorage.getItem("jah_onboarding_interests_done");
-    const hasCookie = document.cookie.includes("jah_onboarding_interests_done=true");
+    const localDone = localStorage.getItem("wider_onboarding_interests_done");
+    const hasCookie = document.cookie.includes("wider_onboarding_interests_done=true");
     if (localDone === "true" || hasCookie) {
       return;
     }
 
     // 2. O modal só deve abrir se o usuário ACABOU de fazer cadastro (onboarding inicial)
-    const justRegistered = sessionStorage.getItem("jah_just_registered") === "true";
+    const justRegistered = sessionStorage.getItem("wider_just_registered") === "true";
     const hasOnboardingParam = window.location.search.includes("onboarding=true") || window.location.search.includes("welcome=true");
 
     // Verifica no servidor se é um usuário autenticado que ainda não completou o onboarding
     getUserPreferences()
       .then((prefs) => {
         if (prefs && prefs.onboarding_done) {
-          localStorage.setItem("jah_onboarding_interests_done", "true");
-          document.cookie = "jah_onboarding_interests_done=true; path=/; max-age=315360000; SameSite=Lax";
+          localStorage.setItem("wider_onboarding_interests_done", "true");
+          document.cookie = "wider_onboarding_interests_done=true; path=/; max-age=315360000; SameSite=Lax";
           if (prefs.selected_niches && prefs.selected_niches.length > 0) {
-            localStorage.setItem("jah_user_niches", JSON.stringify(prefs.selected_niches));
+            localStorage.setItem("wider_user_niches", JSON.stringify(prefs.selected_niches));
           }
         } else if (prefs && !prefs.onboarding_done) {
           // Usuário logado em fase de primeiro onboarding
@@ -113,14 +113,14 @@ export function InterestPickerModal() {
           return () => clearTimeout(t);
         } else {
           // Usuário anônimo comum navegando no site: não interrompe a experiência com popup
-          localStorage.setItem("jah_onboarding_interests_done", "true");
-          document.cookie = "jah_onboarding_interests_done=true; path=/; max-age=315360000; SameSite=Lax";
+          localStorage.setItem("wider_onboarding_interests_done", "true");
+          document.cookie = "wider_onboarding_interests_done=true; path=/; max-age=315360000; SameSite=Lax";
         }
       })
       .catch(() => {
         // Erro ou anônimo: suprime popup e grava flag
-        localStorage.setItem("jah_onboarding_interests_done", "true");
-        document.cookie = "jah_onboarding_interests_done=true; path=/; max-age=315360000; SameSite=Lax";
+        localStorage.setItem("wider_onboarding_interests_done", "true");
+        document.cookie = "wider_onboarding_interests_done=true; path=/; max-age=315360000; SameSite=Lax";
       });
   }, []);
 
@@ -142,9 +142,9 @@ export function InterestPickerModal() {
 
   const handleClose = (newOpen: boolean) => {
     if (!newOpen) {
-      localStorage.setItem("jah_onboarding_interests_done", "true");
-      document.cookie = "jah_onboarding_interests_done=true; path=/; max-age=315360000; SameSite=Lax";
-      sessionStorage.removeItem("jah_just_registered");
+      localStorage.setItem("wider_onboarding_interests_done", "true");
+      document.cookie = "wider_onboarding_interests_done=true; path=/; max-age=315360000; SameSite=Lax";
+      sessionStorage.removeItem("wider_just_registered");
       saveUserPreferences({
         data: {
           selected_niches: selectedNiches,
@@ -158,10 +158,10 @@ export function InterestPickerModal() {
   const handleConfirm = async () => {
     setIsSaving(true);
     try {
-      localStorage.setItem("jah_onboarding_interests_done", "true");
-      document.cookie = "jah_onboarding_interests_done=true; path=/; max-age=315360000; SameSite=Lax";
-      sessionStorage.removeItem("jah_just_registered");
-      localStorage.setItem("jah_user_niches", JSON.stringify(selectedNiches));
+      localStorage.setItem("wider_onboarding_interests_done", "true");
+      document.cookie = "wider_onboarding_interests_done=true; path=/; max-age=315360000; SameSite=Lax";
+      sessionStorage.removeItem("wider_just_registered");
+      localStorage.setItem("wider_user_niches", JSON.stringify(selectedNiches));
 
       await saveUserPreferences({
         data: {
@@ -174,7 +174,7 @@ export function InterestPickerModal() {
       setOpen(false);
 
       if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("jah:preferences-updated", { detail: selectedNiches }));
+        window.dispatchEvent(new CustomEvent("wider:preferences-updated", { detail: selectedNiches }));
       }
     } catch {
       setOpen(false);
@@ -185,7 +185,7 @@ export function InterestPickerModal() {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-xl p-6 sm:p-8 rounded-3xl border border-border bg-background shadow-2xl">
+      <DialogContent className="max-w-xl p-6 sm:p-8 rounded-3xl  bg-background ">
         <DialogHeader className="space-y-2 text-center sm:text-left">
           <div className="size-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold mx-auto sm:mx-0">
             <Sparkles className="size-5" />
@@ -212,7 +212,7 @@ export function InterestPickerModal() {
                 onClick={() => toggleNiche(item.id)}
                 className={`relative flex flex-col items-start justify-between p-3.5 rounded-2xl border text-left transition-all select-none cursor-pointer group ${
                   isSelected
-                    ? "bg-primary text-primary-foreground border-primary shadow-sm scale-[1.02]"
+                    ? "bg-primary text-primary-foreground border-primary  scale-[1.02]"
                     : "bg-card text-foreground border-border/80 hover:border-primary/40 hover:bg-muted/40"
                 }`}
               >
@@ -233,7 +233,7 @@ export function InterestPickerModal() {
           })}
         </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-border/60">
+        <div className="flex items-center justify-between pt-2 ">
           <button
             type="button"
             onClick={() => handleClose(false)}
@@ -246,7 +246,7 @@ export function InterestPickerModal() {
             type="button"
             onClick={handleConfirm}
             disabled={isSaving}
-            className="h-11 px-6 rounded-xl font-bold bg-primary text-primary-foreground text-xs gap-2 shadow-xs"
+            className="h-11 px-6 rounded-xl font-bold bg-primary text-primary-foreground text-xs gap-2 "
           >
             <span>Continuar</span>
             <ArrowRight className="size-4" />

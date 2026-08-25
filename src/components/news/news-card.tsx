@@ -27,7 +27,7 @@ export function NewsCard({ article, compact = false }: NewsCardProps) {
     : "Recente";
 
   return (
-    <article className="group relative flex flex-col rounded-2xl border border-border/70 bg-card overflow-hidden shadow-xs hover-elevate transition-all duration-300">
+    <article className="group relative flex flex-col rounded-2xl  bg-card overflow-hidden  hover-elevate transition-all duration-300">
       {/* ── 1. Imagem / Vídeo Full Bleed ── */}
       <Link
         to="/noticias/$slug"
@@ -61,7 +61,7 @@ export function NewsCard({ article, compact = false }: NewsCardProps) {
         {/* Badges Flutuantes sobre a Imagem */}
         <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none">
           {article.kicker ? (
-            <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-black/70 backdrop-blur-md text-white border border-white/10 shadow-xs">
+            <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-black/70 backdrop-blur-md text-white border border-white/10 ">
               {article.kicker}
             </span>
           ) : (
@@ -69,7 +69,7 @@ export function NewsCard({ article, compact = false }: NewsCardProps) {
           )}
 
           <div className="flex items-center gap-1.5 pointer-events-auto">
-            <span className="px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-md text-[10px] font-mono text-white flex items-center gap-1 shadow-xs border border-white/10">
+            <span className="px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-md text-[10px] font-mono text-white flex items-center gap-1  border border-white/10">
               <Clock className="size-2.5" />
               {article.reading_time_minutes || 3} min
             </span>
@@ -77,7 +77,7 @@ export function NewsCard({ article, compact = false }: NewsCardProps) {
               variant="ghost"
               size="icon"
               onClick={handleShare}
-              className="size-7 rounded-full bg-black/70 backdrop-blur-md text-white hover:bg-black/90 border border-white/10 shadow-xs"
+              className="size-7 rounded-full bg-black/70 backdrop-blur-md text-white hover:bg-black/90 border border-white/10 "
               title="Compartilhar notícia"
             >
               <Share2 className="size-3" />
@@ -125,7 +125,7 @@ export function NewsCard({ article, compact = false }: NewsCardProps) {
         </div>
 
         {/* ── 3. Rodapé ── */}
-        <div className="pt-3 border-t border-border/40 flex items-center justify-between gap-2">
+        <div className="pt-3  flex items-center justify-between gap-2">
           <div className="flex items-center gap-1 text-[11px] text-muted-foreground font-medium">
             <Eye className="size-3.5 opacity-60" />
             <span>{article.views_count || 0} leituras</span>

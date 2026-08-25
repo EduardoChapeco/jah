@@ -1,5 +1,5 @@
 /**
- * Motor de Simulação Estocástica de Personas (JAH SimLab / Simwork Engine)
+ * Motor de Simulação Estocástica de Personas (Wider SimLab / Simwork Engine)
  * Avalia propostas comerciais, culturais e de eventos contra o catálogo de personas.
  */
 

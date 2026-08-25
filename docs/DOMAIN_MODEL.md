@@ -1,4 +1,4 @@
-# Modelo de Domínio — Jah Community Platform
+# Modelo de Domínio — Wider Community Platform
 
 Documento canônico de entidades, relações, invariantes e máquinas de estado da Jah.
 
@@ -18,6 +18,37 @@ Organization (1) ──< BusinessProfile (Loja/Banda/Organizador)
 - **UserProfile**: O perfil social do usuário ("Pessoa Física").
 - **Organization / BusinessProfile**: Entidade jurídica/coletiva. O usuário pode alternar a interface para operar sob este contexto. Todas as query keys e sessões mudam ao fazer o _Context Switch_.
 - **Role**: `owner`, `admin`, `manager`, `seller`, `content`, `customer`.
+
+### 1.1 Entidade Store & Governança de Configurações (Settings JSONB)
+
+A tabela `stores` isola as unidades de comércio e serviços sob uma `organization_id`. Para garantir estabilidade do schema de banco e compatibilidade total com novos nichos sem necessidade de migrações estruturais frequentes:
+
+```text
+stores
+  ├── id (uuid, PK)
+  ├── organization_id (uuid, FK -> organizations)
+  ├── name (text)
+  ├── slug (text, unique)
+  ├── cnpj (text, optional)
+  ├── email (text, optional)
+  ├── phone (text, optional)
+  ├── address (text, optional)
+  ├── city (text)
+  ├── state (text)
+  ├── zip_code (text, optional)
+  ├── is_active (boolean)
+  ├── is_platform_root (boolean)
+  ├── created_at / updated_at (timestamptz)
+  └── settings (JSONB)
+        ├── type (ecommerce | gastronomy | services | market | fashion | etc.)
+        ├── logoUrl / bannerUrl / faviconUrl
+        ├── working_hours (grade semanal de funcionamento)
+        ├── delivery_zones (tabela de bairros e taxas de entrega)
+        ├── compliance_documents (documentação regulatória)
+        └── custom_checkout_fields (campos customizados do checkout)
+```
+
+- **Invariante de Provisionamento**: Todo dado estendido (segmento, mídias, operação e taxas) é persistido e lido via `settings: JSONB` de forma estrita e segura em `onboarding.functions.ts` e `store.functions.ts`.
 
 ## 2. Catálogo
 

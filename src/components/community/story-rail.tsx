@@ -35,7 +35,7 @@ export function StoryRail({ stories = [], onCreateStory }: StoryRailProps) {
           {/* Card de Adicionar Story */}
           <button
             onClick={onCreateStory}
-            className="group relative flex flex-col items-center justify-between w-[86px] h-[130px] squircle-media border border-dashed border-border bg-card p-2 text-center hover:border-primary transition-all shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="group relative flex flex-col items-center justify-between w-[86px] h-[130px] squircle-media border-0 bg-card p-2 text-center hover:border-primary transition-all shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <div className="size-10 rounded-full bg-primary/10 text-primary flex items-center justify-center mt-2 group-hover:scale-110 transition-transform">
               <Plus className="size-5" />
@@ -50,7 +50,7 @@ export function StoryRail({ stories = [], onCreateStory }: StoryRailProps) {
             <button
               key={story.id}
               onClick={() => setSelectedStory(story)}
-              className="group relative flex flex-col justify-between w-[86px] h-[130px] squircle-media squircle-hover border border-border bg-muted p-2 text-left shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-all"
+              className="group relative flex flex-col justify-between w-[86px] h-[130px] squircle-media squircle-hover  bg-muted p-2 text-left shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-all"
             >
               {/* Background Image / Cover */}
               {story.image_url ? (
@@ -99,7 +99,7 @@ export function StoryRail({ stories = [], onCreateStory }: StoryRailProps) {
 
               {/* Bottom Title */}
               <div className="relative z-10 mt-auto">
-                <p className="text-[11px] font-bold text-white leading-tight line-clamp-2 drop-shadow-md">
+                <p className="text-[11px] font-bold text-white leading-tight line-clamp-2 drop-">
                   {story.title}
                 </p>
               </div>

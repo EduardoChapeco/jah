@@ -1253,6 +1253,71 @@ Renomeia módulos na sidebar conforme o nicho selecionado.
 
 ---
 
+---
+
+## P-061 · Termos Gerais de Uso da Plataforma
+
+**Rota:** `/_store/termos` (`_store.termos.tsx`) | **Status:** `✅ IMPLEMENTADO`
+**Shell:** Public Store Shell | **Padrão:** legal_document_viewer | **Ator:** Todos
+
+### Anatomia Desktop
+```
+[Header com breadcrumb "Voltar ao Início" e Badge de Versão v2.0 + Atualização]
+[Sumário executivo do documento legal]
+[Links rápidos de políticas relacionadas]
+[Conteúdo canônico em Markdown renderizado com tipografia refinada]
+[Selo forense de imutabilidade com hash SHA-256 verificado]
+```
+
+---
+
+## P-062 · Política de Privacidade & Proteção de Dados (LGPD)
+
+**Rota:** `/_store/privacidade` (`_store.privacidade.tsx`) | **Status:** `✅ IMPLEMENTADO`
+**Shell:** Public Store Shell | **Padrão:** legal_document_viewer | **Ator:** Todos
+
+### Anatomia Desktop
+```
+[Documento canônico LGPD em Markdown com direitos do titular Art. 18]
+[Detalhamento de finalidades de tratamento, bases legais e cookies]
+```
+
+---
+
+## P-063 · Políticas Específicas Dinâmicas (/politicas/:slug)
+
+**Rota:** `/_store/politicas/$slug` (`_store.politicas.$slug.tsx`) | **Status:** `✅ IMPLEMENTADO`
+**Shell:** Public Store Shell | **Padrão:** legal_document_viewer | **Ator:** Todos
+
+### Slugs Ativos:
+- `cookies`: Política de Cookies e Gestão de Consentimento Digital.
+- `isencao`: Termo de Isenção da Plataforma e Diretrizes P2P / Classificados.
+- `lojistas`: Termos de Adesão e Responsabilidades de Lojistas.
+
+---
+
+## P-064 · Trocas, Devoluções e Cancelamentos
+
+**Rota:** `/_store/trocas-e-devolucoes` (`_store.trocas-e-devolucoes.tsx`) | **Status:** `✅ IMPLEMENTADO`
+**Shell:** Public Store Shell | **Padrão:** legal_document_viewer | **Ator:** Todos
+
+---
+
+## P-065 · Admin Master — Termos, LGPD & Trilha Forense de Aceites
+
+**Rota:** `/admin-master/termos` (`admin-master.termos.tsx`) | **Status:** `✅ IMPLEMENTADO`
+**Shell:** Admin Master Shell | **Padrão:** compliance_dashboard | **Ator:** Platform Admin (Master)
+
+### Anatomia Desktop
+```
+[Header com métricas de compliance: Total de Aceites, Cookies, Termos e Usuários Logados]
+[Abas:]
+- Aba 1: Políticas da Plataforma (cards dos documentos com botão de edição rápida via Sheet lateral).
+- Aba 2: Trilha Forense de Aceites (tabela com filtros por tipo, busca por IP/Hash e modal com Dossiê Forense).
+```
+
+---
+
 # Resumo de GAPs — Rotas Projetadas
 
 | #       | Rota                                  | Módulo                 | Prioridade |

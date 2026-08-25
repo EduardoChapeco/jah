@@ -29,7 +29,7 @@ function ReceiptPrintPage() {
   return (
     <div className="bg-white text-black min-h-screen p-8 max-w-2xl mx-auto font-sans">
       <div className="border-b-2 border-black pb-4 mb-6 text-center">
-        <h1 className="text-3xl font-bold">JAH</h1>
+        <h1 className="text-3xl font-bold">WIDER</h1>
         <p className="text-sm text-muted-foreground mt-1">DOCUMENTO AUXILIAR DE VENDA - PEDIDO</p>
         <p className="text-sm font-medium mt-2">NÃO É DOCUMENTO FISCAL</p>
       </div>
@@ -70,7 +70,7 @@ function ReceiptPrintPage() {
         </thead>
         <tbody>
           {order.order_items?.map((item: any) => (
-            <tr key={item.id} className="border-b border-border">
+            <tr key={item.id} className="">
               <td className="py-2">{item.qty}x</td>
               <td className="py-2">
                 <div>{item.product_title}</div>
@@ -110,7 +110,7 @@ function ReceiptPrintPage() {
 
       <div className="text-center text-xs text-muted-foreground mt-12 pt-4 border-t border-dashed border-border">
         <p>Agradecemos a preferência!</p>
-        <p>Desenvolvido para Jah Commerce</p>
+        <p>Desenvolvido para Wider Commerce</p>
       </div>
 
       <style

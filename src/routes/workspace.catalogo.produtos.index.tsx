@@ -56,7 +56,7 @@ import type { AdminProductRow } from "@/types/catalog";
 export const Route = createFileRoute("/workspace/catalogo/produtos/")({
   head: () => ({ meta: [{ title: "Gerenciador de Produtos" }] }),
   loader: async () => {
-    const res = await listAdminProducts();
+    const res = await listAdminProducts().catch(() => []);
     return res || [];
   },
   component: AdminProductsPage,
@@ -259,7 +259,7 @@ function AdminProductsPage() {
       <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuLabel className="text-xs">Ações Comerciais</DropdownMenuLabel>
         <DropdownMenuItem asChild>
-          <Link to={`/admin/catalogo/produtos/${product.id}` as never}>
+          <Link to={`/workspace/catalogo/produtos/${product.id}` as never}>
             <Edit3 className="size-3.5 mr-2" />
             Editar Produto
           </Link>
@@ -307,17 +307,17 @@ function AdminProductsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Catálogo Comercial"
-        title="Gestão de Produtos"
+        eyebrow="Catálogo"
+        title="Produtos"
         actions={
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handleExportJSON}>
-              <Download className="mr-1.5 size-4" aria-hidden />
+            <Button variant="outline" size="sm" onClick={handleExportJSON} className="rounded-xl font-bold text-xs gap-1.5 ">
+              <Download className="size-3.5" aria-hidden />
               Exportar
             </Button>
-            <Button asChild size="sm">
+            <Button asChild size="sm" className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground ">
               <Link to="/workspace/catalogo/produtos/novo">
-                <Plus className="mr-1.5 size-4" aria-hidden />
+                <Plus className="size-3.5" aria-hidden />
                 Novo Produto
               </Link>
             </Button>
@@ -326,14 +326,13 @@ function AdminProductsPage() {
       />
 
       {/* Toolbar & Filtros */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3  bg-card rounded-2xl px-4 py-3 ">
         <Tabs
           defaultValue="active"
           value={statusFilter}
           onValueChange={setStatusFilter}
-          className="w-full sm:w-auto overflow-hidden"
         >
-          <TabsList className="flex w-full overflow-x-auto no-scrollbar sm:w-auto h-auto py-1">
+          <TabsList className="flex overflow-x-auto no-scrollbar h-8">
             <TabsTrigger value="active" className="text-xs shrink-0">
               Ativos ({products.filter((p) => p.status !== "archived").length})
             </TabsTrigger>
@@ -349,12 +348,12 @@ function AdminProductsPage() {
           </TabsList>
         </Tabs>
 
-        <div className="relative flex-1 max-w-sm w-full">
-          <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" aria-hidden />
+        <div className="relative w-full sm:w-72">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" aria-hidden />
           <Input
             type="search"
             placeholder="Buscar por título ou SKU..."
-            className="pl-9 text-xs w-full"
+            className="pl-8 text-xs w-full rounded-xl h-8 bg-background"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -417,12 +416,34 @@ function AdminProductsPage() {
 
       {/* Tabela de Produtos */}
       {filteredProducts.length === 0 ? (
-        <EmptyState title="Nenhum produto encontrado" />
+        <div className="py-12 text-center rounded-3xl border-0 bg-card/60 space-y-4">
+          <div className="size-12 rounded-2xl bg-muted flex items-center justify-center mx-auto text-muted-foreground">
+            <Package className="size-6" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-base font-bold text-foreground">
+              {statusFilter === "active"
+                ? "Nenhum produto cadastrado"
+                : "Nenhum produto com este filtro"}
+            </h3>
+            <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+              Cadastre seus itens para exibi-los automaticamente nos canais de venda e vitrines.
+            </p>
+          </div>
+          {statusFilter === "active" && (
+            <Button asChild size="sm" className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground ">
+              <Link to="/workspace/catalogo/produtos/novo">
+                <Plus className="size-4" />
+                <span>Cadastrar Primeiro Produto</span>
+              </Link>
+            </Button>
+          )}
+        </div>
       ) : (
         <Surface
           variant="default"
           padding="none"
-          className="flex flex-col border border-border overflow-hidden"
+          className="flex flex-col  overflow-hidden"
         >
           {/* VISÃO MOBILE: Cartões (Cards) */}
           <div className="md:hidden flex flex-col divide-y divide-border bg-surface-paper">
@@ -448,16 +469,16 @@ function AdminProductsPage() {
                       <img
                         src={cover}
                         alt=""
-                        className="size-16 object-cover border border-border rounded-md shrink-0"
+                        className="size-16 object-cover  rounded-md shrink-0"
                       />
                     ) : (
-                      <div className="size-16 bg-muted border border-border rounded-md flex items-center justify-center shrink-0">
+                      <div className="size-16 bg-muted  rounded-md flex items-center justify-center shrink-0">
                         <Package className="size-6 text-muted-foreground" aria-hidden />
                       </div>
                     )}
                     <div className="min-w-0 flex-1 flex flex-col">
                       <Link
-                        to={`/admin/catalogo/produtos/${product.id}` as never}
+                        to={`/workspace/catalogo/produtos/${product.id}` as never}
                         className="font-semibold text-[15px] text-foreground leading-snug line-clamp-2 mb-1"
                       >
                         {product.title}
@@ -549,16 +570,16 @@ function AdminProductsPage() {
                             <img
                               src={cover}
                               alt=""
-                              className="size-11 object-cover border border-border rounded shrink-0"
+                              className="size-11 object-cover  rounded shrink-0"
                             />
                           ) : (
-                            <div className="size-11 bg-muted border border-border rounded flex items-center justify-center shrink-0">
+                            <div className="size-11 bg-muted  rounded flex items-center justify-center shrink-0">
                               <Package className="size-5 text-muted-foreground" aria-hidden />
                             </div>
                           )}
                           <div className="min-w-0 flex-1">
                             <Link
-                              to={`/admin/catalogo/produtos/${product.id}` as never}
+                              to={`/workspace/catalogo/produtos/${product.id}` as never}
                               className="font-semibold text-sm text-foreground hover:underline truncate block"
                             >
                               {product.title}

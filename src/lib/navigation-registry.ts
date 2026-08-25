@@ -32,9 +32,10 @@ import {
   Building,
   Car,
   Truck,
-  Mountain,
   Laptop,
   Briefcase,
+  Ticket,
+  Mountain,
 } from "lucide-react";
 
 export type ContentWidthMode =
@@ -77,9 +78,9 @@ export interface ContextConfig {
  * ─── Destinos Globais da Global Rail ─────────────────────────────────────────
  */
 export const GLOBAL_DESTINATIONS: NavigationItem[] = [
-  { to: "/", label: "Mural", icon: Home, exact: true },
-  { to: "/mapa", label: "Mapa", icon: MapPin },
+  { to: "/mural", label: "Mural", icon: Home },
   { to: "/mercado", label: "Mercado", icon: ShoppingBag },
+  { to: "/mapa", label: "Mapa", icon: MapPin },
   { to: "/mobilidade", label: "Mobilidade & Fretes", icon: Car },
   { to: "/agenda", label: "Eventos", icon: Calendar },
   { to: "/diretorio", label: "Diretório", icon: Compass },
@@ -112,6 +113,7 @@ export const PERSONAL_NAV_GROUPS: NavigationGroup[] = [
     title: "Compras & Pagamentos",
     items: [
       { to: "/conta/pedidos", label: "Minhas Compras", icon: Package },
+      { to: "/conta/pacotes", label: "Pacotes & Aulas", icon: Ticket },
       { to: "/conta/mobilidade", label: "Corridas & Mudanças", icon: Car },
       { to: "/conta/pagamentos", label: "Pagamentos & Parcelas", icon: CreditCard },
       { to: "/conta/creditos", label: "Carteira & Créditos", icon: Coins },
@@ -147,23 +149,31 @@ export const MARKET_NAV_GROUPS: NavigationGroup[] = [
     title: "Explorar Mercado",
     items: [
       { to: "/mercado", label: "Todos os Produtos", icon: ShoppingBag, exact: true },
-      { to: "/mercado?niche=ofertas", label: "Ofertas Relâmpago", icon: Flame },
+      { to: "/ofertas", label: "Ofertas Relâmpago", icon: Flame },
       { to: "/mercado?sort=newest", label: "Novidades da Cidade", icon: Clock },
       { to: "/conta/salvos", label: "Lista de Desejos", icon: Heart },
     ],
   },
   {
     id: "market-niches",
-    title: "Categorias & Serviços",
+    title: "Hubs & Verticais",
     items: [
-      { to: "/mercado?niche=gastronomia", label: "Gastronomia & Lanches", icon: Utensils },
-      { to: "/mercado?niche=mercado", label: "Mercado & Hortifruti", icon: Store },
-      { to: "/mercado?niche=beleza", label: "Beleza & Barbearia", icon: Sparkles },
-      { to: "/mercado?niche=empregos", label: "Vagas & Empregos", icon: Building },
-      { to: "/mercado?niche=viagens", label: "Viagens & Passeios", icon: Compass },
-      { to: "/mercado?niche=moda", label: "Moda & Estilo", icon: Shirt },
-      { to: "/mercado?niche=arte", label: "Música & Arte", icon: Music },
-      { to: "/mercado?niche=servicos", label: "Serviços Locais", icon: Layers },
+      { to: "/gastronomia", label: "Gastronomia & Delivery", icon: Utensils },
+      { to: "/mercado", label: "Mercado & Hortifrúti", icon: Store },
+      { to: "/farmacia", label: "Farmácia & Saúde", icon: Heart },
+      { to: "/bebidas", label: "Bebidas & Adega", icon: Flame },
+      { to: "/acougue", label: "Açougue & Carnes", icon: Flame },
+      { to: "/eletronicos", label: "Eletrônicos & Tech", icon: Laptop },
+      { to: "/moda", label: "Moda & Calçados", icon: Shirt },
+      { to: "/casa", label: "Móveis & Decoração", icon: Home },
+      { to: "/limpeza", label: "Limpeza & Descartáveis", icon: Package },
+      { to: "/livros", label: "Livraria & Papelaria", icon: Store },
+      { to: "/servicos", label: "Serviços & Obras", icon: Briefcase },
+      { to: "/imoveis", label: "Imóveis & Moradia", icon: Building },
+      { to: "/beleza", label: "Beleza & Barbearia", icon: Sparkles },
+      { to: "/turismo", label: "Turismo & Passeios", icon: Compass },
+      { to: "/empregos", label: "Vagas & Empregos", icon: Briefcase },
+      { to: "/doacoes", label: "Doações & Solidariedade", icon: Heart },
     ],
   },
 ];
@@ -228,7 +238,7 @@ export function resolveContextNavigation(pathname: string, session?: any): Conte
   if (pathname.startsWith("/mercado")) {
     return {
       moduleId: "market",
-      title: "Mercado JAH",
+      title: "Mercado Wider",
       subtitle: "Marcas autorais e produtos da comunidade",
       groups: MARKET_NAV_GROUPS,
       action: {
@@ -396,6 +406,18 @@ export function resolveContextNavigation(pathname: string, session?: any): Conte
     };
   }
 
+  // 4.5. Mobilidade Urbana & Corridas
+  if (pathname.startsWith("/mobilidade")) {
+    return {
+      moduleId: "mobility",
+      title: "Mobilidade & Corridas",
+      subtitle: "Chame corridas e entregas em tempo real",
+      groups: [],
+      widthMode: "full",
+      showContextSidebar: false, // Mapa imersivo: sem sidebar contextual lateral
+    };
+  }
+
   // 5. Diretório
   if (pathname.startsWith("/diretorio") || pathname.startsWith("/membro")) {
     return {
@@ -420,10 +442,32 @@ export function resolveContextNavigation(pathname: string, session?: any): Conte
   if (pathname.startsWith("/produto/") || pathname.startsWith("/classificados/")) {
     return {
       moduleId: "item-detail",
-      title: "Detalhes",
+      title: "Detalhe do Item",
       groups: [],
       widthMode: "media-detail",
       showContextSidebar: false,
+    };
+  }
+
+  // 6.5. Abertura e Gestão de Negócios / Lojas
+  if (pathname.startsWith("/criar-negocio") || pathname.startsWith("/conta/lojas")) {
+    return {
+      moduleId: "business-onboarding",
+      title: "Espaços & Lojas",
+      subtitle: "Gestão e abertura de novos negócios",
+      groups: [
+        {
+          id: "business-nav",
+          title: "Espaços",
+          items: [
+            { to: "/workspace/lojas", label: "Minhas Lojas", icon: Store },
+            { to: "/criar-negocio", label: "Cadastrar Nova Loja", icon: Plus },
+            { to: "/workspace", label: "Painel Operacional", icon: LayoutDashboard },
+          ],
+        },
+      ],
+      widthMode: "workspace",
+      showContextSidebar: true,
     };
   }
 

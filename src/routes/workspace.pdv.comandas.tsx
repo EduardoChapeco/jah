@@ -107,9 +107,9 @@ function PdvComandasPage() {
           {comandas.map((comanda: any) => (
             <div
               key={comanda.id}
-              className="overflow-hidden bg-surface-paper rounded-xl border-t-4 border-t-amber-500 border-x border-b border-border shadow-sm transition-all hover:shadow-md"
+              className="overflow-hidden bg-surface-paper rounded-xl border-t-4 border-t-amber-500 border-x   transition-all hover:"
             >
-              <div className="p-4 border-b border-border/50 flex items-center justify-between bg-muted/10">
+              <div className="p-4  flex items-center justify-between bg-muted/10">
                 <span className="font-black text-foreground text-lg uppercase tracking-wide">
                   {comanda.table_identifier}
                 </span>

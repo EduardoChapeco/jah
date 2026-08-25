@@ -1,8 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { GLOBAL_DESTINATIONS, type NavigationItem } from "@/lib/navigation-registry";
-import { Logo } from "@/components/commerce/logo";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { User, LayoutDashboard } from "lucide-react";
+import { User, LayoutDashboard, LogIn } from "lucide-react";
 
 export interface GlobalRailProps {
   session?: any;
@@ -10,6 +9,7 @@ export interface GlobalRailProps {
 
 export function GlobalRail({ session }: GlobalRailProps) {
   const location = useLocation();
+  const isAuthenticated = Boolean(session?.user || session?.id);
 
   const isCurrentActive = (item: NavigationItem) => {
     if (item.exact) {
@@ -23,13 +23,13 @@ export function GlobalRail({ session }: GlobalRailProps) {
 
   return (
     <TooltipProvider delayDuration={150}>
-      <aside className="hidden md:flex flex-col items-center justify-between w-[68px] shrink-0 h-screen sticky top-0 py-4 bg-background border-r border-border/70 z-30 select-none">
-        {/* 1. Topo: Logo JAH */}
+      <aside className="hidden md:flex flex-col items-center justify-between w-[68px] shrink-0 h-screen sticky top-0 py-4 bg-background  z-30 select-none">
+        {/* 1. Topo: Logo Wider */}
         <div className="flex flex-col items-center gap-3">
           <Link
             to="/"
             className="size-10 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center font-display font-black text-xl tracking-tighter hover:scale-105 transition-transform"
-            aria-label="JAH — Início"
+            aria-label="Wider — Início"
           >
             J
           </Link>
@@ -48,7 +48,7 @@ export function GlobalRail({ session }: GlobalRailProps) {
                     to={item.to}
                     className={`size-11 rounded-2xl flex items-center justify-center transition-all relative ${
                       active
-                        ? "bg-primary/10 text-primary font-bold shadow-xs"
+                        ? "bg-primary/10 text-primary font-bold "
                         : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
                     }`}
                     aria-label={item.label}
@@ -67,48 +67,67 @@ export function GlobalRail({ session }: GlobalRailProps) {
           })}
         </nav>
 
-        {/* 3. Rodapé: Atalhos de Conta e Workspace */}
-        <div className="flex flex-col items-center gap-2 pt-3 border-t border-border/60 w-full px-2">
-          {/* Workspace Shortcut */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Link
-                to="/workspace"
-                className={`size-10 rounded-2xl flex items-center justify-center transition-all ${
-                  isWorkspaceActive
-                    ? "bg-primary text-primary-foreground font-bold shadow-xs"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                }`}
-                aria-label="Workspace Operacional"
-              >
-                <LayoutDashboard className="size-4" />
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent side="right" className="font-semibold text-xs rounded-xl">
-              Workspace da Loja
-            </TooltipContent>
-          </Tooltip>
+        {/* 3. Rodapé: Atalhos de Conta e Workspace — Apenas se logado */}
+        {isAuthenticated ? (
+          <div className="flex flex-col items-center gap-2 pt-3  w-full px-2">
+            {/* Workspace Shortcut */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link
+                  to="/workspace"
+                  className={`size-10 rounded-2xl flex items-center justify-center transition-all ${
+                    isWorkspaceActive
+                      ? "bg-primary text-primary-foreground font-bold "
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
+                  aria-label="Workspace Operacional"
+                >
+                  <LayoutDashboard className="size-4" />
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="font-semibold text-xs rounded-xl">
+                Workspace da Loja
+              </TooltipContent>
+            </Tooltip>
 
-          {/* Account Shortcut */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Link
-                to="/conta"
-                className={`size-10 rounded-2xl flex items-center justify-center transition-all ${
-                  isAccountActive
-                    ? "bg-primary/10 text-primary font-bold shadow-xs"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                }`}
-                aria-label="Minha Conta"
-              >
-                <User className="size-4" />
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent side="right" className="font-semibold text-xs rounded-xl">
-              Minha Área
-            </TooltipContent>
-          </Tooltip>
-        </div>
+            {/* Account Shortcut */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link
+                  to="/conta"
+                  className={`size-10 rounded-2xl flex items-center justify-center transition-all ${
+                    isAccountActive
+                      ? "bg-primary/10 text-primary font-bold "
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
+                  aria-label="Minha Conta"
+                >
+                  <User className="size-4" />
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="font-semibold text-xs rounded-xl">
+                Minha Conta
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-2 pt-3  w-full px-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link
+                  to="/entrar"
+                  className="size-10 rounded-2xl flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all"
+                  aria-label="Entrar na conta"
+                >
+                  <LogIn className="size-4" />
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="font-semibold text-xs rounded-xl">
+                Entrar / Cadastrar
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        )}
       </aside>
     </TooltipProvider>
   );

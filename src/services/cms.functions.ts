@@ -765,97 +765,96 @@ export const createReview = createServerFn({ method: "POST" })
   .validator(
     z.object({
       productId: z.string().uuid(),
+      orderId: z.string().uuid().optional(),
       rating: z.number().min(1).max(5),
-      comment: z.string().optional(),
+      comment: z.string().max(1000).optional(),
     }),
   )
-  .handler(async ({ data: { productId, rating, comment } }) => {
+  .handler(async ({ data: { productId, orderId, rating, comment } }) => {
     try {
       const ssrClient = await getSSRClient();
       const {
         data: { user },
       } = await ssrClient.auth.getUser();
-      if (!user) throw new Error("Não autenticado");
+      if (!user) throw new Error("Você precisa estar autenticado como cliente para avaliar.");
 
       const { data: product } = await ssrClient
         .from("products")
-        .select("store_id")
+        .select("id, store_id, title")
         .eq("id", productId)
         .single();
       if (!product) throw new Error("Produto não encontrado.");
 
-      // Check if user has a delivered order for this product
-      const { data: purchaseItems } = await ssrClient
+      // 1. Valida se o cliente possui pedido entregue contendo este produto
+      let deliveredQuery = ssrClient
         .from("order_items")
-        .select("id, orders!inner(status, customer_id), product_variants!inner(product_id)")
+        .select("id, orders!inner(id, status, customer_id), product_variants!inner(product_id)")
         .eq("product_variants.product_id", productId)
         .eq("orders.status", "delivered")
-        .eq("orders.customer_id", user.id)
-        .limit(1);
+        .eq("orders.customer_id", user.id);
 
-      if (!purchaseItems || purchaseItems.length === 0) {
-        throw new Error("Você só pode avaliar produtos que já comprou e recebeu.");
+      if (orderId) {
+        deliveredQuery = deliveredQuery.eq("orders.id", orderId);
       }
 
-      const { error } = await ssrClient.from("reviews").insert({
+      const { data: purchaseItems, error: purchaseError } = await deliveredQuery;
+
+      if (purchaseError || !purchaseItems || purchaseItems.length === 0) {
+        throw new Error(
+          "Você só pode avaliar produtos que já comprou e teve o pedido entregue com sucesso.",
+        );
+      }
+
+      // 2. Limite estrito de 1 avaliação por compra realizada (pedidos entregues)
+      const { data: allPurchases } = await ssrClient
+        .from("order_items")
+        .select("orders!inner(id)")
+        .eq("product_variants.product_id", productId)
+        .eq("orders.status", "delivered")
+        .eq("orders.customer_id", user.id);
+
+      const totalDeliveredOrders = new Set(allPurchases?.map((p: any) => Array.isArray(p.orders) ? p.orders[0]?.id : p.orders?.id)).size || 1;
+
+      const { count: existingReviewsCount } = await ssrClient
+        .from("reviews")
+        .select("id", { count: "exact", head: true })
+        .eq("product_id", productId)
+        .eq("user_id", user.id);
+
+      if ((existingReviewsCount || 0) >= totalDeliveredOrders) {
+        throw new Error(
+          "Você já avaliou este produto para todas as suas compras entregues. Realize uma nova compra para avaliar novamente.",
+        );
+      }
+
+      // 3. Obtém nome do cliente para enriquecer a exibição pública de compra verificada
+      const { data: profile } = await ssrClient
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      const reviewerName = profile?.full_name || "Comprador Verificado";
+
+      const { error: insertError } = await ssrClient.from("reviews").insert({
         store_id: product.store_id,
         product_id: productId,
         user_id: user.id,
         rating,
-        comment: comment || null,
+        comment: comment?.trim() || null,
         status: "approved",
-      });
-
-      if (error) throw error;
-      return { status: "success" as const };
-    } catch (e: unknown) {
-      console.error("[cms.functions] createReview:", e);
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao enviar avaliação.");
-    }
-  });
-
-export const createManualReview = createServerFn({ method: "POST" })
-  .validator(
-    z.object({
-      productId: z.string().uuid(),
-      rating: z.number().min(1).max(5),
-      comment: z.string().max(1000).optional(),
-      reviewerName: z.string().min(2),
-    }),
-  )
-  .handler(async ({ data: { productId, rating, comment, reviewerName } }) => {
-    try {
-      const ssrClient = await getSSRClient();
-      const {
-        data: { user },
-      } = await ssrClient.auth.getUser();
-      if (!user) throw new Error("Não autenticado");
-
-      // Verify user is store admin/owner
-      const { getServerIdentity } = await import("@/lib/server-access");
-      const identity = await getServerIdentity();
-
-      if (!identity.store_id || !["owner", "admin", "manager"].includes(identity.role)) {
-        throw new Error("Sem permissão para adicionar avaliações manuais.");
-      }
-
-      const { error } = await ssrClient.from("reviews").insert({
-        store_id: identity.store_id,
-        product_id: productId,
-        user_id: user.id, // we tie it to the admin who created it
-        rating,
-        comment: comment || null,
-        status: "approved", // manual reviews are pre-approved
         reviewer_name: reviewerName,
       });
 
-      if (error) throw error;
+      if (insertError) {
+        console.error("[cms.functions] insert review error:", insertError);
+        throw new Error("Falha ao registrar avaliação: " + insertError.message);
+      }
+
       return { status: "success" as const };
-    } catch (e: unknown) {
-      console.error("[cms.functions] createManualReview:", e);
-      throw new Error(
-        (e instanceof Error ? e.message : String(e)) || "Erro ao inserir avaliação manual.",
-      );
+    } catch (e) {
+      console.error("[cms.functions] createReview error:", e);
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao enviar avaliação.");
     }
   });
 

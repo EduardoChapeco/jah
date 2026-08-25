@@ -1,4 +1,4 @@
-# ROUTES.md — Jah Community Platform
+# ROUTES.md — Wider Community Platform
 
 > Espelho legível do registro tipado em `src/lib/routes.ts` (fonte de verdade
 > programática). Rotas futuras existem no registro e aqui, mas não renderizam

@@ -8,8 +8,33 @@ export interface CityRecord {
   lng?: number;
 }
 
+export interface NeighborhoodPreset {
+  name: string;
+  defaultFeeCents: number;
+  defaultTimeMinutes: number;
+  active: boolean;
+}
+
+export const CHAPECO_NEIGHBORHOODS: NeighborhoodPreset[] = [
+  { name: "Centro", defaultFeeCents: 500, defaultTimeMinutes: 30, active: true },
+  { name: "Efapi", defaultFeeCents: 800, defaultTimeMinutes: 45, active: true },
+  { name: "São Cristóvão", defaultFeeCents: 600, defaultTimeMinutes: 35, active: true },
+  { name: "Passo dos Fortes", defaultFeeCents: 500, defaultTimeMinutes: 30, active: true },
+  { name: "Seminário", defaultFeeCents: 700, defaultTimeMinutes: 40, active: true },
+  { name: "Engenho Braun", defaultFeeCents: 800, defaultTimeMinutes: 45, active: true },
+  { name: "Bela Vista", defaultFeeCents: 700, defaultTimeMinutes: 40, active: true },
+  { name: "Palmital", defaultFeeCents: 600, defaultTimeMinutes: 35, active: true },
+  { name: "Jardim Itália", defaultFeeCents: 500, defaultTimeMinutes: 30, active: true },
+  { name: "Presidente Médici", defaultFeeCents: 600, defaultTimeMinutes: 35, active: true },
+  { name: "Maria Goretti", defaultFeeCents: 500, defaultTimeMinutes: 30, active: true },
+  { name: "Santa Maria", defaultFeeCents: 700, defaultTimeMinutes: 40, active: true },
+  { name: "Alvorada", defaultFeeCents: 600, defaultTimeMinutes: 35, active: true },
+  { name: "Líder", defaultFeeCents: 700, defaultTimeMinutes: 40, active: true },
+  { name: "Quedas do Palmital", defaultFeeCents: 900, defaultTimeMinutes: 50, active: true },
+];
+
 export const CANONICAL_CITIES: CityRecord[] = [
-  // ── Grande Oeste Catarinense (Foco Principal Jah) ──
+  // ── Grande Oeste Catarinense (Foco Principal Wider) ──
   { id: "chapeco-sc", name: "Chapecó", state: "SC", label: "Chapecó - SC", region: "Oeste SC", lat: -27.1004, lng: -52.6152 },
   { id: "xanxere-sc", name: "Xanxerê", state: "SC", label: "Xanxerê - SC", region: "Oeste SC", lat: -26.8747, lng: -52.4036 },
   { id: "concordia-sc", name: "Concórdia", state: "SC", label: "Concórdia - SC", region: "Oeste SC", lat: -27.2341, lng: -52.0264 },
@@ -51,7 +76,7 @@ export const CANONICAL_CITIES: CityRecord[] = [
   { id: "videira-sc", name: "Videira", state: "SC", label: "Videira - SC", region: "Meio-Oeste SC", lat: -27.0083, lng: -51.1528 },
   { id: "cacador-sc", name: "Caçador", state: "SC", label: "Caçador - SC", region: "Meio-Oeste SC", lat: -26.7753, lng: -51.0125 },
 
-  // ── Paraná (Cidades Chave & Fronteira com SC) ──
+  // ── Paraná ──
   { id: "curitiba-pr", name: "Curitiba", state: "PR", label: "Curitiba - PR", region: "Capital PR", lat: -25.4284, lng: -49.2733 },
   { id: "pato-branco-pr", name: "Pato Branco", state: "PR", label: "Pato Branco - PR", region: "Sudoeste PR", lat: -26.2289, lng: -52.6711 },
   { id: "francisco-beltrao-pr", name: "Francisco Beltrão", state: "PR", label: "Francisco Beltrão - PR", region: "Sudoeste PR", lat: -26.0792, lng: -53.0553 },
@@ -61,7 +86,7 @@ export const CANONICAL_CITIES: CityRecord[] = [
   { id: "maringa-pr", name: "Maringá", state: "PR", label: "Maringá - PR", region: "Norte PR", lat: -23.4205, lng: -51.9333 },
   { id: "ponta-grossa-pr", name: "Ponta Grossa", state: "PR", label: "Ponta Grossa - PR", region: "Campos Gerais PR", lat: -25.0994, lng: -50.1583 },
 
-  // ── Rio Grande do Sul (Norte & Fronteira com SC) ──
+  // ── Rio Grande do Sul ──
   { id: "porto-alegre-rs", name: "Porto Alegre", state: "RS", label: "Porto Alegre - RS", region: "Capital RS", lat: -30.0346, lng: -51.2177 },
   { id: "erechim-rs", name: "Erechim", state: "RS", label: "Erechim - RS", region: "Norte RS", lat: -27.6342, lng: -52.2739 },
   { id: "passo-fundo-rs", name: "Passo Fundo", state: "RS", label: "Passo Fundo - RS", region: "Norte RS", lat: -28.2628, lng: -52.4067 },
@@ -69,20 +94,43 @@ export const CANONICAL_CITIES: CityRecord[] = [
   { id: "nonoai-rs", name: "Nonoai", state: "RS", label: "Nonoai - RS", region: "Norte RS", lat: -27.3592, lng: -52.7744 },
   { id: "frederico-westphalen-rs", name: "Frederico Westphalen", state: "RS", label: "Frederico Westphalen - RS", region: "Norte RS", lat: -27.3589, lng: -53.3961 },
 
-  // ── Grandes Capitais & Polos Nacionais ──
+  // ── Demais Capitais e Polos Nacionais ──
   { id: "sao-paulo-sp", name: "São Paulo", state: "SP", label: "São Paulo - SP", region: "Sudeste", lat: -23.5505, lng: -46.6333 },
   { id: "campinas-sp", name: "Campinas", state: "SP", label: "Campinas - SP", region: "Interior SP", lat: -22.9056, lng: -47.0608 },
+  { id: "santos-sp", name: "Santos", state: "SP", label: "Santos - SP", region: "Litoral SP", lat: -23.9618, lng: -46.3322 },
   { id: "rio-de-janeiro-rj", name: "Rio de Janeiro", state: "RJ", label: "Rio de Janeiro - RJ", region: "Sudeste", lat: -22.9068, lng: -43.1729 },
-  { id: "brasilia-df", name: "Brasília", state: "DF", label: "Brasília - DF", region: "Centro-Oeste", lat: -15.7975, lng: -47.8919 },
+  { id: "niteroi-rj", name: "Niterói", state: "RJ", label: "Niterói - RJ", region: "Sudeste", lat: -22.8859, lng: -43.1153 },
   { id: "belo-horizonte-mg", name: "Belo Horizonte", state: "MG", label: "Belo Horizonte - MG", region: "Sudeste", lat: -19.9167, lng: -43.9345 },
-  { id: "salvador-ba", name: "Salvador", state: "BA", label: "Salvador - BA", region: "Nordeste", lat: -12.9777, lng: -38.5016 },
+  { id: "uberlandia-mg", name: "Uberlândia", state: "MG", label: "Uberlândia - MG", region: "Triângulo Mineiro", lat: -18.9186, lng: -48.2772 },
+  { id: "vitoria-es", name: "Vitória", state: "ES", label: "Vitória - ES", region: "Sudeste", lat: -20.3155, lng: -40.3128 },
+  { id: "brasilia-df", name: "Brasília", state: "DF", label: "Brasília - DF", region: "Centro-Oeste", lat: -15.7975, lng: -47.8919 },
   { id: "goiania-go", name: "Goiânia", state: "GO", label: "Goiânia - GO", region: "Centro-Oeste", lat: -16.6869, lng: -49.2648 },
+  { id: "cuiaba-mt", name: "Cuiabá", state: "MT", label: "Cuiabá - MT", region: "Centro-Oeste", lat: -15.6014, lng: -56.0979 },
+  { id: "campo-grande-ms", name: "Campo Grande", state: "MS", label: "Campo Grande - MS", region: "Centro-Oeste", lat: -20.4697, lng: -54.6201 },
+  { id: "salvador-ba", name: "Salvador", state: "BA", label: "Salvador - BA", region: "Nordeste", lat: -12.9777, lng: -38.5016 },
+  { id: "recife-pe", name: "Recife", state: "PE", label: "Recife - PE", region: "Nordeste", lat: -8.0476, lng: -34.8770 },
+  { id: "fortaleza-ce", name: "Fortaleza", state: "CE", label: "Fortaleza - CE", region: "Nordeste", lat: -3.7327, lng: -38.5270 },
+  { id: "natal-rn", name: "Natal", state: "RN", label: "Natal - RN", region: "Nordeste", lat: -5.7945, lng: -35.2110 },
+  { id: "joao-pessoa-pb", name: "João Pessoa", state: "PB", label: "João Pessoa - PB", region: "Nordeste", lat: -7.1195, lng: -34.8450 },
+  { id: "maceio-al", name: "Maceió", state: "AL", label: "Maceió - AL", region: "Nordeste", lat: -9.6498, lng: -35.7089 },
+  { id: "aracaju-se", name: "Aracaju", state: "SE", label: "Aracaju - SE", region: "Nordeste", lat: -10.9472, lng: -37.0731 },
+  { id: "sao-luis-ma", name: "São Luís", state: "MA", label: "São Luís - MA", region: "Nordeste", lat: -2.5307, lng: -44.3068 },
+  { id: "teresina-pi", name: "Teresina", state: "PI", label: "Teresina - PI", region: "Nordeste", lat: -5.0920, lng: -42.8038 },
+  { id: "manaus-am", name: "Manaus", state: "AM", label: "Manaus - AM", region: "Norte", lat: -3.1190, lng: -60.0217 },
+  { id: "belem-pa", name: "Belém", state: "PA", label: "Belém - PA", region: "Norte", lat: -1.4558, lng: -48.4902 },
+  { id: "porto-velho-ro", name: "Porto Velho", state: "RO", label: "Porto Velho - RO", region: "Norte", lat: -8.7619, lng: -63.9039 },
+  { id: "palmas-to", name: "Palmas", state: "TO", label: "Palmas - TO", region: "Norte", lat: -10.2491, lng: -48.3243 },
+  { id: "rio-branco-ac", name: "Rio Branco", state: "AC", label: "Rio Branco - AC", region: "Norte", lat: -9.9753, lng: -67.8249 },
+  { id: "macapa-ap", name: "Macapá", state: "AP", label: "Macapá - AP", region: "Norte", lat: 0.0356, lng: -51.0705 },
+  { id: "boa-vista-rr", name: "Boa Vista", state: "RR", label: "Boa Vista - RR", region: "Norte", lat: 2.8235, lng: -60.6758 },
 ];
 
-/**
- * Busca inteligente de cidades com normalização de acentos e ordenação por relevância.
- */
-export function searchCanonicalCities(query: string, limit = 8): CityRecord[] {
+export function getCitiesByState(uf: string): CityRecord[] {
+  if (!uf) return CANONICAL_CITIES;
+  return CANONICAL_CITIES.filter((c) => c.state.toUpperCase() === uf.toUpperCase());
+}
+
+export function searchCanonicalCities(query: string, limit = 12): CityRecord[] {
   if (!query || query.trim().length === 0) {
     return CANONICAL_CITIES.slice(0, limit);
   }
@@ -119,6 +167,9 @@ export function searchCanonicalCities(query: string, limit = 8): CityRecord[] {
 export function findCityByLabel(label: string): CityRecord | undefined {
   if (!label) return undefined;
   return CANONICAL_CITIES.find(
-    (c) => c.label.toLowerCase() === label.toLowerCase() || c.name.toLowerCase() === label.toLowerCase(),
+    (c) =>
+      c.label.toLowerCase() === label.toLowerCase() ||
+      c.name.toLowerCase() === label.toLowerCase() ||
+      c.id.toLowerCase() === label.toLowerCase()
   );
 }

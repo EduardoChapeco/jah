@@ -10,7 +10,7 @@ const surfaceVariants = cva("relative overflow-hidden transition-all duration-20
       flyer: "bg-primary text-primary-foreground border rounded-lg",
       "yellow-pages": "bg-secondary text-secondary-foreground border rounded-lg ",
       ticket: "bg-background text-foreground border border-dashed rounded-lg ",
-      polaroid: "bg-background text-foreground p-4 pb-12 shadow-md border rounded-lg",
+      polaroid: "bg-background text-foreground p-4 pb-12  border rounded-lg",
       cardboard: "bg-muted text-muted-foreground border rounded-lg shadow-inner",
       charcoal: "bg-card text-card-foreground border rounded-lg ",
       none: "bg-transparent text-foreground border-none shadow-none",
@@ -23,8 +23,8 @@ const surfaceVariants = cva("relative overflow-hidden transition-all duration-20
     elevation: {
       none: "shadow-none",
       sm: "",
-      md: "shadow-md",
-      hard: "shadow-lg",
+      md: "",
+      hard: "",
     },
     padding: {
       none: "p-0",

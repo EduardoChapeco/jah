@@ -147,7 +147,7 @@ export async function _inviteTeamMember(input: {
   // 1. Create Auth User (using admin api)
   const { data: authData, error: authError } = await db.auth.admin.createUser({
     email: input.email,
-    password: "Jah123!", // Temp password
+    password: "Wider123!", // Temp password
     email_confirm: true,
     user_metadata: {
       full_name: input.fullName,

@@ -12,7 +12,6 @@ import {
   AirplaneTilt,
   Briefcase,
   CarProfile,
-  Key,
   TShirt,
   Compass,
   ForkKnife,
@@ -20,9 +19,7 @@ import {
   Heartbeat,
   Coffee,
   Scissors,
-  Jeep,
   Buildings,
-  Wrench,
   Flame,
   User,
   BookmarkSimple,
@@ -30,63 +27,67 @@ import {
 
 export interface ContextSidebarProps {
   config: ContextConfig;
+  session?: any;
 }
 
 // ── 1. Módulos Principais de Descoberta (Explorar) ──
 const PRIMARY_DESTINATIONS = [
   { to: "/", label: "Início", icon: House, exact: true },
-  { to: "/mural", label: "Feed", icon: ChatCenteredText },
+  { to: "/mural", label: "Feed", icon: ChatCenteredText, exact: true },
   { to: "/noticias", label: "Notícias", icon: NewspaperClipping },
-  { to: "/mercado", label: "Marketplace", icon: Storefront, exact: true },
+  { to: "/mercado", label: "Mercado", icon: Storefront, exact: true },
   { to: "/classificados", label: "Classificados", icon: Tag, exact: true },
-  { to: "/mapa", label: "Moments", icon: MapPin },
-  { to: "/agenda", label: "Agenda", icon: CalendarDots },
-  { to: "/agendar", label: "Agendamentos", icon: Scissors },
-  { to: "/turismo", label: "Turismo", icon: AirplaneTilt },
-  { to: "/empregos", label: "Empregos", icon: Briefcase },
-  { to: "/diretorio", label: "Guia & Diretório", icon: Compass },
-  { to: "/mobilidade", label: "Mobilidade", icon: CarProfile },
+  { to: "/mapa", label: "Moments", icon: MapPin, exact: true },
+  { to: "/agenda", label: "Agenda", icon: CalendarDots, exact: true },
+  { to: "/agendar", label: "Agendamentos", icon: Scissors, exact: true },
+  { to: "/turismo", label: "Turismo", icon: AirplaneTilt, exact: true },
+  { to: "/empregos", label: "Empregos", icon: Briefcase, exact: true },
+  { to: "/diretorio", label: "Guia & Diretório", icon: Compass, exact: true },
+  { to: "/mobilidade", label: "Mobilidade", icon: CarProfile, exact: true },
 ];
 
 // ── 2. Categorias Master & Nichos de Alto Consumo ──
 const CATEGORY_NICHES = [
-  { to: "/mercado?niche=gastronomia", label: "Gastronomia & Delivery", icon: ForkKnife },
+  { to: "/gastronomia", label: "Gastronomia & Delivery", icon: ForkKnife },
   { to: "/mercado?niche=mercado", label: "Mercado & Hortifruti", icon: ShoppingBag },
-  { to: "/mercado?niche=farmacia", label: "Farmácia & Saúde", icon: Heartbeat },
-  { to: "/mercado?niche=moda", label: "Moda & Vestuário", icon: TShirt },
+  { to: "/farmacia", label: "Farmácia & Saúde", icon: Heartbeat },
+  { to: "/moda", label: "Moda & Vestuário", icon: TShirt },
   { to: "/mercado?niche=conveniencia", label: "Conveniência & Bebidas", icon: Coffee },
-  { to: "/agendar", label: "Barbearia & Estética", icon: Scissors },
-  { to: "/classificados?categoria=imoveis", label: "Imóveis & Aluguel", icon: Buildings },
-  { to: "/classificados?categoria=veiculos", label: "Veículos & Autos", icon: Jeep },
-  { to: "/mercado?niche=ofertas", label: "Ofertas Relâmpago", icon: Flame },
+  { to: "/imoveis", label: "Imóveis & Aluguel", icon: Buildings },
+  { to: "/ofertas", label: "Ofertas Relâmpago", icon: Flame },
 ];
 
-// ── 3. Painel Pessoal ──
+// ── 3. Painel Pessoal (Exibido apenas para autenticados) ──
 const USER_DESTINATIONS = [
   { to: "/conta", label: "Minha Conta", icon: User, exact: true },
-  { to: "/conta/salvos", label: "Itens Salvos", icon: BookmarkSimple },
+  { to: "/conta/salvos", label: "Itens Salvos", icon: BookmarkSimple, exact: true },
 ];
 
-export function ContextSidebar({ config }: ContextSidebarProps) {
+export function ContextSidebar({ config, session }: ContextSidebarProps) {
   const location = useLocation();
+  const isAuthenticated = Boolean(session?.user || session?.id);
+
+  if (config?.showContextSidebar === false) {
+    return null;
+  }
 
   const isCurrentActive = (item: { to: string; exact?: boolean }) => {
     if (item.exact) {
-      return location.pathname === item.to && !location.searchStr;
+      return location.pathname === item.to && (!item.to.includes("?") ? !location.searchStr : true);
     }
     if (item.to.includes("?")) {
       const [base, query] = item.to.split("?");
-      return location.pathname === base && location.searchStr.includes(query);
+      return location.pathname === base && (location.searchStr || "").includes(query);
     }
-    return location.pathname.startsWith(item.to);
+    return location.pathname === item.to || (item.to !== "/" && location.pathname.startsWith(item.to + "/"));
   };
 
   return (
-    <aside className="hidden lg:flex flex-col w-[260px] shrink-0 h-screen sticky top-0 py-5 px-3.5 bg-background justify-between select-none overflow-y-auto scrollbar-none z-20 border-r border-border/40">
-      <div className="space-y-5">
-        {/* 1. Módulos Principais (Botões Grandes Squircle Inflados) */}
+    <aside className="hidden lg:flex flex-col w-64 shrink-0 h-full py-4 px-3 bg-background justify-between select-none overflow-y-auto scrollbar-none z-20">
+      <div className="space-y-4">
+        {/* 1. Módulos Principais */}
         <div className="space-y-1">
-          <span className="px-3 text-[10px] font-mono font-bold tracking-wider uppercase text-muted-foreground/80">
+          <span className="px-3 text-[10px] font-mono font-bold tracking-wider uppercase text-muted-foreground/70">
             Explorar
           </span>
           <nav className="flex flex-col space-y-1 pt-1">
@@ -98,16 +99,16 @@ export function ContextSidebar({ config }: ContextSidebarProps) {
                 <Link
                   key={item.to}
                   to={item.to as any}
-                  className={`flex items-center gap-3 h-10.5 px-3.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  className={`flex items-center gap-3 h-9 px-3 rounded-xl text-xs transition-all cursor-pointer group ${
                     active
-                      ? "bg-foreground text-background shadow-xs font-bold scale-[1.01]"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                      ? "bg-primary/10 text-primary font-bold shadow-2xs"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/60 font-medium"
                   }`}
                 >
                   <Icon
-                    size={18}
-                    weight={active ? "bold" : "regular"}
-                    className={`shrink-0 ${active ? "text-background" : "text-muted-foreground"}`}
+                    size={17}
+                    weight={active ? "fill" : "regular"}
+                    className={`shrink-0 transition-colors ${active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`}
                   />
                   <span className="truncate">{item.label}</span>
                 </Link>
@@ -117,11 +118,11 @@ export function ContextSidebar({ config }: ContextSidebarProps) {
         </div>
 
         {/* 2. Categorias Master & Nichos */}
-        <div className="space-y-1 pt-3 border-t border-border/60">
-          <span className="px-3 text-[10px] font-mono font-bold tracking-wider uppercase text-muted-foreground/80">
+        <div className="space-y-1 pt-2">
+          <span className="px-3 text-[10px] font-mono font-bold tracking-wider uppercase text-muted-foreground/70">
             Categorias
           </span>
-          <nav className="flex flex-col space-y-0.5 pt-1">
+          <nav className="flex flex-col space-y-1 pt-1">
             {CATEGORY_NICHES.map((item) => {
               const Icon = item.icon;
               const active = isCurrentActive(item);
@@ -130,16 +131,16 @@ export function ContextSidebar({ config }: ContextSidebarProps) {
                 <Link
                   key={item.to}
                   to={item.to as any}
-                  className={`flex items-center gap-3 h-9 px-3.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
+                  className={`flex items-center gap-3 h-9 px-3 rounded-xl text-xs transition-all cursor-pointer group ${
                     active
-                      ? "bg-foreground text-background shadow-xs font-bold"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                      ? "bg-primary/10 text-primary font-bold shadow-2xs"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/60 font-medium"
                   }`}
                 >
                   <Icon
-                    size={16}
-                    weight={active ? "bold" : "regular"}
-                    className={`shrink-0 ${active ? "text-background" : "text-muted-foreground"}`}
+                    size={17}
+                    weight={active ? "fill" : "regular"}
+                    className={`shrink-0 transition-colors ${active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`}
                   />
                   <span className="truncate">{item.label}</span>
                 </Link>
@@ -148,41 +149,43 @@ export function ContextSidebar({ config }: ContextSidebarProps) {
           </nav>
         </div>
 
-        {/* 3. Área Pessoal */}
-        <div className="space-y-1 pt-2 border-t border-border/60">
-          <span className="px-3 text-[10px] font-mono font-bold tracking-wider uppercase text-muted-foreground/80">
-            Pessoal
-          </span>
-          <nav className="flex flex-col space-y-0.5 pt-1">
-            {USER_DESTINATIONS.map((item) => {
-              const Icon = item.icon;
-              const active = isCurrentActive(item);
+        {/* 3. Área Pessoal — Renderizada somente se autenticado */}
+        {isAuthenticated && (
+          <div className="space-y-1 pt-2">
+            <span className="px-3 text-[10px] font-mono font-bold tracking-wider uppercase text-muted-foreground/70">
+              Pessoal
+            </span>
+            <nav className="flex flex-col space-y-1 pt-1">
+              {USER_DESTINATIONS.map((item) => {
+                const Icon = item.icon;
+                const active = isCurrentActive(item);
 
-              return (
-                <Link
-                  key={item.to}
-                  to={item.to as any}
-                  className={`flex items-center gap-3 h-9 px-3.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
-                    active
-                      ? "bg-foreground text-background shadow-xs font-bold"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                  }`}
-                >
-                  <Icon
-                    size={16}
-                    weight={active ? "bold" : "regular"}
-                    className={`shrink-0 ${active ? "text-background" : "text-muted-foreground"}`}
-                  />
-                  <span className="truncate">{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
+                return (
+                  <Link
+                    key={item.to}
+                    to={item.to as any}
+                    className={`flex items-center gap-3 h-9 px-3 rounded-xl text-xs transition-all cursor-pointer group ${
+                      active
+                        ? "bg-primary/10 text-primary font-bold shadow-2xs"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/60 font-medium"
+                    }`}
+                  >
+                    <Icon
+                      size={17}
+                      weight={active ? "fill" : "regular"}
+                      className={`shrink-0 transition-colors ${active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`}
+                    />
+                    <span className="truncate">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+        )}
       </div>
 
       {/* 4. Ação Principal Flutuante / Publicar */}
-      <div className="pt-4 border-t border-border/60 mt-4">
+      <div className="pt-3 mt-3">
         <PublishSheet />
       </div>
     </aside>

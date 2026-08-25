@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { CitySelect } from "@/components/ui/city-select";
 
 export const Route = createFileRoute("/_store/conta/enderecos")({
   head: () => ({ meta: [{ title: "Meus Endereços" }] }),
@@ -30,6 +31,30 @@ function AddressesPage() {
   const router = useRouter();
   const [isAdding, setIsAdding] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleCepLookup = async (cepValue: string) => {
+    const cleanCep = cepValue.replace(/\D/g, "");
+    setFormData((prev) => ({ ...prev, zipcode: cepValue }));
+    if (cleanCep.length === 8) {
+      try {
+        const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+        const data = await res.json();
+        if (!data.erro) {
+          setFormData((prev) => ({
+            ...prev,
+            street: data.logradouro || prev.street,
+            neighborhood: data.bairro || prev.neighborhood,
+            city: data.localidade || prev.city,
+            state: data.uf || prev.state,
+          }));
+          toast.success("Endereço preenchido automaticamente via CEP!");
+        }
+      } catch (e) {
+        console.error("Erro ViaCEP:", e);
+      }
+    }
+  };
+
 
   const [formData, setFormData] = useState({
     zipcode: "",
@@ -93,14 +118,14 @@ function AddressesPage() {
   return (
     <section>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="font-semibold text-2xl text-foreground">Endereços</h2>
+        <h1 className="text-xl font-bold text-foreground tracking-tight">Endereços de Entrega</h1>
         {!isAdding && <Button onClick={() => setIsAdding(true)}>Novo Endereço</Button>}
       </div>
 
       {isAdding && (
         <form
           onSubmit={handleSubmit}
-          className="p-6 border border-border bg-card rounded-xl space-y-4 mb-8"
+          className="p-6 bg-card rounded-3xl space-y-4 mb-8 shadow-none"
         >
           <h3 className="text-lg font-medium">Novo Endereço</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -143,31 +168,13 @@ function AddressesPage() {
                 onChange={(e) => setFormData({ ...formData, neighborhood: e.target.value })}
               />
             </div>
-            <div className="space-y-2 md:col-span-1">
-              <label className="text-sm font-medium">Cidade *</label>
-              <Input
-                required
-                value={formData.city}
-                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+            <div className="md:col-span-2">
+              <CitySelect
+                stateValue={formData.state || "SC"}
+                cityValue={formData.city || "Chapecó"}
+                onStateChange={(uf: string) => setFormData({ ...formData, state: uf })}
+                onCityChange={(city: string) => setFormData({ ...formData, city })}
               />
-            </div>
-            <div className="space-y-2 md:col-span-1">
-              <label className="text-sm font-medium">Estado (UF) *</label>
-              <Select
-                value={formData.state}
-                onValueChange={(v) => setFormData({ ...formData, state: v })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="UF" />
-                </SelectTrigger>
-                <SelectContent>
-                  {["SP", "RJ", "MG", "RS", "PR", "SC", "BA", "DF", "GO", "PE", "CE"].map((uf) => (
-                    <SelectItem key={uf} value={uf}>
-                      {uf}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
           </div>
           <div className="flex gap-4 pt-4">
@@ -186,7 +193,7 @@ function AddressesPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {addresses.map((addr: any) => (
-            <div key={addr.id} className="p-5 border border-border bg-card rounded-xl relative">
+            <div key={addr.id} className="p-6 bg-card rounded-3xl relative shadow-none space-y-3">
               {addr.is_default && (
                 <span className="absolute top-4 right-4 bg-primary text-primary-foreground text-xs font-semibold px-2 py-1 rounded-full">
                   Padrão
@@ -204,7 +211,7 @@ function AddressesPage() {
                   <p className="text-sm text-muted-foreground mt-1">CEP: {addr.zipcode}</p>
                 </div>
               </div>
-              <div className="flex gap-3 mt-6 border-t pt-4">
+              <div className="flex gap-3 mt-6 pt-3">
                 {!addr.is_default && (
                   <Button variant="ghost" size="sm" onClick={() => handleSetDefault(addr.id)}>
                     <Star className="h-4 w-4 mr-2" />

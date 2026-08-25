@@ -26,7 +26,7 @@ function isVideoUrl(url?: string | null): boolean {
 }
 
 export const Route = createFileRoute("/_store/conta/classificados/")({
-  head: () => ({ meta: [{ title: "Meus Anúncios — JAH" }] }),
+  head: () => ({ meta: [{ title: "Meus Anúncios — Wider" }] }),
   component: ClassificadosIndex,
 });
 
@@ -73,21 +73,18 @@ function ClassificadosIndex() {
   return (
     <div className="space-y-6">
       {/* ── Toolbar Operacional ─────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border pb-4">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <Tag className="size-5 text-primary" />
-            <span>Meus Classificados</span>
-          </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Gerencie suas publicações, propostas e negociações na comunidade.
-          </p>
+      <div className="flex items-center justify-between gap-4  pb-4">
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="font-mono text-[10px] uppercase font-bold px-2.5 py-0.5">
+            Classificados
+          </Badge>
+          <span className="text-xs text-muted-foreground font-mono">Meus Anúncios</span>
         </div>
 
-        <Button asChild size="sm" className="rounded-xl text-xs font-bold gap-1.5 shadow-sm">
+        <Button asChild size="sm" className="rounded-xl h-9 px-4 text-xs font-bold gap-1.5  bg-primary text-primary-foreground">
           <Link to="/conta/classificados/novo">
-            <Plus className="size-4" />
-            <span>Novo Classificado</span>
+            <Plus className="size-3.5" />
+            <span>Novo Anúncio</span>
           </Link>
         </Button>
       </div>
@@ -119,11 +116,11 @@ function ClassificadosIndex() {
             return (
               <div
                 key={ad.id}
-                className="border border-border bg-card rounded-2xl overflow-hidden shadow-2xs hover:shadow-sm transition-shadow flex flex-col justify-between"
+                className=" bg-card rounded-2xl overflow-hidden  hover: transition-shadow flex flex-col justify-between"
               >
                 <div>
                   {/* Foto ou Vídeo de Capa */}
-                  <div className="relative aspect-video bg-black/95 border-b border-border overflow-hidden flex items-center justify-center">
+                  <div className="relative aspect-video bg-black/95  overflow-hidden flex items-center justify-center">
                     {coverImage ? (
                       isVideoUrl(coverImage) ? (
                         <div className="relative size-full">
@@ -182,7 +179,7 @@ function ClassificadosIndex() {
                       {ad.description || ad.content}
                     </p>
 
-                    <div className="pt-2 flex items-baseline justify-between border-t border-border/60">
+                    <div className="pt-2 flex items-baseline justify-between ">
                       <span className="text-base font-black text-primary font-mono">
                         {ad.price_cents ? formatMoney(ad.price_cents) : "A Combinar"}
                       </span>
@@ -194,7 +191,7 @@ function ClassificadosIndex() {
                 </div>
 
                 {/* Ações */}
-                <div className="p-3 bg-muted/20 border-t border-border flex items-center justify-between gap-2">
+                <div className="p-3 bg-muted/20  flex items-center justify-between gap-2">
                   <Button
                     asChild
                     variant="outline"
@@ -212,7 +209,7 @@ function ClassificadosIndex() {
           })}
         </div>
       ) : (
-        <div className="border border-dashed border-border bg-card/60 rounded-2xl p-10 text-center space-y-3">
+        <div className="border-0 bg-card/60 rounded-2xl p-10 text-center space-y-3">
           <div className="size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
             <Tag className="size-6" />
           </div>

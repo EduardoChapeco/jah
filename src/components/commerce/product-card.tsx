@@ -37,7 +37,7 @@ export function ProductCard({
       )}
     >
       {/* Image Container */}
-      <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-secondary border border-border/60">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-secondary ">
         {product.coverUrl ? (
           <>
             <img

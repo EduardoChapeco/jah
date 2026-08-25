@@ -15,11 +15,8 @@ import {
   Globe,
   PaperPlaneTilt,
   CircleNotch,
-  User,
-  ChatText,
   ShieldCheck,
-  Wrench,
-  Buildings,
+  NavigationArrow,
 } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,23 +30,37 @@ import {
   DialogTrigger,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { getPublicDirectoryById, requestDirectoryQuote, type DirectoryListingDTO } from "@/services/directory.functions";
+import {
+  getPublicDirectoryById,
+  requestDirectoryQuote,
+} from "@/services/directory.functions";
 import { getUserSession } from "@/services/auth.functions";
+import { trackAndOpenWhatsApp } from "@/lib/whatsapp";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+
+const CATEGORY_DEFAULT_COVERS: Record<string, string> = {
+  saude: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1200&q=85",
+  reformas: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1200&q=85",
+  auto: "https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=1200&q=85",
+  pet: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=1200&q=85",
+  servicos: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=85",
+  default: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=85",
+};
 
 export const Route = createFileRoute("/_store/diretorio/$id")({
   head: ({ loaderData }: any) => ({
     meta: [
       {
         title: loaderData?.listing
-          ? `${loaderData.listing.business_name} — Guia & Diretório JAH`
-          : "Empresa / Especialista — JAH",
+          ? `${loaderData.listing.business_name} — Perfil Institucional | Wider`
+          : "Perfil Institucional — Wider",
       },
       {
         name: "description",
         content: loaderData?.listing
           ? `${loaderData.listing.description.slice(0, 160)}...`
-          : "Confira especialidades, horários, endereço e solicite orçamento.",
+          : "Conheça horários, especialidades, endereço e solicite atendimento.",
       },
     ],
   }),
@@ -60,10 +71,10 @@ export const Route = createFileRoute("/_store/diretorio/$id")({
     ]);
     return { listing, session };
   },
-  component: DirectoryDetailPage,
+  component: CanonicalDirectoryDetailPage,
 });
 
-function DirectoryDetailPage() {
+function CanonicalDirectoryDetailPage() {
   const { listing, session } = Route.useLoaderData() as any;
   const [isQuoteOpen, setIsQuoteOpen] = useState(false);
   const [customerName, setCustomerName] = useState(session?.user_metadata?.full_name || "");
@@ -87,10 +98,10 @@ function DirectoryDetailPage() {
       }),
     onSuccess: () => {
       setHasQuoted(true);
-      toast.success("Solicitação de orçamento enviada com sucesso! A empresa retornará em breve.");
+      toast.success("Solicitação enviada com sucesso! A empresa retornará em breve.");
     },
     onError: (err: any) => {
-      toast.error(err?.message || "Erro ao solicitar orçamento.");
+      toast.error(err?.message || "Erro ao solicitar atendimento.");
     },
   });
 
@@ -112,11 +123,10 @@ function DirectoryDetailPage() {
     );
   }
 
-  const cleanWhatsapp = listing.contact_whatsapp?.replace(/\D/g, "") || "";
-  const whatsappMessage = encodeURIComponent(
-    `Olá! Encontrei o perfil da *${listing.business_name}* no Guia JAH e gostaria de solicitar um orçamento/atendimento.`,
-  );
-  const whatsappUrl = cleanWhatsapp ? `https://wa.me/55${cleanWhatsapp}?text=${whatsappMessage}` : null;
+  const coverUrl =
+    listing.banner_url ||
+    CATEGORY_DEFAULT_COVERS[listing.category] ||
+    CATEGORY_DEFAULT_COVERS.default;
 
   const handleShare = () => {
     if (typeof window !== "undefined" && navigator.clipboard) {
@@ -126,120 +136,310 @@ function DirectoryDetailPage() {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-8 pb-24">
-      {/* ── 1. Top Navigation & Breadcrumb ── */}
-      <div className="flex items-center justify-between pt-2">
-        <Link
-          to="/diretorio"
-          className="inline-flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors group"
-        >
-          <ArrowLeft size={16} weight="bold" className="group-hover:-translate-x-1 transition-transform" />
-          <span>Voltar para o Guia & Diretório</span>
-        </Link>
+    <div className="w-full -mx-3 sm:-mx-6 -mt-4 sm:-mt-6 pb-6 animate-in fade-in duration-200">
+      {/* ── 1. CAPA 100% LARGURA (FULL BLEED COM CONTROLES FLUTUANTES) ── */}
+      <div className="relative h-56 sm:h-72 md:h-80 w-full overflow-hidden bg-muted">
+        <img
+          src={coverUrl}
+          alt={listing.business_name}
+          className="size-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-black/30 to-black/50" />
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleShare}
-          className="rounded-xl font-semibold text-xs gap-1.5 h-9"
-        >
-          <ShareNetwork size={16} weight="bold" />
-          <span>Compartilhar</span>
-        </Button>
+        {/* Botões Flutuantes no Topo da Imagem */}
+        <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
+          <Link
+            to="/diretorio"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-md text-xs font-bold transition-all border border-white/20  cursor-pointer"
+          >
+            <ArrowLeft size={14} weight="bold" />
+            <span>Guia & Diretório</span>
+          </Link>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleShare}
+            className="h-8 px-3 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-md text-xs font-bold border border-white/20  gap-1.5 cursor-pointer"
+          >
+            <ShareNetwork size={14} weight="bold" />
+            <span>Compartilhar</span>
+          </Button>
+        </div>
+
+        {/* Badges no Canto Inferior da Foto */}
+        <div className="absolute bottom-4 left-4 sm:left-8 flex items-center gap-2 z-10">
+          <Badge className="bg-background/90 text-foreground backdrop-blur-md text-xs font-bold px-3 py-1 rounded-xl   uppercase font-mono">
+            {listing.category}
+          </Badge>
+          {listing.is_verified && (
+            <Badge className="bg-emerald-500 text-white backdrop-blur-md text-xs font-bold px-3 py-1 rounded-xl  flex items-center gap-1">
+              <ShieldCheck size={14} weight="bold" />
+              <span>Verificado Wider</span>
+            </Badge>
+          )}
+        </div>
       </div>
 
-      {/* ── 2. Hero Header com Banner & Avatar ── */}
-      <header className="rounded-3xl border border-border bg-card overflow-hidden shadow-2xs">
-        {listing.banner_url && (
-          <div className="h-40 sm:h-52 w-full bg-muted overflow-hidden relative">
-            <img
-              src={listing.banner_url}
-              alt={listing.business_name}
-              className="size-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+      {/* ── 2. CORPO INSTITUCIONAL PADRONIZADO (CONTAINER MÁXIMO 4XL) ── */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-6 pt-2">
+        {/* Identidade Visual & Cabeçalho do Perfil */}
+        <div className="space-y-4">
+          {/* Logo Limpo sem borda pesada */}
+          <div className="flex items-end justify-between gap-4 -mt-12 sm:-mt-16 relative z-10">
+            <div className="size-24 sm:size-28 rounded-3xl bg-card   overflow-hidden shrink-0 flex items-center justify-center">
+              {listing.avatar_url ? (
+                <img
+                  src={listing.avatar_url}
+                  alt={listing.business_name}
+                  className="size-full object-cover"
+                />
+              ) : (
+                <div className="size-full bg-primary/10 text-primary flex items-center justify-center font-black text-2xl">
+                  {listing.business_name.slice(0, 2).toUpperCase()}
+                </div>
+              )}
+            </div>
           </div>
-        )}
 
-        <div className="p-6 sm:p-8 space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-5">
-            <div className="flex items-start gap-4">
-              <div className="size-16 sm:size-20 rounded-2xl bg-muted border-2 border-border flex items-center justify-center font-black text-xl shrink-0 overflow-hidden shadow-xs">
-                {listing.avatar_url ? (
-                  <img
-                    src={listing.avatar_url}
-                    alt={listing.business_name}
-                    className="size-full object-cover"
-                  />
-                ) : (
-                  <Buildings size={32} weight="duotone" className="text-muted-foreground" />
-                )}
-              </div>
+          {/* Nome da Empresa, Avaliações e Status de Atendimento */}
+          <div className="space-y-2">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-foreground tracking-tight leading-tight">
+              {listing.business_name}
+            </h1>
 
-              <div className="space-y-1.5">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs font-bold uppercase tracking-wider font-mono text-muted-foreground">
-                    {listing.category.toUpperCase()}
-                  </span>
-                  {listing.is_verified && (
-                    <span className="flex items-center gap-1 text-[10px] font-mono text-emerald-600 font-bold bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full">
-                      <CheckCircle size={13} weight="fill" /> Verificado JAH
-                    </span>
+            {/* Estrelas + Quantidade de Avaliações + Atendimento Ativo */}
+            <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+              {listing.rating ? (
+                <>
+                  <div className="flex items-center text-amber-500 font-bold font-mono">
+                    <Star size={15} weight="fill" className="mr-1" />
+                    <span>{Number(listing.rating).toFixed(1)}</span>
+                  </div>
+                  {listing.reviews_count > 0 && (
+                    <>
+                      <span>•</span>
+                      <span>{listing.reviews_count} avaliações</span>
+                    </>
                   )}
-                </div>
+                  <span>•</span>
+                </>
+              ) : null}
+              <span className="text-emerald-600 font-bold flex items-center gap-1.5">
+                <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Atendimento Ativo</span>
+              </span>
+            </div>
 
-                <h1 className="text-xl sm:text-2xl font-black text-foreground tracking-tight leading-snug">
-                  {listing.business_name}
-                </h1>
+            {/* Endereço Completo & Horário de Atendimento */}
+            <div className="flex flex-wrap items-center gap-y-2 gap-x-6 text-xs text-muted-foreground pt-3 ">
+              <span className="flex items-center gap-1.5 font-medium text-foreground">
+                <MapPin size={16} weight="bold" className="text-primary shrink-0" />
+                <span>{listing.address}</span>
+              </span>
 
-                <div className="flex flex-wrap items-center gap-y-1.5 gap-x-4 text-xs text-muted-foreground pt-1">
-                  <span className="flex items-center gap-1 font-semibold text-foreground">
-                    <MapPin size={14} weight="bold" />
-                    {listing.address}
-                  </span>
-                  <span className="flex items-center gap-1 font-semibold text-foreground">
-                    <Clock size={14} weight="bold" />
-                    {listing.working_hours}
-                  </span>
-                  <span className="flex items-center gap-1 font-bold text-foreground bg-muted px-2 py-0.5 rounded-md font-mono">
-                    <Star size={13} weight="fill" className="text-amber-500" />
-                    {listing.rating.toFixed(1)} ({listing.reviews_count} avaliações)
-                  </span>
-                </div>
-              </div>
+              <span className="flex items-center gap-1.5 font-medium text-foreground">
+                <Clock size={16} weight="bold" className="text-primary shrink-0" />
+                <span>{listing.working_hours}</span>
+              </span>
+
+              {listing.latitude && listing.longitude && (
+                <a
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${listing.latitude},${listing.longitude}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary font-bold hover:underline flex items-center gap-1 ml-auto"
+                >
+                  <NavigationArrow size={14} weight="bold" />
+                  <span>Como Chegar</span>
+                </a>
+              )}
             </div>
           </div>
         </div>
-      </header>
 
-      {/* ── 3. Conteúdo Principal & Coluna Lateral ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <main className="lg:col-span-2 space-y-8">
+        {/* ── 3. BOTÕES DE AÇÃO RÁPIDA (CONVERSÃO NO TOPO) ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+          {listing.whatsapp && (
+            <Button
+              type="button"
+              onClick={() =>
+                trackAndOpenWhatsApp({
+                  phone: listing.whatsapp!,
+                  storeId: (listing as any).store_id || null,
+                  entityType: "directory",
+                  entityId: listing.id,
+                  entityTitle: listing.business_name,
+                  niche: listing.category,
+                  customMessage: `Olá! Vi o perfil institucional de ${listing.business_name} no Wider e gostaria de solicitar um atendimento/orçamento.`,
+                })
+              }
+              className="h-12 rounded-2xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-2  cursor-pointer transition-all active:scale-98"
+            >
+              <WhatsappLogo size={20} weight="bold" />
+              <span>Conversar no WhatsApp</span>
+            </Button>
+          )}
+
+          <Dialog open={isQuoteOpen} onOpenChange={setIsQuoteOpen}>
+            <DialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="h-12 rounded-2xl font-bold text-xs gap-2 border-border/80 bg-card hover:bg-muted  cursor-pointer"
+              >
+                <PaperPlaneTilt size={18} weight="bold" />
+                <span>Pedir Orçamento / Informações</span>
+              </Button>
+            </DialogTrigger>
+
+            <DialogContent className="sm:max-w-md rounded-3xl p-6">
+              <DialogHeader>
+                <DialogTitle className="text-base font-bold">Solicitar Atendimento / Orçamento</DialogTitle>
+                <DialogDescription className="text-xs">
+                  Preencha os dados e a equipe de {listing.business_name} responderá em breve.
+                </DialogDescription>
+              </DialogHeader>
+
+              {hasQuoted ? (
+                <div className="py-6 text-center space-y-3">
+                  <CheckCircle size={44} weight="fill" className="text-emerald-500 mx-auto" />
+                  <h4 className="font-bold text-sm">Solicitação Enviada!</h4>
+                  <p className="text-xs text-muted-foreground">
+                    A empresa recebeu seu pedido e entrará em contato pelo telefone/e-mail informado.
+                  </p>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      setIsQuoteOpen(false);
+                      setHasQuoted(false);
+                    }}
+                    className="rounded-xl font-bold text-xs mt-2"
+                  >
+                    Fechar
+                  </Button>
+                </div>
+              ) : (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    quoteMutation.mutate();
+                  }}
+                  className="space-y-3.5 pt-2"
+                >
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Seu Nome Completo
+                    </label>
+                    <Input
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      placeholder="Ex: João da Silva"
+                      required
+                      className="h-10 rounded-xl text-xs"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                        WhatsApp / Telefone
+                      </label>
+                      <Input
+                        value={customerPhone}
+                        onChange={(e) => setCustomerPhone(e.target.value)}
+                        placeholder="(49) 99999-9999"
+                        required
+                        className="h-10 rounded-xl text-xs"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                        E-mail
+                      </label>
+                      <Input
+                        type="email"
+                        value={customerEmail}
+                        onChange={(e) => setCustomerEmail(e.target.value)}
+                        placeholder="seu@email.com"
+                        required
+                        className="h-10 rounded-xl text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Serviço Desejado
+                    </label>
+                    <Input
+                      value={serviceNeeded}
+                      onChange={(e) => setServiceNeeded(e.target.value)}
+                      placeholder="Ex: Reforma elétrica, laudo, orçamento..."
+                      required
+                      className="h-10 rounded-xl text-xs"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Detalhes ou Observações
+                    </label>
+                    <Textarea
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder="Descreva detalhes do que precisa..."
+                      rows={3}
+                      className="rounded-xl text-xs resize-none"
+                    />
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={quoteMutation.isPending}
+                    className="w-full h-10 rounded-xl font-bold text-xs mt-2"
+                  >
+                    {quoteMutation.isPending ? (
+                      <>
+                        <CircleNotch size={14} className="animate-spin mr-2" />
+                        Enviando...
+                      </>
+                    ) : (
+                      "Enviar Solicitação de Orçamento"
+                    )}
+                  </Button>
+                </form>
+              )}
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* ── 4. SEÇÕES INSTITUCIONAIS DETALHADAS ── */}
+        <div className="space-y-6 pt-4">
           {/* Sobre a Empresa */}
-          <section className="rounded-3xl border border-border bg-card p-6 sm:p-8 space-y-4 shadow-2xs">
-            <h2 className="text-base font-bold text-foreground flex items-center gap-2">
-              <Compass size={18} weight="bold" />
+          <section className="rounded-3xl  bg-card p-6 space-y-3 ">
+            <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
+              <Compass size={18} weight="bold" className="text-primary" />
               <span>Sobre a Empresa & Atuação</span>
             </h2>
-            <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line">
-              {listing.description}
+            <div className="text-xs sm:text-sm text-foreground/90 leading-relaxed whitespace-pre-line">
+              {listing.description || "Empresa referência em prestação de serviços e atendimento qualificado na região."}
             </div>
           </section>
 
           {/* Especialidades & Serviços */}
           {listing.specialties && listing.specialties.length > 0 && (
-            <section className="rounded-3xl border border-border bg-card p-6 sm:p-8 space-y-4 shadow-2xs">
-              <h2 className="text-base font-bold text-foreground flex items-center gap-2">
-                <CheckCircle size={18} weight="bold" />
+            <section className="rounded-3xl  bg-card p-6 space-y-3 ">
+              <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <CheckCircle size={18} weight="bold" className="text-primary" />
                 <span>Especialidades & Serviços Prestados</span>
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {listing.specialties.map((spec: string, idx: number) => (
                   <div
                     key={idx}
-                    className="p-3.5 rounded-2xl border border-border bg-muted/30 flex items-center gap-3 text-xs font-semibold text-foreground"
+                    className="p-3 rounded-2xl  bg-muted/30 flex items-center gap-2.5 text-xs font-semibold text-foreground"
                   >
-                    <CheckCircle size={16} weight="bold" className="text-foreground shrink-0" />
+                    <CheckCircle size={15} weight="bold" className="text-emerald-500 shrink-0" />
                     <span>{spec}</span>
                   </div>
                 ))}
@@ -247,34 +447,34 @@ function DirectoryDetailPage() {
             </section>
           )}
 
-          {/* Contatos & Canais Oficiais */}
-          <section className="rounded-3xl border border-border bg-card p-6 sm:p-8 space-y-4 shadow-2xs">
-            <h2 className="text-base font-bold text-foreground flex items-center gap-2">
-              <Phone size={18} weight="bold" />
-              <span>Canais de Atendimento</span>
+          {/* Canais de Atendimento */}
+          <section className="rounded-3xl  bg-card p-6 space-y-3 ">
+            <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
+              <Phone size={18} weight="bold" className="text-primary" />
+              <span>Canais de Atendimento Oficial</span>
             </h2>
-            <div className="space-y-3 text-xs text-foreground/90">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               {listing.contact_phone && (
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 border border-border">
-                  <Phone size={16} weight="bold" className="text-foreground shrink-0" />
+                <div className="flex items-center gap-3 p-3 rounded-2xl bg-muted/30 ">
+                  <Phone size={16} weight="bold" className="text-primary shrink-0" />
                   <div>
-                    <span className="text-[10px] text-muted-foreground block uppercase font-mono">Telefone Fixo / Central</span>
-                    <span className="font-semibold">{listing.contact_phone}</span>
+                    <span className="text-[10px] text-muted-foreground block uppercase font-mono">Telefone / Central</span>
+                    <span className="font-semibold text-foreground">{listing.contact_phone}</span>
                   </div>
                 </div>
               )}
               {listing.contact_email && (
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 border border-border">
-                  <EnvelopeSimple size={16} weight="bold" className="text-foreground shrink-0" />
+                <div className="flex items-center gap-3 p-3 rounded-2xl bg-muted/30 ">
+                  <EnvelopeSimple size={16} weight="bold" className="text-primary shrink-0" />
                   <div>
                     <span className="text-[10px] text-muted-foreground block uppercase font-mono">E-mail Comercial</span>
-                    <span className="font-semibold">{listing.contact_email}</span>
+                    <span className="font-semibold text-foreground">{listing.contact_email}</span>
                   </div>
                 </div>
               )}
               {listing.website_url && (
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 border border-border">
-                  <Globe size={16} weight="bold" className="text-foreground shrink-0" />
+                <div className="flex items-center gap-3 p-3 rounded-2xl bg-muted/30  sm:col-span-2">
+                  <Globe size={16} weight="bold" className="text-primary shrink-0" />
                   <div>
                     <span className="text-[10px] text-muted-foreground block uppercase font-mono">Website Oficial</span>
                     <a href={listing.website_url} target="_blank" rel="noreferrer" className="font-semibold text-primary hover:underline">
@@ -285,173 +485,7 @@ function DirectoryDetailPage() {
               )}
             </div>
           </section>
-        </main>
-
-        {/* ── 4. Coluna Lateral de Ação / Orçamento ── */}
-        <aside className="space-y-5">
-          <div className="sticky top-20 rounded-3xl border border-border bg-card p-6 space-y-5 shadow-2xs">
-            <div className="space-y-1">
-              <h3 className="text-sm font-bold text-foreground">Solicitar Atendimento</h3>
-              <p className="text-xs text-muted-foreground">
-                Peça um orçamento sem compromisso para {listing.business_name}.
-              </p>
-            </div>
-
-            {/* Modal de Orçamento Real */}
-            <Dialog open={isQuoteOpen} onOpenChange={setIsQuoteOpen}>
-              <DialogTrigger asChild>
-                <Button className="w-full rounded-xl font-bold h-12 text-sm bg-foreground text-background shadow-xs gap-2">
-                  <PaperPlaneTilt size={18} weight="bold" />
-                  <span>Pedir Orçamento Grátis</span>
-                </Button>
-              </DialogTrigger>
-
-              <DialogContent className="max-w-md rounded-3xl p-6 sm:p-8">
-                <DialogHeader className="space-y-2">
-                  <DialogTitle className="text-lg font-black text-foreground">
-                    Orçamento — {listing.business_name}
-                  </DialogTitle>
-                  <DialogDescription className="text-xs text-muted-foreground">
-                    Descreva o que você precisa para receber uma estimativa de valor e prazos.
-                  </DialogDescription>
-                </DialogHeader>
-
-                {hasQuoted ? (
-                  <div className="py-8 text-center space-y-3">
-                    <div className="size-12 rounded-2xl bg-foreground text-background flex items-center justify-center mx-auto">
-                      <CheckCircle size={24} weight="bold" />
-                    </div>
-                    <h4 className="text-sm font-bold text-foreground">Solicitação Enviada!</h4>
-                    <p className="text-xs text-muted-foreground">
-                      A equipe de atendimento da empresa recebeu sua mensagem e responderá pelo WhatsApp/e-mail informado.
-                    </p>
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsQuoteOpen(false)}
-                      className="rounded-xl font-bold text-xs"
-                    >
-                      Fechar
-                    </Button>
-                  </div>
-                ) : (
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      quoteMutation.mutate();
-                    }}
-                    className="space-y-4 pt-2"
-                  >
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                        <User size={14} weight="bold" />
-                        <span>Seu Nome Completo *</span>
-                      </label>
-                      <Input
-                        required
-                        placeholder="Ex: Roberto Carlos"
-                        value={customerName}
-                        onChange={(e) => setCustomerName(e.target.value)}
-                        className="rounded-xl h-10 text-xs bg-background"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                        <Phone size={14} weight="bold" />
-                        <span>WhatsApp para Retorno *</span>
-                      </label>
-                      <Input
-                        required
-                        placeholder="(49) 99999-9999"
-                        value={customerPhone}
-                        onChange={(e) => setCustomerPhone(e.target.value)}
-                        className="rounded-xl h-10 text-xs bg-background"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                        <EnvelopeSimple size={14} weight="bold" />
-                        <span>Seu E-mail *</span>
-                      </label>
-                      <Input
-                        required
-                        type="email"
-                        placeholder="seu.email@exemplo.com"
-                        value={customerEmail}
-                        onChange={(e) => setCustomerEmail(e.target.value)}
-                        className="rounded-xl h-10 text-xs bg-background"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                        <Wrench size={14} weight="bold" />
-                        <span>Serviço que você precisa *</span>
-                      </label>
-                      <Input
-                        required
-                        placeholder="Ex: Manutenção preventiva, consulta, projeto..."
-                        value={serviceNeeded}
-                        onChange={(e) => setServiceNeeded(e.target.value)}
-                        className="rounded-xl h-10 text-xs bg-background"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                        <ChatText size={14} weight="bold" />
-                        <span>Detalhes ou Dúvidas</span>
-                      </label>
-                      <Textarea
-                        placeholder="Descreva detalhes específicos da sua necessidade..."
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        className="rounded-xl min-h-[90px] text-xs bg-background resize-none"
-                      />
-                    </div>
-
-                    <Button
-                      type="submit"
-                      disabled={quoteMutation.isPending}
-                      className="w-full rounded-xl font-bold h-11 text-xs bg-foreground text-background mt-2"
-                    >
-                      {quoteMutation.isPending ? (
-                        <>
-                          <CircleNotch size={16} className="animate-spin mr-2" />
-                          Enviando solicitação...
-                        </>
-                      ) : (
-                        "Enviar Pedido de Orçamento"
-                      )}
-                    </Button>
-                  </form>
-                )}
-              </DialogContent>
-            </Dialog>
-
-            {/* WhatsApp Direto */}
-            {whatsappUrl && (
-              <Button
-                asChild
-                variant="outline"
-                className="w-full rounded-xl font-bold h-11 text-xs border-border gap-2"
-              >
-                <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-                  <WhatsappLogo size={18} weight="bold" />
-                  <span>Conversar no WhatsApp</span>
-                </a>
-              </Button>
-            )}
-
-            <div className="pt-3 border-t border-border space-y-2 text-[11px] text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <ShieldCheck size={16} weight="bold" className="text-foreground shrink-0" />
-                <span>Especialista verificado e referenciado pela comunidade JAH.</span>
-              </div>
-            </div>
-          </div>
-        </aside>
+        </div>
       </div>
     </div>
   );

@@ -43,7 +43,7 @@ const DEFAULT_LOCATION: LocationState = {
 export function useMasterLocation() {
   const [location, setLocation] = useState<LocationState>(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("jah_master_location");
+      const saved = localStorage.getItem("wider_master_location");
       if (saved) {
         try {
           return JSON.parse(saved);
@@ -58,7 +58,7 @@ export function useMasterLocation() {
   const updateLocation = (newLoc: LocationState) => {
     setLocation(newLoc);
     if (typeof window !== "undefined") {
-      localStorage.setItem("jah_master_location", JSON.stringify(newLoc));
+      localStorage.setItem("wider_master_location", JSON.stringify(newLoc));
     }
   };
 
@@ -90,7 +90,7 @@ export function LocationMasterPill({ className = "" }: { className?: string }) {
           // Reverse geocode via OpenStreetMap Nominatim
           const res = await fetch(
             `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
-            { headers: { "User-Agent": "JahCommunityCommerce/1.0" } },
+            { headers: { "User-Agent": "WiderCommunityCommerce/1.0" } },
           );
           const data = await res.json();
           const city =
@@ -167,19 +167,19 @@ export function LocationMasterPill({ className = "" }: { className?: string }) {
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
         title="Clique para escolher cidade/CEP/mapa ou segure para ativar GPS"
-        className={`inline-flex items-center gap-1.5 px-3.5 h-10 rounded-2xl text-xs font-bold transition-all border select-none cursor-pointer ${
+        className={`inline-flex items-center gap-1 px-2 sm:px-3 h-8 sm:h-9 rounded-2xl text-[11px] sm:text-xs font-bold transition-all border select-none cursor-pointer shrink-0 ${
           isHolding
             ? "scale-95 bg-primary/20 border-primary text-primary"
-            : "bg-muted/60 hover:bg-muted text-foreground border-border/80 hover:border-primary/40 shadow-2xs"
+            : "bg-muted/60 hover:bg-muted text-foreground border-border/80 hover:border-primary/40"
         } ${className}`}
       >
         {isLocating ? (
-          <Loader2 className="size-3.5 animate-spin text-primary" />
+          <Loader2 className="size-3 sm:size-3.5 animate-spin text-primary shrink-0" />
         ) : (
-          <MapPin className="size-3.5 text-primary shrink-0" />
+          <MapPin className="size-3 sm:size-3.5 text-primary shrink-0" />
         )}
-        <span className="truncate max-w-[130px] sm:max-w-[180px]">
-          {location.city} {location.state ? `· ${location.state}` : ""}
+        <span className="truncate max-w-[60px] sm:max-w-[120px] lg:max-w-[160px]">
+          {location.city}{location.state ? ` · ${location.state}` : ""}
         </span>
       </button>
 
@@ -265,7 +265,7 @@ export function LocationPickerModal({
     try {
       const res = await fetch(
         `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
-        { headers: { "User-Agent": "JahCommunityCommerce/1.0" } },
+        { headers: { "User-Agent": "WiderCommunityCommerce/1.0" } },
       );
       const data = await res.json();
       const city =
@@ -302,13 +302,13 @@ export function LocationPickerModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className={`p-0 overflow-hidden border border-border bg-background shadow-2xl transition-all duration-300 ${
+        className={`p-0 overflow-hidden  bg-background  transition-all duration-300 ${
           isMapFullscreen || activeTab === "map"
             ? "max-w-4xl w-[95vw] h-[85vh] rounded-3xl flex flex-col"
             : "max-w-xl rounded-3xl"
         }`}
       >
-        <DialogHeader className="p-5 sm:p-6 pb-3 border-b border-border/80 bg-muted/20 shrink-0">
+        <DialogHeader className="p-5 sm:p-6 pb-3  bg-muted/20 shrink-0">
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-black tracking-tight">
               <MapPin className="size-5 text-primary" />
@@ -316,13 +316,13 @@ export function LocationPickerModal({
             </DialogTitle>
 
             {/* Toggle Tabs */}
-            <div className="flex items-center gap-1 bg-muted/80 p-1 rounded-xl border border-border/60">
+            <div className="flex items-center gap-1 bg-muted/80 p-1 rounded-xl ">
               <button
                 type="button"
                 onClick={() => setActiveTab("quick")}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
                   activeTab === "quick"
-                    ? "bg-background text-foreground shadow-2xs"
+                    ? "bg-background text-foreground "
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -333,7 +333,7 @@ export function LocationPickerModal({
                 onClick={() => setActiveTab("map")}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
                   activeTab === "map"
-                    ? "bg-primary text-primary-foreground shadow-2xs"
+                    ? "bg-primary text-primary-foreground "
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -412,7 +412,7 @@ export function LocationPickerModal({
                       }
                       className={`flex items-center justify-between p-3 rounded-xl border text-xs font-semibold transition-all ${
                         isSelected
-                          ? "bg-primary text-primary-foreground border-primary font-bold shadow-xs"
+                          ? "bg-primary text-primary-foreground border-primary font-bold "
                           : "bg-card hover:bg-muted text-foreground border-border/80"
                       }`}
                     >
@@ -457,17 +457,17 @@ export function LocationPickerModal({
 
               {/* Center Map Pin with Pulse */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full flex flex-col items-center pointer-events-none z-20">
-                <div className="px-3 py-1 rounded-full bg-foreground text-background text-[11px] font-black shadow-lg mb-1 whitespace-nowrap">
+                <div className="px-3 py-1 rounded-full bg-foreground text-background text-[11px] font-black  mb-1 whitespace-nowrap">
                   {isResolvingPin ? "Localizando..." : "📍 Solte o Pin Aqui"}
                 </div>
                 <div className="relative flex items-center justify-center">
-                  <MapPin className="size-10 text-primary fill-primary drop-shadow-lg animate-bounce" />
+                  <MapPin className="size-10 text-primary fill-primary drop- animate-bounce" />
                 </div>
                 <div className="size-3 bg-black/40 rounded-full blur-[2px] mt-0.5" />
               </div>
 
               {/* Coordinates Indicator */}
-              <div className="absolute top-3 left-3 z-30 bg-background/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-border text-[11px] font-mono text-muted-foreground shadow-xs">
+              <div className="absolute top-3 left-3 z-30 bg-background/90 backdrop-blur-md px-3 py-1.5 rounded-xl  text-[11px] font-mono text-muted-foreground ">
                 Lat: {pinLat.toFixed(5)} · Lng: {pinLng.toFixed(5)}
               </div>
 
@@ -480,7 +480,7 @@ export function LocationPickerModal({
                     e.stopPropagation();
                     onTriggerGPS();
                   }}
-                  className="rounded-xl font-bold text-xs bg-background/90 backdrop-blur-md gap-1.5 shadow-xs"
+                  className="rounded-xl font-bold text-xs bg-background/90 backdrop-blur-md gap-1.5 "
                 >
                   <Crosshair className="size-3.5 text-primary" />
                   <span>GPS Atual</span>
@@ -489,7 +489,7 @@ export function LocationPickerModal({
             </div>
 
             {/* Bottom Bar: Resolved Address & Confirm Button */}
-            <div className="p-4 sm:p-5 border-t border-border bg-card flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+            <div className="p-4 sm:p-5  bg-card flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
               <div className="w-full sm:flex-1 space-y-0.5">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                   Endereço Selecionado
@@ -512,7 +512,7 @@ export function LocationPickerModal({
                   type="button"
                   onClick={handleConfirmMapPin}
                   disabled={isResolvingPin}
-                  className="flex-1 sm:flex-none rounded-xl font-bold text-xs bg-primary text-primary-foreground px-6 shadow-md"
+                  className="flex-1 sm:flex-none rounded-xl font-bold text-xs bg-primary text-primary-foreground px-6 "
                 >
                   {isResolvingPin ? (
                     <Loader2 className="size-3.5 animate-spin mr-1.5" />

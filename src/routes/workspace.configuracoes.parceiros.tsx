@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/configuracoes/parceiros")({
-  head: () => ({ meta: [{ title: "Configurações de Parceiros — JAH Workspace" }] }),
+  head: () => ({ meta: [{ title: "Configurações de Parceiros — Wider Workspace" }] }),
   loader: async () => {
     const profile = await getMyCommissionProfile();
     return { initialProfile: profile };
@@ -56,7 +56,7 @@ function ConfigParceirosPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-surface-paper shadow-sm border border-border rounded-xl p-5 flex flex-col items-start gap-4">
+        <div className="bg-surface-paper   rounded-xl p-5 flex flex-col items-start gap-4">
           <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center">
             <Link2 className="size-5 text-primary" />
           </div>
@@ -83,7 +83,7 @@ function ConfigParceirosPage() {
           </div>
         </div>
 
-        <div className="bg-surface-paper shadow-sm border border-border rounded-xl p-5 flex flex-col items-start gap-4">
+        <div className="bg-surface-paper   rounded-xl p-5 flex flex-col items-start gap-4">
           <div className="size-10 rounded-full bg-success/10 flex items-center justify-center">
             <Users className="size-5 text-success" />
           </div>
@@ -100,7 +100,7 @@ function ConfigParceirosPage() {
                   {formatMoney(profile?.pendingCents ?? 0)}
                 </span>
               </div>
-              <div className="flex justify-between text-sm pt-2 border-t border-border">
+              <div className="flex justify-between text-sm pt-2 ">
                 <span className="text-foreground font-semibold">Total Recebido:</span>
                 <span className="font-bold text-success">
                   {formatMoney(profile?.paidCents ?? 0)}

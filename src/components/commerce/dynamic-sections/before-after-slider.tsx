@@ -50,7 +50,7 @@ export function BeforeAfterSlider({
   if (!before_image || !after_image) {
     return (
       <section className="w-full py-12 px-4 md:px-8 max-w-5xl mx-auto">
-        <div className="flex flex-col items-center justify-center py-16 text-center gap-4 text-muted-foreground border border-dashed border-border">
+        <div className="flex flex-col items-center justify-center py-16 text-center gap-4 text-muted-foreground border-0">
           <span className="text-3xl opacity-40">&#8596;</span>
           <div>
             <p className="font-medium">Comparador não configurado</p>
@@ -80,7 +80,7 @@ export function BeforeAfterSlider({
 
       <div
         ref={containerRef}
-        className="relative w-full h-[350px] md:h-[500px] overflow-hidden select-none cursor-ew-resize border border-border"
+        className="relative w-full h-[350px] md:h-[500px] overflow-hidden select-none cursor-ew-resize "
         onMouseDown={() => setIsDragging(true)}
         onMouseUp={() => setIsDragging(false)}
         onMouseLeave={() => setIsDragging(false)}
@@ -93,7 +93,7 @@ export function BeforeAfterSlider({
           alt={after_label}
           className="absolute inset-0 w-full h-full object-cover"
         />
-        <span className="absolute top-4 right-4 bg-background/80 backdrop-blur-md text-foreground text-xs font-bold px-3 py-1.5 rounded-full shadow border border-border">
+        <span className="absolute top-4 right-4 bg-background/80 backdrop-blur-md text-foreground text-xs font-bold px-3 py-1.5 rounded-full shadow ">
           {after_label}
         </span>
 
@@ -108,7 +108,7 @@ export function BeforeAfterSlider({
               maxWidth: "none",
             }}
           />
-          <span className="absolute top-4 left-4 bg-background/80 backdrop-blur-md text-foreground text-xs font-bold px-3 py-1.5 rounded-full shadow border border-border">
+          <span className="absolute top-4 left-4 bg-background/80 backdrop-blur-md text-foreground text-xs font-bold px-3 py-1.5 rounded-full shadow ">
             {before_label}
           </span>
         </div>

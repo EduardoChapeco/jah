@@ -1,8 +1,10 @@
 import React, { useState, useRef } from "react";
-import { UploadCloud, X, Loader2, Image as ImageIcon, Film, AlertCircle } from "lucide-react";
+import { UploadCloud, X, Loader2, Image as ImageIcon, Film, AlertCircle, Crop } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { uploadMediaUniversal } from "@/services/storage.functions";
 import { getBrowserClient } from "@/lib/supabase";
 import { toast } from "sonner";
+import { ImageCropperDialog } from "@/components/ui/image-cropper-dialog";
 
 export interface MediaData {
   id: string;
@@ -12,7 +14,7 @@ export interface MediaData {
 }
 
 export interface MediaUploaderProps {
-  value?: string[] | MediaData[];
+  value?: string | string[] | MediaData[];
   onChange?: (urls: string[]) => void;
   onMediaChange?: (media: MediaData[]) => void;
   onUploadComplete?: (media: MediaData[]) => void;
@@ -22,6 +24,12 @@ export interface MediaUploaderProps {
   folder?: string;
   className?: string;
   acceptedTypes?: string[];
+  label?: string;
+  accept?: "image" | "video" | "all";
+  aspect?: number;
+  cropShape?: "rect" | "round";
+  lockAspect?: boolean;
+  enableCrop?: boolean;
 }
 
 export const MediaUploader: React.FC<MediaUploaderProps> = ({
@@ -34,14 +42,36 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
   bucket = "post-media",
   folder = "classifieds",
   className,
-  acceptedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "video/webm"],
+  label,
+  accept = "all",
+  aspect = folder === "classifieds" ? 4 / 3 : 1,
+  cropShape = "rect",
+  lockAspect = true,
+  enableCrop = true,
+  acceptedTypes = accept === "image"
+    ? ["image/jpeg", "image/png", "image/webp", "image/gif"]
+    : accept === "video"
+      ? ["video/mp4", "video/webm", "video/quicktime"]
+      : ["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "video/webm"],
 }) => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Normaliza o valor para MediaData[]
-  const mediaList: MediaData[] = (value || []).map((item, idx) => {
+  // Crop dialog state
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [currentImageSrc, setCurrentImageSrc] = useState<string | null>(null);
+  const [currentCropFile, setCurrentCropFile] = useState<File | null>(null);
+  const [editingMediaIndex, setEditingMediaIndex] = useState<number | null>(null);
+
+  // Normaliza o valor para MediaData[] de forma segura (suporta string única, array de strings ou MediaData[])
+  const normalizedRawValue: (string | MediaData)[] = typeof value === "string"
+    ? (value.trim() ? [value] : [])
+    : Array.isArray(value)
+      ? value
+      : [];
+
+  const mediaList: MediaData[] = normalizedRawValue.map((item, idx) => {
     if (typeof item === "string") {
       const isVid = item.match(/\.(mp4|webm|mov|ogg)(\?.*)?$/i);
       return {
@@ -61,7 +91,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
     onUploadComplete?.(newList);
   };
 
-  const handleFiles = async (files: File[]) => {
+    const handleFiles = async (files: File[]) => {
     if (!files.length) return;
 
     if (mediaList.length + files.length > maxFiles) {
@@ -69,11 +99,26 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
       return;
     }
 
+    // Se for apenas 1 imagem e o recorte estiver habilitado, abre o modal de corte direto
+    if (files.length === 1 && files[0].type.startsWith("image/") && enableCrop && !files[0].type.includes("gif")) {
+      const file = files[0];
+      setCurrentCropFile(file);
+      setEditingMediaIndex(null);
+      const reader = new FileReader();
+      reader.onload = () => {
+        setCurrentImageSrc(reader.result as string);
+        setCropModalOpen(true);
+      };
+      reader.onerror = () => toast.error("Erro ao ler arquivo de imagem");
+      reader.readAsDataURL(file);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
     setUploading(true);
     onUploadingStateChange?.(true);
     setUploadProgress(`Enviando ${files.length} arquivo(s)...`);
 
-    const supabase = getBrowserClient();
     const updatedMedia: MediaData[] = [...mediaList];
     let successCount = 0;
     let failCount = 0;
@@ -89,11 +134,11 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
         continue;
       }
 
-      // Máximo 30MB para vídeo, 15MB para imagem
-      const maxSizeBytes = isVideo ? 30 * 1024 * 1024 : 15 * 1024 * 1024;
+      // Máximo 50MB para vídeo, 20MB para imagem
+      const maxSizeBytes = isVideo ? 50 * 1024 * 1024 : 20 * 1024 * 1024;
       if (file.size > maxSizeBytes) {
         toast.error(
-          `Arquivo ${file.name} excede o tamanho máximo de ${isVideo ? "30MB" : "15MB"}.`,
+          `Arquivo ${file.name} excede o tamanho máximo de ${isVideo ? "50MB" : "20MB"}.`,
         );
         failCount++;
         continue;
@@ -106,47 +151,37 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
       setUploadProgress(`Enviando ${i + 1} de ${files.length}: ${file.name}...`);
 
       try {
-        const { error: uploadErr } = await supabase.storage.from(bucket).upload(filePath, file, {
-          cacheControl: "3600",
-          upsert: false,
+        const base64Data = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
         });
 
-        if (uploadErr) {
-          console.error(`[MediaUploader] Erro no upload de ${file.name}:`, uploadErr);
-          // Tenta bucket alternativo public_media se post-media falhar
-          if (bucket !== "public_media") {
-            const { error: retryErr } = await supabase.storage
-              .from("public_media")
-              .upload(filePath, file, {
-                cacheControl: "3600",
-                upsert: false,
-              });
-            if (retryErr) throw retryErr;
-            const { data } = supabase.storage.from("public_media").getPublicUrl(filePath);
-            updatedMedia.push({
-              id: cleanName,
-              url: data.publicUrl,
-              path: filePath,
-              type: isImage ? "image" : "video",
-            });
-            successCount++;
-            continue;
-          }
-          throw uploadErr;
+        const res = await uploadMediaUniversal({
+          data: {
+            fileName: file.name,
+            fileType: file.type || (isVideo ? "video/mp4" : "image/jpeg"),
+            base64Data,
+            bucket,
+            folder,
+          },
+        });
+
+        if (res?.url) {
+          updatedMedia.push({
+            id: res.id || cleanName,
+            url: res.url,
+            path: res.path || filePath,
+            type: isVideo ? "video" : "image",
+          });
+          successCount++;
+        } else {
+          throw new Error("Servidor não retornou a URL pública da mídia.");
         }
-
-        const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
-
-        updatedMedia.push({
-          id: cleanName,
-          url: data.publicUrl,
-          path: filePath,
-          type: isImage ? "image" : "video",
-        });
-        successCount++;
       } catch (err: any) {
         console.error(`[MediaUploader] Falha ao enviar ${file.name}:`, err);
-        toast.error(`Não foi possível enviar ${file.name}: ${err?.message || "Erro de rede"}`);
+        toast.error(`Não foi possível enviar ${file.name}: ${err?.message || "Erro no upload"}`);
         failCount++;
       }
     }
@@ -163,6 +198,71 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+  };
+
+  const handleCropComplete = async (croppedBase64: string) => {
+    setUploading(true);
+    onUploadingStateChange?.(true);
+    setUploadProgress("Enviando imagem recortada...");
+
+    try {
+      const fileName = currentCropFile?.name || `crop_${Date.now()}.png`;
+      const res = await uploadMediaUniversal({
+        data: {
+          fileName: fileName.replace(/\.[^/.]+$/, "") + ".png",
+          fileType: "image/png",
+          base64Data: croppedBase64,
+          bucket,
+          folder,
+        },
+      });
+
+      if (res?.url) {
+        let updatedMedia: MediaData[];
+        if (editingMediaIndex !== null && mediaList[editingMediaIndex]) {
+          // Substitui a imagem editada
+          updatedMedia = mediaList.map((m, i) =>
+            i === editingMediaIndex
+              ? { ...m, url: res.url, path: res.path || m.path }
+              : m,
+          );
+          toast.success("Imagem recortada atualizada com sucesso!");
+        } else {
+          // Adiciona nova imagem recortada
+          updatedMedia = [
+            ...mediaList,
+            {
+              id: res.id || `crop-${Date.now()}`,
+              url: res.url,
+              path: res.path || `${folder}/crop_${Date.now()}.png`,
+              type: "image",
+            },
+          ];
+          toast.success("Imagem enviada com sucesso!");
+        }
+        notifyChange(updatedMedia);
+      } else {
+        throw new Error("Não foi possível obter a URL da imagem.");
+      }
+    } catch (err: any) {
+      console.error("[MediaUploader] Erro ao salvar corte:", err);
+      toast.error(`Falha no upload da imagem recortada: ${err?.message || "Erro desconhecido"}`);
+    } finally {
+      setUploading(false);
+      onUploadingStateChange?.(false);
+      setUploadProgress(null);
+      setCurrentCropFile(null);
+      setCurrentImageSrc(null);
+      setEditingMediaIndex(null);
+    }
+  };
+
+  const handleOpenRecrop = (idx: number, media: MediaData, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingMediaIndex(idx);
+    setCurrentImageSrc(media.url);
+    setCurrentCropFile(null);
+    setCropModalOpen(true);
   };
 
   const handleRemove = async (idx: number, e: React.MouseEvent) => {
@@ -192,7 +292,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
           {mediaList.map((media, idx) => (
             <div
               key={media.id || idx}
-              className="relative aspect-square rounded-xl overflow-hidden border border-border bg-muted/40 group shadow-2xs"
+              className="relative aspect-square rounded-xl overflow-hidden  bg-muted/40 group "
             >
               {media.type === "image" ? (
                 <img
@@ -220,15 +320,27 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
                 </div>
               )}
 
-              {/* Botão Remover */}
-              <button
-                type="button"
-                onClick={(e) => handleRemove(idx, e)}
-                className="absolute top-1.5 right-1.5 bg-black/60 hover:bg-destructive text-white p-1 rounded-lg opacity-80 group-hover:opacity-100 transition-all"
-                title="Remover mídia"
-              >
-                <X className="size-3.5" />
-              </button>
+              {/* Ações de Hover (Recortar + Remover) */}
+              <div className="absolute top-1.5 right-1.5 flex items-center gap-1">
+                {media.type === "image" && enableCrop && (
+                  <button
+                    type="button"
+                    onClick={(e) => handleOpenRecrop(idx, media, e)}
+                    className="bg-black/60 hover:bg-black/90 text-white p-1 rounded-lg opacity-80 group-hover:opacity-100 transition-all cursor-pointer"
+                    title="Recortar / Ajustar proporção"
+                  >
+                    <Crop className="size-3.5" />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={(e) => handleRemove(idx, e)}
+                  className="bg-black/60 hover:bg-destructive text-white p-1 rounded-lg opacity-80 group-hover:opacity-100 transition-all cursor-pointer"
+                  title="Remover mídia"
+                >
+                  <X className="size-3.5" />
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -263,10 +375,10 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-foreground">
-                    Clique ou arraste fotos e vídeos aqui
+                    {label || "Clique ou arraste fotos e vídeos aqui"}
                   </p>
                   <p className="text-[10px] text-muted-foreground mt-0.5">
-                    JPG, PNG, WEBP ou MP4 até {maxFiles} arquivos ({mediaList.length}/{maxFiles}{" "}
+                    {accept === "image" ? "JPG, PNG, WEBP ou GIF" : "JPG, PNG, WEBP ou MP4"} até {maxFiles} {maxFiles === 1 ? "arquivo" : "arquivos"} ({mediaList.length}/{maxFiles}{" "}
                     adicionados)
                   </p>
                 </div>
@@ -287,6 +399,16 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
           />
         </div>
       )}
+
+      <ImageCropperDialog
+        open={cropModalOpen}
+        onOpenChange={setCropModalOpen}
+        imageSrc={currentImageSrc}
+        aspect={aspect}
+        cropShape={cropShape}
+        lockAspect={lockAspect}
+        onCropCompleteAction={handleCropComplete}
+      />
     </div>
   );
 };

@@ -103,7 +103,7 @@ function CmsNavigationPage() {
           <Button
             onClick={handleSave}
             disabled={isSaving}
-            className="font-bold border border-border "
+            className="font-bold  "
           >
             <Save className="mr-2 h-4 w-4" />
             {isSaving ? "Salvando..." : "Salvar Menu"}
@@ -113,7 +113,7 @@ function CmsNavigationPage() {
 
       <div className="flex-1 p-6 flex justify-center">
         <div className="w-full max-w-3xl space-y-6">
-          <div className="bg-surface-paper border border-border shadow-sm rounded-xl p-6 space-y-4">
+          <div className="bg-surface-paper   rounded-xl p-6 space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Nome do Menu</Label>
@@ -151,7 +151,7 @@ function CmsNavigationPage() {
                 {activeMenu.items.map((item, index) => (
                   <div
                     key={item.id}
-                    className="flex items-center gap-3 p-3 bg-surface-paper shadow-sm border border-border rounded-xl"
+                    className="flex items-center gap-3 p-3 bg-surface-paper   rounded-xl"
                   >
                     <GripVertical className="h-5 w-5 text-muted-foreground cursor-move" />
                     <div className="grid grid-cols-2 gap-3 flex-1">

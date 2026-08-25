@@ -22,7 +22,7 @@ import { formatMoney } from "@/lib/money";
 import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/_store/conta/gift-cards")({
-  head: () => ({ meta: [{ title: "Meus Vales-Presente | JAH" }] }),
+  head: () => ({ meta: [{ title: "Meus Vales-Presente | Wider" }] }),
   loader: async () => {
     try {
       const res = await listCustomerGiftCards();
@@ -75,7 +75,7 @@ function CustomerGiftCardsPage() {
 
   return (
     <div className="space-y-6 w-full text-foreground">
-      <div className="border-b border-border pb-4">
+      <div className=" pb-4">
         <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2.5 text-foreground">
           <Gift className="size-6 text-primary" />
           Meus Vales-Presente
@@ -88,7 +88,7 @@ function CustomerGiftCardsPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Resgatar Vale */}
         <div className="md:col-span-1">
-          <div className="border border-border bg-card rounded-2xl p-5 shadow-sm space-y-4">
+          <div className=" bg-card rounded-2xl p-5  space-y-4">
             <div className="flex items-center gap-2">
               <Sparkles className="size-5 text-primary" />
               <h2 className="text-base font-bold text-foreground">Resgatar Vale</h2>
@@ -110,7 +110,7 @@ function CustomerGiftCardsPage() {
                       <FormControl>
                         <Input
                           placeholder="Ex: ABCD-1234-WXYZ"
-                          className="font-mono uppercase font-bold border border-border h-10 rounded-xl"
+                          className="font-mono uppercase font-bold  h-10 rounded-xl"
                           {...field}
                         />
                       </FormControl>
@@ -139,7 +139,7 @@ function CustomerGiftCardsPage() {
 
         {/* Listagem de Cartões Vinculados */}
         <div className="md:col-span-2 space-y-4">
-          <div className="flex items-center justify-between border-b border-border pb-3">
+          <div className="flex items-center justify-between  pb-3">
             <h2 className="text-base font-bold text-foreground">Vales Vinculados</h2>
             <Badge variant="secondary" className="font-mono text-xs">
               {giftCards.length}
@@ -147,7 +147,7 @@ function CustomerGiftCardsPage() {
           </div>
 
           {giftCards.length === 0 ? (
-            <div className="border border-dashed border-border p-8 text-center bg-card rounded-2xl flex flex-col items-center gap-3">
+            <div className="border-0 p-8 text-center bg-card rounded-2xl flex flex-col items-center gap-3">
               <Gift className="size-10 text-muted-foreground/40" />
               <div className="space-y-1">
                 <p className="font-semibold text-sm text-foreground">Nenhum vale ativo vinculado</p>
@@ -165,15 +165,15 @@ function CustomerGiftCardsPage() {
                 return (
                   <div
                     key={card.id}
-                    className={`p-4 sm:p-5 border border-border bg-card flex flex-col sm:flex-row justify-between sm:items-center gap-3 rounded-xl transition-all ${
+                    className={`p-4 sm:p-5  bg-card flex flex-col sm:flex-row justify-between sm:items-center gap-3 rounded-xl transition-all ${
                       isUsed || card.status === "cancelled" || isExpired
                         ? "opacity-60 bg-muted/30"
-                        : "hover:border-primary/40 shadow-sm"
+                        : "hover:border-primary/40 "
                     }`}
                   >
                     <div className="space-y-1.5">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono font-bold text-sm bg-muted border border-border px-2 py-0.5 rounded-md">
+                        <span className="font-mono font-bold text-sm bg-muted  px-2 py-0.5 rounded-md">
                           {card.code}
                         </span>
                         <Button

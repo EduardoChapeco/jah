@@ -104,7 +104,7 @@ function HrFinancePage() {
           {staffBalances.map((emp: any) => (
             <div
               key={emp.id}
-              className="border border-border bg-card rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4"
+              className=" bg-card rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4"
             >
               <div className="flex items-center gap-4">
                 <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg shrink-0 border border-primary/20">

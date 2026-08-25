@@ -33,6 +33,8 @@ import { Button } from "@/components/ui/button";
 
 import { listPublicArticles, type NewsArticleDTO } from "@/services/news.functions";
 import { NewsCard } from "@/components/news/news-card";
+import { ServicePackagesRail } from "@/components/commerce/service-packages-rail";
+import { listPublicStorePackages } from "@/services/service-packages.functions";
 
 // ── Categorias Master Estilo iFood / Super App do Dia a Dia ──
 interface MasterCategoryItem {
@@ -45,25 +47,35 @@ interface MasterCategoryItem {
 }
 
 const DEFAULT_MASTER_CATEGORIES: MasterCategoryItem[] = [
-  { to: "/mercado?niche=ofertas", slug: "ofertas", label: "Ofertas Relâmpago", icon: Flame, badge: "Até 60% OFF" },
-  { to: "/mercado?niche=gastronomia", slug: "gastronomia", label: "Delivery", icon: ForkKnife, badge: "Comida" },
-  { to: "/mercado?niche=mercado", slug: "mercado", label: "Mercado", icon: Storefront, badge: "Essencial" },
-  { to: "/mercado?niche=farmacia", slug: "farmacia", label: "Farmácia", icon: Heartbeat, badge: "Saúde" },
-  { to: "/mercado?niche=moda", slug: "moda", label: "Roupas & Moda", icon: TShirt },
-  { to: "/mercado?niche=conveniencia", slug: "conveniencia", label: "Bebidas", icon: Coffee },
-  { to: "/agendar", slug: "agendar", label: "Agendamentos", icon: Scissors, badge: "Beleza" },
+  { to: "/ofertas", slug: "ofertas", label: "Ofertas Relâmpago", icon: Flame, badge: "Até 60% OFF" },
+  { to: "/gastronomia", slug: "gastronomia", label: "Delivery & Gastronomia", icon: ForkKnife, badge: "Comida" },
+  { to: "/mercado", slug: "mercado", label: "Mercado & Hortifrúti", icon: Storefront, badge: "Essencial" },
+  { to: "/farmacia", slug: "farmacia", label: "Farmácia & Saúde", icon: Heartbeat, badge: "Saúde" },
+  { to: "/bebidas", slug: "bebidas", label: "Bebidas & Adega", icon: Coffee, badge: "Bebidas" },
+  { to: "/acougue", slug: "acougue", label: "Açougue & Carnes", icon: Flame, badge: "Churrasco" },
+  { to: "/eletronicos", slug: "eletronicos", label: "Eletrônicos & Tech", icon: Storefront, badge: "Tech" },
+  { to: "/moda", slug: "moda", label: "Roupas & Moda", icon: TShirt },
+  { to: "/casa", slug: "casa", label: "Casa & Móveis", icon: Storefront },
+  { to: "/pet", slug: "pet", label: "Pet Shop", icon: Heartbeat, badge: "Pets" },
+  { to: "/construcao", slug: "construcao", label: "Construção & Casa", icon: Storefront },
+  { to: "/limpeza", slug: "limpeza", label: "Limpeza & Higiene", icon: Storefront },
+  { to: "/livros", slug: "livros", label: "Livraria & Papelaria", icon: Storefront },
+  { to: "/servicos", slug: "servicos", label: "Serviços & Obras", icon: Briefcase },
+  { to: "/imoveis", slug: "imoveis", label: "Imóveis & Moradia", icon: Key },
+  { to: "/beleza", slug: "beleza", label: "Beleza & Barbearias", icon: Scissors, badge: "Beleza" },
+  { to: "/doacoes", slug: "doacoes", label: "Doações & Solidariedade", icon: Heartbeat, badge: "Social" },
   { to: "/classificados", slug: "classificados", label: "Classificados", icon: Tag },
   { to: "/agenda", slug: "agenda", label: "Eventos", icon: CalendarDots },
   { to: "/turismo", slug: "turismo", label: "Turismo", icon: AirplaneTilt, badge: "Lazer" },
   { to: "/empregos", slug: "empregos", label: "Empregos", icon: Briefcase, badge: "Vagas" },
-  { to: "/diretorio", slug: "diretorio", label: "Serviços", icon: Compass },
+  { to: "/diretorio", slug: "diretorio", label: "Diretório Local", icon: Compass },
   { to: "/mobilidade", slug: "mobilidade", label: "Mobilidade", icon: CarProfile },
 ];
 
 export const Route = createFileRoute("/_store/")({
   head: () => ({
     meta: [
-      { title: "JAH — Super App Comunitário" },
+      { title: "Wider — Super App Comunitário" },
       {
         name: "description",
         content:
@@ -72,20 +84,21 @@ export const Route = createFileRoute("/_store/")({
     ],
   }),
   loader: async () => {
-    const [banners, hotpages, marketFeed, stories, newsArticles] = await Promise.all([
+    const [banners, hotpages, marketFeed, stories, newsArticles, packages] = await Promise.all([
       listActiveBanners({ data: { placement: "home" } }).catch(() => []),
       listHotpages({ data: { module: "home" } }).catch(() => []),
       getMarketplaceFeed().catch(() => ({ sections: [], allProducts: [] })),
       getFeedStories().catch(() => []),
       listPublicArticles({ data: { limit: 6 } }).catch(() => []),
+      listPublicStorePackages().catch(() => []),
     ]);
-    return { banners, hotpages, marketFeed, stories, newsArticles };
+    return { banners, hotpages, marketFeed, stories, newsArticles, packages };
   },
   component: CommercialHomePage,
 });
 
 function CommercialHomePage() {
-  const { banners, hotpages, marketFeed, stories, newsArticles } = Route.useLoaderData();
+  const { banners, hotpages, marketFeed, stories, newsArticles, packages } = Route.useLoaderData();
 
   // Real flash deals rail
   const flashOffersSection = marketFeed.sections?.find((s: any) => s.type === "flash_deal_rail");
@@ -116,10 +129,10 @@ function CommercialHomePage() {
   });
 
   return (
-    <div className="w-full space-y-8 pb-10">
+    <div className="w-full space-y-6 pb-20">
       {/* ── 1. Top Big Squircle Master Cards & Category Rail (Estilo iFood) ── */}
       <section aria-label="Acesso Rápido Master">
-        <MasterHeroCards customCategories={categoriesList} />
+        <MasterHeroCards customCategories={categoriesList} hotpages={hotpages} />
       </section>
 
       {/* ── 2. Top Banners Hero Carousel (100% Real do Supabase) ── */}
@@ -138,37 +151,22 @@ function CommercialHomePage() {
 
       {/* ── 4. Categorias / Hotpages Panorâmicas Clean ── */}
       {hotpages.length > 0 && (
-        <section className="space-y-3" aria-label="Coleções & Hotpages">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-foreground tracking-tight">
-              Explorar Coleções Locais
-            </h2>
-            <Link
-              to="/mercado"
-              className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Ver tudo
-            </Link>
-          </div>
+        <section aria-label="Coleções & Hotpages">
           <HotpagesRail hotpages={hotpages} cleanMode={true} />
         </section>
       )}
 
-      {/* ── 5. Ofertas Relâmpago com Card Vertical Líder (Hits iFood Style) ── */}
+      {/* ── 5. Ofertas Relâmpago com Card Líder Limpo ── */}
       {flashProducts.length > 0 && (
         <section aria-label="Ofertas Relâmpago">
           <HorizontalRail
             title="Ofertas Relâmpago"
-            badge="Tempo Limitado"
-            actionLabel="Ver todas as ofertas"
-            actionTo="/mercado?niche=ofertas"
+            hideHeader={true}
             leadCard={
               <HitsLeadCard
-                badge="HITS DO DIA"
-                title="Super Ofertas"
-                subtitle="Descontos de até 60% com entrega rápida hoje"
-                actionTo="/mercado?niche=ofertas"
+                actionTo="/ofertas"
                 gradient="from-red-600 via-orange-600 to-amber-600"
+                ariaLabel="Ofertas Relâmpago"
               />
             }
           >
@@ -199,9 +197,7 @@ function CommercialHomePage() {
         <section aria-label="Comércios Locais em Destaque">
           <HorizontalRail
             title="Lojas & Negócios Locais"
-            badge="Compre do Bairro"
-            actionLabel="Ver diretório completo"
-            actionTo="/diretorio"
+            hideHeader={true}
           >
             {stores.map((store: any) => (
               <StoreCard
@@ -223,21 +219,24 @@ function CommercialHomePage() {
         </section>
       )}
 
+      {/* ── 6.5. Pacotes de Aulas, Treinos & Serviços com Desconto ── */}
+      {packages && packages.length > 0 && (
+        <section aria-label="Pacotes & Aulas em Destaque">
+          <ServicePackagesRail packages={packages} />
+        </section>
+      )}
+
       {/* ── 7. Produtos em Destaque ── */}
       {catalogProducts.length > 0 && (
         <section aria-label="Produtos em Destaque">
           <HorizontalRail
             title="Destaques do Catálogo"
-            badge="Top Escolhas"
-            actionLabel="Explorar catálogo"
-            actionTo="/mercado"
+            hideHeader={true}
             leadCard={
               <HitsLeadCard
-                badge="POPULARES"
-                title="Mais Pedidos"
-                subtitle="Os produtos mais bem avaliados pelos clientes locais"
                 actionTo="/mercado"
                 gradient="from-indigo-600 via-purple-600 to-pink-600"
+                ariaLabel="Produtos em Destaque"
               />
             }
           >
@@ -266,15 +265,10 @@ function CommercialHomePage() {
       {/* ── 8. Trilho de Notícias & Jornalismo Local ── */}
       {newsArticles && newsArticles.length > 0 && (
         <section aria-label="Notícias & Matérias da Região" className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider bg-foreground text-background">
-                Notícias
-              </span>
-              <span className="text-xs font-bold text-foreground">Últimas Notícias da Região</span>
-            </div>
-            <Button asChild variant="ghost" size="sm" className="font-bold text-xs">
-              <Link to="/noticias">Ver todas</Link>
+          {/* Seção sem título visível — link sutil "Ver todas" alinhado à direita */}
+          <div className="flex justify-end">
+            <Button asChild variant="ghost" size="sm" className="font-semibold text-xs text-muted-foreground hover:text-foreground">
+              <Link to="/noticias">Ver todas as notícias</Link>
             </Button>
           </div>
 
@@ -288,7 +282,7 @@ function CommercialHomePage() {
 
       {/* ── 9. Estado Inicial / Onboarding Honesto (Sem mocks) ── */}
       {!hasAnyCommercialData && newsArticles.length === 0 && (
-        <section className="py-12 px-6 rounded-3xl border border-dashed border-border bg-card/60 text-center space-y-4 max-w-xl mx-auto">
+        <section className="py-12 px-6 rounded-3xl border-0 bg-card/60 text-center space-y-4 max-w-xl mx-auto">
           <div className="size-16 rounded-2xl bg-muted text-foreground flex items-center justify-center mx-auto">
             <Storefront size={32} weight="bold" />
           </div>

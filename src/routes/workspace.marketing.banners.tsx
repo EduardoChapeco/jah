@@ -1,522 +1,411 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import {
   Image as ImageIcon,
-  Video,
   Plus,
   Trash2,
-  ExternalLink,
-  Sparkles,
-  Layers,
-  Calendar,
-  CheckCircle2,
   Loader2,
   Eye,
-  ArrowRight,
+  EyeOff,
+  Pencil,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { SheetPage } from "@/components/ui/sheet-page";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   listActiveBanners,
   createBanner,
+  updateBanner,
   deleteBanner,
   type BannerDTO,
 } from "@/services/banner.functions";
 import { toast } from "sonner";
+import { MediaUploader } from "@/components/ui/media-uploader";
 
 export const Route = createFileRoute("/workspace/marketing/banners")({
-  head: () => ({ meta: [{ title: "Gestão de Banners de Topo | JAH Workspace" }] }),
+  head: () => ({ meta: [{ title: "Banners da Loja | Workspace" }] }),
   loader: async () => {
-    const banners = await listActiveBanners({ data: { placement: "all" } }).catch(() => []);
+    const banners = await listActiveBanners({ data: { placement: "store" } }).catch(() => []);
     return { banners };
   },
-  component: WorkspaceBannersPage,
+  component: WorkspaceStoreBannersPage,
 });
 
-function WorkspaceBannersPage() {
+function WorkspaceStoreBannersPage() {
   const { banners: initialBanners } = Route.useLoaderData();
   const [banners, setBanners] = useState<BannerDTO[]>(initialBanners || []);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Form states
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [mediaType, setMediaType] = useState<"image" | "video" | "gif">("image");
   const [mediaUrl, setMediaUrl] = useState("");
-  const [targetType, setTargetType] = useState<
-    "category" | "product" | "hotpage" | "store" | "external_url"
-  >("hotpage");
+  const [targetType, setTargetType] = useState<"product" | "category" | "external_url">("product");
   const [targetUrl, setTargetUrl] = useState("");
-  const [targetId, setTargetId] = useState("");
-  const [placement, setPlacement] = useState<
-    "home" | "marketplace" | "events" | "classifieds" | "all"
-  >("home");
-  const [badgeText, setBadgeText] = useState("Destaque");
-  const [ctaLabel, setCtaLabel] = useState("Conferir");
+  const [badgeText, setBadgeText] = useState("Promoção");
+  const [ctaLabel, setCtaLabel] = useState("Ver Oferta");
 
-  // Customization Switches (Clean Media Mode — Desativado por padrão para visual clean)
+  const [showOverlay, setShowOverlay] = useState(false);
   const [showTitle, setShowTitle] = useState(false);
   const [showDescription, setShowDescription] = useState(false);
-  const [showOverlay, setShowOverlay] = useState(false);
   const [showBadge, setShowBadge] = useState(false);
   const [showCta, setShowCta] = useState(false);
 
   const refreshBanners = async () => {
-    const updated = await listActiveBanners({ data: { placement: "all" } }).catch(() => []);
+    const updated = await listActiveBanners({ data: { placement: "store" } }).catch(() => []);
     setBanners(updated);
   };
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleOpenCreate = () => {
+    setEditingId(null);
+    setTitle("");
+    setSubtitle("");
+    setMediaUrl("");
+    setMediaType("image");
+    setTargetType("product");
+    setTargetUrl("");
+    setBadgeText("Promoção");
+    setCtaLabel("Ver Oferta");
+    setShowOverlay(false);
+    setShowTitle(false);
+    setShowDescription(false);
+    setShowBadge(false);
+    setShowCta(false);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEdit = (b: BannerDTO) => {
+    setEditingId(b.id);
+    setTitle(b.title || "");
+    setSubtitle(b.subtitle || "");
+    setMediaUrl(b.media_url);
+    setMediaType(b.media_type);
+    setTargetType((b.target_type as any) || "product");
+    setTargetUrl(b.target_url || "");
+    setBadgeText(b.badge_text || "Promoção");
+    setCtaLabel(b.cta_label || "Ver Oferta");
+    setShowOverlay(Boolean(b.show_overlay));
+    setShowTitle(Boolean(b.show_title));
+    setShowDescription(Boolean(b.show_description));
+    setShowBadge(Boolean(b.show_badge));
+    setShowCta(Boolean(b.show_cta));
+    setIsModalOpen(true);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() && showTitle) {
-      toast.error("Informe o título do banner.");
+    if (!title.trim()) {
+      toast.error("Informe o título identificador do banner.");
       return;
     }
     if (!mediaUrl.trim()) {
-      toast.error("Informe a URL da mídia (imagem, GIF ou vídeo).");
+      toast.error("Selecione ou envie a imagem/mídia do banner.");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await createBanner({
-        data: {
-          title: title || "Banner Promocional",
-          subtitle: subtitle || undefined,
-          media_type: mediaType,
-          media_url: mediaUrl,
-          target_type: targetType,
-          target_id: targetId || undefined,
-          target_url: targetUrl || undefined,
-          placement,
-          badge_text: badgeText || undefined,
-          cta_label: ctaLabel || undefined,
-          show_title: showTitle,
-          show_description: showDescription,
-          show_overlay: showOverlay,
-          show_badge: showBadge,
-          show_cta: showCta,
-          is_active: true,
-        },
-      });
-
-      toast.success("Banner criado e ativado com sucesso!");
+      if (editingId) {
+        await updateBanner({
+          data: {
+            id: editingId,
+            title: title.trim(),
+            subtitle: subtitle.trim() || null,
+            media_url: mediaUrl,
+            media_type: mediaType,
+            target_type: targetType,
+            target_url: targetUrl.trim() || null,
+            badge_text: badgeText.trim() || null,
+            cta_label: ctaLabel.trim() || null,
+            placement: "store",
+            show_overlay: showOverlay,
+            show_title: showTitle,
+            show_description: showDescription,
+            show_badge: showBadge,
+            show_cta: showCta,
+          },
+        });
+        toast.success("Banner atualizado com sucesso!");
+      } else {
+        await createBanner({
+          data: {
+            title: title.trim(),
+            subtitle: subtitle.trim() || undefined,
+            media_url: mediaUrl,
+            media_type: mediaType,
+            target_type: targetType,
+            target_url: targetUrl.trim() || undefined,
+            badge_text: badgeText.trim() || undefined,
+            cta_label: ctaLabel.trim() || undefined,
+            placement: "store",
+            show_overlay: showOverlay,
+            show_title: showTitle,
+            show_description: showDescription,
+            show_badge: showBadge,
+            show_cta: showCta,
+          },
+        });
+        toast.success("Banner criado com sucesso!");
+      }
       setIsModalOpen(false);
-      // Reset form
-      setTitle("");
-      setSubtitle("");
-      setMediaUrl("");
-      refreshBanners();
-    } catch (err: any) {
-      toast.error(err?.message || "Falha ao criar banner.");
+      await refreshBanners();
+    } catch (err: unknown) {
+      toast.error(
+        err instanceof Error ? err.message : "Erro ao salvar banner da loja."
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleToggleActive = async (b: BannerDTO) => {
+    try {
+      await updateBanner({
+        data: {
+          id: b.id,
+          is_active: !b.is_active,
+        },
+      });
+      toast.success(b.is_active ? "Banner pausado." : "Banner ativado!");
+      await refreshBanners();
+    } catch {
+      toast.error("Erro ao alterar status do banner.");
+    }
+  };
+
   const handleDelete = async (id: string) => {
-    if (!confirm("Tem certeza que deseja desativar este banner?")) return;
+    if (!confirm("Deseja realmente remover este banner?")) return;
     try {
       await deleteBanner({ data: { id } });
       toast.success("Banner removido.");
-      refreshBanners();
-    } catch (err: any) {
-      toast.error(err?.message || "Erro ao remover banner.");
+      await refreshBanners();
+    } catch {
+      toast.error("Erro ao excluir banner.");
     }
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-8 p-4 sm:p-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 ">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider">
-              Marketing & Vitrines
-            </span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground mt-1">
-            Banners de Topo Universais
-          </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-            Gerencie banners de alta visibilidade com proporção fixa, suporte a Vídeo/GIF/Imagem e
-            links contextuais.
+          <h1 className="text-xl font-bold text-foreground">Banners da Loja</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Gerencie os destaques visuais e carrosséis da vitrine e do seu app próprio.
           </p>
         </div>
-
         <Button
-          onClick={() => setIsModalOpen(true)}
-          className="h-11 px-5 rounded-xl font-bold bg-primary text-primary-foreground text-xs gap-2 shadow-xs"
+          onClick={handleOpenCreate}
+          className="h-10 px-4 rounded-xl text-xs font-bold gap-2 cursor-pointer "
         >
           <Plus className="size-4" />
           <span>Novo Banner</span>
         </Button>
       </div>
 
-      {/* Banner List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {banners.map((b) => (
-          <div
-            key={b.id}
-            className="rounded-3xl border border-border bg-card overflow-hidden shadow-xs hover:border-primary/40 transition-all flex flex-col justify-between"
-          >
-            {/* 16:9 Banner Preview */}
-            <div className="relative aspect-16/9 w-full bg-muted overflow-hidden">
-              {b.media_type === "video" ? (
-                <video
-                  src={b.media_url}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  className="size-full object-cover"
-                />
-              ) : (
+      {banners.length === 0 ? (
+        <div className="p-12 text-center border-0 rounded-2xl bg-card space-y-3">
+          <ImageIcon className="size-10 mx-auto text-muted-foreground opacity-40" />
+          <h2 className="text-sm font-bold text-foreground">Nenhum banner cadastrado</h2>
+          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+            Crie banners para destacar promoções, lançamentos ou categorias da sua loja.
+          </p>
+          <div className="pt-2">
+            <Button
+              onClick={handleOpenCreate}
+              variant="outline"
+              size="sm"
+              className="rounded-xl text-xs font-bold h-9"
+            >
+              Criar Primeiro Banner
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {banners.map((b) => (
+            <div
+              key={b.id}
+              className=" bg-card rounded-2xl overflow-hidden  flex flex-col justify-between group"
+            >
+              <div className="relative aspect-16/9 bg-muted overflow-hidden">
                 <img
                   src={b.media_url}
                   alt={b.title}
-                  className="size-full object-cover"
-                  loading="lazy"
+                  className="size-full object-cover group-hover:scale-102 transition-transform duration-300"
                 />
-              )}
-
-              {/* Overlay preview */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-4 sm:p-6 flex flex-col justify-end text-white">
-                {b.badge_text && (
-                  <span className="w-fit px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-[9px] font-bold uppercase tracking-wider mb-1">
-                    {b.badge_text}
-                  </span>
-                )}
-                <h3 className="text-base sm:text-lg font-black leading-tight line-clamp-1">
-                  {b.title}
-                </h3>
-                {b.subtitle && <p className="text-xs text-zinc-300 line-clamp-1">{b.subtitle}</p>}
-              </div>
-
-              <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-full text-[10px] text-white font-bold">
-                {b.media_type === "video" ? (
-                  <Video className="size-3 text-sky-400" />
-                ) : (
-                  <ImageIcon className="size-3 text-amber-400" />
-                )}
-                <span className="uppercase">{b.media_type}</span>
-              </div>
-            </div>
-
-            {/* Controls */}
-            <div className="p-4 flex items-center justify-between border-t border-border/60 bg-muted/20">
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-[10px] uppercase font-bold">
-                  {b.placement}
-                </Badge>
-                <span className="text-xs text-muted-foreground font-mono truncate max-w-[150px]">
-                  {b.cta_label || "Conferir"}
-                </span>
-              </div>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleDelete(b.id)}
-                className="size-8 p-0 text-destructive hover:bg-destructive/10 rounded-lg"
-              >
-                <Trash2 className="size-4" />
-              </Button>
-            </div>
-          </div>
-        ))}
-
-        {banners.length === 0 && (
-          <div className="col-span-full py-16 text-center space-y-3 bg-muted/20 rounded-3xl border border-dashed border-border p-8">
-            <Sparkles className="size-8 text-muted-foreground/40 mx-auto" />
-            <h3 className="font-bold text-foreground text-sm">Nenhum banner cadastrado</h3>
-            <p className="text-xs text-muted-foreground">
-              Crie seu primeiro banner com vídeo ou imagem para impulsionar suas campanhas.
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Minimalist Modal Creator */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-2xl p-6 sm:p-8 rounded-3xl border border-border bg-background shadow-2xl">
-          <DialogHeader className="space-y-1">
-            <DialogTitle className="text-xl font-black tracking-tight">
-              Criar Banner Minimalista
-            </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground">
-              Suba mídia de alta qualidade com proporção fixa e conecte diretamente ao seu produto
-              ou categoria.
-            </DialogDescription>
-          </DialogHeader>
-
-          <form onSubmit={handleCreate} className="space-y-5 pt-2">
-            {/* Live 16:9 Crop Preview */}
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Preview em Tempo Real (16:9 Fiel)
-              </Label>
-              <div className="relative aspect-16/9 w-full rounded-2xl border border-border bg-muted overflow-hidden flex items-center justify-center">
-                {mediaUrl ? (
-                  mediaType === "video" ? (
-                    <video
-                      src={mediaUrl}
-                      autoPlay
-                      loop
-                      muted
-                      playsInline
-                      className="size-full object-cover"
-                    />
-                  ) : (
-                    <img
-                      src={mediaUrl}
-                      alt={title || "Preview"}
-                      className="size-full object-cover"
-                    />
-                  )
-                ) : (
-                  <div className="text-center text-muted-foreground space-y-1">
-                    <ImageIcon className="size-8 mx-auto stroke-1" />
-                    <p className="text-xs">Insira a URL da mídia abaixo para visualizar</p>
-                  </div>
-                )}
-
-                {/* Simulated Content */}
-                {mediaUrl && (
-                  <div
-                    className={`absolute inset-0 p-5 flex flex-col justify-end text-white ${
-                      showOverlay && (showTitle || showDescription || showBadge || showCta)
-                        ? "bg-gradient-to-t from-black/85 via-black/30 to-transparent"
-                        : "bg-transparent"
-                    }`}
+                <div className="absolute top-2 right-2 flex items-center gap-1.5">
+                  <Badge
+                    variant={b.is_active ? "default" : "secondary"}
+                    className="text-[10px] font-bold"
                   >
-                    {showBadge && badgeText && (
-                      <span className="w-fit px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-[9px] font-bold uppercase tracking-wider mb-1">
-                        {badgeText}
-                      </span>
+                    {b.is_active ? "Ativo" : "Pausado"}
+                  </Badge>
+                </div>
+              </div>
+              <div className="p-4 space-y-3">
+                <div>
+                  <h3 className="font-bold text-sm text-foreground truncate">{b.title}</h3>
+                  {b.target_url && (
+                    <p className="text-[11px] text-muted-foreground truncate font-mono mt-0.5">
+                      Link: {b.target_url}
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center justify-between pt-2  text-xs">
+                  <button
+                    type="button"
+                    onClick={() => handleToggleActive(b)}
+                    className="flex items-center gap-1 text-muted-foreground hover:text-foreground font-medium cursor-pointer"
+                  >
+                    {b.is_active ? (
+                      <>
+                        <EyeOff className="size-3.5" />
+                        <span>Pausar</span>
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="size-3.5" />
+                        <span>Ativar</span>
+                      </>
                     )}
-                    {showTitle && (
-                      <h4 className="text-lg font-black leading-tight line-clamp-1 drop-shadow-xs">
-                        {title || "Título do Banner"}
-                      </h4>
-                    )}
-                    {showDescription && subtitle && (
-                      <p className="text-xs text-zinc-300 line-clamp-1">{subtitle}</p>
-                    )}
-                    {showCta && (
-                      <div className="pt-2">
-                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-white text-black font-bold text-[10px]">
-                          {ctaLabel || "Conferir"}
-                        </span>
-                      </div>
-                    )}
+                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEdit(b)}
+                      className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer"
+                      title="Editar Banner"
+                    >
+                      <Pencil className="size-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(b.id)}
+                      className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer"
+                      title="Excluir Banner"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
                   </div>
-                )}
+                </div>
               </div>
             </div>
+          ))}
+        </div>
+      )}
 
-            {/* Customization Switches: Clean Media vs Text Overlay */}
-            <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/80 space-y-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
-                Estilo Visual do Banner (Mídia Limpa vs Textos)
-              </span>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1 text-xs">
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={showTitle}
-                    onChange={(e) => setShowTitle(e.target.checked)}
-                    className="size-4 rounded border-border text-primary focus:ring-primary"
-                  />
-                  <span>Exibir Título</span>
-                </label>
-
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={showDescription}
-                    onChange={(e) => setShowDescription(e.target.checked)}
-                    className="size-4 rounded border-border text-primary focus:ring-primary"
-                  />
-                  <span>Exibir Subtítulo</span>
-                </label>
-
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={showOverlay}
-                    onChange={(e) => setShowOverlay(e.target.checked)}
-                    className="size-4 rounded border-border text-primary focus:ring-primary"
-                  />
-                  <span>Máscara de Sombra</span>
-                </label>
-
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={showBadge}
-                    onChange={(e) => setShowBadge(e.target.checked)}
-                    className="size-4 rounded border-border text-primary focus:ring-primary"
-                  />
-                  <span>Exibir Badge</span>
-                </label>
-
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={showCta}
-                    onChange={(e) => setShowCta(e.target.checked)}
-                    className="size-4 rounded border-border text-primary focus:ring-primary"
-                  />
-                  <span>Exibir Botão CTA</span>
-                </label>
-              </div>
-            </div>
-
-            {/* Inputs Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Tipo de Mídia
-                </Label>
-                <select
-                  value={mediaType}
-                  onChange={(e) => setMediaType(e.target.value as any)}
-                  className="w-full h-11 px-3 rounded-xl border border-border bg-card text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-primary"
-                >
-                  <option value="image">Imagem Estática (JPG/PNG/WebP)</option>
-                  <option value="video">Vídeo em Loop (MP4/WebM)</option>
-                  <option value="gif">GIF Animado</option>
-                </select>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Onde Exibir (Placement / Módulo)
-                </Label>
-                <select
-                  value={placement}
-                  onChange={(e) => setPlacement(e.target.value as any)}
-                  className="w-full h-11 px-3 rounded-xl border border-border bg-card text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-primary"
-                >
-                  <option value="home">Home Principal (/)</option>
-                  <option value="mercado">Mercado & Produtos (/mercado)</option>
-                  <option value="noticias">Portal de Notícias (/noticias)</option>
-                  <option value="agenda">Agenda Cultural & Eventos (/agenda)</option>
-                  <option value="diretorio">Guia & Diretório de Serviços (/diretorio)</option>
-                  <option value="classifieds">Classificados (/classificados)</option>
-                  <option value="all">Todas as Páginas de Descoberta</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Media URL */}
+      <SheetPage
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        title={editingId ? "Editar Banner da Loja" : "Novo Banner da Loja"}
+      >
+        <form onSubmit={handleSave} className="space-y-5 p-4 sm:p-6">
+          <div className="space-y-1.5">
+            <Label htmlFor="title" className="text-xs font-bold text-foreground">
+              Título Identificador *
+            </Label>
+            <Input
+              id="title"
+              placeholder="Ex: Ofertas de Fim de Semana, Coleção Inverno..."
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+              className="rounded-xl text-sm h-11"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold text-foreground">Mídia do Banner (16:9) *</Label>
+            <MediaUploader
+              value={mediaUrl ? [mediaUrl] : []}
+              onChange={(urls) => setMediaUrl(urls[0] || "")}
+              accept="all"
+              aspect={16 / 9}
+              enableCrop={true}
+              lockAspect={true}
+              maxFiles={1}
+            />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                URL da Mídia
+              <Label className="text-xs font-bold text-foreground">Destino do Clique</Label>
+              <Select
+                value={targetType}
+                onValueChange={(val: any) => setTargetType(val)}
+              >
+                <SelectTrigger className="rounded-xl text-xs h-11">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="product">Produto Específico</SelectItem>
+                  <SelectItem value="category">Categoria da Loja</SelectItem>
+                  <SelectItem value="external_url">Link Externo / WhatsApp</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="targetUrl" className="text-xs font-bold text-foreground">
+                URL ou ID de Destino
               </Label>
               <Input
-                placeholder="https://images.unsplash.com/... ou https://meusite.com/video.mp4"
-                value={mediaUrl}
-                onChange={(e) => setMediaUrl(e.target.value)}
-                className="h-11 rounded-xl text-xs bg-card"
-                required
+                id="targetUrl"
+                placeholder="Ex: /produto/slug-do-item ou https://..."
+                value={targetUrl}
+                onChange={(e) => setTargetUrl(e.target.value)}
+                className="rounded-xl text-sm h-11 font-mono text-xs"
               />
             </div>
-
-            {/* Title & Subtitle */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Título Principal
-                </Label>
-                <Input
-                  placeholder="Ex: Festival de Burger Artesanal"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="h-11 rounded-xl text-xs bg-card"
-                  required
-                />
+          </div>
+          <div className="p-4 rounded-2xl  bg-muted/20 space-y-3">
+            <h4 className="text-xs font-bold text-foreground">Configuração Visual</h4>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-foreground font-medium">Exibir Título sobre a Imagem</span>
+                <Switch checked={showTitle} onCheckedChange={setShowTitle} />
               </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Subtítulo / Chamada
-                </Label>
-                <Input
-                  placeholder="Ex: Blends especiais com entrega grátis"
-                  value={subtitle}
-                  onChange={(e) => setSubtitle(e.target.value)}
-                  className="h-11 rounded-xl text-xs bg-card"
-                />
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-foreground font-medium">Exibir Botão de Ação (CTA)</span>
+                <Switch checked={showCta} onCheckedChange={setShowCta} />
               </div>
             </div>
-
-            {/* Action & Badge */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Texto da Tag / Badge
-                </Label>
-                <Input
-                  placeholder="Ex: Destaque da Semana"
-                  value={badgeText}
-                  onChange={(e) => setBadgeText(e.target.value)}
-                  className="h-11 rounded-xl text-xs bg-card"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Botão de Ação (CTA)
-                </Label>
-                <Input
-                  placeholder="Ex: Pedir Agora"
-                  value={ctaLabel}
-                  onChange={(e) => setCtaLabel(e.target.value)}
-                  className="h-11 rounded-xl text-xs bg-card"
-                />
-              </div>
-            </div>
-
-            {/* Submit */}
-            <div className="flex justify-end gap-3 pt-3 border-t border-border">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsModalOpen(false)}
-                className="h-11 rounded-xl text-xs"
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="h-11 px-6 rounded-xl font-bold bg-primary text-primary-foreground text-xs"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin mr-2" />
-                    Salvando...
-                  </>
-                ) : (
-                  "Publicar Banner"
-                )}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+          </div>
+          <div className="flex items-center justify-end gap-3 pt-4 ">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsModalOpen(false)}
+              className="rounded-xl text-xs font-bold h-11 px-5"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="rounded-xl text-xs font-bold h-11 px-6 bg-primary text-primary-foreground cursor-pointer"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="size-4 animate-spin mr-1.5" />
+                  <span>Salvando...</span>
+                </>
+              ) : (
+                <span>Salvar Banner</span>
+              )}
+            </Button>
+          </div>
+        </form>
+      </SheetPage>
     </div>
   );
 }

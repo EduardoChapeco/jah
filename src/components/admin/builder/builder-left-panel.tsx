@@ -339,9 +339,9 @@ export function BuilderLeftPanel({
   };
 
   return (
-    <aside className="w-72 surface-paper border-r border-border flex flex-col flex-none overflow-hidden rounded-none border-t-0 border-l-0 border-b-0">
+    <aside className="w-72 surface-paper  flex flex-col flex-none overflow-hidden rounded-none border-t-0 border-l-0 border-b-0">
       {/* Panel Tabs */}
-      <div className="flex border-b border-border bg-muted/30">
+      <div className="flex  bg-muted/30">
         {(["layers", "blocks"] as const).map((tab) => (
           <button
             type="button"
@@ -363,7 +363,7 @@ export function BuilderLeftPanel({
         {/* BLOCKS: Categorized block picker */}
         {activePanel === "blocks" && (
           <div className="flex flex-col">
-            <div className="p-4 border-b border-border">
+            <div className="p-4 ">
               <button
                 type="button"
                 onClick={onAddSection}
@@ -378,14 +378,14 @@ export function BuilderLeftPanel({
               </p>
             </div>
 
-            <div className="px-4 py-3 bg-muted/50 border-b border-border">
+            <div className="px-4 py-3 bg-muted/50 ">
               <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
                 Montagem Granular (Avançado)
               </p>
             </div>
 
             {/* Category tabs */}
-            <div className="flex flex-col gap-0.5 p-2 border-b border-border">
+            <div className="flex flex-col gap-0.5 p-2 ">
               {BLOCK_CATEGORIES.map((cat) => {
                 const Icon = cat.icon;
                 return (
@@ -419,7 +419,7 @@ export function BuilderLeftPanel({
                       onClick={() => insertBlock(blockType)}
                       className="flex flex-col items-center gap-2 p-3 bg-muted/30 hover:bg-muted border border-transparent hover:border-border rounded-lg transition-colors text-center"
                     >
-                      <div className="w-10 h-10 bg-background border border-border rounded-md flex items-center justify-center">
+                      <div className="w-10 h-10 bg-background  rounded-md flex items-center justify-center">
                         <Plus className="h-4 w-4 text-muted-foreground" />
                       </div>
                       <span className="text-muted-foreground text-[10px] font-medium leading-tight group-hover:text-foreground">

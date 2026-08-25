@@ -39,7 +39,7 @@ export function BuilderCanvas({
       {/* Canvas frame */}
       <div
         className={cn(
-          "bg-background relative transition-all duration-300 mb-8 flex flex-col border border-border",
+          "bg-background relative transition-all duration-300 mb-8 flex flex-col ",
           viewport === "desktop"
             ? "w-full max-w-[1280px] min-h-[calc(100vh-140px)] rounded-xl overflow-hidden"
             : "w-[390px] h-[780px] rounded-[3rem] border-[8px] overflow-hidden",

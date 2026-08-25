@@ -62,7 +62,7 @@ const ClassifiedSearchSchema = z.object({
 
 export const Route = createFileRoute("/_store/conta/classificados/novo")({
   validateSearch: ClassifiedSearchSchema,
-  head: () => ({ meta: [{ title: "Criar Classificado — JAH" }] }),
+  head: () => ({ meta: [{ title: "Criar Classificado — Wider" }] }),
   component: NovoClassificadoPage,
 });
 
@@ -188,7 +188,7 @@ function CreateTypePicker({ onSelect }: { onSelect: (typeId: ClassifiedNicheType
             <button
               key={niche.id}
               onClick={() => onSelect(niche.id)}
-              className="w-full text-left group relative border border-border hover:border-primary/50 bg-card hover:bg-card/80 rounded-2xl p-5 md:p-6 transition-all duration-200 shadow-2xs hover:shadow-md cursor-pointer overflow-hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+              className="w-full text-left group relative  hover:border-primary/50 bg-card hover:bg-card/80 rounded-2xl p-5 md:p-6 transition-all duration-200  hover: cursor-pointer overflow-hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
             >
               {/* Background gradient sutil */}
               <div
@@ -418,7 +418,7 @@ function SpecializedClassifiedEditor({
   return (
     <div className="space-y-4">
       {/* ── Topbar Operacional Compacta ──────────────────────────── */}
-      <div className="flex items-center justify-between border-b border-border pb-3">
+      <div className="flex items-center justify-between  pb-3">
         <div className="flex items-center gap-3">
           <Button
             type="button"
@@ -447,14 +447,14 @@ function SpecializedClassifiedEditor({
             <button
               type="button"
               onClick={() => setMobileTab("edit")}
-              className={`px-3 py-1 rounded-md transition-colors ${mobileTab === "edit" ? "bg-card text-foreground shadow-2xs font-bold" : "text-muted-foreground"}`}
+              className={`px-3 py-1 rounded-md transition-colors ${mobileTab === "edit" ? "bg-card text-foreground  font-bold" : "text-muted-foreground"}`}
             >
               Editar
             </button>
             <button
               type="button"
               onClick={() => setMobileTab("preview")}
-              className={`px-3 py-1 rounded-md transition-colors ${mobileTab === "preview" ? "bg-card text-foreground shadow-2xs font-bold" : "text-muted-foreground"}`}
+              className={`px-3 py-1 rounded-md transition-colors ${mobileTab === "preview" ? "bg-card text-foreground  font-bold" : "text-muted-foreground"}`}
             >
               Prévia ({images.length})
             </button>
@@ -464,7 +464,7 @@ function SpecializedClassifiedEditor({
             onClick={handlePublish}
             disabled={isSubmitting || isUploadingMedia}
             size="sm"
-            className="rounded-xl text-xs font-bold gap-1.5 bg-primary text-primary-foreground shadow-xs h-9 px-4"
+            className="rounded-xl text-xs font-bold gap-1.5 bg-primary text-primary-foreground  h-9 px-4"
           >
             {isSubmitting ? (
               <>
@@ -488,7 +488,7 @@ function SpecializedClassifiedEditor({
           className={`md:col-span-5 space-y-6 ${mobileTab === "edit" ? "block" : "hidden md:block"} max-h-[calc(100vh-10rem)] overflow-y-auto pr-2 scrollbar-none`}
         >
           {/* Section 1: Informações Fundamentais */}
-          <div className="border border-border bg-card rounded-2xl p-5 space-y-4 shadow-2xs">
+          <div className=" bg-card rounded-2xl p-5 space-y-4 ">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
               <FileText className="size-4 text-primary" />
               <span>1. Informações do Anúncio</span>
@@ -535,7 +535,7 @@ function SpecializedClassifiedEditor({
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground font-medium block">&nbsp;</Label>
                 <div
-                  className="flex items-center gap-2.5 h-10 px-3 rounded-xl border border-border/80 bg-background/60 hover:bg-muted/30 transition-colors cursor-pointer"
+                  className="flex items-center gap-2.5 h-10 px-3 rounded-xl  bg-background/60 hover:bg-muted/30 transition-colors cursor-pointer"
                   onClick={() => setNegotiable(!negotiable)}
                 >
                   <Checkbox
@@ -555,14 +555,14 @@ function SpecializedClassifiedEditor({
           </div>
 
           {/* Section: Logística de Entrega & Formas de Pagamento */}
-          <div className="border border-border bg-card rounded-2xl p-5 space-y-4 shadow-2xs">
+          <div className=" bg-card rounded-2xl p-5 space-y-4 ">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
                 <Truck className="size-4 text-primary" />
                 <span>Logística de Entrega & Pagamento</span>
               </div>
               <Badge variant="outline" className="text-[10px] font-mono text-muted-foreground">
-                JAH Logística
+                Wider Logística
               </Badge>
             </div>
 
@@ -665,7 +665,7 @@ function SpecializedClassifiedEditor({
 
           {/* Section 2: Campos Especializados do Domínio */}
           {niche.id === "imovel" && (
-            <div className="border border-border bg-card rounded-2xl p-5 space-y-4 shadow-2xs">
+            <div className=" bg-card rounded-2xl p-5 space-y-4 ">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
                 <HomeIcon className="size-4 text-primary" />
                 <span>2. Ficha Técnica do Imóvel</span>
@@ -751,7 +751,7 @@ function SpecializedClassifiedEditor({
           )}
 
           {niche.id === "veiculo" && (
-            <div className="border border-border bg-card rounded-2xl p-5 space-y-4 shadow-2xs">
+            <div className=" bg-card rounded-2xl p-5 space-y-4 ">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
                 <Car className="size-4 text-primary" />
                 <span>2. Ficha Técnica do Veículo</span>
@@ -842,7 +842,7 @@ function SpecializedClassifiedEditor({
           )}
 
           {/* Section 3: Fotos & Mídias com Upload Seguro */}
-          <div className="border border-border bg-card rounded-2xl p-5 space-y-3 shadow-2xs">
+          <div className=" bg-card rounded-2xl p-5 space-y-3 ">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
                 <ImagePlus className="size-4 text-primary" />
@@ -859,12 +859,14 @@ function SpecializedClassifiedEditor({
               onUploadingStateChange={setIsUploadingMedia}
               bucket="post-media"
               folder="classifieds"
+              aspect={4 / 3}
+              enableCrop={true}
               maxFiles={8}
             />
           </div>
 
           {/* Section 4: Localização Padronizada & WhatsApp */}
-          <div className="border border-border bg-card rounded-2xl p-5 space-y-4 shadow-2xs">
+          <div className=" bg-card rounded-2xl p-5 space-y-4 ">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
               <MapPin className="size-4 text-primary" />
               <span>4. Localização & Contato</span>
@@ -900,9 +902,9 @@ function SpecializedClassifiedEditor({
         <main
           className={`md:col-span-7 ${mobileTab === "preview" ? "block" : "hidden md:block"} sticky top-20`}
         >
-          <div className="border border-border bg-card rounded-2xl overflow-hidden shadow-sm">
+          <div className=" bg-card rounded-2xl overflow-hidden ">
             {/* Header da Prévia */}
-            <div className="bg-muted/50 px-4 py-2.5 border-b border-border flex items-center justify-between text-xs">
+            <div className="bg-muted/50 px-4 py-2.5  flex items-center justify-between text-xs">
               <span className="font-bold flex items-center gap-1.5 text-foreground">
                 <Eye className="size-3.5 text-primary" />
                 Prévia Fiel em Tempo Real
@@ -915,7 +917,7 @@ function SpecializedClassifiedEditor({
             <div className="p-4 md:p-6 space-y-6">
               {/* Galeria de Fotos da Prévia */}
               <div className="space-y-2">
-                <div className="relative aspect-video rounded-xl overflow-hidden bg-muted/60 border border-border flex items-center justify-center">
+                <div className="relative aspect-video rounded-xl overflow-hidden bg-muted/60  flex items-center justify-center">
                   {images.length > 0 ? (
                     <img
                       src={images[activePreviewImage] || images[0]}
@@ -1007,7 +1009,7 @@ function SpecializedClassifiedEditor({
                   {deliveryMode === "local_delivery" && (
                     <Badge variant="outline" className="text-[10px] font-medium gap-1 bg-muted/40">
                       <Truck className="size-3 text-primary" />
-                      <span>Entrega JAH Express</span>
+                      <span>Entrega Wider Express</span>
                     </Badge>
                   )}
                   {deliveryMode === "pickup" && (
@@ -1036,7 +1038,7 @@ function SpecializedClassifiedEditor({
                   )}
                 </div>
 
-                <p className="text-xs text-foreground/80 leading-relaxed whitespace-pre-wrap pt-2 border-t border-border/60">
+                <p className="text-xs text-foreground/80 leading-relaxed whitespace-pre-wrap pt-2 ">
                   {description ||
                     "A descrição detalhada do anúncio aparecerá aqui conforme você digita no formulário à esquerda..."}
                 </p>
@@ -1056,7 +1058,7 @@ function SpecializedClassifiedEditor({
                   </div>
 
                   <div className="space-y-1.5 text-xs pt-1">
-                    <div className="flex items-center justify-between p-2 rounded-xl bg-background border border-border/60">
+                    <div className="flex items-center justify-between p-2 rounded-xl bg-background ">
                       <div className="flex items-center gap-2">
                         <div className="size-6 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                           <Truck className="size-3.5" />
@@ -1071,13 +1073,13 @@ function SpecializedClassifiedEditor({
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between p-2 rounded-xl bg-background border border-border/60">
+                    <div className="flex items-center justify-between p-2 rounded-xl bg-background ">
                       <div className="flex items-center gap-2">
                         <div className="size-6 rounded-lg bg-muted flex items-center justify-center text-foreground">
                           <Package className="size-3.5" />
                         </div>
                         <div>
-                          <p className="font-semibold text-xs text-foreground">Ponto PUDO / Locker JAH</p>
+                          <p className="font-semibold text-xs text-foreground">Ponto PUDO / Locker Wider</p>
                           <p className="text-[10px] text-muted-foreground">Retire no ponto credenciado</p>
                         </div>
                       </div>
@@ -1091,7 +1093,7 @@ function SpecializedClassifiedEditor({
 
               {/* Ficha Técnica na Prévia */}
               {niche.id === "imovel" && (
-                <div className="border border-border/80 rounded-xl p-4 bg-muted/20 space-y-2">
+                <div className=" rounded-xl p-4 bg-muted/20 space-y-2">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">
                     Especificações do Imóvel
                   </h3>
@@ -1119,7 +1121,7 @@ function SpecializedClassifiedEditor({
               )}
 
               {niche.id === "veiculo" && (
-                <div className="border border-border/80 rounded-xl p-4 bg-muted/20 space-y-2">
+                <div className=" rounded-xl p-4 bg-muted/20 space-y-2">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">
                     Ficha Técnica Automotiva
                   </h3>

@@ -1,5 +1,5 @@
 /**
- * Busca Federada — JAH Community Platform
+ * Busca Federada — Wider Community Platform
  *
  * Executa queries paralelas em múltiplas entidades e retorna resultados
  * agrupados por tipo, com tipo explícito em cada item.

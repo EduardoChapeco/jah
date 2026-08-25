@@ -13,7 +13,7 @@ export function CommunityFeed({ content, resolvedClassifieds, isEditing }: any) 
   if (items.length === 0) {
     if (isEditing) {
       return (
-        <div className="p-12 text-center border border-dashed border-border/50 bg-card/50">
+        <div className="p-12 text-center border-0/50 bg-card/50">
           <Newspaper className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
           <h3 className="text-lg font-medium">Zine Comunitário</h3>
           <p className="text-muted-foreground text-sm max-w-sm mx-auto mt-1">

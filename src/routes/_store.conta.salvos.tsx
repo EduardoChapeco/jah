@@ -23,7 +23,7 @@ import { formatMoney } from "@/lib/money";
 import { formatRelativeTime } from "@/lib/datetime";
 
 export const Route = createFileRoute("/_store/conta/salvos")({
-  head: () => ({ meta: [{ title: "Meus Itens Salvos & Favoritos — JAH" }] }),
+  head: () => ({ meta: [{ title: "Meus Itens Salvos & Favoritos — Wider" }] }),
   component: SavedItemsPage,
 });
 
@@ -72,15 +72,12 @@ function SavedItemsPage() {
   return (
     <div className="space-y-6">
       {/* ── Header ─────────────────────────────────────────────── */}
-      <div className="border-b border-border pb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <Bookmark className="size-5 text-primary" />
-            <span>Itens Salvos & Favoritos</span>
-          </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Acompanhe os anúncios, produtos, eventos e oportunidades que você salvou na comunidade.
-          </p>
+      <div className=" pb-4 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="font-mono text-[10px] uppercase font-bold px-2.5 py-0.5">
+            Salvos
+          </Badge>
+          <span className="text-xs text-muted-foreground font-mono">Itens Salvos & Favoritos</span>
         </div>
       </div>
 
@@ -93,8 +90,8 @@ function SavedItemsPage() {
             onClick={() => setSelectedType(tab.id)}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
               selectedType === tab.id
-                ? "bg-primary text-primary-foreground shadow-2xs"
-                : "bg-muted/40 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/60"
+                ? "bg-primary text-primary-foreground "
+                : "bg-muted/40 hover:bg-muted text-muted-foreground hover:text-foreground "
             }`}
           >
             {tab.icon && <tab.icon className="size-3.5" />}
@@ -121,10 +118,10 @@ function SavedItemsPage() {
               return (
                 <div
                   key={fav.id}
-                  className="border border-border bg-card rounded-2xl overflow-hidden shadow-2xs hover:shadow-sm transition-shadow flex flex-col justify-between"
+                  className=" bg-card rounded-2xl overflow-hidden  hover: transition-shadow flex flex-col justify-between"
                 >
                   <div>
-                    <div className="relative aspect-video bg-muted border-b border-border overflow-hidden">
+                    <div className="relative aspect-video bg-muted  overflow-hidden">
                       {cover ? (
                         <img src={cover} alt={item.title} className="w-full h-full object-cover" />
                       ) : (
@@ -144,7 +141,7 @@ function SavedItemsPage() {
                       <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
                         {item.content}
                       </p>
-                      <div className="pt-2 flex items-baseline justify-between border-t border-border/60">
+                      <div className="pt-2 flex items-baseline justify-between ">
                         <span className="text-base font-black text-primary font-mono">
                           {item.price_cents ? formatMoney(item.price_cents) : "A Combinar"}
                         </span>
@@ -158,7 +155,7 @@ function SavedItemsPage() {
                     </div>
                   </div>
 
-                  <div className="p-3 bg-muted/20 border-t border-border flex items-center justify-between gap-2">
+                  <div className="p-3 bg-muted/20  flex items-center justify-between gap-2">
                     <Button
                       asChild
                       size="sm"
@@ -191,10 +188,10 @@ function SavedItemsPage() {
               return (
                 <div
                   key={fav.id}
-                  className="border border-border bg-card rounded-2xl overflow-hidden shadow-2xs hover:shadow-sm transition-shadow flex flex-col justify-between"
+                  className=" bg-card rounded-2xl overflow-hidden  hover: transition-shadow flex flex-col justify-between"
                 >
                   <div>
-                    <div className="relative aspect-video bg-muted border-b border-border overflow-hidden">
+                    <div className="relative aspect-video bg-muted  overflow-hidden">
                       {cover ? (
                         <img src={cover} alt={item.name} className="w-full h-full object-cover" />
                       ) : (
@@ -214,7 +211,7 @@ function SavedItemsPage() {
                       <h3 className="text-sm font-bold text-foreground line-clamp-1">
                         {item.name}
                       </h3>
-                      <div className="pt-2 flex items-baseline justify-between border-t border-border/60">
+                      <div className="pt-2 flex items-baseline justify-between ">
                         <span className="text-base font-black text-primary font-mono">
                           {formatMoney(item.price_cents)}
                         </span>
@@ -222,7 +219,7 @@ function SavedItemsPage() {
                     </div>
                   </div>
 
-                  <div className="p-3 bg-muted/20 border-t border-border flex items-center justify-between gap-2">
+                  <div className="p-3 bg-muted/20  flex items-center justify-between gap-2">
                     <Button
                       asChild
                       size="sm"
@@ -253,10 +250,10 @@ function SavedItemsPage() {
               return (
                 <div
                   key={fav.id}
-                  className="border border-border bg-card rounded-2xl overflow-hidden shadow-2xs hover:shadow-sm transition-shadow flex flex-col justify-between"
+                  className=" bg-card rounded-2xl overflow-hidden  hover: transition-shadow flex flex-col justify-between"
                 >
                   <div>
-                    <div className="relative aspect-video bg-muted border-b border-border overflow-hidden">
+                    <div className="relative aspect-video bg-muted  overflow-hidden">
                       {item.cover_image ? (
                         <img
                           src={item.cover_image}
@@ -283,7 +280,7 @@ function SavedItemsPage() {
                       <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
                         {item.description}
                       </p>
-                      <div className="pt-2 flex items-baseline justify-between border-t border-border/60">
+                      <div className="pt-2 flex items-baseline justify-between ">
                         <span className="text-xs font-semibold text-primary">
                           {new Date(item.event_date).toLocaleDateString("pt-BR")}
                         </span>
@@ -297,7 +294,7 @@ function SavedItemsPage() {
                     </div>
                   </div>
 
-                  <div className="p-3 bg-muted/20 border-t border-border flex items-center justify-between gap-2">
+                  <div className="p-3 bg-muted/20  flex items-center justify-between gap-2">
                     <Button
                       asChild
                       size="sm"
@@ -328,7 +325,7 @@ function SavedItemsPage() {
           })}
         </div>
       ) : (
-        <div className="border border-dashed border-border bg-card/60 rounded-2xl p-12 text-center space-y-3">
+        <div className="border-0 bg-card/60 rounded-2xl p-12 text-center space-y-3">
           <div className="size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
             <Bookmark className="size-6" />
           </div>

@@ -1,5 +1,5 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link, useNavigate, isRedirect } from "@tanstack/react-router";
+import { useState, useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Tag,
@@ -25,6 +25,9 @@ import {
   CreditCard,
   QrCode,
   RefreshCw,
+  Calendar,
+  Users,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -43,6 +46,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatMoney } from "@/lib/money";
 import { formatRelativeTime, formatDate } from "@/lib/datetime";
+import { trackAndOpenWhatsApp } from "@/lib/whatsapp";
 import {
   getPublicClassifiedById,
   updateClassifiedStatus,
@@ -63,14 +67,14 @@ export const Route = createFileRoute("/_store/classificados/$id")({
       meta: [
         {
           title: classified?.title
-            ? `${classified.title} | Classificados JAH`
-            : "Classificado | JAH",
+            ? `${classified.title} | Classificados Wider`
+            : "Classificado | Wider",
         },
         {
           name: "description",
           content: classified?.content?.slice(0, 160) || "Anúncio comunitário na plataforma JAH.",
         },
-        { property: "og:title", content: classified?.title || "Classificado JAH" },
+        { property: "og:title", content: classified?.title || "Classificado Wider" },
         { property: "og:description", content: classified?.content?.slice(0, 160) || "" },
         { property: "og:image", content: cover },
         { property: "og:type", content: "website" },
@@ -93,6 +97,10 @@ export const Route = createFileRoute("/_store/classificados/$id")({
 });
 
 function ClassifiedDetailError({ error }: { error: Error }) {
+  if (isRedirect(error)) {
+    throw error;
+  }
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-16 text-center space-y-4">
       <div className="inline-flex size-16 items-center justify-center rounded-2xl bg-muted text-muted-foreground mb-2">
@@ -170,6 +178,34 @@ function ClassifiedDetailPage() {
   const [proposalTerms, setProposalTerms] = useState("");
   const [isSendingProposal, setIsSendingProposal] = useState(false);
 
+  // Direct Booking State (Hospedagem / Temporada / Diárias)
+  const [bookingOpen, setBookingOpen] = useState(false);
+  const [checkInDate, setCheckInDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split("T")[0];
+  });
+  const [checkOutDate, setCheckOutDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 4);
+    return d.toISOString().split("T")[0];
+  });
+  const [bookingGuests, setBookingGuests] = useState(1);
+  const [isBooking, setIsBooking] = useState(false);
+  const [isBuyingDirect, setIsBuyingDirect] = useState(false);
+
+  const nightsCount = useMemo(() => {
+    if (!checkInDate || !checkOutDate) return 1;
+    const start = new Date(checkInDate).getTime();
+    const end = new Date(checkOutDate).getTime();
+    const diff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+    return diff > 0 ? diff : 1;
+  }, [checkInDate, checkOutDate]);
+
+  const cleaningFeeCents = classified?.cleaning_fee_cents || 0;
+  const dailyRateCents = classified?.price_cents || 0;
+  const bookingTotalCents = dailyRateCents * nightsCount + cleaningFeeCents;
+
   // Status Mutation
   const statusMutation = useMutation({
     mutationFn: updateClassifiedStatus,
@@ -240,6 +276,65 @@ function ClassifiedDetailPage() {
     }
   };
 
+  const handleDirectBooking = async () => {
+    if (!classified) return;
+    setIsBooking(true);
+    try {
+      await createDealProposal({
+        data: {
+          classifiedId: classified.id,
+          sellerId: classified.author_profile_id,
+          proposedPriceCents: bookingTotalCents,
+          totalPriceCents: bookingTotalCents,
+          dailyRateCents,
+          cleaningFeeCents,
+          nightsCount,
+          guestsCount: bookingGuests,
+          dealType: "rental",
+          startDate: checkInDate,
+          endDate: checkOutDate,
+          isDirectBooking: true,
+          terms: `Reserva direta de ${nightsCount} diárias (${checkInDate} a ${checkOutDate}) para ${bookingGuests} hóspede(s).`,
+        },
+      });
+
+      toast.success("Reserva confirmada! Acompanhe em Minhas Negociações e na sua Agenda.");
+      setBookingOpen(false);
+      navigate({ to: "/conta/negociacoes" });
+    } catch (err: any) {
+      console.error("Erro ao reservar:", err);
+      toast.error(err?.message || "Erro ao efetuar reserva.");
+    } finally {
+      setIsBooking(false);
+    }
+  };
+
+  const handleDirectBuy = async () => {
+    if (!classified) return;
+    setIsBuyingDirect(true);
+    try {
+      await createDealProposal({
+        data: {
+          classifiedId: classified.id,
+          sellerId: classified.author_profile_id,
+          proposedPriceCents: classified.price_cents || 0,
+          totalPriceCents: classified.price_cents || 0,
+          dealType: classified.category === "real_estate" ? "rental" : "sale",
+          isDirectBooking: true,
+          terms: "Compra direta pelo valor integral anunciado.",
+        },
+      });
+
+      toast.success("Compra confirmada com o vendedor! Acompanhe em Minhas Negociações.");
+      navigate({ to: "/conta/negociacoes" });
+    } catch (err: any) {
+      console.error("Erro ao comprar direto:", err);
+      toast.error(err?.message || "Erro ao processar compra.");
+    } finally {
+      setIsBuyingDirect(false);
+    }
+  };
+
   if (!classified) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16 text-center">
@@ -267,11 +362,7 @@ function ClassifiedDetailPage() {
 
   const rawPhone = classified.contact_whatsapp || classified.whatsapp;
   const cleanPhone = rawPhone ? rawPhone.replace(/\D/g, "") : null;
-  const whatsappUrl = cleanPhone
-    ? `https://api.whatsapp.com/send?phone=55${cleanPhone}&text=${encodeURIComponent(
-        `Olá! Vi seu anúncio "${classified.title}" na JAH e tenho interesse em negociar.`,
-      )}`
-    : null;
+  // whatsappUrl: removido — usamos trackAndOpenWhatsApp para rastreamento real de conversões
   const author = classified.profiles as any;
   const authorInitial = author?.full_name?.charAt(0)?.toUpperCase() ?? "J";
   const statusInfo = STATUS_LABELS[classified.status] || {
@@ -282,7 +373,7 @@ function ClassifiedDetailPage() {
   return (
     <div className="w-full space-y-6">
       {/* ── Barra Superior de Navegação & Ações Perfeitas ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3  pb-4">
         <div className="flex items-center gap-2 flex-wrap">
           <Link
             to="/classificados"
@@ -379,7 +470,7 @@ function ClassifiedDetailPage() {
         {/* Coluna Esquerda: Mídias & Detalhes (7 colunas) */}
         <div className="lg:col-span-7 space-y-6">
           {/* Galeria de Mídias Dominante com Ambient Backdrop */}
-          <div className="border border-border bg-card rounded-3xl overflow-hidden shadow-2xs">
+          <div className=" bg-card rounded-3xl overflow-hidden ">
             <div className="relative aspect-[16/10] bg-black/95 flex items-center justify-center overflow-hidden group">
               {/* Ambient Blurred Backdrop para mídias verticais ou formatos mistos */}
               {images.length > 0 && !isVideoUrl(images[activeImage]) && (
@@ -460,7 +551,7 @@ function ClassifiedDetailPage() {
 
             {/* Carrossel de Miniaturas Alinhado e Consistente */}
             {images.length > 1 && (
-              <div className="flex items-center gap-2.5 p-3.5 overflow-x-auto border-t border-border bg-muted/20 scrollbar-none">
+              <div className="flex items-center gap-2.5 p-3.5 overflow-x-auto  bg-muted/20 scrollbar-none">
                 {images.map((img, idx) => (
                   <button
                     key={idx}
@@ -500,8 +591,8 @@ function ClassifiedDetailPage() {
           </div>
 
           {/* Descrição & Especificações */}
-          <div className="border border-border bg-card rounded-3xl p-6 sm:p-7 space-y-4 shadow-2xs">
-            <h2 className="text-base font-bold text-foreground border-b border-border/50 pb-2">
+          <div className=" bg-card rounded-3xl p-6 sm:p-7 space-y-4 ">
+            <h2 className="text-base font-bold text-foreground  pb-2">
               Descrição do Anúncio
             </h2>
             <div className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed">
@@ -509,7 +600,7 @@ function ClassifiedDetailPage() {
             </div>
 
             {/* Atributos Gerais */}
-            <div className="border-t border-border pt-4 grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
+            <div className=" pt-4 grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
               <div>
                 <span className="text-muted-foreground block mb-0.5">Condição</span>
                 <span className="font-semibold text-foreground">
@@ -534,11 +625,11 @@ function ClassifiedDetailPage() {
 
             {/* Ficha Técnica de Veículo */}
             {classified.category === "vehicle" && classified.attributes && (
-              <div className="border-t border-border pt-4 space-y-3">
+              <div className=" pt-4 space-y-3">
                 <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
                   Ficha do Veículo
                 </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs bg-muted/30 p-3.5 rounded-xl border border-border">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs bg-muted/30 p-3.5 rounded-xl ">
                   {classified.attributes.brand && (
                     <div>
                       <span className="text-muted-foreground block text-[10px]">Marca</span>
@@ -583,7 +674,7 @@ function ClassifiedDetailPage() {
 
             {/* Ficha Técnica de Imóvel & Hospedagem */}
             {classified.category === "real_estate" && (
-              <div className="border-t border-border pt-4 space-y-4">
+              <div className=" pt-4 space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
                     {classified.deal_type === "temporada"
@@ -592,14 +683,14 @@ function ClassifiedDetailPage() {
                   </h3>
                   <Badge variant="outline" className="text-[10px] uppercase font-mono font-bold">
                     {classified.deal_type === "temporada"
-                      ? "Temporada (Airbnb)"
+                      ? "Diária / Temporada"
                       : classified.deal_type === "aluguel"
                         ? "Aluguel Mensal"
                         : "Venda"}
                   </Badge>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-muted/30 p-3.5 rounded-xl border border-border text-center">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-muted/30 p-3.5 rounded-xl  text-center">
                   <div>
                     <span className="text-muted-foreground block text-[10px]">Área Útil</span>
                     <span className="font-bold">
@@ -652,7 +743,7 @@ function ClassifiedDetailPage() {
           </div>
 
           {/* Localização Aproximada */}
-          <div className="border border-border bg-card rounded-3xl p-6 space-y-2 shadow-2xs">
+          <div className=" bg-card rounded-3xl p-6 space-y-2 ">
             <div className="flex items-center gap-2">
               <MapPin className="size-4 text-primary" />
               <h2 className="text-sm font-bold text-foreground">Localização Aproximada</h2>
@@ -669,7 +760,7 @@ function ClassifiedDetailPage() {
 
         {/* Coluna Direita: Informações Essenciais & Ações (5 colunas) */}
         <div className="lg:col-span-5 space-y-5 lg:sticky lg:top-24">
-          <div className="border border-border bg-card rounded-3xl p-6 sm:p-7 shadow-2xs space-y-6">
+          <div className=" bg-card rounded-3xl p-6 sm:p-7  space-y-6">
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <div className="flex items-center gap-1.5">
@@ -687,12 +778,12 @@ function ClassifiedDetailPage() {
             </div>
 
             {/* Bloco de Preço */}
-            <div className="border-t border-border pt-4">
+            <div className=" pt-4">
               <span className="text-xs uppercase font-bold text-muted-foreground tracking-wider block mb-1">
                 {classified.deal_type === "aluguel"
                   ? "Valor do Aluguel Mensal"
                   : classified.deal_type === "temporada"
-                    ? "Valor por Diária (Airbnb-style)"
+                    ? "Valor por Diária"
                     : "Valor"}
               </span>
               <div className="text-3xl font-black text-primary font-mono flex items-baseline gap-1">
@@ -735,7 +826,7 @@ function ClassifiedDetailPage() {
                 {classified.attributes?.delivery_mode === "local_delivery" && (
                   <Badge variant="outline" className="text-[10px] font-medium gap-1 bg-muted/40">
                     <Truck className="size-3 text-primary" />
-                    <span>Entrega JAH Express</span>
+                    <span>Entrega Wider Express</span>
                   </Badge>
                 )}
                 {classified.attributes?.delivery_mode === "pickup" && (
@@ -785,7 +876,7 @@ function ClassifiedDetailPage() {
                 </div>
 
                 <div className="space-y-1.5 text-xs pt-1">
-                  <div className="flex items-center justify-between p-2 rounded-xl bg-background border border-border/60">
+                  <div className="flex items-center justify-between p-2 rounded-xl bg-background ">
                     <div className="flex items-center gap-2">
                       <div className="size-6 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                         <Truck className="size-3.5" />
@@ -800,13 +891,13 @@ function ClassifiedDetailPage() {
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between p-2 rounded-xl bg-background border border-border/60">
+                  <div className="flex items-center justify-between p-2 rounded-xl bg-background ">
                     <div className="flex items-center gap-2">
                       <div className="size-6 rounded-lg bg-muted flex items-center justify-center text-foreground">
                         <Package className="size-3.5" />
                       </div>
                       <div>
-                        <p className="font-semibold text-xs text-foreground">Ponto PUDO / Locker JAH</p>
+                        <p className="font-semibold text-xs text-foreground">Ponto PUDO / Locker Wider</p>
                         <p className="text-[10px] text-muted-foreground">Retire no ponto credenciado</p>
                       </div>
                     </div>
@@ -820,149 +911,459 @@ function ClassifiedDetailPage() {
 
             {/* Ações de Negociação & Contato */}
             <div className="space-y-3 pt-2">
-              {/* Botão Fazer Proposta (Se logado abre Modal, se anônimo convida a logar) */}
-              <Dialog open={proposalOpen} onOpenChange={setProposalOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    size="lg"
-                    className="w-full h-12 rounded-xl font-bold bg-primary text-primary-foreground shadow-xs gap-2 text-sm"
-                  >
-                    <Handshake className="size-5" />
-                    Fazer Proposta / Negociar
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-md rounded-2xl">
-                  {viewerContext === "anonymous" ? (
-                    <div className="text-center py-6 space-y-4">
-                      <Handshake className="size-10 text-primary mx-auto" />
-                      <div className="space-y-1">
-                        <DialogTitle className="text-lg font-bold">
-                          Identifique-se para negociar
-                        </DialogTitle>
-                        <DialogDescription className="text-xs text-muted-foreground">
-                          Para enviar propostas, negociar valores e trocar itens com segurança, faça
-                          login na sua conta JAH.
-                        </DialogDescription>
-                      </div>
-                      <Button
-                        asChild
-                        className="w-full h-11 rounded-xl font-bold bg-primary text-primary-foreground text-sm"
+              {isOwner ? (
+                /* Painel de Gestão para o Anunciante Proprietário */
+                <div className="p-4 rounded-2xl bg-muted/40  space-y-3">
+                  <div className="flex items-center gap-2 text-xs font-bold text-foreground">
+                    <ShieldCheck className="size-4 text-primary" />
+                    <span>Este anúncio pertence a você</span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    Como anunciante, você pode editar informações, pausar o anúncio e acompanhar as
+                    propostas e reservas recebidas.
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="sm"
+                      className="rounded-xl text-xs font-bold h-9"
+                    >
+                      <Link
+                        to="/conta/classificados/novo"
+                        search={{ editId: classified.id } as any}
                       >
-                        <Link
-                          to="/entrar"
-                          search={{ returnUrl: `/classificados/${classified.id}` }}
-                        >
-                          Entrar na Minha Conta
-                        </Link>
+                        <Edit3 className="size-3.5 mr-1" />
+                        Editar Anúncio
+                      </Link>
+                    </Button>
+                    <Button
+                      asChild
+                      size="sm"
+                      className="rounded-xl text-xs font-bold h-9 bg-foreground text-background"
+                    >
+                      <Link to="/conta/negociacoes">
+                        <Handshake className="size-3.5 mr-1" />
+                        Ver Propostas
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              ) : classified.deal_type === "temporada" ? (
+                /* Bloco de Reserva Direta de Hospedagem / Diárias */
+                <div className="space-y-3">
+                  <Dialog open={bookingOpen} onOpenChange={setBookingOpen}>
+                    <DialogTrigger asChild>
+                      <Button
+                        size="lg"
+                        className="w-full h-12 rounded-xl font-bold bg-primary text-primary-foreground  gap-2 text-sm"
+                      >
+                        <Calendar className="size-5" />
+                        Reservar Diárias
                       </Button>
-                    </div>
-                  ) : (
-                    <>
-                      <DialogHeader>
-                        <DialogTitle className="text-lg font-bold flex items-center gap-2">
-                          <Handshake className="size-5 text-primary" />
-                          Enviar Proposta de Negociação
-                        </DialogTitle>
-                        <DialogDescription className="text-xs text-muted-foreground">
-                          Envie uma oferta formal para o vendedor. O valor e os termos ficarão
-                          registrados com segurança.
-                        </DialogDescription>
-                      </DialogHeader>
-
-                      <div className="space-y-4 py-2">
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-semibold text-foreground">
-                            Sua Oferta de Preço (R$) *
-                          </label>
-                          <CurrencyField
-                            value={proposalPriceCents}
-                            onChange={setProposalPriceCents}
-                            placeholder="0,00"
-                            className="h-10 rounded-xl text-xs bg-background"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-foreground">
-                              Forma de Pagamento
-                            </label>
-                            <Input
-                              value={proposalInstallments}
-                              onChange={(e) => setProposalInstallments(e.target.value)}
-                              placeholder="1 (À vista)"
-                              className="h-9 rounded-xl text-xs bg-background font-mono"
-                            />
+                    </DialogTrigger>
+                    <DialogContent className="max-w-md rounded-2xl">
+                      {viewerContext === "anonymous" ? (
+                        <div className="text-center py-6 space-y-4">
+                          <Calendar className="size-10 text-primary mx-auto" />
+                          <div className="space-y-1">
+                            <DialogTitle className="text-lg font-bold">
+                              Identifique-se para reservar
+                            </DialogTitle>
+                            <DialogDescription className="text-xs text-muted-foreground">
+                              Faça login na sua conta JAH para reservar este imóvel por temporada com
+                              garantia e suporte regional.
+                            </DialogDescription>
                           </div>
-                          <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-foreground">
-                              Sinal / Entrada (R$)
-                            </label>
-                            <CurrencyField
-                              value={proposalDepositCents}
-                              onChange={setProposalDepositCents}
-                              placeholder="0,00"
-                              className="h-9 rounded-xl text-xs bg-background"
-                            />
+                          <Button
+                            asChild
+                            className="w-full h-11 rounded-xl font-bold bg-primary text-primary-foreground text-sm"
+                          >
+                            <Link
+                              to="/entrar"
+                              search={{ returnUrl: `/classificados/${classified.id}` }}
+                            >
+                              Entrar na Minha Conta
+                            </Link>
+                          </Button>
+                        </div>
+                      ) : (
+                        <>
+                          <DialogHeader>
+                            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+                              <Calendar className="size-5 text-primary" />
+                              Reservar Hospedagem por Diária
+                            </DialogTitle>
+                            <DialogDescription className="text-xs text-muted-foreground">
+                              Selecione as datas de check-in e check-out para confirmar sua estadia.
+                            </DialogDescription>
+                          </DialogHeader>
+
+                          <div className="space-y-4 py-2">
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-semibold text-foreground">
+                                  Check-in *
+                                </label>
+                                <Input
+                                  type="date"
+                                  value={checkInDate}
+                                  onChange={(e) => setCheckInDate(e.target.value)}
+                                  className="h-10 rounded-xl text-xs bg-background font-mono"
+                                />
+                              </div>
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-semibold text-foreground">
+                                  Check-out *
+                                </label>
+                                <Input
+                                  type="date"
+                                  value={checkOutDate}
+                                  onChange={(e) => setCheckOutDate(e.target.value)}
+                                  className="h-10 rounded-xl text-xs bg-background font-mono"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <label className="text-xs font-semibold text-foreground">
+                                Número de Hóspedes
+                              </label>
+                              <Input
+                                type="number"
+                                min={1}
+                                max={classified.max_guests || 10}
+                                value={bookingGuests}
+                                onChange={(e) => setBookingGuests(parseInt(e.target.value) || 1)}
+                                className="h-10 rounded-xl text-xs bg-background font-mono"
+                              />
+                            </div>
+
+                            {/* Resumo de Valores */}
+                            <div className="p-3.5 rounded-xl bg-muted/40  space-y-2 text-xs">
+                              <div className="flex justify-between text-muted-foreground">
+                                <span>
+                                  {formatMoney(dailyRateCents)} × {nightsCount} diária(s)
+                                </span>
+                                <span className="font-mono font-medium text-foreground">
+                                  {formatMoney(dailyRateCents * nightsCount)}
+                                </span>
+                              </div>
+                              {cleaningFeeCents > 0 && (
+                                <div className="flex justify-between text-muted-foreground">
+                                  <span>Taxa única de limpeza</span>
+                                  <span className="font-mono font-medium text-foreground">
+                                    {formatMoney(cleaningFeeCents)}
+                                  </span>
+                                </div>
+                              )}
+                              <div className="pt-2  flex justify-between font-bold text-sm text-foreground">
+                                <span>Total Estimado</span>
+                                <span className="font-mono text-primary">
+                                  {formatMoney(bookingTotalCents)}
+                                </span>
+                              </div>
+                            </div>
+
+                            <Button
+                              onClick={handleDirectBooking}
+                              disabled={isBooking}
+                              className="w-full h-11 rounded-xl text-xs font-bold gap-2"
+                            >
+                              {isBooking ? (
+                                <>
+                                  <Loader2 className="size-4 animate-spin" />
+                                  <span>Confirmando Reserva...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Check className="size-4" />
+                                  <span>Confirmar Reserva de {formatMoney(bookingTotalCents)}</span>
+                                </>
+                              )}
+                            </Button>
                           </div>
+                        </>
+                      )}
+                    </DialogContent>
+                  </Dialog>
+
+                  {/* Modal Secundário de Proposta/Negociação para Temporada */}
+                  <Dialog open={proposalOpen} onOpenChange={setProposalOpen}>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full h-10 rounded-xl font-bold text-xs gap-1.5"
+                      >
+                        <Handshake className="size-4 text-muted-foreground" />
+                        Fazer Oferta Especial / Negociar
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-md rounded-2xl">
+                      {viewerContext === "anonymous" ? (
+                        <div className="text-center py-6 space-y-4">
+                          <Handshake className="size-10 text-primary mx-auto" />
+                          <div className="space-y-1">
+                            <DialogTitle className="text-lg font-bold">
+                              Identifique-se para negociar
+                            </DialogTitle>
+                            <DialogDescription className="text-xs text-muted-foreground">
+                              Para enviar ofertas personalizadas, faça login na sua conta JAH.
+                            </DialogDescription>
+                          </div>
+                          <Button
+                            asChild
+                            className="w-full h-11 rounded-xl font-bold bg-primary text-primary-foreground text-sm"
+                          >
+                            <Link
+                              to="/entrar"
+                              search={{ returnUrl: `/classificados/${classified.id}` }}
+                            >
+                              Entrar na Minha Conta
+                            </Link>
+                          </Button>
                         </div>
+                      ) : (
+                        <>
+                          <DialogHeader>
+                            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+                              <Handshake className="size-5 text-primary" />
+                              Enviar Oferta para o Anfitrião
+                            </DialogTitle>
+                            <DialogDescription className="text-xs text-muted-foreground">
+                              Proponha um pacote diferenciado ou período estendido.
+                            </DialogDescription>
+                          </DialogHeader>
 
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-semibold text-foreground">
-                            Termos ou Condições Especiais
-                          </label>
-                          <Textarea
-                            value={proposalTerms}
-                            onChange={(e) => setProposalTerms(e.target.value)}
-                            placeholder="Ex: Retiro no sábado, pagamento via PIX..."
-                            rows={3}
-                            className="rounded-xl text-xs bg-background resize-none leading-relaxed"
-                          />
+                          <div className="space-y-4 py-2">
+                            <div className="space-y-1.5">
+                              <label className="text-xs font-semibold text-foreground">
+                                Valor Total Proposto (R$) *
+                              </label>
+                              <CurrencyField
+                                value={proposalPriceCents}
+                                onChange={setProposalPriceCents}
+                                placeholder="0,00"
+                                className="h-10 rounded-xl text-xs bg-background"
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <label className="text-xs font-semibold text-foreground">
+                                Detalhes do Período ou Condições
+                              </label>
+                              <Textarea
+                                value={proposalTerms}
+                                onChange={(e) => setProposalTerms(e.target.value)}
+                                placeholder="Ex: Período de 15 dias, pagamento antecipado no PIX..."
+                                rows={3}
+                                className="rounded-xl text-xs bg-background resize-none leading-relaxed"
+                              />
+                            </div>
+
+                            <Button
+                              onClick={handleSendProposal}
+                              disabled={isSendingProposal}
+                              className="w-full h-10 rounded-xl text-xs font-bold gap-2"
+                            >
+                              {isSendingProposal ? (
+                                <>
+                                  <Loader2 className="size-4 animate-spin" />
+                                  <span>Enviando Proposta...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Handshake className="size-4" />
+                                  <span>Enviar Proposta ao Anfitrião</span>
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </>
+                      )}
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              ) : (
+                /* Bloco de Compra / Negociação para Venda, Aluguel e Outros Itens */
+                <div className="space-y-3">
+                  {/* Botão de Compra Imediata pelo Preço Anunciado */}
+                  {classified.price_cents && classified.price_cents > 0 ? (
+                    <Button
+                      onClick={handleDirectBuy}
+                      disabled={isBuyingDirect}
+                      size="lg"
+                      className="w-full h-12 rounded-xl font-bold bg-primary text-primary-foreground  gap-2 text-sm"
+                    >
+                      {isBuyingDirect ? (
+                        <>
+                          <Loader2 className="size-5 animate-spin" />
+                          <span>Processando Compra...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Check className="size-5" />
+                          <span>Comprar por {formatMoney(classified.price_cents)}</span>
+                        </>
+                      )}
+                    </Button>
+                  ) : null}
+
+                  {/* Botão Fazer Proposta / Negociar */}
+                  <Dialog open={proposalOpen} onOpenChange={setProposalOpen}>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant={classified.price_cents ? "outline" : "default"}
+                        size="lg"
+                        className={`w-full ${classified.price_cents ? "h-10 text-xs" : "h-12 text-sm"} rounded-xl font-bold gap-2`}
+                      >
+                        <Handshake className="size-4" />
+                        <span>Fazer Proposta / Negociar Valor</span>
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-md rounded-2xl">
+                      {viewerContext === "anonymous" ? (
+                        <div className="text-center py-6 space-y-4">
+                          <Handshake className="size-10 text-primary mx-auto" />
+                          <div className="space-y-1">
+                            <DialogTitle className="text-lg font-bold">
+                              Identifique-se para negociar
+                            </DialogTitle>
+                            <DialogDescription className="text-xs text-muted-foreground">
+                              Para enviar propostas, negociar valores e trocar itens com segurança,
+                              faça login na sua conta JAH.
+                            </DialogDescription>
+                          </div>
+                          <Button
+                            asChild
+                            className="w-full h-11 rounded-xl font-bold bg-primary text-primary-foreground text-sm"
+                          >
+                            <Link
+                              to="/entrar"
+                              search={{ returnUrl: `/classificados/${classified.id}` }}
+                            >
+                              Entrar na Minha Conta
+                            </Link>
+                          </Button>
                         </div>
+                      ) : (
+                        <>
+                          <DialogHeader>
+                            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+                              <Handshake className="size-5 text-primary" />
+                              Enviar Proposta de Negociação
+                            </DialogTitle>
+                            <DialogDescription className="text-xs text-muted-foreground">
+                              Envie uma oferta formal para o vendedor. O valor e os termos ficarão
+                              registrados com segurança.
+                            </DialogDescription>
+                          </DialogHeader>
 
-                        <Button
-                          onClick={handleSendProposal}
-                          disabled={isSendingProposal}
-                          className="w-full h-10 rounded-xl text-xs font-bold gap-2"
-                        >
-                          {isSendingProposal ? (
-                            <>
-                              <Loader2 className="size-4 animate-spin" />
-                              <span>Enviando Proposta...</span>
-                            </>
-                          ) : (
-                            <>
-                              <Handshake className="size-4" />
-                              <span>Confirmar e Enviar Proposta</span>
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </>
-                  )}
-                </DialogContent>
-              </Dialog>
+                          <div className="space-y-4 py-2">
+                            <div className="space-y-1.5">
+                              <label className="text-xs font-semibold text-foreground">
+                                Sua Oferta de Preço (R$) *
+                              </label>
+                              <CurrencyField
+                                value={proposalPriceCents}
+                                onChange={setProposalPriceCents}
+                                placeholder="0,00"
+                                className="h-10 rounded-xl text-xs bg-background"
+                              />
+                            </div>
 
-              {/* Botão de WhatsApp Somente se Fornecido */}
-              {whatsappUrl && (
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-semibold text-foreground">
+                                  Forma de Pagamento
+                                </label>
+                                <Input
+                                  value={proposalInstallments}
+                                  onChange={(e) => setProposalInstallments(e.target.value)}
+                                  placeholder="1 (À vista)"
+                                  className="h-9 rounded-xl text-xs bg-background font-mono"
+                                />
+                              </div>
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-semibold text-foreground">
+                                  Sinal / Entrada (R$)
+                                </label>
+                                <CurrencyField
+                                  value={proposalDepositCents}
+                                  onChange={setProposalDepositCents}
+                                  placeholder="0,00"
+                                  className="h-9 rounded-xl text-xs bg-background"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <label className="text-xs font-semibold text-foreground">
+                                Termos ou Condições Especiais
+                              </label>
+                              <Textarea
+                                value={proposalTerms}
+                                onChange={(e) => setProposalTerms(e.target.value)}
+                                placeholder="Ex: Retiro no sábado, aceito troca com volta..."
+                                rows={3}
+                                className="rounded-xl text-xs bg-background resize-none leading-relaxed"
+                              />
+                            </div>
+
+                            <Button
+                              onClick={handleSendProposal}
+                              disabled={isSendingProposal}
+                              className="w-full h-10 rounded-xl text-xs font-bold gap-2"
+                            >
+                              {isSendingProposal ? (
+                                <>
+                                  <Loader2 className="size-4 animate-spin" />
+                                  <span>Enviando Proposta...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Handshake className="size-4" />
+                                  <span>Confirmar e Enviar Proposta</span>
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </>
+                      )}
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              )}
+
+              {/* Botão de WhatsApp Rastreado */}
+              {cleanPhone && (
                 <Button
-                  asChild
+                  type="button"
                   size="lg"
                   variant="outline"
-                  className="w-full h-11 rounded-xl font-bold border-emerald-600/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10 gap-2 text-xs"
+                  onClick={() =>
+                    trackAndOpenWhatsApp({
+                      phone: cleanPhone,
+                      storeId: (classified as any).store_id || null,
+                      entityType: "classified",
+                      entityId: classified.id,
+                      entityTitle: classified.title,
+                      niche: classified.category || "classificados",
+                    })
+                  }
+                  className="w-full h-11 rounded-xl font-bold border-emerald-600/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10 gap-2 text-xs cursor-pointer"
                 >
-                  <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-                    <MessageCircle className="size-4" />
-                    Conversar no WhatsApp
-                  </a>
+                  <MessageCircle className="size-4" />
+                  Conversar no WhatsApp
                 </Button>
               )}
             </div>
 
             {/* Autor Real do Anúncio */}
-            <div className="border-t border-border pt-4 flex items-center justify-between gap-3">
+            <div className=" pt-4 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
-                <Avatar className="size-10 rounded-xl border border-border">
+                <Avatar className="size-10 rounded-xl ">
                   <AvatarImage src={author?.avatar_url || ""} alt={author?.full_name || ""} />
                   <AvatarFallback className="bg-primary/10 text-primary font-bold text-sm rounded-xl">
                     {authorInitial}
@@ -983,7 +1384,7 @@ function ClassifiedDetailPage() {
                   size="sm"
                   className="rounded-xl text-xs font-semibold h-8"
                 >
-                  <Link to="/membro/$id" params={{ id: author.id }}>
+                  <Link to="/membro/$id" params={{ id: author.id }} search={{ modo: "comercial" }}>
                     Ver Perfil
                   </Link>
                 </Button>
@@ -991,7 +1392,7 @@ function ClassifiedDetailPage() {
             </div>
 
             {/* Dica de Segurança */}
-            <div className="border border-border/60 bg-muted/30 rounded-xl p-3.5 flex gap-3 text-xs text-muted-foreground">
+            <div className=" bg-muted/30 rounded-xl p-3.5 flex gap-3 text-xs text-muted-foreground">
               <ShieldCheck className="size-5 text-primary shrink-0 mt-0.5" />
               <div className="space-y-0.5">
                 <p className="font-semibold text-foreground">Negociação Segura</p>

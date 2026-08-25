@@ -37,7 +37,7 @@ export const SquircleCard = React.forwardRef<HTMLDivElement, SquircleCardProps>(
       <Comp
         ref={ref}
         className={cn(
-          "border border-border bg-card text-card-foreground p-5 relative select-none",
+          " bg-card text-card-foreground p-5 relative select-none",
           variantClass,
           interactive && "squircle-hover cursor-pointer",
           selected && "squircle-selected",

@@ -51,7 +51,7 @@ export function SuggestedFriendsBlock({ friends = [] }: SuggestedFriendsBlockPro
   };
 
   return (
-    <div className="w-full my-4 squircle-soft border border-border bg-card p-4">
+    <div className="w-full my-4 squircle-soft  bg-card p-4">
       <div className="flex items-center justify-between mb-3 px-1">
         <div className="flex items-center gap-2">
           <Sparkles className="size-4 text-primary" />
@@ -69,7 +69,7 @@ export function SuggestedFriendsBlock({ friends = [] }: SuggestedFriendsBlockPro
             return (
               <div
                 key={friend.id}
-                className="flex flex-col items-center justify-between w-[140px] p-3 squircle-soft squircle-hover border border-border bg-background text-center shrink-0"
+                className="flex flex-col items-center justify-between w-[140px] p-3 squircle-soft squircle-hover  bg-background text-center shrink-0"
               >
                 <Avatar className="size-14 ring-2 ring-primary/20 mb-2">
                   <AvatarImage src={friend.avatar_url ?? ""} />

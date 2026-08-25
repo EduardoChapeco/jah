@@ -105,7 +105,7 @@ export function StoreHours({
           )}
         </div>
 
-        <div className="divide-y divide-border border border-border rounded-xl overflow-hidden">
+        <div className="divide-y divide-border  rounded-xl overflow-hidden">
           {storeHours.hours.map((day) => (
             <div
               key={day.day}

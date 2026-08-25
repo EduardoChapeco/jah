@@ -74,12 +74,12 @@ export const Route = createFileRoute("/workspace/clientes/")({
   head: () => ({ meta: [{ title: "Clientes & Leads" }] }),
   loader: async () => {
     const [customers, leadsRes, teamRes] = await Promise.all([
-      listCustomers(),
-      listLeads(),
-      listTeamMembers(),
+      listCustomers().catch(() => []),
+      listLeads().catch(() => []),
+      listTeamMembers().catch(() => []),
     ]);
     return {
-      customers,
+      customers: customers || [],
       leads: leadsRes || [],
       team: teamRes || [],
     };
@@ -204,7 +204,7 @@ function CustomersPage() {
 
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetContent side="right" className="sm:max-w-2xl p-0 overflow-y-auto">
-          <SheetHeader className="px-6 py-4 border-b border-border/10 bg-muted/30">
+          <SheetHeader className="px-6 py-4  bg-muted/30">
             <SheetTitle className="flex items-center gap-2 text-xl font-semibold">
               <UserCheck className="size-5 text-primary" />
               Cadastrar Novo Cliente
@@ -333,7 +333,7 @@ function CustomersPage() {
               </div>
             </div>
 
-            <SheetFooter className="pt-6 mt-4 border-t border-border/50 px-6 pb-6">
+            <SheetFooter className="pt-6 mt-4  px-6 pb-6">
               <Button type="button" variant="ghost" className="h-10">
                 Cancelar
               </Button>
@@ -366,8 +366,8 @@ function CustomersPage() {
       </Sheet>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
-          <TabsList className="grid grid-cols-3 h-9">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3  bg-card rounded-2xl px-4 py-3  mb-6">
+          <TabsList className="grid grid-cols-3 h-8 w-auto min-w-[300px]">
             <TabsTrigger value="customers" className="text-xs">
               Clientes CRM ({filteredCustomers.length})
             </TabsTrigger>
@@ -380,15 +380,15 @@ function CustomersPage() {
           </TabsList>
 
           {activeTab === "customers" && (
-            <div className="relative flex-1 max-w-sm w-full">
+            <div className="relative w-full sm:w-72">
               <Search
-                className="absolute left-2.5 top-2.5 size-4 text-muted-foreground"
+                className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground"
                 aria-hidden
               />
               <Input
                 type="search"
                 placeholder="Buscar cliente ou tag..."
-                className="pl-9 text-xs w-full"
+                className="pl-8 text-xs w-full rounded-xl h-8 bg-background"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -401,11 +401,11 @@ function CustomersPage() {
           {filteredCustomers.length === 0 ? (
             <EmptyState title="Nenhum cliente encontrado" />
           ) : (
-            <div className="bg-surface-paper shadow-sm rounded-xl border border-border overflow-hidden">
+            <div className="bg-surface-paper  rounded-xl  overflow-hidden">
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-muted/40 border-b border-border/20">
+                    <TableRow className="bg-muted/40 ">
                       <TableHead>Cliente</TableHead>
                       <TableHead>Desde</TableHead>
                       <TableHead className="text-center">Pedidos</TableHead>
@@ -487,8 +487,8 @@ function CustomersPage() {
         <TabsContent value="kanban" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
             {/* Column 1: New */}
-            <div className="bg-surface-paper shadow-sm border border-border rounded-xl overflow-hidden">
-              <div className="p-3 pb-2 border-b border-border/50 bg-muted/50">
+            <div className="bg-surface-paper   rounded-xl overflow-hidden">
+              <div className="p-3 pb-2  bg-muted/50">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black uppercase text-foreground">Novos Leads</span>
                   <Badge variant="secondary" className="h-5 text-[10px]">
@@ -515,8 +515,8 @@ function CustomersPage() {
             </div>
 
             {/* Column 2: Contacted */}
-            <div className="bg-surface-paper shadow-sm border border-border rounded-xl overflow-hidden">
-              <div className="p-3 pb-2 border-b border-border/50 bg-muted/50">
+            <div className="bg-surface-paper   rounded-xl overflow-hidden">
+              <div className="p-3 pb-2  bg-muted/50">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black uppercase text-warning">Em Contato</span>
                   <Badge
@@ -546,8 +546,8 @@ function CustomersPage() {
             </div>
 
             {/* Column 3: Converted */}
-            <div className="bg-surface-paper shadow-sm border border-border rounded-xl overflow-hidden">
-              <div className="p-3 pb-2 border-b border-border/50 bg-muted/50">
+            <div className="bg-surface-paper   rounded-xl overflow-hidden">
+              <div className="p-3 pb-2  bg-muted/50">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black uppercase text-success">Convertidos</span>
                   <Badge
@@ -577,8 +577,8 @@ function CustomersPage() {
             </div>
 
             {/* Column 4: Lost */}
-            <div className="bg-surface-paper shadow-sm border border-border rounded-xl overflow-hidden">
-              <div className="p-3 pb-2 border-b border-border/50 bg-muted/50">
+            <div className="bg-surface-paper   rounded-xl overflow-hidden">
+              <div className="p-3 pb-2  bg-muted/50">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black uppercase text-muted-foreground">
                     Arquivados
@@ -613,11 +613,11 @@ function CustomersPage() {
           {leads.length === 0 ? (
             <EmptyState title="Nenhuma mensagem registrada" />
           ) : (
-            <div className="bg-surface-paper shadow-sm rounded-xl border border-border overflow-hidden">
+            <div className="bg-surface-paper  rounded-xl  overflow-hidden">
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-muted/40 border-b border-border/20">
+                    <TableRow className="bg-muted/40 ">
                       <TableHead>Remetente</TableHead>
                       <TableHead>Mensagem</TableHead>
                       <TableHead>Data</TableHead>
@@ -689,7 +689,7 @@ interface LeadCardProps {
 
 function LeadCard({ lead, onStatusChange, onPromote }: LeadCardProps) {
   return (
-    <div className="bg-background shadow-sm border border-border hover:border-primary/50 transition-colors rounded-xl p-3 space-y-3 relative group">
+    <div className="bg-background   hover:border-primary/50 transition-colors rounded-xl p-3 space-y-3 relative group">
       <div className="space-y-1">
         <h4 className="text-xs font-black tracking-tight text-foreground truncate">
           {lead.full_name}
@@ -707,12 +707,12 @@ function LeadCard({ lead, onStatusChange, onPromote }: LeadCardProps) {
       </div>
 
       {lead.message && (
-        <div className="p-2 bg-muted/40 border border-border/50 text-[10px] text-muted-foreground leading-relaxed line-clamp-3">
+        <div className="p-2 bg-muted/40  text-[10px] text-muted-foreground leading-relaxed line-clamp-3">
           {lead.message}
         </div>
       )}
 
-      <div className="flex items-center justify-between gap-1 pt-1.5 border-t border-border/40">
+      <div className="flex items-center justify-between gap-1 pt-1.5 ">
         {/* Stage controls */}
         <div className="flex items-center gap-0.5">
           {lead.status !== "new" && (
@@ -825,7 +825,7 @@ function LeadDetailsSheetContent({
 
   return (
     <SheetContent side="right" className="sm:max-w-md p-0 overflow-y-auto">
-      <SheetHeader className="px-6 py-4 border-b border-border/10 bg-muted/30">
+      <SheetHeader className="px-6 py-4  bg-muted/30">
         <SheetTitle className="flex items-center gap-2 text-xl font-bold">
           <UserCheck className="size-5 text-primary" />
           Detalhes do Lead
@@ -907,18 +907,18 @@ function LeadDetailsSheetContent({
           </div>
 
           {lead.message && (
-            <div className="space-y-1 pt-4 border-t border-border/50">
+            <div className="space-y-1 pt-4 ">
               <Label className="text-[10px] uppercase text-muted-foreground">
                 Mensagem Original (Contato)
               </Label>
-              <div className="text-sm p-3 bg-muted/30 rounded-xl border border-border/50 text-foreground/80 whitespace-pre-wrap">
+              <div className="text-sm p-3 bg-muted/30 rounded-xl  text-foreground/80 whitespace-pre-wrap">
                 {lead.message}
               </div>
             </div>
           )}
         </div>
 
-        <SheetFooter className="pt-4 border-t border-border/50">
+        <SheetFooter className="pt-4 ">
           <Button type="button" variant="ghost">
             Cancelar
           </Button>

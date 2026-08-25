@@ -24,8 +24,10 @@ import {
 import type { SimulationResult, SyntheticPersona } from "@/lib/simlab/simulator";
 import { cn } from "@/lib/utils";
 
+import { PageHeader } from "@/components/commerce/page-header";
+
 export const Route = createFileRoute("/workspace/simulacao")({
-  head: () => ({ meta: [{ title: "SimLab — Enxame de Clientes IA | JAH" }] }),
+  head: () => ({ meta: [{ title: "SimLab — Enxame de Validação Preditiva | Wider" }] }),
   loader: async () => {
     const [personas, status] = await Promise.all([
       getSeedPersonas(),
@@ -98,50 +100,34 @@ function SimulacaoPage() {
   return (
     <div className="space-y-6 max-w-6xl pb-16">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/60 pb-5">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary">
-              Simwork Engine
-            </span>
-            <Badge
-              variant="outline"
-              className="text-[10px] font-semibold rounded-full border-primary/30 text-primary"
-            >
-              Beta IA
-            </Badge>
-          </div>
-          <h1 className="text-xl md:text-2xl font-bold text-foreground tracking-tight">
-            SimLab — Enxame de Validação Preditiva
-          </h1>
-          <p className="text-xs md:text-sm text-muted-foreground mt-0.5">
-            Teste propostas de produtos, ingressos e campanhas contra {personas.length} personas
-            sintéticas calibradas antes de publicar.
-          </p>
-        </div>
-
-        <Button
-          onClick={handleSimulate}
-          disabled={isRunning}
-          className="rounded-xl font-semibold gap-2 shadow-xs shrink-0"
-        >
-          {isRunning ? (
-            <>
-              <Loader2 className="size-4 animate-spin" />
-              Executando Enxame...
-            </>
-          ) : (
-            <>
-              <Sparkles className="size-4" />
-              Simular Proposta
-            </>
-          )}
-        </Button>
-      </div>
+      <PageHeader
+        eyebrow="Inteligência Artificial"
+        title="SimLab — Enxame de Validação"
+        actions={
+          <Button
+            onClick={handleSimulate}
+            disabled={isRunning}
+            size="sm"
+            className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground  shrink-0"
+          >
+            {isRunning ? (
+              <>
+                <Loader2 className="size-3.5 animate-spin mr-1" />
+                <span>Simulando Enxame...</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="size-3.5" />
+                <span>Executar Simulação</span>
+              </>
+            )}
+          </Button>
+        }
+      />
 
       {/* Admin Master Feature Flag Governance Card */}
       {status?.isAdmin && (
-        <div className="squircle-soft border border-primary/20 bg-primary/5 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+        <div className="squircle-soft border border-primary/20 bg-primary/5 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-xl text-primary shrink-0">
               <Sparkles className="size-5" />
@@ -175,7 +161,7 @@ function SimulacaoPage() {
         <div className="lg:col-span-5 space-y-5">
           <form
             onSubmit={handleSimulate}
-            className="squircle-soft bg-card border border-border p-5 space-y-4 shadow-xs"
+            className="squircle-soft bg-card  p-5 space-y-4 "
           >
             <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
               <Sparkles className="size-4 text-primary" />
@@ -247,7 +233,7 @@ function SimulacaoPage() {
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
                 placeholder="Explique os diferenciais, materiais, horários e proposta..."
-                className="w-full text-xs rounded-xl border border-border bg-background p-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                className="w-full text-xs rounded-xl  bg-background p-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
                 required
               />
             </div>
@@ -272,7 +258,7 @@ function SimulacaoPage() {
           </form>
 
           {/* Personas em Monitoramento */}
-          <div className="squircle-soft bg-card border border-border p-4 space-y-3">
+          <div className="squircle-soft bg-card  p-4 space-y-3">
             <h3 className="text-xs font-bold text-foreground flex items-center justify-between">
               <span className="flex items-center gap-1.5">
                 <Users className="size-3.5 text-primary" />
@@ -286,7 +272,7 @@ function SimulacaoPage() {
               {personas.map((p: SyntheticPersona) => (
                 <div
                   key={p.id}
-                  className="flex items-center justify-between p-2.5 rounded-xl border border-border/60 bg-background text-xs"
+                  className="flex items-center justify-between p-2.5 rounded-xl  bg-background text-xs"
                 >
                   <div>
                     <p className="font-semibold text-foreground">{p.name}</p>
@@ -307,7 +293,7 @@ function SimulacaoPage() {
         {/* Painel Direito: Resultados da Simulação */}
         <div className="lg:col-span-7 space-y-5">
           {!result && !isRunning && (
-            <div className="squircle-soft bg-card border border-dashed border-border p-12 text-center flex flex-col items-center justify-center space-y-3 min-h-[400px]">
+            <div className="squircle-soft bg-card border-0 p-12 text-center flex flex-col items-center justify-center space-y-3 min-h-[400px]">
               <div className="p-4 bg-primary/10 rounded-2xl text-primary">
                 <Sparkles className="size-8" />
               </div>
@@ -321,7 +307,7 @@ function SimulacaoPage() {
           )}
 
           {isRunning && (
-            <div className="squircle-soft bg-card border border-border p-12 text-center flex flex-col items-center justify-center space-y-4 min-h-[400px]">
+            <div className="squircle-soft bg-card  p-12 text-center flex flex-col items-center justify-center space-y-4 min-h-[400px]">
               <Loader2 className="size-10 text-primary animate-spin" />
               <div className="space-y-1">
                 <h3 className="text-base font-bold text-foreground">
@@ -339,7 +325,7 @@ function SimulacaoPage() {
             <div className="space-y-5">
               {/* Score Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="squircle-soft bg-card border border-border p-4 space-y-1 shadow-xs">
+                <div className="squircle-soft bg-card  p-4 space-y-1 ">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                       Atratividade Geral
@@ -352,7 +338,7 @@ function SimulacaoPage() {
                   </p>
                 </div>
 
-                <div className="squircle-soft bg-card border border-border p-4 space-y-1 shadow-xs">
+                <div className="squircle-soft bg-card  p-4 space-y-1 ">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                       Conversão Estimada
@@ -364,7 +350,7 @@ function SimulacaoPage() {
                   </p>
                 </div>
 
-                <div className="squircle-soft bg-card border border-border p-4 space-y-1 shadow-xs">
+                <div className="squircle-soft bg-card  p-4 space-y-1 ">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                       Percepção de Preço
@@ -380,7 +366,7 @@ function SimulacaoPage() {
 
               {/* Recomendações e Objeções */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="squircle-soft bg-card border border-border p-4 space-y-2">
+                <div className="squircle-soft bg-card  p-4 space-y-2">
                   <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
                     <AlertTriangle className="size-3.5 text-amber-500" />
                     Top Objeções Identificadas
@@ -401,7 +387,7 @@ function SimulacaoPage() {
                   )}
                 </div>
 
-                <div className="squircle-soft bg-card border border-border p-4 space-y-2">
+                <div className="squircle-soft bg-card  p-4 space-y-2">
                   <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
                     <CheckCircle2 className="size-3.5 text-emerald-500" />
                     Recomendações do SimLab
@@ -418,7 +404,7 @@ function SimulacaoPage() {
               </div>
 
               {/* Feedbacks Individuais das Personas */}
-              <div className="squircle-soft bg-card border border-border p-5 space-y-4">
+              <div className="squircle-soft bg-card  p-5 space-y-4">
                 <h3 className="text-sm font-bold text-foreground flex items-center justify-between">
                   <span>Reações Detalhadas por Persona</span>
                   <span className="text-xs text-muted-foreground font-normal">
@@ -430,7 +416,7 @@ function SimulacaoPage() {
                   {result.evaluations.map((ev) => (
                     <div
                       key={ev.persona.id}
-                      className="border border-border/70 bg-background rounded-xl p-3.5 space-y-2"
+                      className=" bg-background rounded-xl p-3.5 space-y-2"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -452,7 +438,7 @@ function SimulacaoPage() {
                         </div>
                       </div>
 
-                      <p className="text-xs italic text-foreground/90 bg-muted/30 p-2.5 rounded-lg border border-border/40">
+                      <p className="text-xs italic text-foreground/90 bg-muted/30 p-2.5 rounded-lg ">
                         "{ev.quote}"
                       </p>
 

@@ -14,36 +14,58 @@ import { Route as AdminMasterRouteImport } from './routes/admin-master'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as WorkspaceRouteImport } from './routes/workspace'
 import { Route as StoreIndexRouteImport } from './routes/_store.index'
+import { Route as StoreAcougueRouteImport } from './routes/_store.acougue'
 import { Route as StoreAgendaRouteImport } from './routes/_store.agenda'
 import { Route as StoreAgendarRouteImport } from './routes/_store.agendar'
+import { Route as StoreBebidasRouteImport } from './routes/_store.bebidas'
+import { Route as StoreBelezaRouteImport } from './routes/_store.beleza'
 import { Route as StoreBuscarRouteImport } from './routes/_store.buscar'
 import { Route as StoreCadastroRouteImport } from './routes/_store.cadastro'
 import { Route as StoreCarrinhoRouteImport } from './routes/_store.carrinho'
+import { Route as StoreCasaRouteImport } from './routes/_store.casa'
 import { Route as StoreCheckoutRouteImport } from './routes/_store.checkout'
+import { Route as StoreConstrucaoRouteImport } from './routes/_store.construcao'
 import { Route as StoreContaRouteImport } from './routes/_store.conta'
 import { Route as StoreContatoRouteImport } from './routes/_store.contato'
 import { Route as StoreCriarNegocioRouteImport } from './routes/_store.criar-negocio'
 import { Route as StoreDiretorioRouteImport } from './routes/_store.diretorio'
+import { Route as StoreDoacoesRouteImport } from './routes/_store.doacoes'
+import { Route as StoreEletronicosRouteImport } from './routes/_store.eletronicos'
 import { Route as StoreEmpregosRouteImport } from './routes/_store.empregos'
 import { Route as StoreEntrarRouteImport } from './routes/_store.entrar'
 import { Route as StoreFaqRouteImport } from './routes/_store.faq'
+import { Route as StoreFarmaciaRouteImport } from './routes/_store.farmacia'
+import { Route as StoreGastronomiaRouteImport } from './routes/_store.gastronomia'
+import { Route as StoreImoveisRouteImport } from './routes/_store.imoveis'
+import { Route as StoreLimpezaRouteImport } from './routes/_store.limpeza'
+import { Route as StoreLivrosRouteImport } from './routes/_store.livros'
 import { Route as StoreMapaRouteImport } from './routes/_store.mapa'
 import { Route as StoreMatchTimeRouteImport } from './routes/_store.match-time'
 import { Route as StoreMercadoRouteImport } from './routes/_store.mercado'
 import { Route as StoreMobilidadeRouteImport } from './routes/_store.mobilidade'
+import { Route as StoreModaRouteImport } from './routes/_store.moda'
 import { Route as StoreMuralRouteImport } from './routes/_store.mural'
+import { Route as StoreOfertasRouteImport } from './routes/_store.ofertas'
 import { Route as StorePerfilDaLojaRouteImport } from './routes/_store.perfil-da-loja'
+import { Route as StorePetRouteImport } from './routes/_store.pet'
 import { Route as StorePrivacidadeRouteImport } from './routes/_store.privacidade'
 import { Route as StoreRecuperarSenhaRouteImport } from './routes/_store.recuperar-senha'
+import { Route as StoreServicosRouteImport } from './routes/_store.servicos'
 import { Route as StoreStoriesRouteImport } from './routes/_store.stories'
 import { Route as StoreTermosRouteImport } from './routes/_store.termos'
 import { Route as StoreTrocasEDevolucoesRouteImport } from './routes/_store.trocas-e-devolucoes'
 import { Route as StoreTurismoRouteImport } from './routes/_store.turismo'
 import { Route as AdminMasterIndexRouteImport } from './routes/admin-master.index'
+import { Route as AdminMasterBannersRouteImport } from './routes/admin-master.banners'
+import { Route as AdminMasterBotoesRouteImport } from './routes/admin-master.botoes'
 import { Route as AdminMasterDenunciasRouteImport } from './routes/admin-master.denuncias'
 import { Route as AdminMasterFaturasRouteImport } from './routes/admin-master.faturas'
+import { Route as AdminMasterHubsRouteImport } from './routes/admin-master.hubs'
+import { Route as AdminMasterIntegracoesRouteImport } from './routes/admin-master.integracoes'
 import { Route as AdminMasterKycRouteImport } from './routes/admin-master.kyc'
 import { Route as AdminMasterLojasRouteImport } from './routes/admin-master.lojas'
+import { Route as AdminMasterMarcaRouteImport } from './routes/admin-master.marca'
+import { Route as AdminMasterTermosRouteImport } from './routes/admin-master.termos'
 import { Route as AdminMasterUsuariosRouteImport } from './routes/admin-master.usuarios'
 import { Route as AssinarTokenRouteImport } from './routes/assinar.$token'
 import { Route as WorkspaceIndexRouteImport } from './routes/workspace.index'
@@ -59,15 +81,22 @@ import { Route as StoreContaAvaliacoesRouteImport } from './routes/_store.conta.
 import { Route as StoreContaCreditosRouteImport } from './routes/_store.conta.creditos'
 import { Route as StoreContaEnderecosRouteImport } from './routes/_store.conta.enderecos'
 import { Route as StoreContaGiftCardsRouteImport } from './routes/_store.conta.gift-cards'
+import { Route as StoreContaLojasRouteImport } from './routes/_store.conta.lojas'
+import { Route as StoreContaMetricasRouteImport } from './routes/_store.conta.metricas'
 import { Route as StoreContaMobilidadeRouteImport } from './routes/_store.conta.mobilidade'
 import { Route as StoreContaNegociacoesRouteImport } from './routes/_store.conta.negociacoes'
+import { Route as StoreContaNotificacoesRouteImport } from './routes/_store.conta.notificacoes'
+import { Route as StoreContaPacotesRouteImport } from './routes/_store.conta.pacotes'
 import { Route as StoreContaPagamentosRouteImport } from './routes/_store.conta.pagamentos'
 import { Route as StoreContaPerfilRouteImport } from './routes/_store.conta.perfil'
 import { Route as StoreContaSalvosRouteImport } from './routes/_store.conta.salvos'
 import { Route as StoreContaSuporteRouteImport } from './routes/_store.conta.suporte'
 import { Route as StoreContaTrocasRouteImport } from './routes/_store.conta.trocas'
+import { Route as StoreContaViagensRouteImport } from './routes/_store.conta.viagens'
 import { Route as StoreDestaquesSlugRouteImport } from './routes/_store.destaques.$slug'
+import { Route as StoreDiretorioIndexRouteImport } from './routes/_store.diretorio.index'
 import { Route as StoreDiretorioIdRouteImport } from './routes/_store.diretorio.$id'
+import { Route as StoreEmpregosIndexRouteImport } from './routes/_store.empregos.index'
 import { Route as StoreEmpregosIdRouteImport } from './routes/_store.empregos.$id'
 import { Route as StoreEntregaTokenRouteImport } from './routes/_store.entrega.$token'
 import { Route as StoreEventoIdRouteImport } from './routes/_store.evento.$id'
@@ -79,7 +108,9 @@ import { Route as StoreNoticiasSlugRouteImport } from './routes/_store.noticias.
 import { Route as StorePaginasSlugRouteImport } from './routes/_store.paginas.$slug'
 import { Route as StorePoliticasSlugRouteImport } from './routes/_store.politicas.$slug'
 import { Route as StoreProdutoSlugRouteImport } from './routes/_store.produto.$slug'
+import { Route as StoreTurismoIndexRouteImport } from './routes/_store.turismo.index'
 import { Route as StoreTurismoIdRouteImport } from './routes/_store.turismo.$id'
+import { Route as StoreUUsernameRouteImport } from './routes/_store.u.$username'
 import { Route as StoreVendedoraSlugRouteImport } from './routes/_store.vendedora.$slug'
 import { Route as ApiAuthCallbackRouteImport } from './routes/api.auth.callback'
 import { Route as ApiAuthConfirmRouteImport } from './routes/api.auth.confirm'
@@ -97,6 +128,7 @@ import { Route as WorkspaceCmsBioRouteImport } from './routes/workspace.cms.bio'
 import { Route as WorkspaceCmsCalendarioRouteImport } from './routes/workspace.cms.calendario'
 import { Route as WorkspaceCmsNavegacaoRouteImport } from './routes/workspace.cms.navegacao'
 import { Route as WorkspaceCmsStoriesRouteImport } from './routes/workspace.cms.stories'
+import { Route as WorkspaceConfiguracoesIndexRouteImport } from './routes/workspace.configuracoes.index'
 import { Route as WorkspaceConfiguracoesAiRouteImport } from './routes/workspace.configuracoes.ai'
 import { Route as WorkspaceConfiguracoesIntegracoesRouteImport } from './routes/workspace.configuracoes.integracoes'
 import { Route as WorkspaceConfiguracoesParceirosRouteImport } from './routes/workspace.configuracoes.parceiros'
@@ -114,6 +146,7 @@ import { Route as WorkspaceImoveisManutencoesRouteImport } from './routes/worksp
 import { Route as WorkspaceLogisticaFaturasRouteImport } from './routes/workspace.logistica.faturas'
 import { Route as WorkspaceLogisticaPudoRouteImport } from './routes/workspace.logistica.pudo'
 import { Route as WorkspaceLogisticaTabelasRouteImport } from './routes/workspace.logistica.tabelas'
+import { Route as WorkspaceLojasIndexRouteImport } from './routes/workspace.lojas.index'
 import { Route as WorkspaceMarketingAnunciosRouteImport } from './routes/workspace.marketing.anuncios'
 import { Route as WorkspaceMarketingBannersRouteImport } from './routes/workspace.marketing.banners'
 import { Route as WorkspaceMarketingCarrinhosRouteImport } from './routes/workspace.marketing.carrinhos'
@@ -128,6 +161,7 @@ import { Route as WorkspaceNoticiasNovoRouteImport } from './routes/workspace.no
 import { Route as WorkspaceOrcamentosIndexRouteImport } from './routes/workspace.orcamentos.index'
 import { Route as WorkspaceOrcamentosIdRouteImport } from './routes/workspace.orcamentos.$id'
 import { Route as WorkspaceOrcamentosNovoRouteImport } from './routes/workspace.orcamentos.novo'
+import { Route as WorkspacePacotesIndexRouteImport } from './routes/workspace.pacotes.index'
 import { Route as WorkspacePdvIndexRouteImport } from './routes/workspace.pdv.index'
 import { Route as WorkspacePdvComandasRouteImport } from './routes/workspace.pdv.comandas'
 import { Route as WorkspacePedidosIndexRouteImport } from './routes/workspace.pedidos.index'
@@ -135,6 +169,7 @@ import { Route as WorkspacePedidosIdRouteImport } from './routes/workspace.pedid
 import { Route as WorkspacePedidosFrotaRouteImport } from './routes/workspace.pedidos.frota'
 import { Route as WorkspacePedidosGestorRouteImport } from './routes/workspace.pedidos.gestor'
 import { Route as WorkspacePedidosTrocasRouteImport } from './routes/workspace.pedidos.trocas'
+import { Route as WorkspaceTurismoCotacoesRouteImport } from './routes/workspace.turismo.cotacoes'
 import { Route as StoreContaClassificadosIndexRouteImport } from './routes/_store.conta.classificados.index'
 import { Route as StoreContaClassificadosNovoRouteImport } from './routes/_store.conta.classificados.novo'
 import { Route as StoreContaConversasIdRouteImport } from './routes/_store.conta.conversas.$id'
@@ -188,6 +223,11 @@ const StoreIndexRoute = StoreIndexRouteImport.update({
   path: '/',
   getParentRoute: () => StoreRoute,
 } as any)
+const StoreAcougueRoute = StoreAcougueRouteImport.update({
+  id: '/acougue',
+  path: '/acougue',
+  getParentRoute: () => StoreRoute,
+} as any)
 const StoreAgendaRoute = StoreAgendaRouteImport.update({
   id: '/agenda',
   path: '/agenda',
@@ -196,6 +236,16 @@ const StoreAgendaRoute = StoreAgendaRouteImport.update({
 const StoreAgendarRoute = StoreAgendarRouteImport.update({
   id: '/agendar',
   path: '/agendar',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StoreBebidasRoute = StoreBebidasRouteImport.update({
+  id: '/bebidas',
+  path: '/bebidas',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StoreBelezaRoute = StoreBelezaRouteImport.update({
+  id: '/beleza',
+  path: '/beleza',
   getParentRoute: () => StoreRoute,
 } as any)
 const StoreBuscarRoute = StoreBuscarRouteImport.update({
@@ -213,9 +263,19 @@ const StoreCarrinhoRoute = StoreCarrinhoRouteImport.update({
   path: '/carrinho',
   getParentRoute: () => StoreRoute,
 } as any)
+const StoreCasaRoute = StoreCasaRouteImport.update({
+  id: '/casa',
+  path: '/casa',
+  getParentRoute: () => StoreRoute,
+} as any)
 const StoreCheckoutRoute = StoreCheckoutRouteImport.update({
   id: '/checkout',
   path: '/checkout',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StoreConstrucaoRoute = StoreConstrucaoRouteImport.update({
+  id: '/construcao',
+  path: '/construcao',
   getParentRoute: () => StoreRoute,
 } as any)
 const StoreContaRoute = StoreContaRouteImport.update({
@@ -238,6 +298,16 @@ const StoreDiretorioRoute = StoreDiretorioRouteImport.update({
   path: '/diretorio',
   getParentRoute: () => StoreRoute,
 } as any)
+const StoreDoacoesRoute = StoreDoacoesRouteImport.update({
+  id: '/doacoes',
+  path: '/doacoes',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StoreEletronicosRoute = StoreEletronicosRouteImport.update({
+  id: '/eletronicos',
+  path: '/eletronicos',
+  getParentRoute: () => StoreRoute,
+} as any)
 const StoreEmpregosRoute = StoreEmpregosRouteImport.update({
   id: '/empregos',
   path: '/empregos',
@@ -251,6 +321,31 @@ const StoreEntrarRoute = StoreEntrarRouteImport.update({
 const StoreFaqRoute = StoreFaqRouteImport.update({
   id: '/faq',
   path: '/faq',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StoreFarmaciaRoute = StoreFarmaciaRouteImport.update({
+  id: '/farmacia',
+  path: '/farmacia',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StoreGastronomiaRoute = StoreGastronomiaRouteImport.update({
+  id: '/gastronomia',
+  path: '/gastronomia',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StoreImoveisRoute = StoreImoveisRouteImport.update({
+  id: '/imoveis',
+  path: '/imoveis',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StoreLimpezaRoute = StoreLimpezaRouteImport.update({
+  id: '/limpeza',
+  path: '/limpeza',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StoreLivrosRoute = StoreLivrosRouteImport.update({
+  id: '/livros',
+  path: '/livros',
   getParentRoute: () => StoreRoute,
 } as any)
 const StoreMapaRoute = StoreMapaRouteImport.update({
@@ -273,14 +368,29 @@ const StoreMobilidadeRoute = StoreMobilidadeRouteImport.update({
   path: '/mobilidade',
   getParentRoute: () => StoreRoute,
 } as any)
+const StoreModaRoute = StoreModaRouteImport.update({
+  id: '/moda',
+  path: '/moda',
+  getParentRoute: () => StoreRoute,
+} as any)
 const StoreMuralRoute = StoreMuralRouteImport.update({
   id: '/mural',
   path: '/mural',
   getParentRoute: () => StoreRoute,
 } as any)
+const StoreOfertasRoute = StoreOfertasRouteImport.update({
+  id: '/ofertas',
+  path: '/ofertas',
+  getParentRoute: () => StoreRoute,
+} as any)
 const StorePerfilDaLojaRoute = StorePerfilDaLojaRouteImport.update({
   id: '/perfil-da-loja',
   path: '/perfil-da-loja',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StorePetRoute = StorePetRouteImport.update({
+  id: '/pet',
+  path: '/pet',
   getParentRoute: () => StoreRoute,
 } as any)
 const StorePrivacidadeRoute = StorePrivacidadeRouteImport.update({
@@ -291,6 +401,11 @@ const StorePrivacidadeRoute = StorePrivacidadeRouteImport.update({
 const StoreRecuperarSenhaRoute = StoreRecuperarSenhaRouteImport.update({
   id: '/recuperar-senha',
   path: '/recuperar-senha',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StoreServicosRoute = StoreServicosRouteImport.update({
+  id: '/servicos',
+  path: '/servicos',
   getParentRoute: () => StoreRoute,
 } as any)
 const StoreStoriesRoute = StoreStoriesRouteImport.update({
@@ -318,6 +433,16 @@ const AdminMasterIndexRoute = AdminMasterIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminMasterRoute,
 } as any)
+const AdminMasterBannersRoute = AdminMasterBannersRouteImport.update({
+  id: '/banners',
+  path: '/banners',
+  getParentRoute: () => AdminMasterRoute,
+} as any)
+const AdminMasterBotoesRoute = AdminMasterBotoesRouteImport.update({
+  id: '/botoes',
+  path: '/botoes',
+  getParentRoute: () => AdminMasterRoute,
+} as any)
 const AdminMasterDenunciasRoute = AdminMasterDenunciasRouteImport.update({
   id: '/denuncias',
   path: '/denuncias',
@@ -328,6 +453,16 @@ const AdminMasterFaturasRoute = AdminMasterFaturasRouteImport.update({
   path: '/faturas',
   getParentRoute: () => AdminMasterRoute,
 } as any)
+const AdminMasterHubsRoute = AdminMasterHubsRouteImport.update({
+  id: '/hubs',
+  path: '/hubs',
+  getParentRoute: () => AdminMasterRoute,
+} as any)
+const AdminMasterIntegracoesRoute = AdminMasterIntegracoesRouteImport.update({
+  id: '/integracoes',
+  path: '/integracoes',
+  getParentRoute: () => AdminMasterRoute,
+} as any)
 const AdminMasterKycRoute = AdminMasterKycRouteImport.update({
   id: '/kyc',
   path: '/kyc',
@@ -336,6 +471,16 @@ const AdminMasterKycRoute = AdminMasterKycRouteImport.update({
 const AdminMasterLojasRoute = AdminMasterLojasRouteImport.update({
   id: '/lojas',
   path: '/lojas',
+  getParentRoute: () => AdminMasterRoute,
+} as any)
+const AdminMasterMarcaRoute = AdminMasterMarcaRouteImport.update({
+  id: '/marca',
+  path: '/marca',
+  getParentRoute: () => AdminMasterRoute,
+} as any)
+const AdminMasterTermosRoute = AdminMasterTermosRouteImport.update({
+  id: '/termos',
+  path: '/termos',
   getParentRoute: () => AdminMasterRoute,
 } as any)
 const AdminMasterUsuariosRoute = AdminMasterUsuariosRouteImport.update({
@@ -413,6 +558,16 @@ const StoreContaGiftCardsRoute = StoreContaGiftCardsRouteImport.update({
   path: '/gift-cards',
   getParentRoute: () => StoreContaRoute,
 } as any)
+const StoreContaLojasRoute = StoreContaLojasRouteImport.update({
+  id: '/lojas',
+  path: '/lojas',
+  getParentRoute: () => StoreContaRoute,
+} as any)
+const StoreContaMetricasRoute = StoreContaMetricasRouteImport.update({
+  id: '/metricas',
+  path: '/metricas',
+  getParentRoute: () => StoreContaRoute,
+} as any)
 const StoreContaMobilidadeRoute = StoreContaMobilidadeRouteImport.update({
   id: '/mobilidade',
   path: '/mobilidade',
@@ -421,6 +576,16 @@ const StoreContaMobilidadeRoute = StoreContaMobilidadeRouteImport.update({
 const StoreContaNegociacoesRoute = StoreContaNegociacoesRouteImport.update({
   id: '/negociacoes',
   path: '/negociacoes',
+  getParentRoute: () => StoreContaRoute,
+} as any)
+const StoreContaNotificacoesRoute = StoreContaNotificacoesRouteImport.update({
+  id: '/notificacoes',
+  path: '/notificacoes',
+  getParentRoute: () => StoreContaRoute,
+} as any)
+const StoreContaPacotesRoute = StoreContaPacotesRouteImport.update({
+  id: '/pacotes',
+  path: '/pacotes',
   getParentRoute: () => StoreContaRoute,
 } as any)
 const StoreContaPagamentosRoute = StoreContaPagamentosRouteImport.update({
@@ -448,15 +613,30 @@ const StoreContaTrocasRoute = StoreContaTrocasRouteImport.update({
   path: '/trocas',
   getParentRoute: () => StoreContaRoute,
 } as any)
+const StoreContaViagensRoute = StoreContaViagensRouteImport.update({
+  id: '/viagens',
+  path: '/viagens',
+  getParentRoute: () => StoreContaRoute,
+} as any)
 const StoreDestaquesSlugRoute = StoreDestaquesSlugRouteImport.update({
   id: '/destaques/$slug',
   path: '/destaques/$slug',
   getParentRoute: () => StoreRoute,
 } as any)
+const StoreDiretorioIndexRoute = StoreDiretorioIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => StoreDiretorioRoute,
+} as any)
 const StoreDiretorioIdRoute = StoreDiretorioIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => StoreDiretorioRoute,
+} as any)
+const StoreEmpregosIndexRoute = StoreEmpregosIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => StoreEmpregosRoute,
 } as any)
 const StoreEmpregosIdRoute = StoreEmpregosIdRouteImport.update({
   id: '/$id',
@@ -513,10 +693,20 @@ const StoreProdutoSlugRoute = StoreProdutoSlugRouteImport.update({
   path: '/produto/$slug',
   getParentRoute: () => StoreRoute,
 } as any)
+const StoreTurismoIndexRoute = StoreTurismoIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => StoreTurismoRoute,
+} as any)
 const StoreTurismoIdRoute = StoreTurismoIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => StoreTurismoRoute,
+} as any)
+const StoreUUsernameRoute = StoreUUsernameRouteImport.update({
+  id: '/u/$username',
+  path: '/u/$username',
+  getParentRoute: () => StoreRoute,
 } as any)
 const StoreVendedoraSlugRoute = StoreVendedoraSlugRouteImport.update({
   id: '/vendedora/$slug',
@@ -604,6 +794,12 @@ const WorkspaceCmsStoriesRoute = WorkspaceCmsStoriesRouteImport.update({
   path: '/cms/stories',
   getParentRoute: () => WorkspaceRoute,
 } as any)
+const WorkspaceConfiguracoesIndexRoute =
+  WorkspaceConfiguracoesIndexRouteImport.update({
+    id: '/configuracoes/',
+    path: '/configuracoes/',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
 const WorkspaceConfiguracoesAiRoute =
   WorkspaceConfiguracoesAiRouteImport.update({
     id: '/configuracoes/ai',
@@ -702,6 +898,11 @@ const WorkspaceLogisticaTabelasRoute =
     path: '/logistica/tabelas',
     getParentRoute: () => WorkspaceRoute,
   } as any)
+const WorkspaceLojasIndexRoute = WorkspaceLojasIndexRouteImport.update({
+  id: '/lojas/',
+  path: '/lojas/',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
 const WorkspaceMarketingAnunciosRoute =
   WorkspaceMarketingAnunciosRouteImport.update({
     id: '/marketing/anuncios',
@@ -781,6 +982,11 @@ const WorkspaceOrcamentosNovoRoute = WorkspaceOrcamentosNovoRouteImport.update({
   path: '/orcamentos/novo',
   getParentRoute: () => WorkspaceRoute,
 } as any)
+const WorkspacePacotesIndexRoute = WorkspacePacotesIndexRouteImport.update({
+  id: '/pacotes/',
+  path: '/pacotes/',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
 const WorkspacePdvIndexRoute = WorkspacePdvIndexRouteImport.update({
   id: '/pdv/',
   path: '/pdv/',
@@ -816,6 +1022,12 @@ const WorkspacePedidosTrocasRoute = WorkspacePedidosTrocasRouteImport.update({
   path: '/pedidos/trocas',
   getParentRoute: () => WorkspaceRoute,
 } as any)
+const WorkspaceTurismoCotacoesRoute =
+  WorkspaceTurismoCotacoesRouteImport.update({
+    id: '/turismo/cotacoes',
+    path: '/turismo/cotacoes',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
 const StoreContaClassificadosIndexRoute =
   StoreContaClassificadosIndexRouteImport.update({
     id: '/classificados/',
@@ -987,35 +1199,57 @@ export interface FileRoutesByFullPath {
   '/admin-master': typeof AdminMasterRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/workspace': typeof WorkspaceRouteWithChildren
+  '/acougue': typeof StoreAcougueRoute
   '/agenda': typeof StoreAgendaRoute
   '/agendar': typeof StoreAgendarRouteWithChildren
+  '/bebidas': typeof StoreBebidasRoute
+  '/beleza': typeof StoreBelezaRoute
   '/buscar': typeof StoreBuscarRoute
   '/cadastro': typeof StoreCadastroRoute
   '/carrinho': typeof StoreCarrinhoRoute
+  '/casa': typeof StoreCasaRoute
   '/checkout': typeof StoreCheckoutRoute
+  '/construcao': typeof StoreConstrucaoRoute
   '/conta': typeof StoreContaRouteWithChildren
   '/contato': typeof StoreContatoRoute
   '/criar-negocio': typeof StoreCriarNegocioRoute
   '/diretorio': typeof StoreDiretorioRouteWithChildren
+  '/doacoes': typeof StoreDoacoesRoute
+  '/eletronicos': typeof StoreEletronicosRoute
   '/empregos': typeof StoreEmpregosRouteWithChildren
   '/entrar': typeof StoreEntrarRoute
   '/faq': typeof StoreFaqRoute
+  '/farmacia': typeof StoreFarmaciaRoute
+  '/gastronomia': typeof StoreGastronomiaRoute
+  '/imoveis': typeof StoreImoveisRoute
+  '/limpeza': typeof StoreLimpezaRoute
+  '/livros': typeof StoreLivrosRoute
   '/mapa': typeof StoreMapaRoute
   '/match-time': typeof StoreMatchTimeRoute
   '/mercado': typeof StoreMercadoRoute
   '/mobilidade': typeof StoreMobilidadeRoute
+  '/moda': typeof StoreModaRoute
   '/mural': typeof StoreMuralRoute
+  '/ofertas': typeof StoreOfertasRoute
   '/perfil-da-loja': typeof StorePerfilDaLojaRoute
+  '/pet': typeof StorePetRoute
   '/privacidade': typeof StorePrivacidadeRoute
   '/recuperar-senha': typeof StoreRecuperarSenhaRoute
+  '/servicos': typeof StoreServicosRoute
   '/stories': typeof StoreStoriesRoute
   '/termos': typeof StoreTermosRoute
   '/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
   '/turismo': typeof StoreTurismoRouteWithChildren
+  '/admin-master/banners': typeof AdminMasterBannersRoute
+  '/admin-master/botoes': typeof AdminMasterBotoesRoute
   '/admin-master/denuncias': typeof AdminMasterDenunciasRoute
   '/admin-master/faturas': typeof AdminMasterFaturasRoute
+  '/admin-master/hubs': typeof AdminMasterHubsRoute
+  '/admin-master/integracoes': typeof AdminMasterIntegracoesRoute
   '/admin-master/kyc': typeof AdminMasterKycRoute
   '/admin-master/lojas': typeof AdminMasterLojasRoute
+  '/admin-master/marca': typeof AdminMasterMarcaRoute
+  '/admin-master/termos': typeof AdminMasterTermosRoute
   '/admin-master/usuarios': typeof AdminMasterUsuariosRoute
   '/assinar/$token': typeof AssinarTokenRoute
   '/workspace/simulacao': typeof WorkspaceSimulacaoRoute
@@ -1029,13 +1263,18 @@ export interface FileRoutesByFullPath {
   '/conta/creditos': typeof StoreContaCreditosRoute
   '/conta/enderecos': typeof StoreContaEnderecosRoute
   '/conta/gift-cards': typeof StoreContaGiftCardsRoute
+  '/conta/lojas': typeof StoreContaLojasRoute
+  '/conta/metricas': typeof StoreContaMetricasRoute
   '/conta/mobilidade': typeof StoreContaMobilidadeRoute
   '/conta/negociacoes': typeof StoreContaNegociacoesRoute
+  '/conta/notificacoes': typeof StoreContaNotificacoesRoute
+  '/conta/pacotes': typeof StoreContaPacotesRoute
   '/conta/pagamentos': typeof StoreContaPagamentosRoute
   '/conta/perfil': typeof StoreContaPerfilRoute
   '/conta/salvos': typeof StoreContaSalvosRoute
   '/conta/suporte': typeof StoreContaSuporteRoute
   '/conta/trocas': typeof StoreContaTrocasRoute
+  '/conta/viagens': typeof StoreContaViagensRoute
   '/destaques/$slug': typeof StoreDestaquesSlugRoute
   '/diretorio/$id': typeof StoreDiretorioIdRoute
   '/empregos/$id': typeof StoreEmpregosIdRoute
@@ -1049,6 +1288,7 @@ export interface FileRoutesByFullPath {
   '/politicas/$slug': typeof StorePoliticasSlugRoute
   '/produto/$slug': typeof StoreProdutoSlugRoute
   '/turismo/$id': typeof StoreTurismoIdRoute
+  '/u/$username': typeof StoreUUsernameRoute
   '/vendedora/$slug': typeof StoreVendedoraSlugRoute
   '/api/auth/callback': typeof ApiAuthCallbackRoute
   '/api/auth/confirm': typeof ApiAuthConfirmRoute
@@ -1095,17 +1335,24 @@ export interface FileRoutesByFullPath {
   '/workspace/pedidos/frota': typeof WorkspacePedidosFrotaRoute
   '/workspace/pedidos/gestor': typeof WorkspacePedidosGestorRoute
   '/workspace/pedidos/trocas': typeof WorkspacePedidosTrocasRoute
+  '/workspace/turismo/cotacoes': typeof WorkspaceTurismoCotacoesRoute
   '/agendar/': typeof StoreAgendarIndexRoute
   '/classificados/': typeof StoreClassificadosIndexRoute
   '/conta/': typeof StoreContaIndexRoute
+  '/diretorio/': typeof StoreDiretorioIndexRoute
+  '/empregos/': typeof StoreEmpregosIndexRoute
   '/noticias/': typeof StoreNoticiasIndexRoute
+  '/turismo/': typeof StoreTurismoIndexRoute
   '/workspace/agenda/': typeof WorkspaceAgendaIndexRoute
   '/workspace/clientes/': typeof WorkspaceClientesIndexRoute
+  '/workspace/configuracoes/': typeof WorkspaceConfiguracoesIndexRoute
   '/workspace/estoque/': typeof WorkspaceEstoqueIndexRoute
   '/workspace/estudio/': typeof WorkspaceEstudioIndexRoute
+  '/workspace/lojas/': typeof WorkspaceLojasIndexRoute
   '/workspace/moderacao/': typeof WorkspaceModeracaoIndexRoute
   '/workspace/noticias/': typeof WorkspaceNoticiasIndexRoute
   '/workspace/orcamentos/': typeof WorkspaceOrcamentosIndexRoute
+  '/workspace/pacotes/': typeof WorkspacePacotesIndexRoute
   '/workspace/pdv/': typeof WorkspacePdvIndexRoute
   '/workspace/pedidos/': typeof WorkspacePedidosIndexRoute
   '/conta/classificados/novo': typeof StoreContaClassificadosNovoRoute
@@ -1139,33 +1386,52 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/acougue': typeof StoreAcougueRoute
   '/agenda': typeof StoreAgendaRoute
+  '/bebidas': typeof StoreBebidasRoute
+  '/beleza': typeof StoreBelezaRoute
   '/buscar': typeof StoreBuscarRoute
   '/cadastro': typeof StoreCadastroRoute
   '/carrinho': typeof StoreCarrinhoRoute
+  '/casa': typeof StoreCasaRoute
   '/checkout': typeof StoreCheckoutRoute
+  '/construcao': typeof StoreConstrucaoRoute
   '/contato': typeof StoreContatoRoute
   '/criar-negocio': typeof StoreCriarNegocioRoute
-  '/diretorio': typeof StoreDiretorioRouteWithChildren
-  '/empregos': typeof StoreEmpregosRouteWithChildren
+  '/doacoes': typeof StoreDoacoesRoute
+  '/eletronicos': typeof StoreEletronicosRoute
   '/entrar': typeof StoreEntrarRoute
   '/faq': typeof StoreFaqRoute
+  '/farmacia': typeof StoreFarmaciaRoute
+  '/gastronomia': typeof StoreGastronomiaRoute
+  '/imoveis': typeof StoreImoveisRoute
+  '/limpeza': typeof StoreLimpezaRoute
+  '/livros': typeof StoreLivrosRoute
   '/mapa': typeof StoreMapaRoute
   '/match-time': typeof StoreMatchTimeRoute
   '/mercado': typeof StoreMercadoRoute
   '/mobilidade': typeof StoreMobilidadeRoute
+  '/moda': typeof StoreModaRoute
   '/mural': typeof StoreMuralRoute
+  '/ofertas': typeof StoreOfertasRoute
   '/perfil-da-loja': typeof StorePerfilDaLojaRoute
+  '/pet': typeof StorePetRoute
   '/privacidade': typeof StorePrivacidadeRoute
   '/recuperar-senha': typeof StoreRecuperarSenhaRoute
+  '/servicos': typeof StoreServicosRoute
   '/stories': typeof StoreStoriesRoute
   '/termos': typeof StoreTermosRoute
   '/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
-  '/turismo': typeof StoreTurismoRouteWithChildren
+  '/admin-master/banners': typeof AdminMasterBannersRoute
+  '/admin-master/botoes': typeof AdminMasterBotoesRoute
   '/admin-master/denuncias': typeof AdminMasterDenunciasRoute
   '/admin-master/faturas': typeof AdminMasterFaturasRoute
+  '/admin-master/hubs': typeof AdminMasterHubsRoute
+  '/admin-master/integracoes': typeof AdminMasterIntegracoesRoute
   '/admin-master/kyc': typeof AdminMasterKycRoute
   '/admin-master/lojas': typeof AdminMasterLojasRoute
+  '/admin-master/marca': typeof AdminMasterMarcaRoute
+  '/admin-master/termos': typeof AdminMasterTermosRoute
   '/admin-master/usuarios': typeof AdminMasterUsuariosRoute
   '/assinar/$token': typeof AssinarTokenRoute
   '/workspace/simulacao': typeof WorkspaceSimulacaoRoute
@@ -1180,13 +1446,18 @@ export interface FileRoutesByTo {
   '/conta/creditos': typeof StoreContaCreditosRoute
   '/conta/enderecos': typeof StoreContaEnderecosRoute
   '/conta/gift-cards': typeof StoreContaGiftCardsRoute
+  '/conta/lojas': typeof StoreContaLojasRoute
+  '/conta/metricas': typeof StoreContaMetricasRoute
   '/conta/mobilidade': typeof StoreContaMobilidadeRoute
   '/conta/negociacoes': typeof StoreContaNegociacoesRoute
+  '/conta/notificacoes': typeof StoreContaNotificacoesRoute
+  '/conta/pacotes': typeof StoreContaPacotesRoute
   '/conta/pagamentos': typeof StoreContaPagamentosRoute
   '/conta/perfil': typeof StoreContaPerfilRoute
   '/conta/salvos': typeof StoreContaSalvosRoute
   '/conta/suporte': typeof StoreContaSuporteRoute
   '/conta/trocas': typeof StoreContaTrocasRoute
+  '/conta/viagens': typeof StoreContaViagensRoute
   '/destaques/$slug': typeof StoreDestaquesSlugRoute
   '/diretorio/$id': typeof StoreDiretorioIdRoute
   '/empregos/$id': typeof StoreEmpregosIdRoute
@@ -1200,6 +1471,7 @@ export interface FileRoutesByTo {
   '/politicas/$slug': typeof StorePoliticasSlugRoute
   '/produto/$slug': typeof StoreProdutoSlugRoute
   '/turismo/$id': typeof StoreTurismoIdRoute
+  '/u/$username': typeof StoreUUsernameRoute
   '/vendedora/$slug': typeof StoreVendedoraSlugRoute
   '/api/auth/callback': typeof ApiAuthCallbackRoute
   '/api/auth/confirm': typeof ApiAuthConfirmRoute
@@ -1246,17 +1518,24 @@ export interface FileRoutesByTo {
   '/workspace/pedidos/frota': typeof WorkspacePedidosFrotaRoute
   '/workspace/pedidos/gestor': typeof WorkspacePedidosGestorRoute
   '/workspace/pedidos/trocas': typeof WorkspacePedidosTrocasRoute
+  '/workspace/turismo/cotacoes': typeof WorkspaceTurismoCotacoesRoute
   '/agendar': typeof StoreAgendarIndexRoute
   '/classificados': typeof StoreClassificadosIndexRoute
   '/conta': typeof StoreContaIndexRoute
+  '/diretorio': typeof StoreDiretorioIndexRoute
+  '/empregos': typeof StoreEmpregosIndexRoute
   '/noticias': typeof StoreNoticiasIndexRoute
+  '/turismo': typeof StoreTurismoIndexRoute
   '/workspace/agenda': typeof WorkspaceAgendaIndexRoute
   '/workspace/clientes': typeof WorkspaceClientesIndexRoute
+  '/workspace/configuracoes': typeof WorkspaceConfiguracoesIndexRoute
   '/workspace/estoque': typeof WorkspaceEstoqueIndexRoute
   '/workspace/estudio': typeof WorkspaceEstudioIndexRoute
+  '/workspace/lojas': typeof WorkspaceLojasIndexRoute
   '/workspace/moderacao': typeof WorkspaceModeracaoIndexRoute
   '/workspace/noticias': typeof WorkspaceNoticiasIndexRoute
   '/workspace/orcamentos': typeof WorkspaceOrcamentosIndexRoute
+  '/workspace/pacotes': typeof WorkspacePacotesIndexRoute
   '/workspace/pdv': typeof WorkspacePdvIndexRoute
   '/workspace/pedidos': typeof WorkspacePedidosIndexRoute
   '/conta/classificados/novo': typeof StoreContaClassificadosNovoRoute
@@ -1294,35 +1573,57 @@ export interface FileRoutesById {
   '/admin-master': typeof AdminMasterRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/workspace': typeof WorkspaceRouteWithChildren
+  '/_store/acougue': typeof StoreAcougueRoute
   '/_store/agenda': typeof StoreAgendaRoute
   '/_store/agendar': typeof StoreAgendarRouteWithChildren
+  '/_store/bebidas': typeof StoreBebidasRoute
+  '/_store/beleza': typeof StoreBelezaRoute
   '/_store/buscar': typeof StoreBuscarRoute
   '/_store/cadastro': typeof StoreCadastroRoute
   '/_store/carrinho': typeof StoreCarrinhoRoute
+  '/_store/casa': typeof StoreCasaRoute
   '/_store/checkout': typeof StoreCheckoutRoute
+  '/_store/construcao': typeof StoreConstrucaoRoute
   '/_store/conta': typeof StoreContaRouteWithChildren
   '/_store/contato': typeof StoreContatoRoute
   '/_store/criar-negocio': typeof StoreCriarNegocioRoute
   '/_store/diretorio': typeof StoreDiretorioRouteWithChildren
+  '/_store/doacoes': typeof StoreDoacoesRoute
+  '/_store/eletronicos': typeof StoreEletronicosRoute
   '/_store/empregos': typeof StoreEmpregosRouteWithChildren
   '/_store/entrar': typeof StoreEntrarRoute
   '/_store/faq': typeof StoreFaqRoute
+  '/_store/farmacia': typeof StoreFarmaciaRoute
+  '/_store/gastronomia': typeof StoreGastronomiaRoute
+  '/_store/imoveis': typeof StoreImoveisRoute
+  '/_store/limpeza': typeof StoreLimpezaRoute
+  '/_store/livros': typeof StoreLivrosRoute
   '/_store/mapa': typeof StoreMapaRoute
   '/_store/match-time': typeof StoreMatchTimeRoute
   '/_store/mercado': typeof StoreMercadoRoute
   '/_store/mobilidade': typeof StoreMobilidadeRoute
+  '/_store/moda': typeof StoreModaRoute
   '/_store/mural': typeof StoreMuralRoute
+  '/_store/ofertas': typeof StoreOfertasRoute
   '/_store/perfil-da-loja': typeof StorePerfilDaLojaRoute
+  '/_store/pet': typeof StorePetRoute
   '/_store/privacidade': typeof StorePrivacidadeRoute
   '/_store/recuperar-senha': typeof StoreRecuperarSenhaRoute
+  '/_store/servicos': typeof StoreServicosRoute
   '/_store/stories': typeof StoreStoriesRoute
   '/_store/termos': typeof StoreTermosRoute
   '/_store/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
   '/_store/turismo': typeof StoreTurismoRouteWithChildren
+  '/admin-master/banners': typeof AdminMasterBannersRoute
+  '/admin-master/botoes': typeof AdminMasterBotoesRoute
   '/admin-master/denuncias': typeof AdminMasterDenunciasRoute
   '/admin-master/faturas': typeof AdminMasterFaturasRoute
+  '/admin-master/hubs': typeof AdminMasterHubsRoute
+  '/admin-master/integracoes': typeof AdminMasterIntegracoesRoute
   '/admin-master/kyc': typeof AdminMasterKycRoute
   '/admin-master/lojas': typeof AdminMasterLojasRoute
+  '/admin-master/marca': typeof AdminMasterMarcaRoute
+  '/admin-master/termos': typeof AdminMasterTermosRoute
   '/admin-master/usuarios': typeof AdminMasterUsuariosRoute
   '/assinar/$token': typeof AssinarTokenRoute
   '/workspace/simulacao': typeof WorkspaceSimulacaoRoute
@@ -1337,13 +1638,18 @@ export interface FileRoutesById {
   '/_store/conta/creditos': typeof StoreContaCreditosRoute
   '/_store/conta/enderecos': typeof StoreContaEnderecosRoute
   '/_store/conta/gift-cards': typeof StoreContaGiftCardsRoute
+  '/_store/conta/lojas': typeof StoreContaLojasRoute
+  '/_store/conta/metricas': typeof StoreContaMetricasRoute
   '/_store/conta/mobilidade': typeof StoreContaMobilidadeRoute
   '/_store/conta/negociacoes': typeof StoreContaNegociacoesRoute
+  '/_store/conta/notificacoes': typeof StoreContaNotificacoesRoute
+  '/_store/conta/pacotes': typeof StoreContaPacotesRoute
   '/_store/conta/pagamentos': typeof StoreContaPagamentosRoute
   '/_store/conta/perfil': typeof StoreContaPerfilRoute
   '/_store/conta/salvos': typeof StoreContaSalvosRoute
   '/_store/conta/suporte': typeof StoreContaSuporteRoute
   '/_store/conta/trocas': typeof StoreContaTrocasRoute
+  '/_store/conta/viagens': typeof StoreContaViagensRoute
   '/_store/destaques/$slug': typeof StoreDestaquesSlugRoute
   '/_store/diretorio/$id': typeof StoreDiretorioIdRoute
   '/_store/empregos/$id': typeof StoreEmpregosIdRoute
@@ -1357,6 +1663,7 @@ export interface FileRoutesById {
   '/_store/politicas/$slug': typeof StorePoliticasSlugRoute
   '/_store/produto/$slug': typeof StoreProdutoSlugRoute
   '/_store/turismo/$id': typeof StoreTurismoIdRoute
+  '/_store/u/$username': typeof StoreUUsernameRoute
   '/_store/vendedora/$slug': typeof StoreVendedoraSlugRoute
   '/api/auth/callback': typeof ApiAuthCallbackRoute
   '/api/auth/confirm': typeof ApiAuthConfirmRoute
@@ -1403,17 +1710,24 @@ export interface FileRoutesById {
   '/workspace/pedidos/frota': typeof WorkspacePedidosFrotaRoute
   '/workspace/pedidos/gestor': typeof WorkspacePedidosGestorRoute
   '/workspace/pedidos/trocas': typeof WorkspacePedidosTrocasRoute
+  '/workspace/turismo/cotacoes': typeof WorkspaceTurismoCotacoesRoute
   '/_store/agendar/': typeof StoreAgendarIndexRoute
   '/_store/classificados/': typeof StoreClassificadosIndexRoute
   '/_store/conta/': typeof StoreContaIndexRoute
+  '/_store/diretorio/': typeof StoreDiretorioIndexRoute
+  '/_store/empregos/': typeof StoreEmpregosIndexRoute
   '/_store/noticias/': typeof StoreNoticiasIndexRoute
+  '/_store/turismo/': typeof StoreTurismoIndexRoute
   '/workspace/agenda/': typeof WorkspaceAgendaIndexRoute
   '/workspace/clientes/': typeof WorkspaceClientesIndexRoute
+  '/workspace/configuracoes/': typeof WorkspaceConfiguracoesIndexRoute
   '/workspace/estoque/': typeof WorkspaceEstoqueIndexRoute
   '/workspace/estudio/': typeof WorkspaceEstudioIndexRoute
+  '/workspace/lojas/': typeof WorkspaceLojasIndexRoute
   '/workspace/moderacao/': typeof WorkspaceModeracaoIndexRoute
   '/workspace/noticias/': typeof WorkspaceNoticiasIndexRoute
   '/workspace/orcamentos/': typeof WorkspaceOrcamentosIndexRoute
+  '/workspace/pacotes/': typeof WorkspacePacotesIndexRoute
   '/workspace/pdv/': typeof WorkspacePdvIndexRoute
   '/workspace/pedidos/': typeof WorkspacePedidosIndexRoute
   '/_store/conta/classificados/novo': typeof StoreContaClassificadosNovoRoute
@@ -1452,35 +1766,57 @@ export interface FileRouteTypes {
     | '/admin-master'
     | '/sitemap.xml'
     | '/workspace'
+    | '/acougue'
     | '/agenda'
     | '/agendar'
+    | '/bebidas'
+    | '/beleza'
     | '/buscar'
     | '/cadastro'
     | '/carrinho'
+    | '/casa'
     | '/checkout'
+    | '/construcao'
     | '/conta'
     | '/contato'
     | '/criar-negocio'
     | '/diretorio'
+    | '/doacoes'
+    | '/eletronicos'
     | '/empregos'
     | '/entrar'
     | '/faq'
+    | '/farmacia'
+    | '/gastronomia'
+    | '/imoveis'
+    | '/limpeza'
+    | '/livros'
     | '/mapa'
     | '/match-time'
     | '/mercado'
     | '/mobilidade'
+    | '/moda'
     | '/mural'
+    | '/ofertas'
     | '/perfil-da-loja'
+    | '/pet'
     | '/privacidade'
     | '/recuperar-senha'
+    | '/servicos'
     | '/stories'
     | '/termos'
     | '/trocas-e-devolucoes'
     | '/turismo'
+    | '/admin-master/banners'
+    | '/admin-master/botoes'
     | '/admin-master/denuncias'
     | '/admin-master/faturas'
+    | '/admin-master/hubs'
+    | '/admin-master/integracoes'
     | '/admin-master/kyc'
     | '/admin-master/lojas'
+    | '/admin-master/marca'
+    | '/admin-master/termos'
     | '/admin-master/usuarios'
     | '/assinar/$token'
     | '/workspace/simulacao'
@@ -1494,13 +1830,18 @@ export interface FileRouteTypes {
     | '/conta/creditos'
     | '/conta/enderecos'
     | '/conta/gift-cards'
+    | '/conta/lojas'
+    | '/conta/metricas'
     | '/conta/mobilidade'
     | '/conta/negociacoes'
+    | '/conta/notificacoes'
+    | '/conta/pacotes'
     | '/conta/pagamentos'
     | '/conta/perfil'
     | '/conta/salvos'
     | '/conta/suporte'
     | '/conta/trocas'
+    | '/conta/viagens'
     | '/destaques/$slug'
     | '/diretorio/$id'
     | '/empregos/$id'
@@ -1514,6 +1855,7 @@ export interface FileRouteTypes {
     | '/politicas/$slug'
     | '/produto/$slug'
     | '/turismo/$id'
+    | '/u/$username'
     | '/vendedora/$slug'
     | '/api/auth/callback'
     | '/api/auth/confirm'
@@ -1560,17 +1902,24 @@ export interface FileRouteTypes {
     | '/workspace/pedidos/frota'
     | '/workspace/pedidos/gestor'
     | '/workspace/pedidos/trocas'
+    | '/workspace/turismo/cotacoes'
     | '/agendar/'
     | '/classificados/'
     | '/conta/'
+    | '/diretorio/'
+    | '/empregos/'
     | '/noticias/'
+    | '/turismo/'
     | '/workspace/agenda/'
     | '/workspace/clientes/'
+    | '/workspace/configuracoes/'
     | '/workspace/estoque/'
     | '/workspace/estudio/'
+    | '/workspace/lojas/'
     | '/workspace/moderacao/'
     | '/workspace/noticias/'
     | '/workspace/orcamentos/'
+    | '/workspace/pacotes/'
     | '/workspace/pdv/'
     | '/workspace/pedidos/'
     | '/conta/classificados/novo'
@@ -1604,33 +1953,52 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/sitemap.xml'
+    | '/acougue'
     | '/agenda'
+    | '/bebidas'
+    | '/beleza'
     | '/buscar'
     | '/cadastro'
     | '/carrinho'
+    | '/casa'
     | '/checkout'
+    | '/construcao'
     | '/contato'
     | '/criar-negocio'
-    | '/diretorio'
-    | '/empregos'
+    | '/doacoes'
+    | '/eletronicos'
     | '/entrar'
     | '/faq'
+    | '/farmacia'
+    | '/gastronomia'
+    | '/imoveis'
+    | '/limpeza'
+    | '/livros'
     | '/mapa'
     | '/match-time'
     | '/mercado'
     | '/mobilidade'
+    | '/moda'
     | '/mural'
+    | '/ofertas'
     | '/perfil-da-loja'
+    | '/pet'
     | '/privacidade'
     | '/recuperar-senha'
+    | '/servicos'
     | '/stories'
     | '/termos'
     | '/trocas-e-devolucoes'
-    | '/turismo'
+    | '/admin-master/banners'
+    | '/admin-master/botoes'
     | '/admin-master/denuncias'
     | '/admin-master/faturas'
+    | '/admin-master/hubs'
+    | '/admin-master/integracoes'
     | '/admin-master/kyc'
     | '/admin-master/lojas'
+    | '/admin-master/marca'
+    | '/admin-master/termos'
     | '/admin-master/usuarios'
     | '/assinar/$token'
     | '/workspace/simulacao'
@@ -1645,13 +2013,18 @@ export interface FileRouteTypes {
     | '/conta/creditos'
     | '/conta/enderecos'
     | '/conta/gift-cards'
+    | '/conta/lojas'
+    | '/conta/metricas'
     | '/conta/mobilidade'
     | '/conta/negociacoes'
+    | '/conta/notificacoes'
+    | '/conta/pacotes'
     | '/conta/pagamentos'
     | '/conta/perfil'
     | '/conta/salvos'
     | '/conta/suporte'
     | '/conta/trocas'
+    | '/conta/viagens'
     | '/destaques/$slug'
     | '/diretorio/$id'
     | '/empregos/$id'
@@ -1665,6 +2038,7 @@ export interface FileRouteTypes {
     | '/politicas/$slug'
     | '/produto/$slug'
     | '/turismo/$id'
+    | '/u/$username'
     | '/vendedora/$slug'
     | '/api/auth/callback'
     | '/api/auth/confirm'
@@ -1711,17 +2085,24 @@ export interface FileRouteTypes {
     | '/workspace/pedidos/frota'
     | '/workspace/pedidos/gestor'
     | '/workspace/pedidos/trocas'
+    | '/workspace/turismo/cotacoes'
     | '/agendar'
     | '/classificados'
     | '/conta'
+    | '/diretorio'
+    | '/empregos'
     | '/noticias'
+    | '/turismo'
     | '/workspace/agenda'
     | '/workspace/clientes'
+    | '/workspace/configuracoes'
     | '/workspace/estoque'
     | '/workspace/estudio'
+    | '/workspace/lojas'
     | '/workspace/moderacao'
     | '/workspace/noticias'
     | '/workspace/orcamentos'
+    | '/workspace/pacotes'
     | '/workspace/pdv'
     | '/workspace/pedidos'
     | '/conta/classificados/novo'
@@ -1758,35 +2139,57 @@ export interface FileRouteTypes {
     | '/admin-master'
     | '/sitemap.xml'
     | '/workspace'
+    | '/_store/acougue'
     | '/_store/agenda'
     | '/_store/agendar'
+    | '/_store/bebidas'
+    | '/_store/beleza'
     | '/_store/buscar'
     | '/_store/cadastro'
     | '/_store/carrinho'
+    | '/_store/casa'
     | '/_store/checkout'
+    | '/_store/construcao'
     | '/_store/conta'
     | '/_store/contato'
     | '/_store/criar-negocio'
     | '/_store/diretorio'
+    | '/_store/doacoes'
+    | '/_store/eletronicos'
     | '/_store/empregos'
     | '/_store/entrar'
     | '/_store/faq'
+    | '/_store/farmacia'
+    | '/_store/gastronomia'
+    | '/_store/imoveis'
+    | '/_store/limpeza'
+    | '/_store/livros'
     | '/_store/mapa'
     | '/_store/match-time'
     | '/_store/mercado'
     | '/_store/mobilidade'
+    | '/_store/moda'
     | '/_store/mural'
+    | '/_store/ofertas'
     | '/_store/perfil-da-loja'
+    | '/_store/pet'
     | '/_store/privacidade'
     | '/_store/recuperar-senha'
+    | '/_store/servicos'
     | '/_store/stories'
     | '/_store/termos'
     | '/_store/trocas-e-devolucoes'
     | '/_store/turismo'
+    | '/admin-master/banners'
+    | '/admin-master/botoes'
     | '/admin-master/denuncias'
     | '/admin-master/faturas'
+    | '/admin-master/hubs'
+    | '/admin-master/integracoes'
     | '/admin-master/kyc'
     | '/admin-master/lojas'
+    | '/admin-master/marca'
+    | '/admin-master/termos'
     | '/admin-master/usuarios'
     | '/assinar/$token'
     | '/workspace/simulacao'
@@ -1801,13 +2204,18 @@ export interface FileRouteTypes {
     | '/_store/conta/creditos'
     | '/_store/conta/enderecos'
     | '/_store/conta/gift-cards'
+    | '/_store/conta/lojas'
+    | '/_store/conta/metricas'
     | '/_store/conta/mobilidade'
     | '/_store/conta/negociacoes'
+    | '/_store/conta/notificacoes'
+    | '/_store/conta/pacotes'
     | '/_store/conta/pagamentos'
     | '/_store/conta/perfil'
     | '/_store/conta/salvos'
     | '/_store/conta/suporte'
     | '/_store/conta/trocas'
+    | '/_store/conta/viagens'
     | '/_store/destaques/$slug'
     | '/_store/diretorio/$id'
     | '/_store/empregos/$id'
@@ -1821,6 +2229,7 @@ export interface FileRouteTypes {
     | '/_store/politicas/$slug'
     | '/_store/produto/$slug'
     | '/_store/turismo/$id'
+    | '/_store/u/$username'
     | '/_store/vendedora/$slug'
     | '/api/auth/callback'
     | '/api/auth/confirm'
@@ -1867,17 +2276,24 @@ export interface FileRouteTypes {
     | '/workspace/pedidos/frota'
     | '/workspace/pedidos/gestor'
     | '/workspace/pedidos/trocas'
+    | '/workspace/turismo/cotacoes'
     | '/_store/agendar/'
     | '/_store/classificados/'
     | '/_store/conta/'
+    | '/_store/diretorio/'
+    | '/_store/empregos/'
     | '/_store/noticias/'
+    | '/_store/turismo/'
     | '/workspace/agenda/'
     | '/workspace/clientes/'
+    | '/workspace/configuracoes/'
     | '/workspace/estoque/'
     | '/workspace/estudio/'
+    | '/workspace/lojas/'
     | '/workspace/moderacao/'
     | '/workspace/noticias/'
     | '/workspace/orcamentos/'
+    | '/workspace/pacotes/'
     | '/workspace/pdv/'
     | '/workspace/pedidos/'
     | '/_store/conta/classificados/novo'
@@ -1961,6 +2377,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreIndexRouteImport
       parentRoute: typeof StoreRoute
     }
+    '/_store/acougue': {
+      id: '/_store/acougue'
+      path: '/acougue'
+      fullPath: '/acougue'
+      preLoaderRoute: typeof StoreAcougueRouteImport
+      parentRoute: typeof StoreRoute
+    }
     '/_store/agenda': {
       id: '/_store/agenda'
       path: '/agenda'
@@ -1973,6 +2396,20 @@ declare module '@tanstack/react-router' {
       path: '/agendar'
       fullPath: '/agendar'
       preLoaderRoute: typeof StoreAgendarRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/bebidas': {
+      id: '/_store/bebidas'
+      path: '/bebidas'
+      fullPath: '/bebidas'
+      preLoaderRoute: typeof StoreBebidasRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/beleza': {
+      id: '/_store/beleza'
+      path: '/beleza'
+      fullPath: '/beleza'
+      preLoaderRoute: typeof StoreBelezaRouteImport
       parentRoute: typeof StoreRoute
     }
     '/_store/buscar': {
@@ -1996,11 +2433,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreCarrinhoRouteImport
       parentRoute: typeof StoreRoute
     }
+    '/_store/casa': {
+      id: '/_store/casa'
+      path: '/casa'
+      fullPath: '/casa'
+      preLoaderRoute: typeof StoreCasaRouteImport
+      parentRoute: typeof StoreRoute
+    }
     '/_store/checkout': {
       id: '/_store/checkout'
       path: '/checkout'
       fullPath: '/checkout'
       preLoaderRoute: typeof StoreCheckoutRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/construcao': {
+      id: '/_store/construcao'
+      path: '/construcao'
+      fullPath: '/construcao'
+      preLoaderRoute: typeof StoreConstrucaoRouteImport
       parentRoute: typeof StoreRoute
     }
     '/_store/conta': {
@@ -2031,6 +2482,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreDiretorioRouteImport
       parentRoute: typeof StoreRoute
     }
+    '/_store/doacoes': {
+      id: '/_store/doacoes'
+      path: '/doacoes'
+      fullPath: '/doacoes'
+      preLoaderRoute: typeof StoreDoacoesRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/eletronicos': {
+      id: '/_store/eletronicos'
+      path: '/eletronicos'
+      fullPath: '/eletronicos'
+      preLoaderRoute: typeof StoreEletronicosRouteImport
+      parentRoute: typeof StoreRoute
+    }
     '/_store/empregos': {
       id: '/_store/empregos'
       path: '/empregos'
@@ -2050,6 +2515,41 @@ declare module '@tanstack/react-router' {
       path: '/faq'
       fullPath: '/faq'
       preLoaderRoute: typeof StoreFaqRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/farmacia': {
+      id: '/_store/farmacia'
+      path: '/farmacia'
+      fullPath: '/farmacia'
+      preLoaderRoute: typeof StoreFarmaciaRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/gastronomia': {
+      id: '/_store/gastronomia'
+      path: '/gastronomia'
+      fullPath: '/gastronomia'
+      preLoaderRoute: typeof StoreGastronomiaRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/imoveis': {
+      id: '/_store/imoveis'
+      path: '/imoveis'
+      fullPath: '/imoveis'
+      preLoaderRoute: typeof StoreImoveisRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/limpeza': {
+      id: '/_store/limpeza'
+      path: '/limpeza'
+      fullPath: '/limpeza'
+      preLoaderRoute: typeof StoreLimpezaRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/livros': {
+      id: '/_store/livros'
+      path: '/livros'
+      fullPath: '/livros'
+      preLoaderRoute: typeof StoreLivrosRouteImport
       parentRoute: typeof StoreRoute
     }
     '/_store/mapa': {
@@ -2080,6 +2580,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreMobilidadeRouteImport
       parentRoute: typeof StoreRoute
     }
+    '/_store/moda': {
+      id: '/_store/moda'
+      path: '/moda'
+      fullPath: '/moda'
+      preLoaderRoute: typeof StoreModaRouteImport
+      parentRoute: typeof StoreRoute
+    }
     '/_store/mural': {
       id: '/_store/mural'
       path: '/mural'
@@ -2087,11 +2594,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreMuralRouteImport
       parentRoute: typeof StoreRoute
     }
+    '/_store/ofertas': {
+      id: '/_store/ofertas'
+      path: '/ofertas'
+      fullPath: '/ofertas'
+      preLoaderRoute: typeof StoreOfertasRouteImport
+      parentRoute: typeof StoreRoute
+    }
     '/_store/perfil-da-loja': {
       id: '/_store/perfil-da-loja'
       path: '/perfil-da-loja'
       fullPath: '/perfil-da-loja'
       preLoaderRoute: typeof StorePerfilDaLojaRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/pet': {
+      id: '/_store/pet'
+      path: '/pet'
+      fullPath: '/pet'
+      preLoaderRoute: typeof StorePetRouteImport
       parentRoute: typeof StoreRoute
     }
     '/_store/privacidade': {
@@ -2106,6 +2627,13 @@ declare module '@tanstack/react-router' {
       path: '/recuperar-senha'
       fullPath: '/recuperar-senha'
       preLoaderRoute: typeof StoreRecuperarSenhaRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/servicos': {
+      id: '/_store/servicos'
+      path: '/servicos'
+      fullPath: '/servicos'
+      preLoaderRoute: typeof StoreServicosRouteImport
       parentRoute: typeof StoreRoute
     }
     '/_store/stories': {
@@ -2143,6 +2671,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMasterIndexRouteImport
       parentRoute: typeof AdminMasterRoute
     }
+    '/admin-master/banners': {
+      id: '/admin-master/banners'
+      path: '/banners'
+      fullPath: '/admin-master/banners'
+      preLoaderRoute: typeof AdminMasterBannersRouteImport
+      parentRoute: typeof AdminMasterRoute
+    }
+    '/admin-master/botoes': {
+      id: '/admin-master/botoes'
+      path: '/botoes'
+      fullPath: '/admin-master/botoes'
+      preLoaderRoute: typeof AdminMasterBotoesRouteImport
+      parentRoute: typeof AdminMasterRoute
+    }
     '/admin-master/denuncias': {
       id: '/admin-master/denuncias'
       path: '/denuncias'
@@ -2157,6 +2699,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMasterFaturasRouteImport
       parentRoute: typeof AdminMasterRoute
     }
+    '/admin-master/hubs': {
+      id: '/admin-master/hubs'
+      path: '/hubs'
+      fullPath: '/admin-master/hubs'
+      preLoaderRoute: typeof AdminMasterHubsRouteImport
+      parentRoute: typeof AdminMasterRoute
+    }
+    '/admin-master/integracoes': {
+      id: '/admin-master/integracoes'
+      path: '/integracoes'
+      fullPath: '/admin-master/integracoes'
+      preLoaderRoute: typeof AdminMasterIntegracoesRouteImport
+      parentRoute: typeof AdminMasterRoute
+    }
     '/admin-master/kyc': {
       id: '/admin-master/kyc'
       path: '/kyc'
@@ -2169,6 +2725,20 @@ declare module '@tanstack/react-router' {
       path: '/lojas'
       fullPath: '/admin-master/lojas'
       preLoaderRoute: typeof AdminMasterLojasRouteImport
+      parentRoute: typeof AdminMasterRoute
+    }
+    '/admin-master/marca': {
+      id: '/admin-master/marca'
+      path: '/marca'
+      fullPath: '/admin-master/marca'
+      preLoaderRoute: typeof AdminMasterMarcaRouteImport
+      parentRoute: typeof AdminMasterRoute
+    }
+    '/admin-master/termos': {
+      id: '/admin-master/termos'
+      path: '/termos'
+      fullPath: '/admin-master/termos'
+      preLoaderRoute: typeof AdminMasterTermosRouteImport
       parentRoute: typeof AdminMasterRoute
     }
     '/admin-master/usuarios': {
@@ -2276,6 +2846,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreContaGiftCardsRouteImport
       parentRoute: typeof StoreContaRoute
     }
+    '/_store/conta/lojas': {
+      id: '/_store/conta/lojas'
+      path: '/lojas'
+      fullPath: '/conta/lojas'
+      preLoaderRoute: typeof StoreContaLojasRouteImport
+      parentRoute: typeof StoreContaRoute
+    }
+    '/_store/conta/metricas': {
+      id: '/_store/conta/metricas'
+      path: '/metricas'
+      fullPath: '/conta/metricas'
+      preLoaderRoute: typeof StoreContaMetricasRouteImport
+      parentRoute: typeof StoreContaRoute
+    }
     '/_store/conta/mobilidade': {
       id: '/_store/conta/mobilidade'
       path: '/mobilidade'
@@ -2288,6 +2872,20 @@ declare module '@tanstack/react-router' {
       path: '/negociacoes'
       fullPath: '/conta/negociacoes'
       preLoaderRoute: typeof StoreContaNegociacoesRouteImport
+      parentRoute: typeof StoreContaRoute
+    }
+    '/_store/conta/notificacoes': {
+      id: '/_store/conta/notificacoes'
+      path: '/notificacoes'
+      fullPath: '/conta/notificacoes'
+      preLoaderRoute: typeof StoreContaNotificacoesRouteImport
+      parentRoute: typeof StoreContaRoute
+    }
+    '/_store/conta/pacotes': {
+      id: '/_store/conta/pacotes'
+      path: '/pacotes'
+      fullPath: '/conta/pacotes'
+      preLoaderRoute: typeof StoreContaPacotesRouteImport
       parentRoute: typeof StoreContaRoute
     }
     '/_store/conta/pagamentos': {
@@ -2325,6 +2923,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreContaTrocasRouteImport
       parentRoute: typeof StoreContaRoute
     }
+    '/_store/conta/viagens': {
+      id: '/_store/conta/viagens'
+      path: '/viagens'
+      fullPath: '/conta/viagens'
+      preLoaderRoute: typeof StoreContaViagensRouteImport
+      parentRoute: typeof StoreContaRoute
+    }
     '/_store/destaques/$slug': {
       id: '/_store/destaques/$slug'
       path: '/destaques/$slug'
@@ -2332,12 +2937,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreDestaquesSlugRouteImport
       parentRoute: typeof StoreRoute
     }
+    '/_store/diretorio/': {
+      id: '/_store/diretorio/'
+      path: '/'
+      fullPath: '/diretorio/'
+      preLoaderRoute: typeof StoreDiretorioIndexRouteImport
+      parentRoute: typeof StoreDiretorioRoute
+    }
     '/_store/diretorio/$id': {
       id: '/_store/diretorio/$id'
       path: '/$id'
       fullPath: '/diretorio/$id'
       preLoaderRoute: typeof StoreDiretorioIdRouteImport
       parentRoute: typeof StoreDiretorioRoute
+    }
+    '/_store/empregos/': {
+      id: '/_store/empregos/'
+      path: '/'
+      fullPath: '/empregos/'
+      preLoaderRoute: typeof StoreEmpregosIndexRouteImport
+      parentRoute: typeof StoreEmpregosRoute
     }
     '/_store/empregos/$id': {
       id: '/_store/empregos/$id'
@@ -2416,12 +3035,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreProdutoSlugRouteImport
       parentRoute: typeof StoreRoute
     }
+    '/_store/turismo/': {
+      id: '/_store/turismo/'
+      path: '/'
+      fullPath: '/turismo/'
+      preLoaderRoute: typeof StoreTurismoIndexRouteImport
+      parentRoute: typeof StoreTurismoRoute
+    }
     '/_store/turismo/$id': {
       id: '/_store/turismo/$id'
       path: '/$id'
       fullPath: '/turismo/$id'
       preLoaderRoute: typeof StoreTurismoIdRouteImport
       parentRoute: typeof StoreTurismoRoute
+    }
+    '/_store/u/$username': {
+      id: '/_store/u/$username'
+      path: '/u/$username'
+      fullPath: '/u/$username'
+      preLoaderRoute: typeof StoreUUsernameRouteImport
+      parentRoute: typeof StoreRoute
     }
     '/_store/vendedora/$slug': {
       id: '/_store/vendedora/$slug'
@@ -2540,6 +3173,13 @@ declare module '@tanstack/react-router' {
       path: '/cms/stories'
       fullPath: '/workspace/cms/stories'
       preLoaderRoute: typeof WorkspaceCmsStoriesRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/configuracoes/': {
+      id: '/workspace/configuracoes/'
+      path: '/configuracoes'
+      fullPath: '/workspace/configuracoes/'
+      preLoaderRoute: typeof WorkspaceConfiguracoesIndexRouteImport
       parentRoute: typeof WorkspaceRoute
     }
     '/workspace/configuracoes/ai': {
@@ -2661,6 +3301,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspaceLogisticaTabelasRouteImport
       parentRoute: typeof WorkspaceRoute
     }
+    '/workspace/lojas/': {
+      id: '/workspace/lojas/'
+      path: '/lojas'
+      fullPath: '/workspace/lojas/'
+      preLoaderRoute: typeof WorkspaceLojasIndexRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
     '/workspace/marketing/anuncios': {
       id: '/workspace/marketing/anuncios'
       path: '/marketing/anuncios'
@@ -2759,6 +3406,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspaceOrcamentosNovoRouteImport
       parentRoute: typeof WorkspaceRoute
     }
+    '/workspace/pacotes/': {
+      id: '/workspace/pacotes/'
+      path: '/pacotes'
+      fullPath: '/workspace/pacotes/'
+      preLoaderRoute: typeof WorkspacePacotesIndexRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
     '/workspace/pdv/': {
       id: '/workspace/pdv/'
       path: '/pdv'
@@ -2806,6 +3460,13 @@ declare module '@tanstack/react-router' {
       path: '/pedidos/trocas'
       fullPath: '/workspace/pedidos/trocas'
       preLoaderRoute: typeof WorkspacePedidosTrocasRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/turismo/cotacoes': {
+      id: '/workspace/turismo/cotacoes'
+      path: '/turismo/cotacoes'
+      fullPath: '/workspace/turismo/cotacoes'
+      preLoaderRoute: typeof WorkspaceTurismoCotacoesRouteImport
       parentRoute: typeof WorkspaceRoute
     }
     '/_store/conta/classificados/': {
@@ -3024,13 +3685,18 @@ interface StoreContaRouteChildren {
   StoreContaCreditosRoute: typeof StoreContaCreditosRoute
   StoreContaEnderecosRoute: typeof StoreContaEnderecosRoute
   StoreContaGiftCardsRoute: typeof StoreContaGiftCardsRoute
+  StoreContaLojasRoute: typeof StoreContaLojasRoute
+  StoreContaMetricasRoute: typeof StoreContaMetricasRoute
   StoreContaMobilidadeRoute: typeof StoreContaMobilidadeRoute
   StoreContaNegociacoesRoute: typeof StoreContaNegociacoesRoute
+  StoreContaNotificacoesRoute: typeof StoreContaNotificacoesRoute
+  StoreContaPacotesRoute: typeof StoreContaPacotesRoute
   StoreContaPagamentosRoute: typeof StoreContaPagamentosRoute
   StoreContaPerfilRoute: typeof StoreContaPerfilRoute
   StoreContaSalvosRoute: typeof StoreContaSalvosRoute
   StoreContaSuporteRoute: typeof StoreContaSuporteRoute
   StoreContaTrocasRoute: typeof StoreContaTrocasRoute
+  StoreContaViagensRoute: typeof StoreContaViagensRoute
   StoreContaIndexRoute: typeof StoreContaIndexRoute
   StoreContaClassificadosNovoRoute: typeof StoreContaClassificadosNovoRoute
   StoreContaConversasIdRoute: typeof StoreContaConversasIdRoute
@@ -3044,13 +3710,18 @@ const StoreContaRouteChildren: StoreContaRouteChildren = {
   StoreContaCreditosRoute: StoreContaCreditosRoute,
   StoreContaEnderecosRoute: StoreContaEnderecosRoute,
   StoreContaGiftCardsRoute: StoreContaGiftCardsRoute,
+  StoreContaLojasRoute: StoreContaLojasRoute,
+  StoreContaMetricasRoute: StoreContaMetricasRoute,
   StoreContaMobilidadeRoute: StoreContaMobilidadeRoute,
   StoreContaNegociacoesRoute: StoreContaNegociacoesRoute,
+  StoreContaNotificacoesRoute: StoreContaNotificacoesRoute,
+  StoreContaPacotesRoute: StoreContaPacotesRoute,
   StoreContaPagamentosRoute: StoreContaPagamentosRoute,
   StoreContaPerfilRoute: StoreContaPerfilRoute,
   StoreContaSalvosRoute: StoreContaSalvosRoute,
   StoreContaSuporteRoute: StoreContaSuporteRoute,
   StoreContaTrocasRoute: StoreContaTrocasRoute,
+  StoreContaViagensRoute: StoreContaViagensRoute,
   StoreContaIndexRoute: StoreContaIndexRoute,
   StoreContaClassificadosNovoRoute: StoreContaClassificadosNovoRoute,
   StoreContaConversasIdRoute: StoreContaConversasIdRoute,
@@ -3065,10 +3736,12 @@ const StoreContaRouteWithChildren = StoreContaRoute._addFileChildren(
 
 interface StoreDiretorioRouteChildren {
   StoreDiretorioIdRoute: typeof StoreDiretorioIdRoute
+  StoreDiretorioIndexRoute: typeof StoreDiretorioIndexRoute
 }
 
 const StoreDiretorioRouteChildren: StoreDiretorioRouteChildren = {
   StoreDiretorioIdRoute: StoreDiretorioIdRoute,
+  StoreDiretorioIndexRoute: StoreDiretorioIndexRoute,
 }
 
 const StoreDiretorioRouteWithChildren = StoreDiretorioRoute._addFileChildren(
@@ -3077,10 +3750,12 @@ const StoreDiretorioRouteWithChildren = StoreDiretorioRoute._addFileChildren(
 
 interface StoreEmpregosRouteChildren {
   StoreEmpregosIdRoute: typeof StoreEmpregosIdRoute
+  StoreEmpregosIndexRoute: typeof StoreEmpregosIndexRoute
 }
 
 const StoreEmpregosRouteChildren: StoreEmpregosRouteChildren = {
   StoreEmpregosIdRoute: StoreEmpregosIdRoute,
+  StoreEmpregosIndexRoute: StoreEmpregosIndexRoute,
 }
 
 const StoreEmpregosRouteWithChildren = StoreEmpregosRoute._addFileChildren(
@@ -3089,10 +3764,12 @@ const StoreEmpregosRouteWithChildren = StoreEmpregosRoute._addFileChildren(
 
 interface StoreTurismoRouteChildren {
   StoreTurismoIdRoute: typeof StoreTurismoIdRoute
+  StoreTurismoIndexRoute: typeof StoreTurismoIndexRoute
 }
 
 const StoreTurismoRouteChildren: StoreTurismoRouteChildren = {
   StoreTurismoIdRoute: StoreTurismoIdRoute,
+  StoreTurismoIndexRoute: StoreTurismoIndexRoute,
 }
 
 const StoreTurismoRouteWithChildren = StoreTurismoRoute._addFileChildren(
@@ -3100,27 +3777,43 @@ const StoreTurismoRouteWithChildren = StoreTurismoRoute._addFileChildren(
 )
 
 interface StoreRouteChildren {
+  StoreAcougueRoute: typeof StoreAcougueRoute
   StoreAgendaRoute: typeof StoreAgendaRoute
   StoreAgendarRoute: typeof StoreAgendarRouteWithChildren
+  StoreBebidasRoute: typeof StoreBebidasRoute
+  StoreBelezaRoute: typeof StoreBelezaRoute
   StoreBuscarRoute: typeof StoreBuscarRoute
   StoreCadastroRoute: typeof StoreCadastroRoute
   StoreCarrinhoRoute: typeof StoreCarrinhoRoute
+  StoreCasaRoute: typeof StoreCasaRoute
   StoreCheckoutRoute: typeof StoreCheckoutRoute
+  StoreConstrucaoRoute: typeof StoreConstrucaoRoute
   StoreContaRoute: typeof StoreContaRouteWithChildren
   StoreContatoRoute: typeof StoreContatoRoute
   StoreCriarNegocioRoute: typeof StoreCriarNegocioRoute
   StoreDiretorioRoute: typeof StoreDiretorioRouteWithChildren
+  StoreDoacoesRoute: typeof StoreDoacoesRoute
+  StoreEletronicosRoute: typeof StoreEletronicosRoute
   StoreEmpregosRoute: typeof StoreEmpregosRouteWithChildren
   StoreEntrarRoute: typeof StoreEntrarRoute
   StoreFaqRoute: typeof StoreFaqRoute
+  StoreFarmaciaRoute: typeof StoreFarmaciaRoute
+  StoreGastronomiaRoute: typeof StoreGastronomiaRoute
+  StoreImoveisRoute: typeof StoreImoveisRoute
+  StoreLimpezaRoute: typeof StoreLimpezaRoute
+  StoreLivrosRoute: typeof StoreLivrosRoute
   StoreMapaRoute: typeof StoreMapaRoute
   StoreMatchTimeRoute: typeof StoreMatchTimeRoute
   StoreMercadoRoute: typeof StoreMercadoRoute
   StoreMobilidadeRoute: typeof StoreMobilidadeRoute
+  StoreModaRoute: typeof StoreModaRoute
   StoreMuralRoute: typeof StoreMuralRoute
+  StoreOfertasRoute: typeof StoreOfertasRoute
   StorePerfilDaLojaRoute: typeof StorePerfilDaLojaRoute
+  StorePetRoute: typeof StorePetRoute
   StorePrivacidadeRoute: typeof StorePrivacidadeRoute
   StoreRecuperarSenhaRoute: typeof StoreRecuperarSenhaRoute
+  StoreServicosRoute: typeof StoreServicosRoute
   StoreStoriesRoute: typeof StoreStoriesRoute
   StoreTermosRoute: typeof StoreTermosRoute
   StoreTrocasEDevolucoesRoute: typeof StoreTrocasEDevolucoesRoute
@@ -3140,6 +3833,7 @@ interface StoreRouteChildren {
   StorePaginasSlugRoute: typeof StorePaginasSlugRoute
   StorePoliticasSlugRoute: typeof StorePoliticasSlugRoute
   StoreProdutoSlugRoute: typeof StoreProdutoSlugRoute
+  StoreUUsernameRoute: typeof StoreUUsernameRoute
   StoreVendedoraSlugRoute: typeof StoreVendedoraSlugRoute
   StoreClassificadosIndexRoute: typeof StoreClassificadosIndexRoute
   StoreNoticiasIndexRoute: typeof StoreNoticiasIndexRoute
@@ -3147,27 +3841,43 @@ interface StoreRouteChildren {
 }
 
 const StoreRouteChildren: StoreRouteChildren = {
+  StoreAcougueRoute: StoreAcougueRoute,
   StoreAgendaRoute: StoreAgendaRoute,
   StoreAgendarRoute: StoreAgendarRouteWithChildren,
+  StoreBebidasRoute: StoreBebidasRoute,
+  StoreBelezaRoute: StoreBelezaRoute,
   StoreBuscarRoute: StoreBuscarRoute,
   StoreCadastroRoute: StoreCadastroRoute,
   StoreCarrinhoRoute: StoreCarrinhoRoute,
+  StoreCasaRoute: StoreCasaRoute,
   StoreCheckoutRoute: StoreCheckoutRoute,
+  StoreConstrucaoRoute: StoreConstrucaoRoute,
   StoreContaRoute: StoreContaRouteWithChildren,
   StoreContatoRoute: StoreContatoRoute,
   StoreCriarNegocioRoute: StoreCriarNegocioRoute,
   StoreDiretorioRoute: StoreDiretorioRouteWithChildren,
+  StoreDoacoesRoute: StoreDoacoesRoute,
+  StoreEletronicosRoute: StoreEletronicosRoute,
   StoreEmpregosRoute: StoreEmpregosRouteWithChildren,
   StoreEntrarRoute: StoreEntrarRoute,
   StoreFaqRoute: StoreFaqRoute,
+  StoreFarmaciaRoute: StoreFarmaciaRoute,
+  StoreGastronomiaRoute: StoreGastronomiaRoute,
+  StoreImoveisRoute: StoreImoveisRoute,
+  StoreLimpezaRoute: StoreLimpezaRoute,
+  StoreLivrosRoute: StoreLivrosRoute,
   StoreMapaRoute: StoreMapaRoute,
   StoreMatchTimeRoute: StoreMatchTimeRoute,
   StoreMercadoRoute: StoreMercadoRoute,
   StoreMobilidadeRoute: StoreMobilidadeRoute,
+  StoreModaRoute: StoreModaRoute,
   StoreMuralRoute: StoreMuralRoute,
+  StoreOfertasRoute: StoreOfertasRoute,
   StorePerfilDaLojaRoute: StorePerfilDaLojaRoute,
+  StorePetRoute: StorePetRoute,
   StorePrivacidadeRoute: StorePrivacidadeRoute,
   StoreRecuperarSenhaRoute: StoreRecuperarSenhaRoute,
+  StoreServicosRoute: StoreServicosRoute,
   StoreStoriesRoute: StoreStoriesRoute,
   StoreTermosRoute: StoreTermosRoute,
   StoreTrocasEDevolucoesRoute: StoreTrocasEDevolucoesRoute,
@@ -3187,6 +3897,7 @@ const StoreRouteChildren: StoreRouteChildren = {
   StorePaginasSlugRoute: StorePaginasSlugRoute,
   StorePoliticasSlugRoute: StorePoliticasSlugRoute,
   StoreProdutoSlugRoute: StoreProdutoSlugRoute,
+  StoreUUsernameRoute: StoreUUsernameRoute,
   StoreVendedoraSlugRoute: StoreVendedoraSlugRoute,
   StoreClassificadosIndexRoute: StoreClassificadosIndexRoute,
   StoreNoticiasIndexRoute: StoreNoticiasIndexRoute,
@@ -3197,19 +3908,31 @@ const StoreRouteChildren: StoreRouteChildren = {
 const StoreRouteWithChildren = StoreRoute._addFileChildren(StoreRouteChildren)
 
 interface AdminMasterRouteChildren {
+  AdminMasterBannersRoute: typeof AdminMasterBannersRoute
+  AdminMasterBotoesRoute: typeof AdminMasterBotoesRoute
   AdminMasterDenunciasRoute: typeof AdminMasterDenunciasRoute
   AdminMasterFaturasRoute: typeof AdminMasterFaturasRoute
+  AdminMasterHubsRoute: typeof AdminMasterHubsRoute
+  AdminMasterIntegracoesRoute: typeof AdminMasterIntegracoesRoute
   AdminMasterKycRoute: typeof AdminMasterKycRoute
   AdminMasterLojasRoute: typeof AdminMasterLojasRoute
+  AdminMasterMarcaRoute: typeof AdminMasterMarcaRoute
+  AdminMasterTermosRoute: typeof AdminMasterTermosRoute
   AdminMasterUsuariosRoute: typeof AdminMasterUsuariosRoute
   AdminMasterIndexRoute: typeof AdminMasterIndexRoute
 }
 
 const AdminMasterRouteChildren: AdminMasterRouteChildren = {
+  AdminMasterBannersRoute: AdminMasterBannersRoute,
+  AdminMasterBotoesRoute: AdminMasterBotoesRoute,
   AdminMasterDenunciasRoute: AdminMasterDenunciasRoute,
   AdminMasterFaturasRoute: AdminMasterFaturasRoute,
+  AdminMasterHubsRoute: AdminMasterHubsRoute,
+  AdminMasterIntegracoesRoute: AdminMasterIntegracoesRoute,
   AdminMasterKycRoute: AdminMasterKycRoute,
   AdminMasterLojasRoute: AdminMasterLojasRoute,
+  AdminMasterMarcaRoute: AdminMasterMarcaRoute,
+  AdminMasterTermosRoute: AdminMasterTermosRoute,
   AdminMasterUsuariosRoute: AdminMasterUsuariosRoute,
   AdminMasterIndexRoute: AdminMasterIndexRoute,
 }
@@ -3275,13 +3998,17 @@ interface WorkspaceRouteChildren {
   WorkspacePedidosFrotaRoute: typeof WorkspacePedidosFrotaRoute
   WorkspacePedidosGestorRoute: typeof WorkspacePedidosGestorRoute
   WorkspacePedidosTrocasRoute: typeof WorkspacePedidosTrocasRoute
+  WorkspaceTurismoCotacoesRoute: typeof WorkspaceTurismoCotacoesRoute
   WorkspaceAgendaIndexRoute: typeof WorkspaceAgendaIndexRoute
   WorkspaceClientesIndexRoute: typeof WorkspaceClientesIndexRoute
+  WorkspaceConfiguracoesIndexRoute: typeof WorkspaceConfiguracoesIndexRoute
   WorkspaceEstoqueIndexRoute: typeof WorkspaceEstoqueIndexRoute
   WorkspaceEstudioIndexRoute: typeof WorkspaceEstudioIndexRoute
+  WorkspaceLojasIndexRoute: typeof WorkspaceLojasIndexRoute
   WorkspaceModeracaoIndexRoute: typeof WorkspaceModeracaoIndexRoute
   WorkspaceNoticiasIndexRoute: typeof WorkspaceNoticiasIndexRoute
   WorkspaceOrcamentosIndexRoute: typeof WorkspaceOrcamentosIndexRoute
+  WorkspacePacotesIndexRoute: typeof WorkspacePacotesIndexRoute
   WorkspacePdvIndexRoute: typeof WorkspacePdvIndexRoute
   WorkspacePedidosIndexRoute: typeof WorkspacePedidosIndexRoute
   WorkspaceBuilderDocumentIdEditorRoute: typeof WorkspaceBuilderDocumentIdEditorRoute
@@ -3350,13 +4077,17 @@ const WorkspaceRouteChildren: WorkspaceRouteChildren = {
   WorkspacePedidosFrotaRoute: WorkspacePedidosFrotaRoute,
   WorkspacePedidosGestorRoute: WorkspacePedidosGestorRoute,
   WorkspacePedidosTrocasRoute: WorkspacePedidosTrocasRoute,
+  WorkspaceTurismoCotacoesRoute: WorkspaceTurismoCotacoesRoute,
   WorkspaceAgendaIndexRoute: WorkspaceAgendaIndexRoute,
   WorkspaceClientesIndexRoute: WorkspaceClientesIndexRoute,
+  WorkspaceConfiguracoesIndexRoute: WorkspaceConfiguracoesIndexRoute,
   WorkspaceEstoqueIndexRoute: WorkspaceEstoqueIndexRoute,
   WorkspaceEstudioIndexRoute: WorkspaceEstudioIndexRoute,
+  WorkspaceLojasIndexRoute: WorkspaceLojasIndexRoute,
   WorkspaceModeracaoIndexRoute: WorkspaceModeracaoIndexRoute,
   WorkspaceNoticiasIndexRoute: WorkspaceNoticiasIndexRoute,
   WorkspaceOrcamentosIndexRoute: WorkspaceOrcamentosIndexRoute,
+  WorkspacePacotesIndexRoute: WorkspacePacotesIndexRoute,
   WorkspacePdvIndexRoute: WorkspacePdvIndexRoute,
   WorkspacePedidosIndexRoute: WorkspacePedidosIndexRoute,
   WorkspaceBuilderDocumentIdEditorRoute: WorkspaceBuilderDocumentIdEditorRoute,

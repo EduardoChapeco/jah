@@ -74,8 +74,12 @@ type FormValues = z.infer<typeof formSchema>;
 export const Route = createFileRoute("/workspace/catalogo/atributos")({
   head: () => ({ meta: [{ title: "Adicionais e Opções" }] }),
   loader: async () => {
-    const res = await listOptionGroups();
-    return res || [];
+    try {
+      const res = await listOptionGroups();
+      return res || [];
+    } catch {
+      return [];
+    }
   },
   component: OptionGroupsPage,
 });
@@ -157,10 +161,12 @@ function OptionGroupsPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Adicionais e Opções"
-
+        eyebrow="Catálogo"
+        title="Atributos & Adicionais"
         actions={
           <Button
+            size="sm"
+            className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground "
             onClick={() => {
               form.reset({
                 internal_name: "",
@@ -174,30 +180,56 @@ function OptionGroupsPage() {
               setOpen(true);
             }}
           >
-            <Plus className="mr-2 h-4 w-4" />
-            Criar Grupo
+            <Plus className="size-3.5" />
+            <span>Criar Grupo</span>
           </Button>
         }
       />
 
-      <Surface variant="default" padding="sm" className="flex items-center gap-2">
+      <div className="flex items-center gap-2">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Buscar por nome..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-9"
+            className="pl-9 h-9 text-xs rounded-xl"
           />
         </div>
-      </Surface>
+      </div>
 
-      <Surface variant="default" padding="none">
+      <div className=" rounded-2xl overflow-hidden bg-card ">
         {filteredGroups.length === 0 ? (
-          <EmptyState
-            title="Nenhum grupo encontrado"
-            description="Você ainda não criou nenhum grupo de opções."
-          />
+          <div className="py-12 text-center space-y-4">
+            <div className="size-12 rounded-2xl bg-muted flex items-center justify-center mx-auto text-muted-foreground">
+              <Plus className="size-6" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-base font-bold text-foreground">Nenhum grupo de opções criado</h3>
+              <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                Crie grupos como Tamanhos, Cores ou Adicionais de Gastronomia para vincular aos produtos.
+              </p>
+            </div>
+            <Button
+              size="sm"
+              className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground "
+              onClick={() => {
+                form.reset({
+                  internal_name: "",
+                  display_name: "",
+                  selection_type: "multiple",
+                  min_selections: 0,
+                  max_selections: 1,
+                  is_required: false,
+                  values: [],
+                });
+                setOpen(true);
+              }}
+            >
+              <Plus className="size-4" />
+              <span>Criar Primeiro Grupo</span>
+            </Button>
+          </div>
         ) : (
           <Table>
             <TableHeader>
@@ -258,7 +290,7 @@ function OptionGroupsPage() {
             </TableBody>
           </Table>
         )}
-      </Surface>
+      </div>
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent className="w-[450px] sm:w-[600px] overflow-y-auto sm:max-w-xl">
@@ -327,7 +359,7 @@ function OptionGroupsPage() {
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2 pt-2 pb-4 border-b border-border">
+              <div className="flex items-center space-x-2 pt-2 pb-4 ">
                 <Checkbox
                   id="isRequired"
                   checked={form.watch("is_required")}
@@ -432,7 +464,7 @@ function OptionGroupsPage() {
               </div>
             </div>
 
-            <SheetFooter className="pt-4 border-t border-border/40">
+            <SheetFooter className="pt-4 ">
               <Button
                 type="button"
                 variant="outline"

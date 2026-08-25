@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
   ImageSquare,
@@ -9,12 +9,23 @@ import {
   FilmStrip,
   SignIn,
   ChatCircleText,
+  Storefront,
+  User,
+  Sparkle,
+  Newspaper,
+  AirplaneTilt,
+  SquaresFour,
+  Slideshow,
+  IdentificationBadge,
 } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { createPost } from "@/services/social.functions";
-import { getPostMediaSignedUrl } from "@/services/storage.functions";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { createPost, type PostType } from "@/services/social.functions";
+import { getPostMediaSignedUrl, uploadPostMedia } from "@/services/storage.functions";
 import { useQueryClient } from "@tanstack/react-query";
+import { cn } from "@/lib/utils";
 
 interface MediaPreviewItem {
   url: string;
@@ -31,13 +42,25 @@ export function InlinePostComposer({ session }: InlinePostComposerProps) {
   const [isUploadingMedia, setIsUploadingMedia] = useState(false);
   const [mediaUrls, setMediaUrls] = useState<string[]>([]);
   const [mediaPreviews, setMediaPreviews] = useState<MediaPreviewItem[]>([]);
-  const [layoutStyle, setLayoutStyle] = useState<"grid" | "carousel">("grid");
+  const [selectedTemplate, setSelectedTemplate] = useState<PostType>("simple");
+  const [newsTitle, setNewsTitle] = useState("");
+  const [newsSource, setNewsSource] = useState("");
+  const [travelOrigin, setTravelOrigin] = useState("");
+  const [travelDestination, setTravelDestination] = useState("");
+  const [badgeTitle, setBadgeTitle] = useState("");
+  const [member1Name, setMember1Name] = useState("");
+  const [member1Role, setMember1Role] = useState("");
+  const [member2Name, setMember2Name] = useState("");
+  const [member2Role, setMember2Role] = useState("");
+  const [showAdvancedFields, setShowAdvancedFields] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   if (!session?.id && !session?.email) {
     return (
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-3xl border border-border bg-card shadow-2xs">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-3xl bg-card border border-border/70">
         <div className="flex items-center gap-3.5">
           <div className="size-11 rounded-2xl bg-muted text-foreground flex items-center justify-center shrink-0">
             <ChatCircleText size={20} weight="bold" />
@@ -61,6 +84,9 @@ export function InlinePostComposer({ session }: InlinePostComposerProps) {
     );
   }
 
+  const userInitial = (session?.user_metadata?.full_name || session?.email || "U")[0].toUpperCase();
+  const userName = session?.user_metadata?.full_name || session?.email?.split("@")[0] || "Você";
+
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -77,8 +103,8 @@ export function InlinePostComposer({ session }: InlinePostComposerProps) {
       return;
     }
 
-    if (mediaUrls.length >= 4) {
-      toast.error("Máximo de 4 mídias por post.");
+    if (mediaUrls.length >= 6) {
+      toast.error("Máximo de 6 mídias por post.");
       return;
     }
 
@@ -88,25 +114,34 @@ export function InlinePostComposer({ session }: InlinePostComposerProps) {
     setIsUploadingMedia(true);
 
     try {
-      const { signedUrl, publicUrl } = await getPostMediaSignedUrl({
-        data: {
-          fileName: file.name,
-          contentType: file.type || (isVideo ? "video/mp4" : "image/jpeg"),
-        },
-      });
-
-      const uploadRes = await fetch(signedUrl, {
-        method: "PUT",
-        body: file,
-        headers: { "Content-Type": file.type || (isVideo ? "video/mp4" : "image/jpeg") },
-      });
-
-      if (!uploadRes.ok) throw new Error("Falha no upload para o Storage.");
-      setMediaUrls((prev) => [...prev, publicUrl]);
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const base64Data = reader.result as string;
+          const res = await uploadPostMedia({
+            data: {
+              fileName: file.name,
+              fileType: file.type || (isVideo ? "video/mp4" : "image/jpeg"),
+              base64Data,
+            },
+          });
+          if (res?.url) {
+            setMediaUrls((prev) => [...prev, res.url]);
+          } else {
+            throw new Error("Resposta inválida do servidor de mídia.");
+          }
+        } catch (fbErr: any) {
+          toast.error(fbErr.message || "Erro no upload da mídia.");
+          setMediaPreviews((prev) => prev.filter((item) => item.url !== localUrl));
+        } finally {
+          setIsUploadingMedia(false);
+        }
+      };
+      reader.readAsDataURL(file);
+      return;
     } catch (err: unknown) {
       toast.error((err instanceof Error ? err.message : String(err)) || "Erro no upload da mídia.");
       setMediaPreviews((prev) => prev.filter((item) => item.url !== localUrl));
-    } finally {
       setIsUploadingMedia(false);
     }
   };
@@ -119,29 +154,59 @@ export function InlinePostComposer({ session }: InlinePostComposerProps) {
 
   const onSubmit = async () => {
     const trimmedContent = content.trim();
-    if (!trimmedContent && mediaUrls.length === 0) {
-      toast.error("O post precisa ter texto, foto ou vídeo.");
+    if (!trimmedContent && mediaUrls.length === 0 && !newsTitle.trim()) {
+      toast.error("O post precisa ter texto, foto ou título.");
       return;
     }
 
     setIsSubmitting(true);
     try {
+      const metadata: Record<string, any> = {};
+
+      if (selectedTemplate === "news") {
+        metadata.is_news = true;
+        metadata.title = newsTitle.trim() || trimmedContent.slice(0, 60);
+        metadata.source = newsSource.trim() || "Wider News";
+        metadata.subtitle = trimmedContent;
+      } else if (selectedTemplate === "travel") {
+        metadata.is_triptych = true;
+        metadata.origin_city = travelOrigin.trim() || "Chapecó";
+        metadata.dest_city = travelDestination.trim() || "Destino Especial";
+        metadata.travel_headline = trimmedContent || "Some moments shouldn't wait";
+      } else if (selectedTemplate === "duo_badge") {
+        metadata.badge_group_title = badgeTitle.trim() || trimmedContent.slice(0, 40) || "Family: In Sync";
+        metadata.member1_name = member1Name.trim() || userName.split(" ")[0];
+        metadata.member1_role = member1Role.trim() || "Criação & Liderança";
+        metadata.member2_name = member2Name.trim() || "Parceria";
+        metadata.member2_role = member2Role.trim() || "Execução";
+      }
+
       await createPost({
         data: {
           content_text: trimmedContent || undefined,
           media_urls: mediaUrls,
-          layout_style: layoutStyle,
+          layout_style: selectedTemplate === "instagram_carousel" ? "carousel" : "grid",
+          post_type: selectedTemplate,
+          metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
           as_store: false,
-          reference_type: "none",
+          reference_type: selectedTemplate === "news" ? "news" : "none",
         },
       });
 
-      toast.success("Publicação enviada com sucesso!");
+      toast.success("Publicado no Mural com sucesso!");
       setContent("");
+      setNewsTitle("");
+      setNewsSource("");
+      setTravelOrigin("");
+      setTravelDestination("");
       setMediaUrls([]);
       setMediaPreviews([]);
       if (fileInputRef.current) fileInputRef.current.value = "";
-      queryClient.invalidateQueries({ queryKey: ["mural-feed"] });
+      
+      await router.invalidate();
+      await queryClient.resetQueries({ queryKey: ["mural-feed"] });
+      await queryClient.refetchQueries({ queryKey: ["mural-feed"] });
+      await queryClient.invalidateQueries({ queryKey: ["moments-map"] });
     } catch (err: unknown) {
       toast.error((err instanceof Error ? err.message : String(err)) || "Erro ao publicar.");
     } finally {
@@ -150,20 +215,186 @@ export function InlinePostComposer({ session }: InlinePostComposerProps) {
   };
 
   return (
-    <div className="bg-card rounded-3xl border border-border p-4 sm:p-5 shadow-xs flex flex-col gap-3 relative">
+    <div className="bg-card rounded-3xl p-4 sm:p-5 flex flex-col gap-3 relative border border-border/70">
+      {/* Cabeçalho de Identidade & Seletor de Template */}
+      <div className="flex items-center justify-between pb-2 border-b border-border/40 text-xs">
+        <div className="flex items-center gap-2">
+          <Avatar className="size-7 rounded-xl bg-primary/10 border border-border/40">
+            <AvatarFallback className="text-[10px] font-bold text-primary">
+              {userInitial}
+            </AvatarFallback>
+          </Avatar>
+          <span className="font-semibold text-foreground truncate">
+            {userName}
+          </span>
+        </div>
+
+        {/* Seletor Rápido de Template em Cápsula Segmentada */}
+        <div className="flex items-center gap-1 p-1 bg-muted/60 rounded-xl border border-border/40 overflow-x-auto max-w-full">
+          <button
+            type="button"
+            onClick={() => setSelectedTemplate("simple")}
+            className={cn(
+              "px-2.5 py-1 rounded-lg font-bold text-[11px] transition-all cursor-pointer",
+              selectedTemplate === "simple"
+                ? "bg-card text-foreground shadow-xs border border-border/60"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+            )}
+          >
+            Padrão
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedTemplate("grid")}
+            className={cn(
+              "px-2.5 py-1 rounded-lg font-bold text-[11px] transition-all flex items-center gap-1 cursor-pointer",
+              selectedTemplate === "grid"
+                ? "bg-card text-foreground shadow-xs border border-border/60"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+            )}
+          >
+            <SquaresFour size={13} weight="bold" />
+            <span>Grid Orgânico</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedTemplate("news")}
+            className={cn(
+              "px-2.5 py-1 rounded-lg font-bold text-[11px] transition-all flex items-center gap-1 cursor-pointer",
+              selectedTemplate === "news"
+                ? "bg-blue-600 text-white shadow-xs"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+            )}
+          >
+            <Newspaper size={13} weight="bold" />
+            <span>Notícia</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedTemplate("travel")}
+            className={cn(
+              "px-2.5 py-1 rounded-lg font-bold text-[11px] transition-all flex items-center gap-1 cursor-pointer",
+              selectedTemplate === "travel"
+                ? "bg-sky-600 text-white shadow-xs"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+            )}
+          >
+            <AirplaneTilt size={13} weight="bold" />
+            <span>Viagem</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedTemplate("duo_badge")}
+            className={cn(
+              "px-2.5 py-1 rounded-lg font-bold text-[11px] transition-all flex items-center gap-1 cursor-pointer",
+              selectedTemplate === "duo_badge"
+                ? "bg-purple-600 text-white shadow-xs"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+            )}
+          >
+            <IdentificationBadge size={13} weight="bold" />
+            <span>Crachás / Sync</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Campos Específicos para Notícia */}
+      {selectedTemplate === "news" && (
+        <div className="space-y-2 p-3 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200/50 dark:border-indigo-900/30">
+          <Input
+            value={newsTitle}
+            onChange={(e) => setNewsTitle(e.target.value)}
+            placeholder="Manchete Editorial da Notícia..."
+            className="font-bold text-sm bg-background border-border h-9"
+          />
+          <Input
+            value={newsSource}
+            onChange={(e) => setNewsSource(e.target.value)}
+            placeholder="Veículo / Fonte (ex: The New York Times, CNN, G1, Portal Local)..."
+            className="text-xs bg-background border-border h-8"
+          />
+        </div>
+      )}
+
+      {/* Campos Específicos para Viagem */}
+      {selectedTemplate === "travel" && (
+        <div className="grid grid-cols-2 gap-2 p-3 rounded-2xl bg-sky-50/50 dark:bg-sky-950/20 border border-sky-200/50 dark:border-sky-900/30">
+          <Input
+            value={travelOrigin}
+            onChange={(e) => setTravelOrigin(e.target.value)}
+            placeholder="Origem (ex: Chapecó)"
+            className="text-xs bg-background border-border h-8"
+          />
+          <Input
+            value={travelDestination}
+            onChange={(e) => setTravelDestination(e.target.value)}
+            placeholder="Destino (ex: Londres / Serra)"
+            className="text-xs bg-background border-border h-8"
+          />
+        </div>
+      )}
+
+      {/* Campos Específicos para Duo Badge / Crachás Conectados */}
+      {selectedTemplate === "duo_badge" && (
+        <div className="space-y-2 p-3 rounded-2xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-200/50 dark:border-purple-900/30">
+          <Input
+            value={badgeTitle}
+            onChange={(e) => setBadgeTitle(e.target.value)}
+            placeholder="Título do Card (ex: Family: In Sync / Dupla de Criação)..."
+            className="font-bold text-xs bg-background border-border h-8"
+          />
+          <div className="grid grid-cols-2 gap-2">
+            <Input
+              value={member1Name}
+              onChange={(e) => setMember1Name(e.target.value)}
+              placeholder="Nome Membro 1 (ex: MILA)"
+              className="text-xs bg-background border-border h-8"
+            />
+            <Input
+              value={member1Role}
+              onChange={(e) => setMember1Role(e.target.value)}
+              placeholder="Função / Cargo 1 (ex: Design)"
+              className="text-xs bg-background border-border h-8"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Input
+              value={member2Name}
+              onChange={(e) => setMember2Name(e.target.value)}
+              placeholder="Nome Membro 2 (ex: NEIL)"
+              className="text-xs bg-background border-border h-8"
+            />
+            <Input
+              value={member2Role}
+              onChange={(e) => setMember2Role(e.target.value)}
+              placeholder="Função / Cargo 2 (ex: Tech Lead)"
+              className="text-xs bg-background border-border h-8"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Corpo do Post com padding e transição de foco suave */}
       <Textarea
-        placeholder="O que você vai colar no mural hoje?"
+        placeholder={
+          selectedTemplate === "news"
+            ? "Escreva o resumo ou corpo da notícia..."
+            : selectedTemplate === "travel"
+            ? "Frase inspiracional sobre a viagem ou dica..."
+            : "O que você vai colar no mural hoje?"
+        }
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        className="min-h-16 text-sm sm:text-base border-none bg-transparent resize-none focus-visible:ring-0 p-0 text-foreground"
+        className="min-h-20 text-sm sm:text-base border border-border/30 rounded-2xl bg-muted/15 focus:bg-background focus:border-primary/40 p-3 text-foreground transition-all resize-none focus-visible:ring-1 focus-visible:ring-primary/20 placeholder:text-muted-foreground/70"
       />
 
+      {/* Previews de Mídia */}
       {mediaPreviews.length > 0 && (
         <div className="flex gap-2 overflow-x-auto pb-2">
           {mediaPreviews.map((preview, index) => (
             <div
               key={index}
-              className="relative border border-border/80 overflow-hidden rounded-2xl bg-black inline-block w-[120px] aspect-square shrink-0"
+              className="relative overflow-hidden rounded-2xl bg-black inline-block w-[120px] aspect-square shrink-0"
             >
               {isUploadingMedia && index === mediaPreviews.length - 1 && (
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center z-20 gap-1 text-white">
@@ -209,16 +440,17 @@ export function InlinePostComposer({ session }: InlinePostComposerProps) {
         </div>
       )}
 
-      <div className="flex justify-between items-center border-t border-border pt-3 mt-1">
+      {/* Botões de Ação do Composer */}
+      <div className="flex justify-between items-center pt-3 border-t border-border/40 mt-1">
         <div className="flex items-center gap-2">
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={() => fileInputRef.current?.click()}
-            className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl h-10 px-3.5 text-xs font-bold"
+            className="border-border/50 bg-card hover:bg-muted text-foreground font-bold rounded-xl h-9 px-3.5 text-xs shadow-2xs gap-1.5 cursor-pointer"
           >
-            <ImageSquare size={16} weight="bold" className="mr-1.5 text-foreground" />
-            Foto / Vídeo
+            <ImageSquare size={16} weight="bold" className="text-primary" />
+            <span>Foto / Vídeo</span>
           </Button>
 
           <input
@@ -228,24 +460,17 @@ export function InlinePostComposer({ session }: InlinePostComposerProps) {
             className="hidden"
             onChange={handleFileSelect}
           />
-
-          {mediaUrls.length > 1 && (
-            <select
-              value={layoutStyle}
-              onChange={(e) => setLayoutStyle(e.target.value as "grid" | "carousel")}
-              className="text-xs border border-border bg-background rounded-xl px-3 h-10 outline-none text-foreground font-medium"
-            >
-              <option value="grid">Layout em Grid</option>
-              <option value="carousel">Layout em Carrossel</option>
-            </select>
-          )}
         </div>
 
         <Button
           onClick={onSubmit}
-          disabled={isSubmitting || isUploadingMedia || (!content.trim() && mediaUrls.length === 0)}
+          disabled={
+            isSubmitting ||
+            isUploadingMedia ||
+            (!content.trim() && mediaUrls.length === 0 && !newsTitle.trim())
+          }
           size="sm"
-          className="bg-foreground text-background font-bold rounded-xl h-10 px-6 text-xs shadow-2xs hover:scale-102 active:scale-98 transition-all cursor-pointer"
+          className="bg-primary text-primary-foreground font-bold rounded-xl h-9 px-6 text-xs hover:opacity-90 active:scale-98 transition-all shadow-xs cursor-pointer"
         >
           {isSubmitting ? (
             <>

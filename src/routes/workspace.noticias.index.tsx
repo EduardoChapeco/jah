@@ -22,8 +22,10 @@ import {
 } from "@/services/news.functions";
 import { toast } from "sonner";
 
+import { PageHeader } from "@/components/commerce/page-header";
+
 export const Route = createFileRoute("/workspace/noticias/")({
-  head: () => ({ meta: [{ title: "Redação & Gestão de Notícias | JAH Workspace" }] }),
+  head: () => ({ meta: [{ title: "Redação & Gestão de Notícias | Wider Workspace" }] }),
   loader: async () => {
     const articles = await listWorkspaceArticles().catch(() => []);
     return { articles };
@@ -54,48 +56,39 @@ function WorkspaceNoticiasIndexPage() {
   return (
     <div className="w-full space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
+      <PageHeader
+        eyebrow="Redação & Conteúdo"
+        title="Matérias & Notícias"
+        actions={
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
-              Redação & Conteúdo
-            </span>
-            <span className="text-xs text-muted-foreground font-mono">Portal de Notícias</span>
+            <Button asChild variant="outline" size="sm" className="rounded-xl font-bold text-xs ">
+              <Link to={"/workspace/marketing/patrocinadores" as any}>Patrocinadores</Link>
+            </Button>
+            <Button asChild size="sm" className="rounded-xl font-bold gap-1.5 text-xs bg-primary text-primary-foreground ">
+              <Link to={"/workspace/noticias/novo" as any}>
+                <Plus className="size-3.5" />
+                <span>Nova Matéria</span>
+              </Link>
+            </Button>
           </div>
-          <h1 className="text-2xl font-black tracking-tight text-foreground mt-1">
-            Matérias & Artigos Publicados
-          </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-            Gerencie o conteúdo editorial do seu portal, acompanhe visualizações e vincule patrocinadores.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button asChild variant="outline" className="rounded-2xl font-bold text-xs">
-            <Link to={"/workspace/marketing/patrocinadores" as any}>Patrocinadores</Link>
-          </Button>
-          <Button asChild className="rounded-2xl font-bold gap-2 text-xs">
-            <Link to={"/workspace/noticias/novo" as any}>
-              <Plus className="size-4" />
-              <span>Nova Matéria</span>
-            </Link>
-          </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Lista de Matérias */}
       {articles.length === 0 ? (
-        <div className="py-16 text-center rounded-3xl border border-dashed border-border bg-card/50 space-y-4">
-          <Newspaper className="size-12 text-muted-foreground/40 mx-auto" />
+        <div className="py-12 text-center rounded-3xl border-0 bg-card/60 space-y-4">
+          <div className="size-12 rounded-2xl bg-muted flex items-center justify-center mx-auto text-muted-foreground">
+            <Newspaper className="size-6" />
+          </div>
           <div className="space-y-1">
-            <h3 className="text-base font-bold text-foreground">Nenhuma matéria criada ainda</h3>
+            <h3 className="text-base font-bold text-foreground">Nenhuma matéria publicada ainda</h3>
             <p className="text-xs text-muted-foreground max-w-sm mx-auto">
               Comece a produzir notícias, reportagens e coberturas locais para engajar sua comunidade.
             </p>
           </div>
-          <Button asChild className="rounded-2xl font-bold text-xs">
+          <Button asChild size="sm" className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground ">
             <Link to={"/workspace/noticias/novo" as any}>
-              <Plus className="size-4 mr-1.5" />
+              <Plus className="size-4" />
               <span>Escrever Primeira Matéria</span>
             </Link>
           </Button>
@@ -105,7 +98,7 @@ function WorkspaceNoticiasIndexPage() {
           {articles.map((art) => (
             <div
               key={art.id}
-              className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-5 rounded-3xl border border-border/80 bg-card hover-elevate transition-all"
+              className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-5 rounded-3xl  bg-card hover-elevate transition-all"
             >
               <div className="flex items-start sm:items-center gap-4 min-w-0 flex-1">
                 {art.cover_media_url ? (

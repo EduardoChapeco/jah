@@ -106,7 +106,7 @@ export function TimelineHistory({ content, design_tokens }: TimelineHistoryProps
 
             {/* Bandeira Final */}
             <div className="relative mt-12 @md:mt-24 flex justify-start @md:justify-center">
-              <div className="w-12 h-12 rounded-full bg-muted border border-border z-10 flex items-center justify-center text-muted-foreground ml-2 @md:ml-0">
+              <div className="w-12 h-12 rounded-full bg-muted  z-10 flex items-center justify-center text-muted-foreground ml-2 @md:ml-0">
                 <Flag className="h-5 w-5" />
               </div>
             </div>

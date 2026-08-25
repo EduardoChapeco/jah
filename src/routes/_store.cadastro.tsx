@@ -21,7 +21,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/cadastro")({
   head: () => ({
-    meta: [{ title: "Criar Conta — JAH Community Commerce" }],
+    meta: [{ title: "Criar Conta — Wider Community Commerce" }],
   }),
   validateSearch: (search: Record<string, unknown>): { returnUrl?: string; error?: string } => {
     return {
@@ -93,7 +93,7 @@ function RegisterPage() {
 
       toast.success("Conta criada com sucesso!");
       if (typeof window !== "undefined") {
-        sessionStorage.setItem("jah_just_registered", "true");
+        sessionStorage.setItem("wider_just_registered", "true");
       }
       await new Promise((r) => setTimeout(r, 100));
       await getUserSession();
@@ -117,9 +117,9 @@ function RegisterPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] w-full flex flex-col lg:flex-row bg-background">
+    <div className="min-h-screen w-full flex flex-col lg:flex-row bg-background">
       {/* ── Left Side: Split Editorial Screen (Desktop) ────────── */}
-      <div className="relative hidden lg:flex lg:w-1/2 bg-zinc-950 text-white flex-col justify-between p-12 overflow-hidden border-r border-border/40">
+      <div className="relative hidden lg:flex lg:w-1/2 bg-zinc-950 text-white flex-col justify-between p-12 overflow-hidden ">
         {/* Background Gradient & Pattern */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(120,50,255,0.15),transparent_60%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(#ffffff15_1px,transparent_1px)] [background-size:24px_24px] opacity-40" />
@@ -127,9 +127,7 @@ function RegisterPage() {
         {/* Top Branding */}
         <div className="relative z-10">
           <Link to="/" className="inline-flex items-center gap-2 text-xl font-bold tracking-tight">
-            <span className="bg-primary text-primary-foreground px-2 py-0.5 rounded-lg text-sm font-black">
-              JAH
-            </span>
+            <span className="bg-primary text-primary-foreground px-2 py-0.5 rounded-lg text-sm font-black">WIDER</span>
             <span>Community Platform</span>
           </Link>
         </div>
@@ -157,7 +155,7 @@ function RegisterPage() {
             <ShieldCheck className="size-4 text-emerald-400" />
             <span>Proteção de dados com RLS e LGPD nativa</span>
           </div>
-          <span>Jah OS v2.4</span>
+          <span>Wider OS v3.0</span>
         </div>
       </div>
 
@@ -172,7 +170,7 @@ function RegisterPage() {
             >
               ← Voltar para o início
             </Link>
-            <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-xl border border-border/60 text-xs">
+            <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-xl  text-xs">
               <Link
                 to="/entrar"
                 search={{ returnUrl }}
@@ -180,7 +178,7 @@ function RegisterPage() {
               >
                 Entrar
               </Link>
-              <span className="px-3 py-1 rounded-lg bg-background font-bold text-foreground shadow-2xs">
+              <span className="px-3 py-1 rounded-lg bg-background font-bold text-foreground ">
                 Cadastrar
               </span>
             </div>
@@ -313,7 +311,7 @@ function RegisterPage() {
               <Button
                 type="submit"
                 size="lg"
-                className="w-full h-12 rounded-xl font-bold bg-primary text-primary-foreground shadow-xs gap-2 text-sm mt-2"
+                className="w-full h-12 rounded-xl font-bold bg-primary text-primary-foreground  gap-2 text-sm mt-2"
                 disabled={form.formState.isSubmitting}
               >
                 {form.formState.isSubmitting ? (
@@ -329,7 +327,7 @@ function RegisterPage() {
           </Form>
 
           {/* Footer Call to Action */}
-          <div className="text-center text-xs text-muted-foreground pt-4 border-t border-border/40">
+          <div className="text-center text-xs text-muted-foreground pt-4 ">
             Já possui uma conta?{" "}
             <Link
               to="/entrar"

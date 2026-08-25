@@ -23,7 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/assinar/$token")({
-  head: () => ({ meta: [{ title: "Assinatura Eletrônica de Documento — JAH" }] }),
+  head: () => ({ meta: [{ title: "Assinatura Eletrônica de Documento — Wider" }] }),
   loader: async ({ params }) => {
     const supabase = getServerClient();
     const { data: envelope, error } = await supabase
@@ -73,7 +73,7 @@ function SignContractPage() {
   if (error || !envelope) {
     return (
       <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-4">
-        <div className="max-w-md w-full border border-destructive/30 bg-destructive/5 rounded-2xl p-6 text-center space-y-4 shadow-sm">
+        <div className="max-w-md w-full border border-destructive/30 bg-destructive/5 rounded-2xl p-6 text-center space-y-4 ">
           <div className="size-12 rounded-full bg-destructive/10 text-destructive flex items-center justify-center mx-auto">
             <AlertCircle className="size-6" />
           </div>
@@ -111,7 +111,7 @@ function SignContractPage() {
     <div className="min-h-screen bg-background text-foreground py-8 px-4 md:px-6 flex justify-center">
       <div className="max-w-4xl w-full space-y-6">
         {/* Header da Sessão de Assinatura */}
-        <div className="border border-border bg-card rounded-2xl p-6 shadow-2xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className=" bg-card rounded-2xl p-6  flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-xs font-semibold gap-1">
@@ -144,7 +144,7 @@ function SignContractPage() {
 
         {/* Fingerprint Criptográfico */}
         {version?.hash_sha256 && (
-          <div className="border border-border rounded-xl p-3.5 bg-muted/20 flex items-center justify-between gap-3 text-xs">
+          <div className=" rounded-xl p-3.5 bg-muted/20 flex items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2 min-w-0">
               <Hash className="size-4 text-primary shrink-0" />
               <span className="font-mono text-muted-foreground text-[11px] truncate">
@@ -158,19 +158,19 @@ function SignContractPage() {
         )}
 
         {/* Visualizador do Conteúdo do Contrato */}
-        <div className="border border-border bg-card rounded-2xl p-6 md:p-8 shadow-sm space-y-4">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground border-b border-border pb-2">
+        <div className=" bg-card rounded-2xl p-6 md:p-8  space-y-4">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground  pb-2">
             Termos e Cláusulas Contratuais
           </h2>
 
-          <div className="text-xs sm:text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed max-h-[500px] overflow-y-auto pr-2 scrollbar-none border border-border/60 rounded-xl p-4 bg-muted/10 font-sans">
+          <div className="text-xs sm:text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed max-h-[500px] overflow-y-auto pr-2 scrollbar-none  rounded-xl p-4 bg-muted/10 font-sans">
             {version?.content_markdown}
           </div>
         </div>
 
         {/* Área de Ação e Consentimento */}
         {!isSignedLocal ? (
-          <div className="border border-primary/30 bg-card rounded-2xl p-6 shadow-sm space-y-4">
+          <div className="border border-primary/30 bg-card rounded-2xl p-6  space-y-4">
             <div className="flex items-start space-x-3">
               <Checkbox
                 id="consent-check"
@@ -189,16 +189,16 @@ function SignContractPage() {
               </label>
             </div>
 
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-border">
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 ">
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Lock className="size-3.5 text-primary" />
-                <span>Evidence Bundle Criptografado</span>
+                <span>Assinatura Segura & Protegida</span>
               </div>
 
               <Button
                 onClick={handleSign}
                 disabled={!consent || signMutation.isPending}
-                className="w-full sm:w-auto rounded-xl text-xs font-bold gap-2 h-11 px-6 shadow-sm"
+                className="w-full sm:w-auto rounded-xl text-xs font-bold gap-2 h-11 px-6 "
               >
                 {signMutation.isPending ? (
                   <>
@@ -221,7 +221,7 @@ function SignContractPage() {
               Assinatura Concluída com Sucesso!
             </h2>
             <p className="text-xs text-muted-foreground max-w-md mx-auto">
-              Sua assinatura foi registrada com evidência criptográfica SHA-256 e selo temporal.
+              Sua assinatura eletrônica foi registrada com sucesso e está protegida com segurança.
             </p>
             {contract?.verification_code && (
               <Button asChild size="sm" className="rounded-xl text-xs font-bold gap-1.5 mt-2">

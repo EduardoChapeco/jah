@@ -139,13 +139,13 @@ function NewGiftCardDrawer({
 }
 
 function GiftCardsDashboardPage() {
-  const giftCards = Route.useLoaderData();
+  const { giftCards } = Route.useLoaderData();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
 
-  const filteredCards = giftCards.filter((card: any) => {
+  const filteredCards = (giftCards || []).filter((card: any) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return card.code?.toLowerCase().includes(q) || card.purchaserName?.toLowerCase().includes(q);

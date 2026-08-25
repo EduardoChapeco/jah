@@ -3,9 +3,21 @@ import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
 import { getServerIdentity, assertStoreAccess } from "@/lib/server-access";
 import { getOnboardingStatus } from "@/services/onboarding.functions";
 
+export interface DashboardActivity {
+  id: string;
+  type: "order" | "booking" | "payment";
+  title: string;
+  subtitle: string;
+  timeDisplay: string;
+  status: string;
+  totalCents?: number;
+}
+
 export interface DashboardMetrics {
   salesTodayCents: number;
   salesMonthCents: number;
+  salesLastMonthCents: number;
+  growthPercentage: number | null;
   ordersTodayCount: number;
   ordersMonthCount: number;
   ordersBreakdown: {
@@ -25,6 +37,7 @@ export interface DashboardMetrics {
   criticalStockCount: number;
   newCustomers30d: number;
   abandonedCartsCount: number;
+  recentActivities: DashboardActivity[];
   activeCashRegister: {
     isOpen: boolean;
     openedAt?: string;
@@ -58,9 +71,38 @@ export async function _getDashboardData(): Promise<DashboardMetrics> {
   const db = getServerClient();
   const storeId = identity.store_id;
 
+  if (!storeId) {
+    return {
+      salesTodayCents: 0,
+      salesMonthCents: 0,
+      salesLastMonthCents: 0,
+      growthPercentage: null,
+      ordersTodayCount: 0,
+      ordersMonthCount: 0,
+      ordersBreakdown: {
+        awaitingPayment: 0,
+        needsSeparation: 0,
+        shippedOrReady: 0,
+        completed: 0,
+        cancelled: 0,
+        pendingBackorders: 0,
+      },
+      lowStockItems: [],
+      criticalStockCount: 0,
+      newCustomers30d: 0,
+      abandonedCartsCount: 0,
+      recentActivities: [],
+      activeCashRegister: { isOpen: false },
+      setupChecklist: [],
+      setupProgressPercentage: 100,
+    };
+  }
+
   const now = new Date();
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
+  const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59).toISOString();
   const last30Days = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
   const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
@@ -68,7 +110,7 @@ export async function _getDashboardData(): Promise<DashboardMetrics> {
   const { data: ordersData } = await db
     .from("orders")
     .select(
-      "id, status, total_cents, created_at, payments(status, amount_cents), order_items(product_variants(allow_backorder, stock_on_hand))",
+      "id, status, total_cents, created_at, customer_name, customer_email, payments(status, amount_cents), order_items(product_variants(allow_backorder, stock_on_hand))",
     )
     .eq("store_id", storeId);
 
@@ -76,6 +118,7 @@ export async function _getDashboardData(): Promise<DashboardMetrics> {
 
   let salesTodayCents = 0;
   let salesMonthCents = 0;
+  let salesLastMonthCents = 0;
   let ordersTodayCount = 0;
   let ordersMonthCount = 0;
 
@@ -91,8 +134,8 @@ export async function _getDashboardData(): Promise<DashboardMetrics> {
   for (const order of validOrders) {
     const isToday = order.created_at >= startOfToday;
     const isThisMonth = order.created_at >= startOfMonth;
+    const isLastMonth = order.created_at >= startOfLastMonth && order.created_at <= endOfLastMonth;
 
-    // Check payments status. An order is paid if it has an approved payment.
     const payments = Array.isArray(order.payments)
       ? order.payments
       : order.payments
@@ -105,14 +148,12 @@ export async function _getDashboardData(): Promise<DashboardMetrics> {
       order.status === "shipped" ||
       payments.some((p: any) => p.status === "approved" || p.status === "settled");
 
-    // Consider order count only if it's not cancelled, to avoid inflating fake counts
     if (order.status !== "cancelled" && order.status !== "payment_failed") {
       if (isToday) ordersTodayCount++;
       if (isThisMonth) ordersMonthCount++;
     }
 
     if (isPaid) {
-      // Find the approved payment amount, fallback to total_cents
       const approvedPayment = payments.find(
         (p: any) => p.status === "approved" || p.status === "settled",
       );
@@ -120,9 +161,9 @@ export async function _getDashboardData(): Promise<DashboardMetrics> {
 
       if (isToday) salesTodayCents += amountToSum;
       if (isThisMonth) salesMonthCents += amountToSum;
+      if (isLastMonth) salesLastMonthCents += amountToSum;
     }
 
-    // Determine breakdown by both order status and payment status
     if (order.status === "cancelled" || order.status === "payment_failed") {
       ordersBreakdown.cancelled++;
     } else if (order.status === "completed" || order.status === "delivered") {
@@ -130,7 +171,6 @@ export async function _getDashboardData(): Promise<DashboardMetrics> {
     } else if (order.status === "ready_for_pickup" || order.status === "shipped") {
       ordersBreakdown.shippedOrReady++;
     } else if (order.status === "processing" || order.status === "paid" || isPaid) {
-      // If it's paid but not yet shipped, check if any item is backordered
       const items = Array.isArray(order.order_items)
         ? order.order_items
         : order.order_items
@@ -149,12 +189,46 @@ export async function _getDashboardData(): Promise<DashboardMetrics> {
         ordersBreakdown.needsSeparation++;
       }
     } else {
-      // If it doesn't fit the above, it's awaiting payment or in checkout
       ordersBreakdown.awaitingPayment++;
     }
   }
 
-  // 2. Low stock items
+  let growthPercentage: number | null = null;
+  if (salesLastMonthCents > 0) {
+    growthPercentage = Math.round(((salesMonthCents - salesLastMonthCents) / salesLastMonthCents) * 100);
+  }
+
+  // 2. Recent Activities (Real orders)
+  const recentActivities: DashboardActivity[] = validOrders
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 5)
+    .map((o) => {
+      const date = new Date(o.created_at);
+      const isOderToday = o.created_at >= startOfToday;
+      const timeDisplay = isOderToday
+        ? `Hoje às ${date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`
+        : date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+
+      const customerLabel = o.customer_name || o.customer_email || "Cliente da Loja";
+
+      let statusLabel = "Pedido Criado";
+      if (o.status === "paid" || o.status === "processing") statusLabel = "Venda Confirmada (Pago)";
+      else if (o.status === "shipped") statusLabel = "Em Rota de Entrega";
+      else if (o.status === "completed" || o.status === "delivered") statusLabel = "Pedido Concluído";
+      else if (o.status === "cancelled") statusLabel = "Pedido Cancelado";
+
+      return {
+        id: o.id,
+        type: "order",
+        title: statusLabel,
+        subtitle: `${customerLabel} • Pedido #${o.id.slice(0, 8)}`,
+        timeDisplay,
+        status: o.status,
+        totalCents: o.total_cents,
+      };
+    });
+
+  // 3. Low stock items
   const { data: variantRows } = await db
     .from("product_variants")
     .select("id, sku, stock_on_hand, products(title)")
@@ -171,19 +245,19 @@ export async function _getDashboardData(): Promise<DashboardMetrics> {
     stockOnHand: v.stock_on_hand ?? 0,
   }));
 
-  // 3. New Customers (last 30d)
+  // 4. New Customers (last 30d)
   const { count: newCustomers30d } = await db
     .from("customers")
     .select("id", { count: "exact", head: true })
     .gte("created_at", last30Days);
 
-  // 4. Abandoned Carts (last 7d)
+  // 5. Abandoned Carts (last 7d)
   const { count: abandonedCartsCount } = await db
     .from("carts")
     .select("id", { count: "exact", head: true })
     .gte("updated_at", last7Days);
 
-  // 5. Active Cash Register
+  // 6. Active Cash Register
   const { data: activeRegister } = await db
     .from("cash_registers")
     .select("id, opened_at, initial_balance_cents, opened_by")
@@ -214,7 +288,7 @@ export async function _getDashboardData(): Promise<DashboardMetrics> {
     activeCashRegister = { isOpen: false };
   }
 
-  // 6. Setup Checklist (Fonte Única de Verdade via onboarding.functions)
+  // 7. Setup Checklist
   const onboarding = await getOnboardingStatus();
   const coreIds = ["profile", "logo", "categories", "first_product", "payment", "shipping"];
 
@@ -235,6 +309,8 @@ export async function _getDashboardData(): Promise<DashboardMetrics> {
   return {
     salesTodayCents,
     salesMonthCents,
+    salesLastMonthCents,
+    growthPercentage,
     ordersTodayCount,
     ordersMonthCount,
     ordersBreakdown,
@@ -242,6 +318,7 @@ export async function _getDashboardData(): Promise<DashboardMetrics> {
     criticalStockCount: lowStockItems.length,
     newCustomers30d: newCustomers30d ?? 0,
     abandonedCartsCount: abandonedCartsCount ?? 0,
+    recentActivities,
     activeCashRegister,
     setupChecklist,
     setupProgressPercentage,
@@ -256,44 +333,5 @@ export const getDashboardData = createServerFn({ method: "GET" }).handler(async 
     if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[dashboard.functions] getDashboardData error:", e);
     throw new Error(e instanceof Error ? e.message : "Erro ao carregar dados do painel.");
-  }
-});
-
-// ---------------------------------------------------------------------------
-// Relatórios All-Time (Para a página de Relatórios)
-// ---------------------------------------------------------------------------
-
-export const getDashboardStats = createServerFn({ method: "GET" }).handler(async () => {
-  try {
-    const db = getServerClient();
-    const { data: storeData } = await db.from("stores").select("id").limit(1).single();
-    if (!storeData) return { status: "unconfigured" as const };
-
-    const storeId = storeData.id;
-
-    const [ordersRes, productsRes, customersRes] = await Promise.all([
-      db.from("orders").select("total_cents, status").eq("store_id", storeId),
-      db.from("products").select("id, status").eq("store_id", storeId),
-      db.from("profiles").select("id").eq("store_id", storeId).eq("role", "customer"),
-    ]);
-
-    const orders = ordersRes.data || [];
-    const paidOrders = orders.filter((o) =>
-      ["paid", "processing", "shipped", "delivered", "completed"].includes(o.status),
-    );
-    const revenueCents = paidOrders.reduce((sum, o) => sum + (o.total_cents || 0), 0);
-
-    return {
-      status: "ok" as const,
-      totalRevenueCents: revenueCents,
-      totalOrders: orders.length,
-      paidOrders: paidOrders.length,
-      totalProducts: productsRes.data?.length || 0,
-      publishedProducts: productsRes.data?.filter((p) => p.status === "published").length || 0,
-      totalCustomers: customersRes.data?.length || 0,
-    };
-  } catch (e: unknown) {
-    console.error("[dashboard.functions] getDashboardStats:", e);
-    throw new Error("Erro ao carregar estatísticas.");
   }
 });

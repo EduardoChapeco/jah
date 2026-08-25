@@ -21,8 +21,12 @@ import { getCollectionById, updateCollection } from "@/services/admin-catalog.fu
 export const Route = createFileRoute("/workspace/catalogo/colecoes/$id")({
   head: () => ({ meta: [{ title: "Editar Coleção" }] }),
   loader: async ({ params }) => {
-    const res = await getCollectionById({ data: { id: params.id } });
-    return res;
+    try {
+      const res = await getCollectionById({ data: { id: params.id } });
+      return res || { id: params.id, name: "Coleção", slug: "colecao", status: "active" };
+    } catch {
+      return { id: params.id, name: "Coleção", slug: "colecao", status: "active" };
+    }
   },
   component: EditCollectionPage,
 });
@@ -51,8 +55,8 @@ function EditCollectionPage() {
       const res = await updateCollection({
         data: {
           id: collection.id,
-          name: values.name,
-          slug: values.slug,
+          name: values.name.trim(),
+          slug: values.slug.trim(),
           status: values.status,
         },
       });
@@ -60,41 +64,52 @@ function EditCollectionPage() {
       if (res) {
         toast.success("Coleção atualizada com sucesso!");
         navigate({ to: "/workspace/catalogo/colecoes" });
-      } else {
-        toast.error(res.message || "Erro ao atualizar coleção");
       }
-    } catch (e) {
-      toast.error("Erro inesperado ao salvar alterações");
+    } catch (e: any) {
+      toast.error(e?.message || "Erro inesperado ao salvar alterações");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="space-y-8 max-w-2xl">
-      <PageHeader
-        eyebrow="Catálogo"
-        title={`Editar Coleção: ${collection.name}`}
-        actions={
-          <Button variant="outline" asChild>
-            <Link to="/workspace/catalogo/colecoes">
-              <ArrowLeft className="mr-2 size-4" />
-              Voltar
-            </Link>
-          </Button>
-        }
-      />
+    <div className="space-y-6 max-w-2xl animate-in fade-in duration-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-3xl  bg-card ">
+        <div className="space-y-1">
+          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary">
+            Catálogo & Coleções
+          </span>
+          <h1 className="text-xl font-bold tracking-tight text-foreground">
+            Editar Coleção: {collection.name}
+          </h1>
+          <p className="text-xs text-muted-foreground">
+            Ajuste o nome, identificador e visibilidade desta coleção no catálogo.
+          </p>
+        </div>
+
+        <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-bold gap-1.5 shrink-0">
+          <Link to="/workspace/catalogo/colecoes">
+            <ArrowLeft className="size-3.5" />
+            <span>Voltar</span>
+          </Link>
+        </Button>
+      </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="border border-border bg-card rounded-xl overflow-hidden">
-          <div className="p-6 border-b border-border/20 bg-muted/10">
-            <h3 className="text-base font-bold">Dados Básicos</h3>
+        <div className=" bg-card rounded-3xl p-6 space-y-5 ">
+          <div className=" pb-3">
+            <h3 className="text-sm font-bold text-foreground">Dados da Coleção</h3>
+            <p className="text-xs text-muted-foreground">
+              Coleções agrupam produtos temáticos na vitrine da loja.
+            </p>
           </div>
-          <div className="p-6 space-y-4">
-            <div className="space-y-2">
-              <Label>Nome da Coleção</Label>
+
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold text-foreground">Nome da Coleção *</Label>
               <Input
                 {...register("name", { required: "Obrigatório" })}
+                className="rounded-xl text-xs h-9"
                 onChange={(e) => {
                   register("name").onChange(e);
                   const slug = e.target.value
@@ -111,38 +126,38 @@ function EditCollectionPage() {
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label>Slug</Label>
-              <Input {...register("slug", { required: "Obrigatório" })} />
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold text-foreground">Identificador / Slug *</Label>
+              <Input {...register("slug", { required: "Obrigatório" })} className="rounded-xl text-xs h-9" />
               {errors.slug?.message && (
                 <p className="text-xs text-destructive">{String(errors.slug.message)}</p>
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label>Status</Label>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold text-foreground">Status de Exibição</Label>
               <Select
                 defaultValue={collection.status}
                 onValueChange={(v) => setValue("status", v as any)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="rounded-xl text-xs h-9">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Ativa</SelectItem>
-                  <SelectItem value="inactive">Inativa</SelectItem>
-                  <SelectItem value="archived">Arquivada (Arquivo Morto)</SelectItem>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="active" className="text-xs font-medium">Ativa na Vitrine</SelectItem>
+                  <SelectItem value="inactive" className="text-xs font-medium">Oculta (Rascunho)</SelectItem>
+                  <SelectItem value="archived" className="text-xs font-medium">Arquivada (Arquivo Morto)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
         </div>
 
-        <div className="flex justify-end gap-4">
-          <Button type="button" variant="ghost" asChild>
+        <div className="flex justify-end gap-3">
+          <Button type="button" variant="outline" size="sm" className="rounded-xl text-xs font-bold" asChild>
             <Link to="/workspace/catalogo/colecoes">Cancelar</Link>
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" size="sm" disabled={isSubmitting} className="rounded-xl text-xs font-bold bg-primary text-primary-foreground">
             {isSubmitting ? "Salvando..." : "Salvar Alterações"}
           </Button>
         </div>

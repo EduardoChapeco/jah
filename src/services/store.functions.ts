@@ -13,7 +13,7 @@ export async function _getStoreSettings() {
   const { data: store, error } = await db
     .from("stores")
     .select(
-      "id, name, slug, type, email, phone, cnpj, address, city, state, zip_code, description, settings",
+      "id, name, slug, email, phone, cnpj, address, city, state, zip_code, description, settings",
     )
     .eq("id", identity.store_id)
     .single();
@@ -38,15 +38,17 @@ export const saveStoreSettingsSchema = z.object({
   zip_code: z.string().max(9).optional(),
   description: z.string().max(500).optional(),
   logoUrl: z.string().optional(),
+  bannerUrl: z.string().optional(),
   faviconUrl: z.string().optional(),
   hideNameWithLogo: z.boolean().optional(),
+  custom_checkout_fields: z.array(z.any()).optional(),
 });
 
 export async function _saveStoreSettings(data: z.infer<typeof saveStoreSettingsSchema>) {
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin"]);
 
-  const { logoUrl, faviconUrl, hideNameWithLogo, ...columns } = data;
+  const { logoUrl, bannerUrl, faviconUrl, hideNameWithLogo, custom_checkout_fields, ...columns } = data;
   const db = getServerClient();
 
   // Get current settings to merge
@@ -55,7 +57,14 @@ export async function _saveStoreSettings(data: z.infer<typeof saveStoreSettingsS
     .select("settings")
     .eq("id", identity.store_id)
     .single();
-  const settings = { ...(currentStore?.settings || {}), logoUrl, faviconUrl, hideNameWithLogo };
+  const settings = {
+    ...(currentStore?.settings || {}),
+    logoUrl,
+    bannerUrl,
+    faviconUrl,
+    hideNameWithLogo,
+    custom_checkout_fields: custom_checkout_fields !== undefined ? custom_checkout_fields : currentStore?.settings?.custom_checkout_fields,
+  };
 
   const updateData: Record<string, any> = { ...columns, settings };
   if (logoUrl !== undefined) {
@@ -496,3 +505,183 @@ export async function getWorkingIntervalsForDate(
   if (!schedule?.open || !schedule.intervals?.length) return [];
   return schedule.intervals;
 }
+
+// --- GESTÃO DE MÚLTIPLAS LOJAS DO LOJISTA ---
+
+export const getMyStoresList = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const identity = await getServerIdentity();
+    const db = getServerClient();
+
+    let storeIds: string[] = [];
+    const roleByStoreId: Record<string, string> = {};
+
+    if (identity.memberships && identity.memberships.length > 0) {
+      identity.memberships.forEach((m) => {
+        storeIds.push(m.store_id);
+        roleByStoreId[m.store_id] = m.role;
+      });
+    }
+
+    // Se a lista de IDs estiver vazia, carrega todas as lojas ativas do banco como fallback
+    let query = db
+      .from("stores")
+      .select("id, name, slug, type, logo_url, banner_url, phone, email, cnpj, address, city, state, description, status, settings, created_at");
+
+    if (storeIds.length > 0) {
+      query = query.in("id", storeIds);
+    } else {
+      query = query.limit(20);
+    }
+
+    const { data: stores, error } = await query;
+    if (error) {
+      console.error("[stores] Erro ao listar lojas:", error);
+      return [];
+    }
+
+    // Enriquece com contagem de produtos
+    const enriched = await Promise.all(
+      (stores || []).map(async (st: any) => {
+        let productCount = 0;
+        try {
+          const { count } = await db
+            .from("products")
+            .select("id", { count: "exact", head: true })
+            .eq("store_id", st.id);
+          productCount = count || 0;
+        } catch {
+          productCount = 0;
+        }
+
+        const settings = st.settings || {};
+        const bannerUrl = st.banner_url || settings.bannerUrl || settings.banner_url || null;
+        const logoUrl = st.logo_url || settings.logoUrl || settings.logo_url || null;
+
+        return {
+          id: st.id,
+          name: st.name,
+          slug: st.slug,
+          type: st.type || "ecommerce",
+          logo_url: logoUrl,
+          banner_url: bannerUrl,
+          phone: st.phone || "",
+          email: st.email || "",
+          cnpj: st.cnpj || "",
+          address: st.address || "",
+          city: st.city || "",
+          state: st.state || "",
+          description: st.description || "",
+          status: st.status || "active",
+          settings,
+          created_at: st.created_at,
+          role: roleByStoreId[st.id] || "owner",
+          is_active_context: st.id === identity.store_id,
+          product_count: productCount,
+        };
+      }),
+    );
+
+    return enriched;
+  } catch (err) {
+    console.error("[stores] Falha geral em getMyStoresList:", err);
+    return [];
+  }
+});
+
+export const updateStoreDetailsSchema = z.object({
+  store_id: z.string().uuid(),
+  name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100),
+  slug: z.string().min(2).max(100).optional(),
+  type: z.string().optional(),
+  description: z.string().max(500).optional().nullable(),
+  logo_url: z.string().optional().nullable(),
+  banner_url: z.string().optional().nullable(),
+  phone: z.string().max(30).optional().nullable(),
+  email: z.string().email().optional().or(z.literal("")).nullable(),
+  city: z.string().max(100).optional().nullable(),
+  state: z.string().max(2).optional().nullable(),
+  address: z.string().max(250).optional().nullable(),
+  cnpj: z.string().max(20).optional().nullable(),
+  status: z.enum(["active", "draft", "maintenance"]).optional(),
+});
+
+export const updateStoreDetails = createServerFn({ method: "POST" })
+  .validator(updateStoreDetailsSchema)
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    const db = getServerClient();
+
+    // Permissão: verifica se o usuário é owner ou admin da store específica
+    const userRole = identity.memberships.find((m) => m.store_id === data.store_id)?.role || identity.role;
+    if (!["owner", "admin"].includes(userRole)) {
+      throw new Error("Acesso negado: Você precisa ser proprietário ou administrador para alterar os dados desta loja.");
+    }
+
+    const { data: currentStore } = await db
+      .from("stores")
+      .select("settings")
+      .eq("id", data.store_id)
+      .single();
+
+    const currentSettings = currentStore?.settings || {};
+    const updatedSettings = {
+      ...currentSettings,
+      logoUrl: data.logo_url,
+      bannerUrl: data.banner_url,
+      type: data.type,
+    };
+
+    const updatePayload: Record<string, any> = {
+      name: data.name,
+      description: data.description || null,
+      phone: data.phone || null,
+      email: data.email || null,
+      city: data.city || null,
+      state: data.state || null,
+      address: data.address || null,
+      cnpj: data.cnpj || null,
+      settings: updatedSettings,
+    };
+
+    if (data.slug) {
+      updatePayload.slug = data.slug.toLowerCase().trim().replace(/[^a-z0-9-]/g, "-");
+    }
+    if (data.type) {
+      updatePayload.type = data.type;
+    }
+    if (data.status) {
+      updatePayload.status = data.status;
+    }
+    if (data.logo_url !== undefined) {
+      updatePayload.logo_url = data.logo_url;
+    }
+    if (data.banner_url !== undefined) {
+      updatePayload.banner_url = data.banner_url;
+    }
+
+    const { error: storeError } = await db
+      .from("stores")
+      .update(updatePayload)
+      .eq("id", data.store_id);
+
+    if (storeError) {
+      console.error("[updateStoreDetails] Erro ao atualizar store:", storeError);
+      throw new Error("Erro ao atualizar loja: " + storeError.message);
+    }
+
+    // Sincroniza logo e banner no theme_settings automaticamente
+    if (data.logo_url !== undefined || data.banner_url !== undefined) {
+      try {
+        const themeUpdate: Record<string, any> = {};
+        if (data.logo_url !== undefined) themeUpdate.logo_url = data.logo_url;
+        if (data.banner_url !== undefined) themeUpdate.hero_background_url = data.banner_url;
+        await db.from("theme_settings").update(themeUpdate).eq("store_id", data.store_id);
+      } catch (e) {
+        console.warn("[updateStoreDetails] Aviso ao sincronizar theme_settings:", e);
+      }
+    }
+
+    return { success: true, store_id: data.store_id, name: data.name };
+  });
+

@@ -23,7 +23,7 @@ export const Route = createFileRoute("/_store/categoria/$slug")({
       data?.slug ??
       "Categoria";
     const title = `${categoryName}`;
-    const description = `Confira os produtos da categoria ${categoryName} na Jah. Qualidade, estilo e conforto para o seu dia a dia.`;
+    const description = `Confira os produtos da categoria ${categoryName} no Wider. Qualidade, estilo e conforto para o seu dia a dia.`;
     const canonical =
       typeof window !== "undefined" ? `${window.location.origin}/categoria/${data?.slug}` : "";
 

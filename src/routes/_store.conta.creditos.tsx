@@ -18,14 +18,14 @@ function Page() {
 
   return (
     <div className="space-y-8 w-full font-sans text-foreground">
-      <div className="border-b border-border pb-6 mb-8">
+      <div className=" pb-6 mb-8">
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Meus Créditos</h1>
         <p className="mt-4 text-foreground/80 font-medium">
           Acompanhe seu saldo em carteira (Store Credit) e histórico de recebimentos/estornos.
         </p>
       </div>
 
-      <div className="border border-border bg-card p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 rounded-xl">
+      <div className=" bg-card p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 rounded-xl">
         <div className="relative z-10">
           <p className="text-sm font-medium text-muted-foreground mb-2">Saldo Disponível</p>
           <p className="text-4xl font-semibold text-foreground">
@@ -40,11 +40,11 @@ function Page() {
       </div>
 
       <div className="space-y-6 pt-6">
-        <h3 className="text-lg font-semibold border-b border-border pb-2">
+        <h3 className="text-lg font-semibold  pb-2">
           Histórico de Transações
         </h3>
         {credits.customer_credit_transactions.length === 0 ? (
-          <div className="border border-border rounded-lg p-10 text-center flex flex-col items-center gap-4">
+          <div className=" rounded-lg p-10 text-center flex flex-col items-center gap-4">
             <span className="text-4xl">🧾</span>
             <div className="space-y-1">
               <p className="font-semibold text-lg">Sem movimentações</p>
@@ -58,7 +58,7 @@ function Page() {
             {credits.customer_credit_transactions.map((t: any) => (
               <div
                 key={t.id}
-                className="flex justify-between items-center p-4 border-b border-border last:border-0"
+                className="flex justify-between items-center p-4  last:border-0"
               >
                 <div>
                   <p className="font-medium text-foreground">{t.reason}</p>

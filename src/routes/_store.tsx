@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, isRedirect } from "@tanstack/react-router";
 import { getNavigationMenus, getPublicStoreSettings } from "@/services/cms.functions";
 import { getCart, getGlobalCarts } from "@/services/cart.functions";
 import { getActiveGlobalPopups } from "@/services/builder.functions";
@@ -7,6 +7,7 @@ import { useEffect } from "react";
 
 import { AppShell } from "@/components/shell/app-shell";
 import { GlobalPopupRenderer } from "@/components/commerce/global-popup-renderer";
+import { AdminContextualBar } from "@/components/shell/admin-contextual-bar";
 import { CartProvider, useCartContext } from "@/lib/cart-context";
 import { ErrorState, UnconfiguredState } from "@/components/state/states";
 
@@ -40,11 +41,15 @@ export const Route = createFileRoute("/_store")({
       };
     }
   },
-  component: StoreLayoutWrapper,
+  component: StoreLayout,
   errorComponent: StoreRouteError,
 });
 
 function StoreRouteError({ error }: { error: Error }) {
+  if (isRedirect(error)) {
+    throw error;
+  }
+
   const message = error?.message ?? "";
   const isUnconfigured = message.includes("Supabase not configured");
 
@@ -69,14 +74,6 @@ function StoreRouteError({ error }: { error: Error }) {
   );
 }
 
-function StoreLayoutWrapper() {
-  return (
-    <CartProvider>
-      <StoreLayout />
-    </CartProvider>
-  );
-}
-
 function StoreLayout() {
   const { store, carts, globalCarts, popups, session } = Route.useLoaderData() as any;
   const { initCart } = useCartContext();
@@ -86,10 +83,10 @@ function StoreLayout() {
   }, [carts, globalCarts, initCart]);
 
   const storeData = store?.data || store;
-  const storeName = storeData?.name || "Jah";
+  const storeName = storeData?.name || "Wider";
   const logoUrl =
     storeData?.logoUrl || storeData?.settings?.logoUrl || storeData?.settings?.logo_url;
-  const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://jah.com.br";
+  const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://wider.com.br";
 
   // JSON-LD Structured Data (Organization + WebSite with SearchAction)
   const jsonLd = {
@@ -127,14 +124,25 @@ function StoreLayout() {
     ],
   };
 
+  const brandSettings = storeData
+    ? {
+        logo_url: storeData.logoUrl || storeData.settings?.logoUrl || null,
+        favicon_url: storeData.faviconUrl || storeData.settings?.faviconUrl || null,
+        show_logo: storeData.settings?.show_logo !== false,
+        show_name: storeData.settings?.show_name !== false,
+        platform_name: storeData.name || "Wider",
+      }
+    : null;
+
   return (
-    <AppShell session={session}>
+    <AppShell session={session} brandSettings={brandSettings}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <Outlet />
       <GlobalPopupRenderer popups={popups} />
+      <AdminContextualBar userRole={session?.role} />
     </AppShell>
   );
 }

@@ -12,7 +12,7 @@
 ### AMBIENTE
 
 - **Local**: `c:\Users\Excelência Tour SMO\Documents\jah`
-- **Preview / Produção**: `https://eduardochapeco-jah.pages.dev`
+- **Preview / Produção**: `https://eduardochapeco-wider.pages.dev`
 - **Project Ref Supabase**: `hfgnageqkeryxsnwobjc`
 - **Projeto Cloudflare**: `hrshoes` (Pages build output dir: `dist`)
 

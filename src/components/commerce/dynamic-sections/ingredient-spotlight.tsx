@@ -20,7 +20,7 @@ export function IngredientSpotlight({
   items = [],
 }: IngredientSpotlightProps) {
   return (
-    <section className="w-full py-12 px-4 md:px-8 max-w-7xl mx-auto bg-muted/40 my-8 border border-border/60">
+    <section className="w-full py-12 px-4 md:px-8 max-w-7xl mx-auto bg-muted/40 my-8 ">
       {(title || subtitle) && (
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider mb-3">
@@ -40,7 +40,7 @@ export function IngredientSpotlight({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {items.map((item, idx) => (
-          <div key={idx} className="flex gap-4 p-6 bg-card border border-border/80 items-start">
+          <div key={idx} className="flex gap-4 p-6 bg-card  items-start">
             {item.image_url ? (
               <img
                 src={item.image_url}

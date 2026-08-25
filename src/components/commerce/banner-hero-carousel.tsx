@@ -63,6 +63,10 @@ export function BannerHeroCarousel({
         alt={banner.title}
         className="size-full object-cover"
         loading="eager"
+        onError={(e) => {
+          (e.currentTarget as HTMLImageElement).src =
+            "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&q=80";
+        }}
       />
     );
   };
@@ -71,7 +75,7 @@ export function BannerHeroCarousel({
 
   return (
     <div
-      className={`relative w-full overflow-hidden rounded-3xl border border-border bg-card group shadow-xs select-none ${className}`}
+      className={`relative w-full overflow-hidden rounded-3xl  bg-card group select-none ${className}`}
       onMouseEnter={() => setIsPlaying(false)}
       onMouseLeave={() => setIsPlaying(true)}
     >
@@ -87,38 +91,38 @@ export function BannerHeroCarousel({
           aria-label={currentBanner.title || "Banner em Destaque"}
         />
 
-        {/* Gradient Overlay & Text (Apenas se o lojista/admin ativou explicitamente) */}
-        {currentBanner.show_overlay &&
-          (currentBanner.show_title ||
-            currentBanner.show_description ||
-            currentBanner.show_badge ||
-            currentBanner.show_cta) && (
+        {/* Gradient Overlay & Text (DESATIVADO POR PADRÃO — Apenas se explicitamente ativado no Admin) */}
+        {currentBanner.show_overlay === true &&
+          (currentBanner.title ||
+            currentBanner.subtitle ||
+            currentBanner.badge_text ||
+            currentBanner.cta_label) && (
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent sm:bg-gradient-to-r sm:from-black/90 sm:via-black/50 sm:to-transparent flex flex-col justify-end sm:justify-center p-6 sm:p-10 lg:p-12 text-white pointer-events-none z-10">
               <div className="max-w-xl space-y-2 sm:space-y-3 z-10 pointer-events-auto">
-                {currentBanner.show_badge && currentBanner.badge_text && (
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[10px] sm:text-xs font-bold uppercase tracking-wider text-white border border-white/30 shadow-xs">
+                {currentBanner.show_badge === true && currentBanner.badge_text && (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[10px] sm:text-xs font-bold uppercase tracking-wider text-white border border-white/30 ">
                     <Sparkles className="size-3 text-amber-300" />
                     <span>{currentBanner.badge_text}</span>
                   </div>
                 )}
 
-                {currentBanner.show_title && currentBanner.title && (
-                  <h2 className="text-xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-tight line-clamp-2 text-white drop-shadow-sm">
+                {currentBanner.show_title === true && currentBanner.title && (
+                  <h2 className="text-xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-tight line-clamp-2 text-white drop-">
                     {currentBanner.title}
                   </h2>
                 )}
 
-                {currentBanner.show_description && currentBanner.subtitle && (
+                {currentBanner.show_description === true && currentBanner.subtitle && (
                   <p className="text-xs sm:text-sm text-zinc-200 line-clamp-2 leading-relaxed max-w-lg">
                     {currentBanner.subtitle}
                   </p>
                 )}
 
-                {currentBanner.show_cta && (
+                {currentBanner.show_cta === true && (
                   <div className="pt-2">
                     <Link
                       to={targetLink as any}
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white text-black font-bold text-xs sm:text-sm shadow-md hover:bg-zinc-100 hover:scale-105 active:scale-95 transition-all"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white text-black font-bold text-xs sm:text-sm  hover:bg-zinc-100 hover:scale-105 active:scale-95 transition-all"
                     >
                       <span>{currentBanner.cta_label || "Conferir"}</span>
                       <ArrowRight className="size-4" />

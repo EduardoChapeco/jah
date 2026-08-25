@@ -23,7 +23,7 @@ import { getAffiliatePerformance, getCommissionSummary } from "@/services/affili
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/financeiro/afiliados")({
-  head: () => ({ meta: [{ title: "Comissões de Afiliados — JAH Workspace" }] }),
+  head: () => ({ meta: [{ title: "Comissões de Afiliados — Wider Workspace" }] }),
   loader: async () => {
     const [performance, summary] = await Promise.all([
       getAffiliatePerformance({ data: {} }),
@@ -69,7 +69,7 @@ function AfiliadosFinanceiroPage() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-5 border border-border rounded-lg bg-background">
+        <div className="p-5  rounded-lg bg-background">
           <div className="flex items-center gap-2 mb-2">
             <Clock className="size-4 text-warning" />
             <h2 className="text-sm font-medium text-muted-foreground">Comissões Pendentes</h2>
@@ -82,7 +82,7 @@ function AfiliadosFinanceiroPage() {
             </p>
           )}
         </div>
-        <div className="p-5 border border-border rounded-lg bg-background">
+        <div className="p-5  rounded-lg bg-background">
           <div className="flex items-center gap-2 mb-2">
             <CheckCircle2 className="size-4 text-success" />
             <h2 className="text-sm font-medium text-muted-foreground">Comissões Pagas</h2>
@@ -95,7 +95,7 @@ function AfiliadosFinanceiroPage() {
             </p>
           )}
         </div>
-        <div className="p-5 border border-border rounded-lg bg-background">
+        <div className="p-5  rounded-lg bg-background">
           <div className="flex items-center gap-2 mb-2">
             <Users className="size-4 text-primary" />
             <h2 className="text-sm font-medium text-muted-foreground">Parceiros Ativos</h2>
@@ -117,7 +117,7 @@ function AfiliadosFinanceiroPage() {
             placeholder="Buscar por parceiro..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm bg-background border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
+            className="w-full pl-9 pr-4 py-2 text-sm bg-background  rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
           />
         </div>
         <Button variant="outline" size="sm">
@@ -133,7 +133,7 @@ function AfiliadosFinanceiroPage() {
       )}
 
       {!isPerformanceLoading && filteredPerformance?.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 text-center border border-dashed border-border rounded-lg bg-muted/10">
+        <div className="flex flex-col items-center justify-center py-16 text-center border-0 rounded-lg bg-muted/10">
           <Users className="size-10 text-muted-foreground/30 mb-3" />
           <p className="text-sm font-medium text-foreground">Nenhum parceiro encontrado.</p>
           <p className="text-sm text-muted-foreground mt-1">
@@ -143,9 +143,9 @@ function AfiliadosFinanceiroPage() {
       )}
 
       {!isPerformanceLoading && filteredPerformance && filteredPerformance.length > 0 && (
-        <div className="border border-border rounded-lg overflow-hidden bg-background">
+        <div className=" rounded-lg overflow-hidden bg-background">
           <table className="w-full text-sm text-left">
-            <thead className="bg-muted/30 border-b border-border text-xs text-muted-foreground uppercase tracking-wider">
+            <thead className="bg-muted/30  text-xs text-muted-foreground uppercase tracking-wider">
               <tr>
                 <th className="px-4 py-3 font-medium">Parceiro</th>
                 <th className="px-4 py-3 font-medium text-right">Pedidos</th>

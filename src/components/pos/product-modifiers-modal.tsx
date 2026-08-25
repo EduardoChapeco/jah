@@ -154,7 +154,7 @@ export function ProductModifiersModal({
                 return (
                   <div
                     key={group.id}
-                    className="space-y-2.5 border border-border/80 bg-muted/10 p-3.5 rounded-xl"
+                    className="space-y-2.5  bg-muted/10 p-3.5 rounded-xl"
                   >
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
@@ -236,7 +236,7 @@ export function ProductModifiersModal({
           </div>
         )}
 
-        <div className="pt-3 border-t border-border flex items-center justify-between gap-3">
+        <div className="pt-3  flex items-center justify-between gap-3">
           <div className="space-y-0.5">
             <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">
               Total Unitário

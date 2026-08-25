@@ -138,7 +138,7 @@ function ResolutionDrawer({
         </SheetHeader>
 
         <div className="py-6 space-y-6 flex-1">
-          <div className="p-4 surface-subtle border border-border rounded-xl space-y-2">
+          <div className="p-4 surface-subtle  rounded-xl space-y-2">
             <h4 className="font-semibold text-sm">Resumo da Solicitação</h4>
             <p className="text-sm text-muted-foreground">Motivo: {exchange?.reason}</p>
             <p className="text-sm text-muted-foreground font-bold">
@@ -310,7 +310,7 @@ function ExchangesDashboardPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <PageHeader title="Trocas e Devoluções" />
-        <div className="flex surface-subtle p-1 rounded-xl border border-border">
+        <div className="flex surface-subtle p-1 rounded-xl ">
           <Button
             variant={viewMode === "kanban" ? "secondary" : "ghost"}
             size="sm"
@@ -382,7 +382,7 @@ function ExchangesDashboardPage() {
             return (
               <div
                 key={col.id}
-                className="min-w-[320px] w-[320px] surface-subtle p-3 border border-border flex flex-col gap-3 rounded-xl"
+                className="min-w-[320px] w-[320px] surface-subtle p-3  flex flex-col gap-3 rounded-xl"
               >
                 <div className="flex justify-between items-center font-medium px-1">
                   <span className="font-bold text-foreground">{col.title}</span>
@@ -399,7 +399,7 @@ function ExchangesDashboardPage() {
                     {columnExchanges.map((ex: any) => (
                       <div
                         key={ex.id}
-                        className="bg-card p-4 rounded-xl border border-border space-y-3"
+                        className="bg-card p-4 rounded-xl  space-y-3"
                       >
                         <div className="flex justify-between items-start">
                           <div>
@@ -413,7 +413,7 @@ function ExchangesDashboardPage() {
                           </Badge>
                         </div>
 
-                        <div className="text-xs text-foreground p-2 surface-subtle rounded-lg border border-border">
+                        <div className="text-xs text-foreground p-2 surface-subtle rounded-lg ">
                           <span className="font-semibold text-muted-foreground">Motivo:</span>{" "}
                           {ex.reason}
                         </div>

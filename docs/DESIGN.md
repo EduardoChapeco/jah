@@ -97,8 +97,13 @@ Para eliminar qualquer variação abrupta de largura ao navegar entre abas ("efe
 Toda página pública de exploração segue o mesmo ritmo visual hierárquico:
 1. **Camada 1 — Top Banner Hero:** Banner dinâmico carrossel com fotos reais do Supabase (16:9 / 21:9) e fallback curado.
 2. **Camada 2 — HotpagesRail Contextual:** Trilho de cartões visuais de categorias/nichos da região.
-3. **Camada 3 — Chips de Subcategorias & Filtros:** Barra horizontal de filtros rápidos com scroll suave.
+3. **Camada 3 — Chips de Subcategorias & Filtros:** Barra horizontal de filtros rápidos com scroll suave (`DiscoveryControlBar`).
 4. **Camada 4 — Trilhos & Grades de Cards Grandes:** Sliders horizontais e grades com proporção generosa para produtos, ofertas relâmpago, lojas e publicações.
+
+### 5.1 Regra Absoluta de Silêncio Visual na Vitrine Pública (Sem Títulos/Descrições Prolixas)
+- **Zero Textos Introdutórios Redundantes:** As páginas públicas NUNCA exibem caixas de texto com boas-vindas prolixas ("Bem-vindo ao Mercado...", "Aqui você encontra..."). O usuário quer ver produtos, lojas, ofertas e ações imediatas.
+- **`HorizontalRail` com `hideHeader={true}`:** Em vitrines públicas, os carrosséis fluem naturalmente através de snap-scroll sem cabeçalhos textuais redundantes competindo com a riqueza visual dos cards.
+- **Botões com Geometria Squircle (`rounded-xl` / `rounded-2xl`):** Proibição de botões tipo cápsula fina ou `rounded-full` em botões de ação e checkout. Usar sempre squircle tátil com tipografia em peso `font-bold`.
 
 ---
 

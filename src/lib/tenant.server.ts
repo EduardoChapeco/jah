@@ -10,12 +10,12 @@ import { getAnonServerClient } from "@/lib/supabase";
  */
 export async function resolveTenantStoreId(): Promise<string | null> {
   // 1. Cookie de sessão de tenant (definido por setTenantContext ou após createBusinessProfile)
-  const activeTenantCookie = getCookie("jah_active_tenant");
+  const activeTenantCookie = getCookie("wider_active_tenant");
   if (activeTenantCookie) {
     return activeTenantCookie;
   }
 
-  // 2. Subdomínio (ex: "minha-loja.jah.com.br" → slug = "minha-loja")
+  // 2. Subdomínio (ex: "minha-loja.wider.com.br" → slug = "minha-loja")
   const host = getRequestHeader("host");
   if (host) {
     const parts = host.split(".");

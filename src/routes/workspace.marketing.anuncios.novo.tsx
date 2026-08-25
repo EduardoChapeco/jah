@@ -22,7 +22,7 @@ import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/marketing/anuncios/novo")({
-  head: () => ({ meta: [{ title: "Criar Campanha de Anúncio | JAH" }] }),
+  head: () => ({ meta: [{ title: "Criar Campanha de Anúncio | Wider" }] }),
   component: NovoAnuncioPage,
 });
 
@@ -121,7 +121,7 @@ function NovoAnuncioPage() {
   return (
     <div className="space-y-6 max-w-4xl pb-16">
       {/* Topbar */}
-      <div className="flex items-center justify-between border-b border-border/60 pb-4">
+      <div className="flex items-center justify-between  pb-4">
         <div className="flex items-center gap-3">
           <Button asChild variant="ghost" size="icon" className="rounded-xl size-9">
             <Link to="/workspace/marketing/anuncios">
@@ -140,7 +140,7 @@ function NovoAnuncioPage() {
       <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-12 gap-6">
         {/* Formulário Principal */}
         <div className="md:col-span-7 space-y-5">
-          <div className="squircle-soft bg-card border border-border p-5 space-y-4 shadow-xs">
+          <div className="squircle-soft bg-card  p-5 space-y-4 ">
             <div className="space-y-1.5">
               <Label htmlFor="ad-title" className="text-xs font-semibold">
                 Título ou Chamada do Anúncio <span className="text-destructive">*</span>
@@ -184,7 +184,7 @@ function NovoAnuncioPage() {
             </div>
 
             {/* Segmentação de Localização */}
-            <div className="space-y-2 pt-2 border-t border-border/60">
+            <div className="space-y-2 pt-2 ">
               <Label
                 htmlFor="ad-location"
                 className="text-xs font-semibold flex items-center gap-1.5"
@@ -215,7 +215,7 @@ function NovoAnuncioPage() {
             </div>
 
             {/* Orçamentos */}
-            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border/60">
+            <div className="grid grid-cols-2 gap-3 pt-2 ">
               <div className="space-y-1.5">
                 <Label htmlFor="ad-daily" className="text-xs font-semibold">
                   Orçamento Diário (R$)
@@ -249,7 +249,7 @@ function NovoAnuncioPage() {
           <Button
             type="submit"
             disabled={isSubmitting || !title.trim()}
-            className="w-full rounded-xl font-semibold gap-2 shadow-xs"
+            className="w-full rounded-xl font-semibold gap-2 "
           >
             {isSubmitting ? (
               <>
@@ -267,7 +267,7 @@ function NovoAnuncioPage() {
 
         {/* Painel Lateral: Previsão de Resultados com IA */}
         <div className="md:col-span-5 space-y-4">
-          <div className="squircle-soft bg-card border border-border p-5 space-y-4 shadow-xs">
+          <div className="squircle-soft bg-card  p-5 space-y-4 ">
             <div className="flex items-center gap-2">
               <Sparkles className="size-4 text-primary" />
               <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">

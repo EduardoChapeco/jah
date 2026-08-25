@@ -216,7 +216,7 @@ export const confirmPayment = createServerFn({ method: "POST" })
       }
     }
 
-    // 5. Check for Ticket Lots and generate real Tickets (Jah Community)
+    // 5. Check for Ticket Lots and generate real Tickets (Wider Community)
     const { data: orderItems } = await supabase
       .from("order_items")
       .select("variant_id, qty")
@@ -608,46 +608,45 @@ export const getPublicPaymentMethods = createServerFn({ method: "GET" })
       const db = getServerClient();
       const { resolveTenantStoreId } = await import("@/lib/tenant.server");
       const storeId = inputData?.storeId || (await resolveTenantStoreId());
-      if (!storeId) throw new Error("Loja não encontrada");
-      const storeData = { id: storeId };
-      if (!storeData) throw new Error("Loja não encontrada");
+      if (!storeId) return [];
 
       const { data, error } = await db
         .from("manual_payment_methods")
         .select("id, name, instructions, surcharge_percentage, discount_percentage")
-        .eq("store_id", storeData.id)
+        .eq("store_id", storeId)
         .eq("is_active", true)
         .order("created_at", { ascending: true });
 
-      if (error) throw error;
+      if (error) return [];
       return data || [];
     } catch (e: unknown) {
-      console.error("[payment] getPublicPaymentMethods error:", e);
-      throw new Error(
-        (e instanceof Error ? e.message : String(e)) ||
-          "Erro ao obter métodos de pagamento públicos.",
-      );
+      console.warn("[payment] getPublicPaymentMethods error:", e);
+      return [];
     }
   });
 
 export const getGatewayStatus = createServerFn({ method: "GET" })
   .validator(z.object({ storeId: z.string().optional() }).optional())
   .handler(async ({ data: inputData }) => {
-    const db = getServerClient();
-    const { resolveTenantStoreId } = await import("@/lib/tenant.server");
-    const storeId = inputData?.storeId || (await resolveTenantStoreId());
-    if (!storeId) return false;
+    try {
+      const db = getServerClient();
+      const { resolveTenantStoreId } = await import("@/lib/tenant.server");
+      const storeId = inputData?.storeId || (await resolveTenantStoreId());
+      if (!storeId) return false;
 
-    const { data } = await db
-      .from("integration_credentials")
-      .select("id")
-      .eq("store_id", storeId)
-      .eq("is_active", true)
-      .in("provider", ["mercado_pago", "stripe"])
-      .limit(1)
-      .maybeSingle();
+      const { data } = await db
+        .from("integration_credentials")
+        .select("id")
+        .eq("store_id", storeId)
+        .eq("is_active", true)
+        .in("provider", ["mercado_pago", "stripe"])
+        .limit(1)
+        .maybeSingle();
 
-    return !!data;
+      return !!data;
+    } catch {
+      return false;
+    }
   });
 
 export const getCustomerOrderPayments = createServerFn({ method: "GET" }).handler(async () => {

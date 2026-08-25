@@ -22,8 +22,8 @@ export const Route = createFileRoute("/verify/document/$code")({
     meta: [
       {
         title: loaderData?.result?.title
-          ? `Verificação: ${loaderData.result.title} — JAH`
-          : "Verificação de Documento — JAH",
+          ? `Verificação: ${loaderData.result.title} — Wider`
+          : "Verificação de Documento — Wider",
       },
     ],
   }),
@@ -52,14 +52,14 @@ function DocumentVerificationPage() {
   if (error || !result) {
     return (
       <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-4">
-        <div className="max-w-md w-full border border-destructive/30 bg-destructive/5 rounded-2xl p-6 text-center space-y-4 shadow-sm">
+        <div className="max-w-md w-full border border-destructive/30 bg-destructive/5 rounded-2xl p-6 text-center space-y-4 ">
           <div className="size-12 rounded-full bg-destructive/10 text-destructive flex items-center justify-center mx-auto">
             <AlertTriangle className="size-6" />
           </div>
           <h1 className="text-lg font-bold text-foreground">Documento Não Reconhecido</h1>
           <p className="text-xs text-muted-foreground leading-relaxed">
             O código ou hash informado não corresponde a nenhum documento selado ou emitido na
-            infraestrutura canônica da JAH.
+            infraestrutura canônica da Wider.
           </p>
           <Button asChild variant="outline" size="sm" className="rounded-xl mt-2">
             <Link to="/">
@@ -78,7 +78,7 @@ function DocumentVerificationPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col justify-center items-center p-4 md:p-8">
-      <div className="max-w-xl w-full border border-border bg-card rounded-2xl shadow-sm overflow-hidden space-y-6 p-6 md:p-8">
+      <div className="max-w-xl w-full  bg-card rounded-2xl  overflow-hidden space-y-6 p-6 md:p-8">
         {/* Header de Autenticidade */}
         <div className="text-center space-y-2">
           <div className="size-14 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/20">
@@ -88,12 +88,12 @@ function DocumentVerificationPage() {
             Documento Autêntico e Verificado
           </h1>
           <p className="text-xs text-muted-foreground">
-            Registro Imutável emitido na plataforma comunitária JAH
+            Registro Imutável emitido na plataforma comunitária Wider
           </p>
         </div>
 
         {/* Informações do Documento */}
-        <div className="border border-border rounded-xl p-4 bg-muted/30 space-y-3">
+        <div className=" rounded-xl p-4 bg-muted/30 space-y-3">
           <div className="flex items-center justify-between gap-2">
             <Badge variant="secondary" className="text-xs font-semibold">
               {CATEGORY_LABELS[result.category] || result.category}
@@ -105,7 +105,7 @@ function DocumentVerificationPage() {
 
           <h2 className="text-base font-bold text-foreground leading-snug">{result.title}</h2>
 
-          <div className="grid grid-cols-2 gap-3 text-xs pt-2 border-t border-border/70">
+          <div className="grid grid-cols-2 gap-3 text-xs pt-2 ">
             <div>
               <span className="text-muted-foreground block text-[10px]">Data de Emissão</span>
               <span className="font-semibold">{formatDate(result.createdAt)}</span>
@@ -121,10 +121,10 @@ function DocumentVerificationPage() {
 
         {/* Hash Criptográfico SHA-256 */}
         {sealed?.hash_sha256 && (
-          <div className="border border-border rounded-xl p-3.5 bg-background space-y-1.5">
+          <div className=" rounded-xl p-3.5 bg-background space-y-1.5">
             <div className="flex items-center gap-1.5 text-xs font-bold text-foreground">
               <Hash className="size-3.5 text-primary" />
-              <span>Fingerprint Digital (SHA-256)</span>
+              <span>Identificador de Autenticidade</span>
             </div>
             <p className="text-[10px] font-mono text-muted-foreground break-all bg-muted/40 p-2 rounded-lg">
               {sealed.hash_sha256}
@@ -143,7 +143,7 @@ function DocumentVerificationPage() {
               {sealed.envelopes.map((env: any, idx: number) => (
                 <div
                   key={idx}
-                  className="p-3 rounded-xl border border-border bg-muted/20 flex items-center justify-between text-xs"
+                  className="p-3 rounded-xl  bg-muted/20 flex items-center justify-between text-xs"
                 >
                   <div>
                     <p className="font-bold text-foreground">{env.signer_name}</p>
@@ -165,13 +165,13 @@ function DocumentVerificationPage() {
         )}
 
         {/* Rodapé Seguro */}
-        <div className="pt-2 flex items-center justify-between border-t border-border text-[11px] text-muted-foreground">
+        <div className="pt-2 flex items-center justify-between  text-[11px] text-muted-foreground">
           <span className="flex items-center gap-1">
             <Lock className="size-3 text-primary" />
             Integridade Criptográfica
           </span>
           <Link to="/" className="text-primary hover:underline font-medium">
-            JAH Community Platform
+            Wider Community Platform
           </Link>
         </div>
       </div>

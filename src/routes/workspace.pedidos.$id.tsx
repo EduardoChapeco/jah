@@ -1,4 +1,4 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { formatMoney } from "@/lib/money";
@@ -46,7 +46,12 @@ import { formatDate } from "../lib/datetime";
 export const Route = createFileRoute("/workspace/pedidos/$id")({
   head: () => ({ meta: [{ title: "Detalhes do Pedido" }] }),
   loader: async ({ params }: { params: { id: string } }) => {
-    return await getOrderById({ data: { orderId: params.id } });
+    try {
+      const order = await getOrderById({ data: { orderId: params.id } });
+      return order;
+    } catch {
+      return null;
+    }
   },
   component: AdminOrderDetailPage,
 });
@@ -97,6 +102,17 @@ function AdminOrderDetailPage() {
     trackingUrl: "",
   });
   const [isSavingTracking, setIsSavingTracking] = useState(false);
+
+  if (!order) {
+    return (
+      <div className="py-16 text-center text-muted-foreground space-y-3">
+        <p className="font-bold text-base text-foreground">Pedido não encontrado ou sem permissão de acesso.</p>
+        <Link to="/workspace/pedidos" className="text-primary text-xs font-bold underline inline-block">
+          ← Voltar para lista de pedidos
+        </Link>
+      </div>
+    );
+  }
 
   const date = formatDate(order.created_at);
 
@@ -215,7 +231,7 @@ function AdminOrderDetailPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Items */}
         <div className="md:col-span-2 space-y-6">
-          <div className="border border-border p-6 bg-card text-card-foreground ">
+          <div className=" p-6 bg-card text-card-foreground ">
             <h3 className="font-semibold text-lg mb-4 text-foreground">Itens do Pedido</h3>
             <div className="space-y-4">
               {(order.order_items ?? []).map((item: any) => {
@@ -224,7 +240,7 @@ function AdminOrderDetailPage() {
                 return (
                   <div
                     key={item.id}
-                    className="flex justify-between items-start border-b border-border pb-4 last:border-0 last:pb-0"
+                    className="flex justify-between items-start  pb-4 last:border-0 last:pb-0"
                   >
                     <div>
                       <p className="font-medium text-foreground flex items-center gap-2 flex-wrap">
@@ -240,7 +256,7 @@ function AdminOrderDetailPage() {
                         SKU: {item.variant_sku}
                       </p>
                       {options.length > 0 && (
-                        <div className="mt-2 ml-2 pl-2 border-l border-border space-y-0.5">
+                        <div className="mt-2 ml-2 pl-2  space-y-0.5">
                           {options.map((opt: any, idx: number) => (
                             <div key={idx} className="text-xs text-muted-foreground flex gap-2">
                               <span>+ {opt.label}</span>
@@ -268,7 +284,7 @@ function AdminOrderDetailPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Summary */}
-          <div className="border border-border p-6 bg-card text-card-foreground ">
+          <div className=" p-6 bg-card text-card-foreground ">
             <h3 className="font-semibold text-lg mb-4 text-foreground">Resumo</h3>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
@@ -279,7 +295,7 @@ function AdminOrderDetailPage() {
                 <span className="text-muted-foreground">Frete</span>
                 <span className="text-foreground">{formatMoney(order.shipping_cents)}</span>
               </div>
-              <div className="flex justify-between font-bold text-base border-t border-border pt-3 mt-1 text-foreground">
+              <div className="flex justify-between font-bold text-base  pt-3 mt-1 text-foreground">
                 <span>Total</span>
                 <span>{formatMoney(order.total_cents)}</span>
               </div>
@@ -287,7 +303,7 @@ function AdminOrderDetailPage() {
           </div>
 
           {/* Status & Actions */}
-          <div className="border border-border p-6 bg-card text-card-foreground ">
+          <div className=" p-6 bg-card text-card-foreground ">
             <h3 className="font-semibold text-lg mb-4 text-foreground">Status</h3>
             <Badge
               variant={getStatusLabel(order.status).variant}

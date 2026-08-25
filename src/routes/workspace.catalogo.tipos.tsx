@@ -70,8 +70,12 @@ type FormValues = z.infer<typeof formSchema>;
 export const Route = createFileRoute("/workspace/catalogo/tipos")({
   head: () => ({ meta: [{ title: "Tipos de produto" }] }),
   loader: async () => {
-    const res = await listProductTypes();
-    return res || [];
+    try {
+      const res = await listProductTypes();
+      return res || [];
+    } catch {
+      return [];
+    }
   },
   component: ProductTypesPage,
 });
@@ -186,200 +190,219 @@ function ProductTypesPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        eyebrow="Catálogo"
-        title="Tipos de produto"
-        actions={
-          <Sheet
-            open={open}
-            onOpenChange={(val) => {
-              setOpen(val);
-              if (!val) setEditingType(null);
-            }}
-          >
-            <SheetTrigger asChild>
-              <Button onClick={handleOpenNew} size="sm">
-                <Plus className="mr-1.5 size-4" aria-hidden />
-                Novo Tipo
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="max-w-2xl overflow-y-auto">
-              <SheetHeader>
-                <SheetTitle>
-                  {editingType ? "Editar tipo de produto" : "Criar tipo de produto"}
-                </SheetTitle>
-                <SheetDescription>
-                  Um tipo de produto define quais atributos um produto deve ter (ex: Tamanho, Cor,
-                  Material).
-                </SheetDescription>
-              </SheetHeader>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Nome do Tipo</Label>
-                    <Input
-                      id="name"
-                      placeholder="Ex: Tênis"
-                      {...form.register("name")}
-                      onChange={(e) => {
-                        form.register("name").onChange(e);
-                        // Auto-slugify
-                        const slug = e.target.value
-                          .toLowerCase()
-                          .normalize("NFD")
-                          .replace(/[\u0300-\u036f]/g, "")
-                          .replace(/[^a-z0-9]+/g, "-")
-                          .replace(/(^-|-$)+/g, "");
-                        form.setValue("slug", slug);
-                      }}
-                    />
-                    {form.formState.errors.name && (
-                      <p className="text-xs text-destructive">
-                        {form.formState.errors.name.message}
-                      </p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="slug">Slug</Label>
-                    <Input id="slug" placeholder="ex: tenis" {...form.register("slug")} />
-                    {form.formState.errors.slug && (
-                      <p className="text-xs text-destructive">
-                        {form.formState.errors.slug.message}
-                      </p>
-                    )}
-                  </div>
-                </div>
+    <div className="space-y-6 animate-in fade-in duration-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-3xl  bg-card ">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary">
+              Estrutura de Catálogo
+            </span>
+            <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/20">
+              {types.length} {types.length === 1 ? "tipo ativo" : "tipos ativos"}
+            </Badge>
+          </div>
+          <h1 className="text-xl font-bold tracking-tight text-foreground">
+            Tipos de Produto
+          </h1>
+          <p className="text-xs text-muted-foreground">
+            Defina especificações e atributos dinâmicos específicos para cada tipo de item (ex: Tênis, Vestuário, Eletrônicos).
+          </p>
+        </div>
 
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-medium">Campos Dinâmicos</h4>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => append({ name: "", kind: "text", required: false })}
-                    >
-                      Adicionar Campo
-                    </Button>
-                  </div>
-
-                  {fields.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-4 border border-dashed rounded-xl">
-                      Nenhum campo dinâmico adicionado.
+        <Sheet
+          open={open}
+          onOpenChange={(val) => {
+            setOpen(val);
+            if (!val) setEditingType(null);
+          }}
+        >
+          <SheetTrigger asChild>
+            <Button onClick={handleOpenNew} size="sm" className="rounded-xl text-xs font-bold gap-1.5 bg-primary text-primary-foreground  shrink-0">
+              <Plus className="size-3.5" aria-hidden />
+              <span>Novo Tipo</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="max-w-2xl overflow-y-auto p-6 bg-card ">
+            <SheetHeader className="space-y-1.5 pb-4 ">
+              <SheetTitle className="text-lg font-bold text-foreground">
+                {editingType ? "Editar tipo de produto" : "Criar tipo de produto"}
+              </SheetTitle>
+              <SheetDescription className="text-xs text-muted-foreground">
+                Um tipo de produto define quais atributos e grades um produto deve ter (ex: Tamanho, Cor, Material).
+              </SheetDescription>
+            </SheetHeader>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-5">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="name" className="text-xs font-bold text-foreground">Nome do Tipo *</Label>
+                  <Input
+                    id="name"
+                    placeholder="Ex: Tênis ou Vestuário"
+                    className="rounded-xl text-xs h-9"
+                    {...form.register("name")}
+                    onChange={(e) => {
+                      form.register("name").onChange(e);
+                      const slug = e.target.value
+                        .toLowerCase()
+                        .normalize("NFD")
+                        .replace(/[\u0300-\u036f]/g, "")
+                        .replace(/[^a-z0-9]+/g, "-")
+                        .replace(/(^-|-$)+/g, "");
+                      form.setValue("slug", slug);
+                    }}
+                  />
+                  {form.formState.errors.name && (
+                    <p className="text-xs text-destructive">
+                      {form.formState.errors.name.message}
                     </p>
-                  ) : (
-                    <div className="space-y-4">
-                      {fields.map((field, index) => (
-                        <div
-                          key={field.id}
-                          className="flex items-start gap-4 p-4 border rounded-xl relative"
-                        >
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-2 top-2 h-6 w-6 p-0 text-destructive"
-                            onClick={() => remove(index)}
-                          >
-                            ×
-                          </Button>
-                          <div className="grid flex-1 grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="space-y-2">
-                              <Label>Nome do campo</Label>
-                              <Input
-                                placeholder="Ex: Material ou Tamanho"
-                                {...form.register(`fields.${index}.name`)}
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Tipo de dado</Label>
-                              <Select
-                                onValueChange={(val) =>
-                                  form.setValue(
-                                    `fields.${index}.kind`,
-                                    val as
-                                      | "text"
-                                      | "number"
-                                      | "boolean"
-                                      | "select_single"
-                                      | "option_group",
-                                  )
-                                }
-                                defaultValue={field.kind}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="text">Texto livre</SelectItem>
-                                  <SelectItem value="number">Número</SelectItem>
-                                  <SelectItem value="boolean">Verdadeiro/Falso</SelectItem>
-                                  <SelectItem value="select_single">Seleção única</SelectItem>
-                                  <SelectItem value="option_group">
-                                    Matriz de Variações (Grade)
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="space-y-2">
-                              <div className="flex items-center space-x-2 pt-8">
-                                <Checkbox
-                                  id={`req-${index}`}
-                                  onCheckedChange={(checked) =>
-                                    form.setValue(`fields.${index}.required`, !!checked)
-                                  }
-                                />
-                                <Label htmlFor={`req-${index}`} className="text-sm font-normal">
-                                  Obrigatório
-                                </Label>
-                              </div>
-                            </div>
-                            {form.watch(`fields.${index}.kind`) === "option_group" && (
-                              <div className="space-y-2 md:col-span-3">
-                                <Label className="text-xs text-muted-foreground">
-                                  Valores permitidos (separados por vírgula)
-                                </Label>
-                                <Input
-                                  placeholder="Ex: 34, 35, 36, Preto, Branco"
-                                  onChange={(e) => {
-                                    const opts = e.target.value
-                                      .split(",")
-                                      .map((s) => s.trim())
-                                      .filter(Boolean);
-                                    form.setValue(`fields.${index}.options`, opts);
-                                  }}
-                                />
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
                   )}
                 </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="slug" className="text-xs font-bold text-foreground">Identificador / Slug *</Label>
+                  <Input id="slug" placeholder="ex: tenis" className="rounded-xl text-xs h-9" {...form.register("slug")} />
+                  {form.formState.errors.slug && (
+                    <p className="text-xs text-destructive">
+                      {form.formState.errors.slug.message}
+                    </p>
+                  )}
+                </div>
+              </div>
 
-                <SheetFooter className="pt-4">
-                  <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
-                    Cancelar
+              <div className="space-y-4">
+                <div className="flex items-center justify-between  pb-2">
+                  <div>
+                    <h4 className="text-xs font-bold text-foreground">Campos Dinâmicos & Grades</h4>
+                    <p className="text-[11px] text-muted-foreground">Atributos que produtos deste tipo possuirão.</p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="rounded-xl text-xs font-bold gap-1"
+                    onClick={() => append({ name: "", kind: "text", required: false })}
+                  >
+                    <Plus className="size-3" />
+                    Adicionar Campo
                   </Button>
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? "Salvando..." : "Salvar Tipo"}
-                  </Button>
-                </SheetFooter>
-              </form>
-            </SheetContent>
-          </Sheet>
-        }
-      />
+                </div>
 
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-sm w-full">
-          <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" aria-hidden />
+                {fields.length === 0 ? (
+                  <p className="text-xs text-muted-foreground text-center py-6 border-0 rounded-2xl bg-muted/20">
+                    Nenhum campo dinâmico adicionado ainda.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {fields.map((field, index) => (
+                      <div
+                        key={field.id}
+                        className="flex items-start gap-4 p-4  bg-muted/20 rounded-2xl relative"
+                      >
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-2 top-2 size-6 text-rose-500 hover:bg-rose-500/10 rounded-lg"
+                          onClick={() => remove(index)}
+                        >
+                          <Trash2 className="size-3.5" />
+                        </Button>
+                        <div className="grid flex-1 grid-cols-1 md:grid-cols-3 gap-3">
+                          <div className="space-y-1">
+                            <Label className="text-[11px] font-bold">Nome do campo</Label>
+                            <Input
+                              placeholder="Ex: Material ou Voltagem"
+                              className="rounded-xl text-xs h-8"
+                              {...form.register(`fields.${index}.name`)}
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-[11px] font-bold">Tipo de dado</Label>
+                            <Select
+                              onValueChange={(val) =>
+                                form.setValue(
+                                  `fields.${index}.kind`,
+                                  val as
+                                    | "text"
+                                    | "number"
+                                    | "boolean"
+                                    | "select_single"
+                                    | "option_group",
+                                )
+                              }
+                              defaultValue={field.kind}
+                            >
+                              <SelectTrigger className="rounded-xl text-xs h-8">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="rounded-xl">
+                                <SelectItem value="text" className="text-xs">Texto livre</SelectItem>
+                                <SelectItem value="number" className="text-xs">Número</SelectItem>
+                                <SelectItem value="boolean" className="text-xs">Verdadeiro/Falso</SelectItem>
+                                <SelectItem value="select_single" className="text-xs">Seleção única</SelectItem>
+                                <SelectItem value="option_group" className="text-xs">
+                                  Matriz de Variações (Grade)
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex items-center space-x-2 pt-5">
+                              <Checkbox
+                                id={`req-${index}`}
+                                onCheckedChange={(checked) =>
+                                  form.setValue(`fields.${index}.required`, !!checked)
+                                }
+                              />
+                              <Label htmlFor={`req-${index}`} className="text-xs font-semibold">
+                                Obrigatório
+                              </Label>
+                            </div>
+                          </div>
+                          {form.watch(`fields.${index}.kind`) === "option_group" && (
+                            <div className="space-y-1 md:col-span-3">
+                              <Label className="text-[10px] text-muted-foreground font-bold">
+                                Valores permitidos (separados por vírgula)
+                              </Label>
+                              <Input
+                                placeholder="Ex: 34, 35, 36, Preto, Branco"
+                                className="rounded-xl text-xs h-8"
+                                onChange={(e) => {
+                                  const opts = e.target.value
+                                    .split(",")
+                                    .map((s) => s.trim())
+                                    .filter(Boolean);
+                                  form.setValue(`fields.${index}.options`, opts);
+                                }}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <SheetFooter className="pt-4  flex justify-end gap-2">
+                <Button type="button" variant="outline" size="sm" className="rounded-xl text-xs font-bold" onClick={() => setOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit" size="sm" disabled={isSubmitting} className="rounded-xl text-xs font-bold bg-primary text-primary-foreground">
+                  {isSubmitting ? "Salvando..." : "Salvar Tipo"}
+                </Button>
+              </SheetFooter>
+            </form>
+          </SheetContent>
+        </Sheet>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-2.5 size-3.5 text-muted-foreground" aria-hidden />
           <Input
             type="search"
-            placeholder="Buscar por nome ou slug..."
-            className="pl-9 text-xs w-full"
+            placeholder="Buscar por nome ou identificador..."
+            className="pl-8 text-xs h-9 rounded-xl w-full"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -387,18 +410,18 @@ function ProductTypesPage() {
       </div>
 
       {filteredTypes.length === 0 ? (
-        <EmptyState title="Nenhum tipo de produto" />
+        <EmptyState title="Nenhum tipo de produto cadastrado" />
       ) : (
-        <div className="border border-border bg-card rounded-xl overflow-hidden">
+        <div className=" bg-card rounded-3xl overflow-hidden ">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-muted/40 border-b border-border/20">
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Slug</TableHead>
-                  <TableHead>Campos Dinâmicos</TableHead>
-                  <TableHead>Criado em</TableHead>
-                  <TableHead className="w-[80px] text-right">Ações</TableHead>
+                <TableRow className="bg-muted/30 ">
+                  <TableHead className="text-xs font-bold text-foreground">Nome do Tipo</TableHead>
+                  <TableHead className="text-xs font-bold text-foreground">Slug</TableHead>
+                  <TableHead className="text-xs font-bold text-foreground">Campos & Atributos</TableHead>
+                  <TableHead className="text-xs font-bold text-foreground">Criado em</TableHead>
+                  <TableHead className="w-[80px] text-right text-xs font-bold text-foreground">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -410,16 +433,16 @@ function ProductTypesPage() {
                     field_schema: unknown;
                     created_at: string;
                   }) => (
-                    <TableRow key={type.id} className="hover:bg-muted/30 transition-colors">
-                      <TableCell className="font-semibold text-sm text-foreground">
+                    <TableRow key={type.id} className="hover:bg-muted/20 transition-colors">
+                      <TableCell className="font-bold text-xs text-foreground">
                         {type.name}
                       </TableCell>
                       <TableCell className="text-muted-foreground font-mono text-xs">
                         {type.slug}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary" className="text-xs border-border/30">
-                          {Array.isArray(type.field_schema) ? type.field_schema.length : 0} campos
+                        <Badge variant="secondary" className="text-[11px] font-bold rounded-lg bg-muted border-border">
+                          {Array.isArray(type.field_schema) ? type.field_schema.length : 0} {Array.isArray(type.field_schema) && type.field_schema.length === 1 ? "campo" : "campos"}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground text-xs">
@@ -428,17 +451,17 @@ function ProductTypesPage() {
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" aria-label="Ações do tipo">
+                            <Button variant="ghost" size="icon" className="size-8 rounded-lg" aria-label="Ações do tipo">
                               <MoreHorizontal className="size-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleOpenEdit(type)}>
+                          <DropdownMenuContent align="end" className="rounded-xl">
+                            <DropdownMenuItem onClick={() => handleOpenEdit(type)} className="text-xs font-medium cursor-pointer">
                               <Edit className="mr-2 size-3.5" />
                               Editar Tipo
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              className="text-destructive focus:text-destructive"
+                              className="text-destructive focus:text-destructive text-xs font-medium cursor-pointer"
                               onClick={() => handleDelete(type.id)}
                             >
                               <Trash2 className="mr-2 size-3.5" />

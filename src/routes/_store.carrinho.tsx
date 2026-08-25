@@ -23,8 +23,12 @@ import { Surface } from "@/components/ui/surface";
 export const Route = createFileRoute("/_store/carrinho")({
   head: () => ({ meta: [{ title: "Meu Carrinho" }] }),
   loader: async () => {
-    const cart = await getCart();
-    return cart ? [cart] : [];
+    try {
+      const cart = await getCart();
+      return cart ? [cart] : [];
+    } catch {
+      return [];
+    }
   },
   pendingComponent: PageSkeleton,
   component: StoreCartPage,
@@ -61,10 +65,7 @@ function StoreCartPage() {
   const selectedCart = carts?.find((c: any) => c.storeId === selectedStoreId);
 
   return (
-    <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
-      <h1 className="text-3xl font-sans text-muted-foreground font-bold tracking-tight mb-8">
-        Meu Carrinho
-      </h1>
+    <div className="w-full max-w-5xl mx-auto space-y-6 pb-20">
 
       {!carts || carts.length === 0 ? (
         <EmptyState
@@ -94,7 +95,9 @@ function StoreCartPage() {
                     >
                       <CheckCircle2 className="size-4" />
                     </div>
-                    <h2 className="text-xl font-bold">Loja {cart.storeId?.split("-")[0]}</h2>
+                    <h3 className="text-base font-bold text-foreground">
+                      {cart.storeName || `Loja ${cart.storeId?.split("-")[0]}`}
+                    </h3>
                   </div>
                 </div>
 
@@ -131,7 +134,7 @@ function StoreCartPage() {
                                 </p>
                               )}
                             {item.isOutOfStock && (
-                              <p className="text-xs font-bold text-destructive mt-1 bg-destructive/10 inline-block px-2 py-0.5 rounded-full">
+                              <p className="text-xs font-bold text-destructive mt-1 bg-destructive/10 inline-block px-2 py-0.5 rounded-lg">
                                 Sem estoque disponível
                               </p>
                             )}
@@ -146,20 +149,20 @@ function StoreCartPage() {
                           </p>
                         </div>
                         <div className="flex items-center justify-between mt-4">
-                          <div className="flex items-center border rounded-xl">
+                          <div className="flex items-center  rounded-xl overflow-hidden">
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 rounded-r-none"
+                              className="h-8 w-8 rounded-none "
                               onClick={() => handleUpdateQty(item.variantId, -1)}
                             >
                               <Minus className="h-3 w-3" />
                             </Button>
-                            <span className="text-sm font-medium w-8 text-center">{item.qty}</span>
+                            <span className="text-sm font-bold w-8 text-center">{item.qty}</span>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 rounded-l-none"
+                              className="h-8 w-8 rounded-none "
                               onClick={() => handleUpdateQty(item.variantId, 1)}
                             >
                               <Plus className="h-3 w-3" />
@@ -226,7 +229,7 @@ function StoreCartPage() {
                   </div>
 
                   {selectedCart.items.some((i: any) => i.isOutOfStock) ? (
-                    <Button size="lg" className="w-full font-semibold rounded-full" disabled>
+                    <Button size="lg" className="w-full font-bold rounded-xl" disabled>
                       Remova itens sem estoque
                     </Button>
                   ) : (
@@ -235,9 +238,12 @@ function StoreCartPage() {
                       search={{ store: selectedCart.storeId }}
                       className="w-full block"
                     >
-                      <Button size="lg" className="w-full font-semibold rounded-full shadow-md">
-                        Pagar Loja {selectedCart.storeId?.split("-")[0]}
-                        <ArrowRight className="ml-2 h-5 w-5" />
+                      <Button size="lg" className="w-full font-bold rounded-xl">
+                        Finalizar Compra
+                        {selectedCart.storeName && (
+                          <span className="ml-1 opacity-70 font-normal text-sm truncate max-w-[120px]">— {selectedCart.storeName}</span>
+                        )}
+                        <ArrowRight className="ml-2 h-5 w-5 shrink-0" />
                       </Button>
                     </Link>
                   )}

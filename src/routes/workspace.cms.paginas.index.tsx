@@ -120,7 +120,7 @@ function CmsPagesPage() {
         actions={
           <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
             <DialogTrigger asChild>
-              <Button className="font-bold border border-border ">
+              <Button className="font-bold  ">
                 <Plus className="mr-2 h-4 w-4" />
                 Nova Página
               </Button>
@@ -195,7 +195,7 @@ function CmsPagesPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Buscar páginas..."
-                className="pl-9 bg-background border border-border"
+                className="pl-9 bg-background "
               />
             </div>
           </div>
@@ -203,7 +203,7 @@ function CmsPagesPage() {
           {pages.length === 0 ? (
             <EmptyState title="Nenhuma página criada" />
           ) : (
-            <div className="bg-surface-paper shadow-sm rounded-xl border border-border overflow-hidden">
+            <div className="bg-surface-paper  rounded-xl  overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">

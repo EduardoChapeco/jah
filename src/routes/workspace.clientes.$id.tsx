@@ -26,6 +26,7 @@ import { useState } from "react";
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CitySelect } from "@/components/ui/city-select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
@@ -253,7 +254,7 @@ function CustomerDetailPage() {
       </nav>
 
       {/* Identidade Resumida & LTV */}
-      <div className="squircle-soft border border-border bg-card p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
+      <div className="squircle-soft  bg-card p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 ">
         <div className="flex items-center gap-4">
           <div className="size-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-bold text-xl">
             {data.profile.name.charAt(0).toUpperCase()}
@@ -280,7 +281,7 @@ function CustomerDetailPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-6 border-t sm:border-t-0 sm:border-l border-border pt-3 sm:pt-0 sm:pl-6">
+        <div className="flex items-center gap-6 border-t sm:border-t-0 sm: pt-3 sm:pt-0 sm:pl-6">
           <div>
             <span className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">
               LTV Total
@@ -319,7 +320,7 @@ function CustomerDetailPage() {
 
         {/* Tab 1: Timeline 360 */}
         <TabsContent value="timeline" className="space-y-4">
-          <div className="squircle-soft border border-border bg-card p-6 shadow-xs">
+          <div className="squircle-soft  bg-card p-6 ">
             <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
               <Sparkles className="size-4 text-primary" />
               Linha do Tempo de Interações (Timeline 360)
@@ -334,7 +335,7 @@ function CustomerDetailPage() {
                 {(data as any).timeline.map((event: any) => (
                   <div key={event.id} className="relative flex items-start gap-4">
                     <div className="absolute -left-6 top-1 size-3 rounded-full bg-primary ring-4 ring-card" />
-                    <div className="flex-1 bg-background border border-border/80 rounded-xl p-3.5 space-y-1">
+                    <div className="flex-1 bg-background  rounded-xl p-3.5 space-y-1">
                       <div className="flex items-center justify-between">
                         <p className="text-xs font-bold text-foreground">{event.title}</p>
                         <span className="text-[10px] text-muted-foreground">
@@ -355,7 +356,7 @@ function CustomerDetailPage() {
 
         {/* Tab: Orçamentos */}
         <TabsContent value="orcamentos" className="space-y-4">
-          <div className="squircle-soft border border-border bg-card p-6 shadow-xs space-y-4">
+          <div className="squircle-soft  bg-card p-6  space-y-4">
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
               <FileText className="size-4 text-primary" />
               Histórico de Orçamentos
@@ -549,7 +550,7 @@ function CustomerDetailPage() {
             ))}
 
             {data.addresses.length === 0 && (
-              <div className="col-span-full border border-dashed border-border rounded-xl p-8 text-center text-xs text-muted-foreground flex flex-col items-center justify-center gap-2">
+              <div className="col-span-full border-0 rounded-xl p-8 text-center text-xs text-muted-foreground flex flex-col items-center justify-center gap-2">
                 <AlertTriangle className="size-5 text-warning" />
                 Nenhum endereço de entrega cadastrado para este cliente.
               </div>
@@ -558,7 +559,7 @@ function CustomerDetailPage() {
         </TabsContent>
 
         <TabsContent value="pedidos">
-          <div className="border border-border rounded-lg bg-card overflow-hidden">
+          <div className=" rounded-lg bg-card overflow-hidden">
             {data.orders.length === 0 ? (
               <div className="p-8 text-center text-muted-foreground text-xs">
                 Este cliente ainda não fez nenhum pedido no e-commerce ou balcão.
@@ -678,30 +679,13 @@ function CustomerDetailPage() {
                   onChange={(e) => setAddressForm({ ...addressForm, neighborhood: e.target.value })}
                 />
               </div>
-              <div className="grid grid-cols-3 gap-2">
-                <div className="col-span-2 space-y-2">
-                  <Label htmlFor="addr-city">Cidade *</Label>
-                  <Input
-                    id="addr-city"
-                    required
-                    placeholder="Cidade"
-                    value={addressForm.city}
-                    onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="addr-state">UF *</Label>
-                  <Input
-                    id="addr-state"
-                    required
-                    maxLength={2}
-                    placeholder="SP"
-                    value={addressForm.state}
-                    onChange={(e) =>
-                      setAddressForm({ ...addressForm, state: e.target.value.toUpperCase() })
-                    }
-                  />
-                </div>
+              <div>
+                <CitySelect
+                  stateValue={addressForm.state || "SC"}
+                  cityValue={addressForm.city || "Chapecó"}
+                  onStateChange={(uf) => setAddressForm({ ...addressForm, state: uf })}
+                  onCityChange={(city) => setAddressForm({ ...addressForm, city })}
+                />
               </div>
             </div>
 

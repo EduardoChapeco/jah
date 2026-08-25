@@ -1,21 +1,22 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Calendar as CalendarIcon,
   Clock,
-  User,
   CheckCircle2,
-  XCircle,
   FileText,
   Play,
-  Activity,
+  Ticket,
+  ChevronLeft,
+  ChevronRight,
+  DollarSign,
+  Users,
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, addDays, subDays, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
 
-import { PageHeader } from "@/components/commerce/page-header";
 import {
   listAppointments,
   updateAppointmentStatus,
@@ -24,7 +25,6 @@ import {
 } from "@/services/booking.functions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/state/states";
 import {
   Sheet,
   SheetContent,
@@ -33,9 +33,11 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
+import { formatMoney } from "@/lib/money";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/agenda/")({
-  head: () => ({ meta: [{ title: "Painel de Agendamentos" }] }),
+  head: () => ({ meta: [{ title: "Agenda & Atendimentos | Workspace" }] }),
   component: AdminAppointmentsPage,
 });
 
@@ -77,40 +79,40 @@ function ClinicalRecordDrawer({
 
   return (
     <Sheet open={isOpen} onOpenChange={(val) => !val && onClose()}>
-      <SheetContent className="sm:max-w-md flex flex-col h-full">
-        <SheetHeader>
-          <SheetTitle>Prontuário & Evolução</SheetTitle>
-          <SheetDescription>Histórico clínico de {guestName}</SheetDescription>
+      <SheetContent className="sm:max-w-md flex flex-col h-full bg-card">
+        <SheetHeader className="pb-3 ">
+          <SheetTitle className="text-base font-bold text-foreground">Prontuário & Evolução</SheetTitle>
+          <SheetDescription className="text-xs text-muted-foreground">Histórico de atendimento de {guestName}</SheetDescription>
         </SheetHeader>
-        <div className="flex-1 overflow-y-auto py-4 space-y-4">
+        <div className="flex-1 overflow-y-auto py-4 space-y-3">
           {isLoading ? (
-            <p className="text-sm text-muted-foreground">Carregando histórico...</p>
+            <p className="text-xs text-muted-foreground">Carregando histórico...</p>
           ) : records.length === 0 ? (
-            <p className="text-sm text-muted-foreground italic">
-              Nenhum registro encontrado para este paciente.
-            </p>
+            <div className="p-6 text-center border-0 rounded-xl bg-muted/20">
+              <p className="text-xs text-muted-foreground">Nenhum registro anterior encontrado.</p>
+            </div>
           ) : (
             records.map((r: any) => (
-              <div key={r.id} className="bg-muted p-3 rounded-xl text-sm border border-border">
-                <div className="flex justify-between items-center mb-2 text-xs text-muted-foreground font-mono">
+              <div key={r.id} className="bg-muted/40 p-3.5 rounded-xl text-xs  space-y-1.5">
+                <div className="flex justify-between items-center text-[11px] text-muted-foreground font-mono">
                   <span>{format(new Date(r.created_at), "dd/MM/yyyy HH:mm")}</span>
                   <span>{r.author?.email || "Profissional"}</span>
                 </div>
-                <p className="whitespace-pre-wrap">{r.content}</p>
+                <p className="whitespace-pre-wrap text-foreground">{r.content}</p>
               </div>
             ))
           )}
         </div>
-        <div className="pt-4 border-t border-border mt-auto">
-          <label className="text-sm font-semibold mb-2 block">Nova Evolução / Anamnese</label>
+        <div className="pt-3  mt-auto space-y-2">
+          <label className="text-xs font-bold text-foreground block">Nova Evolução / Anamnese</label>
           <Textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="Descreva o procedimento, estado do paciente, uso de produtos..."
-            className="mb-3 h-24 resize-none"
+            placeholder="Descreva o procedimento realizado, produtos utilizados, observações..."
+            className="h-20 text-xs rounded-xl"
           />
           <Button
-            className="w-full"
+            className="w-full h-10 rounded-xl text-xs font-bold"
             disabled={!content.trim() || addMutation.isPending}
             onClick={() => addMutation.mutate(content)}
           >
@@ -124,6 +126,7 @@ function ClinicalRecordDrawer({
 
 function AdminAppointmentsPage() {
   const queryClient = useQueryClient();
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedAppt, setSelectedAppt] = useState<{ id: string; name: string } | null>(null);
 
   const { data: appointmentsRes, isLoading } = useQuery({
@@ -144,96 +147,248 @@ function AdminAppointmentsPage() {
 
   const appointments = appointmentsRes?.data || [];
 
+  const weekDays = useMemo(() => {
+    return Array.from({ length: 7 }, (_, i) => addDays(subDays(selectedDate, 3), i));
+  }, [selectedDate]);
+
+  const filteredAppointments = useMemo(() => {
+    return appointments.filter((appt: any) => {
+      if (!appt.scheduled_at) return false;
+      const apptDate = new Date(appt.scheduled_at);
+      return isSameDay(apptDate, selectedDate);
+    });
+  }, [appointments, selectedDate]);
+
+  const groupedAppointments = useMemo(() => {
+    const map: Record<string, any[]> = {};
+    filteredAppointments.forEach((appt: any) => {
+      const resourceName = appt.booking_resources?.name || "Geral";
+      if (!map[resourceName]) map[resourceName] = [];
+      map[resourceName].push(appt);
+    });
+    return map;
+  }, [filteredAppointments]);
+
+  const dayMetrics = useMemo(() => {
+    const totalCount = filteredAppointments.length;
+    const completedCount = filteredAppointments.filter((a: any) => a.status === "completed").length;
+    const revenueCents = filteredAppointments
+      .filter((a: any) => a.status !== "cancelled")
+      .reduce((sum: number, a: any) => sum + (a.booking_services?.price_cents || 0), 0);
+    return { totalCount, completedCount, revenueCents };
+  }, [filteredAppointments]);
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
       case "confirmed":
         return (
-          <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20">
-            Aguardando
+          <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-[10px] font-bold">
+            Agendado
           </Badge>
         );
       case "checked_in":
         return (
-          <Badge variant="outline" className="bg-info/10 text-info border-info/20">
-            Aguardando na Recepção
+          <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-[10px] font-bold">
+            Na Recepção
           </Badge>
         );
       case "in_service":
         return (
-          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+          <Badge variant="outline" className="bg-purple-500/10 text-purple-600 border-purple-500/20 text-[10px] font-bold">
             Em Atendimento
           </Badge>
         );
       case "completed":
         return (
-          <Badge variant="outline" className="bg-success/10 text-success border-success/20">
+          <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[10px] font-bold">
             Concluído
           </Badge>
         );
       case "no_show":
         return (
-          <Badge variant="outline" className="bg-muted text-muted-foreground border-border">
-            Não Compareceu
+          <Badge variant="outline" className="bg-muted text-muted-foreground border-border text-[10px] font-bold">
+            Faltou
           </Badge>
         );
       case "cancelled":
         return (
-          <Badge variant="outline" className="bg-rose-500/10 text-rose-600 border-rose-500/20">
+          <Badge variant="outline" className="bg-rose-500/10 text-rose-600 border-rose-500/20 text-[10px] font-bold">
             Cancelado
           </Badge>
         );
       default:
-        return <Badge variant="secondary">{status}</Badge>;
+        return <Badge variant="secondary" className="text-[10px]">{status}</Badge>;
     }
   };
 
-  const groupedAppointments = appointments.reduce((acc: any, appt: any) => {
-    const resourceName = appt.booking_resources?.name || "Sem Profissional";
-    if (!acc[resourceName]) acc[resourceName] = [];
-    acc[resourceName].push(appt);
-    return acc;
-  }, {});
-
   return (
     <div className="space-y-6 h-full flex flex-col">
-      <PageHeader eyebrow="Agendamentos" title="Agenda Orquestrada" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 ">
+        <div>
+          <h1 className="text-xl font-bold text-foreground">Agenda de Atendimentos</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Gestão de horários, profissionais e atendimentos (Padrão Booksy / Avec).
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/workspace/pacotes"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-card hover:bg-muted text-foreground  transition-all"
+          >
+            <Ticket className="size-3.5 text-primary" />
+            <span>Pacotes & Passes</span>
+          </Link>
+          <Link
+            to="/workspace/agenda/recursos"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-card hover:bg-muted text-foreground  transition-all"
+          >
+            <Users className="size-3.5" />
+            <span>Profissionais & Salas</span>
+          </Link>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between gap-2 p-3 bg-card rounded-2xl  ">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setSelectedDate((prev) => subDays(prev, 1))}
+          className="size-9 rounded-xl text-muted-foreground hover:text-foreground shrink-0 cursor-pointer"
+          aria-label="Dia anterior"
+        >
+          <ChevronLeft className="size-4" />
+        </Button>
+
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none flex-1 justify-center py-0.5">
+          {weekDays.map((d, idx) => {
+            const isSelected = isSameDay(d, selectedDate);
+            const isToday = isSameDay(d, new Date());
+            return (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setSelectedDate(d)}
+                className={cn(
+                  "flex flex-col items-center justify-center min-w-14 sm:min-w-16 py-2 px-1 rounded-xl transition-all cursor-pointer",
+                  isSelected
+                    ? "bg-primary text-primary-foreground font-bold "
+                    : "hover:bg-muted/60 text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <span className="text-[10px] uppercase font-bold tracking-wider">
+                  {format(d, "EEE", { locale: ptBR })}
+                </span>
+                <span className="text-sm font-black mt-0.5 font-mono">
+                  {format(d, "dd")}
+                </span>
+                {isToday && !isSelected && (
+                  <span className="size-1 rounded-full bg-primary mt-1" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setSelectedDate((prev) => addDays(prev, 1))}
+          className="size-9 rounded-xl text-muted-foreground hover:text-foreground shrink-0 cursor-pointer"
+          aria-label="Próximo dia"
+        >
+          <ChevronRight className="size-4" />
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="p-3.5 rounded-2xl bg-card  flex items-center gap-3">
+          <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <CalendarIcon className="size-5" />
+          </div>
+          <div>
+            <p className="text-[11px] font-bold text-muted-foreground">Agendamentos</p>
+            <p className="text-base font-black text-foreground font-mono">{dayMetrics.totalCount}</p>
+          </div>
+        </div>
+
+        <div className="p-3.5 rounded-2xl bg-card  flex items-center gap-3">
+          <div className="size-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+            <CheckCircle2 className="size-5" />
+          </div>
+          <div>
+            <p className="text-[11px] font-bold text-muted-foreground">Concluídos</p>
+            <p className="text-base font-black text-foreground font-mono">{dayMetrics.completedCount}</p>
+          </div>
+        </div>
+
+        <div className="col-span-2 sm:col-span-1 p-3.5 rounded-2xl bg-card  flex items-center gap-3">
+          <div className="size-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0">
+            <DollarSign className="size-5" />
+          </div>
+          <div>
+            <p className="text-[11px] font-bold text-muted-foreground">Previsão do Dia</p>
+            <p className="text-base font-black text-foreground font-mono">
+              {formatMoney(dayMetrics.revenueCents)}
+            </p>
+          </div>
+        </div>
+      </div>
 
       {isLoading ? (
-        <div className="h-40 flex items-center justify-center">Carregando orquestrador...</div>
-      ) : appointments.length === 0 ? (
-        <EmptyState title="Agenda Livre" />
+        <div className="p-12 text-center text-xs text-muted-foreground">Carregando agendamentos...</div>
+      ) : Object.keys(groupedAppointments).length === 0 ? (
+        <div className="p-12 text-center border-0 rounded-2xl bg-card space-y-2">
+          <CalendarIcon className="size-8 mx-auto text-muted-foreground opacity-40" />
+          <h3 className="text-sm font-bold text-foreground">Nenhum agendamento para este dia</h3>
+          <p className="text-xs text-muted-foreground">
+            Os horários marcados por clientes aparecerão aqui.
+          </p>
+        </div>
       ) : (
         <div className="flex-1 overflow-x-auto pb-4">
-          <div className="flex gap-6 min-w-max h-full">
+          <div className="flex gap-4 min-w-max items-start">
             {Object.keys(groupedAppointments).map((resourceName) => (
               <div
                 key={resourceName}
-                className="w-96 flex flex-col gap-4 bg-surface-paper shadow-sm rounded-xl border border-border p-4"
+                className="w-80 flex flex-col gap-3 bg-card rounded-2xl  p-4 "
               >
-                <div className="flex items-center gap-2 pb-2 border-b border-border/50">
-                  <User className="size-5 text-muted-foreground" />
-                  <h3 className="font-semibold text-lg">{resourceName}</h3>
-                  <Badge variant="secondary" className="ml-auto">
+                <div className="flex items-center justify-between pb-2 ">
+                  <div className="flex items-center gap-2">
+                    <div className="size-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
+                      {resourceName.charAt(0)}
+                    </div>
+                    <h3 className="font-bold text-sm text-foreground">{resourceName}</h3>
+                  </div>
+                  <Badge variant="secondary" className="text-[10px] font-bold">
                     {groupedAppointments[resourceName].length}
                   </Badge>
                 </div>
 
-                <div className="flex flex-col gap-3 flex-1 overflow-y-auto no-scrollbar">
+                <div className="space-y-3">
                   {groupedAppointments[resourceName].map((appt: any) => (
                     <div
                       key={appt.id}
-                      className="flex flex-col border border-border bg-background shadow-sm rounded-xl p-3 overflow-hidden"
+                      className="p-3.5 rounded-xl  bg-background space-y-2.5  hover:border-primary/40 transition-colors"
                     >
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-bold text-sm leading-tight">
-                          {appt.booking_services?.title || "Serviço Avulso"}
-                        </h4>
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h4 className="font-bold text-xs text-foreground">
+                            {appt.booking_services?.title || "Atendimento"}
+                          </h4>
+                          {appt.pass_id && (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 mt-0.5 rounded text-[9px] font-bold bg-primary/10 text-primary">
+                              <Ticket size={9} />
+                              Sessão #{appt.session_number || 1}
+                            </span>
+                          )}
+                        </div>
+                        {getStatusBadge(appt.status)}
                       </div>
 
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono bg-muted px-2 py-1 rounded-xl">
-                          <Clock className="size-3" />
+                      <div className="flex items-center justify-between text-xs text-muted-foreground font-mono">
+                        <div className="flex items-center gap-1">
+                          <Clock className="size-3 text-primary" />
                           <span>
                             {format(new Date(appt.scheduled_at), "HH:mm")} -{""}
                             {format(
@@ -245,76 +400,52 @@ function AdminAppointmentsPage() {
                             )}
                           </span>
                         </div>
-                        {getStatusBadge(appt.status)}
+                        {appt.booking_services?.price_cents && (
+                          <span className="font-bold text-foreground">
+                            {formatMoney(appt.booking_services.price_cents)}
+                          </span>
+                        )}
                       </div>
 
-                      <div className="pt-2 border-t border-border mt-2">
-                        <p className="text-sm font-semibold text-foreground/90 flex items-center justify-between">
-                          {appt.guest_name || "Cliente Não Identificado"}
-
-                          {/* Botão de Prontuário Clínico */}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="size-7"
-                            title="Ver Prontuário / Evolução"
-                            onClick={() =>
-                              setSelectedAppt({ id: appt.id, name: appt.guest_name || "Cliente" })
-                            }
-                          >
-                            <FileText className="size-4 text-primary" />
-                          </Button>
-                        </p>
+                      <div className="pt-2  flex items-center justify-between text-xs">
+                        <span className="font-semibold text-foreground truncate max-w-[150px]">
+                          {appt.guest_name || "Cliente"}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer"
+                          title="Ver Prontuário / Evolução"
+                          onClick={() =>
+                            setSelectedAppt({ id: appt.id, name: appt.guest_name || "Cliente" })
+                          }
+                        >
+                          <FileText className="size-3.5 text-primary" />
+                        </Button>
                       </div>
 
-                      {/* Botões de Ação de Estado */}
                       {["pending", "confirmed"].includes(appt.status) && (
-                        <div className="mt-3 grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-2 gap-1.5 pt-1">
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() =>
-                              statusMutation.mutate({ id: appt.id, status: "checked_in" })
-                            }
-                          >
-                            Fazer Check-in
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                            onClick={() =>
-                              statusMutation.mutate({ id: appt.id, status: "no_show" })
-                            }
-                          >
-                            Faltou
-                          </Button>
-                        </div>
-                      )}
-                      {appt.status === "checked_in" && (
-                        <div className="mt-3 flex gap-2">
-                          <Button
-                            size="sm"
-                            className="w-full"
+                            className="h-8 rounded-lg text-[11px] font-bold cursor-pointer"
                             onClick={() =>
                               statusMutation.mutate({ id: appt.id, status: "in_service" })
                             }
                           >
-                            <Play className="size-3 mr-1" /> Iniciar Atendimento
+                            <Play className="size-3 mr-1 text-primary" />
+                            Iniciar
                           </Button>
-                        </div>
-                      )}
-                      {appt.status === "in_service" && (
-                        <div className="mt-3 flex gap-2">
                           <Button
                             size="sm"
-                            variant="default"
-                            className="w-full"
+                            className="h-8 rounded-lg text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
                             onClick={() =>
                               statusMutation.mutate({ id: appt.id, status: "completed" })
                             }
                           >
-                            <CheckCircle2 className="size-3 mr-1" /> Concluir Atendimento
+                            <CheckCircle2 className="size-3 mr-1" />
+                            Concluir
                           </Button>
                         </div>
                       )}
@@ -327,14 +458,12 @@ function AdminAppointmentsPage() {
         </div>
       )}
 
-      {selectedAppt && (
-        <ClinicalRecordDrawer
-          isOpen={true}
-          onClose={() => setSelectedAppt(null)}
-          appointmentId={selectedAppt.id}
-          guestName={selectedAppt.name}
-        />
-      )}
+      <ClinicalRecordDrawer
+        appointmentId={selectedAppt?.id || null}
+        isOpen={Boolean(selectedAppt)}
+        onClose={() => setSelectedAppt(null)}
+        guestName={selectedAppt?.name || "Cliente"}
+      />
     </div>
   );
 }

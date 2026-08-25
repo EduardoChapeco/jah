@@ -66,7 +66,7 @@ export function BentoGrid({ content, node_id, block_type }: BentoGridProps) {
                     trackClick({ index: idx, title: item.title, link: item.link });
                   }
                 }}
-                className={`relative group overflow-hidden border border-border bg-card flex flex-col justify-end ${sizeClass} transition-all duration-300 hover: hover:border-primary/30`}
+                className={`relative group overflow-hidden  bg-card flex flex-col justify-end ${sizeClass} transition-all duration-300 hover: hover:border-primary/30`}
               >
                 {/* Background Image */}
                 <div className="absolute inset-0 z-0">

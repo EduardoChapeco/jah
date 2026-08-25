@@ -51,12 +51,12 @@ function AdminMasterDashboard() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div>
         <h1 className="text-3xl font-black uppercase tracking-tight">Visão Global</h1>
-        <p className="text-muted-foreground mt-1">Supervisão da plataforma Jah Community.</p>
+        <p className="text-muted-foreground mt-1">Supervisão da plataforma Wider Community.</p>
       </div>
 
       {/* Metrics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        <div className="border border-border bg-card rounded-xl p-5 flex items-center gap-4 relative overflow-hidden shadow-xs">
+        <div className=" bg-card rounded-xl p-5 flex items-center gap-4 relative overflow-hidden ">
           <div className="p-3.5 bg-primary/10 text-primary rounded-xl">
             <DollarSign className="size-6" />
           </div>
@@ -68,7 +68,7 @@ function AdminMasterDashboard() {
           </div>
         </div>
 
-        <div className="border border-border bg-card rounded-xl p-5 flex items-center gap-4 relative overflow-hidden shadow-xs">
+        <div className=" bg-card rounded-xl p-5 flex items-center gap-4 relative overflow-hidden ">
           <div className="p-3.5 bg-warning/10 text-warning rounded-xl">
             <Activity className="size-6" />
           </div>
@@ -80,7 +80,7 @@ function AdminMasterDashboard() {
           </div>
         </div>
 
-        <div className="border border-border bg-card rounded-xl p-5 flex items-center gap-4 relative overflow-hidden shadow-xs">
+        <div className=" bg-card rounded-xl p-5 flex items-center gap-4 relative overflow-hidden ">
           <div className="p-3.5 bg-primary/10 text-foreground rounded-xl">
             <Store className="size-6" />
           </div>
@@ -90,7 +90,7 @@ function AdminMasterDashboard() {
           </div>
         </div>
 
-        <div className="border border-border bg-card rounded-xl p-5 flex items-center gap-4 relative overflow-hidden shadow-xs">
+        <div className=" bg-card rounded-xl p-5 flex items-center gap-4 relative overflow-hidden ">
           <div className="p-3.5 bg-blue-500/10 text-blue-600 rounded-xl">
             <ShieldCheck className="size-6" />
           </div>
@@ -100,7 +100,7 @@ function AdminMasterDashboard() {
           </div>
         </div>
 
-        <div className="border border-border bg-card rounded-xl p-5 flex items-center gap-4 relative overflow-hidden shadow-xs">
+        <div className=" bg-card rounded-xl p-5 flex items-center gap-4 relative overflow-hidden ">
           <div className="p-3.5 bg-amber-500/10 text-amber-600 rounded-xl">
             <AlertTriangle className="size-6" />
           </div>
@@ -110,7 +110,7 @@ function AdminMasterDashboard() {
           </div>
         </div>
 
-        <div className="border border-border bg-card rounded-xl p-5 flex items-center gap-4 relative overflow-hidden shadow-xs">
+        <div className=" bg-card rounded-xl p-5 flex items-center gap-4 relative overflow-hidden ">
           <div className="p-3.5 bg-indigo-500/10 text-indigo-600 rounded-xl">
             <ShieldCheck className="size-6" />
           </div>
@@ -123,7 +123,7 @@ function AdminMasterDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Stores Table */}
-        <div className="border border-border bg-card rounded-xl overflow-hidden">
+        <div className=" bg-card rounded-xl overflow-hidden">
           <div className="p-4 border-b bg-muted/30">
             <h3 className="font-bold flex items-center gap-2">
               <Store className="size-4 text-primary" /> Ecossistema de Lojas
@@ -172,7 +172,7 @@ function AdminMasterDashboard() {
         </div>
 
         {/* Invoices Table */}
-        <div className="border border-border bg-card rounded-xl overflow-hidden">
+        <div className=" bg-card rounded-xl overflow-hidden">
           <div className="p-4 border-b bg-muted/30">
             <h3 className="font-bold flex items-center gap-2">
               <DollarSign className="size-4 text-warning" /> Últimas Faturas Geradas

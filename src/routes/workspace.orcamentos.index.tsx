@@ -21,7 +21,7 @@ import { formatMoney } from "@/lib/money";
 import { formatRelativeTime } from "@/lib/datetime";
 
 export const Route = createFileRoute("/workspace/orcamentos/")({
-  head: () => ({ meta: [{ title: "Orçamentos — JAH Workspace" }] }),
+  head: () => ({ meta: [{ title: "Orçamentos — Wider Workspace" }] }),
   loader: async () => {
     const res = await listQuotes({ data: { limit: 30 } });
     return { initialData: res };
@@ -106,13 +106,13 @@ function QuotesListPage() {
             placeholder="Buscar por número, cliente..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm bg-muted/40 border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-colors"
+            className="w-full pl-9 pr-4 py-2 text-sm bg-muted/40  rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-colors"
           />
         </div>
       </div>
 
       {/* Status Tabs */}
-      <div className="flex gap-1 border-b border-border mb-4 overflow-x-auto pb-px">
+      <div className="flex gap-1  mb-4 overflow-x-auto pb-px">
         {STATUS_TABS.map((tab) => (
           <button
             key={String(tab.key)}
@@ -160,7 +160,7 @@ function QuotesListPage() {
       )}
 
       {!isLoading && !isError && quotes.length > 0 && (
-        <div className="divide-y divide-border border border-border rounded-xl overflow-hidden">
+        <div className="divide-y divide-border  rounded-xl overflow-hidden">
           {quotes.map((q: QuoteSummaryDTO) => (
             <QuoteRow key={q.id} quote={q} />
           ))}

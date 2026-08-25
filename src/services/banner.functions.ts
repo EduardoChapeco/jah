@@ -11,8 +11,29 @@ export type BannerPlacement =
   | "agenda"
   | "events"
   | "diretorio"
+  | "empregos"
+  | "turismo"
+  | "classificados"
   | "classifieds"
-  | "all";
+  | "mobilidade"
+  | "gastronomia"
+  | "moda"
+  | "pet"
+  | "livros"
+  | "imoveis"
+  | "limpeza"
+  | "beleza"
+  | "servicos"
+  | "acougue"
+  | "bebidas"
+  | "farmacia"
+  | "construcao"
+  | "casa"
+  | "eletronicos"
+  | "all"
+  | "ofertas"
+  | "store";
+
 
 export interface BannerDTO {
   id: string;
@@ -45,7 +66,7 @@ const SEED_BANNERS: BannerDTO[] = [
     id: "e0000000-0000-0000-0000-000000000001",
     title: "Descubra o Melhor da Sua Região",
     subtitle: "Comércio local, gastronomia autoral, notícias em tempo real e eventos em um só lugar.",
-    badge_text: "Comunidade JAH",
+    badge_text: "Comunidade Wider",
     media_url: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1600&q=85",
     media_type: "image",
     target_type: "hotpage",
@@ -129,7 +150,7 @@ const SEED_BANNERS: BannerDTO[] = [
     id: "e0000000-0000-0000-0000-000000000021",
     title: "Jornalismo Comunitário & Notícias em Tempo Real",
     subtitle: "Cobertura das decisões municipais, cultura regional, esporte e reportagens especiais.",
-    badge_text: "Redação JAH",
+    badge_text: "Redação Wider",
     media_url: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1600&q=85",
     media_type: "image",
     target_type: "hotpage",
@@ -249,24 +270,303 @@ const SEED_BANNERS: BannerDTO[] = [
     show_badge: false,
     show_cta: false,
   },
+
+  // ── VAGAS & EMPREGOS ──
+  {
+    id: "e0000000-0000-0000-0000-000000000051",
+    title: "Encontre Seu Próximo Desafio Profissional",
+    subtitle: "Vagas abertas em grandes empresas, startups, indústrias e comércio da região.",
+    badge_text: "Carreiras & Vagas",
+    media_url: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1600&q=85",
+    media_type: "image",
+    target_type: "hotpage",
+    target_url: "/empregos",
+    cta_label: "Explorar Vagas",
+    placement: "empregos",
+    starts_at: new Date(Date.now() - 86400000).toISOString(),
+    is_active: true,
+    sort_order: 1,
+    show_title: false,
+    show_description: false,
+    show_overlay: false,
+    show_badge: false,
+    show_cta: false,
+  },
+  {
+    id: "e0000000-0000-0000-0000-000000000052",
+    title: "Oportunidades em Tecnologia & Home Office",
+    subtitle: "Desenvolvimento de software, dados, produto e design com flexibilidade e benefícios.",
+    badge_text: "Tech & Remoto",
+    media_url: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1600&q=85",
+    media_type: "image",
+    target_type: "hotpage",
+    target_url: "/empregos?categoria=tech",
+    cta_label: "Vagas Tech",
+    placement: "empregos",
+    starts_at: new Date(Date.now() - 86400000).toISOString(),
+    is_active: true,
+    sort_order: 2,
+    show_title: false,
+    show_description: false,
+    show_overlay: false,
+    show_badge: false,
+    show_cta: false,
+  },
+  // ── GASTRONOMIA & RESTAURANTES ──
+  {
+    id: "e0000000-0000-0000-0000-000000000061",
+    title: "Festival Gastronômico & Burgers Artesanais",
+    subtitle: "Os melhores chefs e restaurantes da cidade com entrega rápida e exclusiva.",
+    badge_text: "Alta Gastronomia",
+    media_url: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1600&q=85",
+    media_type: "image",
+    target_type: "category",
+    target_url: "/gastronomia?categoria=burgers",
+    cta_label: "Fazer Pedido",
+    placement: "gastronomia",
+    starts_at: new Date(Date.now() - 86400000).toISOString(),
+    is_active: true,
+    sort_order: 1,
+    show_title: false,
+    show_description: false,
+    show_overlay: false,
+    show_badge: false,
+    show_cta: false,
+  },
+  {
+    id: "e0000000-0000-0000-0000-000000000062",
+    title: "Pizzas Forno a Lenha & Massas Frescas",
+    subtitle: "Receitas tradicionais italianas preparadas na hora com ingredientes selecionados.",
+    badge_text: "Tradição Italiana",
+    media_url: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=1600&q=85",
+    media_type: "image",
+    target_type: "category",
+    target_url: "/gastronomia?categoria=pizzas",
+    cta_label: "Ver Cardápio",
+    placement: "gastronomia",
+    starts_at: new Date(Date.now() - 86400000).toISOString(),
+    is_active: true,
+    sort_order: 2,
+    show_title: false,
+    show_description: false,
+    show_overlay: false,
+    show_badge: false,
+    show_cta: false,
+  },
+
+  // ── FARMÁCIA & SAÚDE ──
+  {
+    id: "e0000000-0000-0000-0000-000000000071",
+    title: "Cuidados Diários, Saúde & Suplementação",
+    subtitle: "Medicamentos, dermocosméticos e vitaminas com entrega expressa na sua porta.",
+    badge_text: "Farmácia Digital",
+    media_url: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=1600&q=85",
+    media_type: "image",
+    target_type: "category",
+    target_url: "/farmacia",
+    cta_label: "Comprar Medicamentos",
+    placement: "farmacia",
+    starts_at: new Date(Date.now() - 86400000).toISOString(),
+    is_active: true,
+    sort_order: 1,
+    show_title: false,
+    show_description: false,
+    show_overlay: false,
+    show_badge: false,
+    show_cta: false,
+  },
+
+  // ── BEBIDAS & ADEGA ──
+  {
+    id: "e0000000-0000-0000-0000-000000000081",
+    title: "Cervejas Artesanais, Vinhos & Destilados",
+    subtitle: "Seleção especial de rótulos premiados e cervejarias locais geladas para o seu momento.",
+    badge_text: "Adega & Cervejaria",
+    media_url: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=1600&q=85",
+    media_type: "image",
+    target_type: "category",
+    target_url: "/bebidas",
+    cta_label: "Ver Bebidas Geladas",
+    placement: "bebidas",
+    starts_at: new Date(Date.now() - 86400000).toISOString(),
+    is_active: true,
+    sort_order: 1,
+    show_title: false,
+    show_description: false,
+    show_overlay: false,
+    show_badge: false,
+    show_cta: false,
+  },
+
+  // ── AÇOUGUE & CARNES ──
+  {
+    id: "e0000000-0000-0000-0000-000000000091",
+    title: "Cortes Nobres & Especialidades para Churrasco",
+    subtitle: "Picanha, ancho, costela e linguiças artesanais com procedência e maciez garantida.",
+    badge_text: "Boutique de Carnes",
+    media_url: "https://images.unsplash.com/photo-1558030006-450675393462?w=1600&q=85",
+    media_type: "image",
+    target_type: "category",
+    target_url: "/acougue",
+    cta_label: "Ver Cortes Especiais",
+    placement: "acougue",
+    starts_at: new Date(Date.now() - 86400000).toISOString(),
+    is_active: true,
+    sort_order: 1,
+    show_title: false,
+    show_description: false,
+    show_overlay: false,
+    show_badge: false,
+    show_cta: false,
+  },
+
+  // ── MODA & VESTUÁRIO ──
+  {
+    id: "e0000000-0000-0000-0000-000000000101",
+    title: "Nova Coleção de Estilo & Conforto",
+    subtitle: "Roupas, calçados e acessórios das melhores boutiques e marcas autorais da região.",
+    badge_text: "Moda Local",
+    media_url: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1600&q=85",
+    media_type: "image",
+    target_type: "category",
+    target_url: "/moda",
+    cta_label: "Conferir Looks",
+    placement: "moda",
+    starts_at: new Date(Date.now() - 86400000).toISOString(),
+    is_active: true,
+    sort_order: 1,
+    show_title: false,
+    show_description: false,
+    show_overlay: false,
+    show_badge: false,
+    show_cta: false,
+  },
+
+  // ── ELETRÔNICOS & TECH ──
+  {
+    id: "e0000000-0000-0000-0000-000000000111",
+    title: "Smartphones, Informática & Acessórios",
+    subtitle: "Tecnologia de ponta, fones bluetooth, computadores e gadgets com garantia local.",
+    badge_text: "Tech & Inovação",
+    media_url: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=1600&q=85",
+    media_type: "image",
+    target_type: "category",
+    target_url: "/eletronicos",
+    cta_label: "Explorar Eletrônicos",
+    placement: "eletronicos",
+    starts_at: new Date(Date.now() - 86400000).toISOString(),
+    is_active: true,
+    sort_order: 1,
+    show_title: false,
+    show_description: false,
+    show_overlay: false,
+    show_badge: false,
+    show_cta: false,
+  },
+
+  // ── PET SHOP ──
+  {
+    id: "e0000000-0000-0000-0000-000000000121",
+    title: "Nutrição & Bem-Estar para o Seu Pet",
+    subtitle: "Rações premium, petiscos saudáveis, brinquedos e cuidados veterinários dedicados.",
+    badge_text: "Mundo Pet",
+    media_url: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=1600&q=85",
+    media_type: "image",
+    target_type: "category",
+    target_url: "/pet",
+    cta_label: "Ver Produtos Pet",
+    placement: "pet",
+    starts_at: new Date(Date.now() - 86400000).toISOString(),
+    is_active: true,
+    sort_order: 1,
+    show_title: false,
+    show_description: false,
+    show_overlay: false,
+    show_badge: false,
+    show_cta: false,
+  },
+
+  // ── TURISMO & HOSPEDAGEM ──
+  {
+    id: "e0000000-0000-0000-0000-000000000131",
+    title: "Roteiros Ecológicos & Pousadas Charmosas",
+    subtitle: "Descubra trilhas, cachoeiras, chalés aconchegantes e a cultura acolhedora da região.",
+    badge_text: "Turismo Regional",
+    media_url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1600&q=85",
+    media_type: "image",
+    target_type: "hotpage",
+    target_url: "/turismo",
+    cta_label: "Ver Destinos",
+    placement: "turismo",
+    starts_at: new Date(Date.now() - 86400000).toISOString(),
+    is_active: true,
+    sort_order: 1,
+    show_title: false,
+    show_description: false,
+    show_overlay: false,
+    show_badge: false,
+    show_cta: false,
+  },
+
+  // ── OFERTAS & PROMOÇÕES ──
+  {
+    id: "e0000000-0000-0000-0000-000000000141",
+    title: "Ofertas Relâmpago & Super Descontos",
+    subtitle: "Economize comprando em conjunto e aproveitando cupons exclusivos dos lojistas.",
+    badge_text: "Economia Real",
+    media_url: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1600&q=85",
+    media_type: "image",
+    target_type: "hotpage",
+    target_url: "/ofertas",
+    cta_label: "Ver Todas as Ofertas",
+    placement: "ofertas",
+    starts_at: new Date(Date.now() - 86400000).toISOString(),
+    is_active: true,
+    sort_order: 1,
+    show_title: false,
+    show_description: false,
+    show_overlay: false,
+    show_badge: false,
+    show_cta: false,
+  },
 ];
+
+export const BannerPlacementSchema = z.enum([
+  "home",
+  "mercado",
+  "marketplace",
+  "noticias",
+  "agenda",
+  "events",
+  "diretorio",
+  "empregos",
+  "turismo",
+  "classificados",
+  "classifieds",
+  "mobilidade",
+  "gastronomia",
+  "moda",
+  "pet",
+  "livros",
+  "imoveis",
+  "limpeza",
+  "beleza",
+  "servicos",
+  "acougue",
+  "bebidas",
+  "farmacia",
+  "construcao",
+  "casa",
+  "eletronicos",
+  "all" as const,
+  "ofertas" as const,
+  "store" as const,
+]);
 
 export const listActiveBanners = createServerFn({ method: "GET" })
   .validator(
     z.object({
-      placement: z
-        .enum([
-          "home",
-          "mercado",
-          "marketplace",
-          "noticias",
-          "agenda",
-          "events",
-          "diretorio",
-          "classifieds",
-          "all",
-        ])
-        .optional(),
+      placement: BannerPlacementSchema.optional(),
       city: z.string().optional(),
     }),
   )
@@ -309,7 +609,17 @@ export const listActiveBanners = createServerFn({ method: "GET" })
       return filtered.length > 0 ? filtered : SEED_BANNERS.slice(0, 2);
     }
 
-    const active = (data || []).filter((b) => !b.ends_at || b.ends_at > now) as BannerDTO[];
+    const active = (data || [])
+      .map((b: any) => ({
+        ...b,
+        show_title: b.show_title === true,
+        show_description: b.show_description === true,
+        show_overlay: b.show_overlay === true,
+        show_badge: b.show_badge === true,
+        show_cta: b.show_cta === true,
+      }))
+      .filter((b) => !b.ends_at || b.ends_at > now) as BannerDTO[];
+
     if (active.length === 0) {
       return SEED_BANNERS.filter(
         (b) =>
@@ -337,19 +647,7 @@ export const createBanner = createServerFn({ method: "POST" })
       target_id: z.string().optional(),
       target_url: z.string().optional(),
       cta_label: z.string().optional(),
-      placement: z
-        .enum([
-          "home",
-          "mercado",
-          "marketplace",
-          "noticias",
-          "agenda",
-          "events",
-          "diretorio",
-          "classifieds",
-          "all",
-        ])
-        .default("home"),
+      placement: BannerPlacementSchema.default("home"),
       city_filter: z.string().optional(),
       starts_at: z.string().optional(),
       ends_at: z.string().optional(),
@@ -385,6 +683,53 @@ export const createBanner = createServerFn({ method: "POST" })
     return banner as BannerDTO;
   });
 
+export const updateBanner = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string().uuid(),
+      title: z.string().min(1).optional(),
+      subtitle: z.string().optional().nullable(),
+      badge_text: z.string().optional().nullable(),
+      media_url: z.string().url().optional(),
+      media_type: z.enum(["image", "video", "gif"]).optional(),
+      target_type: z
+        .enum(["product", "category", "hotpage", "store", "external_url"])
+        .optional(),
+      target_id: z.string().optional().nullable(),
+      target_url: z.string().optional().nullable(),
+      cta_label: z.string().optional().nullable(),
+      placement: BannerPlacementSchema.optional(),
+      city_filter: z.string().optional().nullable(),
+      starts_at: z.string().optional(),
+      ends_at: z.string().optional().nullable(),
+      is_active: z.boolean().optional(),
+      sort_order: z.number().int().optional(),
+      show_title: z.boolean().optional(),
+      show_description: z.boolean().optional(),
+      show_overlay: z.boolean().optional(),
+      show_badge: z.boolean().optional(),
+      show_cta: z.boolean().optional(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "content"]);
+    const supabase = getServerClient();
+
+    const { id, ...updates } = data;
+    const { data: updated, error } = await supabase
+      .from("banners")
+      .update(updates)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(`Erro ao atualizar banner: ${error.message}`);
+    }
+    return updated as BannerDTO;
+  });
+
 export const deleteBanner = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: { id } }) => {
@@ -393,7 +738,7 @@ export const deleteBanner = createServerFn({ method: "POST" })
     const supabase = getServerClient();
 
     let query = supabase.from("banners").delete().eq("id", id);
-    if (identity.store_id) {
+    if (identity.store_id && identity.role !== "platform_admin" && identity.role !== "master") {
       query = query.eq("store_id", identity.store_id);
     }
 
@@ -403,3 +748,4 @@ export const deleteBanner = createServerFn({ method: "POST" })
     }
     return { success: true };
   });
+

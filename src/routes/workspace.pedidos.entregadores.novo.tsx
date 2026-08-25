@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/workspace/pedidos/entregadores/novo")({
-  head: () => ({ meta: [{ title: "Novo Entregador — JAH Workspace" }] }),
+  head: () => ({ meta: [{ title: "Novo Entregador — Wider Workspace" }] }),
   component: NovoEntregadorPage,
 });
 

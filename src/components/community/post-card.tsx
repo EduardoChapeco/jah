@@ -17,6 +17,12 @@ import {
   Tag,
   Newspaper,
   ArrowRight,
+  Phone,
+  Volume2,
+  Compass,
+  Radio,
+  Eye,
+  ShieldCheck,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +35,8 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { ContentActionsMenu } from "@/components/common/content-actions-menu";
+import { PostCommentsDrawer } from "@/components/community/post-comments-drawer";
+import { MediaLightboxModal } from "@/components/community/media-lightbox-modal";
 
 interface PostCardProps {
   item?: MuralFeedItem;
@@ -61,6 +69,9 @@ export function PostCard(props: PostCardProps) {
   const [activeSlide, setActiveSlide] = useState(0);
   const [isSaved, setIsSaved] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+  const [selectedMediaLightboxIndex, setSelectedMediaLightboxIndex] = useState<number | null>(null);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
   const toggleLike = useMutation({
     mutationFn: () => togglePostLike({ data: { post_id: item.id } }),
@@ -74,7 +85,7 @@ export function PostCard(props: PostCardProps) {
             ? {
                 ...it,
                 user_liked: !it.user_liked,
-                likes_count: it.user_liked ? it.likes_count - 1 : it.likes_count + 1,
+                likes_count: it.user_liked ? Math.max(0, it.likes_count - 1) : it.likes_count + 1,
               }
             : it;
         if (Array.isArray(old)) return old.map(patchItem);
@@ -106,7 +117,7 @@ export function PostCard(props: PostCardProps) {
       navigator
         .share({
           title: item.author.name,
-          text: item.content_text || "Confira este momento na JAH!",
+          text: item.content_text || "Confira este momento na Wider!",
           url: window.location.href,
         })
         .catch(() => {});
@@ -122,7 +133,7 @@ export function PostCard(props: PostCardProps) {
   };
 
   return (
-    <article className="flex flex-col rounded-2xl border border-border bg-card p-4 sm:p-5 transition-all hover:border-border/80">
+    <article className="flex flex-col rounded-3xl bg-card p-4 sm:p-5 transition-all hover:border-border/80 border border-border/70 relative">
       {/* ── 1. Header do Post ────────────────────────────────────────── */}
       <div className="flex items-center justify-between gap-3 mb-3">
         <div className="flex items-center gap-3 min-w-0">
@@ -130,7 +141,7 @@ export function PostCard(props: PostCardProps) {
             to={(item.author.is_store ? "/perfil-da-loja" : `/membro/${item.author.id}`) as any}
             className="shrink-0"
           >
-            <Avatar className="size-10 rounded-xl border border-border hover:opacity-90 transition-opacity">
+            <Avatar className="size-10 rounded-xl hover:opacity-90 transition-opacity border border-border/40">
               <AvatarImage src={item.author.avatar_url ?? ""} alt={item.author.name} />
               <AvatarFallback className="rounded-xl bg-primary/10 text-primary font-bold text-sm">
                 {authorInitial}
@@ -149,53 +160,51 @@ export function PostCard(props: PostCardProps) {
               {item.author.is_store && (
                 <Badge
                   variant="secondary"
-                  className="text-[10px] px-1.5 py-0 h-4 font-semibold uppercase"
+                  className="text-[10px] font-bold px-1.5 py-0 bg-primary/10 text-primary border-transparent shrink-0"
                 >
                   Loja
                 </Badge>
               )}
             </div>
 
-            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <span>{formatRelativeTime(item.created_at)}</span>
               {item.location_name && (
                 <>
                   <span>•</span>
-                  <Link
-                    to="/mapa"
-                    className="flex items-center gap-0.5 text-primary hover:underline truncate"
-                  >
-                    <MapPin className="size-3 shrink-0" />
+                  <div className="flex items-center gap-0.5 truncate text-foreground/70">
+                    <MapPin className="size-3 shrink-0 text-primary" />
                     <span className="truncate">{item.location_name}</span>
-                  </Link>
+                  </div>
                 </>
               )}
             </div>
           </div>
         </div>
 
-        <ContentActionsMenu
-          entityType="post"
-          entityId={item.id}
-          isOwner={!!(item.author as any).is_current_user}
-          canonicalUrl={`/post/${item.id}`}
-          title={item.author.name}
-          description={item.content_text || ""}
-          mediaUrl={item.media_urls?.[0] || undefined}
-        />
+        <div className="flex items-center gap-1">
+          <ContentActionsMenu
+            entityType="post"
+            entityId={item.id}
+            isOwner={props.session?.user?.id === item.author.id || props.session?.id === item.author.id}
+            canonicalUrl={typeof window !== "undefined" ? window.location.href : ""}
+            title={item.content_text ? item.content_text.slice(0, 40) + "..." : "Publicação"}
+            mediaUrl={item.media_urls?.[0]}
+          />
+        </div>
       </div>
 
-      {/* ── 2. Conteúdo de Texto ─────────────────────────────────────── */}
-      {item.content_text && (
-        <div className="mb-3 text-sm sm:text-base text-foreground leading-relaxed">
+      {/* ── 2. Texto do Post (quando houver) ─────────────────────────── */}
+      {item.content_text && item.post_type !== "news" && (
+        <div className="mb-3 text-sm text-foreground/90 leading-relaxed font-normal">
           <p
             className={`whitespace-pre-wrap ${
-              !isExpanded && item.content_text.length > 200 ? "line-clamp-3" : ""
+              !isExpanded && item.content_text.length > 280 ? "line-clamp-3" : ""
             }`}
           >
             {item.content_text}
           </p>
-          {item.content_text.length > 200 && (
+          {item.content_text.length > 280 && (
             <button
               onClick={() => setIsExpanded(!isExpanded)}
               className="mt-1 text-xs font-bold text-primary hover:underline"
@@ -206,50 +215,429 @@ export function PostCard(props: PostCardProps) {
         </div>
       )}
 
-      {/* ── 3. Renderização Específica por Tipo de Post ─────────────────── */}
+      {/* ── 3. Renderização Específica por Template de Post ────────── */}
+      <div
+        className={`w-full transition-all duration-300 origin-top ${
+          isCommentsOpen ? "scale-[0.95] -translate-y-1 opacity-90" : "scale-100"
+        }`}
+      >
+        {/* TEMPLATE 1: NOTÍCIAS EDITORIAL (Imagem 1) */}
+        {(item.post_type === "news" || item.reference_type === "news" || item.metadata?.is_news) ? (
+          <div className="mb-3 space-y-3 rounded-2xl bg-gradient-to-br from-indigo-950 via-slate-900 to-black text-white p-5 overflow-hidden border border-indigo-500/20 select-none">
+            {/* Header de Veículo & Áudio */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Badge className="bg-blue-600 text-white font-black text-[10px] tracking-wider uppercase px-2 py-0.5 rounded-md">
+                  {item.metadata?.source || "Wider News"}
+                </Badge>
+                <span className="text-[11px] text-white/70 font-mono">
+                  {item.metadata?.news_date || formatRelativeTime(item.created_at)}
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  setIsPlayingAudio(!isPlayingAudio);
+                  toast(isPlayingAudio ? "Áudio pausado" : "Reproduzindo matéria por voz sintetizada...");
+                }}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold transition-all ${
+                  isPlayingAudio
+                    ? "bg-emerald-500 text-white animate-pulse"
+                    : "bg-white/10 hover:bg-white/20 text-white/90"
+                }`}
+              >
+                <Volume2 className="size-3.5" />
+                <span>{isPlayingAudio ? "Ouvindo..." : "(Listen) Ouvir"}</span>
+              </button>
+            </div>
 
-      {/* TIPO: MOMENTO COM ATIVIDADE / ROTA */}
-      {item.post_type === "moment" && item.metadata?.activity && (
-        <div className="mb-3 p-3 rounded-xl border border-border bg-muted/40 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2 font-medium">
-            <Navigation className="size-4 text-primary" />
-            <span>{item.metadata.activity}</span>
+            {/* Manchete Editorial */}
+            <h3 className="font-editorial text-2xl sm:text-3xl font-black text-white leading-tight tracking-tight">
+              {item.metadata?.title || item.content_text?.slice(0, 90) || "All Faith Needs Feet Business"}
+            </h3>
+
+            {/* Resumo / Lead */}
+            {item.metadata?.subtitle && (
+              <p className="text-xs sm:text-sm text-white/80 leading-relaxed font-sans">
+                {item.metadata.subtitle}
+              </p>
+            )}
+
+            {/* Imagem do Artigo */}
+            {item.media_urls.length > 0 && (
+              <div
+                className="relative rounded-2xl overflow-hidden aspect-[16/9] bg-black/40 border border-white/10 mt-3 group cursor-pointer"
+                onClick={() => setSelectedMediaLightboxIndex(0)}
+              >
+                <img
+                  src={item.media_urls[0]}
+                  alt="Capa da notícia"
+                  className="size-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-xs text-white">
+                  <span className="font-bold flex items-center gap-1 bg-black/60 backdrop-blur-xs px-2.5 py-1 rounded-lg">
+                    <Sparkles className="size-3 text-yellow-400" />
+                    <span>{item.metadata?.category || "Inovação & Cidades"}</span>
+                  </span>
+                  <span className="text-[11px] text-white/70 flex items-center gap-1">
+                    <Eye className="size-3" /> Ver notícia
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Tópicos / Tags */}
+            <div className="flex flex-wrap items-center gap-1.5 pt-2 text-[10px] font-bold text-white/60">
+              <span className="text-white/40">Tópicos:</span>
+              {(item.metadata?.topics || ["Inovação", "Regional", "Economia", "Cultura"]).map((t: string) => (
+                <span
+                  key={t}
+                  className="px-2 py-0.5 rounded-md bg-white/10 text-white/80 hover:text-white cursor-pointer transition-colors"
+                >
+                  #{t}
+                </span>
+              ))}
+            </div>
           </div>
-          {item.metadata.distance && (
-            <span className="font-bold text-foreground">{item.metadata.distance} km</span>
-          )}
-        </div>
-      )}
+        ) : (item.post_type === "duo_badge" || item.post_type === "id_badges") ? (
+          /* TEMPLATE: ID BADGES & CRACHÁS CONECTADOS (Imagem 3) */
+          <div className="mb-3 space-y-4 rounded-3xl bg-gradient-to-b from-blue-50/80 via-indigo-50/40 to-background dark:from-slate-900 dark:via-slate-950 dark:to-card p-5 sm:p-6 border border-blue-200/50 dark:border-blue-900/30 select-none">
+            {/* Header de Impacto */}
+            <div className="text-center space-y-1">
+              <h3 className="font-editorial text-2xl sm:text-3xl font-black text-foreground tracking-tight">
+                {item.metadata?.badge_group_title || "Family: In Sync"}
+              </h3>
+              <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                {item.metadata?.badge_group_subtitle || "Equipe e membros conectados com sintonia e propósito."}
+              </p>
+            </div>
 
-      {/* TIPO: COMIDA & EXPERIÊNCIA (Foto principal + miniaturas) */}
-      {item.post_type === "food" && item.media_urls.length > 1 ? (
-        <div className="mb-3 grid grid-cols-3 gap-2 overflow-hidden rounded-xl">
-          <div className="col-span-2 aspect-square overflow-hidden rounded-lg bg-muted">
+            {/* Container dos Crachás Conectados com Clipe Metálico */}
+            <div className="relative pt-4 pb-2 flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto">
+              {/* Clipe / Anel Metálico Central */}
+              <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 text-muted-foreground/80">
+                <div className="size-4 rounded-full border-2 border-slate-400 bg-slate-200 dark:bg-slate-700 shadow-xs" />
+                <div className="w-8 h-1 bg-slate-300 dark:bg-slate-600 rounded-full" />
+                <div className="size-4 rounded-full border-2 border-slate-400 bg-slate-200 dark:bg-slate-700 shadow-xs" />
+              </div>
+
+              {/* Crachá 1 */}
+              <div
+                onClick={() => setSelectedMediaLightboxIndex(0)}
+                className="w-full sm:w-1/2 bg-card rounded-2xl p-4 border border-border/80 shadow-md flex flex-col items-center text-center space-y-2 -rotate-1 hover:rotate-0 hover:scale-103 transition-all duration-300 cursor-pointer relative overflow-hidden"
+              >
+                <div className="size-16 rounded-xl overflow-hidden bg-muted border border-border/40 shadow-xs">
+                  <img
+                    src={item.media_urls[0] || item.author.avatar_url || ""}
+                    alt="Membro 1"
+                    className="size-full object-cover"
+                  />
+                </div>
+                <div className="space-y-0.5">
+                  <h4 className="font-black text-sm text-foreground uppercase tracking-wide">
+                    {item.metadata?.member1_name || item.author.name.split(" ")[0]}
+                  </h4>
+                  <p className="text-[10px] text-muted-foreground leading-tight">
+                    {item.metadata?.member1_role || "Liderança & Criação"}
+                  </p>
+                </div>
+                {/* Faixa inferior de cor */}
+                <div className="w-full h-1.5 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 mt-2" />
+              </div>
+
+              {/* Crachá 2 */}
+              <div
+                onClick={() => setSelectedMediaLightboxIndex(1)}
+                className="w-full sm:w-1/2 bg-card rounded-2xl p-4 border border-border/80 shadow-md flex flex-col items-center text-center space-y-2 rotate-1 hover:rotate-0 hover:scale-103 transition-all duration-300 cursor-pointer relative overflow-hidden"
+              >
+                <div className="size-16 rounded-xl overflow-hidden bg-muted border border-border/40 shadow-xs">
+                  <img
+                    src={item.media_urls[1] || item.media_urls[0] || item.author.avatar_url || ""}
+                    alt="Membro 2"
+                    className="size-full object-cover"
+                  />
+                </div>
+                <div className="space-y-0.5">
+                  <h4 className="font-black text-sm text-foreground uppercase tracking-wide">
+                    {item.metadata?.member2_name || "Parceria"}
+                  </h4>
+                  <p className="text-[10px] text-muted-foreground leading-tight">
+                    {item.metadata?.member2_role || "Execução & Resultados"}
+                  </p>
+                </div>
+                {/* Faixa inferior de cor */}
+                <div className="w-full h-1.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 mt-2" />
+              </div>
+            </div>
+
+            {/* Badges de Sincronia no Rodapé */}
+            <div className="flex items-center justify-center gap-3 pt-2 border-t border-border/40 text-[11px] font-bold text-muted-foreground">
+              <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                <Calendar className="size-3.5" /> Agenda Sincronizada
+              </span>
+              <span>•</span>
+              <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                <ShieldCheck className="size-3.5" /> Verificado
+              </span>
+            </div>
+          </div>
+        ) : (item.post_type === "travel" || (item.post_type === "destination" && item.metadata?.is_triptych)) ? (
+          /* TEMPLATE 2: VIAGENS & TURISMO TRÍPTICO (Imagem 2) */
+          <div className="mb-3 space-y-4 rounded-3xl bg-gradient-to-b from-sky-100/70 via-teal-50/40 to-background dark:from-sky-950/30 dark:via-slate-900 dark:to-card p-4 sm:p-6 border border-sky-200/50 dark:border-sky-800/30 select-none">
+            {/* Impact Title */}
+            <div className="text-center space-y-1">
+              <h3 className="font-editorial text-2xl sm:text-3xl font-black text-foreground tracking-tight">
+                {item.metadata?.travel_headline || "Some moments shouldn't wait"}
+              </h3>
+              <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                {item.metadata?.destination_name || item.location_name || "Roteiro Especial de Viagem & Lazer"}
+              </p>
+            </div>
+
+            {/* Tríptico de 3 Cards Verticais */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+              {/* Card 1: Mapa do Destino */}
+              <div className="flex flex-col items-center bg-card rounded-2xl p-3 border border-border text-center space-y-2">
+                <div className="w-full aspect-[4/5] rounded-xl bg-amber-50 dark:bg-amber-950/20 overflow-hidden flex flex-col items-center justify-center p-3 relative border border-amber-200/50 dark:border-amber-900/30">
+                  <div className="flex items-center justify-between w-full text-[10px] font-bold text-amber-800 dark:text-amber-300">
+                    <span>{item.metadata?.origin_city || "Chapecó"}</span>
+                    <span>➔</span>
+                    <span>{item.metadata?.dest_city || item.location_name || "Destino"}</span>
+                  </div>
+                  <div className="my-auto size-12 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-600">
+                    <Compass className="size-7 animate-spin" style={{ animationDuration: "20s" }} />
+                  </div>
+                  <Badge className="bg-amber-600 text-white text-[9px] font-bold px-2 py-0.5">
+                    Rota & Destino
+                  </Badge>
+                </div>
+                <p className="text-xs font-black text-foreground leading-tight">
+                  The map that gets your Destination.
+                </p>
+              </div>
+
+              {/* Card 2: Foto do Momento */}
+              <div
+                className="flex flex-col items-center bg-card rounded-2xl p-3 border border-border text-center space-y-2 cursor-pointer hover:scale-102 transition-transform"
+                onClick={() => setSelectedMediaLightboxIndex(0)}
+              >
+                <div className="w-full aspect-[4/5] rounded-xl overflow-hidden bg-muted relative">
+                  {item.media_urls[0] ? (
+                    <img
+                      src={item.media_urls[0]}
+                      alt="Foto da viagem"
+                      className="size-full object-cover"
+                    />
+                  ) : (
+                    <div className="size-full flex items-center justify-center bg-sky-500/10 text-sky-600 font-bold text-xs">
+                      Foto do Momento
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs font-black text-foreground leading-tight">
+                  The photo you send.
+                </p>
+              </div>
+
+              {/* Card 3: Voucher / Mensagem de Chegada */}
+              <div className="flex flex-col items-center bg-card rounded-2xl p-3 border border-border text-center space-y-2">
+                <div className="w-full aspect-[4/5] rounded-xl bg-purple-50 dark:bg-purple-950/20 overflow-hidden flex flex-col items-center justify-center p-3 relative border border-purple-200/50 dark:border-purple-900/30">
+                  <Badge className="bg-emerald-600 text-white text-[9px] font-black px-2 py-0.5 mb-2">
+                    ✓ Welcome to {item.location_name || "Destination"}
+                  </Badge>
+                  <div className="my-auto text-center space-y-1">
+                    <span className="text-[11px] font-black text-purple-900 dark:text-purple-300">
+                      {item.metadata?.voucher_title || "Chegada Confirmada"}
+                    </span>
+                    <p className="text-[10px] text-muted-foreground">
+                      {item.metadata?.voucher_desc || "Check-in realizado com sucesso"}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-xs font-black text-foreground leading-tight">
+                  The message that says You arrived.
+                </p>
+              </div>
+            </div>
+
+            {/* Frase Inspiracional */}
+            <div className="pt-2 border-t border-border/40 text-center">
+              <p className="text-xs sm:text-sm font-medium text-muted-foreground italic">
+                "Travel is built from <strong className="text-foreground font-black not-italic">small moments</strong> and connection makes them possible at the right time."
+              </p>
+            </div>
+          </div>
+        ) : item.post_type === "grid" && item.media_urls.length > 1 ? (
+          /* TEMPLATE 3: GRID ORGÂNICO DE FOTOS SOBREPOSTAS (Imagem 3) */
+          <div className="mb-3 relative select-none">
+            <div className="flex items-center justify-between text-xs font-bold text-muted-foreground mb-2 px-1">
+              <span className="flex items-center gap-1.5 text-foreground">
+                <Sparkles className="size-3.5 text-primary" />
+                <span>Álbum de {item.media_urls.length} fotos</span>
+              </span>
+              <span className="text-[11px] text-muted-foreground">Toque na foto para curtir/comentar</span>
+            </div>
+
+            {/* Collage sobreposto orgânico */}
+            <div className="relative h-72 sm:h-80 w-full rounded-2xl bg-muted/30 p-3 overflow-hidden border border-border/50">
+              {/* Foto 1: Principal inclinada à esquerda */}
+              {item.media_urls[0] && (
+                <div
+                  onClick={() => setSelectedMediaLightboxIndex(0)}
+                  className="absolute left-3 top-3 w-[55%] h-[85%] rounded-2xl overflow-hidden shadow-md -rotate-2 hover:rotate-0 hover:scale-105 hover:z-30 transition-all duration-300 cursor-pointer border-2 border-background"
+                >
+                  <img src={item.media_urls[0]} alt="Foto 1" className="size-full object-cover" />
+                  <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[10px] font-bold text-white bg-black/60 backdrop-blur-xs px-2 py-0.5 rounded-md">
+                    <span className="flex items-center gap-1">
+                      <Heart className="size-2.5 fill-current text-red-500" /> Foto 1
+                    </span>
+                    <span>Ver</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Foto 2: Superior direita */}
+              {item.media_urls[1] && (
+                <div
+                  onClick={() => setSelectedMediaLightboxIndex(1)}
+                  className="absolute right-3 top-3 w-[45%] h-[55%] rounded-2xl overflow-hidden shadow-md rotate-3 hover:rotate-0 hover:scale-105 hover:z-30 transition-all duration-300 cursor-pointer border-2 border-background"
+                >
+                  <img src={item.media_urls[1]} alt="Foto 2" className="size-full object-cover" />
+                  <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[10px] font-bold text-white bg-black/60 backdrop-blur-xs px-2 py-0.5 rounded-md">
+                    <span className="flex items-center gap-1">
+                      <Heart className="size-2.5 fill-current text-red-500" /> Foto 2
+                    </span>
+                    <span>Ver</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Foto 3: Central inferior sobreposta */}
+              {item.media_urls[2] && (
+                <div
+                  onClick={() => setSelectedMediaLightboxIndex(2)}
+                  className="absolute left-[30%] bottom-3 w-[45%] h-[55%] rounded-2xl overflow-hidden shadow-lg -rotate-1 z-20 hover:rotate-0 hover:scale-105 hover:z-30 transition-all duration-300 cursor-pointer border-2 border-background"
+                >
+                  <img src={item.media_urls[2]} alt="Foto 3" className="size-full object-cover" />
+                  <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[10px] font-bold text-white bg-black/60 backdrop-blur-xs px-2 py-0.5 rounded-md">
+                    <span className="flex items-center gap-1">
+                      <Heart className="size-2.5 fill-current text-red-500" /> Foto 3
+                    </span>
+                    <span>Ver</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Contador de fotos extras */}
+              {item.media_urls.length > 3 && (
+                <div
+                  onClick={() => setSelectedMediaLightboxIndex(3)}
+                  className="absolute right-4 bottom-4 z-30 px-3 py-1.5 rounded-xl bg-foreground text-background font-black text-xs shadow-lg cursor-pointer hover:scale-105 transition-transform"
+                >
+                  +{item.media_urls.length - 3}
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (item.post_type === "instagram_carousel" || (item.layout_style === "carousel" && item.media_urls.length > 1)) && item.media_urls.length > 0 ? (
+          /* TEMPLATE: CARROSSEL INSTAGRAM (1:1 ou 4:5) */
+          <div className="relative mb-3 overflow-hidden rounded-2xl bg-black aspect-square sm:aspect-[4/5] group select-none">
+            {isVideoUrl(item.media_urls[activeSlide]) ? (
+              <video
+                src={item.media_urls[activeSlide]}
+                controls
+                playsInline
+                className="size-full object-contain"
+              />
+            ) : (
+              <img
+                src={item.media_urls[activeSlide]}
+                alt={`Slide ${activeSlide + 1}`}
+                className="size-full object-cover cursor-pointer"
+                onClick={() => setSelectedMediaLightboxIndex(activeSlide)}
+              />
+            )}
+
+            {/* Setas de navegação */}
+            {activeSlide > 0 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveSlide((prev) => prev - 1);
+                }}
+                className="absolute left-2 top-1/2 -translate-y-1/2 size-8 rounded-full bg-black/60 text-white flex items-center justify-center backdrop-blur-xs"
+              >
+                <ChevronLeft className="size-5" />
+              </button>
+            )}
+            {activeSlide < item.media_urls.length - 1 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveSlide((prev) => prev + 1);
+                }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 size-8 rounded-full bg-black/60 text-white flex items-center justify-center backdrop-blur-xs"
+              >
+                <ChevronRight className="size-5" />
+              </button>
+            )}
+
+            {/* Dots */}
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/40 backdrop-blur-xs px-2.5 py-1 rounded-full">
+              {item.media_urls.map((_, idx) => (
+                <div
+                  key={idx}
+                  className={`size-1.5 rounded-full transition-all ${
+                    idx === activeSlide ? "w-4 bg-white" : "bg-white/40"
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+        ) : item.media_urls.length === 1 ? (
+          /* TEMPLATE: FOTO ÚNICA PADRÃO */
+          <div
+            className={`mb-3 overflow-hidden rounded-2xl bg-black ${
+              item.post_type === "moment" ? "aspect-[9/16] max-h-[560px] mx-auto" : "max-h-[560px]"
+            } cursor-pointer`}
+            onClick={() => setSelectedMediaLightboxIndex(0)}
+          >
             {isVideoUrl(item.media_urls[0]) ? (
               <video
                 src={item.media_urls[0]}
                 controls
                 playsInline
-                className="size-full object-cover"
+                preload="metadata"
+                className="w-full max-h-[560px] object-contain"
               />
             ) : (
               <img
                 src={item.media_urls[0]}
-                alt="Prato principal"
-                className="size-full object-cover hover:scale-105 transition-transform"
+                alt="Mídia da publicação"
+                className="w-full max-h-[560px] object-cover hover:scale-[1.01] transition-transform"
                 loading="lazy"
               />
             )}
           </div>
-          <div className="flex flex-col gap-2">
-            {item.media_urls.slice(1, 3).map((url, idx) => (
-              <div key={idx} className="aspect-square overflow-hidden rounded-lg bg-muted">
+        ) : item.media_urls.length > 1 ? (
+          /* GRID CLÁSSICO DE FOTOS */
+          <div className="mb-3 grid grid-cols-2 gap-1.5 overflow-hidden rounded-2xl">
+            {item.media_urls.slice(0, 4).map((url, idx) => (
+              <div
+                key={idx}
+                onClick={() => setSelectedMediaLightboxIndex(idx)}
+                className={`${
+                  item.media_urls.length === 3 && idx === 0
+                    ? "col-span-2 aspect-video"
+                    : "aspect-square"
+                } overflow-hidden bg-muted cursor-pointer`}
+              >
                 {isVideoUrl(url) ? (
                   <video src={url} controls playsInline className="size-full object-cover" />
                 ) : (
                   <img
                     src={url}
-                    alt={`Detalhe ${idx + 1}`}
+                    alt={`Mídia ${idx + 1}`}
                     className="size-full object-cover hover:scale-105 transition-transform"
                     loading="lazy"
                   />
@@ -257,140 +645,17 @@ export function PostCard(props: PostCardProps) {
               </div>
             ))}
           </div>
-        </div>
-      ) : item.post_type === "destination" && item.media_urls.length > 0 ? (
-        /* TIPO: DESTINO / LUGAR EDITORIAL */
-        <div className="relative mb-3 overflow-hidden rounded-xl border border-border aspect-[16/9] group">
-          {isVideoUrl(item.media_urls[0]) ? (
-            <video
-              src={item.media_urls[0]}
-              controls
-              playsInline
-              className="size-full object-cover"
-            />
-          ) : (
-            <img
-              src={item.media_urls[0]}
-              alt={item.location_name || "Destino"}
-              className="size-full object-cover group-hover:scale-105 transition-transform duration-500"
-              loading="lazy"
-            />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
-          <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between text-white pointer-events-auto">
-            <div>
-              <span className="text-[10px] uppercase font-bold tracking-wider text-primary">
-                Destino Recomendado
-              </span>
-              <h4 className="text-lg font-bold leading-tight drop-shadow-md">
-                {item.location_name || item.author.name}
-              </h4>
-            </div>
-            <Button asChild size="sm" className="rounded-lg h-7 text-xs font-semibold">
-              <Link to="/mapa">Ver no Mapa</Link>
-            </Button>
-          </div>
-        </div>
-      ) : item.layout_style === "carousel" && item.media_urls.length > 1 ? (
-        /* TIPO: CARROSSEL COM BORDAS DEFINIDAS */
-        <div className="relative mb-3 overflow-hidden rounded-xl border border-border bg-black aspect-square sm:aspect-[4/3] group">
-          {isVideoUrl(item.media_urls[activeSlide]) ? (
-            <video
-              src={item.media_urls[activeSlide]}
-              controls
-              playsInline
-              className="size-full object-contain"
-            />
-          ) : (
-            <img
-              src={item.media_urls[activeSlide]}
-              alt={`Mídia ${activeSlide + 1}`}
-              className="size-full object-contain"
-              loading="lazy"
-            />
-          )}
-
-          {/* Botões de Navegação */}
-          {activeSlide > 0 && (
-            <button
-              onClick={() => setActiveSlide((prev) => prev - 1)}
-              className="absolute left-2 top-1/2 -translate-y-1/2 size-8 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors"
-              aria-label="Anterior"
-            >
-              <ChevronLeft className="size-5" />
-            </button>
-          )}
-          {activeSlide < item.media_urls.length - 1 && (
-            <button
-              onClick={() => setActiveSlide((prev) => prev + 1)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 size-8 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors"
-              aria-label="Próximo"
-            >
-              <ChevronRight className="size-5" />
-            </button>
-          )}
-
-          {/* Badge Indicador de Slide */}
-          <div className="absolute top-2 right-2 bg-black/70 text-white text-[11px] px-2 py-0.5 rounded-full font-mono">
-            {activeSlide + 1}/{item.media_urls.length}
-          </div>
-        </div>
-      ) : item.media_urls.length > 1 ? (
-        /* TIPO: GRID DE FOTOS / VÍDEOS (2, 3, 4+) */
-        <div className="mb-3 grid grid-cols-2 gap-1.5 overflow-hidden rounded-xl">
-          {item.media_urls.slice(0, 4).map((url, idx) => (
-            <div
-              key={idx}
-              className={`${
-                item.media_urls.length === 3 && idx === 0
-                  ? "col-span-2 aspect-video"
-                  : "aspect-square"
-              } overflow-hidden bg-muted`}
-            >
-              {isVideoUrl(url) ? (
-                <video src={url} controls playsInline className="size-full object-cover" />
-              ) : (
-                <img
-                  src={url}
-                  alt={`Mídia ${idx + 1}`}
-                  className="size-full object-cover hover:scale-105 transition-transform"
-                  loading="lazy"
-                />
-              )}
-            </div>
-          ))}
-        </div>
-      ) : item.media_urls.length === 1 ? (
-        /* TIPO: MÍDIA ÚNICA (FOTO OU VÍDEO) */
-        <div className="mb-3 overflow-hidden rounded-xl border border-border bg-black">
-          {isVideoUrl(item.media_urls[0]) ? (
-            <video
-              src={item.media_urls[0]}
-              controls
-              playsInline
-              preload="metadata"
-              className="w-full max-h-[480px] object-contain"
-            />
-          ) : (
-            <img
-              src={item.media_urls[0]}
-              alt="Mídia da publicação"
-              className="w-full max-h-[480px] object-cover hover:scale-[1.01] transition-transform"
-              loading="lazy"
-            />
-          )}
-        </div>
-      ) : null}
+        ) : null}
+      </div>
 
       {/* ── 4. Cards de Referência / Integração ───────────────────────── */}
-
       {/* Referência: Produto */}
       {item.reference_data && item.reference_type === "product" && (
         <Link
           to="/mercado"
-          className="mb-3 flex items-center gap-3 p-3 rounded-xl border border-border bg-muted/30 hover:bg-muted/60 transition-colors group"
+          className="mb-3 flex items-center gap-3 p-3 rounded-2xl bg-muted/30 hover:bg-muted/60 transition-colors group border border-border/40"
         >
-          <div className="size-14 rounded-lg overflow-hidden bg-background border border-border shrink-0">
+          <div className="size-14 rounded-xl overflow-hidden bg-background shrink-0">
             {item.reference_data.images?.[0] ? (
               <img
                 src={item.reference_data.images[0]}
@@ -416,128 +681,14 @@ export function PostCard(props: PostCardProps) {
         </Link>
       )}
 
-      {/* Referência: Evento */}
-      {item.reference_data && item.reference_type === "event" && (
-        <Link
-          to="/agenda"
-          className="mb-3 flex items-center gap-3 p-3 rounded-xl border border-border bg-muted/30 hover:bg-muted/60 transition-colors group"
-        >
-          <div className="size-14 rounded-lg bg-primary text-primary-foreground flex flex-col items-center justify-center shrink-0">
-            <Calendar className="size-6 mb-0.5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <span className="text-[10px] font-bold uppercase text-primary tracking-wider">
-              Evento Comunitário
-            </span>
-            <p className="text-sm font-bold text-foreground truncate">
-              {item.reference_data.title}
-            </p>
-            <p className="text-xs text-muted-foreground mt-0.5">Ver programação & ingressos</p>
-          </div>
-          <ExternalLink className="size-4 text-muted-foreground group-hover:text-foreground shrink-0 mr-1" />
-        </Link>
-      )}
-
-      {/* Referência: Classificado / Desapego */}
-      {item.reference_data && item.reference_type === "classified" && item.reference_id && (
-        <Link
-          to={`/classificados/${item.reference_id}` as any}
-          className="mb-3 flex items-center gap-3 p-3 rounded-xl border border-border bg-muted/30 hover:bg-muted/60 transition-colors group"
-        >
-          <div className="size-14 rounded-lg overflow-hidden bg-background border border-border shrink-0 flex items-center justify-center">
-            {item.reference_data.images?.[0] ? (
-              <img
-                src={item.reference_data.images[0]}
-                alt={item.reference_data.title}
-                className="size-full object-cover group-hover:scale-105 transition-transform"
-              />
-            ) : (
-              <Tag className="size-6 text-primary" />
-            )}
-          </div>
-          <div className="min-w-0 flex-1">
-            <span className="text-[10px] font-bold uppercase text-primary tracking-wider">
-              Classificado da Comunidade
-            </span>
-            <p className="text-sm font-bold text-foreground truncate">
-              {item.reference_data.title}
-            </p>
-            <p className="text-xs font-bold text-foreground/80 mt-0.5">
-              {item.reference_data.price_cents
-                ? formatMoney(item.reference_data.price_cents)
-                : "A Combinar"}
-            </p>
-          </div>
-          <ExternalLink className="size-4 text-muted-foreground group-hover:text-foreground shrink-0 mr-1" />
-        </Link>
-      )}
-
-      {/* Referência: Notícia / Matéria Editorial do Jornal */}
-      {(item.reference_type === "news" ||
-        item.reference_type === "article" ||
-        (item.metadata as any)?.news_slug) && (
-        <Link
-          to="/noticias/$slug"
-          params={{
-            slug: (item.reference_data?.slug ||
-              (item.metadata as any)?.news_slug ||
-              item.reference_id ||
-              "noticia") as any,
-          }}
-          className="mb-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-3.5 rounded-2xl border border-border/80 bg-card hover:border-primary/50 transition-all group shadow-2xs"
-        >
-          {item.reference_data?.cover_media_url ? (
-            <div className="aspect-video sm:w-28 sm:h-20 rounded-xl overflow-hidden bg-muted shrink-0">
-              <img
-                src={item.reference_data.cover_media_url}
-                alt={item.reference_data.title || "Notícia"}
-                className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-            </div>
-          ) : (
-            <div className="size-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-              <Newspaper className="size-6" />
-            </div>
-          )}
-          <div className="min-w-0 flex-1 space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black uppercase text-primary tracking-wider">
-                {item.reference_data?.kicker || item.reference_data?.category || "Notícia da Comunidade"}
-              </span>
-              {item.reference_data?.reading_time_minutes && (
-                <span className="text-[10px] text-muted-foreground font-mono">
-                  • {item.reference_data.reading_time_minutes} min de leitura
-                </span>
-              )}
-            </div>
-            <h4 className="text-sm font-black text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-snug">
-              {item.reference_data?.title || "Ler matéria completa"}
-            </h4>
-            {item.reference_data?.subtitle && (
-              <p className="text-xs text-muted-foreground line-clamp-1 font-serif">
-                {item.reference_data.subtitle}
-              </p>
-            )}
-          </div>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="rounded-xl shrink-0 text-xs font-bold gap-1 self-end sm:self-center"
-          >
-            <span>Ler notícia</span>
-            <ArrowRight className="size-3.5" />
-          </Button>
-        </Link>
-      )}
-
       {/* ── 5. Barra de Ações do Post ─────────────────────────────────── */}
-      <div className="flex items-center justify-between pt-3 border-t border-border mt-auto text-muted-foreground">
+      <div className="flex items-center justify-between pt-3 mt-auto text-muted-foreground border-t border-border/40">
         <div className="flex items-center gap-1 sm:gap-2">
-          {/* Curtir */}
+          {/* Curtir Post */}
           <button
             onClick={() => toggleLike.mutate(undefined)}
             disabled={toggleLike.isPending}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 ${
               item.user_liked
                 ? "text-red-500 bg-red-500/10"
                 : "hover:bg-muted hover:text-foreground"
@@ -548,19 +699,24 @@ export function PostCard(props: PostCardProps) {
             <span>{item.likes_count}</span>
           </button>
 
-          {/* Comentar */}
+          {/* Comentar Post Geral (Abre Drawer estilo Instagram com Media Shrink) */}
           <button
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold hover:bg-muted hover:text-foreground transition-colors"
+            onClick={() => setIsCommentsOpen(true)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 ${
+              isCommentsOpen
+                ? "bg-primary text-primary-foreground"
+                : "hover:bg-muted hover:text-foreground"
+            }`}
             aria-label="Comentar"
           >
             <MessageSquare className="size-4" />
-            <span className="hidden sm:inline">Comentários</span>
+            <span>{item.comments_count > 0 ? item.comments_count : "Comentar"}</span>
           </button>
 
           {/* Compartilhar */}
           <button
             onClick={handleShare}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold hover:bg-muted hover:text-foreground transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-muted hover:text-foreground transition-all active:scale-95"
             aria-label="Compartilhar"
           >
             <Share2 className="size-4" />
@@ -570,7 +726,7 @@ export function PostCard(props: PostCardProps) {
         {/* Salvar */}
         <button
           onClick={handleToggleSave}
-          className={`p-1.5 rounded-lg transition-colors ${
+          className={`p-2 rounded-xl transition-all active:scale-95 ${
             isSaved ? "text-primary bg-primary/10" : "hover:bg-muted hover:text-foreground"
           }`}
           aria-label="Salvar publicação"
@@ -578,6 +734,24 @@ export function PostCard(props: PostCardProps) {
           <Bookmark className={`size-4 ${isSaved ? "fill-current" : ""}`} />
         </button>
       </div>
+
+      {/* Drawer de Comentários do Post Geral */}
+      <PostCommentsDrawer
+        isOpen={isCommentsOpen}
+        onClose={() => setIsCommentsOpen(false)}
+        postId={item.id}
+        authorName={item.author.name}
+      />
+
+      {/* Lightbox / Modal de visualização de foto individual */}
+      {selectedMediaLightboxIndex !== null && (
+        <MediaLightboxModal
+          isOpen={true}
+          onClose={() => setSelectedMediaLightboxIndex(null)}
+          post={item}
+          initialMediaIndex={selectedMediaLightboxIndex}
+        />
+      )}
     </article>
   );
 }

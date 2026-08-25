@@ -808,7 +808,9 @@ export interface PublicStoreProfileDTO {
   logoUrl: string | null;
   instagramHandle: string | null;
   businessHours: string | null;
-  settings: Record<string, any>;
+  settings?: Record<string, any>;
+  type?: string | null;
+  category?: string | null;
   pixKey?: string | null;
   paymentInstructions?: string | null;
 }
@@ -817,22 +819,32 @@ export type PublicStoreProfileResult = CatalogResult<PublicStoreProfileDTO>;
 
 export const getPublicStoreProfile = createServerFn({ method: "GET" })
   .validator(z.object({ storeId: z.string().optional() }).optional())
-  .handler(async ({ data }) => {
+  .handler(async ({ data }): Promise<PublicStoreProfileDTO | null> => {
     try {
       const { resolveTenantStoreId } = await import("@/lib/tenant.server");
-      const storeIdToUse = data?.storeId || (await resolveTenantStoreId());
-      if (!storeIdToUse) throw new Error("Loja não encontrada");
+      let storeIdToUse: string | undefined = data?.storeId;
+      if (!storeIdToUse) {
+        storeIdToUse = (await resolveTenantStoreId()) ?? undefined;
+      }
+      if (!storeIdToUse) return null;
 
       const db = getAnonServerClient();
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(storeIdToUse);
 
-      const { data: store, error } = await db
+      let query = db
         .from("stores")
-        .select("id, name, slug, description, phone, email, address, city, state, settings")
-        .eq("id", storeIdToUse)
-        .single();
+        .select("id, name, slug, description, phone, email, address, city, state, logo_url, banner_url, settings");
+
+      if (isUuid) {
+        query = query.eq("id", storeIdToUse);
+      } else {
+        query = query.eq("slug", storeIdToUse);
+      }
+
+      const { data: store, error } = await query.maybeSingle();
 
       if (error || !store) {
-        throw new Error("Loja não encontrada.");
+        return null;
       }
 
       const settings = (store.settings ?? {}) as Record<string, any>;
@@ -847,11 +859,14 @@ export const getPublicStoreProfile = createServerFn({ method: "GET" })
         address: (store.address as string | null) ?? null,
         city: (store.city as string | null) ?? null,
         state: (store.state as string | null) ?? null,
-        logoUrl: typeof settings.logoUrl === "string" ? settings.logoUrl : null,
+        logoUrl: (store.logo_url as string | null) || (typeof settings.logoUrl === "string" ? settings.logoUrl : null) || (typeof settings.logo_url === "string" ? settings.logo_url : null),
         instagramHandle:
           typeof settings.instagramHandle === "string" ? settings.instagramHandle : null,
         businessHours: typeof settings.businessHours === "string" ? settings.businessHours : null,
-        settings,
+        settings: {
+          ...settings,
+          cover_url: store.banner_url || settings.cover_url || settings.bannerUrl,
+        },
         pixKey: typeof settings.pixKey === "string" ? settings.pixKey : null,
         paymentInstructions:
           typeof settings.paymentInstructions === "string" ? settings.paymentInstructions : null,
@@ -860,10 +875,10 @@ export const getPublicStoreProfile = createServerFn({ method: "GET" })
       return profile;
     } catch (e) {
       if (e instanceof SupabaseUnconfiguredError) {
-        throw new Error("Nossa vitrine está passando por uma rápida atualização técnica.");
+        return null;
       }
-      console.error("[catalog.functions] getPublicStoreProfile:", e);
-      throw new Error("Erro inesperado ao carregar perfil da loja.");
+      console.warn("[catalog.functions] getPublicStoreProfile:", e);
+      return null;
     }
   });
 
@@ -910,3 +925,68 @@ export const getPublicFaqs = createServerFn({ method: "GET" }).handler(async () 
     return [];
   }
 });
+
+
+// ---------------------------------------------------------------------------
+// getStorePublicCatalog
+// ---------------------------------------------------------------------------
+
+export const getStorePublicCatalog = createServerFn({ method: "GET" })
+  .validator(z.object({ storeId: z.string().optional() }).optional())
+  .handler(async ({ data }) => {
+    try {
+      const db = getAnonServerClient();
+      let targetId: string | undefined = data?.storeId;
+      if (!targetId) {
+        const { resolveTenantStoreId } = await import("@/lib/tenant.server");
+        targetId = (await resolveTenantStoreId()) ?? undefined;
+      }
+      if (!targetId) return { products: [], categories: [] };
+
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(targetId);
+
+      let storeId = targetId;
+      if (!isUuid) {
+        const { data: st } = await db.from("stores").select("id").eq("slug", targetId).maybeSingle();
+        if (st) storeId = st.id;
+      }
+
+      const [productsRes, categoriesRes] = await Promise.all([
+        db
+          .from("products")
+          .select("id, title, slug, description, price_cents, compare_at_cents, status, product_media(url, alt, sort_order)")
+          .eq("store_id", storeId)
+          .eq("status", "published")
+          .order("created_at", { ascending: false })
+          .limit(60),
+        db
+          .from("categories")
+          .select("id, name, slug")
+          .eq("store_id", storeId)
+          .order("name", { ascending: true }),
+      ]);
+
+      const products = (productsRes.data || []).map((p: any) => {
+        const media = Array.isArray(p.product_media)
+          ? p.product_media.sort((a: any, b: any) => a.sort_order - b.sort_order)
+          : [];
+        return {
+          id: p.id,
+          title: p.title,
+          slug: p.slug,
+          description: p.description,
+          priceCents: p.price_cents,
+          compareAtCents: p.compare_at_cents,
+          coverUrl: media[0]?.url || null,
+        };
+      });
+
+      return {
+        products,
+        categories: categoriesRes.data || [],
+      };
+    } catch (e) {
+      console.error("[catalog.functions] getStorePublicCatalog error:", e);
+      return { products: [], categories: [] };
+    }
+  });

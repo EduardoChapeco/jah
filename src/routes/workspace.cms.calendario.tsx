@@ -37,7 +37,7 @@ import { formatDate } from "@/lib/datetime";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/cms/calendario")({
-  head: () => ({ meta: [{ title: "Calendário Editorial & Agendamento | JAH" }] }),
+  head: () => ({ meta: [{ title: "Calendário Editorial & Agendamento | Wider" }] }),
   loader: async () => {
     return await listScheduledPosts();
   },
@@ -109,7 +109,7 @@ function CalendarioEditorialPage() {
       });
 
       setPosts(
-        [...posts, created].sort(
+        [...posts, created as any].sort(
           (a, b) => new Date(a.scheduled_for).getTime() - new Date(b.scheduled_for).getTime(),
         ),
       );
@@ -157,7 +157,7 @@ function CalendarioEditorialPage() {
   return (
     <div className="space-y-6 max-w-6xl pb-16">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border/60 pb-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4  pb-4">
         <div>
           <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
             <CalendarIcon className="size-5 text-primary" />
@@ -170,7 +170,7 @@ function CalendarioEditorialPage() {
 
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button className="rounded-xl font-semibold gap-2 shadow-xs">
+            <Button className="rounded-xl font-semibold gap-2 ">
               <Plus className="size-4" />
               Agendar Publicação
             </Button>
@@ -270,7 +270,7 @@ function CalendarioEditorialPage() {
 
       {/* Grade de Posts Agendados em Ordem Cronológica */}
       {posts.length === 0 ? (
-        <div className="squircle-soft border border-border bg-card p-12 text-center space-y-3 shadow-xs">
+        <div className="squircle-soft  bg-card p-12 text-center space-y-3 ">
           <div className="size-12 rounded-2xl bg-muted flex items-center justify-center mx-auto text-muted-foreground">
             <CalendarIcon className="size-6" />
           </div>
@@ -291,7 +291,7 @@ function CalendarioEditorialPage() {
               <div
                 key={post.id}
                 className={cn(
-                  "squircle-soft border bg-card p-5 space-y-4 shadow-xs transition-all hover:border-primary/40",
+                  "squircle-soft border bg-card p-5 space-y-4  transition-all hover:border-primary/40",
                   config.borderClass,
                 )}
               >
@@ -320,7 +320,7 @@ function CalendarioEditorialPage() {
                 </div>
 
                 {/* Ações de Reagendamento Rápido */}
-                <div className="flex items-center justify-between pt-2 border-t border-border/60 text-xs">
+                <div className="flex items-center justify-between pt-2  text-xs">
                   <span className="text-[11px] text-muted-foreground">Mover data:</span>
                   <div className="flex items-center gap-1">
                     <Button

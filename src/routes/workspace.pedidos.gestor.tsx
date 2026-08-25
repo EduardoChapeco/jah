@@ -140,7 +140,7 @@ function KDSPage() {
  `}</style>
 
       {/* Topbar */}
-      <header className="flex-none h-16 border-b border-border bg-card px-4 flex items-center justify-between no-print">
+      <header className="flex-none h-16  bg-card px-4 flex items-center justify-between no-print">
         <div className="flex items-center gap-4">
           {!isFullscreen && (
             <Button variant="ghost" size="icon" asChild>
@@ -177,7 +177,7 @@ function KDSPage() {
           return (
             <div key={col.id} className="flex-shrink-0 w-[350px] flex flex-col gap-3 h-full">
               <div
-                className={`rounded-xl border ${col.color} p-3 flex items-center justify-between bg-surface-paper shadow-sm`}
+                className={`rounded-xl border ${col.color} p-3 flex items-center justify-between bg-surface-paper `}
               >
                 <div className="flex items-center gap-2 font-bold text-sm">
                   {col.icon}
@@ -188,11 +188,11 @@ function KDSPage() {
                 </Badge>
               </div>
 
-              <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-3 pb-24">
+              <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-3 pb-6">
                 {colOrders.map((order) => (
                   <div
                     key={order.id}
-                    className="bg-surface-paper rounded-xl border border-border shadow-sm p-4 flex flex-col gap-3 cursor-pointer hover:border-primary/50 hover:shadow-md transition-all"
+                    className="bg-surface-paper rounded-xl   p-4 flex flex-col gap-3 cursor-pointer hover:border-primary/50 hover: transition-all"
                     onClick={() => setSelectedOrder(order)}
                   >
                     <div className="flex justify-between items-start">
@@ -246,7 +246,7 @@ function KDSPage() {
                               </span>
                             </div>
                             {options.length > 0 && (
-                              <div className="text-xs text-muted-foreground mt-0.5 ml-5 border-l border-border pl-2 py-0.5 space-y-0.5">
+                              <div className="text-xs text-muted-foreground mt-0.5 ml-5  pl-2 py-0.5 space-y-0.5">
                                 {options.map((opt: any, idx: number) => (
                                   <div key={idx}>+ {opt.label}</div>
                                 ))}
@@ -268,7 +268,7 @@ function KDSPage() {
                   </div>
                 ))}
                 {colOrders.length === 0 && (
-                  <div className="h-24 flex items-center justify-center border border-dashed border-border/60 rounded-xl text-muted-foreground text-sm font-medium bg-surface-paper/50">
+                  <div className="h-24 flex items-center justify-center border-0/60 rounded-xl text-muted-foreground text-sm font-medium bg-surface-paper/50">
                     Nenhum pedido nesta fila
                   </div>
                 )}
@@ -306,7 +306,7 @@ function KDSPage() {
                   <h3 className="text-sm font-bold uppercase text-muted-foreground mb-3">
                     Cliente
                   </h3>
-                  <div className="bg-surface-paper shadow-sm rounded-xl p-4 border border-border">
+                  <div className="bg-surface-paper  rounded-xl p-4 ">
                     <p className="font-bold text-lg">
                       {selectedOrder.customer_snapshot?.name ||
                         selectedOrder.customer?.name ||
@@ -340,7 +340,7 @@ function KDSPage() {
                       return (
                         <div
                           key={item.id}
-                          className="bg-surface-paper shadow-sm border border-border rounded-xl p-3"
+                          className="bg-surface-paper   rounded-xl p-3"
                         >
                           <div className="flex justify-between items-start mb-1">
                             <span className="font-bold text-base">

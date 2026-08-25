@@ -33,7 +33,7 @@ import {
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/workspace/marketing/patrocinadores")({
-  head: () => ({ meta: [{ title: "Gestão de Patrocinadores & Anunciantes | JAH Workspace" }] }),
+  head: () => ({ meta: [{ title: "Gestão de Patrocinadores & Anunciantes | Wider Workspace" }] }),
   loader: async () => {
     const sponsors = await listWorkspaceSponsors().catch(() => []);
     return { sponsors };
@@ -174,7 +174,7 @@ function WorkspacePatrocinadoresPage() {
 
       {/* Grid de Patrocinadores */}
       {sponsors.length === 0 ? (
-        <div className="py-16 text-center rounded-3xl border border-dashed border-border bg-card/50 space-y-4">
+        <div className="py-16 text-center rounded-3xl border-0 bg-card/50 space-y-4">
           <Megaphone className="size-12 text-muted-foreground/40 mx-auto" />
           <div className="space-y-1">
             <h3 className="text-base font-bold text-foreground">Nenhum patrocinador cadastrado</h3>
@@ -192,7 +192,7 @@ function WorkspacePatrocinadoresPage() {
           {sponsors.map((sp) => (
             <div
               key={sp.id}
-              className="p-5 rounded-3xl border border-border/80 bg-card hover-elevate transition-all space-y-4 flex flex-col justify-between"
+              className="p-5 rounded-3xl  bg-card hover-elevate transition-all space-y-4 flex flex-col justify-between"
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -217,7 +217,7 @@ function WorkspacePatrocinadoresPage() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="size-12 rounded-2xl bg-muted border border-border p-1.5 flex items-center justify-center shrink-0">
+                  <div className="size-12 rounded-2xl bg-muted  p-1.5 flex items-center justify-center shrink-0">
                     {sp.logo_url ? (
                       <img
                         src={sp.logo_url}
@@ -241,7 +241,7 @@ function WorkspacePatrocinadoresPage() {
               </div>
 
               {/* Botões de Ação */}
-              <div className="pt-3 border-t border-border/60 flex items-center justify-between">
+              <div className="pt-3  flex items-center justify-between">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -266,8 +266,8 @@ function WorkspacePatrocinadoresPage() {
 
       {/* Modal de Criação / Edição */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-lg p-0 overflow-hidden rounded-3xl border border-border bg-background shadow-2xl">
-          <DialogHeader className="p-6 pb-4 border-b border-border/80 bg-muted/20">
+        <DialogContent className="max-w-lg p-0 overflow-hidden rounded-3xl  bg-background ">
+          <DialogHeader className="p-6 pb-4  bg-muted/20">
             <DialogTitle className="flex items-center gap-2 text-lg font-black tracking-tight">
               <Megaphone className="size-5 text-primary" />
               <span>{editingId ? "Editar Patrocinador" : "Novo Patrocinador"}</span>
@@ -294,7 +294,7 @@ function WorkspacePatrocinadoresPage() {
                 <select
                   value={tier}
                   onChange={(e) => setTier(e.target.value as any)}
-                  className="w-full h-10 px-3 rounded-xl border border-border bg-background text-xs font-semibold"
+                  className="w-full h-10 px-3 rounded-xl  bg-background text-xs font-semibold"
                 >
                   <option value="gold">★ Master Gold</option>
                   <option value="silver">Silver</option>
@@ -351,11 +351,11 @@ function WorkspacePatrocinadoresPage() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={2}
-                className="w-full p-3 rounded-xl border border-border bg-background text-xs resize-none"
+                className="w-full p-3 rounded-xl  bg-background text-xs resize-none"
               />
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-border/60">
+            <div className="flex items-center justify-end gap-3 pt-3 ">
               <Button
                 type="button"
                 variant="outline"

@@ -62,7 +62,7 @@ export function ProductRail({
 
   if (productsToDisplay.length === 0) {
     return isEditing ? (
-      <div className="p-8 text-center border border-dashed border-border/50 text-muted-foreground text-sm">
+      <div className="p-8 text-center border-0/50 text-muted-foreground text-sm">
         [Product Rail] Fonte de dados não configurada ou vazia.
       </div>
     ) : null;

@@ -85,7 +85,7 @@ function EstudioPage() {
                 Voltar ao Catálogo
               </Button>
             )}
-            <Button onClick={handleDownload} className="font-bold border border-border ">
+            <Button onClick={handleDownload} className="font-bold  ">
               <Download className="mr-2 h-4 w-4" />
               Baixar Imagem
             </Button>
@@ -96,7 +96,7 @@ function EstudioPage() {
       <div className="flex-1 flex flex-col md:flex-row gap-6 p-6 min-h-0 overflow-hidden">
         {!initialProduct ? (
           <div className="w-full flex items-center justify-center">
-            <div className="max-w-md w-full p-8 bg-card rounded-lg border border-dashed border-border text-center">
+            <div className="max-w-md w-full p-8 bg-card rounded-lg border-0 text-center">
               <ImageIcon className="h-12 w-12 text-muted-foreground opacity-50 mb-4" />
               <h2 className="text-xl font-bold text-foreground mb-2">Nenhum produto selecionado</h2>
               <p className="text-muted-foreground mb-6">
@@ -105,7 +105,7 @@ function EstudioPage() {
               </p>
               <Button
                 onClick={() => navigate({ to: "/workspace/catalogo/produtos" })}
-                className="w-full font-bold border border-border "
+                className="w-full font-bold  "
               >
                 Ir para o Catálogo
               </Button>
@@ -114,7 +114,7 @@ function EstudioPage() {
         ) : (
           <>
             {/* Editor Sidebar */}
-            <ScrollArea className="w-full md:w-80 shrink-0 bg-card rounded-lg border border-border p-6 ">
+            <ScrollArea className="w-full md:w-80 shrink-0 bg-card rounded-lg  p-6 ">
               <div className="space-y-8 pb-10">
                 <div className="space-y-4">
                   <h3 className="font-bold text-lg flex items-center gap-2">
@@ -184,7 +184,7 @@ function EstudioPage() {
             </ScrollArea>
 
             {/* Preview Area */}
-            <div className="flex-1 flex items-center justify-center bg-[url('/checkers.svg')] bg-repeat bg-[length:24px_24px] bg-muted/10 rounded-lg border border-border overflow-hidden p-8 shadow-inner relative">
+            <div className="flex-1 flex items-center justify-center bg-[url('/checkers.svg')] bg-repeat bg-[length:24px_24px] bg-muted/10 rounded-lg  overflow-hidden p-8 shadow-inner relative">
               <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none">
                 <span className="font-black text-[20vw] tracking-tighter leading-none">
                   PREVIEW
@@ -192,7 +192,7 @@ function EstudioPage() {
               </div>
 
               {entity ? (
-                <div className="relative z-10 drop-shadow-2xl transition-all duration-300 hover:scale-[1.02]">
+                <div className="relative z-10 drop- transition-all duration-300 hover:scale-[1.02]">
                   <PresentationRenderer
                     entity={entity}
                     preset={preset}

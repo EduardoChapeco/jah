@@ -37,8 +37,12 @@ import { listCollections, updateCollection } from "@/services/admin-catalog.func
 export const Route = createFileRoute("/workspace/catalogo/colecoes/")({
   head: () => ({ meta: [{ title: "Coleções" }] }),
   loader: async () => {
-    const res = await listCollections();
-    return res || [];
+    try {
+      const res = await listCollections();
+      return res || [];
+    } catch {
+      return [];
+    }
   },
   component: AdminCollectionsPage,
 });
@@ -89,35 +93,34 @@ function AdminCollectionsPage() {
         eyebrow="Catálogo"
         title="Coleções"
         actions={
-          <Button asChild size="sm">
+          <Button asChild size="sm" className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground ">
             <Link to="/workspace/catalogo/colecoes/novo">
-              <Plus className="mr-1.5 size-4" aria-hidden />
-              Nova Coleção
+              <Plus className="size-3.5" aria-hidden />
+              <span>Nova Coleção</span>
             </Link>
           </Button>
         }
       />
 
       {/* Toolbar & Filtros */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3  bg-card rounded-2xl px-4 py-3 ">
         <Tabs
           defaultValue="active"
           value={statusFilter}
           onValueChange={(val) => setStatusFilter(val as "active" | "archived")}
-          className="w-full sm:w-auto"
         >
-          <TabsList className="grid w-full sm:w-[400px] grid-cols-2">
-            <TabsTrigger value="active">Ativas ({activeCollectionsCount})</TabsTrigger>
-            <TabsTrigger value="archived">Arquivo Morto ({archivedCollectionsCount})</TabsTrigger>
+          <TabsList className="grid w-[280px] grid-cols-2 h-8">
+            <TabsTrigger value="active" className="text-xs">Ativas ({activeCollectionsCount})</TabsTrigger>
+            <TabsTrigger value="archived" className="text-xs">Arquivo Morto ({archivedCollectionsCount})</TabsTrigger>
           </TabsList>
         </Tabs>
 
-        <div className="relative flex-1 max-w-sm w-full">
-          <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" aria-hidden />
+        <div className="relative w-full sm:w-72">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" aria-hidden />
           <Input
             type="search"
             placeholder="Buscar por nome ou slug..."
-            className="pl-9 text-xs w-full"
+            className="pl-8 text-xs w-full rounded-xl h-8 bg-background"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -125,15 +128,31 @@ function AdminCollectionsPage() {
       </div>
 
       {filteredCollections.length === 0 ? (
-        <EmptyState
-          title={
-            statusFilter === "active"
-              ? "Nenhuma coleção encontrada"
-              : "Nenhuma coleção no arquivo morto"
-          }
-        />
+        <div className="py-12 text-center rounded-3xl border-0 bg-card/60 space-y-4">
+          <div className="size-12 rounded-2xl bg-muted flex items-center justify-center mx-auto text-muted-foreground">
+            <Plus className="size-6" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-base font-bold text-foreground">
+              {statusFilter === "active"
+                ? "Nenhuma coleção cadastrada"
+                : "Nenhuma coleção no arquivo morto"}
+            </h3>
+            <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+              Crie coleções temáticas e sazonais para agrupar produtos na vitrine da sua loja.
+            </p>
+          </div>
+          {statusFilter === "active" && (
+            <Button asChild size="sm" className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground ">
+              <Link to="/workspace/catalogo/colecoes/novo">
+                <Plus className="size-4" />
+                <span>Criar Primeira Coleção</span>
+              </Link>
+            </Button>
+          )}
+        </div>
       ) : (
-        <div className="border border-border rounded-lg overflow-hidden">
+        <div className=" rounded-2xl overflow-hidden bg-card ">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>

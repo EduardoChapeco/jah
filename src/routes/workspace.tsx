@@ -1,64 +1,75 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, isRedirect, redirect, Link } from "@tanstack/react-router";
 import { getUserSession } from "@/services/auth.functions";
-import { getIdentity } from "@/services/identity.functions";
-import { toast } from "sonner";
-import { useEffect } from "react";
 import { WorkspaceShell } from "@/components/workspace/workspace-shell";
+import { Button } from "@/components/ui/button";
+import { Store, AlertTriangle, ArrowLeft, RefreshCw, LogIn } from "lucide-react";
 
 export const Route = createFileRoute("/workspace")({
-  beforeLoad: async ({ location }) => {
-    const session = await getUserSession();
-    if (!session) {
+  loader: async ({ location }) => {
+    let session: any = null;
+    try {
+      session = await getUserSession();
+    } catch (e) {
+      console.warn("[workspace layout] Erro ao carregar sessão:", e);
+      session = null;
+    }
+
+    if (!session || !session.user) {
       throw redirect({
         to: "/entrar",
-        search: { returnUrl: location.pathname },
+        search: { returnUrl: location.pathname + (location.searchStr || "") },
       });
     }
 
-    // Apenas membros com role de staff podem acessar o workspace B2B.
-    // Role de 'customer' — mesmo que haja um workspace_member — não concede acesso.
-    // Referência: INCIDENT-IDENTITY-001 — todo signup criava workspace_member
-    // com role='customer' na store padrão. Isso foi corrigido no trigger,
-    // mas o guard também precisa ser explícito e seguro.
-
-    const STAFF_ROLES = [
-      "owner",
-      "admin",
-      "manager",
-      "seller",
-      "finance",
-      "content",
-      "support",
-      "stock",
-    ];
-
-    if (session.role === "customer" || !session.role || !STAFF_ROLES.includes(session.role)) {
-      // Bloqueio rigoroso: se o contexto ativo não é de staff, ele não pode renderizar
-      // o WorkspaceShell. O usuário deve trocar o tenant na área "/conta" antes de acessar.
-      throw redirect({
-        to: "/criar-negocio",
-        search: {
-          error: "unauthorized",
-        },
-      });
-    }
-
-    return { session: { ...session, hasMemberships: true, hasStaffMembership: true } };
+    return { session };
   },
   component: WorkspaceLayout,
+  errorComponent: WorkspaceErrorComponent,
 });
 
-function WorkspaceLayout() {
-  const { session } = Route.useRouteContext();
-  const search: any = Route.useSearch();
-  const navigate = Route.useNavigate();
+function WorkspaceErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+  if (isRedirect(error)) {
+    throw error;
+  }
 
-  useEffect(() => {
-    if (search.error === "unauthorized") {
-      toast.error("Acesso Negado ao Módulo.");
-      navigate({ to: "/workspace", replace: true });
-    }
-  }, [search.error, navigate]);
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 text-center">
+      <div className="max-w-md w-full bg-card  p-6 rounded-3xl  space-y-4">
+        <div className="size-14 rounded-2xl bg-destructive/10 text-destructive flex items-center justify-center mx-auto">
+          <AlertTriangle className="size-7" />
+        </div>
+        <div className="space-y-1">
+          <h2 className="text-xl font-bold text-foreground">Ajustando Workspace</h2>
+          <p className="text-xs text-muted-foreground">
+            Ocorreu uma instabilidade momentânea ao carregar os dados deste espaço de trabalho.
+          </p>
+        </div>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-2">
+          <Button
+            onClick={() => {
+              if (typeof window !== "undefined") window.location.reload();
+              reset();
+            }}
+            className="w-full sm:w-auto rounded-xl text-xs font-bold gap-1.5"
+          >
+            <RefreshCw className="size-3.5" />
+            <span>Recarregar Painel</span>
+          </Button>
+          <Button asChild variant="outline" className="w-full sm:w-auto rounded-xl text-xs font-bold gap-1.5">
+            <Link to="/">
+              <ArrowLeft className="size-3.5" />
+              <span>Voltar ao Início</span>
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function WorkspaceLayout() {
+  const loaderData = Route.useLoaderData() as any;
+  const session = loaderData?.session;
 
   return (
     <WorkspaceShell session={session}>

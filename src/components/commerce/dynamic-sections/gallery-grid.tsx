@@ -54,7 +54,7 @@ export function GalleryGrid({ content }: GalleryGridProps) {
               <Wrapper
                 key={idx}
                 {...wrapperProps}
-                className="relative group aspect-square overflow-hidden border border-border bg-muted flex items-center justify-center cursor-pointer hover:shadow-md transition-all duration-300"
+                className="relative group aspect-square overflow-hidden  bg-muted flex items-center justify-center cursor-pointer hover: transition-all duration-300"
               >
                 <img
                   src={img.url || img.image_url}

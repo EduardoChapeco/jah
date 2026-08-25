@@ -25,14 +25,20 @@ import { listActiveBanners } from "@/services/banner.functions";
 import { listHotpages } from "@/services/hotpage.functions";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
 import { HotpagesRail } from "@/components/commerce/hotpages-rail";
+import { HorizontalRail } from "@/components/commerce/horizontal-rail";
+import {
+  DiscoveryControlBar,
+  type ViewModeType,
+  type FilterChipOption,
+} from "@/components/commerce/discovery-control-bar";
 import { formatDate } from "@/lib/datetime";
 
-const EVENT_CATEGORIES = [
-  { id: "todos", label: "Todas Categorias", icon: Sparkle },
-  { id: "shows", label: "Shows & Festivais", icon: Ticket },
-  { id: "gastronomico", label: "Gastronomia & Feiras", icon: ForkKnife },
-  { id: "feiras", label: "Bazaares & Pets", icon: Tag },
-  { id: "workshops", label: "Cursos & Workshops", icon: GraduationCap },
+const EVENT_CATEGORIES: FilterChipOption[] = [
+  { id: "todos", label: "Todas Categorias", emoji: "🎟️", icon: Sparkle },
+  { id: "shows", label: "Shows & Festivais", emoji: "🎸", icon: Ticket },
+  { id: "gastronomico", label: "Gastronomia & Feiras", emoji: "🍔", icon: ForkKnife },
+  { id: "feiras", label: "Bazaares & Pets", emoji: "🛍️", icon: Tag },
+  { id: "workshops", label: "Cursos & Workshops", emoji: "🎓", icon: GraduationCap },
 ];
 
 const PRESET_DATE_FILTERS = [
@@ -63,7 +69,7 @@ const MONTH_NAMES = [
 export const Route = createFileRoute("/_store/agenda")({
   head: () => ({
     meta: [
-      { title: "Agenda Cultural & Shows — JAH" },
+      { title: "Agenda Cultural & Shows — Wider" },
       {
         name: "description",
         content: "Descubra os principais shows, festivais gastronômicos, feiras e workshops da cidade filtrados por dia.",
@@ -85,6 +91,7 @@ function AgendaPage() {
   const [selectedCategory, setSelectedCategory] = useState("todos");
   const [selectedDateFilter, setSelectedDateFilter] = useState("all"); // 'all' | 'today' | 'tomorrow' | 'weekend' | 'next7' | 'month' | 'YYYY-MM-DD'
   const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState<ViewModeType>("feed");
 
   const {
     data: events,
@@ -92,13 +99,19 @@ function AgendaPage() {
     isError,
   } = useQuery({
     queryKey: ["public-events", selectedCategory],
-    queryFn: () =>
-      getPublicEvents({
-        data: {
-          limit: 50,
-          category: selectedCategory === "todos" ? undefined : selectedCategory,
-        },
-      }),
+    queryFn: async () => {
+      try {
+        const res = await getPublicEvents({
+          data: {
+            limit: 50,
+            category: selectedCategory === "todos" ? undefined : selectedCategory,
+          },
+        });
+        return res || [];
+      } catch {
+        return [];
+      }
+    },
     staleTime: 60_000,
   });
 
@@ -182,6 +195,24 @@ function AgendaPage() {
     });
   }, [events, selectedDateFilter, searchQuery]);
 
+  // Agrupamento por Categoria para o Modo Feed
+  const eventsByCategory = useMemo(() => {
+    const map = new Map<string, typeof filteredEvents>();
+    filteredEvents.forEach((ev) => {
+      const cat = (ev as any).category || (ev as any).attributes?.categoria || "shows";
+      if (!map.has(cat)) map.set(cat, []);
+      map.get(cat)!.push(ev);
+    });
+    return Array.from(map.entries()).map(([catKey, items]) => {
+      const chip = EVENT_CATEGORIES.find((c) => c.id === catKey);
+      return {
+        categoryKey: catKey,
+        categoryName: chip?.label || "Shows & Destaques",
+        items,
+      };
+    });
+  }, [filteredEvents]);
+
   // Contagem de eventos por dia para os badges
   const eventsCountByDateKey = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -212,7 +243,7 @@ function AgendaPage() {
   const isFilterActive = selectedDateFilter !== "all" || selectedCategory !== "todos" || searchQuery.trim() !== "";
 
   return (
-    <div className="w-full space-y-7">
+    <div className="w-full space-y-6 pb-20">
       {/* ── 1. Top Universal Banner Hero ── */}
       {banners && banners.length > 0 && (
         <BannerHeroCarousel banners={banners} className="w-full" />
@@ -250,7 +281,7 @@ function AgendaPage() {
                   onClick={() => setSelectedDateFilter(preset.id)}
                   className={`h-9 px-4 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                     isSelected
-                      ? "bg-foreground text-background shadow-xs font-bold"
+                      ? "bg-foreground text-background  font-bold"
                       : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
@@ -269,7 +300,7 @@ function AgendaPage() {
             onClick={() => setSelectedDateFilter("all")}
             className={`min-w-[96px] sm:min-w-[104px] h-[100px] sm:h-[108px] p-3 rounded-2xl flex flex-col items-center justify-between border cursor-pointer select-none shrink-0 transition-all ${
               selectedDateFilter === "all"
-                ? "bg-foreground text-background border-foreground shadow-md scale-102 font-bold"
+                ? "bg-foreground text-background border-foreground  scale-102 font-bold"
                 : "bg-card border-border text-foreground hover:bg-muted/60 hover:border-foreground/30"
             }`}
           >
@@ -292,21 +323,18 @@ function AgendaPage() {
                 onClick={() => setSelectedDateFilter(day.dateKey)}
                 className={`min-w-[92px] sm:min-w-[100px] h-[100px] sm:h-[108px] p-3 rounded-2xl flex flex-col items-center justify-between border cursor-pointer select-none shrink-0 transition-all ${
                   isSelected
-                    ? "bg-foreground text-background border-foreground shadow-md scale-102 font-bold"
+                    ? "bg-foreground text-background border-foreground  scale-102 font-bold"
                     : "bg-card border-border text-foreground hover:bg-muted/60 hover:border-foreground/30"
                 }`}
               >
-                {/* Header: Dia da Semana ou Badge 'Hoje' / 'Amanhã' */}
                 <span className="text-[11px] font-mono font-bold tracking-wider uppercase opacity-80">
                   {day.isToday ? "HOJE" : day.isTomorrow ? "AMANHÃ" : day.weekday}
                 </span>
 
-                {/* Número do Dia Bem Grande */}
                 <span className="text-2xl sm:text-3xl font-black leading-none my-0.5">
                   {day.dayNumber}
                 </span>
 
-                {/* Footer: Mês e Indicador de Eventos */}
                 <div className="flex items-center gap-1.5 text-[11px] font-mono font-medium">
                   <span>{day.monthName}</span>
                   {count > 0 && (
@@ -323,95 +351,27 @@ function AgendaPage() {
         </div>
       </section>
 
-      {/* ── 4. BARRA DE CATEGORIAS & BUSCA ── */}
-      <div className="space-y-4 pt-2 border-t border-border">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Tag size={16} weight="bold" className="text-foreground" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground font-mono">
-              Categorias de Eventos
-            </h3>
-          </div>
+      {/* ── 4. BARRA DE CONTROLE CANÔNICA DE DESCOBERTA (Busca + Categorias + Modos) ── */}
+      <DiscoveryControlBar
+        search={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Buscar show, festival, teatro, local, artista..."
+        categories={EVENT_CATEGORIES.map((cat) => {
+          const match = hotpages?.find((hp) => hp.slug === cat.id);
+          return {
+            ...cat,
+            icon_url: match?.custom_icon_url || match?.icon_url || cat.icon_url,
+          };
+        })}
+        activeCategory={selectedCategory}
+        onSelectCategory={setSelectedCategory}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        allowedViewModes={["feed", "grid", "list"]}
+        resultsCount={filteredEvents.length}
+      />
 
-          {/* Busca de Eventos */}
-          <div className="relative w-full sm:w-72">
-            <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por show, local, artista..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 rounded-xl h-10 bg-background border-border text-xs"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                aria-label="Limpar busca"
-              >
-                <X size={14} />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Categorias Cards — Squircle Retangular Gordinho */}
-        <div className="flex items-center gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 w-full px-0.5">
-          {EVENT_CATEGORIES.map((cat) => {
-            const isSelected = selectedCategory === cat.id;
-            const Icon = cat.icon;
-            return (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`min-w-[104px] sm:min-w-[114px] h-[94px] sm:h-[100px] p-3 rounded-2xl flex flex-col items-center justify-between border cursor-pointer select-none shrink-0 transition-all group ${
-                  isSelected
-                    ? "bg-foreground text-background border-foreground shadow-xs font-bold scale-102"
-                    : "bg-card text-muted-foreground border-border hover:bg-muted/70 hover:text-foreground hover:border-foreground/30 shadow-2xs"
-                }`}
-              >
-                <div
-                  className={`size-9 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 ${
-                    isSelected ? "bg-background/20 text-background" : "bg-muted text-foreground"
-                  }`}
-                >
-                  <Icon size={20} weight={isSelected ? "fill" : "bold"} />
-                </div>
-                <span className="text-xs font-bold text-center leading-tight line-clamp-1">
-                  {cat.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* ── 5. Status do Filtro & Contador ── */}
-        <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
-          <div className="flex items-center gap-2">
-            <span>
-              Exibindo <strong className="text-foreground">{filteredEvents.length}</strong> eventos para{" "}
-              <strong className="text-foreground">{activeDateLabel}</strong>
-            </span>
-          </div>
-
-          {isFilterActive && (
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedDateFilter("all");
-                setSelectedCategory("todos");
-                setSearchQuery("");
-              }}
-              className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-1 underline-offset-2 hover:underline cursor-pointer"
-            >
-              <X className="size-3" />
-              <span>Limpar filtros</span>
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* ── 6. ESTADOS DE CARREGAMENTO, ERRO E VAZIO ── */}
+      {/* ── 5. ESTADOS DE CARREGAMENTO, ERRO E VAZIO ── */}
       {isLoading && (
         <div className="flex justify-center py-24">
           <CircleNotch size={32} className="animate-spin text-muted-foreground" />
@@ -426,7 +386,7 @@ function AgendaPage() {
       )}
 
       {!isLoading && !isError && filteredEvents.length === 0 && (
-        <div className="py-20 text-center space-y-2.5 bg-muted/20 rounded-2xl border border-border p-8">
+        <div className="py-20 text-center space-y-2.5 bg-muted/20 rounded-2xl  p-8">
           <CalendarBlank size={36} className="text-muted-foreground/50 mx-auto" />
           <h2 className="text-sm font-semibold text-foreground">
             Nenhum evento agendado para {activeDateLabel}
@@ -443,7 +403,7 @@ function AgendaPage() {
                 setSelectedCategory("todos");
                 setSearchQuery("");
               }}
-              className="rounded-xl text-xs"
+              className="rounded-xl text-xs font-bold"
             >
               Ver Todos os Eventos
             </Button>
@@ -451,68 +411,279 @@ function AgendaPage() {
         </div>
       )}
 
-      {/* ── 7. GRADE DE EVENTOS ── */}
-      {!isLoading && !isError && filteredEvents.length > 0 && (
+      {/* ── 6. RENDERIZAÇÃO DOS MODOS DE VISUALIZAÇÃO ── */}
+
+      {/* MODO 1: FEED DE CARROSSÉIS PADRONIZADOS */}
+      {!isLoading && !isError && filteredEvents.length > 0 && viewMode === "feed" && (
+        <div className="space-y-10">
+          {eventsByCategory.map(({ categoryKey, categoryName, items }) => (
+            <HorizontalRail
+              key={categoryKey}
+              title={categoryName}
+              hideHeader={true}
+              badge={`${items.length} ${items.length === 1 ? "evento" : "eventos"}`}
+              actionLabel="Ver todos"
+              onAction={() => {
+                setSelectedCategory(categoryKey);
+                setViewMode("grid");
+              }}
+            >
+              {items.map((event) => (
+                <Link
+                  key={event.id}
+                  to="/evento/$id"
+                  params={{ id: event.id }}
+                  className="min-w-[290px] sm:min-w-[320px] max-w-[340px] rounded-3xl  bg-card overflow-hidden hover:border-foreground/30 transition-all flex flex-col justify-between shrink-0 group select-none block"
+                >
+                  <div className="space-y-3 block">
+                    <div className="aspect-16/10 relative overflow-hidden bg-muted">
+                      {event.cover_image && (
+                        <img
+                          src={event.cover_image}
+                          alt={event.title}
+                          className="absolute inset-0 size-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+
+                      <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                        <span className="bg-black/60 backdrop-blur-md text-white text-[10px] font-mono font-bold px-2.5 py-1 rounded-lg border border-white/20">
+                          {formatDate(event.event_date)}
+                        </span>
+                      </div>
+
+                      <div className="absolute bottom-3 left-3 right-3">
+                        <h3 className="text-sm font-bold text-white leading-tight drop- line-clamp-2">
+                          {event.title}
+                        </h3>
+                      </div>
+                    </div>
+
+                    <div className="px-4 space-y-1.5 text-xs">
+                      {event.location && (
+                        <p className="flex items-center gap-1.5 text-muted-foreground font-medium">
+                          <MapPin size={14} className="shrink-0 text-foreground" />
+                          <span className="truncate">{event.location}</span>
+                        </p>
+                      )}
+
+                      {event.description && (
+                        <p className="text-muted-foreground line-clamp-2 leading-relaxed text-xs">
+                          {event.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="p-4 pt-2.5 mt-2  flex items-center justify-between">
+                    <Badge variant={(event as any).is_free ? "secondary" : "outline"} className="text-[10px] font-mono font-bold">
+                      {(event as any).is_free ? "Gratuito" : "Ingresso"}
+                    </Badge>
+
+                    <span className="h-8 px-3 rounded-xl font-bold text-xs bg-foreground text-background inline-flex items-center justify-center group-hover:opacity-90 transition-opacity">
+                      <span>Ver Detalhes</span>
+                      <CaretRight size={14} className="ml-1" />
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </HorizontalRail>
+          ))}
+
+          {/* Gôndola Geral de Eventos */}
+          <div className="space-y-4 pt-6 ">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+                <CalendarDots size={18} weight="bold" className="text-primary" />
+                <span>Todos os Próximos Eventos & Shows</span>
+              </h2>
+              <span className="text-xs text-muted-foreground font-mono font-bold">
+                {filteredEvents.length} eventos confirmados
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
+              {filteredEvents.map((event) => (
+                <div
+                  key={event.id}
+                  className="flex flex-col justify-between overflow-hidden rounded-3xl  bg-card  hover:border-foreground/30 transition-all group"
+                >
+                  <Link to="/evento/$id" params={{ id: event.id }} className="block">
+                    <div className="aspect-16/10 relative overflow-hidden bg-muted">
+                      {event.cover_image && (
+                        <img
+                          src={event.cover_image}
+                          alt={event.title}
+                          className="absolute inset-0 size-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+
+                      <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                        <span className="bg-black/60 backdrop-blur-md text-white text-[10px] font-mono font-bold px-2.5 py-1 rounded-lg border border-white/20">
+                          {formatDate(event.event_date)}
+                        </span>
+                      </div>
+
+                      <div className="absolute bottom-3 left-3 right-3">
+                        <h3 className="text-sm font-bold text-white leading-tight drop- line-clamp-2">
+                          {event.title}
+                        </h3>
+                      </div>
+                    </div>
+
+                    <div className="p-4 space-y-1.5 text-xs">
+                      {event.location && (
+                        <p className="flex items-center gap-1.5 text-muted-foreground font-medium">
+                          <MapPin size={14} className="shrink-0 text-foreground" />
+                          <span className="truncate">{event.location}</span>
+                        </p>
+                      )}
+
+                      {event.description && (
+                        <p className="text-muted-foreground line-clamp-2 leading-relaxed text-xs">
+                          {event.description}
+                        </p>
+                      )}
+                    </div>
+                  </Link>
+
+                  <div className="p-4 pt-2.5  flex items-center justify-between">
+                    <Badge variant={(event as any).is_free ? "secondary" : "outline"} className="text-[10px] font-mono font-bold">
+                      {(event as any).is_free ? "Gratuito" : "Ingresso"}
+                    </Badge>
+
+                    <Button asChild size="sm" className="h-8 rounded-xl font-bold text-xs bg-foreground text-background">
+                      <Link to="/evento/$id" params={{ id: event.id }}>
+                        <span>Ver Detalhes</span>
+                        <CaretRight size={14} className="ml-1" />
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODO 2: GRADE EXPANDIDA */}
+      {!isLoading && !isError && filteredEvents.length > 0 && viewMode === "grid" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
           {filteredEvents.map((event) => (
             <div
               key={event.id}
-              className="flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-xs hover:border-foreground/20 transition-colors group"
+              className="flex flex-col justify-between overflow-hidden rounded-3xl  bg-card  hover:border-foreground/30 transition-all group"
             >
-              {/* Cover Image */}
-              <div className="aspect-16/10 relative overflow-hidden bg-muted">
-                {event.cover_image && (
-                  <img
-                    src={event.cover_image}
-                    alt={event.title}
-                    className="absolute inset-0 size-full object-cover group-hover:scale-103 transition-transform duration-500"
-                  />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+              <Link to="/evento/$id" params={{ id: event.id }} className="block">
+                <div className="aspect-16/10 relative overflow-hidden bg-muted">
+                  {event.cover_image && (
+                    <img
+                      src={event.cover_image}
+                      alt={event.title}
+                      className="absolute inset-0 size-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
 
-                <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                  <span className="bg-black/60 backdrop-blur-md text-white text-[10px] font-mono font-bold px-2.5 py-1 rounded-lg border border-white/20">
-                    {formatDate(event.event_date)}
-                  </span>
+                  <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                    <span className="bg-black/60 backdrop-blur-md text-white text-[10px] font-mono font-bold px-2.5 py-1 rounded-lg border border-white/20">
+                      {formatDate(event.event_date)}
+                    </span>
+                  </div>
+
+                  <div className="absolute bottom-3 left-3 right-3">
+                    <h3 className="text-sm font-bold text-white leading-tight drop- line-clamp-2">
+                      {event.title}
+                    </h3>
+                  </div>
                 </div>
 
-                <div className="absolute bottom-3 left-3 right-3">
-                  <h3 className="text-sm font-semibold text-white leading-tight drop-shadow-xs line-clamp-2">
-                    {event.title}
-                  </h3>
-                </div>
-              </div>
-
-              {/* Event Details */}
-              <div className="p-4 flex flex-col gap-3 flex-1 justify-between text-xs">
-                <div className="space-y-1.5">
+                <div className="p-4 space-y-1.5 text-xs">
                   {event.location && (
-                    <p className="flex items-center gap-1.5 text-muted-foreground">
+                    <p className="flex items-center gap-1.5 text-muted-foreground font-medium">
                       <MapPin size={14} className="shrink-0 text-foreground" />
                       <span className="truncate">{event.location}</span>
                     </p>
                   )}
 
                   {event.description && (
-                    <p className="text-muted-foreground line-clamp-2 leading-relaxed">
+                    <p className="text-muted-foreground line-clamp-2 leading-relaxed text-xs">
                       {event.description}
                     </p>
                   )}
                 </div>
+              </Link>
 
-                <div className="flex items-center justify-between pt-2.5 border-t border-border">
-                  <Badge variant={(event as any).is_free ? "secondary" : "outline"} className="text-[10px]">
-                    {(event as any).is_free ? "Gratuito" : "Ingresso Pago"}
-                  </Badge>
+              <div className="p-4 pt-2.5  flex items-center justify-between">
+                <Badge variant={(event as any).is_free ? "secondary" : "outline"} className="text-[10px] font-mono font-bold">
+                  {(event as any).is_free ? "Gratuito" : "Ingresso"}
+                </Badge>
 
-                  <Button asChild size="sm" variant="outline" className="h-8 rounded-lg text-xs">
-                    <Link to="/evento/$id" params={{ id: event.id }}>
-                      <span>Detalhes</span>
-                      <CaretRight size={14} className="ml-1" />
-                    </Link>
-                  </Button>
+                <Button asChild size="sm" className="h-8 rounded-xl font-bold text-xs bg-foreground text-background">
+                  <Link to="/evento/$id" params={{ id: event.id }}>
+                    <span>Ver Detalhes</span>
+                    <CaretRight size={14} className="ml-1" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* MODO 3: LISTA COMPACTA (LARGURA MÁXIMA) */}
+      {!isLoading && !isError && filteredEvents.length > 0 && viewMode === "list" && (
+        <div className="flex flex-col space-y-3 w-full">
+          {filteredEvents.map((event) => (
+            <div
+              key={event.id}
+              className="flex items-center justify-between p-4 rounded-3xl  bg-card  hover:border-foreground/30 transition-all gap-4 w-full group"
+            >
+              <div className="flex items-center gap-4 min-w-0 flex-1">
+                <div className="size-24 sm:size-28 rounded-2xl overflow-hidden bg-muted  shrink-0 relative">
+                  {event.cover_image ? (
+                    <img
+                      src={event.cover_image}
+                      alt={event.title}
+                      className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="size-full flex items-center justify-center text-muted-foreground/40">
+                      <Ticket size={28} />
+                    </div>
+                  )}
+                </div>
+
+                <div className="min-w-0 space-y-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <Badge variant="outline" className="text-[9px] font-mono font-bold uppercase px-1.5 py-0 rounded-md">
+                      {formatDate(event.event_date)}
+                    </Badge>
+                    <Badge variant={(event as any).is_free ? "secondary" : "outline"} className="text-[9px] font-mono rounded-md">
+                      {(event as any).is_free ? "Grátis" : "Ingresso"}
+                    </Badge>
+                  </div>
+
+                  <h3 className="font-bold text-sm sm:text-base text-foreground leading-snug line-clamp-1 group-hover:text-primary transition-colors">
+                    {event.title}
+                  </h3>
+
+                  {event.location && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1.5 truncate">
+                      <MapPin size={13} className="shrink-0 text-primary" />
+                      <span className="truncate">{event.location}</span>
+                    </p>
+                  )}
                 </div>
               </div>
+
+              <Button asChild size="sm" className="h-9 px-4 rounded-xl font-bold text-xs bg-foreground text-background shrink-0  hover:opacity-90 cursor-pointer">
+                <Link to="/evento/$id" params={{ id: event.id }}>
+                  Ver Detalhes
+                </Link>
+              </Button>
             </div>
           ))}
         </div>

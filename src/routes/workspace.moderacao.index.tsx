@@ -40,7 +40,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatRelativeTime, formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/workspace/moderacao/")({
-  head: () => ({ meta: [{ title: "Central de Moderação & Denúncias — JAH Workspace" }] }),
+  head: () => ({ meta: [{ title: "Central de Moderação & Denúncias — Wider Workspace" }] }),
   component: ModerationQueuePage,
 });
 
@@ -113,7 +113,7 @@ function ModerationQueuePage() {
   return (
     <div className="space-y-6 max-w-6xl">
       {/* ── Header Operacional ─────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border pb-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4  pb-4">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <ShieldAlert className="size-5 text-destructive" />
@@ -134,7 +134,7 @@ function ModerationQueuePage() {
       </div>
 
       {/* ── Barra de Filtros ────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center gap-3 bg-muted/20 p-3 rounded-2xl border border-border">
+      <div className="flex flex-wrap items-center gap-3 bg-muted/20 p-3 rounded-2xl ">
         <div className="flex items-center gap-2">
           <Filter className="size-4 text-muted-foreground" />
           <span className="text-xs font-semibold text-foreground">Filtrar:</span>
@@ -185,9 +185,9 @@ function ModerationQueuePage() {
             return (
               <div
                 key={rep.id}
-                className="border border-border bg-card rounded-2xl p-5 shadow-2xs space-y-3 hover:border-border/80 transition-colors"
+                className=" bg-card rounded-2xl p-5  space-y-3 hover:border-border/80 transition-colors"
               >
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-border/60 pb-2.5">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2  pb-2.5">
                   <div className="flex items-center gap-2 flex-wrap">
                     <Badge
                       variant={reasonInfo.variant}
@@ -255,7 +255,7 @@ function ModerationQueuePage() {
                     </div>
 
                     {rep.description && (
-                      <p className="text-foreground/90 bg-muted/20 p-3 rounded-xl border border-border leading-relaxed">
+                      <p className="text-foreground/90 bg-muted/20 p-3 rounded-xl  leading-relaxed">
                         <strong className="text-foreground">
                           Motivo informado pelo denunciante:
                         </strong>{" "}
@@ -264,7 +264,7 @@ function ModerationQueuePage() {
                     )}
                   </div>
 
-                  <div className="space-y-2 border-t md:border-t-0 md:border-l border-border md:pl-4 pt-2 md:pt-0">
+                  <div className="space-y-2 border-t md:border-t-0 md: md:pl-4 pt-2 md:pt-0">
                     <div>
                       <span className="text-muted-foreground block text-[10px] uppercase font-bold tracking-wider">
                         Denunciante
@@ -289,7 +289,7 @@ function ModerationQueuePage() {
 
                 {/* Botões de Ação do Moderador */}
                 {isPending && (
-                  <div className="pt-2 flex items-center justify-end gap-2 border-t border-border/60">
+                  <div className="pt-2 flex items-center justify-end gap-2 ">
                     <Button
                       size="sm"
                       variant="outline"
@@ -307,7 +307,7 @@ function ModerationQueuePage() {
           })}
         </div>
       ) : (
-        <div className="border border-dashed border-border bg-card/60 rounded-2xl p-12 text-center space-y-3">
+        <div className="border-0 bg-card/60 rounded-2xl p-12 text-center space-y-3">
           <div className="size-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">
             <ShieldCheck className="size-6" />
           </div>
@@ -335,7 +335,7 @@ function ModerationQueuePage() {
             </DialogHeader>
 
             <div className="space-y-4 py-2 text-xs">
-              <div className="bg-muted/20 p-3 rounded-xl border border-border space-y-1">
+              <div className="bg-muted/20 p-3 rounded-xl  space-y-1">
                 <p>
                   <strong>Item:</strong> {selectedReport.entity_title || selectedReport.entity_id}
                 </p>

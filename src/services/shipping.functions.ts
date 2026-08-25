@@ -8,22 +8,57 @@ import { getServerIdentity, assertStoreAccess } from "@/lib/server-access";
  */
 export async function _calculateShipping({
   cartId,
+  productId,
+  storeId: explicitStoreId,
   zipcode,
   weightGrams = 500,
 }: {
   cartId?: string;
+  productId?: string;
+  storeId?: string;
   zipcode: string;
   weightGrams?: number;
 }) {
   const supabase = getServerClient();
-  const identity = await getServerIdentity();
-  if (!identity.store_id) throw new Error("Loja não identificada.");
+  let resolvedStoreId = explicitStoreId;
+
+  // Se o storeId não foi fornecido explicitamente, resolver via productId ou cartId
+  if (!resolvedStoreId && productId) {
+    const { data: prodData } = await supabase
+      .from("products")
+      .select("store_id, weight_kg, width_cm, height_cm, length_cm")
+      .eq("id", productId)
+      .maybeSingle();
+    if (prodData?.store_id) {
+      resolvedStoreId = prodData.store_id;
+    }
+  }
+
+  if (!resolvedStoreId && cartId) {
+    const { data: cartData } = await supabase
+      .from("carts")
+      .select("store_id")
+      .eq("id", cartId)
+      .maybeSingle();
+    if (cartData?.store_id) {
+      resolvedStoreId = cartData.store_id;
+    }
+  }
+
+  if (!resolvedStoreId) {
+    const identity = await getServerIdentity().catch(() => null);
+    resolvedStoreId = identity?.store_id || undefined;
+  }
+
+  if (!resolvedStoreId) {
+    return [];
+  }
 
   // Fetch store type to adapt shipping logic
   const { data: storeInfo } = await supabase
     .from("stores")
-    .select("type")
-    .eq("id", identity.store_id)
+    .select("type, address, city, state")
+    .eq("id", resolvedStoreId)
     .single();
   const storeType = storeInfo?.type || "ecommerce";
 
@@ -93,7 +128,7 @@ export async function _calculateShipping({
   const { data: zones } = await supabase
     .from("shipping_zones")
     .select("*, shipping_rates(*)")
-    .eq("store_id", identity.store_id)
+    .eq("store_id", resolvedStoreId)
     .eq("is_active", true);
 
   if (zones && zones.length > 0) {
@@ -128,7 +163,7 @@ export async function _calculateShipping({
     const { data: creds } = await supabase
       .from("integration_credentials")
       .select("token_payload, is_active")
-      .eq("store_id", identity.store_id)
+      .eq("store_id", resolvedStoreId)
       .eq("provider", "melhor_envio")
       .maybeSingle();
 
@@ -184,11 +219,12 @@ export async function _calculateShipping({
   }
 
   // 4. Save to Database to prevent tampering during checkout
-  if (finalQuotes.length > 0) {
+  if (finalQuotes.length > 0 && resolvedStoreId) {
+    const identity = await getServerIdentity().catch(() => null);
     const quotesToInsert = finalQuotes.map((q) => ({
-      store_id: identity.store_id,
+      store_id: resolvedStoreId,
       cart_id: cartId || null,
-      customer_id: identity.id || null,
+      customer_id: identity?.id || null,
       zipcode: cleanZipcode,
       provider: q.provider,
       service_name: q.service_name,
@@ -206,7 +242,10 @@ export const calculateShipping = createServerFn({ method: "POST" })
   .validator(
     z.object({
       cartId: z.string().uuid().optional(),
+      productId: z.string().uuid().optional(),
+      storeId: z.string().uuid().optional(),
       zipcode: z.string().min(8),
+      weightGrams: z.number().optional(),
     }),
   )
   .handler(async ({ data }) => _calculateShipping(data));

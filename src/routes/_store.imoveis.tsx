@@ -1,0 +1,234 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { z } from "zod";
+import { useState, useMemo } from "react";
+import {
+  House,
+  Sparkle,
+  Key,
+  Buildings,
+  Tree,
+  MapPin,
+  FileText,
+  PhoneCall,
+  MagnifyingGlass,
+  ArrowRight,
+  ShieldCheck,
+} from "@phosphor-icons/react";
+
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/state/states";
+import { PageSkeleton } from "@/components/state/loading";
+import { HorizontalRail } from "@/components/commerce/horizontal-rail";
+import { StoreCard } from "@/components/commerce/store-card";
+import { HotpagesRail } from "@/components/commerce/hotpages-rail";
+import {
+  DiscoveryControlBar,
+  type ViewModeType,
+  type FilterChipOption,
+} from "@/components/commerce/discovery-control-bar";
+import { getMarketplaceFeed } from "@/services/marketplace.functions";
+import { listActiveBanners } from "@/services/banner.functions";
+import { listHotpages } from "@/services/hotpage.functions";
+import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
+import { formatMoney } from "@/lib/money";
+
+const SearchSchema = z.object({
+  q: z.string().optional(),
+  tipo: z.enum(["todos", "aluguel", "venda", "comercial", "terreno", "rural"]).default("todos").optional(),
+  bairro: z.string().optional(),
+});
+
+type ImoveisSearch = z.infer<typeof SearchSchema>;
+
+const IMOVEIS_CATEGORIES: FilterChipOption[] = [
+  { id: "todos", label: "Todos os Imóveis", icon: Sparkle },
+  { id: "aluguel", label: "Aluguel Residencial", icon: Key },
+  { id: "venda", label: "Casas & Apartamentos à Venda", icon: House },
+  { id: "comercial", label: "Salas & Galpões Comerciais", icon: Buildings },
+  { id: "terreno", label: "Terrenos & Lotes Urbanos", icon: MapPin },
+  { id: "rural", label: "Chácaras & Sítios", icon: Tree },
+];
+
+export const Route = createFileRoute("/_store/imoveis")({
+  head: () => ({
+    meta: [
+      { title: "Imóveis, Casas, Apartamentos & Aluguel | Wider" },
+      {
+        name: "description",
+        content:
+          "Encontre casas para comprar, apartamentos para alugar, salas comerciais e terrenos diretamente com imobiliárias e corretores credenciados.",
+      },
+    ],
+  }),
+  validateSearch: (search: Record<string, unknown>): ImoveisSearch => SearchSchema.parse(search),
+  loaderDeps: ({ search }) => search,
+  loader: async () => {
+    const [banners, hotpages, marketplaceFeed] = await Promise.all([
+      listActiveBanners({ data: { placement: "imoveis" } }).catch(() => []),
+      listHotpages({ data: { module: "imoveis" } }).catch(() => []),
+      getMarketplaceFeed({ data: { niche: "imoveis" } }).catch(() => null),
+    ]);
+
+    return {
+      banners,
+      hotpages,
+      marketplaceFeed,
+    };
+  },
+  component: ImoveisVerticalPage,
+  pendingComponent: PageSkeleton,
+});
+
+function ImoveisVerticalPage() {
+  const { banners, hotpages, marketplaceFeed } = Route.useLoaderData();
+  const search = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
+
+  const [activeCategory, setActiveCategory] = useState(search.tipo || "todos");
+
+  const handleCategoryChange = (catId: string) => {
+    setActiveCategory(catId as any);
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        tipo: catId === "todos" ? undefined : (catId as any),
+      }),
+    });
+  };
+
+  const handleSearchChange = (q: string) => {
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        q: q || undefined,
+      }),
+    });
+  };
+
+  const relevantStores = useMemo(() => {
+    if (!marketplaceFeed?.sections) return [];
+    const storeSection = marketplaceFeed.sections.find((s: any) => s.type === "store_rail");
+    return storeSection?.items || [];
+  }, [marketplaceFeed]);
+
+  return (
+    <div className="w-full space-y-6 pb-20">
+      {/* ── 1. Banners de Imóveis ── */}
+      {banners && banners.length > 0 && (
+        <section aria-label="Destaques Imobiliários">
+          <BannerHeroCarousel banners={banners} />
+        </section>
+      )}
+
+      {/* ── 2. Switcher de Ecossistema: Imóveis Urbanos vs Temporada Turística ── */}
+      <div className="p-4 rounded-2xl bg-card  flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+            <House size={22} weight="bold" />
+          </div>
+          <div>
+            <h2 className="text-sm font-bold text-foreground">Imóveis & Moradia Tradicional</h2>
+            <p className="text-xs text-muted-foreground">
+              Locação anual, compra de imóveis e terrenos com imobiliárias da cidade.
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/turismo"
+            className="px-4 py-2 rounded-xl text-xs font-semibold  bg-muted/40 hover:bg-muted text-foreground transition-colors"
+          >
+            Ver Aluguel por Temporada ↗
+          </Link>
+          <Link
+            to="/classificados"
+            search={{ categoria: "imoveis" }}
+            className="px-4 py-2 rounded-xl text-xs font-semibold  bg-muted/40 hover:bg-muted text-foreground transition-colors"
+          >
+            Ver Direto com Proprietário ↗
+          </Link>
+        </div>
+      </div>
+
+      {/* ── 3. Barra Canônica de Filtros ── */}
+      <DiscoveryControlBar
+        search={search.q || ""}
+        onSearchChange={handleSearchChange}
+        searchPlaceholder="Buscar por bairro, condomínio, número de quartos..."
+        categories={IMOVEIS_CATEGORIES}
+        activeCategory={activeCategory}
+        onSelectCategory={handleCategoryChange}
+        viewMode="grid"
+      />
+
+      {/* ── 4. Imobiliárias & Correspondentes da Cidade ── */}
+      {relevantStores.length > 0 && (
+        <section aria-label="Imobiliárias Credenciadas">
+          <HorizontalRail
+            title="Imobiliárias & Corretores Credenciados"
+            hideHeader={true}
+            actionTo="/buscar"
+          >
+            {relevantStores.map((store: any) => (
+              <StoreCard key={store.id} {...store} />
+            ))}
+          </HorizontalRail>
+        </section>
+      )}
+
+      {/* ── 5. Grade de Oportunidades Imobiliárias ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="p-6 rounded-3xl  bg-card space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold uppercase bg-foreground text-background">
+              Locação Residencial
+            </span>
+            <span className="text-xs font-mono font-bold text-primary">A partir de R$ 1.200/mês</span>
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-foreground">Apartamentos & Casas para Alugar</h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              Imóveis prontos para morar no Centro e bairros residenciais com garantia simplificada.
+            </p>
+          </div>
+          <div className="pt-2 flex items-center justify-between ">
+            <span className="text-xs text-muted-foreground">Contratos anuais e garantia caução/fiança</span>
+            <Link
+              to="/classificados"
+              search={{ categoria: "imoveis", deal_type: "aluguel" }}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-foreground hover:underline"
+            >
+              Explorar Ofertas <ArrowRight size={14} />
+            </Link>
+          </div>
+        </div>
+
+        <div className="p-6 rounded-3xl  bg-card space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold uppercase bg-foreground text-background">
+              Venda & Lançamentos
+            </span>
+            <span className="text-xs font-mono font-bold text-primary">Financiamento Caixa / Bancos</span>
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-foreground">Casas, Sobrados & Lotes à Venda</h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              Oportunidades para morar ou investir com assessoria jurídica e documentação regularizada.
+            </p>
+          </div>
+          <div className="pt-2 flex items-center justify-between ">
+            <span className="text-xs text-muted-foreground">Avaliação gratuita de imóveis</span>
+            <Link
+              to="/classificados"
+              search={{ categoria: "imoveis", deal_type: "venda" }}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-foreground hover:underline"
+            >
+              Ver Imóveis à Venda <ArrowRight size={14} />
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

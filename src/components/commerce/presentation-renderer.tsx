@@ -44,14 +44,14 @@ export function PresentationRenderer({
   if (preset === "polaroid") {
     return (
       <div
-        className={`${containerClasses} p-8 flex items-center justify-center bg-muted/20 border border-border overflow-hidden relative`}
+        className={`${containerClasses} p-8 flex items-center justify-center bg-muted/20  overflow-hidden relative`}
       >
         <Surface
           variant="default"
           elevation="sm"
           className={`w-full max-w-[85%] flex flex-col gap-4 p-4 pb-12 rotate-2 ${bgClass}`}
         >
-          <div className="aspect-square w-full bg-muted border border-border overflow-hidden">
+          <div className="aspect-square w-full bg-muted  overflow-hidden">
             {entity.image_url ? (
               <img
                 src={entity.image_url}
@@ -80,7 +80,7 @@ export function PresentationRenderer({
   if (preset === "lambe") {
     return (
       <div
-        className={`${containerClasses} p-6 flex items-center justify-center bg-muted/20 border border-border overflow-hidden relative`}
+        className={`${containerClasses} p-6 flex items-center justify-center bg-muted/20  overflow-hidden relative`}
       >
         <Surface
           variant="lambe"
@@ -122,7 +122,7 @@ export function PresentationRenderer({
   // Default: Ticket
   return (
     <div
-      className={`${containerClasses} p-8 flex items-center justify-center bg-muted/20 border border-border overflow-hidden relative`}
+      className={`${containerClasses} p-8 flex items-center justify-center bg-muted/20  overflow-hidden relative`}
     >
       <Surface
         variant="ticket"
@@ -131,7 +131,7 @@ export function PresentationRenderer({
         className={`w-full max-w-[90%] flex flex-col ${bgClass}`}
       >
         <div className="text-center mb-6">
-          <p className="font-mono text-xs uppercase tracking-widest opacity-70 mb-2">JAH TICKET</p>
+          <p className="font-mono text-xs uppercase tracking-widest opacity-70 mb-2">WIDER TICKET</p>
           <h2 className="font-black text-2xl uppercase font-display leading-tight">
             {entity.title}
           </h2>

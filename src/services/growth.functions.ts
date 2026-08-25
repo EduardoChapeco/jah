@@ -106,90 +106,10 @@ export const deleteCoupon = createServerFn({ method: "POST" })
   });
 
 // ---------------------------------------------------------------------------
-// Integrations
+// Integrations (Delegated to canonical integrations.functions.ts)
 // ---------------------------------------------------------------------------
 
-export const listIntegrations = createServerFn({ method: "GET" }).handler(async () => {
-  try {
-    const identity = await getAdminIdentity();
-    const db = getServerClient();
-
-    const { data, error } = await db
-      .from("integration_credentials")
-      .select("*")
-      .eq("store_id", identity.store_id);
-
-    if (error) throw error;
-    return data;
-  } catch (e) {
-    if (e instanceof SupabaseUnconfiguredError) throw e;
-    console.error("[growth] listIntegrations error:", e);
-    throw new Error("Erro ao listar integrações.");
-  }
-});
-
-export const upsertIntegration = createServerFn({ method: "POST" })
-  .validator(
-    z.object({
-      provider: z.enum([
-        "meta_pixel",
-        "google_analytics",
-        "melhor_envio",
-        "nuvemshop",
-        "webhook",
-        "google_merchant_center",
-      ]),
-      credentials: z.record(z.any()),
-      is_active: z.boolean(),
-    }),
-  )
-  .handler(async ({ data: input }) => {
-    try {
-      const identity = await getAdminIdentity();
-      if (identity.role !== "owner" && identity.role !== "admin") {
-        throw new Error("Apenas administradores podem gerenciar integrações.");
-      }
-
-      if (input.is_active) {
-        if (input.provider === "meta_pixel" && !input.credentials?.pixel_id) {
-          throw new Error("Para ativar o Meta Pixel, o ID do Pixel deve ser preenchido.");
-        }
-        if (input.provider === "google_analytics" && !input.credentials?.measurement_id) {
-          throw new Error("Para ativar o Google Analytics, o Measurement ID deve ser preenchido.");
-        }
-        if (input.provider === "melhor_envio" && !input.credentials?.api_token) {
-          throw new Error("Para ativar o Melhor Envio, o Token de Acesso deve ser preenchido.");
-        }
-        if (input.provider === "google_merchant_center" && !input.credentials?.merchant_id) {
-          throw new Error(
-            "Para ativar o Google Merchant Center, o Merchant ID deve ser preenchido.",
-          );
-        }
-      }
-
-      const db = getServerClient();
-
-      const { data, error } = await db
-        .from("integration_credentials")
-        .upsert(
-          {
-            store_id: identity.store_id,
-            provider: input.provider,
-            credentials: input.credentials,
-            is_active: input.is_active,
-          },
-          { onConflict: "store_id,provider" },
-        )
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    } catch (e: unknown) {
-      console.error("[growth] upsertIntegration error:", e);
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao salvar integração.");
-    }
-  });
+export { listIntegrationSettings as listIntegrations, saveIntegrationCredential as upsertIntegration } from "./integrations.functions";
 
 // --- CAMPAIGNS ---
 

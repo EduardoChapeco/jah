@@ -1,32 +1,33 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getPageBySlug } from "@/services/cms.functions";
-import { PageHeader } from "@/components/commerce/page-header";
+import { getLegalDocumentBySlug } from "@/services/legal.functions";
+import { LegalDocumentViewer } from "@/components/legal/legal-document-viewer";
 import { EmptyState } from "@/components/state/states";
 
 export const Route = createFileRoute("/_store/trocas-e-devolucoes")({
   head: ({ loaderData }) => ({
     meta: [
       {
-        title:
-          loaderData && !("status" in loaderData) && loaderData.title
-            ? `${loaderData.title}`
-            : "Trocas e Devoluções",
+        title: loaderData?.title
+          ? `${loaderData.title} | Wider`
+          : "Políticas de Trocas, Devoluções e Cancelamentos | Wider",
       },
     ],
   }),
   loader: async () => {
-    const res = await getPageBySlug({ data: { slug: "trocas-e-devolucoes" } });
-    if ("status" in res && res.status === "not_found") return null;
-    return res;
+    try {
+      const doc = await getLegalDocumentBySlug({ data: { slug: "trocas-e-devolucoes" } });
+      return doc;
+    } catch {
+      return null;
+    }
   },
-  component: Page,
+  component: TrocasEDevolucoesPage,
 });
 
-function Page() {
-  const data = Route.useLoaderData();
-  const res = data as any;
+function TrocasEDevolucoesPage() {
+  const doc = Route.useLoaderData();
 
-  if (!res || res.status === "not_found") {
+  if (!doc) {
     return (
       <div className="container py-20">
         <EmptyState title="Documento não encontrado" />
@@ -34,19 +35,5 @@ function Page() {
     );
   }
 
-  return (
-    <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
-      <div className="max-w-4xl mx-auto">
-        <div className="prose prose-slate dark:prose-invert max-w-none prose-headings:font-bold prose-a:text-primary">
-          {res.sections?.map((section: any) => (
-            <div key={section.id}>
-              {section.section_type === "text" && (
-                <div dangerouslySetInnerHTML={{ __html: section.content.html || "" }} />
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+  return <LegalDocumentViewer document={doc} />;
 }

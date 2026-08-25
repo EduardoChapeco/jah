@@ -39,7 +39,7 @@ function StateShell({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center rounded-xl border border-border bg-card px-6 py-12 text-center",
+        "flex flex-col items-center justify-center rounded-xl  bg-card px-6 py-12 text-center",
         className,
       )}
       role="status"

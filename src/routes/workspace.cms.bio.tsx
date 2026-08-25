@@ -88,7 +88,7 @@ function CmsBioPage() {
           <Button
             onClick={handleSave}
             disabled={isSaving}
-            className="font-bold border border-border "
+            className="font-bold  "
           >
             <Save className="mr-2 h-4 w-4" />
             {isSaving ? "Salvando..." : "Salvar Perfil"}
@@ -98,7 +98,7 @@ function CmsBioPage() {
 
       <div className="flex-1 p-6 flex justify-center">
         <div className="w-full max-w-3xl space-y-6">
-          <div className="bg-surface-paper border border-border shadow-sm rounded-xl p-6 space-y-6">
+          <div className="bg-surface-paper   rounded-xl p-6 space-y-6">
             <div className="flex items-start gap-6">
               <div className="shrink-0 flex flex-col items-center gap-2">
                 <div className="size-24 rounded-full bg-muted border-2 border-border overflow-hidden flex items-center justify-center">
@@ -163,7 +163,7 @@ function CmsBioPage() {
                 {formData.links.map((link: any, index: number) => (
                   <div
                     key={link.id || index}
-                    className="flex items-center gap-3 p-3 bg-surface-paper shadow-sm border border-border rounded-xl"
+                    className="flex items-center gap-3 p-3 bg-surface-paper   rounded-xl"
                   >
                     <GripVertical className="h-5 w-5 text-muted-foreground cursor-move shrink-0" />
                     <div className="grid grid-cols-2 gap-3 flex-1">

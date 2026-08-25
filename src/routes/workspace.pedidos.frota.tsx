@@ -41,7 +41,7 @@ import {
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/pedidos/frota")({
-  head: () => ({ meta: [{ title: "Frota & Despacho de Entregas | JAH" }] }),
+  head: () => ({ meta: [{ title: "Frota & Despacho de Entregas | Wider" }] }),
   loader: async () => {
     const [dispatches, priceTables] = await Promise.all([
       listDispatches().catch(() => []),
@@ -178,7 +178,7 @@ function FrotaEntregasPage() {
   return (
     <div className="space-y-6 max-w-6xl">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4  pb-4">
         <div>
           <h1 className="text-xl font-semibold text-foreground tracking-tight">
             Frota, Entregadores & Mobilidade
@@ -190,13 +190,13 @@ function FrotaEntregasPage() {
 
         {/* Tab Switcher */}
         <div className="flex items-center gap-2">
-          <div className="bg-muted p-1 rounded-xl flex items-center gap-1 border border-border">
+          <div className="bg-muted p-1 rounded-xl flex items-center gap-1 ">
             <button
               type="button"
               onClick={() => setActiveTab("dispatches")}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
                 activeTab === "dispatches"
-                  ? "bg-background text-foreground shadow-xs"
+                  ? "bg-background text-foreground "
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -207,7 +207,7 @@ function FrotaEntregasPage() {
               onClick={() => setActiveTab("pricing")}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
                 activeTab === "pricing"
-                  ? "bg-background text-foreground shadow-xs"
+                  ? "bg-background text-foreground "
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -228,7 +228,7 @@ function FrotaEntregasPage() {
                   <span>Novo Despacho</span>
                 </Button>
               </DialogTrigger>
-              <DialogContent className="rounded-2xl border border-border bg-card max-w-md">
+              <DialogContent className="rounded-2xl  bg-card max-w-md">
                 <DialogHeader>
                   <DialogTitle className="text-base font-semibold text-foreground">
                     Despachar Pedido para Entrega
@@ -336,7 +336,7 @@ function FrotaEntregasPage() {
           </div>
 
           {dispatches.length === 0 ? (
-            <div className="p-12 text-center border border-dashed border-border rounded-2xl bg-muted/20 space-y-2">
+            <div className="p-12 text-center border-0 rounded-2xl bg-muted/20 space-y-2">
               <Truck className="size-8 mx-auto text-muted-foreground opacity-40" />
               <h3 className="text-sm font-semibold text-foreground">Nenhum despacho ativo</h3>
               <p className="text-xs text-muted-foreground max-w-sm mx-auto">
@@ -346,7 +346,7 @@ function FrotaEntregasPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {dispatches.map((d) => (
-                <div key={d.id} className="rounded-2xl border border-border bg-card p-4 space-y-3 shadow-xs">
+                <div key={d.id} className="rounded-2xl  bg-card p-4 space-y-3 ">
                   <div className="flex items-start justify-between">
                     <div>
                       <span className="text-xs font-mono font-bold text-foreground">
@@ -419,7 +419,7 @@ function FrotaEntregasPage() {
                   <span>Adicionar Tabela de Tarifa</span>
                 </Button>
               </DialogTrigger>
-              <DialogContent className="rounded-2xl border border-border bg-card max-w-md">
+              <DialogContent className="rounded-2xl  bg-card max-w-md">
                 <DialogHeader>
                   <DialogTitle className="text-base font-semibold text-foreground">
                     Nova Tabela de Tarifa de Mobilidade / Frete
@@ -446,7 +446,7 @@ function FrotaEntregasPage() {
                     <select
                       value={priceFormServiceType}
                       onChange={(e: any) => setPriceFormServiceType(e.target.value)}
-                      className="w-full h-9 rounded-xl text-xs bg-background border border-border px-3 text-foreground"
+                      className="w-full h-9 rounded-xl text-xs bg-background  px-3 text-foreground"
                     >
                       <option value="delivery_express">Entrega Flash (Moto / Bike)</option>
                       <option value="ride_moto">Moto Passageiro</option>
@@ -529,7 +529,7 @@ function FrotaEntregasPage() {
           </div>
 
           {priceTables.length === 0 ? (
-            <div className="p-12 text-center border border-dashed border-border rounded-2xl bg-muted/20 space-y-2">
+            <div className="p-12 text-center border-0 rounded-2xl bg-muted/20 space-y-2">
               <DollarSign className="size-8 mx-auto text-muted-foreground opacity-40" />
               <h3 className="text-sm font-semibold text-foreground">Nenhuma tabela de tarifa ativa</h3>
               <p className="text-xs text-muted-foreground max-w-sm mx-auto">
@@ -539,7 +539,7 @@ function FrotaEntregasPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {priceTables.map((tbl) => (
-                <div key={tbl.id} className="rounded-2xl border border-border bg-card p-4 space-y-3 shadow-xs">
+                <div key={tbl.id} className="rounded-2xl  bg-card p-4 space-y-3 ">
                   <div className="flex items-start justify-between">
                     <div>
                       <Badge variant="outline" className="text-[10px] uppercase font-mono mb-1">

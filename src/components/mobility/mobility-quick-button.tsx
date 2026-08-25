@@ -30,8 +30,8 @@ export function MobilityQuickButton() {
       aria-label="Mobilidade Urbana & Fretes"
       className={`h-9 px-2.5 sm:px-3 rounded-xl border flex items-center gap-1.5 transition-all select-none group cursor-pointer shrink-0 ${
         isActive
-          ? "bg-foreground text-background border-foreground shadow-xs scale-102"
-          : "bg-card border-border text-foreground hover:bg-muted hover:border-foreground/30 shadow-2xs"
+          ? "bg-foreground text-background border-foreground  scale-102"
+          : "bg-card border-border text-foreground hover:bg-muted hover:border-foreground/30 "
       }`}
     >
       <div className="relative size-4 flex items-center justify-center overflow-hidden">

@@ -1,81 +1,84 @@
 /**
- * rate-limiter.ts Commerce
+ * rate-limiter.ts — Proteção Anti-Bot, Anti-Spam e Defesa de Interações
  *
- * In-process token-bucket rate limiter keyed by IP address.
- * Used to protect auth endpoints against brute-force attacks.
- *
- * Design decisions:
- * - In-memory only (no Redis dependency). Resets on worker restart.
- *   This is acceptable for Cloudflare Workers where each isolate handles
- *   a subset of traffic; the goal is to slow down attackers, not guarantee
- *   perfect global state.
- * - Tracks FAILED attempts only. Successful logins reset the counter.
- * - Window is sliding (last N attempts within WINDOW_MS).
+ * Implementa controle por Token Bucket em memória e trava de cooldown por usuário/IP,
+ * impedindo bots de curtidas automáticas, spam de comentários, brute force de login e floods de checkout.
  */
 
-const MAX_ATTEMPTS = 5;
-const WINDOW_MS = 10 * 60 * 1000; // 10 minutes
-
-interface AttemptRecord {
-  timestamps: number[]; // timestamps of failed attempts within current window
+interface RateLimitRecord {
+  count: number;
+  resetAt: number;
 }
 
-const store = new Map<string, AttemptRecord>();
+const memoryStore = new Map<string, RateLimitRecord>();
 
-/** Prune expired timestamps from a record */
-function pruneWindow(record: AttemptRecord, now: number): AttemptRecord {
+export interface RateLimitOptions {
+  windowMs?: number; // Janela de tempo em milissegundos
+  maxAllowed?: number; // Máximo de requisições permitidas na janela
+}
+
+/**
+ * Valida se uma ação está dentro dos limites saudáveis de requisições humanas.
+ */
+export function checkRateLimit(
+  identifier: string,
+  actionType?: "like" | "follow" | "comment" | "repost" | "share" | "login" | "checkout" | string,
+  options: RateLimitOptions = {}
+): { allowed: boolean; remaining: number; retryAfterSec?: number; resetInMs?: number } {
+  const type = actionType || "general";
+  const windowMs = options.windowMs || (type === "like" ? 10000 : type === "comment" ? 30000 : type === "login" ? 60000 : 60000);
+  const maxAllowed = options.maxAllowed || (type === "like" ? 15 : type === "comment" ? 5 : type === "follow" ? 10 : type === "login" ? 5 : 20);
+
+  const key = `${type}:${identifier}`;
+  const now = Date.now();
+  const record = memoryStore.get(key);
+
+  if (!record || now > record.resetAt) {
+    memoryStore.set(key, {
+      count: 1,
+      resetAt: now + windowMs,
+    });
+    return { allowed: true, remaining: maxAllowed - 1, resetInMs: windowMs };
+  }
+
+  if (record.count >= maxAllowed) {
+    const retryAfterSec = Math.ceil((record.resetAt - now) / 1000);
+    return {
+      allowed: false,
+      remaining: 0,
+      retryAfterSec,
+      resetInMs: Math.max(0, record.resetAt - now),
+    };
+  }
+
+  record.count += 1;
   return {
-    timestamps: record.timestamps.filter((t) => now - t < WINDOW_MS),
+    allowed: true,
+    remaining: maxAllowed - record.count,
+    resetInMs: Math.max(0, record.resetAt - now),
   };
 }
 
-/**
- * Check whether the given IP is currently rate-limited.
- * Returns `{ blocked: false }` if allowed, or
- * `{ blocked: true, retryAfterMs: number }` if blocked.
- */
-export function checkRateLimit(ip: string): { blocked: boolean; retryAfterMs?: number } {
+export function recordFailedAttempt(identifier: string, type = "auth", windowMs = 300000): void {
+  const key = `${type}:${identifier}`;
   const now = Date.now();
-  const raw = store.get(ip);
-  if (!raw) return { blocked: false };
+  const record = memoryStore.get(key);
 
-  const record = pruneWindow(raw, now);
-  store.set(ip, record);
-
-  if (record.timestamps.length < MAX_ATTEMPTS) return { blocked: false };
-
-  // Oldest failed attempt determines when the window expires
-  const oldest = Math.min(...record.timestamps);
-  const retryAfterMs = WINDOW_MS - (now - oldest);
-  return { blocked: true, retryAfterMs: Math.max(retryAfterMs, 0) };
+  if (!record || now > record.resetAt) {
+    memoryStore.set(key, { count: 1, resetAt: now + windowMs });
+  } else {
+    record.count += 1;
+  }
 }
 
-/**
- * Record a failed login attempt for the given IP.
- * Call this only after a confirmed authentication failure.
- */
-export function recordFailedAttempt(ip: string): void {
-  const now = Date.now();
-  const raw = store.get(ip) ?? { timestamps: [] };
-  const record = pruneWindow(raw, now);
-  record.timestamps.push(now);
-  store.set(ip, record);
+export function resetAttempts(identifier: string, type = "auth"): void {
+  const key = `${type}:${identifier}`;
+  memoryStore.delete(key);
 }
 
-/**
- * Clear the failed attempt counter for the given IP.
- * Call this after a successful login.
- */
-export function resetAttempts(ip: string): void {
-  store.delete(ip);
-}
-
-/**
- * Convert milliseconds to a human-readable "X minutos" / "X segundos" string.
- */
-export function formatRetryAfter(ms: number): string {
-  const seconds = Math.ceil(ms / 1000);
-  if (seconds < 60) return `${seconds} segundo${seconds !== 1 ? "s" : ""}`;
+export function formatRetryAfter(seconds?: number): string {
+  if (!seconds || seconds <= 0) return "alguns instantes";
+  if (seconds < 60) return `${seconds} segundos`;
   const minutes = Math.ceil(seconds / 60);
-  return `${minutes} minuto${minutes !== 1 ? "s" : ""}`;
+  return `${minutes} minuto${minutes > 1 ? "s" : ""}`;
 }

@@ -197,7 +197,7 @@ export function StoreContact({
                   href={btn.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-background hover:bg-muted transition-colors text-sm font-medium"
+                  className="flex items-center gap-2 px-4 py-2 rounded-full  bg-background hover:bg-muted transition-colors text-sm font-medium"
                 >
                   <Icon className="h-4 w-4 text-primary" />
                   {btn.label}

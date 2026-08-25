@@ -20,14 +20,20 @@ import { formatMoney } from "@/lib/money";
 /**
  * Ensures a cart exists for the current identity.
  */
-async function getOrCreateCartId(identity: {
-  customer_id: string | null;
-  session_token: string | null;
-}) {
+async function getOrCreateCartId(
+  identity: {
+    customer_id: string | null;
+    session_token: string | null;
+  },
+  preferredStoreId?: string | null,
+) {
   const supabase = getServerClient();
 
-  // 1. Try to find an existing active cart
+  // 1. Try to find an existing active cart for this specific store (if preferredStoreId provided)
   let query = supabase.from("carts").select("id").eq("status", "active");
+  if (preferredStoreId) {
+    query = query.eq("store_id", preferredStoreId);
+  }
   if (identity.customer_id) {
     query = query.eq("customer_id", identity.customer_id);
   } else {
@@ -40,18 +46,33 @@ async function getOrCreateCartId(identity: {
     .maybeSingle();
   if (existing) return existing.id;
 
-  // 2. Fetch the default store. In a multi-tenant setup, this would be derived from the Host or domain.
-  const { resolveTenantStoreId } = await import("@/lib/tenant.server");
-  const storeId = await resolveTenantStoreId();
-  if (!storeId) throw new Error("Loja não configurada");
-  const store = { id: storeId };
-  if (!store) throw new Error("Loja não encontrada na base");
+  // 2. Resolve store_id com fallback resiliente
+  let storeId = preferredStoreId;
+  if (!storeId) {
+    try {
+      const { resolveTenantStoreId } = await import("@/lib/tenant.server");
+      storeId = await resolveTenantStoreId();
+    } catch {}
+  }
 
-  // 3. Create a new cart
+  if (!storeId) {
+    const { data: defaultStore } = await supabase
+      .from("stores")
+      .select("id")
+      .limit(1)
+      .maybeSingle();
+    storeId = defaultStore?.id || null;
+  }
+
+  if (!storeId) {
+    throw new Error("Nenhuma loja disponível no momento.");
+  }
+
+  // 3. Create a new cart for this store
   const { data: newCart, error } = await supabase
     .from("carts")
     .insert({
-      store_id: store.id,
+      store_id: storeId,
       customer_id: identity.customer_id,
       session_token: identity.session_token,
       status: "active",
@@ -59,7 +80,7 @@ async function getOrCreateCartId(identity: {
     .select("id")
     .single();
 
-  if (error) throw new Error("Falha ao criar carrinho.");
+  if (error) throw new Error("Falha ao criar carrinho: " + error.message);
   return newCart.id;
 }
 
@@ -144,13 +165,13 @@ export async function mapCartToDTO(cart: any): Promise<CartDTO> {
     qty: number;
     price_snapshot_cents: number;
     selected_options?: Record<string, string | string[]>;
-    product_variants: {
+    product_variants?: {
       sku: string;
       price_override_cents: number | null;
       stock_on_hand: number;
       attributes: Record<string, string>;
-      status: string;
-      product: {
+      status?: string;
+      product?: {
         id: string;
         title: string;
         slug: string;
@@ -161,9 +182,8 @@ export async function mapCartToDTO(cart: any): Promise<CartDTO> {
     };
   }
 
-  // Map to DTO
   let totalCents = 0;
-  // 1. Coletar IDs únicos de option_values de todo o carrinho para fazer fetch num bulk só
+  // 1. Coletar IDs únicos de option_values de todo o carrinho
   const allOptionIds = new Set<string>();
   const rawItems = (cart.cart_items || []) as CartItemRaw[];
   rawItems.forEach((item) => {
@@ -189,49 +209,78 @@ export async function mapCartToDTO(cart: any): Promise<CartDTO> {
     }
   }
 
-  const items = rawItems
-    .filter((item) => item && item.product_variants && item.product_variants.product)
-    .filter((item) => item.product_variants.status === "active")
-    .map((item) => {
-      const variant = item.product_variants;
-      const product = variant.product;
-      const image = product.product_media?.[0]?.url;
-      // USE the snapshot from the RPC which includes options modifiers, fallback to product price
-      const price =
-        item.price_snapshot_cents ?? variant.price_override_cents ?? product.price_cents;
-      const lineTotal = price * item.qty;
-      totalCents += lineTotal;
+  const items: any[] = [];
+  for (const item of rawItems) {
+    let variant = item.product_variants;
+    let product = variant?.product;
 
-      const availableStock = variant.stock_on_hand || 0;
-      const isOutOfStock = availableStock < item.qty;
+    // Fallback robusto se o join aninhado do PostgREST não trouxer a variante/produto
+    if (!variant || !product) {
+      try {
+        const { data: vData } = await supabase
+          .from("product_variants")
+          .select("id, sku, price_override_cents, stock_on_hand, attributes, status, product_id, products(id, title, slug, price_cents, compare_at_cents, product_media(url))")
+          .eq("id", item.variant_id)
+          .maybeSingle();
 
-      const selectedOptionsLabels: string[] = [];
-      if (item.selected_options) {
-        Object.values(item.selected_options).forEach((val) => {
-          if (Array.isArray(val))
-            val.forEach((v) => {
-              if (optionLabelsMap[v]) selectedOptionsLabels.push(optionLabelsMap[v]);
-            });
-          else if (optionLabelsMap[val]) selectedOptionsLabels.push(optionLabelsMap[val]);
-        });
+        if (vData) {
+          variant = {
+            sku: vData.sku,
+            price_override_cents: vData.price_override_cents,
+            stock_on_hand: vData.stock_on_hand,
+            attributes: (vData.attributes as any) || {},
+            status: vData.status,
+            product: (vData.products as any) || null,
+          };
+          product = variant.product;
+        }
+      } catch (err) {
+        console.warn("[cart.functions] Erro ao buscar variante de fallback:", err);
       }
+    }
 
-      return {
-        id: item.id,
-        variantId: item.variant_id,
-        qty: item.qty,
-        selectedOptions: item.selected_options || undefined,
-        selectedOptionsLabels: selectedOptionsLabels.length > 0 ? selectedOptionsLabels : undefined,
-        priceCents: price,
-        compareAtCents: product.compare_at_cents ?? null,
-        lineTotalCents: lineTotal,
-        productTitle: product.title ?? "",
-        variantSku: variant.sku,
-        variantAttributes: variant.attributes || {},
-        coverUrl: image,
-        isOutOfStock,
-      };
+    if (!variant || !product) {
+      // Se mesmo com fallback não encontrou, evita crash mas não descarta silenciosamente o total
+      continue;
+    }
+
+    const image = product.product_media?.[0]?.url || "";
+    const price = item.price_snapshot_cents ?? variant.price_override_cents ?? product.price_cents ?? 0;
+    const lineTotal = price * item.qty;
+    totalCents += lineTotal;
+
+    const availableStock = variant.stock_on_hand || 0;
+    const isOutOfStock = availableStock < item.qty;
+
+    const selectedOptionsLabels: string[] = [];
+    if (item.selected_options) {
+      Object.values(item.selected_options).forEach((val) => {
+        if (Array.isArray(val)) {
+          val.forEach((v) => {
+            if (optionLabelsMap[v]) selectedOptionsLabels.push(optionLabelsMap[v]);
+          });
+        } else if (optionLabelsMap[val]) {
+          selectedOptionsLabels.push(optionLabelsMap[val]);
+        }
+      });
+    }
+
+    items.push({
+      id: item.id,
+      variantId: item.variant_id,
+      qty: item.qty,
+      selectedOptions: item.selected_options || undefined,
+      selectedOptionsLabels: selectedOptionsLabels.length > 0 ? selectedOptionsLabels : undefined,
+      priceCents: price,
+      compareAtCents: product.compare_at_cents ?? null,
+      lineTotalCents: lineTotal,
+      productTitle: product.title ?? "Produto",
+      variantSku: variant.sku || "",
+      variantAttributes: variant.attributes || {},
+      coverUrl: image,
+      isOutOfStock,
     });
+  }
 
   // Dynamic Recalculation (M-08-F2)
   let dynamicDiscountCents = cart.discount_cents || 0;
@@ -301,65 +350,72 @@ export const getCart = createServerFn({ method: "GET" }).handler(
   },
 );
 
-export const getGlobalCarts = createServerFn({ method: "GET" }).handler(
-  async (): Promise<CartDTO[]> => {
-    const supabase = getServerClient();
-    const identity = await getCurrentIdentity();
+export async function fetchAllGlobalCarts(identity: {
+  customer_id: string | null;
+  session_token: string | null;
+}): Promise<CartDTO[]> {
+  const supabase = getServerClient();
 
-    let query = supabase
-      .from("carts")
-      .select(
-        `
+  let query = supabase
+    .from("carts")
+    .select(
+      `
+      id,
+      status,
+      coupon_code,
+      discount_cents,
+      shipping_cents,
+      shipping_method,
+      store:stores(id, name, logo_url),
+      cart_items (
         id,
-        status,
-        coupon_code,
-        discount_cents,
-        shipping_cents,
-        shipping_method,
-        store:stores(id, name, logo_url),
-        cart_items (
+        variant_id,
+        qty,
+        selected_options,
+        price_snapshot_cents,
+        product_variants (
           id,
-          variant_id,
-          qty,
-          product_variants (
+          price_override_cents,
+          stock_on_hand,
+          sku,
+          attributes,
+          status,
+          product:products (
             id,
-            price_override_cents,
-            stock_on_hand,
-            sku,
-            attributes,
-            product:products (
-              id,
-              title,
-              slug,
-              price_cents,
-              compare_at_cents,
-              product_media ( url )
-            )
+            title,
+            slug,
+            price_cents,
+            compare_at_cents,
+            product_media ( url )
           )
         )
-      `,
       )
-      .eq("status", "active");
+    `,
+    )
+    .eq("status", "active");
 
-    if (identity.customer_id) query = query.eq("customer_id", identity.customer_id);
-    else query = query.eq("session_token", identity.session_token);
+  if (identity.customer_id) query = query.eq("customer_id", identity.customer_id);
+  else query = query.eq("session_token", identity.session_token);
 
-    const { data: carts, error } = await query.order("created_at", { ascending: false });
+  const { data: carts, error } = await query.order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("[CART] Error fetching global carts:", error);
-      return [];
+  if (error || !carts || carts.length === 0) return [];
+
+  const mappedCarts: CartDTO[] = [];
+  for (const cart of carts) {
+    const dto = await mapCartToDTO(cart);
+    if (dto && dto.itemCount > 0) {
+      mappedCarts.push(dto);
     }
+  }
 
-    if (!carts || carts.length === 0) return [];
+  return mappedCarts;
+}
 
-    const mappedCarts: CartDTO[] = [];
-    for (const cart of carts) {
-      mappedCarts.push(await mapCartToDTO(cart));
-    }
-
-    // Filter out empty carts just in case
-    return mappedCarts.filter((c) => c.itemCount > 0);
+export const getGlobalCarts = createServerFn({ method: "GET" }).handler(
+  async (): Promise<CartDTO[]> => {
+    const identity = await getCurrentIdentity();
+    return fetchAllGlobalCarts(identity);
   },
 );
 
@@ -426,29 +482,111 @@ export const addToCart = createServerFn({ method: "POST" })
       }
       const variantId = targetVariantId;
 
-      // Resolve Store
-      const { resolveTenantStoreId } = await import("@/lib/tenant.server");
-      const storeId = await resolveTenantStoreId();
-      if (!storeId) throw new Error("Loja não configurada");
+      // Resolve Store com fallback a partir do produto
+      let storeId: string | null = null;
+      try {
+        const { resolveTenantStoreId } = await import("@/lib/tenant.server");
+        storeId = await resolveTenantStoreId();
+      } catch {}
 
-      // Atomic Insert via RPC (replaces the old 11-step waterfall)
-      const { data: cartId, error: rpcError } = await supabase.rpc("add_to_cart_atomic_v6", {
-        p_store_id: storeId,
-        p_customer_id: identity.customer_id,
-        p_session_token: identity.session_token,
-        p_seller_id: activeSellerId,
-        p_variant_id: variantId,
-        p_qty: quantity,
-        p_options: options || {},
-      });
+      if (!storeId) {
+        // Tenta resolver store_id diretamente do produto da variante
+        const { data: variantData } = await supabase
+          .from("product_variants")
+          .select("products(store_id)")
+          .eq("id", variantId)
+          .maybeSingle();
 
-      if (rpcError) {
-        throw new Error(rpcError.message || "Erro ao adicionar ao carrinho.");
+        const prodStoreId = (variantData?.products as any)?.store_id;
+        if (prodStoreId) {
+          storeId = prodStoreId;
+        } else {
+          const { data: defaultStore } = await supabase
+            .from("stores")
+            .select("id")
+            .limit(1)
+            .maybeSingle();
+          storeId = defaultStore?.id || null;
+        }
       }
 
-      // Fetch and return the updated cart directly to bypass cookie race conditions on the frontend
-      const updatedCart = await fetchCartDTO(identity);
-      return { status: "success", cart: updatedCart, session_token: identity.session_token };
+      if (!storeId) {
+        throw new Error("Loja do produto indisponível.");
+      }
+
+      // 1. Tenta inserção atômica via RPC
+      let insertedSuccessfully = false;
+      try {
+        const { data: cartId, error: rpcError } = await supabase.rpc("add_to_cart_atomic_v6", {
+          p_store_id: storeId,
+          p_customer_id: identity.customer_id,
+          p_session_token: identity.session_token,
+          p_seller_id: activeSellerId,
+          p_variant_id: variantId,
+          p_qty: quantity,
+          p_options: options || {},
+        });
+        if (!rpcError && cartId) {
+          insertedSuccessfully = true;
+        }
+      } catch (err) {
+        console.warn("[cart.functions] RPC add_to_cart_atomic_v6 falhou, aplicando fallback:", err);
+      }
+
+      // 2. Fallback relacional direto
+      if (!insertedSuccessfully) {
+        const cartId = await getOrCreateCartId(identity, storeId);
+
+        // Preço snapshot da variante/produto
+        const { data: variantRecord } = await supabase
+          .from("product_variants")
+          .select("price_override_cents, products(price_cents)")
+          .eq("id", variantId)
+          .single();
+
+        const priceSnapshot =
+          variantRecord?.price_override_cents ??
+          (variantRecord?.products as any)?.price_cents ??
+          0;
+
+        // Verifica se item já existe no carrinho
+        const { data: existingItem } = await supabase
+          .from("cart_items")
+          .select("id, qty")
+          .eq("cart_id", cartId)
+          .eq("variant_id", variantId)
+          .maybeSingle();
+
+        if (existingItem) {
+          await supabase
+            .from("cart_items")
+            .update({ qty: existingItem.qty + quantity })
+            .eq("id", existingItem.id);
+        } else {
+          await supabase.from("cart_items").insert({
+            cart_id: cartId,
+            variant_id: variantId,
+            qty: quantity,
+            price_snapshot_cents: priceSnapshot,
+            selected_options: options || {},
+          });
+        }
+      }
+
+      // Fetch both the store's cart and all global carts to ensure instant UI sync
+      const [updatedCart, updatedGlobalCarts] = await Promise.all([
+        fetchCartDTO(identity, storeId),
+        fetchAllGlobalCarts(identity),
+      ]);
+
+      const activeCart = updatedCart || updatedGlobalCarts.find(c => c.storeId === storeId) || updatedGlobalCarts[0] || null;
+
+      return {
+        status: "success",
+        cart: activeCart,
+        globalCarts: updatedGlobalCarts,
+        session_token: identity.session_token,
+      };
     },
   );
 
@@ -530,6 +668,68 @@ export const updateCartItemQty = createServerFn({ method: "POST" })
     await supabase.from("cart_items").update({ qty: newTotalQty }).eq("id", existingItem.id);
 
     return { status: "success" };
+  });
+
+const UpdateCartItemOptionsSchema = z.object({
+  itemId: z.string().uuid(),
+  variantId: z.string().uuid().optional(),
+  options: z.record(z.union([z.string(), z.array(z.string())])).optional(),
+  quantity: z.number().int().min(1).optional(),
+});
+
+export const updateCartItemOptions = createServerFn({ method: "POST" })
+  .validator(UpdateCartItemOptionsSchema)
+  .handler(async ({ data: { itemId, variantId, options, quantity } }) => {
+    const supabase = getServerClient();
+    const identity = await getCurrentIdentity();
+
+    // 1. Get cart item
+    const { data: item } = await supabase
+      .from("cart_items")
+      .select("id, cart_id, variant_id, qty")
+      .eq("id", itemId)
+      .single();
+
+    if (!item) throw new Error("Item do carrinho não encontrado.");
+
+    const updatePayload: Record<string, any> = {};
+    if (variantId) updatePayload.variant_id = variantId;
+    if (options !== undefined) updatePayload.selected_options = options;
+    if (quantity !== undefined) updatePayload.qty = quantity;
+
+    if (variantId && variantId !== item.variant_id) {
+      const { data: variantRecord } = await supabase
+        .from("product_variants")
+        .select("price_override_cents, products(price_cents)")
+        .eq("id", variantId)
+        .single();
+      const priceSnapshot =
+        variantRecord?.price_override_cents ??
+        (variantRecord?.products as any)?.price_cents ??
+        0;
+      updatePayload.price_snapshot_cents = priceSnapshot;
+    }
+
+    const { error: updateError } = await supabase
+      .from("cart_items")
+      .update(updatePayload)
+      .eq("id", itemId);
+
+    if (updateError) {
+      console.error("[cart.functions] Erro ao atualizar opções do item:", updateError);
+      throw new Error("Falha ao atualizar opções do item.");
+    }
+
+    const [updatedCart, updatedGlobalCarts] = await Promise.all([
+      fetchCartDTO(identity),
+      fetchAllGlobalCarts(identity),
+    ]);
+
+    return {
+      status: "success",
+      cart: updatedCart,
+      globalCarts: updatedGlobalCarts,
+    };
   });
 
 export const applyCouponToCart = createServerFn({ method: "POST" })

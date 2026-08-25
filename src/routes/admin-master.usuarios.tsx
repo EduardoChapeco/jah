@@ -24,14 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { SheetPage } from "@/components/ui/sheet-page";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
@@ -153,7 +146,7 @@ function AdminUsuariosPage() {
         </div>
       </div>
 
-      <div className="border border-border bg-card rounded-xl overflow-hidden shadow-xs">
+      <div className=" bg-card rounded-xl overflow-hidden ">
         <div className="divide-y divide-border">
           {filteredUsers.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground text-sm">
@@ -227,8 +220,8 @@ function AdminUsuariosPage() {
         </div>
       </div>
 
-      {/* Modal de Dossiê Judicial 360º */}
-      <Dialog
+      {/* SheetPage de Dossiê Judicial 360º */}
+      <SheetPage
         open={!!dossierData || isLoadingDossier}
         onOpenChange={(open) => {
           if (!open) {
@@ -236,27 +229,31 @@ function AdminUsuariosPage() {
             setSelectedUser(null);
           }
         }}
+        title="Perfil Detalhado do Usuário (360º)"
+        size="lg"
+        footer={
+          <Button
+            variant="outline"
+            onClick={() => {
+              setDossierData(null);
+              setSelectedUser(null);
+            }}
+            className="h-11 px-4 rounded-xl text-xs font-bold"
+          >
+            Fechar
+          </Button>
+        }
       >
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FileText className="size-5 text-primary" />
-              Dossiê Forense de Provas Judiciais (360º)
-            </DialogTitle>
-            <DialogDescription>
-              Snapshot auditável completo para instrução de processos judiciais e perícias.
-            </DialogDescription>
-          </DialogHeader>
 
           {isLoadingDossier ? (
             <div className="py-12 flex justify-center items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="size-5 animate-spin" /> Consolidando provas no banco...
+              <Loader2 className="size-5 animate-spin" /> Carregando dados do usuário...
             </div>
           ) : dossierData ? (
             <div className="space-y-4 py-2">
-              <div className="bg-muted/40 p-3 rounded-xl border border-border/80 space-y-1">
+              <div className="bg-muted/40 p-3 rounded-xl  space-y-1">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-muted-foreground">CERTIFICAÇÃO CRIPTOGRÁFICA SHA-256:</span>
+                  <span className="font-bold text-muted-foreground">ID de Verificação de Segurança:</span>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -326,25 +323,26 @@ function AdminUsuariosPage() {
             </div>
           ) : null}
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDossierData(null)}>
-              Fechar
+      </SheetPage>
+
+      {/* SheetPage de Aplicação de Sanção Disciplinar */}
+      <SheetPage
+        open={isSanctionModalOpen}
+        onOpenChange={setIsSanctionModalOpen}
+        title="Aplicar Sanção Disciplinar"
+        size="default"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setIsSanctionModalOpen(false)} className="h-11 px-4 rounded-xl text-xs font-bold">
+              Cancelar
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal de Aplicação de Sanção Disciplinar */}
-      <Dialog open={isSanctionModalOpen} onOpenChange={setIsSanctionModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Aplicar Sanção Disciplinar Master</DialogTitle>
-            <DialogDescription>
-              Restrinja ou proíba ações do usuário na plataforma.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-2">
+            <Button variant="destructive" onClick={handleApplySanction} disabled={isApplyingSanction} className="h-11 px-6 rounded-xl text-xs font-bold">
+              {isApplyingSanction ? "Aplicando..." : "Confirmar Sanção"}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4 py-2">
             <div className="space-y-1">
               <Label>Tipo de Sanção</Label>
               <Select value={sanctionType} onValueChange={setSanctionType}>
@@ -386,26 +384,7 @@ function AdminUsuariosPage() {
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsSanctionModalOpen(false)}>
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleApplySanction}
-              disabled={isApplyingSanction || !sanctionReason.trim()}
-            >
-              {isApplyingSanction ? (
-                <>
-                  <Loader2 className="size-4 animate-spin mr-2" /> Aplicando...
-                </>
-              ) : (
-                "Aplicar Sanção"
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      </SheetPage>
     </div>
   );
 }

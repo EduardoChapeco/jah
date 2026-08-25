@@ -18,15 +18,25 @@ import { Input } from "@/components/ui/input";
 import { signInWithPassword, signInWithOAuth, getUserSession } from "@/services/auth.functions";
 import { toast } from "sonner";
 
+import { getPublicBrandSettings } from "@/services/master.functions";
+
 export const Route = createFileRoute("/_store/entrar")({
   head: () => ({
-    meta: [{ title: "Entrar — JAH Community Commerce" }],
+    meta: [{ title: "Entrar — Wider Community Commerce" }],
   }),
   validateSearch: (search: Record<string, unknown>): { returnUrl?: string; error?: string } => {
     return {
       returnUrl: typeof search.returnUrl === "string" ? search.returnUrl : undefined,
       error: typeof search.error === "string" ? search.error : undefined,
     };
+  },
+  loader: async () => {
+    try {
+      const brand = await getPublicBrandSettings();
+      return { brand };
+    } catch {
+      return { brand: null };
+    }
   },
   beforeLoad: async ({ search }) => {
     const session = await getUserSession();
@@ -48,6 +58,7 @@ const LoginSchema = z.object({
 type LoginForm = z.infer<typeof LoginSchema>;
 
 function LoginPage() {
+  const { brand } = Route.useLoaderData() as any;
   const navigate = useNavigate();
   const router = useRouter();
   const search = Route.useSearch();
@@ -91,23 +102,29 @@ function LoginPage() {
     defaultValues: { email: "", password: "" },
   });
 
-  const onSubmit = async (data: LoginForm) => {
-    if (rateLimitedUntil && Date.now() < rateLimitedUntil) return;
+  const onSubmit = async (values: LoginForm) => {
     try {
-      const result = await signInWithPassword({
-        data: { ...data, redirectTo: returnUrl },
+      const res = await signInWithPassword({
+        data: {
+          email: values.email,
+          password: values.password,
+        },
       });
 
-      if (result.status === "rate_limited") {
-        const until = Date.now() + (result.retryAfterMs ?? 10 * 60 * 1000);
-        setRateLimitedUntil(until);
+      if (res.status === "success") {
+        toast.success("Login realizado com sucesso!");
+        router.invalidate();
+        navigate({ to: returnUrl as any });
+      }
+    } catch (e: any) {
+      if (e?.status === 429) {
+        const resetTime = Date.now() + 60000;
+        setRateLimitedUntil(resetTime);
+        setCountdown(60);
+        toast.error("Muitas tentativas. Bloqueado por 60 segundos.");
         return;
       }
-
-      toast.success("Login efetuado com sucesso!");
-      window.location.href = returnUrl || "/";
-    } catch (e: unknown) {
-      toast.error((e instanceof Error ? e.message : String(e)) || "Erro inesperado ao fazer login");
+      toast.error(e?.message || "Credenciais inválidas. Tente novamente.");
     }
   };
 
@@ -125,20 +142,39 @@ function LoginPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] w-full flex flex-col lg:flex-row bg-background">
+    <div className="min-h-screen w-full flex flex-col lg:flex-row bg-background">
       {/* ── Left Side: Split Editorial Screen (Desktop) ────────── */}
-      <div className="relative hidden lg:flex lg:w-1/2 bg-zinc-950 text-white flex-col justify-between p-12 overflow-hidden border-r border-border/40">
-        {/* Background Gradient & Pattern */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(120,50,255,0.15),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(#ffffff15_1px,transparent_1px)] [background-size:24px_24px] opacity-40" />
+      <div className="relative hidden lg:flex lg:w-1/2 bg-zinc-950 text-white flex-col justify-between p-12 overflow-hidden ">
+        {/* Background Image / Gradient */}
+        {brand?.login_split_image_url ? (
+          <>
+            <img
+              src={brand.login_split_image_url}
+              alt="Background"
+              className="absolute inset-0 size-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/70 to-zinc-950/40" />
+          </>
+        ) : (
+          <>
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(120,50,255,0.15),transparent_60%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(#ffffff15_1px,transparent_1px)] [background-size:24px_24px] opacity-40" />
+          </>
+        )}
 
         {/* Top Branding */}
         <div className="relative z-10">
           <Link to="/" className="inline-flex items-center gap-2 text-xl font-bold tracking-tight">
-            <span className="bg-primary text-primary-foreground px-2 py-0.5 rounded-lg text-sm font-black">
-              JAH
-            </span>
-            <span>Community Platform</span>
+            {brand?.show_logo && brand?.logo_url ? (
+              <img src={brand.logo_url} alt="Logo" className="h-7 object-contain" />
+            ) : (
+              <span className="bg-primary text-primary-foreground px-2 py-0.5 rounded-lg text-sm font-black uppercase">
+                {brand?.platform_name || "WIDER"}
+              </span>
+            )}
+            {brand?.show_name !== false && (
+              <span>{brand?.platform_name || "Wider"}</span>
+            )}
           </Link>
         </div>
 
@@ -165,7 +201,7 @@ function LoginPage() {
             <ShieldCheck className="size-4 text-emerald-400" />
             <span>Ambiente seguro criptografado ponta a ponta</span>
           </div>
-          <span>Jah OS v2.4</span>
+          <span>Wider OS v3.0</span>
         </div>
       </div>
 
@@ -180,8 +216,8 @@ function LoginPage() {
             >
               ← Voltar para o início
             </Link>
-            <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-xl border border-border/60 text-xs">
-              <span className="px-3 py-1 rounded-lg bg-background font-bold text-foreground shadow-2xs">
+            <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-xl  text-xs">
+              <span className="px-3 py-1 rounded-lg bg-background font-bold text-foreground ">
                 Entrar
               </span>
               <Link
@@ -282,7 +318,7 @@ function LoginPage() {
               <Button
                 type="submit"
                 size="lg"
-                className="w-full h-12 rounded-xl font-bold bg-primary text-primary-foreground shadow-xs gap-2 text-sm"
+                className="w-full h-12 rounded-xl font-bold bg-primary text-primary-foreground  gap-2 text-sm"
                 disabled={Boolean(rateLimitedUntil) || form.formState.isSubmitting}
               >
                 {form.formState.isSubmitting ? (
@@ -301,7 +337,7 @@ function LoginPage() {
           {isGoogleAuthEnabled && (
             <div className="space-y-4 pt-2">
               <div className="relative flex items-center justify-center">
-                <div className="absolute inset-0 border-t border-border" />
+                <div className="absolute inset-0 " />
                 <span className="relative bg-background px-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                   Ou continue com
                 </span>
@@ -336,7 +372,7 @@ function LoginPage() {
           )}
 
           {/* Footer Call to Action */}
-          <div className="text-center text-xs text-muted-foreground pt-4 border-t border-border/40">
+          <div className="text-center text-xs text-muted-foreground pt-4 ">
             Ainda não tem conta?{" "}
             <Link
               to="/cadastro"

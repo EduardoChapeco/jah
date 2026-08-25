@@ -5,12 +5,11 @@
  * módulo de forma preguiçosa e mantém o grafo do cliente limpo.
  */
 
-import { getSSRClient } from "./supabase-ssr.server";
 import type { Role } from "@/types/domain";
 
 /**
  * Ensures the caller is authenticated and has one of the allowed roles.
- * Throws an Error if unauthorized, which TanStack Start translates to a failure.
+ * Supports multi-store memberships automatically.
  */
 export async function requireRole(allowedRoles: Role[]): Promise<{ id: string; role: Role }> {
   const { getServerIdentity } = await import("./identity.server");
@@ -20,7 +19,17 @@ export async function requireRole(allowedRoles: Role[]): Promise<{ id: string; r
     throw new Error("Não autorizado. Sessão expirada ou ausente.");
   }
 
-  const userRole = identity.role as Role;
+  let userRole = identity.role as Role;
+
+  // Se o activeRole não está na lista mas o usuário possui membership com role permitida, eleva o contexto
+  if (!allowedRoles.includes(userRole) && identity.memberships && identity.memberships.length > 0) {
+    const matchingMembership = identity.memberships.find((m) =>
+      allowedRoles.includes(m.role as Role),
+    );
+    if (matchingMembership) {
+      userRole = matchingMembership.role as Role;
+    }
+  }
 
   if (!allowedRoles.includes(userRole)) {
     throw new Error(`Acesso negado. Requer um dos seguintes perfis: ${allowedRoles.join(", ")}`);
@@ -30,8 +39,19 @@ export async function requireRole(allowedRoles: Role[]): Promise<{ id: string; r
 }
 
 /**
- * Convenience function to strictly require administrative/managerial access.
+ * Exige acesso operacional/administrativo ao workspace da loja.
  */
 export async function requireAdmin() {
-  return requireRole(["owner", "admin", "manager", "finance"]);
+  return requireRole([
+    "owner",
+    "admin",
+    "manager",
+    "finance",
+    "seller",
+    "content",
+    "support",
+    "stock",
+    "platform_admin",
+    "master",
+  ]);
 }

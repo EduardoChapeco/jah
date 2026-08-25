@@ -104,9 +104,7 @@ function ClaimGiftCardPage() {
             <div className="flex justify-between items-start">
               <div>
                 <span className="text-xs font-semibold text-accent">VALE-PRESENTE</span>
-                <h3 className="font-sans text-muted-foreground font-bold text-white text-xl mt-1">
-                  Jah
-                </h3>
+                <h3 className="font-sans text-muted-foreground font-bold text-white text-xl mt-1">Wider</h3>
               </div>
               <div className="size-10 rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20">
                 <Gift className="size-5 text-white" />
@@ -145,7 +143,7 @@ function ClaimGiftCardPage() {
             Resgate para sua conta para visualizar seu saldo durante o checkout.
           </p>
 
-          <div className="bg-muted/40 p-4 border border-border flex items-start gap-3">
+          <div className="bg-muted/40 p-4  flex items-start gap-3">
             <Gift className="size-5 text-primary shrink-0 mt-0.5" />
             <div className="text-xs text-muted-foreground font-normal space-y-1">
               <p className="font-semibold text-foreground">Como funciona?</p>

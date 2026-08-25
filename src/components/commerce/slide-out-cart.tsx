@@ -177,7 +177,7 @@ export function SlideOutCart() {
 
               <Button
                 size="lg"
-                className="w-full h-12 text-base font-bold shadow-md"
+                className="w-full h-12 text-base font-bold "
                 onClick={handleNavigateToCheckoutHub}
                 disabled={isCartUpdating}
               >

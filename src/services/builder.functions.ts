@@ -796,7 +796,7 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
               sort_order: 3,
               content: {
                 title: "O que dizem de nós",
-                subtitle: "A opinião de quem já veste Jah.",
+                subtitle: "A opinião de quem já usa Wider.",
               },
               data_bindings: { source: "dynamic_reviews" },
             },

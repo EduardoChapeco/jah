@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CheckCircle2, Package, ArrowRight, Copy, Info, MessageCircle } from "lucide-react";
+import { useState } from "react";
+import { CheckCircle2, Package, ArrowRight, Copy, Info, MessageCircle, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/commerce/page-header";
 import { ErrorState } from "@/components/state/states";
 import { getOrderByToken } from "@/services/checkout.functions";
 import { formatMoney } from "@/lib/money";
+import { PostOrderAuditModal } from "@/components/commerce/post-order-audit-modal";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/pedido/$publicToken/confirmacao")({
@@ -17,6 +19,7 @@ export const Route = createFileRoute("/_store/pedido/$publicToken/confirmacao")(
 
 function ConfirmationPage() {
   const order = Route.useLoaderData() as any;
+  const [isAuditOpen, setIsAuditOpen] = useState(false);
 
   if (!order) {
     return (
@@ -155,8 +158,8 @@ function ConfirmationPage() {
         )}
 
         {/* Order summary */}
-        <div className="overflow-hidden border border-border bg-card ">
-          <div className="border-b border-border bg-muted/30 px-6 py-4">
+        <div className="overflow-hidden  bg-card ">
+          <div className=" bg-muted/30 px-6 py-4">
             <h2 className="flex items-center text-sm font-semibold text-foreground">
               <Package className="mr-2 size-4" /> Resumo da Compra
             </h2>
@@ -176,7 +179,7 @@ function ConfirmationPage() {
               ))}
             </ul>
 
-            <div className="mt-6 border-t border-border pt-4 text-sm space-y-2 text-muted-foreground">
+            <div className="mt-6  pt-4 text-sm space-y-2 text-muted-foreground">
               <div className="flex justify-between">
                 <span>Subtotal</span>
                 <span>{formatMoney(subtotal)}</span>
@@ -196,10 +199,63 @@ function ConfirmationPage() {
                 <span className="text-primary font-bold">{formatMoney(total)}</span>
               </div>
             </div>
+
+            {/* Campos Personalizados & Observações */}
+            {order.custom_fields && Object.keys(order.custom_fields).length > 0 && (
+              <div className="mt-4 p-4 rounded-2xl bg-muted/30  space-y-2">
+                <span className="text-xs font-bold text-foreground block">
+                  Informações Adicionais / Personalização:
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  {Object.entries(order.custom_fields).map(([k, v]: [string, any]) => (
+                    <div key={k} className="p-2.5 rounded-xl bg-card ">
+                      <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider block">
+                        {k}
+                      </span>
+                      <span className="font-semibold text-foreground">{String(v)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {order.notes && (
+              <div className="mt-3 p-3 rounded-xl bg-muted/20  text-xs">
+                <span className="text-[10px] text-muted-foreground font-bold uppercase block">
+                  Observações para a Loja:
+                </span>
+                <p className="text-foreground mt-0.5">{order.notes}</p>
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="flex flex-col justify-center gap-4 sm:flex-row pt-4">
+        {/* Bloco de Auditoria e Conformidade de Tags */}
+        <div className=" bg-muted/20 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <ShieldCheck className="size-5" />
+            </div>
+            <div>
+              <h4 className="text-xs font-bold text-foreground">Auditoria de Compromisso JAH</h4>
+              <p className="text-[11px] text-muted-foreground">
+                Ajude a manter o comércio local confiável validando o cumprimento de prazos e frete grátis da loja.
+              </p>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setIsAuditOpen(true)}
+            className="rounded-xl text-xs font-bold shrink-0 border-border cursor-pointer hover:bg-background"
+          >
+            Avaliar Tags do Pedido
+          </Button>
+        </div>
+
+        <div className="flex flex-col justify-center gap-4 sm:flex-row pt-2">
           <Button asChild size="lg" variant="outline">
             <Link to="/conta/pedidos">Acompanhar Pedido</Link>
           </Button>
@@ -209,6 +265,16 @@ function ConfirmationPage() {
             </Link>
           </Button>
         </div>
+
+        {/* Modal de Auditoria de 3 Cliques */}
+        <PostOrderAuditModal
+          isOpen={isAuditOpen}
+          onClose={() => setIsAuditOpen(false)}
+          orderId={order.id || order.public_token}
+          storeId={order.stores?.id || order.store_id || "loja-padrao"}
+          storeName={order.stores?.name || "Estabelecimento"}
+          tagsToAudit={["entrega_gratis", "entrega_expressa"]}
+        />
       </div>
     </div>
   );

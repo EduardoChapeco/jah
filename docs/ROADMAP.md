@@ -1,6 +1,6 @@
-# Roadmap — Jah Community Platform
+# Roadmap — Wider Community Platform
 
-Este roadmap detalha as fases de construção da Jah Community Platform (Plataforma Comunitária). Consulte `MASTER_PLAN.md` para a visão geral e `ARCHITECTURE.md`, `DOMAIN_MODEL.md`, `SECURITY.md` para os detalhes técnicos.
+Este roadmap detalha as fases de construção da Wider Community Platform (Plataforma Comunitária). Consulte `MASTER_PLAN.md` para a visão geral e `ARCHITECTURE.md`, `DOMAIN_MODEL.md`, `SECURITY.md` para os detalhes técnicos.
 
 ## Regra de ouro
 

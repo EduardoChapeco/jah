@@ -27,7 +27,7 @@ import { listCouriers, type CourierSummaryDTO } from "@/services/fleet.functions
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/pedidos/entregadores/")({
-  head: () => ({ meta: [{ title: "Entregadores — JAH Workspace" }] }),
+  head: () => ({ meta: [{ title: "Entregadores — Wider Workspace" }] }),
   loader: async () => {
     const data = await listCouriers({ data: {} });
     return { initialData: data };
@@ -99,7 +99,7 @@ function CouriersListPage() {
             placeholder="Buscar por nome, telefone..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm bg-background border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
+            className="w-full pl-9 pr-4 py-2 text-sm bg-background  rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
           />
         </div>
         <div className="flex gap-2">
@@ -126,7 +126,7 @@ function CouriersListPage() {
       )}
 
       {!isLoading && couriers && couriers.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 text-center border border-dashed border-border rounded-lg bg-muted/10">
+        <div className="flex flex-col items-center justify-center py-16 text-center border-0 rounded-lg bg-muted/10">
           <Bike className="size-10 text-muted-foreground/30 mb-3" />
           <p className="text-sm font-medium text-foreground">Nenhum entregador encontrado.</p>
           <p className="text-sm text-muted-foreground mt-1">
@@ -136,9 +136,9 @@ function CouriersListPage() {
       )}
 
       {!isLoading && couriers && couriers.length > 0 && (
-        <div className="border border-border rounded-lg overflow-hidden bg-background">
+        <div className=" rounded-lg overflow-hidden bg-background">
           <table className="w-full text-sm text-left">
-            <thead className="bg-muted/30 border-b border-border text-xs text-muted-foreground uppercase tracking-wider">
+            <thead className="bg-muted/30  text-xs text-muted-foreground uppercase tracking-wider">
               <tr>
                 <th className="px-4 py-3 font-medium">Entregador</th>
                 <th className="px-4 py-3 font-medium">Veículo</th>
@@ -164,7 +164,7 @@ function CouriersListPage() {
                           <VehicleIcon className="size-3 text-muted-foreground" />
                         </div>
                         {courier.vehicle_plate && (
-                          <span className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded border border-border/50 uppercase">
+                          <span className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded  uppercase">
                             {courier.vehicle_plate}
                           </span>
                         )}

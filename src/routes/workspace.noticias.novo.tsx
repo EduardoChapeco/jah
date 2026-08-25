@@ -17,11 +17,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PageHeader } from "@/components/commerce/page-header";
 import { createArticle, type NewsSectionDTO } from "@/services/news.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/workspace/noticias/novo")({
-  head: () => ({ meta: [{ title: "Nova Matéria | Redação JAH" }] }),
+  head: () => ({ meta: [{ title: "Nova Matéria | Redação Wider" }] }),
   component: WorkspaceNovaMateriaPage,
 });
 
@@ -119,52 +120,50 @@ function WorkspaceNovaMateriaPage() {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6">
+    <div className="w-full max-w-4xl mx-auto space-y-6 pb-16">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4 border-b border-border/80 pb-4">
-        <div className="flex items-center gap-3">
-          <Button asChild variant="ghost" size="icon" className="size-9 rounded-xl">
-            <Link to="/workspace/noticias">
-              <ArrowLeft className="size-4" />
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-black text-foreground">Redator de Notícias</h1>
-            <p className="text-xs text-muted-foreground">
-              Componha sua reportagem por blocos estruturados e defina o formato de publicação.
-            </p>
+      <PageHeader
+        eyebrow="Redação"
+        title="Nova Matéria"
+        actions={
+          <div className="flex items-center gap-2">
+            <Button asChild variant="outline" size="sm" className="rounded-xl font-bold text-xs ">
+              <Link to="/workspace/noticias">
+                <ArrowLeft className="size-3.5 mr-1.5" />
+                Voltar
+              </Link>
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={isSubmitting}
+              onClick={() => handleSubmit("draft")}
+              className="rounded-xl font-bold text-xs "
+            >
+              Salvar Rascunho
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              disabled={isSubmitting}
+              onClick={() => handleSubmit("published")}
+              className="rounded-xl font-bold text-xs bg-primary text-primary-foreground "
+            >
+              {isSubmitting ? (
+                <Loader2 className="size-3.5 animate-spin mr-1.5" />
+              ) : (
+                <CheckCircle2 className="size-3.5 mr-1.5" />
+              )}
+              <span>Publicar</span>
+            </Button>
           </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            disabled={isSubmitting}
-            onClick={() => handleSubmit("draft")}
-            className="rounded-xl font-bold text-xs"
-          >
-            Salvar Rascunho
-          </Button>
-          <Button
-            type="button"
-            disabled={isSubmitting}
-            onClick={() => handleSubmit("published")}
-            className="rounded-xl font-bold text-xs bg-primary text-primary-foreground"
-          >
-            {isSubmitting ? (
-              <Loader2 className="size-3.5 animate-spin mr-1.5" />
-            ) : (
-              <CheckCircle2 className="size-3.5 mr-1.5" />
-            )}
-            <span>Publicar Imediatamente</span>
-          </Button>
-        </div>
-      </div>
+        }
+      />
 
       <div className="space-y-6">
         {/* ── 1. Metadados e Manchete ── */}
-        <div className="p-5 rounded-3xl border border-border/80 bg-card space-y-4 shadow-xs">
+        <div className="p-5 rounded-3xl  bg-card space-y-4 ">
           <span className="text-xs font-black uppercase tracking-wider text-primary">
             1. Estrutura Editorial
           </span>
@@ -185,7 +184,7 @@ function WorkspaceNovaMateriaPage() {
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full h-10 px-3 rounded-xl border border-border bg-background text-xs font-semibold"
+                className="w-full h-10 px-3 rounded-xl  bg-background text-xs font-semibold"
               >
                 <option value="cidade">Cidade & Região</option>
                 <option value="politica">Política</option>
@@ -227,13 +226,13 @@ function WorkspaceNovaMateriaPage() {
               value={subtitle}
               onChange={(e) => setSubtitle(e.target.value)}
               rows={2}
-              className="w-full p-3 rounded-xl border border-border bg-background text-xs leading-relaxed resize-none"
+              className="w-full p-3 rounded-xl  bg-background text-xs leading-relaxed resize-none"
             />
           </div>
         </div>
 
         {/* ── 2. Mídia de Capa ── */}
-        <div className="p-5 rounded-3xl border border-border/80 bg-card space-y-4 shadow-xs">
+        <div className="p-5 rounded-3xl  bg-card space-y-4 ">
           <span className="text-xs font-black uppercase tracking-wider text-primary">
             2. Capa da Notícia
           </span>
@@ -254,7 +253,7 @@ function WorkspaceNovaMateriaPage() {
               <select
                 value={coverMediaType}
                 onChange={(e) => setCoverMediaType(e.target.value as any)}
-                className="w-full h-10 px-3 rounded-xl border border-border bg-background text-xs font-semibold"
+                className="w-full h-10 px-3 rounded-xl  bg-background text-xs font-semibold"
               >
                 <option value="image">Imagem</option>
                 <option value="video">Vídeo</option>
@@ -265,7 +264,7 @@ function WorkspaceNovaMateriaPage() {
         </div>
 
         {/* ── 3. Redação em Blocos / Seções ── */}
-        <div className="p-5 rounded-3xl border border-border/80 bg-card space-y-4 shadow-xs">
+        <div className="p-5 rounded-3xl  bg-card space-y-4 ">
           <div className="flex items-center justify-between">
             <span className="text-xs font-black uppercase tracking-wider text-primary">
               3. Conteúdo da Matéria (Blocos)
@@ -309,7 +308,7 @@ function WorkspaceNovaMateriaPage() {
             {sections.map((sec, idx) => (
               <div
                 key={idx}
-                className="p-4 rounded-2xl border border-border/70 bg-muted/20 space-y-2 relative group"
+                className="p-4 rounded-2xl  bg-muted/20 space-y-2 relative group"
               >
                 <div className="flex items-center justify-between text-[11px] font-bold text-muted-foreground">
                   <span className="capitalize">
@@ -340,7 +339,7 @@ function WorkspaceNovaMateriaPage() {
                       value={String(sec.content)}
                       onChange={(e) => updateSectionContent(idx, e.target.value, sec.caption)}
                       rows={2}
-                      className="w-full p-3 rounded-xl border border-border bg-background text-xs font-serif italic"
+                      className="w-full p-3 rounded-xl  bg-background text-xs font-serif italic"
                     />
                     <Input
                       placeholder="Nome do autor da fala / cargo"
@@ -355,7 +354,7 @@ function WorkspaceNovaMateriaPage() {
                     value={String(sec.content)}
                     onChange={(e) => updateSectionContent(idx, e.target.value)}
                     rows={4}
-                    className="w-full p-3 rounded-xl border border-border bg-background text-xs leading-relaxed resize-y"
+                    className="w-full p-3 rounded-xl  bg-background text-xs leading-relaxed resize-y"
                   />
                 )}
               </div>

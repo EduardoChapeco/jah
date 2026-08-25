@@ -197,7 +197,7 @@ export const HOME_TEMPLATES_LIBRARY: Record<string, HomeTemplatePreset> = {
           block_type: "social_grid",
           parent_id: c4,
           sort_order: 0,
-          content: { title: "Siga o Estilo no Instagram", handle: "@jah_oficial", images: [] },
+          content: { title: "Siga o Estilo no Instagram", handle: "@wider_oficial", images: [] },
         },
       ];
     },

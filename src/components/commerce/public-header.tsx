@@ -59,7 +59,7 @@ export function PublicHeader({
       : contextCart?.itemCount || 0;
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background pt-safe">
+    <header className="sticky top-0 z-50  bg-background pt-safe">
       <div className="mx-auto flex h-20 max-w-screen-xl items-center gap-4 px-4 md:px-6">
         {/* Mobile menu */}
         <Sheet>
@@ -67,14 +67,14 @@ export function PublicHeader({
             <Button
               variant="outline"
               size="icon"
-              className="md:hidden shrink-0 border border-border "
+              className="md:hidden shrink-0  "
               aria-label="Abrir menu"
             >
               <Menu className="size-6 text-foreground" aria-hidden />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-80 bg-background border-r border-border p-6">
-            <SheetHeader className="border-b border-border pb-4 mb-4">
+          <SheetContent side="left" className="w-80 bg-background  p-6">
+            <SheetHeader className=" pb-4 mb-4">
               <SheetTitle className="sr-only">Menu</SheetTitle>
               <Logo src={logoUrl} className="h-10" />
             </SheetHeader>
@@ -96,7 +96,7 @@ export function PublicHeader({
         <Link
           to="/"
           className="flex items-center gap-3 shrink-0"
-          aria-label={`${storeName || "Jah"} — início`}
+          aria-label={`${storeName || "Wider"} — início`}
         >
           <Logo src={logoUrl} className="max-h-12 w-auto h-auto" />
           {logoUrl && storeName && !hideNameWithLogo && (
@@ -152,20 +152,20 @@ export function PublicHeader({
               size="icon"
               onClick={() => setIsSearchOpen(true)}
               aria-label="Buscar"
-              className="shrink-0 border border-border "
+              className="shrink-0  "
             >
               <Search className="size-5 text-foreground" aria-hidden />
             </Button>
           )}
 
-          <ThemeToggle className="shrink-0 border border-border " />
+          <ThemeToggle className="shrink-0  " />
 
           <Button
             variant="outline"
             size="icon"
             asChild
             aria-label="Minha conta"
-            className="shrink-0 border border-border "
+            className="shrink-0  "
           >
             <Link to="/conta">
               <User className="size-5 text-foreground" aria-hidden />
@@ -177,7 +177,7 @@ export function PublicHeader({
             size="icon"
             onClick={() => setIsCartOpen(true)}
             aria-label="Carrinho"
-            className="relative shrink-0 border border-border bg-secondary text-foreground"
+            className="relative shrink-0  bg-secondary text-foreground"
           >
             <ShoppingBag className="size-5" aria-hidden />
             {totalItemCount > 0 && (

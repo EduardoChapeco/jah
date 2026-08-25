@@ -40,7 +40,7 @@ Este documento resume as investigações, refatorações e os procedimentos de d
 - **Vite/Nitro Build**: Compilado com a variável de ambiente `NITRO_PRESET=cloudflare-pages`, gerando os ativos e o arquivo `_worker.js` dentro de `dist/`.
 - **Pages Project**: Criado o projeto Pages `eduardochapeco-jah` na Cloudflare.
 - **Deploy Wrangler**: Efetuado o deploy completo na infraestrutura da Cloudflare Pages:
-  👉 **https://eduardochapeco-jah.pages.dev**
+  👉 **https://eduardochapeco-wider.pages.dev**
 
 ---
 

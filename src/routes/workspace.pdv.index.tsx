@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link, isRedirect } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import {
@@ -53,10 +53,13 @@ export const Route = createFileRoute("/workspace/pdv/")({
     return { activeRegister, catalog };
   },
   errorComponent: ({ error }) => {
+    if (isRedirect(error)) {
+      throw error;
+    }
     if ((error instanceof Error ? error.message : String(error)) === "CAIXA_FECHADO") {
       return (
         <div className="flex h-[80vh] items-center justify-center p-4 bg-muted/20">
-          <div className="w-full max-w-md text-center p-8 border border-border bg-card rounded-xl ">
+          <div className="w-full max-w-md text-center p-8  bg-card rounded-xl ">
             <MonitorPause className="size-16 text-foreground mb-4 opacity-50" />
             <h2 className="text-2xl font-black mb-2">Caixa Fechado</h2>
             <p className="text-muted-foreground mb-6 font-sans">
@@ -86,7 +89,7 @@ export const Route = createFileRoute("/workspace/pdv/")({
             <Button
               size="lg"
               variant="secondary"
-              className="w-full text-base font-bold border border-border"
+              className="w-full text-base font-bold "
               asChild
             >
               <Link to="/workspace/financeiro/caixa">Ir para Fechamento</Link>
@@ -269,7 +272,7 @@ function PdvTerminal() {
 
   const CartPanel = () => (
     <>
-      <div className="p-4 border-b border-border flex items-center justify-between bg-primary text-primary-foreground">
+      <div className="p-4  flex items-center justify-between bg-primary text-primary-foreground">
         <h2 className="font-semibold text-xl flex items-center gap-2">Ticket</h2>
         <Badge variant="outline" className="bg-background/20 text-white border-white/30 text-xs">
           Turno #{activeRegister.id.slice(0, 6)}
@@ -287,7 +290,7 @@ function PdvTerminal() {
             {cart.map((item) => (
               <div
                 key={item.id}
-                className="p-3 bg-muted/30 border border-border rounded-xl space-y-2"
+                className="p-3 bg-muted/30  rounded-xl space-y-2"
               >
                 <div className="flex justify-between items-start gap-2">
                   <div className="space-y-1 flex-1">
@@ -318,7 +321,7 @@ function PdvTerminal() {
 
                     {/* Observação da Cozinha */}
                     {item.notes && (
-                      <p className="text-[11px] text-muted-foreground italic bg-background/60 px-2 py-0.5 rounded border border-border/40 inline-block">
+                      <p className="text-[11px] text-muted-foreground italic bg-background/60 px-2 py-0.5 rounded  inline-block">
                         Obs: {item.notes}
                       </p>
                     )}
@@ -329,8 +332,8 @@ function PdvTerminal() {
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between pt-1 border-t border-border/40">
-                  <div className="flex items-center border border-border rounded-lg bg-background overflow-hidden">
+                <div className="flex items-center justify-between pt-1 ">
+                  <div className="flex items-center  rounded-lg bg-background overflow-hidden">
                     <button
                       className="px-2 py-1 hover:bg-muted active:bg-muted/80 transition-colors"
                       onClick={() => updateQty(item.id, -1)}
@@ -361,7 +364,7 @@ function PdvTerminal() {
       </ScrollArea>
 
       {/* Totals & Checkout Button */}
-      <div className="p-5 border-t border-border bg-surface-paper pb-safe">
+      <div className="p-5  bg-surface-paper pb-safe">
         <div className="flex justify-between items-end mb-4">
           <span className="text-foreground font-bold text-sm">Total</span>
           <span className="text-3xl font-semibold text-primary tracking-tight">
@@ -370,7 +373,7 @@ function PdvTerminal() {
         </div>
         <Button
           size="lg"
-          className="w-full h-14 text-lg font-semibold border border-border hover:translate-y-0.5 transition-all"
+          className="w-full h-14 text-lg font-semibold  hover:translate-y-0.5 transition-all"
           disabled={cart.length === 0}
           onClick={() => setCheckoutOpen(true)}
         >
@@ -383,19 +386,19 @@ function PdvTerminal() {
   return (
     <div className="flex flex-col md:flex-row h-[calc(100vh-4rem)] overflow-hidden bg-muted/20">
       {/* Left: Product Grid & Search */}
-      <div className="flex-1 flex flex-col h-full border-r border-border pb-16 md:pb-0">
-        <div className="p-4 bg-background border-b border-border flex items-center gap-3">
+      <div className="flex-1 flex flex-col h-full  pb-16 md:pb-0">
+        <div className="p-4 bg-background  flex items-center gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
               autoFocus
-              className="pl-10 h-12 text-lg bg-background border border-border"
+              className="pl-10 h-12 text-lg bg-background "
               placeholder="Buscar por produto ou código de barras (SKU)..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Button variant="default" className="h-12 border border-border " asChild>
+          <Button variant="default" className="h-12  " asChild>
             <Link to="/workspace/pdv/comandas">
               <Receipt className="mr-2 h-5 w-5" />
               Comandas
@@ -410,7 +413,7 @@ function PdvTerminal() {
               return (
                 <div
                   key={`${item.product.id}-${item.variant.sku}-${idx}`}
-                  className={`flex flex-col border border-border bg-surface-paper shadow-sm rounded-xl overflow-hidden cursor-pointer transition-all hover:border-primary/50 hover:shadow-md active:scale-[0.98] ${isOutOfStock ? "opacity-60 grayscale-[0.5]" : ""}`}
+                  className={`flex flex-col  bg-surface-paper  rounded-xl overflow-hidden cursor-pointer transition-all hover:border-primary/50 hover: active:scale-[0.98] ${isOutOfStock ? "opacity-60 grayscale-[0.5]" : ""}`}
                   onClick={() => handleProductClick(item.product, item.variant)}
                 >
                   <div className="aspect-square bg-muted/50 w-full relative overflow-hidden border-b-2 border-border">
@@ -429,7 +432,7 @@ function PdvTerminal() {
                       <div className="absolute inset-0 bg-background/50 backdrop-blur-[2px] flex items-center justify-center">
                         <Badge
                           variant="destructive"
-                          className="border border-border text-xs py-1 px-2 font-bold"
+                          className=" text-xs py-1 px-2 font-bold"
                         >
                           Em Falta
                         </Badge>
@@ -465,7 +468,7 @@ function PdvTerminal() {
       </div>
 
       {/* Right: Cart (Ticket) - DESKTOP */}
-      <div className="hidden md:flex w-[400px] flex-col h-full bg-surface-paper z-10 relative border-l border-border">
+      <div className="hidden md:flex w-[400px] flex-col h-full bg-surface-paper z-10 relative ">
         <CartPanel />
       </div>
 
@@ -476,7 +479,7 @@ function PdvTerminal() {
             <SheetTrigger asChild>
               <Button
                 size="lg"
-                className="w-full h-14 rounded-full shadow-xl flex items-center justify-between px-6 bg-primary text-primary-foreground font-bold hover:translate-y-0 active:scale-[0.98] transition-all"
+                className="w-full h-14 rounded-full  flex items-center justify-between px-6 bg-primary text-primary-foreground font-bold hover:translate-y-0 active:scale-[0.98] transition-all"
               >
                 <div className="flex items-center gap-2">
                   <ShoppingCart className="h-5 w-5" />
@@ -487,7 +490,7 @@ function PdvTerminal() {
             </SheetTrigger>
             <SheetContent
               side="bottom"
-              className="h-[85vh] p-0 flex flex-col bg-surface-paper rounded-t-[2rem] border-t border-border"
+              className="h-[85vh] p-0 flex flex-col bg-surface-paper rounded-t-[2rem] "
             >
               <CartPanel />
             </SheetContent>
@@ -499,7 +502,7 @@ function PdvTerminal() {
       <Sheet open={checkoutOpen} onOpenChange={setCheckoutOpen}>
         <SheetContent
           side="bottom"
-          className="h-[78vh] bg-background border-t border-border rounded-t-[2rem] px-6 py-8 overflow-y-auto"
+          className="h-[78vh] bg-background  rounded-t-[2rem] px-6 py-8 overflow-y-auto"
         >
           <SheetHeader className="mb-6">
             <SheetTitle className="text-3xl font-semibold tracking-tight text-foreground">
@@ -571,7 +574,7 @@ function PdvTerminal() {
                     key={id}
                     type="button"
                     variant={paymentMethod === id ? "default" : "outline"}
-                    className={`h-14 flex flex-col gap-1 border border-border rounded-xl ${paymentMethod === id ? "bg-primary text-primary-foreground" : "bg-card"}`}
+                    className={`h-14 flex flex-col gap-1  rounded-xl ${paymentMethod === id ? "bg-primary text-primary-foreground" : "bg-card"}`}
                     onClick={() => setPaymentMethod(id)}
                   >
                     <Icon className="h-5 w-5" />
@@ -593,7 +596,7 @@ function PdvTerminal() {
                   placeholder="Ex: Mesa 04, Cliente João"
                   value={tableIdentifier}
                   onChange={(e) => setTableIdentifier(e.target.value)}
-                  className="bg-background border border-border font-sans shadow-none rounded-none h-12"
+                  className="bg-background  font-sans shadow-none rounded-none h-12"
                 />
               </div>
             )}
@@ -601,14 +604,14 @@ function PdvTerminal() {
             <div className="flex gap-3 pt-2">
               <Button
                 variant="outline"
-                className="flex-1 border border-border rounded-none h-14 font-mono"
+                className="flex-1  rounded-none h-14 font-mono"
                 onClick={() => setCheckoutOpen(false)}
               >
                 Cancelar
               </Button>
               <Button
                 size="lg"
-                className="flex-1 border border-border rounded-none font-bold h-14 text-lg"
+                className="flex-1  rounded-none font-bold h-14 text-lg"
                 onClick={handleCheckout}
                 disabled={isProcessing}
               >

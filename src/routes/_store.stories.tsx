@@ -247,7 +247,7 @@ function Page() {
               <div className="absolute bottom-8 left-4 right-4 z-30 flex flex-col gap-2 text-center">
                 <Button
                   asChild
-                  className="w-full rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 flex items-center justify-center gap-2 text-sm shadow-lg"
+                  className="w-full rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 flex items-center justify-center gap-2 text-sm "
                   onClick={(e) => e.stopPropagation()}
                 >
                   <a href={activeStory.link_url} target="_blank" rel="noopener noreferrer">

@@ -170,8 +170,8 @@ function PropertyMaintenanceDashboard() {
               onClick={() => setStatusTab(tab.id)}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
                 statusTab === tab.id
-                  ? "bg-foreground text-background shadow-xs"
-                  : "bg-card border border-border text-muted-foreground hover:text-foreground"
+                  ? "bg-foreground text-background "
+                  : "bg-card  text-muted-foreground hover:text-foreground"
               }`}
             >
               <span>{tab.label}</span>
@@ -193,7 +193,7 @@ function PropertyMaintenanceDashboard() {
 
       {/* Grid de Chamados */}
       {filteredRequests.length === 0 ? (
-        <div className="py-16 text-center rounded-3xl border border-dashed border-border bg-card/60 space-y-2">
+        <div className="py-16 text-center rounded-3xl border-0 bg-card/60 space-y-2">
           <Wrench className="size-10 text-muted-foreground/40 mx-auto" />
           <h3 className="text-base font-bold text-foreground">Nenhum chamado de manutenção</h3>
           <p className="text-xs text-muted-foreground max-w-sm mx-auto">
@@ -205,7 +205,7 @@ function PropertyMaintenanceDashboard() {
           {filteredRequests.map((req) => (
             <div
               key={req.id}
-              className="p-5 rounded-3xl border border-border bg-card shadow-xs space-y-4 flex flex-col justify-between hover:border-primary/40 transition-colors"
+              className="p-5 rounded-3xl  bg-card  space-y-4 flex flex-col justify-between hover:border-primary/40 transition-colors"
             >
               <div className="space-y-3">
                 <div className="flex items-start justify-between gap-2">
@@ -245,7 +245,7 @@ function PropertyMaintenanceDashboard() {
                         href={photo}
                         target="_blank"
                         rel="noreferrer"
-                        className="size-14 rounded-xl overflow-hidden border border-border shrink-0 hover:opacity-80 transition-opacity"
+                        className="size-14 rounded-xl overflow-hidden  shrink-0 hover:opacity-80 transition-opacity"
                       >
                         <img src={photo} alt="Foto da avaria" className="size-full object-cover" />
                       </a>
@@ -254,7 +254,7 @@ function PropertyMaintenanceDashboard() {
                 )}
 
                 {/* Status & Orçamento */}
-                <div className="flex items-center justify-between text-xs pt-1 border-t border-border/50">
+                <div className="flex items-center justify-between text-xs pt-1 ">
                   <span className="text-muted-foreground font-medium">Categoria:</span>
                   <span className="font-bold capitalize text-foreground">{req.category}</span>
                 </div>
@@ -276,7 +276,7 @@ function PropertyMaintenanceDashboard() {
               </div>
 
               {/* Ações */}
-              <div className="pt-3 border-t border-border/60 flex items-center justify-between gap-2">
+              <div className="pt-3  flex items-center justify-between gap-2">
                 <Badge
                   variant={
                     req.status === "resolved"
@@ -316,7 +316,7 @@ function PropertyMaintenanceDashboard() {
 
       {/* Modal: Gerenciar Chamado */}
       <Dialog open={!!editModalReq} onOpenChange={(open) => !open && setEditModalReq(null)}>
-        <DialogContent className="max-w-md p-6 rounded-3xl bg-card border border-border">
+        <DialogContent className="max-w-md p-6 rounded-3xl bg-card ">
           <DialogHeader>
             <DialogTitle className="text-lg font-black">{editModalReq?.title}</DialogTitle>
             <DialogDescription className="text-xs">

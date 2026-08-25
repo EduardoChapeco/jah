@@ -40,7 +40,7 @@ export function ImageHotspots({
   if (!displayImage) {
     return (
       <div className="w-full py-12 px-4 md:px-8 max-w-7xl mx-auto">
-        <div className="flex flex-col items-center justify-center py-16 text-center gap-4 text-muted-foreground border border-dashed border-border">
+        <div className="flex flex-col items-center justify-center py-16 text-center gap-4 text-muted-foreground border-0">
           <span className="text-3xl opacity-40">&#127919;</span>
           <div>
             <p className="font-medium">Imagem não configurada</p>
@@ -68,7 +68,7 @@ export function ImageHotspots({
         </div>
       )}
 
-      <div className="relative w-full overflow-hidden border border-border bg-muted">
+      <div className="relative w-full overflow-hidden  bg-muted">
         {/* Main Image */}
         <img
           src={displayImage}
@@ -106,8 +106,8 @@ export function ImageHotspots({
 
         {/* Floating Mini-Card / Drawer for Active Hotspot */}
         {activeHotspot && !onHotspotClickInEditor && (
-          <div className="absolute bottom-4 left-4 right-4 md:left-auto md:right-4 md:bottom-4 md:w-80 bg-background/95 backdrop-blur-md p-4 border border-border z-30 transition-all animate-in fade-in slide-in-">
-            <div className="flex items-center justify-between mb-3 pb-2 border-b border-border">
+          <div className="absolute bottom-4 left-4 right-4 md:left-auto md:right-4 md:bottom-4 md:w-80 bg-background/95 backdrop-blur-md p-4  z-30 transition-all animate-in fade-in slide-in-">
+            <div className="flex items-center justify-between mb-3 pb-2 ">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Produto em Destaque
               </span>

@@ -35,18 +35,28 @@ export const STAFF_ROLES = [
 ] as const;
 
 /**
- * Asserts que o usuário tem acesso de staff à loja.
+ * Asserts que o usuário tem acesso de staff à loja ou é platform_admin global.
  * Lança Error se não autorizado.
  */
 export function assertStoreAccess(
   identity: ServerIdentity,
   allowedRoles: readonly string[] | string[] = STAFF_ROLES,
 ): asserts identity is ServerIdentity & { id: string; store_id: string } {
+  if (!identity.id) {
+    throw new Error("Não autorizado. Faça login para continuar.");
+  }
+
+  if (identity.role === "platform_admin" || identity.role === "master") {
+    if (!identity.store_id) {
+      (identity as any).store_id = "00000000-0000-0000-0000-000000000001";
+    }
+    return;
+  }
+
   if (
-    !identity.id ||
     !identity.store_id ||
     !(allowedRoles as readonly string[]).includes(identity.role)
   ) {
-    throw new Error("Não autorizado");
+    throw new Error("Não autorizado. Requer permissão de equipe na loja.");
   }
 }

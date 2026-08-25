@@ -235,7 +235,7 @@ function CustomerInstallmentsPage() {
           <div className="space-y-6">
             {receivables.map((rec: any) => (
               <Surface variant="default" padding="none" key={rec.id}>
-                <div className="flex flex-row items-center justify-between p-6 bg-muted/30 border-b border-border/20">
+                <div className="flex flex-row items-center justify-between p-6 bg-muted/30 ">
                   <div>
                     <h3 className="text-lg flex items-center font-bold">
                       <FileText className="mr-2 h-5 w-5 text-primary" />
@@ -348,7 +348,7 @@ function CustomerInstallmentsPage() {
           <div className="space-y-6">
             {plans.map((plan: any) => (
               <Surface variant="default" padding="none" key={plan.id}>
-                <div className="flex flex-row items-center justify-between p-6 bg-muted/30 border-b border-border/20">
+                <div className="flex flex-row items-center justify-between p-6 bg-muted/30 ">
                   <div>
                     <h3 className="text-lg flex items-center font-bold">
                       <FileText className="mr-2 h-5 w-5" />

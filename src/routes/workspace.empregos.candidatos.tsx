@@ -129,7 +129,7 @@ function WorkspaceCandidatesPage() {
     try {
       const generatedMeeting =
         meetingUrl.trim() ||
-        `https://meet.jit.si/jah-entrevista-${interviewModalApp.id.slice(0, 8)}`;
+        `https://meet.jit.si/wider-entrevista-${interviewModalApp.id.slice(0, 8)}`;
 
       await updateJobApplication({
         data: {
@@ -241,8 +241,8 @@ function WorkspaceCandidatesPage() {
               onClick={() => setStatusTab(tab.id)}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
                 statusTab === tab.id
-                  ? "bg-foreground text-background shadow-xs"
-                  : "bg-card border border-border text-muted-foreground hover:text-foreground"
+                  ? "bg-foreground text-background "
+                  : "bg-card  text-muted-foreground hover:text-foreground"
               }`}
             >
               <span>{tab.label}</span>
@@ -264,7 +264,7 @@ function WorkspaceCandidatesPage() {
 
       {/* Cards de Candidatos */}
       {filteredApps.length === 0 ? (
-        <div className="py-16 text-center rounded-3xl border border-dashed border-border bg-card/60 space-y-2">
+        <div className="py-16 text-center rounded-3xl border-0 bg-card/60 space-y-2">
           <Briefcase className="size-10 text-muted-foreground/40 mx-auto" />
           <h3 className="text-base font-bold text-foreground">Nenhuma candidatura encontrada</h3>
           <p className="text-xs text-muted-foreground max-w-sm mx-auto">
@@ -276,7 +276,7 @@ function WorkspaceCandidatesPage() {
           {filteredApps.map((app) => (
             <div
               key={app.id}
-              className="p-5 rounded-3xl border border-border bg-card shadow-xs space-y-4 flex flex-col justify-between hover:border-primary/40 transition-colors"
+              className="p-5 rounded-3xl  bg-card  space-y-4 flex flex-col justify-between hover:border-primary/40 transition-colors"
             >
               <div className="space-y-3">
                 <div className="flex items-start justify-between gap-2">
@@ -375,7 +375,7 @@ function WorkspaceCandidatesPage() {
               </div>
 
               {/* Avaliação & Botões de Ação */}
-              <div className="space-y-3 pt-3 border-t border-border/60">
+              <div className="space-y-3 pt-3 ">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-bold text-muted-foreground">Classificação:</span>
                   <div className="flex items-center gap-1">
@@ -434,7 +434,7 @@ function WorkspaceCandidatesPage() {
 
       {/* Modal: Agendar Entrevista */}
       <Dialog open={!!interviewModalApp} onOpenChange={(open) => !open && setInterviewModalApp(null)}>
-        <DialogContent className="max-w-md p-6 rounded-3xl bg-card border border-border">
+        <DialogContent className="max-w-md p-6 rounded-3xl bg-card ">
           <DialogHeader>
             <DialogTitle className="text-lg font-black">
               Agendar Entrevista com {interviewModalApp?.candidate_name}
@@ -483,7 +483,7 @@ function WorkspaceCandidatesPage() {
 
       {/* Modal: Efetivar Contratação */}
       <Dialog open={!!hireModalApp} onOpenChange={(open) => !open && setHireModalApp(null)}>
-        <DialogContent className="max-w-md p-6 rounded-3xl bg-card border border-border">
+        <DialogContent className="max-w-md p-6 rounded-3xl bg-card ">
           <DialogHeader>
             <DialogTitle className="text-lg font-black">
               Efetivar Contratação: {hireModalApp?.candidate_name}

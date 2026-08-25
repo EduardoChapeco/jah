@@ -32,10 +32,15 @@ function Page() {
   const [messages, setMessages] = useState(initialMessages);
   const [text, setText] = useState("");
   const [isSending, setIsSending] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
   }, [messages]);
 
   useEffect(() => {
@@ -111,10 +116,10 @@ function Page() {
   return (
     <section className="flex flex-col h-full min-h-[60vh] font-sans text-foreground">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-6 border-b border-border pb-4">
+      <div className="flex items-center gap-4 mb-6  pb-4">
         <Button
           variant="ghost"
-          className="rounded-xl border border-border bg-white h-10 w-10 p-0 flex items-center justify-center text-foreground"
+          className="rounded-xl  bg-white h-10 w-10 p-0 flex items-center justify-center text-foreground"
           asChild
         >
           <Link to="/conta/suporte" aria-label="Voltar">
@@ -130,16 +135,19 @@ function Page() {
           </p>
         </div>
         <span
-          className={`px-3 py-1 font-black text-sm border border-border ${isClosed ? "bg-muted/30 text-foreground" : "bg-success text-white"}`}
+          className={`px-3 py-1 font-black text-sm  ${isClosed ? "bg-muted/30 text-foreground" : "bg-success text-white"}`}
         >
           {STATUS_LABELS[thread.status] ?? thread.status}
         </span>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 space-y-5 overflow-y-auto pr-2 mb-6 max-h-[50vh] scrollbar-thin">
+      <div
+        ref={chatContainerRef}
+        className="flex-1 space-y-5 overflow-y-auto pr-2 mb-6 max-h-[50vh] scrollbar-thin"
+      >
         {messages.length === 0 && (
-          <div className="text-center p-10 border border-dashed border-border bg-background">
+          <div className="text-center p-10 border-0 bg-background">
             <p className="text-lg font-bold text-foreground uppercase">Nenhuma mensagem ainda.</p>
             <p className="text-sm text-foreground/70 font-medium">
               Envie uma mensagem para a equipe.
@@ -152,7 +160,7 @@ function Page() {
             className={`flex ${msg.isStaffReply ? "justify-start" : "justify-end"}`}
           >
             <div
-              className={`max-w-[85%] px-5 py-3 border border-border ${msg.isStaffReply ? "bg-background rounded-xl rounded-br-2xl text-foreground" : "bg-primary text-primary-foreground rounded-xl rounded-bl-2xl"}`}
+              className={`max-w-[85%] px-5 py-3  ${msg.isStaffReply ? "bg-background rounded-xl rounded-br-2xl text-foreground" : "bg-primary text-primary-foreground rounded-xl rounded-bl-2xl"}`}
             >
               <p className="text-base font-medium leading-relaxed">{msg.message}</p>
               <p
@@ -166,12 +174,11 @@ function Page() {
             </div>
           </div>
         ))}
-        <div ref={bottomRef} />
       </div>
 
       {/* Input */}
       {isClosed ? (
-        <div className="border border-border bg-secondary p-4 text-center">
+        <div className=" bg-secondary p-4 text-center">
           <p className="font-semibold text-xl font-black uppercase text-foreground">
             Conversa Encerrada
           </p>
@@ -186,12 +193,12 @@ function Page() {
             onChange={(e) => setText(e.target.value)}
             placeholder="Escreva sua mensagem..."
             disabled={isSending}
-            className="flex-1 h-14 border border-border rounded-xl bg-background font-medium focus-visible:ring-0 focus-visible:border-poster-red placeholder:text-foreground/40"
+            className="flex-1 h-14  rounded-xl bg-background font-medium focus-visible:ring-0 focus-visible:border-poster-red placeholder:text-foreground/40"
           />
           <Button
             type="submit"
             disabled={!text.trim() || isSending}
-            className="h-14 w-14 rounded-xl bg-primary text-primary-foreground border border-border p-0 flex items-center justify-center cursor-pointer disabled:opacity-50 disabled:-none"
+            className="h-14 w-14 rounded-xl bg-primary text-primary-foreground  p-0 flex items-center justify-center cursor-pointer disabled:opacity-50 disabled:-none"
             aria-label="Enviar"
           >
             <Send className="size-6" aria-hidden />

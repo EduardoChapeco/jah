@@ -19,7 +19,9 @@ import {
   Loader2,
   Sparkles,
   ChevronRight as ChevronIcon,
+  ShieldAlert,
 } from "lucide-react";
+import { TagFraudDialog } from "@/components/commerce/tag-fraud-dialog";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -36,7 +38,7 @@ import { getPublicExperienceDocumentBySlug } from "@/services/builder.functions"
 import { addToCart } from "@/services/cart.functions";
 import { useCartContext } from "@/lib/cart-context";
 import { toast } from "sonner";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ExperienceRenderer } from "@/components/commerce/experience-renderer";
 import {
@@ -196,7 +198,7 @@ export const Route = createFileRoute("/_store/produto/$slug")({
       product.seoDescription ||
       (product.description
         ? product.description.replace(/<[^>]+>/g, "").slice(0, 155)
-        : `Compre ${product.title} na Jah. Frete rápido e parcelamento disponível.`);
+        : `Compre ${product.title} no Wider. Frete rápido e parcelamento disponível.`);
     const coverUrl = product.media?.[0]?.url ?? null;
     const canonical = `${typeof window !== "undefined" ? window.location.origin : ""}/produto/${product.slug}`;
 
@@ -387,12 +389,24 @@ function ProductContent({
     return initial;
   });
 
+  const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [activeMedia, setActiveMedia] = useState<ProductMediaDTO | null>(coverImage);
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
   const [zipcode, setZipcode] = useState("");
   const [shippingRates, setShippingRates] = useState<any[] | null>(null);
   const [loadingShipping, setLoadingShipping] = useState(false);
+  const isInternational =
+    (product as any)?.shipping_origin === "international" ||
+    (product as any)?.attributes?.shipping_origin === "international";
+  const storeLocation = (product as any)?.store
+    ? [(product as any).store.city, (product as any).store.state].filter(Boolean).join(", ")
+    : null;
+  const storePhone =
+    (product as any)?.store?.phone ||
+    (product as any)?.store?.whatsapp ||
+    (product as any)?.seller?.phone;
 
   // Social Stats Queries
   const { data: reviewStats } = useQuery({
@@ -407,52 +421,46 @@ function ProductContent({
     initialData: [],
   });
 
+  const targetStoreId = product.store_id || product.storeId || undefined;
+
   const { data: followStatus, refetch: refetchFollowStatus } = useQuery({
-    queryKey: ["storeFollow", product.store_id],
-    queryFn: () => getStoreFollowStatus({ data: { storeId: product.store_id || undefined } }),
+    queryKey: ["storeFollow", targetStoreId],
+    queryFn: () => getStoreFollowStatus({ data: { storeId: targetStoreId } }),
     initialData: { following: false },
+    enabled: Boolean(targetStoreId),
   });
 
-  const isFollowingStore = followStatus.following;
+  const [optimisticFollow, setOptimisticFollow] = useState<boolean | null>(null);
+  const isFollowingStore = optimisticFollow !== null ? optimisticFollow : Boolean(followStatus?.following);
 
-  const [newRating, setNewRating] = useState(5);
-  const [newComment, setNewComment] = useState("");
-  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
-  const [shippingOrigin, setShippingOrigin] = useState<"national" | "international">("national");
-
-  // Find the matching variant or default to first available variant
+    // ── 1. Resolução da Variante Selecionada ──
   const selectedVariant = useMemo(() => {
-    if (!product.variants || product.variants.length === 0) return null;
-
-    const exact = product.variants.find((v: VariantDTO) => {
-      return Object.entries(selectedAttributes).every(([key, val]) => {
-        const matchKey = Object.keys(v.attributes).find(
-          (k) => k.toLowerCase() === key.toLowerCase(),
-        );
-        return matchKey ? v.attributes[matchKey] === val : false;
+    const attrKeys = Object.keys(selectedAttributes);
+    if (attrKeys.length > 0) {
+      const match = product.variants.find((v: VariantDTO) => {
+        return attrKeys.every((k) => v.attributes?.[k] === selectedAttributes[k]);
       });
-    });
+      if (match) return match;
+    }
+    return initialVariant || product.variants[0] || null;
+  }, [product.variants, selectedAttributes, initialVariant]);
 
-    if (exact) return exact;
-
-    // Fallback: first variant with stock or simply the first variant
-    const inStock = product.variants.find((v: VariantDTO) => v.availableQty > 0);
-    return inStock || product.variants[0];
-  }, [product.variants, selectedAttributes]);
-
-  // Watch selected variant to change active media automatically if variant has custom media
-  useMemo(() => {
-    if (selectedVariant && selectedVariant.media && selectedVariant.media.length > 0) {
-      setActiveMedia(selectedVariant.media[0]);
+  // Sincroniza a variante com a URL para SEO e compartilhamento
+  useEffect(() => {
+    if (selectedVariant && selectedVariant.id !== (search as any)?.v) {
+      router.navigate({
+        search: { ...(search as any), v: selectedVariant.id } as any,
+        replace: true,
+      });
     }
   }, [selectedVariant]);
 
   const { refreshCart, setIsCartOpen, setCartData } = useCartContext();
 
   const handleAddToCart = async () => {
-    const targetVariantId = selectedVariant?.id;
+    const targetVariantId = selectedVariant?.id || product.variants?.[0]?.id;
 
-    if (!targetVariantId) {
+    if (!targetVariantId && !product.id) {
       toast.error("Por favor, selecione um tamanho ou opção do produto.");
       return;
     }
@@ -461,30 +469,29 @@ function ProductContent({
     try {
       const res = await addToCart({
         data: {
-          variantId: targetVariantId,
+          variantId: targetVariantId || undefined,
           productId: product.id,
-          quantity: 1,
+          quantity: quantity || 1,
           options: Object.keys(selectedOptions).length > 0 ? selectedOptions : undefined,
         },
       });
 
-      if (!res || !res.cart || res.status !== "success") {
+      if (!res || res.status !== "success" || (!res.cart && (!res.globalCarts || res.globalCarts.length === 0))) {
         throw new Error(
           "Falha ao adicionar ao carrinho. Verifique sua conexão ou tente novamente.",
         );
       }
 
-      setCartData(res.cart as any);
+      setCartData((res.cart || res.globalCarts?.[0]) as any, (res as any).globalCarts as any);
 
-      // Toast exibido somente APÓS hidratação do Context
-      toast.success("Adicionado ao carrinho");
+      // Feedback imediato com animação e abertura da gaveta
+      toast.success("Adicionado ao carrinho com sucesso!");
       setIsCartOpen(true);
     } catch (error: unknown) {
+      console.error("[PDP] Erro ao adicionar ao carrinho:", error);
       toast.error(
         error instanceof Error
-          ? error instanceof Error
-            ? error.message
-            : String(error)
+          ? error.message
           : "Erro ao adicionar ao carrinho.",
       );
     } finally {
@@ -501,72 +508,58 @@ function ProductContent({
     }
     setLoadingShipping(true);
     try {
-      const res = await calculateShipping({ data: { zipcode: clean } });
+      const res = await calculateShipping({
+        data: {
+          zipcode: clean,
+          productId: product.id,
+          storeId: targetStoreId,
+        },
+      });
       if (res) {
         setShippingRates(res);
         if (res.length === 0) {
-          toast.info("Nenhuma transportadora atende a esta região.");
+          toast.info("Nenhuma tabela automática para este CEP. Consulte cotação direta com a loja.");
         } else {
           toast.success("Frete calculado com sucesso!");
         }
       } else {
-        toast.error("Erro ao calcular frete.");
+        setShippingRates([]);
+        toast.error("Erro ao consultar frete.");
       }
     } catch (error) {
-      toast.error("Falha de rede ao calcular frete.");
+      setShippingRates([]);
+      toast.error("Falha de rede ao consultar frete.");
     } finally {
       setLoadingShipping(false);
     }
   };
 
-  const handleSubmitReview = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newComment.trim() || newComment.length < 5) {
-      toast.error("O comentário deve ter pelo menos 5 caracteres.");
-      return;
-    }
-    setIsSubmittingReview(true);
-    try {
-      const res = await submitProductReview({
-        data: {
-          productId: product.id,
-          rating: newRating,
-          comment: newComment,
-        },
-      });
-
-      if (res.success) {
-        toast.success("Avaliação enviada com sucesso!");
-        setNewComment("");
-        setNewRating(5);
-        refetchReviews();
-        router.invalidate();
-      } else {
-        toast.error("Erro ao enviar avaliação. Faça login primeiro.");
-      }
-    } catch (err: unknown) {
-      toast.error(
-        (err instanceof Error ? err.message : String(err)) ||
-          "Você precisa estar autenticado como cliente para avaliar.",
-      );
-    } finally {
-      setIsSubmittingReview(false);
-    }
-  };
+  // Avaliações públicas são somente leitura (escrita restrita a pedidos entregues)
 
   const handleToggleFollow = async () => {
+    if (!targetStoreId) {
+      toast.error("Identificador da loja não disponível.");
+      return;
+    }
+    const previousState = isFollowingStore;
+    const nextState = !previousState;
+    setOptimisticFollow(nextState);
     try {
       const res = await toggleStoreFollow({
-        data: { storeId: product.store_id || undefined },
+        data: { storeId: targetStoreId },
       });
+      setOptimisticFollow(res.following);
       toast.success(
         res.following ? "Você agora está seguindo a loja!" : "Você deixou de seguir a loja.",
       );
       refetchFollowStatus();
     } catch (err: unknown) {
+      setOptimisticFollow(previousState);
+      const msg = err instanceof Error ? err.message : String(err);
       toast.error(
-        (err instanceof Error ? err.message : String(err)) ||
-          "Você precisa estar autenticado como cliente para seguir a loja.",
+        msg.includes("login") || msg.includes("autenticado")
+          ? "Faça login na sua conta para seguir esta loja."
+          : (msg || "Erro ao atualizar status de seguidor da loja.")
       );
     }
   };
@@ -576,6 +569,29 @@ function ProductContent({
     const match = url.match(regExp);
     return match && match[2].length === 11 ? match[2] : null;
   };
+
+  const currentPriceCents = useMemo(() => {
+    const base = selectedVariant ? selectedVariant.effectivePriceCents : product.priceCents;
+    const optionsModifier = product.optionGroups?.reduce((acc: number, og: any) => {
+      const selection = selectedOptions[og.id];
+      if (!selection) return acc;
+      if (Array.isArray(selection)) {
+        return (
+          acc +
+          selection.reduce((subAcc: number, valId: string) => {
+            const val = og.values.find((v: any) => v.id === valId);
+            return subAcc + (val?.priceModifierCents || 0);
+          }, 0)
+        );
+      } else {
+        const val = og.values.find((v: any) => v.id === selection);
+        return acc + (val?.priceModifierCents || 0);
+      }
+    }, 0) || 0;
+    return base + optionsModifier;
+  }, [selectedVariant, product.priceCents, product.optionGroups, selectedOptions]);
+
+  const currentThumbnailUrl = activeMedia?.url || coverImage?.url || null;
 
   return (
     <div className="w-full space-y-8">
@@ -659,7 +675,7 @@ function ProductContent({
             <Surface
               variant="default"
               padding="none"
-              className="w-full relative aspect-square overflow-hidden bg-secondary rounded-3xl border border-border/80 shadow-xs"
+              className="w-full relative aspect-square overflow-hidden bg-secondary rounded-3xl  "
             >
               {activeMedia ? (
                 activeMedia.mediaType === "video" ? (
@@ -696,18 +712,6 @@ function ProductContent({
                 </div>
               )}
             </Surface>
-
-            {/* Descrição do Produto diretamente abaixo da foto */}
-            {product.description && (
-              <div className="p-5 rounded-3xl border border-border/80 bg-card space-y-2.5 shadow-2xs">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Sobre o Produto
-                </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                  {product.description}
-                </p>
-              </div>
-            )}
           </div>
         </div>
 
@@ -726,25 +730,7 @@ function ProductContent({
             {/* Preços Autorizados pelo Servidor com Badges de Desconto */}
             <div className="flex items-baseline gap-3 pt-2">
               <PriceDisplay
-                amountCents={
-                  (selectedVariant ? selectedVariant.effectivePriceCents : product.priceCents) +
-                  (product.optionGroups?.reduce((acc: number, og: any) => {
-                    const selection = selectedOptions[og.id];
-                    if (!selection) return acc;
-                    if (Array.isArray(selection)) {
-                      return (
-                        acc +
-                        selection.reduce((subAcc: number, valId: string) => {
-                          const val = og.values.find((v: any) => v.id === valId);
-                          return subAcc + (val?.priceModifierCents || 0);
-                        }, 0)
-                      );
-                    } else {
-                      const val = og.values.find((v: any) => v.id === selection);
-                      return acc + (val?.priceModifierCents || 0);
-                    }
-                  }, 0) || 0)
-                }
+                amountCents={currentPriceCents}
                 compareAtCents={product.compareAtCents}
                 size="lg"
               />
@@ -761,6 +747,18 @@ function ProductContent({
                 </Badge>
               )}
             </div>
+
+            {/* Descrição Única e Canônica do Produto (Foto > Título > Preço > Descrição) */}
+            {product.description && (
+              <div className="p-4 rounded-2xl  bg-card space-y-1.5  mt-3">
+                <h3 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Sobre o Produto
+                </h3>
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                  {product.description}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Out of stock — only shown when all variants are truly unavailable (no backorder) */}
@@ -772,7 +770,7 @@ function ProductContent({
 
           {/* Selectores de Atributos Customizados */}
           {attributeKeys.length > 0 && (
-            <div className="space-y-5 border-t border-b border-border/60 py-5">
+            <div className="space-y-5 border-t  py-5">
               {attributeKeys.map((key: string) => {
                 const values: string[] = Array.from(
                   new Set(
@@ -875,7 +873,7 @@ function ProductContent({
 
           {/* Configuração de Adicionais / Opções (Option Groups) */}
           {product.optionGroups && product.optionGroups.length > 0 && (
-            <div className="space-y-5 border-b border-border/60 pb-5">
+            <div className="space-y-5  pb-5">
               {product.optionGroups.map((og: any) => {
                 const isMultiple = og.selectionType === "multiple";
                 const selection = selectedOptions[og.id] || (isMultiple ? [] : "");
@@ -964,33 +962,36 @@ function ProductContent({
             </div>
           )}
 
-          {/* Origem de Envio ("Enviado por") */}
-          <div className="space-y-2">
-            <span className="text-xs font-bold text-muted-foreground">Enviado por</span>
-            <div className="flex gap-2">
-              <div
-                className={`flex-1 py-2 px-3 border text-xs font-bold transition-all border-primary bg-primary/5 text-primary text-center`}
-              >
-                {shippingOrigin === "national" ? "Envio Nacional" : "Envio Internacional"}
+          {/* Modalidades Reais de Envio e Localização do Estoque */}
+          {isInternational ? (
+            <div className="p-3.5 rounded-2xl border border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20 text-xs space-y-1">
+              <div className="flex items-center gap-1.5 font-bold text-amber-800 dark:text-amber-300">
+                <Info className="size-4 shrink-0" />
+                <span>Produto com Envio Internacional</span>
               </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Item importado sujeito à fiscalização aduaneira e eventuais tributos federais e estaduais conforme legislação vigente.
+              </p>
             </div>
+          ) : storeLocation ? (
+            <div className="flex items-center gap-2 p-2.5 rounded-2xl bg-muted/40 text-xs font-semibold text-foreground">
+              <MapPin className="size-4 text-primary shrink-0" />
+              <span>Envio a partir de <strong>{storeLocation}</strong></span>
+            </div>
+          ) : null}
 
-            {shippingOrigin === "international" && (
-              <div className="p-3 border border-warning/20 bg-warning/5 text-[11px] text-warning-foreground leading-normal flex items-start gap-2">
-                <Info className="size-4 text-warning shrink-0 mt-0.5" />
-                <span>
-                  Produto Internacional sujeito à declaração de importação e eventuais tributos
-                  alfandegários estaduais e federais.
-                </span>
+          {/* Simulação de Frete e Prazos Reais */}
+          <Surface variant="default" padding="sm" className="space-y-4 rounded-3xl border border-border/40">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-bold text-foreground">
+                <Truck className="size-4 text-primary" />
+                <span>Frete & Formas de Entrega</span>
               </div>
-            )}
-          </div>
-
-          {/* Simulação de Frete e Prazos */}
-          <Surface variant="default" padding="sm" className="space-y-4">
-            <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
-              <Truck className="size-4 text-primary" />
-              <span>Simulador de Frete</span>
+              {storeLocation && (
+                <span className="text-[10px] text-muted-foreground font-mono">
+                  {storeLocation}
+                </span>
+              )}
             </div>
 
             <form onSubmit={handleCalculateShipping} className="flex gap-2">
@@ -998,78 +999,164 @@ function ProductContent({
                 placeholder="Digite seu CEP (Ex: 89801-000)"
                 value={zipcode}
                 onChange={(e) => setZipcode(e.target.value)}
-                className="h-9 text-xs bg-muted/40"
+                className="h-9 text-xs bg-muted/40 rounded-xl"
               />
               <Button
                 type="submit"
                 size="sm"
-                className="h-9 font-bold px-4"
+                className="h-9 font-bold px-4 rounded-xl cursor-pointer"
                 disabled={loadingShipping}
               >
                 {loadingShipping ? <Loader2 className="size-4 animate-spin" /> : "Calcular"}
               </Button>
             </form>
 
-            {shippingRates ? (
-              <div className="space-y-2 pt-1">
-                {shippingRates.map((rate) => (
-                  <div
-                    key={rate.id}
-                    className="flex justify-between items-center text-xs p-2.5 border bg-muted/10"
-                  >
-                    <div>
-                      <p className="font-bold text-foreground">{rate.name}</p>
-                      <p className="text-[10px] text-muted-foreground">
-                        Prazo estimado: {rate.estimated_days} dias úteis
-                      </p>
+            {shippingRates !== null ? (
+              shippingRates.length > 0 ? (
+                <div className="space-y-2 pt-1">
+                  {shippingRates.map((rate, idx) => (
+                    <div
+                      key={rate.id || idx}
+                      className="flex justify-between items-center text-xs p-3 rounded-2xl border border-border/60 bg-muted/20"
+                    >
+                      <div>
+                        <p className="font-bold text-foreground">{rate.service_name || rate.name || rate.provider}</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {rate.provider ? `${rate.provider} • ` : ""}Prazo estimado: {rate.estimated_days} {rate.estimated_days === 1 ? "dia útil" : "dias úteis"}
+                        </p>
+                      </div>
+                      <span className="font-extrabold text-foreground">
+                        {rate.price_cents === 0 ? (
+                          <span className="text-emerald-600 dark:text-emerald-400 font-bold">Grátis</span>
+                        ) : (
+                          formatMoney(rate.price_cents)
+                        )}
+                      </span>
                     </div>
-                    <span className="font-bold text-primary">
-                      {rate.price_cents === 0 ? (
-                        <span className="text-success font-bold">Grátis</span>
-                      ) : (
-                        formatMoney(rate.price_cents)
-                      )}
-                    </span>
+                  ))}
+                </div>
+              ) : (
+                /* Estado Transparente: Sem Tabela de CEP Automatizada */
+                <div className="p-3.5 rounded-2xl bg-muted/30 border border-border/40 space-y-2.5 text-xs">
+                  <div className="flex items-start gap-2 text-foreground font-semibold">
+                    <Info className="size-4 text-primary shrink-0 mt-0.5" />
+                    <span>Frete sob Cotação Direta / A Combinar</span>
                   </div>
-                ))}
-              </div>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Esta loja não possui tabela automatizada para o CEP informado. Você pode combinar a entrega diretamente com o vendedor ou solicitar retirada no local.
+                  </p>
+                  {storePhone && (
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="sm"
+                      className="w-full h-8 rounded-xl text-xs font-bold gap-1.5 cursor-pointer bg-background"
+                    >
+                      <a
+                        href={`https://wa.me/${storePhone.replace(/\D/g, "")}?text=${encodeURIComponent(
+                          `Olá! Gostaria de cotar o valor do frete para o produto "${product.title}" para o CEP ${zipcode}.`
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <MessageCircle className="size-3.5 text-emerald-500" />
+                        <span>Solicitar Cotação no WhatsApp</span>
+                      </a>
+                    </Button>
+                  )}
+                </div>
+              )
             ) : (
-              /* Card Padrão de Prazos SHEIN */
+              /* Política Real e Transparente da Loja */
               <div className="space-y-3 pt-1 text-xs">
                 <div className="flex items-start gap-2.5">
-                  <Check className="size-4 text-success shrink-0 mt-0.5" />
+                  <Check className="size-4 text-primary shrink-0 mt-0.5" />
                   <div>
                     <p className="font-bold text-foreground">
-                      Frete grátis (pedidos acima de R$ 69,00)
+                      Entrega Direta & Retirada em Balcão
                     </p>
                     <p className="text-[10px] text-muted-foreground leading-normal">
-                      Entrega estimada em 12 a 18 dias úteis para a sua localidade.
+                      Métodos de entrega, taxas locais e opções de retirada calculados oficialmente no checkout ou combinados diretamente com o vendedor.
                     </p>
                   </div>
                 </div>
-                <div className="flex items-start gap-2.5 pt-1 border-t border-border/40">
+                <div className="flex items-start gap-2.5 pt-1">
                   <RotateCcw className="size-4 text-primary shrink-0 mt-0.5" />
-                  <p className="text-muted-foreground leading-normal">
+                  <p className="text-muted-foreground leading-normal text-[11px]">
                     {isFoodOrPerishable
                       ? "Garantia de preparo fresco e seguro. Entrega com controle térmico e higiene rigorosa para consumo imediato."
-                      : "Os itens desta categoria possuem garantia e podem ser devolvidos ou trocados em até 7 dias após o recebimento."}
+                      : "Garantia de conformidade JAH. Trocas ou devoluções em até 7 dias úteis após o recebimento conforme o CDC."}
                   </p>
                 </div>
               </div>
             )}
 
-            {/* Selos de Confiança */}
-            <div className="flex flex-wrap gap-x-4 gap-y-1.5 pt-3 border-t border-border/40 text-[10px] text-muted-foreground font-semibold">
-              <span className="flex items-center gap-1.5">
-                <ShieldCheck className="size-3.5 text-success fill-success/10" />
-                Pagamento Seguro
-              </span>
-              <span className="flex items-center gap-1.5">
-                <ShieldCheck className="size-3.5 text-success fill-success/10" />
-                Proteção de Privacidade
-              </span>
+            {/* ── Loja Vendedora & Link Institucional Real ── */}
+          <div className="p-4 rounded-2xl  bg-card flex items-center justify-between gap-3 ">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="size-11 rounded-xl bg-muted  overflow-hidden shrink-0 flex items-center justify-center">
+                {(product as any).store?.logo_url ? (
+                  <img src={(product as any).store.logo_url} alt={(product as any).store.name} className="size-full object-cover" />
+                ) : (
+                  <span className="font-black text-xs text-primary">{(product as any).store?.name?.slice(0, 2).toUpperCase() || "LJ"}</span>
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground font-mono">Vendido e entregue por</p>
+                <Link
+                  to="/perfil-da-loja"
+                  search={{ storeId: product.store_id || (product as any).store?.id }}
+                  className="text-sm font-bold text-foreground hover:text-primary transition-colors truncate block"
+                >
+                  {(product as any).store?.name || "Loja Parceira JAH"}
+                </Link>
+                {(product as any).store?.city && (
+                  <p className="text-[11px] text-muted-foreground truncate">
+                    {(product as any).store.city} - {(product as any).store.state || "SC"}
+                  </p>
+                )}
+              </div>
+            </div>
+            <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-bold shrink-0">
+              <Link to="/perfil-da-loja" search={{ storeId: product.store_id || (product as any).store?.id }}>
+                Ver Loja
+              </Link>
+            </Button>
+          </div>
+
+          {/* Selos de Confiança & Botão de Denúncia de Ofertas */}
+            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 pt-3  text-[10px] text-muted-foreground font-semibold">
+              <div className="flex items-center gap-3">
+                <span className="flex items-center gap-1.5">
+                  <ShieldCheck className="size-3.5 text-success fill-success/10" />
+                  Pagamento Seguro
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <ShieldCheck className="size-3.5 text-success fill-success/10" />
+                  Proteção JAH
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsReportModalOpen(true)}
+                className="flex items-center gap-1 text-muted-foreground/80 hover:text-destructive transition-colors text-[10px] font-medium cursor-pointer"
+                title="Reportar divergência de preços, frete indevido ou promoção não cumprida"
+              >
+                <ShieldAlert className="size-3 text-destructive" />
+                <span>Reportar oferta</span>
+              </button>
             </div>
           </Surface>
+
+          {/* Modal de Auditoria e Denúncia Anti-Fraude */}
+          <TagFraudDialog
+            isOpen={isReportModalOpen}
+            onClose={() => setIsReportModalOpen(false)}
+            productId={product.id}
+            storeId={product.storeId || "store-default"}
+            productTitle={product.title}
+          />
 
           {/* Add to cart / Encomendar */}
           <div className="space-y-3">
@@ -1087,7 +1174,7 @@ function ProductContent({
                 <>
                   <Button
                     size="lg"
-                    className={`w-full font-bold text-base uppercase rounded-xl h-13 transition-all duration-200 shadow-xs border border-transparent ${isBackorder ? "bg-foreground text-background" : "bg-primary text-primary-foreground"}`}
+                    className={`w-full font-bold text-base uppercase rounded-xl h-13 transition-all duration-200  border border-transparent ${isBackorder ? "bg-foreground text-background" : "bg-primary text-primary-foreground"}`}
                     onClick={handleAddToCart}
                     disabled={
                       Boolean(isAdding) || Boolean(allOutOfStock) || Boolean(variantHardBlocked)
@@ -1129,7 +1216,7 @@ function ProductContent({
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <h3 className="font-bold text-sm text-foreground">{product.brand || "Jah"}</h3>
+                  <h3 className="font-bold text-sm text-foreground">{product.brand || "Wider"}</h3>
                   <Badge className="bg-primary/15 text-primary hover:bg-primary/20 text-[9px] px-1.5 py-0">
                     Marca Oficial
                   </Badge>
@@ -1151,31 +1238,16 @@ function ProductContent({
             <Button
               size="sm"
               variant={isFollowingStore ? "secondary" : "outline"}
-              className="text-xs font-bold"
+              className="text-xs font-bold cursor-pointer"
               onClick={handleToggleFollow}
             >
               {isFollowingStore ? "Seguindo" : "+ Seguir"}
             </Button>
           </Surface>
 
-          {/* Description */}
-          {product.shortDescription && (
-            <p className="text-sm text-muted-foreground leading-relaxed border-l border-primary/30 pl-3 italic">
-              {product.shortDescription}
-            </p>
-          )}
-          {product.description && (
-            <div className="border-t border-border/60 pt-5 space-y-2">
-              <h2 className="text-sm font-bold text-muted-foreground">Descrição do Produto</h2>
-              <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                {product.description}
-              </p>
-            </div>
-          )}
-
           {/* Ficha Técnica Dinâmica (Product Type Attributes) */}
           {product.attributes && Object.keys(product.attributes).length > 0 && (
-            <div className="border-t border-border/60 pt-5 space-y-3">
+            <div className=" pt-5 space-y-3">
               <h2 className="text-sm font-bold text-muted-foreground">Ficha Técnica</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
                 {Object.entries(product.attributes).map(([key, value]) => {
@@ -1184,7 +1256,7 @@ function ProductContent({
                   return (
                     <div
                       key={key}
-                      className="flex flex-col text-sm border-b border-border/40 pb-1.5"
+                      className="flex flex-col text-sm  pb-1.5"
                     >
                       <span className="text-muted-foreground capitalize text-[11px] font-bold tracking-wide">
                         {key}
@@ -1202,110 +1274,72 @@ function ProductContent({
       </div>
 
       {/* Seção de Comentários e Avaliações Reais dos Clientes */}
-      <div className="border-t border-border bg-secondary py-16 text-foreground">
+      <div className=" bg-secondary py-16 text-foreground">
         <div className="mx-auto max-w-screen-xl px-4 md:px-6">
           <div className="grid gap-10 md:grid-cols-12">
-            {/* Esquerda: Média Geral das Notas */}
+            {/* Esquerda: Média Geral das Notas & Selo de Integridade */}
             <div className="md:col-span-4 space-y-6 text-left">
-              <h2 className="text-4xl font-zine font-bold uppercase tracking-tight flex items-center gap-2">
-                <MessageCircle className="size-8 text-primary" strokeWidth={3} />
-                Comentários
+              <h2 className="text-3xl sm:text-4xl font-zine font-bold uppercase tracking-tight flex items-center gap-2.5 text-foreground">
+                <MessageCircle className="size-7 sm:size-8 text-primary" strokeWidth={2.5} />
+                Avaliações
               </h2>
 
-              <div className="flex items-baseline gap-2 bg-background border border-border inline-flex p-4">
-                <span className="text-6xl font-zine font-bold text-primary">
-                  {reviewStats.average_rating > 0 ? reviewStats.average_rating.toFixed(1) : "-"}
+              <div className="flex items-baseline gap-2 bg-card  rounded-2xl p-4 ">
+                <span className="text-5xl font-zine font-bold text-foreground">
+                  {reviewStats.average_rating > 0 ? reviewStats.average_rating.toFixed(1) : "5.0"}
                 </span>
-                <span className="text-xl font-bold">/ 5.0</span>
+                <span className="text-lg font-bold text-muted-foreground">/ 5.0</span>
               </div>
 
               <div className="flex items-center gap-1">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star
                     key={star}
-                    strokeWidth={star <= Math.round(reviewStats.average_rating) ? 2 : 1.5}
-                    className={`size-6 ${star <= Math.round(reviewStats.average_rating) ? "fill-ink text-foreground" : "text-foreground/30"}`}
+                    strokeWidth={star <= Math.round(reviewStats.average_rating || 5) ? 2 : 1.5}
+                    className={`size-5 ${
+                      star <= Math.round(reviewStats.average_rating || 5)
+                        ? "fill-amber-400 text-amber-500"
+                        : "text-border"
+                    }`}
                   />
                 ))}
               </div>
 
-              <p className="text-sm font-medium text-foreground/80 max-w-xs">
-                Baseado em <strong className="text-foreground">{reviewStats.total_reviews}</strong>
-                {""}
-                avaliações de clientes. Compartilhe sua experiência de uso abaixo.
+              <p className="text-xs text-muted-foreground font-medium max-w-xs leading-relaxed">
+                Baseado em <strong className="text-foreground font-bold">{reviewStats.total_reviews}</strong>{" "}
+                {reviewStats.total_reviews === 1 ? "avaliação" : "avaliações"} de compradores reais.
               </p>
 
-              {/* Formulário para Inserir Avaliação Real ou CTA de Login */}
-              {!followStatus || followStatus.following === undefined ? (
-                <div className="border border-border p-5 rounded-2xl bg-card text-center space-y-3 shadow-xs">
-                  <MessageCircle className="size-8 text-primary mx-auto" />
-                  <h3 className="font-bold text-sm text-foreground">
-                    Deseja avaliar este produto?
+              {/* Selo de Confiabilidade & Informação de Compra Verificada */}
+              <div className=" p-4.5 rounded-2xl bg-card space-y-3 ">
+                <div className="flex items-center gap-2 text-foreground">
+                  <ShieldCheck className="size-5 text-success shrink-0" />
+                  <h3 className="font-bold text-xs">
+                    Avaliações 100% Verificadas
                   </h3>
-                  <p className="text-xs text-muted-foreground">
-                    Faça login na sua conta para compartilhar sua avaliação e notas reais com a
-                    comunidade JAH.
-                  </p>
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Para garantir total integridade e evitar avaliações fraudulentas, somente clientes com compra entregue podem avaliar este produto diretamente pelo histórico de pedidos.
+                </p>
+                <div className="pt-2 ">
                   <Button
                     asChild
+                    variant="outline"
                     size="sm"
-                    className="rounded-xl font-bold bg-primary text-primary-foreground text-xs h-9 px-4"
+                    className="w-full text-xs font-bold rounded-xl h-8.5 border-border hover:bg-muted"
                   >
-                    <Link to="/entrar" search={{ returnUrl: `/produto/${product.slug}` }}>
-                      Entrar para Avaliar
+                    <Link to="/conta/pedidos">
+                      Ver Meus Pedidos
                     </Link>
                   </Button>
                 </div>
-              ) : (
-                <form onSubmit={handleSubmitReview}>
-                  <div className="border border-border p-5 space-y-5 bg-background rounded-2xl">
-                    <h3 className="font-bold text-base border-b border-border pb-2">
-                      Escrever uma Avaliação
-                    </h3>
-
-                    <div className="space-y-2">
-                      <span className="text-xs font-bold text-foreground">Sua Nota:</span>
-                      <div className="flex gap-2">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <button
-                            key={star}
-                            type="button"
-                            onClick={() => setNewRating(star)}
-                            className={`size-8 transition-transform hover:scale-110 ${star <= newRating ? "text-primary fill-poster-red" : "text-foreground/30 hover:text-foreground/60"}`}
-                          >
-                            <Star className="size-8" strokeWidth={star <= newRating ? 2 : 1.5} />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <span className="text-xs font-bold text-foreground">Seu Comentário:</span>
-                      <textarea
-                        placeholder="Conte sua opinião sobre conforto, tamanho e material..."
-                        value={newComment}
-                        onChange={(e) => setNewComment(e.target.value)}
-                        rows={3}
-                        className="w-full text-sm p-3 border border-border rounded-xl focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary bg-background resize-none font-medium placeholder:text-muted-foreground"
-                      />
-                    </div>
-
-                    <Button
-                      type="submit"
-                      className="w-full font-bold text-sm rounded-xl h-11 transition-all duration-200 bg-primary text-primary-foreground shadow-xs cursor-pointer"
-                      disabled={isSubmittingReview}
-                    >
-                      {isSubmittingReview ? "Enviando..." : "Publicar Avaliação"}
-                    </Button>
-                  </div>
-                </form>
-              )}
+              </div>
             </div>
 
             {/* Direita: Lista de Comentários */}
             <div className="md:col-span-8 flex flex-col gap-6 mt-8 md:mt-0">
               {reviewsList.length === 0 ? (
-                <div className="p-10 border border-dashed border-border bg-background flex flex-col items-center justify-center text-center gap-4">
+                <div className="p-10 border-0 bg-background flex flex-col items-center justify-center text-center gap-4">
                   <MessageCircle className="size-12 text-foreground/40" />
                   <div>
                     <h4 className="font-semibold text-2xl font-black">Nenhuma avaliação ainda</h4>
@@ -1316,16 +1350,16 @@ function ProductContent({
                 </div>
               ) : (
                 reviewsList.map((review: any) => (
-                  <div key={review.id} className="border border-border bg-background p-5 space-y-3">
-                    <div className="flex items-center justify-between border-b border-border pb-3 mb-2">
+                  <div key={review.id} className=" bg-background p-5 space-y-3">
+                    <div className="flex items-center justify-between  pb-3 mb-2">
                       <div className="flex items-center gap-3">
-                        <div className="size-10 rounded-xl bg-secondary border border-border flex items-center justify-center text-foreground font-black text-sm uppercase">
+                        <div className="size-10 rounded-xl bg-secondary  flex items-center justify-center text-foreground font-black text-sm uppercase">
                           {review.userName.substring(0, 2)}
                         </div>
                         <div>
                           <p className="text-base font-bold text-foreground flex items-center gap-2">
                             {review.userName}
-                            <span className="bg-success text-white text-[10px] uppercase font-black tracking-wider px-2 py-0.5 border border-border ">
+                            <span className="bg-success text-white text-[10px] uppercase font-black tracking-wider px-2 py-0.5  ">
                               Verificado
                             </span>
                           </p>
@@ -1359,12 +1393,58 @@ function ProductContent({
 
       <SizeGuideSheet open={sizeGuideOpen} onOpenChange={setSizeGuideOpen} />
 
-      {/* ZONA DO BUILDER: Template Híbrido da Página de Produto */}
-      {templateTree && templateTree.length > 0 && (
-        <div className="w-full border-t border-border bg-card rounded-2xl overflow-hidden mt-8">
-          <ExperienceRenderer nodes={templateTree} transientData={{ product }} />
+      {/* ZONA DO BUILDER: Seções Complementares (Sem duplicação de título/descrição já renderizados) */}
+      {(() => {
+        const filteredNodes = (templateTree || []).filter((n: any) => {
+          const type = (n?.type || n?.component || n?.name || "").toLowerCase();
+          return !type.includes("description") && !type.includes("descrição") && !type.includes("product-info") && !type.includes("header");
+        });
+        if (!filteredNodes.length) return null;
+        return (
+          <div className="w-full  bg-card rounded-2xl overflow-hidden mt-8">
+            <ExperienceRenderer nodes={filteredNodes} transientData={{ product }} />
+          </div>
+        );
+      })()}
+
+      {/* ── Mobile Sticky Buy Bar (Padrão iFood / E-commerce Fluido) ── */}
+      <div className="md:hidden fixed bottom-16 left-0 right-0 z-30 bg-card  px-3 py-2.5 flex items-center justify-between gap-3  select-none">
+        {/* Contador de Quantidade [- 1 +] */}
+        <div className="flex items-center  rounded-xl bg-secondary h-11 px-1 shrink-0">
+          <button
+            type="button"
+            onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+            className="size-8 flex items-center justify-center font-black text-sm text-foreground hover:bg-muted rounded-lg active:scale-90 transition-all cursor-pointer"
+            aria-label="Diminuir quantidade"
+          >
+            -
+          </button>
+          <span className="w-7 text-center font-bold text-xs text-foreground font-mono">
+            {quantity}
+          </span>
+          <button
+            type="button"
+            onClick={() => setQuantity((prev) => prev + 1)}
+            className="size-8 flex items-center justify-center font-black text-sm text-foreground hover:bg-muted rounded-lg active:scale-90 transition-all cursor-pointer"
+            aria-label="Aumentar quantidade"
+          >
+            +
+          </button>
         </div>
-      )}
+
+        {/* Botão de Ação com Preço Total Multiplicado */}
+        <Button
+          size="lg"
+          className="flex-1 rounded-xl font-bold text-xs h-11 px-4 bg-primary text-primary-foreground flex items-center justify-between  cursor-pointer active:scale-98 transition-all"
+          onClick={handleAddToCart}
+          disabled={Boolean(isAdding) || Boolean(allOutOfStock) || Boolean(selectedVariant && selectedVariant.availableQty <= 0 && !selectedVariant.allowBackorder)}
+        >
+          <span>{isAdding ? "Adicionando..." : "Adicionar"}</span>
+          <span className="font-mono font-black text-xs">
+            {formatMoney(currentPriceCents * (quantity || 1))}
+          </span>
+        </Button>
+      </div>
     </div>
   );
 }

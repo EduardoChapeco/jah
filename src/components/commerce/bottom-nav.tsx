@@ -13,7 +13,7 @@ export function BottomNav({ storeType }: { storeType?: string }) {
   return (
     <nav
       aria-label="Navegação principal"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur pb-safe md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40  bg-background/95 backdrop-blur pb-safe md:hidden"
     >
       <ul className="mx-auto flex max-w-screen-sm items-stretch justify-around">
         {items.map(({ to, label, icon: Icon, exact }) => (

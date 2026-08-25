@@ -35,7 +35,7 @@ export function PostThemeSelector({ selectedThemeId, onSelectTheme }: PostThemeS
               className={cn(
                 "p-3 rounded-xl border text-left flex flex-col justify-between transition-all duration-150 relative overflow-hidden",
                 isSelected
-                  ? "border-primary ring-1 ring-primary/40 bg-card shadow-xs"
+                  ? "border-primary ring-1 ring-primary/40 bg-card "
                   : "border-border/70 bg-card hover:bg-muted/40 hover:border-border",
               )}
             >

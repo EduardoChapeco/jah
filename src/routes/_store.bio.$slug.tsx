@@ -53,7 +53,7 @@ function BiolinkPage() {
                 key={index}
                 asChild
                 variant="outline"
-                className="w-full h-14 font-medium text-base rounded-xl border border-border hover:bg-muted hover:scale-[1.02] transition-transform duration-200"
+                className="w-full h-14 font-medium text-base rounded-xl  hover:bg-muted hover:scale-[1.02] transition-transform duration-200"
               >
                 <a href={link.url} target="_blank" rel="noopener noreferrer">
                   {link.label}

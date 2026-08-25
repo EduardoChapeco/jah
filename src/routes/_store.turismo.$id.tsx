@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import {
@@ -13,7 +13,6 @@ import {
   Sparkle,
   CalendarDots,
   Users,
-  PaperPlaneTilt,
   CircleNotch,
   User,
   EnvelopeSimple,
@@ -21,8 +20,15 @@ import {
   ChatText,
   ShieldCheck,
   AirplaneTilt,
+  Ticket,
+  CreditCard,
+  QrCode,
+  IdentificationCard,
+  Plus,
+  Trash,
 } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
+import { TravelQuoteModal } from "@/components/tourism/travel-quote-modal";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -34,27 +40,38 @@ import {
   DialogTrigger,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { getPublicTourismById, inquireTourismExperience, type TourismItemDTO } from "@/services/tourism.functions";
+import {
+  getPublicTourismById,
+  bookTourismExperience,
+  type TourismItemDTO,
+  type TourismPassenger,
+} from "@/services/tourism.functions";
 import { getUserSession } from "@/services/auth.functions";
+import { formatMoney } from "@/lib/money";
 import { toast } from "sonner";
+import { trackAndOpenWhatsApp } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/_store/turismo/$id")({
-  head: ({ loaderData }) => ({
+  head: ({
+    loaderData,
+  }: {
+    loaderData?: { experience: TourismItemDTO | null; session: any };
+  }) => ({
     meta: [
       {
         title: loaderData?.experience
           ? `${loaderData.experience.title} — Turismo JAH`
-          : "Experiência Turística — JAH",
+          : "Experiência Turística — Wider",
       },
       {
         name: "description",
-        content: loaderData?.experience
+        content: loaderData?.experience?.description
           ? `${loaderData.experience.description.slice(0, 160)}...`
-          : "Descubra passeios, hospedagens e roteiros turísticos no Oeste Catarinense.",
+          : "Descubra passeios, hospedagens e roteiros turísticos autênticos no Wider.",
       },
     ],
   }),
-  loader: async ({ params }) => {
+  loader: async ({ params }): Promise<{ experience: TourismItemDTO | null; session: any }> => {
     const [experience, session] = await Promise.all([
       getPublicTourismById({ data: { experienceId: params.id } }).catch(() => null),
       getUserSession().catch(() => null),
@@ -66,35 +83,78 @@ export const Route = createFileRoute("/_store/turismo/$id")({
 
 function TourismDetailPage() {
   const { experience, session } = Route.useLoaderData();
-  const [isInquiryOpen, setIsInquiryOpen] = useState(false);
+  const navigate = useNavigate();
+
+  if (!experience) {
+    return (
+      <div className="max-w-xl mx-auto py-20 px-4 text-center space-y-4">
+        <h2 className="text-xl font-bold text-foreground">Experiência Turística não encontrada</h2>
+        <p className="text-xs text-muted-foreground">
+          O roteiro solicitado não está ativo ou foi removido.
+        </p>
+        <Button asChild size="sm" className="rounded-xl font-bold text-xs">
+          <Link to="/turismo">Explorar Outros Roteiros</Link>
+        </Button>
+      </div>
+    );
+  }
+
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [isTravelQuoteOpen, setIsTravelQuoteOpen] = useState(false);
   const [customerName, setCustomerName] = useState(session?.user_metadata?.full_name || "");
   const [customerEmail, setCustomerEmail] = useState(session?.email || "");
   const [customerPhone, setCustomerPhone] = useState("");
   const [desiredDate, setDesiredDate] = useState("");
-  const [guestsCount, setGuestsCount] = useState(2);
+  const [guestsCount, setGuestsCount] = useState(1);
+  const [passengers, setPassengers] = useState<TourismPassenger[]>([
+    { name: session?.user_metadata?.full_name || "", document: "" },
+  ]);
+  const [paymentMethod, setPaymentMethod] = useState<"pix" | "credit_card" | "agency_pay">("pix");
   const [message, setMessage] = useState("");
-  const [hasInquired, setHasInquired] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
+  const [issuedVoucher, setIssuedVoucher] = useState<{ voucherCode: string; bookingId: string } | null>(null);
 
-  const inquiryMutation = useMutation({
+  const handleGuestsCountChange = (count: number) => {
+    const validCount = Math.max(1, Math.min(50, count));
+    setGuestsCount(validCount);
+    setPassengers((prev) => {
+      const next = [...prev];
+      while (next.length < validCount) {
+        next.push({ name: "", document: "" });
+      }
+      return next.slice(0, validCount);
+    });
+  };
+
+  const handlePassengerChange = (index: number, field: keyof TourismPassenger, val: string) => {
+    setPassengers((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], [field]: val };
+      return next;
+    });
+  };
+
+  const bookingMutation = useMutation({
     mutationFn: () =>
-      inquireTourismExperience({
+      bookTourismExperience({
         data: {
           experienceId: experience!.id,
-          customerName,
+          customerName: customerName || passengers[0]?.name || "Cliente",
           customerEmail,
           customerPhone,
-          desiredDate: desiredDate || undefined,
+          desiredDate,
           guestsCount,
+          passengers,
+          paymentMethod: paymentMethod === "agency_pay" ? "pix" : paymentMethod,
           message: message || undefined,
         },
       }),
-    onSuccess: () => {
-      setHasInquired(true);
-      toast.success("Solicitação de reserva enviada com sucesso! O anfitrião entrará em contato.");
+    onSuccess: (res) => {
+      setIssuedVoucher({ voucherCode: res.voucher_code, bookingId: res.booking_id });
+      toast.success(res.message);
     },
     onError: (err: any) => {
-      toast.error(err?.message || "Erro ao solicitar reserva.");
+      toast.error(err?.message || "Erro ao realizar reserva.");
     },
   });
 
@@ -117,11 +177,10 @@ function TourismDetailPage() {
   }
 
   const images = experience.gallery_urls?.length > 0 ? experience.gallery_urls : [experience.image_url];
-  const cleanWhatsapp = experience.contact_whatsapp?.replace(/\D/g, "") || "";
-  const whatsappMessage = encodeURIComponent(
-    `Olá! Vi a experiência *${experience.title}* no JAH Turismo e gostaria de informações sobre disponibilidade e reservas.`,
-  );
-  const whatsappUrl = cleanWhatsapp ? `https://wa.me/55${cleanWhatsapp}?text=${whatsappMessage}` : null;
+  // whatsappUrl: removido — agora usa trackAndOpenWhatsApp para rastreamento real de conversões
+
+  const unitPriceCents = experience.price_cents || 0;
+  const totalPriceCents = unitPriceCents * guestsCount;
 
   const handleShare = () => {
     if (typeof window !== "undefined" && navigator.clipboard) {
@@ -131,7 +190,7 @@ function TourismDetailPage() {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-8 pb-24">
+    <div className="w-full max-w-4xl mx-auto space-y-8 pb-6 px-4 sm:px-0">
       {/* ── 1. Top Navigation & Breadcrumb ── */}
       <div className="flex items-center justify-between pt-2">
         <Link
@@ -153,213 +212,262 @@ function TourismDetailPage() {
         </Button>
       </div>
 
-      {/* ── 2. Galeria Visual em Alta Definição ── */}
-      <section className="space-y-3">
-        <div className="relative aspect-[16/9] sm:aspect-[21/9] rounded-3xl overflow-hidden border border-border bg-muted">
+      {/* ── 2. Header & Title Block ── */}
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="outline" className="text-xs font-bold bg-muted/60 text-foreground">
+            {experience.badge_label || "Experiência Regional"}
+          </Badge>
+          <div className="flex items-center gap-1 text-xs font-bold text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-full">
+            <Star size={14} weight="fill" />
+            <span>{experience.rating.toFixed(1)}</span>
+          </div>
+        </div>
+
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-foreground">
+          {experience.title}
+        </h1>
+
+        {experience.subtitle && (
+          <p className="text-sm sm:text-base text-muted-foreground font-medium">
+            {experience.subtitle}
+          </p>
+        )}
+
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs sm:text-sm text-muted-foreground font-medium pt-1">
+          <span className="flex items-center gap-1.5">
+            <MapPin size={16} weight="bold" className="text-foreground shrink-0" />
+            <span>{experience.location}</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Clock size={16} weight="bold" className="text-foreground shrink-0" />
+            <span>Duração: {experience.duration}</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Compass size={16} weight="bold" className="text-foreground shrink-0" />
+            <span>Anfitrião: {experience.provider_name}</span>
+          </span>
+        </div>
+      </div>
+
+      {/* ── 3. Visual Gallery ── */}
+      <div className="space-y-3">
+        <div className="relative w-full aspect-video sm:aspect-21/9 rounded-3xl overflow-hidden bg-black/5  ">
           <img
             src={images[activeImage] || experience.image_url}
             alt={experience.title}
             className="size-full object-cover"
           />
-          {experience.is_featured && (
-            <div className="absolute top-4 left-4">
-              <Badge variant="default" className="rounded-md font-mono text-[9px] uppercase px-2 py-0.5 shadow-md">
-                Experiência em Destaque
-              </Badge>
-            </div>
-          )}
         </div>
 
         {images.length > 1 && (
-          <div className="flex items-center gap-3 overflow-x-auto pb-1 scrollbar-none">
+          <div className="flex gap-2 overflow-x-auto pb-1">
             {images.map((img: string, idx: number) => (
               <button
                 key={idx}
-                type="button"
                 onClick={() => setActiveImage(idx)}
-                className={`relative size-16 sm:size-20 rounded-2xl overflow-hidden border-2 transition-all shrink-0 ${
-                  activeImage === idx ? "border-foreground scale-102 shadow-xs" : "border-border opacity-70 hover:opacity-100"
+                className={`relative w-20 sm:w-24 aspect-video rounded-xl overflow-hidden border-2 transition-all shrink-0 cursor-pointer ${
+                  activeImage === idx ? "border-foreground " : "border-transparent opacity-70 hover:opacity-100"
                 }`}
               >
-                <img src={img} alt={`Foto ${idx + 1}`} className="size-full object-cover" />
+                <img src={img} alt={`Thumb ${idx}`} className="size-full object-cover" />
               </button>
             ))}
           </div>
         )}
-      </section>
+      </div>
 
-      {/* ── 3. Header Principal ── */}
-      <header className="rounded-3xl border border-border bg-card p-6 sm:p-8 space-y-4 shadow-2xs">
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider font-mono text-muted-foreground">
-                {experience.provider_name}
-              </span>
-              <span className="flex items-center gap-1 text-xs font-bold text-foreground bg-muted px-2 py-0.5 rounded-md font-mono">
-                <Star size={13} weight="fill" className="text-amber-500" />
-                {experience.rating.toFixed(1)}
-              </span>
-            </div>
-
-            <h1 className="text-xl sm:text-3xl font-black text-foreground tracking-tight leading-tight">
-              {experience.title}
-            </h1>
-
-            {experience.subtitle && (
-              <p className="text-sm text-muted-foreground font-medium">
-                {experience.subtitle}
-              </p>
-            )}
-
-            <div className="flex flex-wrap items-center gap-y-1.5 gap-x-4 text-xs text-muted-foreground pt-1">
-              <span className="flex items-center gap-1 font-semibold text-foreground">
-                <MapPin size={14} weight="bold" />
-                {experience.location}
-              </span>
-              <span className="flex items-center gap-1 font-semibold text-foreground">
-                <Clock size={14} weight="bold" />
-                Duração: {experience.duration}
-              </span>
-            </div>
-          </div>
-
-          {/* Valor */}
-          <div className="sm:text-right bg-muted/40 sm:bg-transparent p-4 sm:p-0 rounded-2xl border sm:border-0 border-border">
-            <span className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider block">
-              Tarifa
-            </span>
-            <span className="text-xl sm:text-2xl font-black text-foreground font-mono">
-              {experience.price_display}
-            </span>
-          </div>
-        </div>
-      </header>
-
-      {/* ── 4. Conteúdo e Reserva ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <main className="lg:col-span-2 space-y-8">
-          {/* Descrição & Roteiro */}
-          <section className="rounded-3xl border border-border bg-card p-6 sm:p-8 space-y-4 shadow-2xs">
-            <h2 className="text-base font-bold text-foreground flex items-center gap-2">
-              <Compass size={18} weight="bold" />
-              <span>Sobre o Roteiro & Experiência</span>
-            </h2>
-            <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line">
+      {/* ── 4. Main Content Grid ── */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* Left Column: Description, Inclusions, What to Bring */}
+        <div className="md:col-span-2 space-y-8">
+          <section className="space-y-3">
+            <h2 className="text-lg font-bold text-foreground">Sobre a Experiência</h2>
+            <div className="text-sm sm:text-base text-muted-foreground leading-relaxed whitespace-pre-line">
               {experience.description}
             </div>
           </section>
 
-          {/* O que está incluso */}
           {experience.included_items && experience.included_items.length > 0 && (
-            <section className="rounded-3xl border border-border bg-card p-6 sm:p-8 space-y-4 shadow-2xs">
-              <h2 className="text-base font-bold text-foreground flex items-center gap-2">
-                <CheckCircle size={18} weight="bold" />
-                <span>O que está incluso</span>
-              </h2>
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {experience.included_items.map((inc: string, idx: number) => (
-                  <li key={idx} className="flex items-start gap-2.5 text-xs font-semibold text-foreground/90 p-2.5 rounded-xl bg-muted/30 border border-border">
-                    <CheckCircle size={16} weight="bold" className="text-foreground shrink-0 mt-0.5" />
-                    <span>{inc}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-
-          {/* O que levar */}
-          {experience.what_to_bring && experience.what_to_bring.length > 0 && (
-            <section className="rounded-3xl border border-border bg-card p-6 sm:p-8 space-y-4 shadow-2xs">
-              <h2 className="text-base font-bold text-foreground flex items-center gap-2">
-                <Sparkle size={18} weight="bold" />
-                <span>O que levar & Recomendações</span>
-              </h2>
-              <ul className="space-y-2">
-                {experience.what_to_bring.map((item: string, idx: number) => (
-                  <li key={idx} className="flex items-center gap-2.5 text-xs text-foreground/90">
-                    <div className="size-1.5 rounded-full bg-foreground shrink-0" />
+            <section className="space-y-3">
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <CheckCircle size={18} weight="bold" className="text-emerald-600" />
+                <span>O que está incluso no pacote</span>
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {experience.included_items.map((item: string, idx: number) => (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-2.5 p-3 rounded-2xl  bg-card/60 text-xs font-medium text-foreground"
+                  >
+                    <CheckCircle size={14} weight="bold" className="text-emerald-500 shrink-0" />
                     <span>{item}</span>
-                  </li>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </section>
           )}
-        </main>
 
-        {/* ── 5. Coluna de Ação & Contato ── */}
-        <aside className="space-y-5">
-          <div className="sticky top-20 rounded-3xl border border-border bg-card p-6 space-y-5 shadow-2xs">
-            <div className="space-y-1">
-              <h3 className="text-sm font-bold text-foreground">Garantir sua Reserva</h3>
-              <p className="text-xs text-muted-foreground">
-                Solicite datas disponíveis ou fale direto com o operador {experience.provider_name}.
-              </p>
+          {experience.what_to_bring && experience.what_to_bring.length > 0 && (
+            <section className="space-y-3">
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <Sparkle size={18} weight="bold" className="text-primary" />
+                <span>Recomendações / O que levar</span>
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {experience.what_to_bring.map((item: string, idx: number) => (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-2.5 p-3 rounded-2xl  bg-card/60 text-xs font-medium text-foreground"
+                  >
+                    <span className="size-1.5 rounded-full bg-primary shrink-0" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+
+        {/* Right Column: Pricing, Instant Booking, WhatsApp */}
+        <aside className="space-y-4">
+          <div className="p-6 rounded-3xl  bg-card  space-y-5 sticky top-20">
+            <div>
+              <span className="text-xs text-muted-foreground font-medium block">Valor da Experiência</span>
+              <div className="text-2xl font-black text-foreground mt-0.5">
+                {experience.price_display}
+              </div>
             </div>
 
-            {/* Modal de Reserva Real */}
-            <Dialog open={isInquiryOpen} onOpenChange={setIsInquiryOpen}>
+            {/* Modal de Reserva Real com Voucher */}
+            <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
               <DialogTrigger asChild>
-                <Button className="w-full rounded-xl font-bold h-12 text-sm bg-foreground text-background shadow-xs gap-2">
-                  <CalendarDots size={18} weight="bold" />
-                  <span>Solicitar Reserva / Data</span>
+                <Button className="w-full rounded-xl font-bold h-12 text-sm bg-foreground text-background  gap-2">
+                  <Ticket size={18} weight="bold" />
+                  <span>Reservar & Emitir Voucher</span>
                 </Button>
               </DialogTrigger>
 
-              <DialogContent className="max-w-md rounded-3xl p-6 sm:p-8">
+              <DialogContent className="max-w-lg rounded-3xl p-6 sm:p-8 bg-card border-border">
                 <DialogHeader className="space-y-2">
                   <DialogTitle className="text-lg font-black text-foreground">
                     Reservar {experience.title}
                   </DialogTitle>
                   <DialogDescription className="text-xs text-muted-foreground">
-                    Preencha os dados abaixo para receber a confirmação de disponibilidade da data e detalhes do pagamento.
+                    Informe os dados dos participantes e a data para confirmação e emissão do voucher digital.
                   </DialogDescription>
                 </DialogHeader>
 
-                {hasInquired ? (
-                  <div className="py-8 text-center space-y-3">
-                    <div className="size-12 rounded-2xl bg-foreground text-background flex items-center justify-center mx-auto">
-                      <CheckCircle size={24} weight="bold" />
+                {issuedVoucher ? (
+                  <div className="py-6 text-center space-y-4">
+                    <div className="size-14 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center mx-auto">
+                      <CheckCircle size={32} weight="bold" />
                     </div>
-                    <h4 className="text-sm font-bold text-foreground">Solicitação Registrada!</h4>
-                    <p className="text-xs text-muted-foreground">
-                      O anfitrião da experiência entrará em contato via WhatsApp com os detalhes para confirmação.
-                    </p>
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsInquiryOpen(false)}
-                      className="rounded-xl font-bold text-xs"
-                    >
-                      Fechar
-                    </Button>
+                    <div className="space-y-1">
+                      <h4 className="text-base font-bold text-foreground">Voucher Emitido com Sucesso!</h4>
+                      <p className="text-xs text-muted-foreground">
+                        Sua reserva está confirmada. Você pode consultar seu voucher em "Minhas Viagens".
+                      </p>
+                      <div className="pt-2 font-mono font-black text-sm text-foreground bg-muted p-2 rounded-xl">
+                        Código: {issuedVoucher.voucherCode}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                      <Button
+                        asChild
+                        className="flex-1 rounded-xl font-bold text-xs bg-foreground text-background h-11"
+                      >
+                        <Link to="/conta/viagens">
+                          <Compass size={16} weight="bold" className="mr-1.5" />
+                          <span>Ver Minhas Viagens</span>
+                        </Link>
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setIsBookingOpen(false);
+                          setIssuedVoucher(null);
+                        }}
+                        className="rounded-xl font-bold text-xs h-11"
+                      >
+                        Fechar
+                      </Button>
+                    </div>
                   </div>
                 ) : (
                   <form
                     onSubmit={(e) => {
                       e.preventDefault();
-                      inquiryMutation.mutate();
+                      bookingMutation.mutate();
                     }}
                     className="space-y-4 pt-2"
                   >
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                        <User size={14} weight="bold" />
-                        <span>Seu Nome Completo *</span>
-                      </label>
-                      <Input
-                        required
-                        placeholder="Ex: Maria Fernandes"
-                        value={customerName}
-                        onChange={(e) => setCustomerName(e.target.value)}
-                        className="rounded-xl h-10 text-xs bg-background"
-                      />
-                    </div>
-
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1.5">
                         <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                          <CalendarDots size={14} weight="bold" />
+                          <span>Data do Passeio *</span>
+                        </label>
+                        <Input
+                          required
+                          type="date"
+                          value={desiredDate}
+                          onChange={(e) => setDesiredDate(e.target.value)}
+                          className="rounded-xl h-10 text-xs bg-background"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                          <Users size={14} weight="bold" />
+                          <span>Nº Passageiros *</span>
+                        </label>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={50}
+                          value={guestsCount}
+                          onChange={(e) => handleGuestsCountChange(parseInt(e.target.value) || 1)}
+                          className="rounded-xl h-10 text-xs bg-background"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Lista de Passageiros */}
+                    <div className="space-y-2 pt-1 ">
+                      <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                        <IdentificationCard size={14} weight="bold" />
+                        <span>Dados dos Participantes</span>
+                      </span>
+
+                      <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
+                        {passengers.map((p, idx) => (
+                          <div key={idx} className="grid grid-cols-2 gap-2 p-2.5 rounded-2xl bg-muted/40 ">
+                            <Input
+                              required
+                              placeholder={`Nome do participante ${idx + 1}`}
+                              value={p.name}
+                              onChange={(e) => handlePassengerChange(idx, "name", e.target.value)}
+                              className="rounded-lg h-8 text-xs bg-background"
+                            />
+                            <Input
+                              placeholder="CPF / Doc (opcional)"
+                              value={p.document || ""}
+                              onChange={(e) => handlePassengerChange(idx, "document", e.target.value)}
+                              className="rounded-lg h-8 text-xs bg-background"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 pt-1 ">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
                           <Phone size={14} weight="bold" />
-                          <span>WhatsApp *</span>
+                          <span>WhatsApp para contato *</span>
                         </label>
                         <Input
                           required
@@ -372,73 +480,44 @@ function TourismDetailPage() {
 
                       <div className="space-y-1.5">
                         <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                          <Users size={14} weight="bold" />
-                          <span>Nº Pessoas</span>
+                          <EnvelopeSimple size={14} weight="bold" />
+                          <span>E-mail para o voucher *</span>
                         </label>
                         <Input
-                          type="number"
-                          min={1}
-                          max={50}
-                          value={guestsCount}
-                          onChange={(e) => setGuestsCount(parseInt(e.target.value) || 1)}
+                          required
+                          type="email"
+                          placeholder="seu.email@exemplo.com"
+                          value={customerEmail}
+                          onChange={(e) => setCustomerEmail(e.target.value)}
                           className="rounded-xl h-10 text-xs bg-background"
                         />
                       </div>
                     </div>
 
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                        <CalendarDots size={14} weight="bold" />
-                        <span>Data Desejada (Opcional)</span>
-                      </label>
-                      <Input
-                        type="date"
-                        value={desiredDate}
-                        onChange={(e) => setDesiredDate(e.target.value)}
-                        className="rounded-xl h-10 text-xs bg-background"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                        <EnvelopeSimple size={14} weight="bold" />
-                        <span>Seu E-mail *</span>
-                      </label>
-                      <Input
-                        required
-                        type="email"
-                        placeholder="seu.email@exemplo.com"
-                        value={customerEmail}
-                        onChange={(e) => setCustomerEmail(e.target.value)}
-                        className="rounded-xl h-10 text-xs bg-background"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                        <ChatText size={14} weight="bold" />
-                        <span>Mensagem ou Dúvidas Especiais</span>
-                      </label>
-                      <Textarea
-                        placeholder="Ex: Gostaria de saber se aceita crianças ou animais de estimação..."
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        className="rounded-xl min-h-[80px] text-xs bg-background resize-none"
-                      />
-                    </div>
+                    {/* Resumo de Preço Total */}
+                    {totalPriceCents > 0 && (
+                      <div className="p-3.5 rounded-2xl bg-muted/50  flex items-center justify-between text-xs font-bold">
+                        <span className="text-muted-foreground">
+                          Total ({guestsCount}x {formatMoney(unitPriceCents)}):
+                        </span>
+                        <span className="text-sm font-black text-foreground">
+                          {formatMoney(totalPriceCents)}
+                        </span>
+                      </div>
+                    )}
 
                     <Button
                       type="submit"
-                      disabled={inquiryMutation.isPending}
-                      className="w-full rounded-xl font-bold h-11 text-xs bg-foreground text-background mt-2"
+                      disabled={bookingMutation.isPending}
+                      className="w-full rounded-xl font-bold h-11 text-xs bg-foreground text-background mt-2 "
                     >
-                      {inquiryMutation.isPending ? (
+                      {bookingMutation.isPending ? (
                         <>
                           <CircleNotch size={16} className="animate-spin mr-2" />
-                          Registrando solicitação...
+                          Processando reserva e emitindo voucher...
                         </>
                       ) : (
-                        "Enviar Solicitação de Reserva"
+                        "Confirmar Reserva & Gerar Voucher"
                       )}
                     </Button>
                   </form>
@@ -446,21 +525,29 @@ function TourismDetailPage() {
               </DialogContent>
             </Dialog>
 
-            {/* WhatsApp do Provedor */}
-            {whatsappUrl && (
+            {/* WhatsApp do Provedor — Rastreado */}
+            {experience.contact_whatsapp && (
               <Button
-                asChild
+                type="button"
                 variant="outline"
-                className="w-full rounded-xl font-bold h-11 text-xs border-border gap-2"
+                onClick={() =>
+                  trackAndOpenWhatsApp({
+                    phone: experience.contact_whatsapp!,
+                    storeId: (experience as any).store_id || null,
+                    entityType: "tourism",
+                    entityId: experience.id,
+                    entityTitle: experience.title,
+                    niche: experience.category || "turismo",
+                  })
+                }
+                className="w-full rounded-xl font-bold h-11 text-xs border-border gap-2 cursor-pointer"
               >
-                <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-                  <WhatsappLogo size={18} weight="bold" />
-                  <span>Conversar no WhatsApp</span>
-                </a>
+                <WhatsappLogo size={18} weight="bold" className="text-emerald-500" />
+                <span>Conversar no WhatsApp</span>
               </Button>
             )}
 
-            <div className="pt-3 border-t border-border space-y-2 text-[11px] text-muted-foreground">
+            <div className="pt-3  space-y-2 text-[11px] text-muted-foreground">
               <div className="flex items-center gap-2">
                 <ShieldCheck size={16} weight="bold" className="text-foreground shrink-0" />
                 <span>Experiência verificada e curada pelo ecossistema JAH.</span>
@@ -469,6 +556,12 @@ function TourismDetailPage() {
           </div>
         </aside>
       </div>
+      <TravelQuoteModal
+        open={isTravelQuoteOpen}
+        onOpenChange={setIsTravelQuoteOpen}
+        defaultDestination={experience.location_name || experience.title}
+        defaultTripType={experience.category === "hospedagens" ? "hotel_only" : (experience.category as string) === "cruzeiro" ? "cruise" : "air_package"}
+      />
     </div>
   );
 }

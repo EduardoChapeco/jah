@@ -80,8 +80,8 @@ function NewCollectionPage() {
       />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="border border-border bg-card rounded-xl overflow-hidden">
-          <div className="p-6 border-b border-border/20 bg-muted/10">
+        <div className=" bg-card rounded-xl overflow-hidden">
+          <div className="p-6  bg-muted/10">
             <h3 className="text-base font-bold">Dados Básicos</h3>
           </div>
           <div className="p-6 space-y-4">

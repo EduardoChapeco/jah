@@ -1,4 +1,4 @@
-# Design System Audit — Jah Community Platform
+# Design System Audit — Wider Community Platform
 
 > **Microfase B0.1** — Auditoria e Canonização Inicial do Design System
 > Data: 2026-08-03 | Status: Auditoria de investigação (nenhum código alterado)

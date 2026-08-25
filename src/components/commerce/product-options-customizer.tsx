@@ -58,7 +58,7 @@ export function ProductOptionsCustomizer({
   };
 
   return (
-    <div className="space-y-6 pt-4 border-t border-border">
+    <div className="space-y-6 pt-4 ">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-black uppercase tracking-wider text-foreground">
           Personalize seu Pedido
@@ -80,7 +80,7 @@ export function ProductOptionsCustomizer({
           return (
             <div
               key={group.id}
-              className="p-4 rounded-2xl border border-border bg-card/60 space-y-3"
+              className="p-4 rounded-2xl  bg-card/60 space-y-3"
             >
               <div className="flex items-start justify-between gap-2">
                 <div>
@@ -134,7 +134,7 @@ export function ProductOptionsCustomizer({
                       }
                       className={`w-full p-3 rounded-xl border text-left transition-all flex items-center justify-between select-none cursor-pointer ${
                         isChecked
-                          ? "bg-primary/10 border-primary text-foreground shadow-2xs font-semibold"
+                          ? "bg-primary/10 border-primary text-foreground  font-semibold"
                           : "bg-card border-border/70 text-muted-foreground hover:border-border hover:bg-muted/30"
                       }`}
                     >
@@ -145,7 +145,7 @@ export function ProductOptionsCustomizer({
                           } ${
                             isChecked
                               ? "bg-primary text-primary-foreground"
-                              : "border border-border/80 bg-background"
+                              : " bg-background"
                           }`}
                         >
                           {isChecked && <Check className="size-3.5" />}

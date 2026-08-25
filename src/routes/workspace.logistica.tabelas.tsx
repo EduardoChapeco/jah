@@ -21,7 +21,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/workspace/logistica/tabelas")({
   head: () => ({
-    meta: [{ title: "Tabelas de Preço de Frete & KM | JAH Workspace" }],
+    meta: [{ title: "Tabelas de Preço de Frete & KM | Wider Workspace" }],
   }),
   component: WorkspaceLogisticsPriceTablesPage,
 });
@@ -99,7 +99,7 @@ function WorkspaceLogisticsPriceTablesPage() {
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-8 pb-24">
+    <div className="w-full max-w-5xl mx-auto space-y-8 pb-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -126,9 +126,9 @@ function WorkspaceLogisticsPriceTablesPage() {
         {tables.map((table) => (
           <div
             key={table.id}
-            className="rounded-3xl border border-border/80 bg-card p-6 shadow-xs space-y-5"
+            className="rounded-3xl  bg-card p-6  space-y-5"
           >
-            <div className="flex items-center justify-between border-b border-border/50 pb-3">
+            <div className="flex items-center justify-between  pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
                   {table.service_type === "moving_truck" ? (

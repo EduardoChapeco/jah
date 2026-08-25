@@ -40,7 +40,7 @@ export function RoutineSteps({
         {steps.map((step, idx) => (
           <div
             key={step.step_number || idx}
-            className="flex flex-col bg-card border border-border p-6 hover:shadow-md transition-shadow relative overflow-hidden group"
+            className="flex flex-col bg-card  p-6 hover: transition-shadow relative overflow-hidden group"
           >
             {/* Step badge */}
             <div className="flex items-center justify-between mb-4">

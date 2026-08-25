@@ -1,553 +1,404 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
-  Sliders,
+  Sparkles,
   Plus,
-  Trash,
-  Tag,
+  Trash2,
+  Loader2,
   Eye,
-  Sparkle,
-  Image,
-  PencilSimple,
-} from "@phosphor-icons/react";
+  Pencil,
+  ArrowRight,
+  Shield,
+  Layers,
+  Image as ImageIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { SheetPage } from "@/components/ui/sheet-page";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   listHotpages,
-  createHotpage,
-  updateHotpage,
+  saveHotpage,
   deleteHotpage,
   type HotpageDTO,
 } from "@/services/hotpage.functions";
+import { getUserSession } from "@/services/auth.functions";
 import { toast } from "sonner";
+import { MediaUploader } from "@/components/ui/media-uploader";
+import { DynamicMediaChip } from "@/components/commerce/dynamic-media-chip";
 
 export const Route = createFileRoute("/workspace/marketing/hotpages")({
-  head: () => ({ meta: [{ title: "Gestão de Cards de Categorias & Ícones | JAH Workspace" }] }),
+  head: () => ({ meta: [{ title: "Destaques & Hotpages da Loja | Workspace" }] }),
   loader: async () => {
-    const hotpages = await listHotpages({ data: { module: "all" } }).catch(() => []);
-    return { hotpages };
+    const [hotpages, session] = await Promise.all([
+      listHotpages({ data: { module: "home" } }).catch(() => []),
+      getUserSession().catch(() => null),
+    ]);
+    return { hotpages, session };
   },
-  component: WorkspaceHotpagesPage,
+  component: WorkspaceStoreHotpagesPage,
 });
 
-function WorkspaceHotpagesPage() {
-  const { hotpages: initialHotpages } = Route.useLoaderData();
+function WorkspaceStoreHotpagesPage() {
+  const { hotpages: initialHotpages, session } = Route.useLoaderData();
   const [hotpages, setHotpages] = useState<HotpageDTO[]>(initialHotpages || []);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Form states
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [badgeLabel, setBadgeLabel] = useState("");
-  const [description, setDescription] = useState("");
-  const [coverImageUrl, setCoverImageUrl] = useState("");
-  const [customIconUrl, setCustomIconUrl] = useState("");
-  const [module, setModule] = useState<
-    "home" | "mercado" | "marketplace" | "noticias" | "agenda" | "events" | "diretorio" | "all"
-  >("home");
-  const [sortOrder, setSortOrder] = useState(0);
-
-  // Customization Switches (Clean Media Mode)
+  const [targetRoute, setTargetRoute] = useState("");
+  const [bgMediaType, setBgMediaType] = useState<"none" | "image" | "video" | "gif">("none");
+  const [bgMediaUrl, setBgMediaUrl] = useState("");
+  const [bgTexture, setBgTexture] = useState<"none" | "noise" | "dots" | "grid" | "mesh" | "glass">("none");
+  const [bgOverlayOpacity, setBgOverlayOpacity] = useState(40);
   const [showTitle, setShowTitle] = useState(true);
-  const [showDescription, setShowDescription] = useState(true);
-  const [showOverlay, setShowOverlay] = useState(true);
   const [showBadge, setShowBadge] = useState(true);
 
-  const refreshHotpages = async () => {
-    const updated = await listHotpages({ data: { module: "all" } }).catch(() => []);
+  const isPlatformAdmin = session?.role === "platform_admin";
+
+  const refreshList = async () => {
+    const updated = await listHotpages({ data: { module: "home" } }).catch(() => []);
     setHotpages(updated);
   };
 
   const handleOpenCreate = () => {
     setEditingId(null);
     setTitle("");
-    setSlug("");
-    setBadgeLabel("Destaque");
-    setDescription("");
-    setCoverImageUrl("");
-    setCustomIconUrl("");
-    setModule("home");
-    setSortOrder(hotpages.length);
+    setSlug(`destaque-${Date.now()}`);
+    setBadgeLabel("Novidade");
+    setTargetRoute("/perfil-da-loja");
+    setBgMediaType("none");
+    setBgMediaUrl("");
+    setBgTexture("none");
+    setBgOverlayOpacity(40);
     setShowTitle(true);
-    setShowDescription(true);
-    setShowOverlay(true);
     setShowBadge(true);
     setIsModalOpen(true);
   };
 
-  const handleOpenEdit = (hp: HotpageDTO) => {
-    setEditingId(hp.id);
-    setTitle(hp.title);
-    setSlug(hp.slug);
-    setBadgeLabel(hp.badge_label || "");
-    setDescription(hp.description || "");
-    setCoverImageUrl(hp.cover_image_url || "");
-    setCustomIconUrl(hp.custom_icon_url || hp.icon_url || "");
-    setModule(hp.module || "home");
-    setSortOrder(hp.sort_order || 0);
-    setShowTitle(hp.show_title !== false);
-    setShowDescription(hp.show_description !== false);
-    setShowOverlay(hp.show_overlay !== false);
-    setShowBadge(hp.show_badge !== false);
+  const handleOpenEdit = (h: HotpageDTO) => {
+    setEditingId(h.id);
+    setTitle(h.title);
+    setSlug(h.slug);
+    setBadgeLabel(h.badge_label || "");
+    setTargetRoute(h.target_route || "");
+    setBgMediaType(h.bg_media_type || "none");
+    setBgMediaUrl(h.bg_media_url || "");
+    setBgTexture(h.bg_texture || "none");
+    setBgOverlayOpacity(h.bg_overlay_opacity ?? 40);
+    setShowTitle(h.show_title !== false);
+    setShowBadge(h.show_badge !== false);
     setIsModalOpen(true);
   };
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = async () => {
     if (!title.trim()) {
-      toast.error("Informe o título da categoria/hotpage.");
-      return;
-    }
-    if (!slug.trim()) {
-      toast.error("Informe o slug identificador.");
+      toast.error("O título do destaque é obrigatório.");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      if (editingId) {
-        await updateHotpage({
-          data: {
-            id: editingId,
-            title,
-            slug: slug.toLowerCase().trim(),
-            badge_label: badgeLabel || null,
-            description: description || null,
-            cover_image_url: coverImageUrl || null,
-            icon_url: customIconUrl || null,
-            custom_icon_url: customIconUrl || null,
-            module,
-            sort_order: sortOrder,
-            show_title: showTitle,
-            show_description: showDescription,
-            show_overlay: showOverlay,
-            show_badge: showBadge,
-          },
-        });
-        toast.success("Categoria e ícone atualizados com sucesso!");
-      } else {
-        await createHotpage({
-          data: {
-            title,
-            slug: slug.toLowerCase().trim(),
-            badge_label: badgeLabel || undefined,
-            description: description || undefined,
-            cover_image_url: coverImageUrl || undefined,
-            icon_url: customIconUrl || undefined,
-            custom_icon_url: customIconUrl || undefined,
-            module,
-            sort_order: sortOrder,
-            show_title: showTitle,
-            show_description: showDescription,
-            show_overlay: showOverlay,
-            show_badge: showBadge,
-          },
-        });
-        toast.success("Categoria criada com sucesso!");
-      }
+      await saveHotpage({
+        data: {
+          id: editingId || undefined,
+          slug: slug.trim() || `hotpage-${Date.now()}`,
+          title: title.trim(),
+          badge_label: badgeLabel.trim() || undefined,
+          target_route: targetRoute.trim() || undefined,
+          bg_media_type: bgMediaType,
+          bg_media_url: bgMediaUrl || undefined,
+          bg_texture: bgTexture,
+          bg_overlay_opacity: bgOverlayOpacity,
+          show_title: showTitle,
+          show_badge: showBadge,
+          module: "home",
+          is_active: true,
+          sort_order: 0,
+        },
+      });
+
+      toast.success(editingId ? "Destaque atualizado!" : "Destaque criado com sucesso!");
       setIsModalOpen(false);
-      await refreshHotpages();
-    } catch (err: unknown) {
-      toast.error((err instanceof Error ? err.message : String(err)) || "Erro ao salvar categoria.");
+      await refreshList();
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao salvar destaque.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Deseja realmente remover esta categoria/hotpage?")) return;
+    if (!confirm("Deseja realmente remover este destaque?")) return;
     try {
       await deleteHotpage({ data: { id } });
-      toast.success("Categoria removida com sucesso.");
-      await refreshHotpages();
-    } catch {
-      toast.error("Erro ao remover categoria.");
+      toast.success("Destaque removido.");
+      await refreshList();
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao excluir destaque.");
     }
   };
 
   return (
-    <div className="w-full space-y-6">
-      {/* Header */}
+    <div className="w-full space-y-6 pb-20">
+      {/* Top Banner Informativo se for Admin Master */}
+      {isPlatformAdmin && (
+        <div className="p-4 rounded-2xl bg-primary/10 border border-primary/30 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Shield className="size-5 text-primary shrink-0" />
+            <div className="text-xs">
+              <p className="font-bold text-foreground">Você é Administrador Master Global</p>
+              <p className="text-muted-foreground">
+                Para gerenciar os botões, categorias e sub-headers de todas as 25 vitrines públicas da cidade, use a Central Global.
+              </p>
+            </div>
+          </div>
+          <Button asChild size="sm" className="rounded-xl text-xs font-bold shrink-0">
+            <Link to="/admin-master/botoes">
+              <span>Central de Botões Master</span>
+              <ArrowRight className="size-3.5 ml-1" />
+            </Link>
+          </Button>
+        </div>
+      )}
+
+      {/* Header Principal */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider bg-foreground text-background">
-              Descoberta & Categorias
-            </span>
-            <span className="text-xs text-muted-foreground font-mono">Customização de Ícones & Mídias</span>
-          </div>
-          <h1 className="text-2xl font-black tracking-tight text-foreground mt-1">
-            Cards de Categorias & Ícones Customizados
+          <h1 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
+            <Sparkles className="size-5 text-amber-500" />
+            <span>Destaques & Hotpages da Loja</span>
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-            Configure cards panorâmicos e suba imagens/ícones personalizados para cada categoria exibida no Super App.
+          <p className="text-xs text-muted-foreground">
+            Crie botões e cards de campanhas rápidas com texturas e mídias para seu perfil público.
           </p>
         </div>
 
-        <Button onClick={handleOpenCreate} className="rounded-xl font-bold gap-2">
-          <Plus size={16} weight="bold" />
-          <span>Nova Categoria</span>
+        <Button
+          onClick={handleOpenCreate}
+          size="sm"
+          className="rounded-xl font-bold text-xs h-9 bg-primary text-primary-foreground gap-1.5 shadow-xs cursor-pointer"
+        >
+          <Plus className="size-4" />
+          <span>Novo Destaque</span>
         </Button>
       </div>
 
-      {/* Grid de Hotpages Cadastradas */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {hotpages.map((hp) => {
-          const showT = hp.show_title !== false;
-          const showO = hp.show_overlay !== false && (showT || hp.badge_label);
-          const iconUrl = hp.custom_icon_url || hp.icon_url;
-
-          return (
+      {/* Grade de Destaques Ativos */}
+      {hotpages.length === 0 ? (
+        <div className="py-16 text-center space-y-3 bg-card rounded-3xl border border-border/60 p-8">
+          <Layers className="size-10 text-muted-foreground mx-auto" />
+          <p className="text-sm font-bold text-foreground">Nenhum destaque cadastrado</p>
+          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+            Adicione cartões especiais para promover combos, lançamentos ou seções exclusivas.
+          </p>
+          <Button onClick={handleOpenCreate} size="sm" className="rounded-xl font-bold text-xs">
+            <Plus className="size-3.5 mr-1" /> Criar Primeiro Destaque
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {hotpages.map((h) => (
             <div
-              key={hp.id}
-              className="group relative flex flex-col rounded-3xl border border-border bg-card overflow-hidden shadow-2xs hover-elevate transition-all"
+              key={h.id}
+              className="p-4 rounded-3xl bg-card border border-border/70 space-y-3 shadow-2xs flex flex-col justify-between"
             >
-              {/* Visual Card Preview */}
-              <div className="relative aspect-16/10 w-full overflow-hidden bg-muted">
-                {hp.cover_image_url ? (
-                  <img
-                    src={hp.cover_image_url}
-                    alt={hp.title}
-                    className="size-full object-cover group-hover:scale-105 transition-transform duration-500"
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Badge variant="outline" className="text-[10px] font-mono">
+                    {h.badge_label || "Card"}
+                  </Badge>
+                  <span className="text-[10px] text-muted-foreground font-mono">
+                    {h.bg_texture !== "none" ? `Textura: ${h.bg_texture}` : "Padrão"}
+                  </span>
+                </div>
+
+                <h3 className="text-sm font-bold text-foreground line-clamp-1">{h.title}</h3>
+                <p className="text-xs text-muted-foreground truncate">{h.target_route || "/loja"}</p>
+
+                {/* Mini Preview do Chip */}
+                <div className="pt-2">
+                  <DynamicMediaChip
+                    label={h.title}
+                    badge={h.badge_label || undefined}
+                    bg_media_type={h.bg_media_type || undefined}
+                    bg_media_url={h.bg_media_url || undefined}
+                    bg_texture={h.bg_texture as any || undefined}
+                    bg_overlay_opacity={h.bg_overlay_opacity ?? undefined}
+                    to={h.target_route || undefined}
                   />
-                ) : (
-                  <div className="size-full bg-muted flex items-center justify-center">
-                    <Tag size={32} className="text-muted-foreground/40" />
-                  </div>
-                )}
-
-                {showO && (
-                  <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/30 to-transparent pointer-events-none" />
-                )}
-
-                <div className="absolute inset-0 p-3 flex flex-col justify-between z-10 pointer-events-none">
-                  <div className="flex items-center justify-between">
-                    {hp.show_badge !== false && hp.badge_label && (
-                      <span className="px-2 py-0.5 rounded-md text-[9px] font-mono font-bold uppercase tracking-wider bg-foreground text-background shadow-xs">
-                        {hp.badge_label}
-                      </span>
-                    )}
-                    <Badge variant="secondary" className="text-[10px] font-mono ml-auto">
-                      /{hp.slug}
-                    </Badge>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    {iconUrl && (
-                      <div className="size-6 rounded-md bg-white/20 backdrop-blur-md p-1 shrink-0 overflow-hidden flex items-center justify-center">
-                        <img src={iconUrl} alt="Icon" className="size-full object-contain" />
-                      </div>
-                    )}
-                    {showT && (
-                      <h3 className="text-xs font-black text-white line-clamp-1 drop-shadow-xs">
-                        {hp.title}
-                      </h3>
-                    )}
-                  </div>
                 </div>
               </div>
 
-              {/* Management Controls */}
-              <div className="p-3 border-t border-border flex items-center justify-between bg-card text-xs">
-                <div className="space-y-0.5">
-                  <p className="font-bold text-foreground truncate max-w-[140px]">{hp.title}</p>
-                  <p className="text-[10px] text-muted-foreground">Módulo: {hp.module || "home"}</p>
-                </div>
-
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleOpenEdit(hp)}
-                    className="h-8 px-2.5 text-xs font-semibold rounded-lg"
-                  >
-                    <PencilSimple size={14} className="mr-1" />
-                    Editar
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDelete(hp.id)}
-                    className="size-8 text-destructive hover:bg-destructive/10 rounded-lg"
-                  >
-                    <Trash size={14} />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Modal de Criação / Edição com Live Preview */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-2xl p-0 overflow-hidden rounded-3xl border border-border bg-background shadow-2xl">
-          <DialogHeader className="p-6 pb-4 border-b border-border bg-muted/20">
-            <DialogTitle className="flex items-center gap-2 text-lg font-black tracking-tight">
-              <Sliders size={20} weight="bold" className="text-foreground" />
-              <span>{editingId ? "Editar Categoria & Ícone" : "Nova Categoria"}</span>
-            </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground">
-              Configure imagens de capa, suba URLs de ícones customizados e defina o comportamento de exibição.
-            </DialogDescription>
-          </DialogHeader>
-
-          <form onSubmit={handleSave} className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
-            {/* ── 1. Live Preview Panorâmico ── */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                <span className="flex items-center gap-1.5">
-                  <Eye size={14} weight="bold" className="text-foreground" />
-                  Live Preview do Card
-                </span>
-                <span className="text-[10px] font-mono lowercase">vitrine pública</span>
-              </div>
-
-              <div className="relative aspect-16/10 sm:aspect-21/9 w-full rounded-2xl border border-border overflow-hidden shadow-xs bg-zinc-900 flex items-end">
-                {coverImageUrl ? (
-                  <img
-                    src={coverImageUrl}
-                    alt="Preview"
-                    className="absolute inset-0 size-full object-cover"
-                  />
-                ) : (
-                  <div className="absolute inset-0 bg-muted flex items-center justify-center">
-                    <Tag size={36} className="text-muted-foreground/30" />
-                  </div>
-                )}
-
-                {showOverlay && (
-                  <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/30 to-transparent pointer-events-none" />
-                )}
-
-                <div className="relative p-4 z-10 w-full space-y-1">
-                  {showBadge && badgeLabel && (
-                    <span className="px-2.5 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider bg-foreground text-background shadow-xs">
-                      {badgeLabel}
-                    </span>
-                  )}
-
-                  <div className="flex items-center gap-2 pt-1">
-                    {customIconUrl && (
-                      <div className="size-6 rounded-md bg-white/20 backdrop-blur-md p-1 shrink-0 overflow-hidden flex items-center justify-center">
-                        <img src={customIconUrl} alt="Icon Preview" className="size-full object-contain" />
-                      </div>
-                    )}
-                    {showTitle && (
-                      <h3 className="text-sm sm:text-base font-black text-white drop-shadow-xs">
-                        {title || "Título da Categoria"}
-                      </h3>
-                    )}
-                  </div>
-
-                  {showDescription && description && (
-                    <p className="text-xs text-zinc-300 line-clamp-1 drop-shadow-xs">
-                      {description}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* ── 2. Campos Básicos ── */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="title" className="text-xs font-bold">
-                  Título da Categoria
-                </Label>
-                <Input
-                  id="title"
-                  placeholder="Ex: Gastronomia & Sabores"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="rounded-xl h-10"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="slug" className="text-xs font-bold">
-                  Slug Identificador (URL)
-                </Label>
-                <Input
-                  id="slug"
-                  placeholder="Ex: gastronomia"
-                  value={slug}
-                  onChange={(e) => setSlug(e.target.value)}
-                  className="rounded-xl h-10 font-mono"
-                />
-              </div>
-            </div>
-
-            {/* ── 2.5. Imagem / Ícone Customizado da Categoria (Upload / URL) ── */}
-            <div className="space-y-1.5 rounded-2xl border border-border bg-muted/20 p-4">
-              <div className="flex items-center gap-2">
-                <Image size={16} weight="bold" className="text-foreground" />
-                <Label htmlFor="customIcon" className="text-xs font-bold">
-                  Ícone Customizado da Categoria (URL da Imagem / PNG / SVG)
-                </Label>
-              </div>
-              <p className="text-[11px] text-muted-foreground">
-                Suba o link do ícone ou imagem ilustrativa da categoria. Ele será exibido na barra estilo iFood e nos menus.
-              </p>
-              <div className="flex items-center gap-3 pt-1">
-                <Input
-                  id="customIcon"
-                  placeholder="https://.../icon-farmacia.png"
-                  value={customIconUrl}
-                  onChange={(e) => setCustomIconUrl(e.target.value)}
-                  className="rounded-xl h-10 font-mono text-xs flex-1"
-                />
-                {customIconUrl && (
-                  <div className="size-10 rounded-xl border border-border bg-card p-1 shrink-0 flex items-center justify-center overflow-hidden">
-                    <img src={customIconUrl} alt="Icon" className="size-full object-contain" />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="badge" className="text-xs font-bold">
-                  Texto do Badge
-                </Label>
-                <Input
-                  id="badge"
-                  placeholder="Ex: Em Alta"
-                  value={badgeLabel}
-                  onChange={(e) => setBadgeLabel(e.target.value)}
-                  className="rounded-xl h-10"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="module" className="text-xs font-bold">
-                  Módulo / Seção
-                </Label>
-                <select
-                  id="module"
-                  value={module}
-                  onChange={(e) => setModule(e.target.value as any)}
-                  className="w-full h-10 px-3 rounded-xl border border-border bg-card text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-primary"
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-border/30">
+                <Button
+                  onClick={() => handleOpenEdit(h)}
+                  size="sm"
+                  variant="outline"
+                  className="h-8 px-2.5 rounded-xl text-xs font-semibold gap-1"
                 >
-                  <option value="home">Home Principal (/)</option>
-                  <option value="mercado">Mercado & Produtos (/mercado)</option>
-                  <option value="noticias">Portal de Notícias (/noticias)</option>
-                  <option value="agenda">Agenda Cultural & Eventos (/agenda)</option>
-                  <option value="diretorio">Guia & Diretório de Serviços (/diretorio)</option>
-                  <option value="all">Todas as Páginas</option>
-                </select>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="sort" className="text-xs font-bold">
-                  Ordem de Exibição
-                </Label>
-                <Input
-                  id="sort"
-                  type="number"
-                  value={sortOrder}
-                  onChange={(e) => setSortOrder(Number(e.target.value))}
-                  className="rounded-xl h-10"
-                />
+                  <Pencil className="size-3" /> Editar
+                </Button>
+                <Button
+                  onClick={() => handleDelete(h.id)}
+                  size="sm"
+                  variant="ghost"
+                  className="h-8 px-2.5 rounded-xl text-xs text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="size-3" />
+                </Button>
               </div>
             </div>
+          ))}
+        </div>
+      )}
 
+      {/* Drawer Lateral de Criação/Edição com Live Preview */}
+      <SheetPage
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        title={editingId ? "Editar Destaque" : "Novo Destaque da Loja"}
+        description="Personalize o texto, mídia de fundo e destino do card."
+      >
+        <div className="space-y-5 p-1 pb-16">
+          {/* Live Preview */}
+          <div className="space-y-1.5 p-3 rounded-2xl bg-muted/20 border border-border/50">
+            <span className="text-[11px] font-bold text-muted-foreground">Pré-Visualização em Tempo Real</span>
+            <DynamicMediaChip
+              label={title || "Nome do Destaque"}
+              badge={badgeLabel || undefined}
+              bg_media_type={bgMediaType}
+              bg_media_url={bgMediaUrl || undefined}
+              bg_texture={bgTexture as any}
+              bg_overlay_opacity={bgOverlayOpacity}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold">Título do Destaque *</Label>
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Ex: Combo Família ou Oferta do Dia"
+              className="rounded-xl text-xs h-9"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="media" className="text-xs font-bold">
-                URL da Imagem de Capa Panorâmica
-              </Label>
+              <Label className="text-xs font-bold">Badge / Tag</Label>
               <Input
-                id="media"
-                placeholder="https://images.unsplash.com/..."
-                value={coverImageUrl}
-                onChange={(e) => setCoverImageUrl(e.target.value)}
-                className="rounded-xl h-10 font-mono text-xs"
+                value={badgeLabel}
+                onChange={(e) => setBadgeLabel(e.target.value)}
+                placeholder="Ex: 20% OFF, Novo"
+                className="rounded-xl text-xs h-9"
               />
             </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">Rota de Destino</Label>
+              <Input
+                value={targetRoute}
+                onChange={(e) => setTargetRoute(e.target.value)}
+                placeholder="Ex: /cardapio"
+                className="rounded-xl text-xs h-9"
+              />
+            </div>
+          </div>
 
-            {/* ── 3. Switches de Customização Visual (Modo Mídia Limpa) ── */}
-            <div className="rounded-2xl border border-border bg-muted/20 p-4 space-y-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
-                Personalização Visual (Modo Mídia Limpa)
-              </span>
+          {/* Mídia de Fundo */}
+          <div className="space-y-2 pt-2 border-t border-border/30">
+            <Label className="text-xs font-bold">Tipo de Mídia de Fundo</Label>
+            <Select
+              value={bgMediaType}
+              onValueChange={(val: any) => setBgMediaType(val)}
+            >
+              <SelectTrigger className="rounded-xl text-xs h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="none">Nenhuma (Cor padrão)</SelectItem>
+                <SelectItem value="image">Imagem</SelectItem>
+                <SelectItem value="video">Vídeo MP4</SelectItem>
+                <SelectItem value="gif">GIF Animado</SelectItem>
+              </SelectContent>
+            </Select>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <label className="flex items-center justify-between p-2.5 rounded-xl border border-border bg-card cursor-pointer hover:bg-muted/40 transition-colors">
-                  <span className="text-xs font-semibold text-foreground">Exibir Título</span>
-                  <input
-                    type="checkbox"
-                    checked={showTitle}
-                    onChange={(e) => setShowTitle(e.target.checked)}
-                    className="size-4 rounded accent-primary cursor-pointer"
-                  />
-                </label>
-
-                <label className="flex items-center justify-between p-2.5 rounded-xl border border-border bg-card cursor-pointer hover:bg-muted/40 transition-colors">
-                  <span className="text-xs font-semibold text-foreground">Exibir Badge</span>
-                  <input
-                    type="checkbox"
-                    checked={showBadge}
-                    onChange={(e) => setShowBadge(e.target.checked)}
-                    className="size-4 rounded accent-primary cursor-pointer"
-                  />
-                </label>
-
-                <label className="flex items-center justify-between p-2.5 rounded-xl border border-border bg-card cursor-pointer hover:bg-muted/40 transition-colors">
-                  <span className="text-xs font-semibold text-foreground">Exibir Overlay Escuro</span>
-                  <input
-                    type="checkbox"
-                    checked={showOverlay}
-                    onChange={(e) => setShowOverlay(e.target.checked)}
-                    className="size-4 rounded accent-primary cursor-pointer"
-                  />
-                </label>
-
-                <label className="flex items-center justify-between p-2.5 rounded-xl border border-border bg-card cursor-pointer hover:bg-muted/40 transition-colors">
-                  <span className="text-xs font-semibold text-foreground">Exibir Descrição</span>
-                  <input
-                    type="checkbox"
-                    checked={showDescription}
-                    onChange={(e) => setShowDescription(e.target.checked)}
-                    className="size-4 rounded accent-primary cursor-pointer"
-                  />
-                </label>
+            {bgMediaType !== "none" && (
+              <div className="space-y-1.5 pt-1">
+                <Label className="text-xs">Upload de Mídia ou URL</Label>
+                <MediaUploader
+                  value={bgMediaUrl ? [bgMediaUrl] : []}
+                  onChange={(urls) => setBgMediaUrl(urls[0] || "")}
+                />
               </div>
-            </div>
+            )}
+          </div>
 
-            {/* ── 4. Ações do Formulário ── */}
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsModalOpen(false)}
-                className="rounded-xl font-bold"
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                isLoading={isSubmitting}
-                loadingText="Salvando..."
-                className="rounded-xl font-bold"
-              >
-                {editingId ? "Salvar Alterações" : "Criar Categoria"}
-              </Button>
+          {/* Textura */}
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold">Textura Visual</Label>
+            <Select
+              value={bgTexture}
+              onValueChange={(val: any) => setBgTexture(val)}
+            >
+              <SelectTrigger className="rounded-xl text-xs h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="none">Sem Textura</SelectItem>
+                <SelectItem value="noise">Noise Gradiente Suave</SelectItem>
+                <SelectItem value="dots">Pontilhismo (Dots)</SelectItem>
+                <SelectItem value="grid">Grid Técnico</SelectItem>
+                <SelectItem value="mesh">Mesh Gradient</SelectItem>
+                <SelectItem value="glass">Glassmorphism</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Switches de Exibição */}
+          <div className="space-y-3 pt-2 border-t border-border/30">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold">Exibir Título</Label>
+              <Switch checked={showTitle} onCheckedChange={setShowTitle} />
             </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold">Exibir Badge</Label>
+              <Switch checked={showBadge} onCheckedChange={setShowBadge} />
+            </div>
+          </div>
+
+          <div className="pt-4 flex items-center justify-end gap-2">
+            <Button
+              onClick={() => setIsModalOpen(false)}
+              variant="outline"
+              size="sm"
+              className="rounded-xl text-xs"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSave}
+              disabled={isSubmitting}
+              size="sm"
+              className="rounded-xl text-xs font-bold bg-primary text-primary-foreground min-w-[100px]"
+            >
+              {isSubmitting ? <Loader2 className="size-3.5 animate-spin" /> : "Salvar Destaque"}
+            </Button>
+          </div>
+        </div>
+      </SheetPage>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter, isRedirect } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -93,8 +93,8 @@ export const Route = createFileRoute("/workspace/financeiro/caixa/")({
   head: () => ({ meta: [{ title: "PDV & Frente de Caixa" }] }),
   loader: async () => {
     const [registerRes, productsRes] = await Promise.all([
-      getActiveRegister(),
-      listAdminProducts(),
+      getActiveRegister().catch(() => null),
+      listAdminProducts().catch(() => []),
     ]);
     return {
       register: registerRes,
@@ -116,6 +116,10 @@ const CloseRegisterSchema = z.object({
 });
 
 function CashRegisterError({ error }: { error: Error }) {
+  if (isRedirect(error)) {
+    throw error;
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader eyebrow="Operação Comercial" title="Frente de Caixa (PDV)" />
@@ -418,7 +422,7 @@ function CashRegisterPage() {
       <div className="space-y-6">
         <PageHeader eyebrow="Frente de Loja / PDV" title="Caixa Fechado" />
 
-        <div className="border border-border bg-surface-paper shadow-sm p-6 rounded-xl max-w-2xl">
+        <div className=" bg-surface-paper  p-6 rounded-xl max-w-2xl">
           <div className="mb-6">
             <h3 className="text-base font-bold flex items-center gap-2 text-warning">
               <Lock className="size-5" />
@@ -523,7 +527,7 @@ function CashRegisterPage() {
                   <div
                     key={variant.variantId}
                     onClick={() => handleAddToCart(variant)}
-                    className="p-3 border border-border bg-surface-paper shadow-sm hover:border-primary/50 hover:shadow-md transition-all cursor-pointer flex items-center gap-3 group rounded-xl"
+                    className="p-3  bg-surface-paper  hover:border-primary/50 hover: transition-all cursor-pointer flex items-center gap-3 group rounded-xl"
                   >
                     {variant.coverUrl ? (
                       <img
@@ -564,7 +568,7 @@ function CashRegisterPage() {
 
             {/* LADO DIREITO: Carrinho do Balcão e Fechamento (5 Colunas) */}
             <div className="lg:col-span-5 space-y-4">
-              <div className="border border-border bg-surface-paper shadow-sm rounded-xl overflow-hidden">
+              <div className=" bg-surface-paper  rounded-xl overflow-hidden">
                 <div className="py-3 px-4 border-b bg-primary/5 flex flex-row items-center justify-between">
                   <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
                     <ShoppingCart className="size-4 text-primary" />
@@ -775,7 +779,7 @@ function CashRegisterPage() {
                 Vendas, reforços de troco e sangrias registradas.
               </p>
             </div>
-            <div className="border border-border rounded-xl bg-surface-paper shadow-sm overflow-hidden">
+            <div className=" rounded-xl bg-surface-paper  overflow-hidden">
               {!register.recentEntries || register.recentEntries.length === 0 ? (
                 <EmptyState title="Nenhum lançamento" />
               ) : (
@@ -886,7 +890,7 @@ function CashRegisterPage() {
               className="space-y-3 p-4 bg-muted/40 text-xs text-left border font-mono text-black print:bg-white print:border-none print:w-[300px] print:text-[10px] print:p-0"
             >
               <div className="flex flex-col items-center justify-center border-b border-dashed pb-2 font-bold mb-2">
-                <span className="text-lg tracking-widest uppercase">JAH STORE</span>
+                <span className="text-lg tracking-widest uppercase">WIDER STORE</span>
                 <span className="text-muted-foreground print:text-black">
                   PDV #{lastReceipt.receiptId?.slice(0, 6)}
                 </span>

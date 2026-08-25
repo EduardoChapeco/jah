@@ -18,7 +18,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/workspace/logistica/faturas")({
   head: () => ({
-    meta: [{ title: "Faturas & Repasses de Frota | JAH Workspace" }],
+    meta: [{ title: "Faturas & Repasses de Frota | Wider Workspace" }],
   }),
   component: WorkspaceLogisticsInvoicesPage,
 });
@@ -98,7 +98,7 @@ function WorkspaceLogisticsInvoicesPage() {
     .reduce((acc, i) => acc + i.net_payable_cents, 0);
 
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-8 pb-24">
+    <div className="w-full max-w-5xl mx-auto space-y-8 pb-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -113,7 +113,7 @@ function WorkspaceLogisticsInvoicesPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="p-6 rounded-3xl border border-border/80 bg-card shadow-xs space-y-2">
+        <div className="p-6 rounded-3xl  bg-card  space-y-2">
           <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
             Total Pendente de Repasse
           </span>
@@ -125,7 +125,7 @@ function WorkspaceLogisticsInvoicesPage() {
           </span>
         </div>
 
-        <div className="p-6 rounded-3xl border border-border/80 bg-card shadow-xs space-y-2">
+        <div className="p-6 rounded-3xl  bg-card  space-y-2">
           <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
             Total Liquidado (Últimos 30 dias)
           </span>
@@ -139,8 +139,8 @@ function WorkspaceLogisticsInvoicesPage() {
       </div>
 
       {/* Tabela de Faturas */}
-      <div className="rounded-3xl border border-border/80 bg-card overflow-hidden shadow-xs">
-        <div className="p-5 border-b border-border/50 bg-muted/20">
+      <div className="rounded-3xl  bg-card overflow-hidden ">
+        <div className="p-5  bg-muted/20">
           <h2 className="text-sm font-bold text-foreground">Demonstrativo de Repasses</h2>
         </div>
 

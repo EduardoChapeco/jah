@@ -1,0 +1,263 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { z } from "zod";
+import { useState, useMemo } from "react";
+import {
+  Sparkle,
+  Heartbeat,
+  Scissors,
+  Drop,
+  Sun,
+  HandSoap,
+  FirstAid,
+  Smiley,
+} from "@phosphor-icons/react";
+
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/state/states";
+import { PageSkeleton } from "@/components/state/loading";
+import { HorizontalRail } from "@/components/commerce/horizontal-rail";
+import { StoreCard } from "@/components/commerce/store-card";
+import { HotpagesRail } from "@/components/commerce/hotpages-rail";
+import {
+  DiscoveryControlBar,
+  type ViewModeType,
+  type FilterChipOption,
+} from "@/components/commerce/discovery-control-bar";
+import { GroceryProductCard } from "@/components/commerce/grocery-product-card";
+import { getMarketplaceFeed } from "@/services/marketplace.functions";
+import { listActiveBanners } from "@/services/banner.functions";
+import { listHotpages } from "@/services/hotpage.functions";
+import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
+import { ServicePackagesRail } from "@/components/commerce/service-packages-rail";
+import { listPublicStorePackages } from "@/services/service-packages.functions";
+
+const SearchSchema = z.object({
+  q: z.string().optional(),
+  view: z.enum(["feed", "grid", "list"]).default("feed").optional(),
+  sort: z.enum(["newest", "price_asc", "price_desc", "in_stock"]).default("newest").optional(),
+  categoria: z.string().optional(),
+});
+
+type BelezaSearch = z.infer<typeof SearchSchema>;
+
+const BELEZA_DEPARTMENTS: FilterChipOption[] = [
+  { id: "todos", label: "Tudo em Beleza & Saúde", icon: Sparkle },
+  { id: "perfumaria", label: "Perfumaria & Fragrâncias", icon: Drop },
+  { id: "cabelos", label: "Cuidados com Cabelos", icon: Scissors },
+  { id: "skincare", label: "Skincare & Rosto", icon: Sun },
+  { id: "corpo-banho", label: "Corpo & Banho", icon: HandSoap },
+  { id: "maquiagem", label: "Maquiagem & Unhas", icon: Smiley },
+  { id: "dermocosmeticos", label: "Dermocosméticos & Farmácia", icon: FirstAid },
+  { id: "suplementos", label: "Suplementos & Bem-Estar", icon: Heartbeat },
+];
+
+export const Route = createFileRoute("/_store/beleza")({
+  head: () => ({
+    meta: [
+      { title: "Beleza, Cosméticos, Perfumaria & Saúde | Wider" },
+      {
+        name: "description",
+        content:
+          "Descubra perfumes, maquiagens, produtos para cabelo, dermocosméticos e suplementos nas melhores lojas e farmácias da sua cidade.",
+      },
+    ],
+  }),
+  validateSearch: (search: Record<string, unknown>): BelezaSearch => SearchSchema.parse(search),
+  loaderDeps: ({ search }) => search,
+  loader: async () => {
+    const [banners, hotpages, marketplaceFeed, packages] = await Promise.all([
+      listActiveBanners({ data: { placement: "beleza" } }).catch(() => []),
+      listHotpages({ data: { module: "beleza" } }).catch(() => []),
+      getMarketplaceFeed({ data: { niche: "beleza" } }).catch(() => null),
+      listPublicStorePackages().catch(() => []),
+    ]);
+
+    return {
+      banners,
+      hotpages,
+      marketplaceFeed,
+      packages,
+    };
+  },
+  component: BelezaVerticalPage,
+  pendingComponent: PageSkeleton,
+});
+
+function BelezaVerticalPage() {
+  const { banners, hotpages, marketplaceFeed, packages } = Route.useLoaderData();
+  const search = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
+
+  const [activeDepartment, setActiveDepartment] = useState(search.categoria || "todos");
+  const [viewMode, setViewMode] = useState<ViewModeType>(search.view || "feed");
+
+  const handleDepartmentChange = (depId: string) => {
+    setActiveDepartment(depId);
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        categoria: depId === "todos" ? undefined : depId,
+      }),
+    });
+  };
+
+  const handleViewModeChange = (mode: ViewModeType) => {
+    setViewMode(mode);
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        view: mode === "feed" ? undefined : mode,
+      }),
+    });
+  };
+
+  const handleSortChange = (sort: any) => {
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        sort: sort === "newest" ? undefined : sort,
+      }),
+    });
+  };
+
+  // Filtragem inteligente de produtos de beleza, perfumes, skincare e cabelos
+  const filteredProducts = useMemo(() => {
+    const allProducts = marketplaceFeed?.allProducts || [];
+    return allProducts.filter((p: any) => {
+      const titleLower = (p.title || "").toLowerCase();
+      const tags = Array.isArray(p.tags) ? p.tags.map((t: string) => t.toLowerCase()) : [];
+
+      const isBeautyItem =
+        titleLower.includes("shampoo") ||
+        titleLower.includes("perfume") ||
+        titleLower.includes("creme") ||
+        titleLower.includes("máscara") ||
+        titleLower.includes("maquiagem") ||
+        titleLower.includes("batom") ||
+        titleLower.includes("sérum") ||
+        titleLower.includes("hidratante") ||
+        titleLower.includes("protetor") ||
+        titleLower.includes("condicionador") ||
+        titleLower.includes("vitamina") ||
+        titleLower.includes("esmalte") ||
+        titleLower.includes("loção") ||
+        tags.some((t: string) => ["beleza", "cosmeticos", "perfumaria", "cabelo", "skincare", "saude"].includes(t));
+
+      if (activeDepartment === "todos") return isBeautyItem || allProducts.length <= 12;
+      if (activeDepartment === "perfumaria")
+        return titleLower.includes("perfume") || titleLower.includes("colônia") || titleLower.includes("fragrância") || titleLower.includes("desodorante");
+      if (activeDepartment === "cabelos")
+        return titleLower.includes("shampoo") || titleLower.includes("condicionador") || titleLower.includes("máscara") || titleLower.includes("óleo");
+      if (activeDepartment === "skincare")
+        return titleLower.includes("sérum") || titleLower.includes("protetor") || titleLower.includes("facial") || titleLower.includes("limpeza facial");
+      if (activeDepartment === "corpo-banho")
+        return titleLower.includes("hidratante") || titleLower.includes("sabonete") || titleLower.includes("esfoliante") || titleLower.includes("loção");
+      if (activeDepartment === "maquiagem")
+        return titleLower.includes("batom") || titleLower.includes("base") || titleLower.includes("máscara de cílios") || titleLower.includes("esmalte");
+      if (activeDepartment === "dermocosmeticos")
+        return titleLower.includes("dermo") || titleLower.includes("antirrugas") || titleLower.includes("clareador") || titleLower.includes("ácido");
+      if (activeDepartment === "suplementos")
+        return titleLower.includes("suplemento") || titleLower.includes("vitamina") || titleLower.includes("colágeno") || titleLower.includes("whey");
+      return true;
+    });
+  }, [marketplaceFeed, activeDepartment]);
+
+  // Lojas de beleza, perfumarias e farmácias
+  const beautyStores = useMemo(() => {
+    const storeSection = marketplaceFeed?.sections?.find((s: any) => s.type === "store_rail");
+    const stores = storeSection?.items || [];
+    return stores.filter((s: any) => {
+      const type = (s.type || "").toLowerCase();
+      const name = (s.name || "").toLowerCase();
+      return (
+        type.includes("perfumaria") ||
+        type.includes("cosmetico") ||
+        type.includes("beleza") ||
+        type.includes("farmacia") ||
+        name.includes("perfumaria") ||
+        name.includes("cosméticos") ||
+        name.includes("beleza") ||
+        name.includes("drogaria") ||
+        name.includes("farma")
+      );
+    });
+  }, [marketplaceFeed]);
+
+  return (
+    <div className="w-full max-w-7xl mx-auto space-y-6 pb-6 overflow-x-hidden">
+      {/* ── 1. Banners ── */}
+      {banners && banners.length > 0 && (
+        <section aria-label="Banners de Beleza">
+          <BannerHeroCarousel banners={banners} />
+        </section>
+      )}
+
+      {/* ── 2. Pacotes de Sessões & Aulas de Beleza/Estética ── */}
+      {packages && packages.length > 0 && (
+        <section aria-label="Pacotes de Estética">
+          <ServicePackagesRail
+            packages={packages}
+            title="Pacotes de Estética, Cabelo & Barbearia"
+            subtitle="Adquira combos de sessões e cortes com desconto garantido."
+          />
+        </section>
+      )}
+
+      {/* ── 3. Hotpages / Destaques ── */}
+      {hotpages && hotpages.length > 0 && (
+        <section aria-label="Coleções de Beleza">
+          <HotpagesRail hotpages={hotpages} />
+        </section>
+      )}
+
+      {/* ── 4. Discovery Control Bar ── */}
+      <DiscoveryControlBar
+        search={search.q || ""}
+        onSearchChange={(q) => navigate({ search: (prev) => ({ ...prev, q }) })}
+        searchPlaceholder="Buscar perfumes, maquiagem, shampoos, skincare..."
+        categories={BELEZA_DEPARTMENTS}
+        activeCategory={activeDepartment}
+        onSelectCategory={handleDepartmentChange}
+        viewMode={viewMode}
+        onViewModeChange={handleViewModeChange}
+        resultsCount={filteredProducts.length}
+      />
+
+      {/* ── 5. Lojas em Destaque ── */}
+      {beautyStores.length > 0 && (
+        <section aria-label="Perfumarias & Lojas de Beleza">
+          <HorizontalRail title="Perfumarias & Lojas de Beleza" hideHeader={true}>
+            {beautyStores.map((store: any) => (
+              <StoreCard key={store.id} {...store} />
+            ))}
+          </HorizontalRail>
+        </section>
+      )}
+
+      {/* ── 6. Vitrine de Produtos ── */}
+      <section aria-label="Vitrine de Produtos">
+        {filteredProducts.length === 0 ? (
+          <div className="py-12 text-center bg-card rounded-3xl  p-6 ">
+            <EmptyState
+              title="Nenhum cosmético ou perfume encontrado"
+              description="Tente selecionar outro departamento ou busque por marcas específicas."
+            />
+          </div>
+        ) : viewMode === "list" ? (
+          <div className="flex flex-col gap-3">
+            {filteredProducts.map((product: any) => (
+              <GroceryProductCard key={product.id} product={product} viewMode="list" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+            {filteredProducts.map((product: any) => (
+              <GroceryProductCard key={product.id} product={product} viewMode="grid" />
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}

@@ -109,12 +109,12 @@ export function ShareModal({
 
         <div className="space-y-5 py-2">
           {/* Card de Preview */}
-          <div className="border border-border rounded-xl p-3.5 bg-muted/20 flex gap-3 items-center">
+          <div className=" rounded-xl p-3.5 bg-muted/20 flex gap-3 items-center">
             {imageUrl && (
               <img
                 src={imageUrl}
                 alt={title}
-                className="size-12 rounded-lg object-cover border border-border shrink-0"
+                className="size-12 rounded-lg object-cover  shrink-0"
               />
             )}
             <div className="min-w-0 flex-1">
@@ -130,7 +130,7 @@ export function ShareModal({
             <button
               type="button"
               onClick={shareWhatsApp}
-              className="flex flex-col items-center justify-center p-3 rounded-xl border border-border bg-card hover:bg-muted/40 transition-colors gap-1.5 group cursor-pointer"
+              className="flex flex-col items-center justify-center p-3 rounded-xl  bg-card hover:bg-muted/40 transition-colors gap-1.5 group cursor-pointer"
             >
               <div className="size-9 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-105 transition-transform">
                 <MessageCircle className="size-5" />
@@ -141,7 +141,7 @@ export function ShareModal({
             <button
               type="button"
               onClick={shareTelegram}
-              className="flex flex-col items-center justify-center p-3 rounded-xl border border-border bg-card hover:bg-muted/40 transition-colors gap-1.5 group cursor-pointer"
+              className="flex flex-col items-center justify-center p-3 rounded-xl  bg-card hover:bg-muted/40 transition-colors gap-1.5 group cursor-pointer"
             >
               <div className="size-9 rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center group-hover:scale-105 transition-transform">
                 <Send className="size-4" />
@@ -152,7 +152,7 @@ export function ShareModal({
             <button
               type="button"
               onClick={shareTwitter}
-              className="flex flex-col items-center justify-center p-3 rounded-xl border border-border bg-card hover:bg-muted/40 transition-colors gap-1.5 group cursor-pointer"
+              className="flex flex-col items-center justify-center p-3 rounded-xl  bg-card hover:bg-muted/40 transition-colors gap-1.5 group cursor-pointer"
             >
               <div className="size-9 rounded-full bg-foreground/10 text-foreground flex items-center justify-center group-hover:scale-105 transition-transform">
                 <span className="font-bold text-xs font-mono">X</span>
@@ -163,7 +163,7 @@ export function ShareModal({
             <button
               type="button"
               onClick={shareEmail}
-              className="flex flex-col items-center justify-center p-3 rounded-xl border border-border bg-card hover:bg-muted/40 transition-colors gap-1.5 group cursor-pointer"
+              className="flex flex-col items-center justify-center p-3 rounded-xl  bg-card hover:bg-muted/40 transition-colors gap-1.5 group cursor-pointer"
             >
               <div className="size-9 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center group-hover:scale-105 transition-transform">
                 <Mail className="size-4" />

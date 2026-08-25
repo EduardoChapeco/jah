@@ -1,32 +1,32 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  ShoppingBag,
-  Package,
-  MapPin,
-  CreditCard,
-  Heart,
-  RefreshCw,
-  Tag,
-  Store,
-  ArrowRight,
-  Handshake,
-} from "lucide-react";
-
 import { formatMoney } from "@/lib/money";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { listCustomerOrders } from "@/services/order.functions";
-import { getProfile } from "@/services/auth.functions";
-import { formatDate } from "../lib/datetime";
+import { getProfile, getUserSession } from "@/services/auth.functions";
+import { formatDate } from "@/lib/datetime";
+import { cn } from "@/lib/utils";
+
+import { redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_store/conta/")({
-  head: () => ({ meta: [{ title: "Minha Conta | JAH" }] }),
+  head: () => ({ meta: [{ title: "Minha Conta | Wider" }] }),
   loader: async () => {
-    const [ordersRes, profile] = await Promise.all([listCustomerOrders(), getProfile()]);
+    const session = await getUserSession().catch(() => null);
+    if (!session || !session.user) {
+      throw redirect({
+        to: "/entrar",
+        search: { returnUrl: "/conta" },
+      });
+    }
+    const [ordersRes, profile] = await Promise.all([
+      listCustomerOrders().catch(() => []),
+      getProfile().catch(() => ({})),
+    ]);
     const orders = ordersRes || [];
-    return { orders, profile };
+    return { orders, profile, session };
   },
-  component: Page,
+  component: AccountDashboardPage,
 });
 
 const ORDER_STATUS_LABELS: Record<string, string> = {
@@ -43,178 +43,157 @@ const ORDER_STATUS_LABELS: Record<string, string> = {
   returned: "Devolvido",
 };
 
-const QUICK_ACCESS = [
-  {
-    to: "/conta/salvos",
-    label: "Itens Salvos",
-    icon: Heart,
-    description: "Produtos, posts e anúncios favoritos",
-  },
-  {
-    to: "/conta/classificados",
-    label: "Meus Anúncios",
-    icon: Tag,
-    description: "Gerencie seus classificados",
-  },
-  { to: "/conta/pedidos", label: "Pedidos", icon: Package, description: "Acompanhe seus pedidos" },
-  {
-    to: "/conta/creditos",
-    label: "Carteira & Créditos",
-    icon: CreditCard,
-    description: "Saldo em conta e cashback",
-  },
-  {
-    to: "/conta/gift-cards",
-    label: "Vales-Presente",
-    icon: ShoppingBag,
-    description: "Saldo e resgate de vales",
-  },
-  {
-    to: "/conta/enderecos",
-    label: "Endereços",
-    icon: MapPin,
-    description: "Gerencie seus endereços",
-  },
-  {
-    to: "/conta/pagamentos",
-    label: "Pagamentos",
-    icon: CreditCard,
-    description: "Formas de pagamento",
-  },
-  {
-    to: "/conta/negociacoes",
-    label: "Negociações P2P",
-    icon: Handshake,
-    description: "Propostas, trocas e contratos",
-  },
-  {
-    to: "/conta/avaliacoes",
-    label: "Avaliações",
-    icon: Heart,
-    description: "Seus produtos avaliados",
-  },
-  {
-    to: "/conta/trocas",
-    label: "Trocas & Devoluções",
-    icon: RefreshCw,
-    description: "Solicitações de RMA",
-  },
+const ACCOUNT_SECTIONS = [
+  { to: "/conta/metricas", label: "Painel Profissional & Métricas", badge: "Insights" },
+  { to: "/conta/pedidos", label: "Meus Pedidos", badge: null },
+  { to: "/conta/salvos", label: "Itens Salvos", badge: null },
+  { to: "/conta/classificados", label: "Meus Desapegos", badge: null },
+  { to: "/conta/viagens", label: "Minhas Viagens", badge: null },
+  { to: "/conta/enderecos", label: "Endereços de Entrega", badge: null },
+  { to: "/conta/pagamentos", label: "Formas de Pagamento", badge: null },
+  { to: "/conta/creditos", label: "Carteira & Créditos", badge: null },
+  { to: "/conta/gift-cards", label: "Vales-Presente", badge: null },
+  { to: "/conta/negociacoes", label: "Negociações & Trocas", badge: null },
+  { to: "/conta/avaliacoes", label: "Minhas Avaliações", badge: null },
+  { to: "/conta/trocas", label: "Trocas & Devoluções", badge: null },
+  { to: "/conta/suporte", label: "Ajuda & Suporte", badge: null },
 ] as const;
 
-function Page() {
-  const { orders, profile } = Route.useLoaderData();
+function AccountDashboardPage() {
+  const loaderData = (Route.useLoaderData() || {}) as any;
+  const orders = loaderData.orders || [];
+  const profile = loaderData.profile || null;
+  const session = loaderData.session || null;
   const recentOrders = orders.slice(0, 3);
+  const memberships = (session?.memberships as any[]) || [];
+
+  const userName = profile?.fullName || session?.user?.user_metadata?.full_name || "Membro Wider";
+  const userEmail = profile?.email || session?.user?.email || "";
+  const userHandle = profile?.username || session?.user?.user_metadata?.username || userEmail.split("@")[0] || "membro";
+  const userAvatar = profile?.avatarUrl || session?.user?.user_metadata?.avatar_url || "";
 
   return (
-    <section className="space-y-6">
-      {/* Resumo de Identidade do Membro */}
-      <div className="border border-border bg-card rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="space-y-0.5">
-          <h2 className="font-bold text-lg text-foreground">{profile.fullName || profile.email}</h2>
-          <p className="text-xs text-muted-foreground">{profile.email}</p>
+    <div className="w-full max-w-4xl mx-auto space-y-6 pb-6 px-4 sm:px-0">
+      {/* ── 1. Header do Usuário (Padrão Threads / Apple HIG) ── */}
+      <div className=" bg-card rounded-3xl p-5 sm:p-6  flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-4 min-w-0">
+          <div className="size-16 rounded-3xl bg-muted  overflow-hidden shrink-0 flex items-center justify-center ">
+            {userAvatar ? (
+              <img src={userAvatar} alt={userName} className="size-full object-cover" />
+            ) : (
+              <span className="text-xl font-black text-primary">{userName.charAt(0).toUpperCase()}</span>
+            )}
+          </div>
+
+          <div className="min-w-0 space-y-0.5">
+            <h1 className="text-lg sm:text-xl font-bold text-foreground truncate tracking-tight">{userName}</h1>
+            <p className="text-xs text-muted-foreground font-mono truncate">@{userHandle} • {userEmail}</p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            asChild
-            variant="outline"
-            size="sm"
-            className="rounded-xl text-xs h-9 font-semibold gap-1.5"
-          >
-            <Link to="/conta/classificados/novo">
-              <Tag className="size-3.5 text-primary" />
-              <span>Anunciar Desapego</span>
-            </Link>
+        <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+          <Button asChild variant="outline" size="sm" className="rounded-xl text-xs h-9 font-semibold flex-1 sm:flex-initial">
+            <Link to="/conta/perfil">Editar Perfil</Link>
           </Button>
-          <Button
-            asChild
-            size="sm"
-            className="rounded-xl text-xs h-9 font-semibold gap-1.5 bg-primary text-primary-foreground shadow-xs"
-          >
-            <Link to="/criar-negocio">
-              <Store className="size-3.5" />
-              <span>Criar Espaço</span>
-            </Link>
+          <Button asChild size="sm" className="rounded-xl text-xs h-9 font-semibold flex-1 sm:flex-initial bg-foreground text-background">
+            <Link to="/membro/$id" params={{ id: userHandle || session?.id || session?.user?.id || "" }}>Ver Perfil Público</Link>
           </Button>
         </div>
       </div>
 
-      {/* Banner de Espaço de Trabalho */}
-      <div className="border border-primary/20 bg-primary/5 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-primary/10 rounded-xl text-primary shrink-0">
-            <Store className="size-6" />
-          </div>
-          <div>
-            <h4 className="text-sm font-bold text-foreground">
-              Quer vender produtos, ingressos ou serviços?
-            </h4>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Crie seu espaço de trabalho e acesse o Painel Operacional (Catálogo, Estoque, PDV e
-              Pedidos).
-            </p>
-          </div>
+      {/* ── 2. Espaços de Trabalho & Lojas ── */}
+      <div className=" bg-card rounded-3xl p-5  space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-bold text-foreground tracking-tight">Meus Negócios & Espaços</h2>
+          <Button asChild variant="ghost" size="sm" className="rounded-xl text-xs font-semibold h-8 text-primary">
+            <Link to="/criar-negocio">Cadastrar Nova Loja</Link>
+          </Button>
         </div>
-        <Button asChild size="sm" className="rounded-xl text-xs font-bold shrink-0">
-          <Link to="/criar-negocio">
-            Criar Espaço
-            <ArrowRight className="size-3.5 ml-1.5" />
-          </Link>
-        </Button>
+
+        {memberships.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            {memberships.map((m) => (
+              <div
+                key={m.store_id}
+                className="p-3.5 rounded-2xl  bg-muted/20 flex items-center justify-between gap-3"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="size-9 rounded-xl bg-card  overflow-hidden shrink-0 flex items-center justify-center">
+                    {m.logo_url ? (
+                      <img src={m.logo_url} alt={m.name} className="size-full object-cover" />
+                    ) : (
+                      <span className="text-xs font-black text-primary">{m.name ? m.name.slice(0, 2).toUpperCase() : "LJ"}</span>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-foreground truncate">{m.name || "Loja"}</p>
+                    <p className="text-[11px] text-muted-foreground font-mono capitalize">{m.role || "proprietário"}</p>
+                  </div>
+                </div>
+
+                <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-semibold h-8">
+                  <Link to="/workspace">Acessar</Link>
+                </Button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground pt-1">
+            Você ainda não possui lojas cadastradas. Cadastre seu comércio ou serviço para começar a vender.
+          </p>
+        )}
       </div>
 
-      {/* Quick access grid */}
-      <div>
-        <h3 className="text-sm font-semibold text-foreground mb-3">Acesso Rápido</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 w-full">
-          {QUICK_ACCESS.map((item) => (
+      {/* ── 3. Atalhos da Conta (Grade Limpa Padrão Threads) ── */}
+      <div className="space-y-3">
+        <h2 className="text-sm font-bold text-foreground tracking-tight px-1">Serviços & Atividades</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+          {ACCOUNT_SECTIONS.map((item) => (
             <Link
               key={item.to}
               to={item.to}
-              className="flex flex-col gap-2 border border-border bg-card rounded-xl p-4 hover:bg-accent transition-colors"
+              className="p-4 rounded-2xl  bg-card hover:border-foreground/30 hover:bg-muted/30 transition-all text-left block "
             >
-              <item.icon className="size-5 text-primary" aria-hidden />
-              <div>
-                <p className="text-sm font-medium text-foreground">{item.label}</p>
-                <p className="text-xs text-muted-foreground">{item.description}</p>
-              </div>
+              <span className="text-xs sm:text-sm font-bold text-foreground block truncate">{item.label}</span>
             </Link>
           ))}
         </div>
       </div>
 
-      {/* Recent orders */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold text-foreground">Pedidos Recentes</h3>
-          <Button variant="ghost" size="sm" asChild>
+      {/* ── 4. Pedidos Recentes ── */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between px-1">
+          <h2 className="text-sm font-bold text-foreground tracking-tight">Pedidos Recentes</h2>
+          <Button variant="ghost" size="sm" asChild className="rounded-xl text-xs font-semibold h-8">
             <Link to="/conta/pedidos">Ver todos</Link>
           </Button>
         </div>
 
         {recentOrders.length === 0 ? (
-          <div className="border border-border bg-card rounded-xl p-6 text-center">
-            <p className="text-sm text-muted-foreground">Você ainda não realizou nenhum pedido.</p>
-            <Button size="sm" className="mt-4 rounded-xl" asChild>
-              <Link to="/mercado">Explorar catálogo</Link>
-            </Button>
+          <div className=" bg-card rounded-3xl p-8 text-center space-y-2">
+            <p className="text-xs text-muted-foreground">Você ainda não realizou nenhum pedido na comunidade.</p>
+            <div className="pt-1">
+              <Button size="sm" asChild className="rounded-xl font-bold text-xs">
+                <Link to="/mercado">Explorar Lojas e Ofertas</Link>
+              </Button>
+            </div>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {recentOrders.map((order: any) => (
               <div
                 key={order.id}
-                className="flex items-center justify-between border border-border bg-card rounded-xl p-4"
+                className="flex items-center justify-between  bg-card rounded-2xl p-4 "
               >
                 <div>
-                  <p className="text-sm font-medium text-foreground">#{order.public_token}</p>
-                  <p className="text-xs text-muted-foreground">{formatDate(order.created_at)}</p>
+                  <p className="text-xs font-bold text-foreground font-mono">#{order.public_token || order.id?.slice(0, 8)}</p>
+                  <p className="text-[11px] text-muted-foreground">{formatDate(order.created_at)}</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <p className="text-sm font-medium text-foreground">
-                    {formatMoney(order.total_cents)}
-                  </p>
-                  <Badge variant="secondary" className="text-xs rounded-full">
+                  <span className="text-xs font-bold text-foreground font-mono">
+                    {formatMoney(order.total_cents || 0)}
+                  </span>
+                  <Badge variant="secondary" className="text-[10px] font-bold rounded-full">
                     {ORDER_STATUS_LABELS[order.status] ?? order.status}
                   </Badge>
                 </div>
@@ -223,6 +202,6 @@ function Page() {
           </div>
         )}
       </div>
-    </section>
+    </div>
   );
 }

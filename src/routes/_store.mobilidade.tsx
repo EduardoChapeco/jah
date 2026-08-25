@@ -39,7 +39,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_store/mobilidade")({
   head: () => ({
     meta: [
-      { title: "Mobilidade, Corridas & Entregas — JAH" },
+      { title: "Mobilidade, Corridas & Entregas — Wider" },
       {
         name: "description",
         content:
@@ -214,7 +214,7 @@ function MobilityPage() {
     setRequestStatus("searching");
 
     const payload = {
-      customer_name: recipientName || "Cliente JAH",
+      customer_name: recipientName || "Cliente Wider",
       customer_phone: recipientPhone || "(49) 99999-9999",
       service_type: selectedService,
       origin_address: originText || origin.label || "Origem selecionada",
@@ -243,21 +243,33 @@ function MobilityPage() {
   };
 
   return (
-    <div className="relative w-full h-[calc(100vh-4rem)] bg-background overflow-hidden flex flex-col md:flex-row">
-      {/* ── 1. MAPA FULL-SCREEN MAPLIBRE ───────────────────────────── */}
-      <div className="relative flex-1 w-full h-full">
+    <div className="relative w-full h-[100dvh] min-h-0 bg-background overflow-hidden">
+      {/* Botão Flutuante Voltar */}
+      <div className="absolute top-3 left-3 z-30 pointer-events-auto">
+        <Link
+          to="/"
+          aria-label="Voltar ao Início (Mobilidade)"
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-card/90 backdrop-blur-md  text-xs font-bold text-foreground  hover:bg-card active:scale-95 transition-all cursor-pointer"
+        >
+          <Navigation size={14} className="rotate-180" />
+          <span>Início</span>
+        </Link>
+      </div>
+
+      {/* ── 1. MAPA FULL-SCREEN MAPLIBRE (100% FULL BLEED VIEWPORT) ── */}
+      <div className="absolute inset-0 size-full z-0">
         <MapLibreCanvas
           origin={origin}
           destination={destination}
           pinMode={pinMode}
           onMapClick={handleMapClick}
-          className="w-full h-full"
+          className="size-full"
         />
 
         {/* Floating Route Info Pill */}
         {destination && (
-          <div className="absolute top-4 right-4 z-20 hidden sm:flex items-center gap-3 px-4 py-2 rounded-xl bg-card border border-border text-foreground shadow-xs text-xs font-medium">
-            <span className="font-semibold">{routeStats.distanceKm} km</span>
+          <div className="absolute top-4 right-4 z-20 hidden sm:flex items-center gap-3 px-4 py-2 rounded-2xl bg-card/90 backdrop-blur-md  text-foreground  text-xs font-mono font-bold">
+            <span className="font-bold">{routeStats.distanceKm} km</span>
             <span className="text-muted-foreground">•</span>
             <span className="text-muted-foreground">~{routeStats.durationMin} min</span>
           </div>
@@ -265,7 +277,7 @@ function MobilityPage() {
 
         {/* Pin Picking Mode Banner */}
         {pinMode && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 px-4 py-2 rounded-xl bg-foreground text-background text-xs font-semibold shadow-md flex items-center gap-2">
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 px-4 py-2 rounded-2xl bg-foreground text-background text-xs font-bold  flex items-center gap-2">
             <span>Clique no mapa para posicionar {pinMode === "origin" ? "a Origem" : "o Destino"}</span>
             <button
               onClick={() => setPinMode(null)}
@@ -278,10 +290,17 @@ function MobilityPage() {
         )}
       </div>
 
-      {/* ── 2. PAINEL FLUTUANTE DE PEDIDO (ULTRA CLEAN DESIGN) ────────── */}
-      <div className="relative md:absolute md:top-4 md:left-4 z-30 w-full md:w-[400px] max-h-[calc(100vh-6rem)] overflow-y-auto rounded-2xl border border-border bg-card/95 backdrop-blur-md p-5 text-foreground shadow-xs space-y-4">
+      {/* ── 2. PAINEL FLUTUANTE DE PEDIDO (MODAL LATERAL ESQUERDO FULL VERTICAL) ── */}
+      <div className="
+        absolute z-30
+        /* Mobile: Bottom Sheet ancorado embaixo */
+        bottom-0 left-0 right-0 max-h-[75vh] rounded-t-3xl
+        /* Desktop: Card flutuante lateral esquerdo */
+        sm:bottom-3 sm:top-3 sm:left-3 sm:right-auto sm:w-[420px] sm:max-h-none sm:rounded-3xl
+        overflow-y-auto scrollbar-none  bg-card/95 backdrop-blur-md p-5 text-foreground  space-y-4 animate-in slide-in-from-bottom-4 sm:slide-in-from-left-4 duration-300
+      ">
         {/* Cabeçalho */}
-        <div className="flex items-center justify-between pb-3 border-b border-border">
+        <div className="flex items-center justify-between pb-3 ">
           <div>
             <h1 className="text-base font-semibold text-foreground tracking-tight">
               Mobilidade & Entregas
@@ -318,7 +337,7 @@ function MobilityPage() {
           )}
 
           {!isLoadingQuotes && availableModals.length === 0 && (
-            <div className="p-3.5 rounded-xl bg-muted/40 border border-dashed border-border text-center space-y-1">
+            <div className="p-3.5 rounded-xl bg-muted/40 border-0 text-center space-y-1">
               <AlertCircle className="size-5 mx-auto text-muted-foreground opacity-60" />
               <p className="text-xs font-medium text-foreground">
                 Sem atendimento ou tabela de tarifas configurada
@@ -440,7 +459,7 @@ function MobilityPage() {
           <button
             type="button"
             onClick={() => setShowDetails(!showDetails)}
-            className="w-full flex items-center justify-between py-2 text-xs font-medium text-muted-foreground hover:text-foreground border-t border-border"
+            className="w-full flex items-center justify-between py-2 text-xs font-medium text-muted-foreground hover:text-foreground "
           >
             <span className="flex items-center gap-1.5">
               <MapPin className="size-3.5" />
@@ -450,7 +469,7 @@ function MobilityPage() {
           </button>
 
           {showDetails && (
-            <div className="p-3.5 rounded-xl bg-muted/40 border border-border space-y-2.5 mt-2">
+            <div className="p-3.5 rounded-xl bg-muted/40  space-y-2.5 mt-2">
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <Label className="text-xs text-muted-foreground">Número</Label>
@@ -508,7 +527,7 @@ function MobilityPage() {
 
         {/* ── AJUDANTES PARA MUDANÇA (QUANDO APLICÁVEL) ── */}
         {selectedService === "moving_truck" && (
-          <div className="p-3.5 rounded-xl bg-muted/40 border border-border space-y-3">
+          <div className="p-3.5 rounded-xl bg-muted/40  space-y-3">
             <span className="text-xs font-semibold text-foreground block">
               Configurações da Mudança
             </span>
@@ -523,7 +542,7 @@ function MobilityPage() {
                     className={`size-7 rounded-lg text-xs font-medium transition-colors ${
                       helpersCount === num
                         ? "bg-foreground text-background font-semibold"
-                        : "bg-background border border-border text-muted-foreground hover:text-foreground"
+                        : "bg-background  text-muted-foreground hover:text-foreground"
                     }`}
                   >
                     {num}
@@ -532,12 +551,12 @@ function MobilityPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs pt-2 border-t border-border">
+            <div className="flex items-center justify-between text-xs pt-2 ">
               <span className="text-muted-foreground">Tipo de Acesso:</span>
               <select
                 value={propertyType}
                 onChange={(e: any) => setPropertyType(e.target.value)}
-                className="bg-background border border-border rounded-lg px-2 py-1 text-xs text-foreground"
+                className="bg-background  rounded-lg px-2 py-1 text-xs text-foreground"
               >
                 <option value="ground">Casa Térrea</option>
                 <option value="elevator">Com Elevador</option>
@@ -549,7 +568,7 @@ function MobilityPage() {
 
         {/* ── PREÇO ESTIMADO & PAGAMENTO ── */}
         {availableModals.length > 0 && (
-          <div className="p-3.5 rounded-xl border border-border bg-muted/20 flex items-center justify-between">
+          <div className="p-3.5 rounded-xl  bg-muted/20 flex items-center justify-between">
             <div>
               <span className="text-xs text-muted-foreground block">
                 Valor Estimado
@@ -559,7 +578,7 @@ function MobilityPage() {
               </span>
             </div>
 
-            <div className="flex items-center gap-1 bg-background p-1 rounded-lg border border-border">
+            <div className="flex items-center gap-1 bg-background p-1 rounded-lg ">
               <button
                 type="button"
                 onClick={() => setPaymentMethod("pix")}
@@ -612,7 +631,7 @@ function MobilityPage() {
 
         {/* ── STATUS APÓS SOLICITAÇÃO ── */}
         {requestStatus === "confirmed" && activeRequest && (
-          <div className="p-4 rounded-xl border border-border bg-muted/40 space-y-3">
+          <div className="p-4 rounded-xl  bg-muted/40 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="size-4 text-foreground" />

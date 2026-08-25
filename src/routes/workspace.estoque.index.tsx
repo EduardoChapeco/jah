@@ -54,7 +54,7 @@ import { StockAuditDialog } from "@/components/admin/stock-audit-dialog";
 export const Route = createFileRoute("/workspace/estoque/")({
   head: () => ({ meta: [{ title: "Estoque Operacional" }] }),
   loader: async () => {
-    const res = await getStockLevels({ data: {} });
+    const res = await getStockLevels({ data: {} }).catch(() => []);
     return res || [];
   },
   component: AdminStockPage,
@@ -206,7 +206,7 @@ function AdminStockPage() {
 
       {/* Grid de KPIs de Estoque */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="relative overflow-hidden border border-border bg-surface-paper shadow-sm rounded-xl p-0">
+        <div className="relative overflow-hidden  bg-surface-paper  rounded-xl p-0">
           <div className="flex flex-row items-center justify-between p-4 pb-2 space-y-0">
             <h4 className="text-xs font-semibold text-muted-foreground">Total de SKUs</h4>
             <div className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -219,7 +219,7 @@ function AdminStockPage() {
           </div>
         </div>
 
-        <div className="relative overflow-hidden border border-border bg-surface-paper shadow-sm rounded-xl p-0">
+        <div className="relative overflow-hidden  bg-surface-paper  rounded-xl p-0">
           <div className="flex flex-row items-center justify-between p-4 pb-2 space-y-0">
             <h4 className="text-xs font-semibold text-muted-foreground">Estoque em Mãos</h4>
             <div className="flex size-8 items-center justify-center rounded-full bg-success/15 text-success">
@@ -232,7 +232,7 @@ function AdminStockPage() {
           </div>
         </div>
 
-        <div className="relative overflow-hidden border border-border bg-surface-paper shadow-sm rounded-xl p-0">
+        <div className="relative overflow-hidden  bg-surface-paper  rounded-xl p-0">
           <div className="flex flex-row items-center justify-between p-4 pb-2 space-y-0">
             <h4 className="text-xs font-semibold text-muted-foreground">Estoque Crítico</h4>
             <div className="flex size-8 items-center justify-center rounded-full bg-warning/15 text-warning-foreground">
@@ -247,14 +247,13 @@ function AdminStockPage() {
       </div>
 
       {/* Toolbar & Filtros por Status */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3  bg-card rounded-2xl px-4 py-3 ">
         <Tabs
           defaultValue="all"
           value={statusTab}
           onValueChange={setStatusTab}
-          className="w-full sm:w-auto"
         >
-          <TabsList className="grid grid-cols-4 w-full sm:w-auto h-9">
+          <TabsList className="grid grid-cols-4 w-[360px] h-8">
             <TabsTrigger value="all" className="text-xs">
               Todos ({stock.length})
             </TabsTrigger>
@@ -270,12 +269,12 @@ function AdminStockPage() {
           </TabsList>
         </Tabs>
 
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" aria-hidden />
+        <div className="relative w-full sm:w-72">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" aria-hidden />
           <Input
             type="search"
             placeholder="Buscar por SKU ou Nome do Produto..."
-            className="pl-9 text-xs"
+            className="pl-8 text-xs w-full rounded-xl h-8 bg-background"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -286,7 +285,7 @@ function AdminStockPage() {
       {stock.length === 0 ? (
         <EmptyState title="Sem variações cadastradas" />
       ) : (
-        <div className="border border-border bg-surface-paper shadow-sm rounded-xl overflow-hidden mb-6">
+        <div className=" bg-surface-paper  rounded-xl overflow-hidden mb-6">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/40">

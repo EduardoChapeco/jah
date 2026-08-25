@@ -16,14 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { SheetPage } from "@/components/ui/sheet-page";
 import {
   Select,
   SelectContent,
@@ -42,7 +35,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/workspace/marketing/promocoes")({
   head: () => ({
-    meta: [{ title: "Promoções & Ofertas Relâmpago | Workspace JAH" }],
+    meta: [{ title: "Promoções & Ofertas Relâmpago | Workspace Wider" }],
   }),
   loader: async () => {
     const promotions = await listStorePromotions();
@@ -138,27 +131,45 @@ function WorkspacePromotionsPage() {
               </h1>
               <p className="text-xs text-muted-foreground">
                 Crie mecânicas de desconto, ofertas por tempo limitado e impulsione seu canal no
-                Mercado JAH.
+                Mercado Wider.
               </p>
             </div>
           </div>
         </div>
 
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="rounded-xl font-bold bg-primary text-primary-foreground text-xs gap-2 shadow-xs">
-              <Plus className="size-4" />
-              Nova Promoção
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-lg rounded-2xl">
-            <form onSubmit={handleCreate}>
-              <DialogHeader>
-                <DialogTitle className="text-base font-bold flex items-center gap-2">
-                  <Flame className="size-4 text-amber-500" />
-                  Criar Nova Oferta ou Promoção
-                </DialogTitle>
-              </DialogHeader>
+        <Button
+          onClick={() => setIsDialogOpen(true)}
+          className="rounded-xl font-bold bg-primary text-primary-foreground text-xs gap-2  h-11 px-4 cursor-pointer"
+        >
+          <Plus className="size-4" />
+          Nova Promoção
+        </Button>
+        <SheetPage
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          title="Nova Oferta ou Promoção"
+          size="lg"
+          footer={
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsDialogOpen(false)}
+                className="h-11 px-4 rounded-xl text-xs font-bold"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleCreate}
+                disabled={isSubmitting}
+                className="h-11 px-6 rounded-xl text-xs font-bold bg-primary text-primary-foreground"
+              >
+                {isSubmitting ? "Salvando..." : "Publicar Promoção"}
+              </Button>
+            </>
+          }
+        >
+          <form onSubmit={handleCreate} className="space-y-4">
 
               <div className="space-y-4 py-4 text-xs">
                 <div className="space-y-1.5">
@@ -221,7 +232,7 @@ function WorkspacePromotionsPage() {
                     </div>
 
                     {/* Bloco de Gestão e Auto-Renovação de Estoque da Oferta */}
-                    <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/80 space-y-3">
+                    <div className="p-3.5 rounded-2xl bg-muted/40  space-y-3">
                       <div className="flex items-center justify-between">
                         <div className="space-y-0.5">
                           <label className="font-bold text-xs text-foreground flex items-center gap-1.5">
@@ -287,45 +298,26 @@ function WorkspacePromotionsPage() {
                   </div>
                 )}
 
-                <div className="space-y-1.5">
-                  <label className="font-semibold text-foreground">
-                    Regulamento / Descrição Curta
-                  </label>
-                  <Textarea
-                    placeholder="Válido enquanto durarem os estoques. Limite de 2 por CPF."
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    rows={2}
-                    className="rounded-xl text-xs"
-                  />
-                </div>
-              </div>
-
-              <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
+              <div className="space-y-1.5">
+                <label className="font-semibold text-foreground">
+                  Regulamento / Descrição Curta
+                </label>
+                <Textarea
+                  placeholder="Válido enquanto durarem os estoques. Limite de 2 por CPF."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={2}
                   className="rounded-xl text-xs"
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="rounded-xl text-xs font-bold bg-primary text-primary-foreground"
-                >
-                  {isSubmitting ? "Salvando..." : "Publicar Promoção"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+                />
+              </div>
+            </div>
+          </form>
+        </SheetPage>
       </div>
 
       {/* ── Stats Bar ─────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 rounded-2xl border border-border/80 bg-card space-y-1 shadow-2xs">
+        <div className="p-4 rounded-2xl  bg-card space-y-1 ">
           <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
             Promoções Ativas
           </span>
@@ -334,14 +326,14 @@ function WorkspacePromotionsPage() {
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl border border-border/80 bg-card space-y-1 shadow-2xs">
+        <div className="p-4 rounded-2xl  bg-card space-y-1 ">
           <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
             Total de Ofertas Criadas
           </span>
           <div className="text-2xl font-mono font-black text-foreground">{promos.length}</div>
         </div>
 
-        <div className="p-4 rounded-2xl border border-border/80 bg-card space-y-1 shadow-2xs">
+        <div className="p-4 rounded-2xl  bg-card space-y-1 ">
           <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
             Desconto Médio Aplicado
           </span>
@@ -359,7 +351,7 @@ function WorkspacePromotionsPage() {
       {/* ── Promotions List ───────────────────────────────────── */}
       <div className="space-y-3">
         {promos.length === 0 ? (
-          <div className="p-12 text-center space-y-3 rounded-2xl border border-dashed border-border bg-card/40">
+          <div className="p-12 text-center space-y-3 rounded-2xl border-0 bg-card/40">
             <Tag className="size-8 text-muted-foreground mx-auto" />
             <h3 className="text-sm font-bold text-foreground">Nenhuma promoção cadastrada ainda</h3>
             <p className="text-xs text-muted-foreground max-w-sm mx-auto">
@@ -371,7 +363,7 @@ function WorkspacePromotionsPage() {
           promos.map((promo) => (
             <div
               key={promo.id}
-              className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-2xl border border-border/80 bg-card gap-4 shadow-2xs hover:border-primary/40 transition-all"
+              className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-2xl  bg-card gap-4  hover:border-primary/40 transition-all"
             >
               <div className="flex items-center gap-3.5 min-w-0">
                 <div

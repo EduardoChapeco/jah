@@ -45,7 +45,7 @@ import {
 import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/workspace/configuracoes/ai")({
-  head: () => ({ meta: [{ title: "Secret Vault & Inteligência Artificial — JAH" }] }),
+  head: () => ({ meta: [{ title: "Secret Vault & Inteligência Artificial — Wider" }] }),
   component: AIConfigurationPage,
 });
 
@@ -121,7 +121,7 @@ function AIConfigurationPage() {
   return (
     <div className="space-y-6 max-w-5xl">
       {/* Header Operacional */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border pb-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4  pb-4">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <Cpu className="size-5 text-primary" />
@@ -134,7 +134,7 @@ function AIConfigurationPage() {
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" className="rounded-xl text-xs font-bold gap-1.5 shadow-sm">
+            <Button size="sm" className="rounded-xl text-xs font-bold gap-1.5 ">
               <Plus className="size-4" />
               <span>Conectar Provedor (BYOK)</span>
             </Button>
@@ -247,7 +247,7 @@ function AIConfigurationPage() {
               return (
                 <div
                   key={sec.id}
-                  className="border border-border bg-card rounded-2xl p-5 shadow-2xs space-y-3"
+                  className=" bg-card rounded-2xl p-5  space-y-3"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
@@ -265,7 +265,7 @@ function AIConfigurationPage() {
                     </Badge>
                   </div>
 
-                  <div className="border border-border/80 rounded-xl p-3 bg-muted/20 flex items-center justify-between text-xs font-mono">
+                  <div className=" rounded-xl p-3 bg-muted/20 flex items-center justify-between text-xs font-mono">
                     <span className="text-muted-foreground text-[11px]">Chave Mascarada:</span>
                     <span className="font-bold text-foreground">{sec.masked_suffix}</span>
                   </div>
@@ -282,7 +282,7 @@ function AIConfigurationPage() {
             })}
           </div>
         ) : (
-          <div className="border border-dashed border-border bg-card/60 rounded-2xl p-8 text-center space-y-2">
+          <div className="border-0 bg-card/60 rounded-2xl p-8 text-center space-y-2">
             <Key className="size-8 text-muted-foreground/60 mx-auto" />
             <h3 className="text-sm font-bold text-foreground">Nenhuma chave de IA configurada</h3>
             <p className="text-xs text-muted-foreground max-w-md mx-auto">
@@ -294,14 +294,14 @@ function AIConfigurationPage() {
       </div>
 
       {/* Roteador de Capabilities de IA */}
-      <div className="border border-border bg-card rounded-2xl p-6 shadow-2xs space-y-4">
+      <div className=" bg-card rounded-2xl p-6  space-y-4">
         <div className="flex items-center gap-2">
           <Sliders className="size-4 text-primary" />
           <h2 className="text-sm font-bold text-foreground">Roteador de Modelos por Capability</h2>
         </div>
 
         <div className="space-y-2.5">
-          <div className="p-3.5 rounded-xl border border-border bg-muted/20 flex items-center justify-between text-xs">
+          <div className="p-3.5 rounded-xl  bg-muted/20 flex items-center justify-between text-xs">
             <div>
               <p className="font-bold text-foreground">Assistente de Cláusulas & Contratos</p>
               <p className="text-[11px] text-muted-foreground">
@@ -313,7 +313,7 @@ function AIConfigurationPage() {
             </Badge>
           </div>
 
-          <div className="p-3.5 rounded-xl border border-border bg-muted/20 flex items-center justify-between text-xs">
+          <div className="p-3.5 rounded-xl  bg-muted/20 flex items-center justify-between text-xs">
             <div>
               <p className="font-bold text-foreground">Copywriter de Produtos & Classificados</p>
               <p className="text-[11px] text-muted-foreground">
@@ -325,7 +325,7 @@ function AIConfigurationPage() {
             </Badge>
           </div>
 
-          <div className="p-3.5 rounded-xl border border-border bg-muted/20 flex items-center justify-between text-xs">
+          <div className="p-3.5 rounded-xl  bg-muted/20 flex items-center justify-between text-xs">
             <div>
               <p className="font-bold text-foreground">Visão Computacional & OCR de Documentos</p>
               <p className="text-[11px] text-muted-foreground">

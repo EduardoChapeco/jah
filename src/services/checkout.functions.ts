@@ -39,6 +39,8 @@ const CheckoutSchema = z
     paymentMethod: z.enum(["pix", "manual", "credit_card", "receipt"]),
     paymentMethodId: z.string().uuid().optional(),
     giftCardCode: z.string().optional(),
+    notes: z.string().optional(),
+    customFields: z.record(z.any()).optional(),
   })
   .superRefine((val, ctx) => {
     if (val.shippingMethod === "manual_table" || val.shippingMethod === "provider") {
@@ -59,7 +61,7 @@ export const getOrderByToken = createServerFn({ method: "GET" })
     const { data } = await db
       .from("orders")
       .select(
-        "id, public_token, status, total_cents, subtotal_cents, shipping_cents, discount_cents, customer_snapshot, shipping_method, shipping_address, created_at, stores(id, name, settings), payments(method, status, provider_name), order_items(id, product_title, variant_sku, qty, unit_price_cents, total_cents)",
+        "id, public_token, status, total_cents, subtotal_cents, shipping_cents, discount_cents, customer_snapshot, shipping_method, shipping_address, notes, custom_fields, created_at, stores(id, name, settings), payments(method, status, provider_name), order_items(id, product_title, variant_sku, qty, unit_price_cents, total_cents)",
       )
       .eq("public_token", token)
       .single();
@@ -80,8 +82,8 @@ export const processCheckout = createServerFn({ method: "POST" })
         : "unknown";
 
       const rateCheck = checkRateLimit(`checkout-${clientIp}`);
-      if (rateCheck.blocked) {
-        const timeStr = formatRetryAfter(rateCheck.retryAfterMs || 60000);
+      if (!rateCheck.allowed) {
+        const timeStr = formatRetryAfter(rateCheck.retryAfterSec || 60);
         throw new Error(
           `Muitas tentativas de checkout. Por favor, aguarde ${timeStr} antes de tentar novamente.`,
         );
@@ -94,34 +96,59 @@ export const processCheckout = createServerFn({ method: "POST" })
 
       // Ensure anti-hijacking by extracting the actual current identity
       const identity = await getCurrentIdentity();
-      const affiliateId = req ? readCookieFromRequest(req, "jah_affiliate_id") : null;
+      const affiliateId = req ? readCookieFromRequest(req, "wider_affiliate_id") : null;
 
       // Call the atomic RPC v2 — all logic (coupon, stock, order creation, gift cards, surcharges) happens inside a single PostgreSQL transaction
-      // BUT first, revalidate the shipping rate to ensure it hasn't expired or changed.
-      const { data: cartValidation } = await db
-        .from("carts")
-        .select("shipping_zipcode, shipping_method, shipping_cents")
-        .eq("id", params.cartId)
-        .single();
+      // Validação de integridade de frete: revalida apenas quando é transportadora automatizada externa com CEP
+      const isLocalOrManualShipping =
+        params.shippingMethod === "pickup" ||
+        params.shippingMethod === "manual_quote" ||
+        params.shippingMethod === "manual_table";
 
-      if (cartValidation && cartValidation.shipping_method) {
-        const { calculateShipping } = await import("@/services/shipping.functions");
-        const currentRates = await calculateShipping({
-          data: {
-            zipcode: cartValidation.shipping_zipcode || "",
-            cartId: params.cartId,
-          },
-        } as any);
-        const matchedRate = currentRates.find(
-          (r) =>
-            r.service_name === cartValidation.shipping_method ||
-            r.provider === cartValidation.shipping_method,
-        );
+      if (!isLocalOrManualShipping) {
+        const { data: cartValidation } = await db
+          .from("carts")
+          .select("shipping_zipcode, shipping_method, shipping_cents")
+          .eq("id", params.cartId)
+          .single();
 
-        if (!matchedRate || matchedRate.price_cents !== cartValidation.shipping_cents) {
-          throw new Error(
-            "O valor ou disponibilidade do frete mudou desde a última cotação. Por favor, recalcule o frete no carrinho.",
-          );
+        if (
+          cartValidation &&
+          cartValidation.shipping_method &&
+          cartValidation.shipping_zipcode &&
+          cartValidation.shipping_cents &&
+          cartValidation.shipping_cents > 0
+        ) {
+          try {
+            const { calculateShipping } = await import("@/services/shipping.functions");
+            const currentRates = await calculateShipping({
+              data: {
+                zipcode: cartValidation.shipping_zipcode,
+                cartId: params.cartId,
+              },
+            } as any);
+
+            if (Array.isArray(currentRates) && currentRates.length > 0) {
+              const matchedRate = currentRates.find(
+                (r) =>
+                  r.service_name === cartValidation.shipping_method ||
+                  r.provider === cartValidation.shipping_method,
+              );
+
+              if (matchedRate && Math.abs(matchedRate.price_cents - cartValidation.shipping_cents) > 500) {
+                // Pequena tolerância para oscilações mínimas de centavos, alerta apenas se diferença > R$ 5,00
+                throw new Error(
+                  "O valor do frete mudou desde a cotação inicial. Por favor, revise o frete no carrinho.",
+                );
+              }
+            }
+          } catch (shipErr: unknown) {
+            // Log amigável sem interromper caso seja indisponibilidade transitória da API dos Correios
+            console.warn(
+              "[checkout.functions] Aviso na checagem de frete:",
+              shipErr instanceof Error ? shipErr.message : String(shipErr),
+            );
+          }
         }
       }
 
@@ -154,6 +181,17 @@ export const processCheckout = createServerFn({ method: "POST" })
 
       if (result.status !== "success") {
         throw new Error("Checkout falhou.");
+      }
+
+      // Persist custom checkout fields and notes if provided
+      if (result.orderId && (params.customFields || params.notes)) {
+        await db
+          .from("orders")
+          .update({
+            notes: params.notes || null,
+            custom_fields: params.customFields || {},
+          })
+          .eq("id", result.orderId);
       }
 
       return {

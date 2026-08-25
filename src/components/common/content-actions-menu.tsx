@@ -208,7 +208,7 @@ export function ContentActionsMenu({
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="end" className="w-56 rounded-2xl p-1.5 shadow-md border-border">
+        <DropdownMenuContent align="end" className="w-56 rounded-2xl p-1.5  border-border">
           {/* Seção 1: Compartilhamento e Links */}
           <DropdownMenuItem
             onClick={handleCopyLink}

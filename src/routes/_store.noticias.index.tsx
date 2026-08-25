@@ -12,6 +12,7 @@ import {
   Briefcase,
   Trophy,
   Laptop,
+  Lightbulb,
 } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,10 +28,10 @@ import { NewsCard } from "@/components/news/news-card";
 export const Route = createFileRoute("/_store/noticias/")({
   head: () => ({
     meta: [
-      { title: "Notícias & Jornalismo Local | JAH" },
+      { title: "Notícias & Jornalismo Local | Wider" },
       {
         name: "description",
-        content: "Acompanhe as últimas notícias, urgências, reportagens e coberturas locais no JAH.",
+        content: "Acompanhe as últimas notícias, urgências, reportagens e coberturas locais no Wider.",
       },
     ],
   }),
@@ -46,14 +47,14 @@ export const Route = createFileRoute("/_store/noticias/")({
 });
 
 const CATEGORIES = [
-  { id: "todas", label: "Todas Notícias", icon: Sparkle },
-  { id: "urgente", label: "Última Hora", icon: Lightning },
-  { id: "cidade", label: "Cidade & Região", icon: Buildings },
-  { id: "cultura", label: "Cultura & Lazer", icon: CalendarDots },
-  { id: "economia", label: "Economia & Negócios", icon: Briefcase },
-  { id: "esportes", label: "Esportes", icon: Trophy },
-  { id: "politica", label: "Política", icon: NewspaperClipping },
-  { id: "tecnologia", label: "Inovação", icon: Laptop },
+  { id: "todas", label: "Todas Notícias", emoji: "📰", icon: Sparkle },
+  { id: "urgente", label: "Última Hora", emoji: "⚡️", icon: Lightning },
+  { id: "cidade", label: "Cidade & Região", emoji: "🏙️", icon: Buildings },
+  { id: "cultura", label: "Cultura & Lazer", emoji: "🎭", icon: CalendarDots },
+  { id: "economia", label: "Economia & Negócios", emoji: "📈", icon: Briefcase },
+  { id: "esportes", label: "Esportes", emoji: "⚽️", icon: Trophy },
+  { id: "politica", label: "Política", emoji: "🏛️", icon: NewspaperClipping },
+  { id: "inovacao", label: "Inovação & Tech", emoji: "💡", icon: Lightbulb },
 ];
 
 export function NoticiasFeedPage() {
@@ -131,32 +132,54 @@ export function NoticiasFeedPage() {
         </form>
       </div>
 
-      {/* ── 3. Categorias & Editorias Cards (Squircle Retangular Gordinho) ── */}
+      {/* ── 3. Categorias & Editorias Chips (PADRÃO UNIVERSAL HOME: h-14, rounded-2xl, ÍCONE/PNG PERSONALIZADO) ── */}
       <section aria-label="Editorias de Notícias" className="space-y-2">
-        <div className="flex items-center gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 w-full px-0.5">
+        <div className="flex items-center gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 w-full px-0.5 focus:outline-none">
           {CATEGORIES.map((cat) => {
             const isSelected = selectedCategory === cat.id;
             const Icon = cat.icon;
+            const hotpageMatch = hotpages?.find((hp) => hp.slug === cat.id);
+            const iconUrl = hotpageMatch?.custom_icon_url || hotpageMatch?.icon_url;
 
             return (
               <button
                 key={cat.id}
                 type="button"
                 onClick={() => handleFilterCategory(cat.id)}
-                className={`min-w-[104px] sm:min-w-[114px] h-[94px] sm:h-[100px] p-3 rounded-2xl flex flex-col items-center justify-between border cursor-pointer select-none shrink-0 transition-all group ${
+                className={`inline-flex items-center gap-3 px-5 h-14 rounded-2xl border transition-all select-none group cursor-pointer shrink-0 active:scale-[0.98] ${
                   isSelected
-                    ? "bg-foreground text-background border-foreground shadow-xs font-bold scale-102"
-                    : "bg-card text-muted-foreground border-border hover:bg-muted/70 hover:text-foreground hover:border-foreground/30 shadow-2xs"
+                    ? "bg-foreground text-background border-foreground font-bold "
+                    : "bg-card text-foreground border-border hover:bg-muted/70 hover:border-foreground/20"
                 }`}
               >
-                <div
-                  className={`size-9 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 ${
-                    isSelected ? "bg-background/20 text-background" : "bg-muted text-foreground"
+                {/* Ícone / Imagem PNG / Emoji */}
+                <div className="relative size-8 sm:size-9 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                  {iconUrl ? (
+                    <img
+                      src={iconUrl}
+                      alt={cat.label}
+                      className="size-7 sm:size-8 object-contain"
+                      loading="lazy"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLElement).style.display = "none";
+                      }}
+                    />
+                  ) : cat.emoji ? (
+                    <span className="text-xl sm:text-2xl leading-none">{cat.emoji}</span>
+                  ) : (
+                    <Icon
+                      size={24}
+                      weight={isSelected ? "fill" : "bold"}
+                      className={isSelected ? "text-background" : "text-foreground"}
+                    />
+                  )}
+                </div>
+
+                <span
+                  className={`text-sm font-bold whitespace-nowrap ${
+                    isSelected ? "text-background" : "text-foreground"
                   }`}
                 >
-                  <Icon size={20} weight={isSelected ? "fill" : "bold"} />
-                </div>
-                <span className="text-xs font-bold text-center leading-tight line-clamp-1">
                   {cat.label}
                 </span>
               </button>
@@ -182,14 +205,12 @@ export function NoticiasFeedPage() {
         <section aria-label="Plantão de Notícias" className="space-y-3">
           <HorizontalRail
             title="Plantão & Última Hora"
-            badge="Tempo Real"
+            hideHeader={true}
             leadCard={
               <HitsLeadCard
-                badge="URGENTE"
-                title="Plantão JAH"
-                subtitle="Fatos que acabaram de acontecer na sua região em tempo real"
                 actionTo="/noticias"
                 gradient="from-red-600 via-rose-600 to-orange-600"
+                ariaLabel="Plantão de Notícias"
               />
             }
           >
@@ -204,7 +225,7 @@ export function NoticiasFeedPage() {
 
       {/* ── 5. Manchete Principal em Destaque ── */}
       {featuredArticle && !searchQuery && (
-        <section className="relative rounded-3xl overflow-hidden border border-border bg-card shadow-xs group hover-elevate transition-all">
+        <section className="relative rounded-3xl overflow-hidden  bg-card  group hover-elevate transition-all">
           <Link
             to="/noticias/$slug"
             params={{ slug: featuredArticle.slug }}
@@ -243,9 +264,9 @@ export function NoticiasFeedPage() {
                 )}
               </div>
 
-              <div className="pt-4 border-t border-border flex items-center justify-between">
+              <div className="pt-4  flex items-center justify-between">
                 <span className="text-xs font-bold text-foreground">
-                  {featuredArticle.store_name || "Redação JAH"}
+                  {featuredArticle.store_name || "Redação Wider"}
                 </span>
                 <span className="inline-flex items-center gap-1.5 text-xs font-bold text-foreground">
                   <span>Ler Matéria</span>
@@ -262,14 +283,12 @@ export function NoticiasFeedPage() {
         <section aria-label="Economia & Negócios" className="space-y-3">
           <HorizontalRail
             title="Economia & Negócios"
-            badge="Mercado Local"
+            hideHeader={true}
             leadCard={
               <HitsLeadCard
-                badge="MERCADO"
-                title="Negócios & Agro"
-                subtitle="Oportunidades, mercado financeiro local e desenvolvimento regional"
                 actionTo="/noticias"
                 gradient="from-emerald-600 via-teal-600 to-green-700"
+                ariaLabel="Economia & Negócios"
               />
             }
           >
@@ -287,14 +306,12 @@ export function NoticiasFeedPage() {
         <section aria-label="Cultura & Lazer" className="space-y-3">
           <HorizontalRail
             title="Cultura, Noite & Lazer"
-            badge="Agenda Cultural"
+            hideHeader={true}
             leadCard={
               <HitsLeadCard
-                badge="CULTURA"
-                title="Cultura & Arte"
-                subtitle="Shows, festivais, gastronomia e eventos imperdíveis"
                 actionTo="/noticias"
                 gradient="from-violet-600 via-purple-600 to-pink-600"
+                ariaLabel="Cultura, Noite & Lazer"
               />
             }
           >
@@ -309,7 +326,7 @@ export function NoticiasFeedPage() {
 
       {/* ── 8. Lista de Notícias Mais Recentes ── */}
       {articles.length === 0 ? (
-        <div className="py-16 text-center rounded-3xl border border-dashed border-border bg-card/50 space-y-3">
+        <div className="py-16 text-center rounded-3xl border-0 bg-card/50 space-y-3">
           <NewspaperClipping className="size-10 text-muted-foreground/40 mx-auto" />
           <h3 className="text-base font-bold text-foreground">Nenhuma notícia encontrada</h3>
           <p className="text-xs text-muted-foreground max-w-sm mx-auto">
@@ -318,7 +335,7 @@ export function NoticiasFeedPage() {
         </div>
       ) : (
         <section aria-label="Feed de Notícias" className="space-y-4 max-w-3xl mx-auto">
-          <div className="flex items-center justify-between pb-2 border-b border-border">
+          <div className="flex items-center justify-between pb-2 ">
             <div className="flex items-center gap-2">
               <Sparkle size={16} weight="fill" className="text-primary" />
               <h2 className="text-sm font-bold text-foreground tracking-tight">

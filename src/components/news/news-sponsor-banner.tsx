@@ -95,7 +95,7 @@ export function NewsSponsorBanner({
   return (
     <div
       ref={containerRef}
-      className="my-6 p-4 sm:p-5 rounded-3xl border border-primary/20 bg-linear-to-br from-card via-muted/30 to-primary/5 shadow-xs overflow-hidden"
+      className="my-6 p-4 sm:p-5 rounded-3xl border border-primary/20 bg-linear-to-br from-card via-muted/30 to-primary/5  overflow-hidden"
     >
       <div className="flex items-center justify-between gap-2 mb-3">
         <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-muted-foreground">
@@ -124,7 +124,7 @@ export function NewsSponsorBanner({
         ) : sponsor.logo_url ? (
           <div
             onClick={handleClick}
-            className="size-16 rounded-2xl bg-card border border-border/80 p-2 flex items-center justify-center cursor-pointer shrink-0"
+            className="size-16 rounded-2xl bg-card  p-2 flex items-center justify-center cursor-pointer shrink-0"
           >
             <img src={sponsor.logo_url} alt={sponsor.name} className="max-h-full object-contain" />
           </div>

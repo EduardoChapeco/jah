@@ -298,7 +298,7 @@ function HeaderRightIsland({ session }: { session: any }) {
           <TenantSwitcher identity={session} />
         </div>
       )}
-      <div className="flex h-full items-center gap-2 rounded-full border border-border/80 bg-card px-3 py-1 text-xs font-medium text-foreground">
+      <div className="flex h-full items-center gap-2 rounded-full  bg-card px-3 py-1 text-xs font-medium text-foreground">
         {dateStr && (
           <span className="flex items-center gap-1.5 text-muted-foreground capitalize">
             <Calendar className="size-3.5 text-primary" />
@@ -405,7 +405,7 @@ export function AdminShell({
         onMouseEnter={() => setCollapsed(false)}
         onMouseLeave={() => setCollapsed(true)}
         className={cn(
-          "fixed left-0 top-0 bottom-0 z-40 hidden flex-col border-r border-border bg-card shadow-op-md transition-all duration-300 md:flex",
+          "fixed left-0 top-0 bottom-0 z-40 hidden flex-col  bg-card shadow-op-md transition-all duration-300 md:flex",
           collapsed ? "w-[68px]" : "w-64",
         )}
       >
@@ -545,7 +545,7 @@ export function AdminShell({
           {/* User profile & Logout footer */}
           <div className="mt-2 pt-2 border-t border-sidebar-border/60 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 overflow-hidden">
-              <Avatar className="size-8 border border-border">
+              <Avatar className="size-8 ">
                 <AvatarFallback className="bg-primary/10 text-primary font-bold text-[10px]">
                   {getInitials(session?.email || "Admin")}
                 </AvatarFallback>
@@ -588,7 +588,7 @@ export function AdminShell({
         )}
       >
         {/* Topbar */}
-        <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-background/95 px-4 backdrop-blur pt-safe md:px-6 ">
+        <header className="sticky top-0 z-20 flex h-16 items-center gap-3  bg-background/95 px-4 backdrop-blur pt-safe md:px-6 ">
           {/* Mobile menu */}
           <Sheet>
             <SheetTrigger asChild>
@@ -696,7 +696,7 @@ export function AdminShell({
       {/* Mobile bottom nav — driven by ADMIN_BOTTOM_NAV from routes.ts */}
       <nav
         aria-label="Navegação do painel"
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur pb-safe md:hidden"
+        className="fixed inset-x-0 bottom-0 z-30  bg-background/95 backdrop-blur pb-safe md:hidden"
       >
         <ul className="flex items-stretch justify-around">
           {ADMIN_BOTTOM_NAV.filter((item) => {

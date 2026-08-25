@@ -87,7 +87,7 @@ function CommissionsPage() {
           {commissions.length === 0 ? (
             <EmptyState title="Sem comissões" />
           ) : (
-            <div className="border border-border bg-card rounded-xl overflow-hidden">
+            <div className=" bg-card rounded-xl overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -145,7 +145,7 @@ function CommissionsPage() {
         </TabsContent>
 
         <TabsContent value="equipe" className="mt-0">
-          <div className="border border-border bg-card rounded-xl overflow-hidden">
+          <div className=" bg-card rounded-xl overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>

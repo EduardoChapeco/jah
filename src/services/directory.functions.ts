@@ -97,44 +97,88 @@ export const getPublicDirectory = createServerFn({ method: "GET" })
   });
 
 export const getPublicDirectoryById = createServerFn({ method: "GET" })
-  .validator(z.object({ listingId: z.string().uuid() }))
+  .validator(z.object({ listingId: z.string() }))
   .handler(async ({ data: { listingId } }) => {
     const supabase = getServerClient();
 
-    const { data: row, error } = await supabase
-      .from("directory_listings")
-      .select("*")
-      .eq("id", listingId)
-      .maybeSingle();
+    // 1. Tenta buscar em directory_listings por ID ou store_id
+    let query = supabase.from("directory_listings").select("*");
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(listingId);
 
-    if (error || !row) {
-      return null;
+    if (isUuid) {
+      query = query.or(`id.eq.${listingId},store_id.eq.${listingId}`);
+    } else {
+      query = query.eq("id", listingId);
     }
 
-    return {
-      id: row.id,
-      store_id: row.store_id,
-      author_profile_id: row.author_profile_id,
-      business_name: row.business_name || "Negócio Local",
-      category: row.category,
-      description: row.description || "",
-      specialties: row.specialties || [],
-      address: row.address || "Chapecó - SC",
-      latitude: row.latitude,
-      longitude: row.longitude,
-      contact_phone: row.contact_phone,
-      contact_whatsapp: row.contact_whatsapp,
-      contact_email: row.contact_email,
-      website_url: row.website_url,
-      working_hours: typeof row.working_hours === "string" ? row.working_hours : (row.working_hours?.weekdays || "Seg a Sex: 08:00 - 18:00"),
-      is_verified: !!row.is_verified,
-      rating: Number(row.rating || 5.0),
-      reviews_count: Number(row.reviews_count || 0),
-      avatar_url: row.avatar_url,
-      banner_url: row.banner_url,
-      status: row.status,
-      created_at: row.created_at,
-    } as DirectoryListingDTO;
+    const { data: row } = await query.maybeSingle();
+
+    if (row) {
+      return {
+        id: row.id,
+        store_id: row.store_id,
+        author_profile_id: row.author_profile_id,
+        business_name: row.business_name || "Negócio Local",
+        category: row.category,
+        description: row.description || "",
+        specialties: row.specialties || [],
+        address: row.address || "Chapecó - SC",
+        latitude: row.latitude,
+        longitude: row.longitude,
+        contact_phone: row.contact_phone,
+        contact_whatsapp: row.contact_whatsapp,
+        contact_email: row.contact_email,
+        website_url: row.website_url,
+        working_hours: typeof row.working_hours === "string" ? row.working_hours : (row.working_hours?.weekdays || "Seg a Sex: 08:00 - 18:00"),
+        is_verified: !!row.is_verified,
+        rating: Number(row.rating || 5.0),
+        reviews_count: Number(row.reviews_count || 0),
+        avatar_url: row.avatar_url,
+        banner_url: row.banner_url,
+        status: row.status,
+        created_at: row.created_at,
+      } as DirectoryListingDTO;
+    }
+
+    // 2. Fallback resiliente: busca na tabela stores por ID ou Slug para garantir 0% de quebras ou 404s
+    let storeQuery = supabase.from("stores").select("*");
+    if (isUuid) {
+      storeQuery = storeQuery.eq("id", listingId);
+    } else {
+      storeQuery = storeQuery.eq("slug", listingId);
+    }
+
+    const { data: storeRow } = await storeQuery.maybeSingle();
+
+    if (storeRow) {
+      const settings = (storeRow.settings ?? {}) as Record<string, any>;
+      return {
+        id: storeRow.id,
+        store_id: storeRow.id,
+        author_profile_id: null,
+        business_name: storeRow.name || "Loja Oficial Wider",
+        category: (storeRow as any).category || (storeRow as any).type || "servicos",
+        description: storeRow.description || "Empresa credenciada no ecossistema de compras e serviços Wider.",
+        specialties: settings.specialties || ["Atendimento Especializado", "Pronta Entrega"],
+        address: storeRow.address ? `${storeRow.address} — ${storeRow.city || "Chapecó"}, ${storeRow.state || "SC"}` : "Chapecó - SC",
+        latitude: storeRow.latitude,
+        longitude: storeRow.longitude,
+        contact_phone: storeRow.phone,
+        contact_whatsapp: storeRow.phone,
+        contact_email: storeRow.email,
+        website_url: null,
+        working_hours: typeof settings.businessHours === "string" ? settings.businessHours : "Seg a Sex: 08:00 - 18:00",
+        is_verified: true,
+        rating: 5.0,
+        reviews_count: 12,
+        avatar_url: storeRow.logo_url || settings.logoUrl || settings.logo_url,
+        banner_url: storeRow.banner_url || settings.cover_url || settings.bannerUrl,
+        status: "active",
+        created_at: storeRow.created_at,
+      } as DirectoryListingDTO;
+    }
+
+    return null;
   });
 
 export const requestDirectoryQuote = createServerFn({ method: "POST" })

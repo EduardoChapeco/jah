@@ -56,7 +56,7 @@ export function SocialGrid({ content }: SocialGridProps) {
               <Wrapper
                 key={idx}
                 {...wrapperProps}
-                className="group relative aspect-square overflow-hidden bg-muted block border border-border"
+                className="group relative aspect-square overflow-hidden bg-muted block "
               >
                 <img
                   src={post.image_url}

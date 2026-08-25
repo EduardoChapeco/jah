@@ -128,7 +128,7 @@ function MasterFaturasPage() {
       </div>
 
       {isCreating && (
-        <div className="border border-border bg-card rounded-xl p-6 bg-muted/20 border-primary/20">
+        <div className=" bg-card rounded-xl p-6 bg-muted/20 border-primary/20">
           <h2 className="text-lg font-bold flex items-center gap-2 mb-4">
             <Receipt className="size-5 text-primary" />
             Emitir Fatura Avulsa
@@ -187,7 +187,7 @@ function MasterFaturasPage() {
         </div>
       )}
 
-      <div className="border border-border bg-card rounded-xl overflow-hidden">
+      <div className=" bg-card rounded-xl overflow-hidden">
         <div className="p-4 border-b bg-muted/30">
           <h3 className="font-bold flex items-center gap-2">
             <FileText className="size-4 text-primary" /> Histórico de Faturas

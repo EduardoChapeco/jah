@@ -19,7 +19,7 @@ import { formatMoney } from "@/lib/money";
 import { listAdCampaigns, toggleAdCampaignStatus, type AdCampaign } from "@/services/ads.functions";
 
 export const Route = createFileRoute("/workspace/marketing/anuncios")({
-  head: () => ({ meta: [{ title: "Campanhas de Anúncios (Ads) | JAH" }] }),
+  head: () => ({ meta: [{ title: "Campanhas de Anúncios (Ads) | Wider" }] }),
   loader: async () => {
     const campaigns = await listAdCampaigns().catch(() => []);
     return { campaigns };
@@ -63,11 +63,11 @@ function AnunciosWorkspacePage() {
   return (
     <div className="space-y-6 max-w-6xl pb-16">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4  pb-5">
         <div>
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary">
-              JAH Ads Engine
+              Wider Ads Engine
             </span>
             <Badge
               variant="outline"
@@ -85,7 +85,7 @@ function AnunciosWorkspacePage() {
           </p>
         </div>
 
-        <Button asChild className="rounded-xl font-semibold gap-2 shadow-xs shrink-0">
+        <Button asChild className="rounded-xl font-semibold gap-2  shrink-0">
           <Link to="/workspace/marketing/anuncios/novo">
             <Plus className="size-4" />
             Criar Anúncio
@@ -95,7 +95,7 @@ function AnunciosWorkspacePage() {
 
       {/* Metric Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="squircle-soft bg-card border border-border p-4 space-y-1 shadow-xs">
+        <div className="squircle-soft bg-card  p-4 space-y-1 ">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-[11px] font-bold uppercase tracking-wider">Impressões</span>
             <Eye className="size-4 text-primary" />
@@ -105,7 +105,7 @@ function AnunciosWorkspacePage() {
           </p>
         </div>
 
-        <div className="squircle-soft bg-card border border-border p-4 space-y-1 shadow-xs">
+        <div className="squircle-soft bg-card  p-4 space-y-1 ">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-[11px] font-bold uppercase tracking-wider">Cliques Totais</span>
             <TrendingUp className="size-4 text-primary" />
@@ -115,7 +115,7 @@ function AnunciosWorkspacePage() {
           </p>
         </div>
 
-        <div className="squircle-soft bg-card border border-border p-4 space-y-1 shadow-xs">
+        <div className="squircle-soft bg-card  p-4 space-y-1 ">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-[11px] font-bold uppercase tracking-wider">CTR Médio</span>
             <Sparkles className="size-4 text-primary" />
@@ -123,7 +123,7 @@ function AnunciosWorkspacePage() {
           <p className="text-xl sm:text-2xl font-bold text-foreground">{avgCtr}%</p>
         </div>
 
-        <div className="squircle-soft bg-card border border-border p-4 space-y-1 shadow-xs">
+        <div className="squircle-soft bg-card  p-4 space-y-1 ">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-[11px] font-bold uppercase tracking-wider">Investimento</span>
             <DollarSign className="size-4 text-primary" />
@@ -133,8 +133,8 @@ function AnunciosWorkspacePage() {
       </div>
 
       {/* Campaign List */}
-      <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-xs">
-        <div className="p-4 border-b border-border bg-muted/20 flex items-center justify-between">
+      <div className="rounded-2xl  bg-card overflow-hidden ">
+        <div className="p-4  bg-muted/20 flex items-center justify-between">
           <h2 className="text-sm font-bold text-foreground">Suas Campanhas</h2>
           <Badge variant="secondary" className="text-[10px] rounded-full">
             {campaigns.length} {campaigns.length === 1 ? "campanha" : "campanhas"}

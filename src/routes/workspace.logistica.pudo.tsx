@@ -271,8 +271,8 @@ function WorkspacePudoLogisticsPage() {
               onClick={() => setStatusTab(tab.id)}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
                 statusTab === tab.id
-                  ? "bg-foreground text-background shadow-xs"
-                  : "bg-card border border-border text-muted-foreground hover:text-foreground"
+                  ? "bg-foreground text-background "
+                  : "bg-card  text-muted-foreground hover:text-foreground"
               }`}
             >
               <span>{tab.label}</span>
@@ -294,7 +294,7 @@ function WorkspacePudoLogisticsPage() {
 
       {/* Lista de Pacotes */}
       {filteredPackages.length === 0 ? (
-        <div className="py-16 text-center rounded-3xl border border-dashed border-border bg-card/60 space-y-2">
+        <div className="py-16 text-center rounded-3xl border-0 bg-card/60 space-y-2">
           <Package className="size-10 text-muted-foreground/40 mx-auto" />
           <h3 className="text-base font-bold text-foreground">Nenhum pacote no momento</h3>
           <p className="text-xs text-muted-foreground max-w-sm mx-auto">
@@ -306,7 +306,7 @@ function WorkspacePudoLogisticsPage() {
           {filteredPackages.map((pkg) => (
             <div
               key={pkg.id}
-              className="p-5 rounded-3xl border border-border bg-card shadow-xs space-y-4 flex flex-col justify-between hover:border-primary/40 transition-colors"
+              className="p-5 rounded-3xl  bg-card  space-y-4 flex flex-col justify-between hover:border-primary/40 transition-colors"
             >
               <div className="space-y-3">
                 <div className="flex items-start justify-between gap-2">
@@ -353,7 +353,7 @@ function WorkspacePudoLogisticsPage() {
                 </div>
 
                 {/* Código de Retirada Seguro */}
-                <div className="p-3 rounded-2xl bg-muted/40 border border-border/80 flex items-center justify-between">
+                <div className="p-3 rounded-2xl bg-muted/40  flex items-center justify-between">
                   <div className="space-y-0.5">
                     <span className="text-[10px] uppercase font-bold text-muted-foreground">
                       Código de Segurança
@@ -373,7 +373,7 @@ function WorkspacePudoLogisticsPage() {
               </div>
 
               {/* Ações */}
-              <div className="pt-3 border-t border-border/60 flex items-center justify-between gap-2">
+              <div className="pt-3  flex items-center justify-between gap-2">
                 <span className="text-[10px] text-muted-foreground">
                   Recebido: {new Date(pkg.created_at).toLocaleDateString("pt-BR")}
                 </span>
@@ -400,7 +400,7 @@ function WorkspacePudoLogisticsPage() {
 
       {/* Modal: Receber Novo Pacote */}
       <Dialog open={isCheckInModalOpen} onOpenChange={setIsCheckInModalOpen}>
-        <DialogContent className="max-w-md p-6 rounded-3xl bg-card border border-border">
+        <DialogContent className="max-w-md p-6 rounded-3xl bg-card ">
           <DialogHeader>
             <DialogTitle className="text-lg font-black">Registrar Entrada de Pacote</DialogTitle>
             <DialogDescription className="text-xs">
@@ -414,7 +414,7 @@ function WorkspacePudoLogisticsPage() {
               <Input
                 value={trackingCode}
                 onChange={(e) => setTrackingCode(e.target.value)}
-                placeholder="Ex: JAH-PUDO-99123"
+                placeholder="Ex: WDR-PUDO-99123"
                 className="rounded-xl text-xs font-mono uppercase"
               />
             </div>
@@ -472,7 +472,7 @@ function WorkspacePudoLogisticsPage() {
 
       {/* Modal: Relatar Avaria & Devolução Reversa */}
       <Dialog open={!!damageModalPkg} onOpenChange={(open) => !open && setDamageModalPkg(null)}>
-        <DialogContent className="max-w-md p-6 rounded-3xl bg-card border border-border">
+        <DialogContent className="max-w-md p-6 rounded-3xl bg-card ">
           <DialogHeader>
             <DialogTitle className="text-lg font-black text-destructive">
               Solicitar Logística Reversa & Avaria

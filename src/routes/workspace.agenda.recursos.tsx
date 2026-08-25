@@ -52,7 +52,7 @@ function AdminResourcesPage() {
           {resources.map((res: any) => (
             <div
               key={res.id}
-              className="flex flex-col h-full relative group p-6 border border-border/80 bg-card hover:border-primary/50 transition-colors rounded-xl"
+              className="flex flex-col h-full relative group p-6  bg-card hover:border-primary/50 transition-colors rounded-xl"
             >
               <div className="flex justify-between items-start mb-4">
                 <div>
@@ -80,7 +80,7 @@ function AdminResourcesPage() {
               </div>
 
               <div className="mt-auto">
-                <h4 className="text-xs font-bold text-muted-foreground mb-3 border-b border-border pb-1">
+                <h4 className="text-xs font-bold text-muted-foreground mb-3  pb-1">
                   Grade de Horários
                 </h4>
 
@@ -89,7 +89,7 @@ function AdminResourcesPage() {
                     {res.booking_resource_availabilities.map((avail: any) => (
                       <div
                         key={avail.id}
-                        className="flex justify-between items-center text-sm p-2 rounded bg-muted/40 border border-border/50"
+                        className="flex justify-between items-center text-sm p-2 rounded bg-muted/40 "
                       >
                         <span className="font-medium">{getDayName(avail.day_of_week)}</span>
                         <span className="font-mono text-muted-foreground">

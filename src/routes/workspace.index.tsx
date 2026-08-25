@@ -1,271 +1,334 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import {
   TrendingUp,
+  TrendingDown,
   Package,
   ShoppingBag,
   Truck,
   Users,
   AlertTriangle,
-  Sparkles,
-  Plus,
   ArrowUpRight,
   Store,
   Megaphone,
   Calendar,
   Layers,
   ChevronRight,
+  DollarSign,
+  Ticket,
+  Clock,
+  CheckCircle2,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { getUserSession } from "@/services/auth.functions";
+import { getDashboardData, type DashboardMetrics } from "@/services/dashboard.functions";
+import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/")({
+  loader: async () => {
+    let session: any = null;
+    try {
+      session = await getUserSession();
+    } catch {
+      session = null;
+    }
+
+    if (!session || !session.user) {
+      throw redirect({ to: "/entrar", search: { returnUrl: "/workspace" } });
+    }
+
+    const memberships = session.memberships || [];
+    const activeStoreId = session.store_id || memberships[0]?.store_id || null;
+    const activeStore = memberships.find((m: any) => m.store_id === activeStoreId) || memberships[0] || null;
+
+    const dashboardMetrics = await getDashboardData().catch(() => ({
+      salesTodayCents: 0,
+      salesMonthCents: 0,
+      salesLastMonthCents: 0,
+      growthPercentage: null,
+      ordersTodayCount: 0,
+      ordersMonthCount: 0,
+      ordersBreakdown: {
+        awaitingPayment: 0,
+        needsSeparation: 0,
+        shippedOrReady: 0,
+        completed: 0,
+        cancelled: 0,
+        pendingBackorders: 0,
+      },
+      lowStockItems: [],
+      criticalStockCount: 0,
+      newCustomers30d: 0,
+      abandonedCartsCount: 0,
+      recentActivities: [],
+      activeCashRegister: null,
+      setupChecklist: [],
+      setupProgressPercentage: 100,
+    } as DashboardMetrics));
+
+    return {
+      session,
+      activeStore,
+      memberships,
+      dashboardMetrics,
+    };
+  },
   component: WorkspaceDashboardPage,
 });
 
 export default function WorkspaceDashboardPage() {
+  const { activeStore, dashboardMetrics } = Route.useLoaderData() as any;
+
+  const criticalStockCount = dashboardMetrics?.criticalStockCount || 0;
+  const recentActivities = dashboardMetrics?.recentActivities || [];
+
   return (
-    <div className="space-y-6">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              Painel de Operações
-            </h1>
+    <div className="space-y-6 animate-in fade-in duration-200">
+      {/* ── 1. Top Header com Identificação do Negócio ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-3xl  bg-card ">
+        <div className="space-y-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary">
+              Espaço Ativo
+            </span>
             <Badge variant="outline" className="text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
-              ● Sincronização em Tempo Real
+              ● {activeStore?.name || "Espaço Sem Nome"}
             </Badge>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Governança integrada do ecossistema comercial, cultural e logístico da sua loja.
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            Painel de Operações & Gestão
+          </h1>
+          <p className="text-xs text-muted-foreground">
+            Visão unificada em tempo real de vendas, agendamentos, estoque e clientes.
           </p>
         </div>
 
         {/* Quick Top Actions */}
-        <div className="flex items-center gap-2">
-          <Button asChild size="sm" className="gap-1.5 shadow-sm">
-            <Link to="/workspace/pdv">
-              <Store className="h-4 w-4" />
-              Frente de Caixa (PDV)
+        <div className="flex flex-wrap items-center gap-2">
+          <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-bold gap-1.5 ">
+            <Link to="/workspace/lojas">
+              <Store className="size-3.5" />
+              <span>Trocar Espaço</span>
             </Link>
           </Button>
-          <Button asChild size="sm" variant="outline" className="gap-1.5">
-            <Link to="/workspace/catalogo/produtos/novo">
-              <Plus className="h-4 w-4" />
-              Novo Produto
+
+          <Button asChild size="sm" className="rounded-xl text-xs font-bold gap-1.5 bg-primary text-primary-foreground ">
+            <Link to="/workspace/pdv">
+              <ShoppingBag className="size-3.5" />
+              <span>Frente de Caixa (PDV)</span>
             </Link>
           </Button>
         </div>
       </div>
 
-      {/* Primary Bilateral KPI Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="p-4 bg-card border-border shadow-xs hover:border-foreground/20 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Vendas Hoje
-            </span>
-            <div className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-              <TrendingUp className="h-4 w-4" />
-            </div>
+      {/* ── 2. Destaque de Faturamento Mensal Real ── */}
+      <div className="p-6 rounded-3xl bg-linear-to-br from-primary via-primary/95 to-primary/90 text-primary-foreground  flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="space-y-1">
+          <span className="text-xs font-bold uppercase tracking-wider opacity-80">
+            Faturamento do Mês
+          </span>
+          <div className="text-3xl sm:text-4xl font-black font-mono tracking-tight">
+            {formatMoney(dashboardMetrics?.salesMonthCents || 0)}
           </div>
-          <div className="mt-3">
-            <div className="text-2xl font-bold tracking-tight text-foreground">
-              R$ 1.480,50
-            </div>
-            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-              <span className="text-emerald-600 font-medium">↑ +14.2%</span> vs ontem
-            </p>
+          <div className="flex items-center gap-2 pt-1 text-xs opacity-90">
+            {dashboardMetrics?.growthPercentage != null ? (
+              <span className={`inline-flex items-center gap-1 font-bold ${
+                dashboardMetrics.growthPercentage >= 0 ? "text-emerald-300" : "text-rose-300"
+              }`}>
+                {dashboardMetrics.growthPercentage >= 0 ? (
+                  <TrendingUp className="size-3.5" />
+                ) : (
+                  <TrendingDown className="size-3.5" />
+                )}
+                {dashboardMetrics.growthPercentage >= 0 ? `+${dashboardMetrics.growthPercentage}%` : `${dashboardMetrics.growthPercentage}%`} em relação ao mês anterior
+              </span>
+            ) : (
+              <span className="text-xs opacity-80">
+                Faturamento consolidado em tempo real
+              </span>
+            )}
           </div>
-        </Card>
+        </div>
 
-        <Card className="p-4 bg-card border-border shadow-xs hover:border-foreground/20 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Pedidos Ativos
-            </span>
-            <div className="h-8 w-8 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-              <ShoppingBag className="h-4 w-4" />
-            </div>
-          </div>
-          <div className="mt-3">
-            <div className="text-2xl font-bold tracking-tight text-foreground">
-              6 em preparo
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              <Link to="/workspace/pedidos/gestor" className="text-blue-600 hover:underline inline-flex items-center gap-0.5">
-                Ver Kanban de Cozinha <ChevronRight className="h-3 w-3" />
-              </Link>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-4 bg-card border-border shadow-xs hover:border-foreground/20 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Frota & Entregas
-            </span>
-            <div className="h-8 w-8 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-              <Truck className="h-4 w-4" />
-            </div>
-          </div>
-          <div className="mt-3">
-            <div className="text-2xl font-bold tracking-tight text-foreground">
-              3 despachados
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              <Link to="/workspace/pedidos/frota" className="text-amber-600 hover:underline inline-flex items-center gap-0.5">
-                Rastreamento e PIN <ChevronRight className="h-3 w-3" />
-              </Link>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-4 bg-card border-border shadow-xs hover:border-foreground/20 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Estoque Crítico
-            </span>
-            <div className="h-8 w-8 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center">
-              <AlertTriangle className="h-4 w-4" />
-            </div>
-          </div>
-          <div className="mt-3">
-            <div className="text-2xl font-bold tracking-tight text-foreground">
-              2 itens baixos
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              <Link to="/workspace/estoque" className="text-rose-600 hover:underline inline-flex items-center gap-0.5">
-                Repor inventário <ChevronRight className="h-3 w-3" />
-              </Link>
-            </div>
-          </div>
-        </Card>
+        <div className="flex items-center gap-3">
+          <Link
+            to="/workspace/financeiro/caixa"
+            className="px-4 py-2.5 rounded-xl bg-white text-black text-xs font-bold hover:bg-white/90 transition-all "
+          >
+            Ver Fluxo de Caixa
+          </Link>
+          <Link
+            to="/workspace/agenda"
+            className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition-all"
+          >
+            Abrir Agenda
+          </Link>
+        </div>
       </div>
 
-      {/* Bilateral Modules Matrix */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Module 1: Vitrine & Marketing ao Vivo */}
-        <Card className="p-5 border-border bg-card space-y-4">
+      {/* ── 3. Grid Tático de 4 Métricas Reais ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <Link
+          to="/workspace/agenda"
+          className="p-4 rounded-2xl bg-card  hover:border-primary/50 transition-all  group flex flex-col justify-between"
+        >
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-600">
-                <Megaphone className="h-4 w-4" />
-              </div>
-              <h3 className="font-semibold text-sm">Vitrine & Marketing</h3>
+            <div className="size-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center">
+              <Calendar className="size-5" />
             </div>
-            <Badge variant="secondary" className="text-[10px]">Ao Vivo</Badge>
+            <ArrowUpRight className="size-4 text-muted-foreground group-hover:text-foreground transition-colors" />
           </div>
+          <div className="mt-3">
+            <p className="text-xs font-bold text-muted-foreground">Agenda</p>
+            <p className="text-sm font-black text-foreground mt-0.5">
+              {dashboardMetrics?.ordersTodayCount || 0} compromisso(s) hoje
+            </p>
+          </div>
+        </Link>
+
+        <Link
+          to="/workspace/clientes"
+          className="p-4 rounded-2xl bg-card  hover:border-primary/50 transition-all  group flex flex-col justify-between"
+        >
+          <div className="flex items-center justify-between">
+            <div className="size-10 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center">
+              <Users className="size-5" />
+            </div>
+            <ArrowUpRight className="size-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+          </div>
+          <div className="mt-3">
+            <p className="text-xs font-bold text-muted-foreground">Clientes</p>
+            <p className="text-sm font-black text-foreground mt-0.5">
+              {dashboardMetrics?.newCustomers30d ?? 0} novos no mês
+            </p>
+          </div>
+        </Link>
+
+        <Link
+          to="/workspace/financeiro/caixa"
+          className="p-4 rounded-2xl bg-card  hover:border-primary/50 transition-all  group flex flex-col justify-between"
+        >
+          <div className="flex items-center justify-between">
+            <div className="size-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+              <DollarSign className="size-5" />
+            </div>
+            <ArrowUpRight className="size-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+          </div>
+          <div className="mt-3">
+            <p className="text-xs font-bold text-muted-foreground">Vendas Hoje</p>
+            <p className="text-sm font-black text-foreground mt-0.5 font-mono">
+              {formatMoney(dashboardMetrics?.salesTodayCents || 0)}
+            </p>
+          </div>
+        </Link>
+
+        <Link
+          to="/workspace/catalogo/produtos"
+          className="p-4 rounded-2xl bg-card  hover:border-primary/50 transition-all  group flex flex-col justify-between"
+        >
+          <div className="flex items-center justify-between">
+            <div className="size-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
+              <Package className="size-5" />
+            </div>
+            <ArrowUpRight className="size-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+          </div>
+          <div className="mt-3">
+            <p className="text-xs font-bold text-muted-foreground">Catálogo & Estoque</p>
+            <p className="text-sm font-black text-foreground mt-0.5">
+              {criticalStockCount === 0 ? "Estoque Regular" : `${criticalStockCount} item(ns) com baixo estoque`}
+            </p>
+          </div>
+        </Link>
+      </div>
+
+      {/* ── 4. Matriz Bilateral: Atividades Reais & Vitrine ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Atividades Recentes do Banco de Dados */}
+        <Card className="lg:col-span-2 p-5 border-border bg-card rounded-3xl  space-y-4">
+          <div className="flex items-center justify-between pb-3 ">
+            <div className="flex items-center gap-2">
+              <Clock className="size-4 text-primary" />
+              <h3 className="font-bold text-sm text-foreground">Atividades Recentes</h3>
+            </div>
+            <Link to="/workspace/pedidos" className="text-xs text-primary font-bold hover:underline">
+              Ver todos os pedidos
+            </Link>
+          </div>
+
+          {recentActivities.length === 0 ? (
+            <div className="py-8 text-center space-y-2 border-0 rounded-2xl bg-muted/20">
+              <Clock className="size-8 text-muted-foreground/40 mx-auto" />
+              <p className="text-xs font-bold text-foreground">Nenhuma atividade recente nesta loja</p>
+              <p className="text-[11px] text-muted-foreground max-w-xs mx-auto">
+                Assim que novas vendas, pedidos ou agendamentos forem realizados, eles aparecerão aqui em tempo real.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              {recentActivities.map((act: any) => (
+                <div
+                  key={act.id}
+                  className="flex items-center justify-between p-3 rounded-2xl bg-muted/30  text-xs hover:border-primary/40 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="size-8 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+                      <CheckCircle2 className="size-4" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-foreground">{act.title}</p>
+                      <p className="text-muted-foreground text-[11px]">{act.subtitle}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[11px] font-mono text-muted-foreground block">{act.timeDisplay}</span>
+                    {act.totalCents != null && (
+                      <span className="text-xs font-bold font-mono text-foreground">{formatMoney(act.totalCents)}</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+
+        {/* Vitrine & Marketing da Loja */}
+        <Card className="p-5 border-border bg-card rounded-3xl  space-y-4">
+          <div className="flex items-center justify-between pb-3 ">
+            <div className="flex items-center gap-2">
+              <Megaphone className="size-4 text-primary" />
+              <h3 className="font-bold text-sm text-foreground">Vitrine & Canais</h3>
+            </div>
+            <Badge variant="secondary" className="text-[10px]">Ativo</Badge>
+          </div>
+
           <p className="text-xs text-muted-foreground">
-            Banners, promoções e produtos editados aqui propagam instantaneamente na vitrine pública.
+            Gerencie canais de venda, promoções e catálogo de serviços cadastrados para esta unidade.
           </p>
-          <div className="space-y-2 pt-2 border-t border-border">
+
+          <div className="space-y-2 pt-2">
             <Link
               to="/workspace/marketing/banners"
-              className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/60 text-xs font-medium transition-colors"
+              className="flex items-center justify-between p-2.5 rounded-xl hover:bg-muted/60 text-xs font-medium  transition-colors"
             >
-              <span>Gerenciar Top Banners</span>
-              <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
+              <span>Banners da Loja</span>
+              <ArrowUpRight className="size-3.5 text-muted-foreground" />
             </Link>
+
             <Link
               to="/workspace/marketing/promocoes"
-              className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/60 text-xs font-medium transition-colors"
+              className="flex items-center justify-between p-2.5 rounded-xl hover:bg-muted/60 text-xs font-medium  transition-colors"
             >
               <span>Promoções & Cupons</span>
-              <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
+              <ArrowUpRight className="size-3.5 text-muted-foreground" />
             </Link>
-            <Link
-              to="/workspace/catalogo/produtos"
-              className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/60 text-xs font-medium transition-colors"
-            >
-              <span>Catálogo & Variações</span>
-              <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
-            </Link>
-          </div>
-        </Card>
 
-        {/* Module 2: Operação & Logística */}
-        <Card className="p-5 border-border bg-card space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600">
-                <Store className="h-4 w-4" />
-              </div>
-              <h3 className="font-semibold text-sm">Operação & Logística</h3>
-            </div>
-            <Badge variant="secondary" className="text-[10px]">Despacho</Badge>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Controle de fluxo de comandas, caixa físico e despacho em tempo real com links mágicos.
-          </p>
-          <div className="space-y-2 pt-2 border-t border-border">
             <Link
-              to="/workspace/pedidos/gestor"
-              className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/60 text-xs font-medium transition-colors"
+              to="/workspace/agenda/servicos"
+              className="flex items-center justify-between p-2.5 rounded-xl hover:bg-muted/60 text-xs font-medium  transition-colors"
             >
-              <span>Gestor Kanban de Pedidos</span>
-              <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
-            </Link>
-            <Link
-              to="/workspace/pedidos/frota"
-              className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/60 text-xs font-medium transition-colors"
-            >
-              <span>Frota de Entregadores</span>
-              <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
-            </Link>
-            <Link
-              to="/workspace/financeiro/caixa"
-              className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/60 text-xs font-medium transition-colors"
-            >
-              <span>Frente de Caixa & Turnos</span>
-              <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
-            </Link>
-          </div>
-        </Card>
-
-        {/* Module 3: Serviços, IA & Simulações */}
-        <Card className="p-5 border-border bg-card space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-purple-500/10 text-purple-600">
-                <Sparkles className="h-4 w-4" />
-              </div>
-              <h3 className="font-semibold text-sm">Serviços & Ecossistema</h3>
-            </div>
-            <Badge variant="secondary" className="text-[10px]">Multi-Vertical</Badge>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Recrutamento (ATS), pontos de coleta urbana (PUDO), imóveis e moderação.
-          </p>
-          <div className="space-y-2 pt-2 border-t border-border">
-            <Link
-              to="/workspace/empregos/candidatos"
-              className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/60 text-xs font-medium transition-colors"
-            >
-              <span className="font-bold text-foreground">Recrutamento & Vagas (ATS)</span>
-              <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
-            </Link>
-            <Link
-              to="/workspace/logistica/pudo"
-              className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/60 text-xs font-medium transition-colors"
-            >
-              <span className="font-bold text-foreground">Ponto de Retirada (PUDO)</span>
-              <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
-            </Link>
-            <Link
-              to="/workspace/imoveis/manutencoes"
-              className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/60 text-xs font-medium transition-colors"
-            >
-              <span>Chamados de Manutenção</span>
-              <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
-            </Link>
-            <Link
-              to="/workspace/simulacao"
-              className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/60 text-xs font-medium transition-colors"
-            >
-              <span>SimLab (Simulação em Tempo Real)</span>
-              <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
+              <span>Serviços & Agendamento</span>
+              <ArrowUpRight className="size-3.5 text-muted-foreground" />
             </Link>
           </div>
         </Card>
@@ -273,4 +336,3 @@ export default function WorkspaceDashboardPage() {
     </div>
   );
 }
-

@@ -15,7 +15,9 @@ export type Role =
   | "stock"
   | "finance"
   | "content"
-  | "support";
+  | "support"
+  | "platform_admin"
+  | "master";
 
 /** Delivery phases per docs/ROADMAP.md. */
 export type Phase = 0 | 1 | 2 | 3 | 4 | 5;

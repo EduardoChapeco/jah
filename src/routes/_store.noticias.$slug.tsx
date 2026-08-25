@@ -22,8 +22,8 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_store/noticias/$slug")({
   head: ({ loaderData }: any) => ({
     meta: [
-      { title: loaderData?.article ? `${loaderData.article.title} | JAH Notícias` : "Notícia | JAH" },
-      { name: "description", content: loaderData?.article?.subtitle || "Notícia local no JAH." },
+      { title: loaderData?.article ? `${loaderData.article.title} | Wider Notícias` : "Notícia | Wider" },
+      { name: "description", content: loaderData?.article?.subtitle || "Notícia local no Wider." },
     ],
   }),
   loader: async ({ params }) => {
@@ -134,7 +134,7 @@ function NoticiaDetailPage() {
           )}
 
           {/* Linha de Metadados / Autor / Compartilhar */}
-          <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-b border-border/60 py-3 text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t  py-3 text-xs text-muted-foreground">
             <div className="flex items-center gap-4 flex-wrap">
               <div className="flex items-center gap-2">
                 <div className="size-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
@@ -149,7 +149,7 @@ function NoticiaDetailPage() {
                   )}
                 </div>
                 <div>
-                  <p className="font-bold text-foreground">{article.store_name || "Redação JAH"}</p>
+                  <p className="font-bold text-foreground">{article.store_name || "Redação Wider"}</p>
                   {article.author_name && <p className="text-[10px]">Por {article.author_name}</p>}
                 </div>
               </div>
@@ -180,7 +180,7 @@ function NoticiaDetailPage() {
         {/* ── Capa Principal (Imagem ou Vídeo) ── */}
         {article.cover_media_url && (
           <div className="space-y-2">
-            <div className="relative aspect-16/9 rounded-3xl overflow-hidden bg-muted shadow-sm">
+            <div className="relative aspect-16/9 rounded-3xl overflow-hidden bg-muted ">
               {article.cover_media_type === "video" ? (
                 <video
                   src={article.cover_media_url}
@@ -246,7 +246,7 @@ function NoticiaDetailPage() {
                       {section.content.map((imgUrl: string, i: number) => (
                         <div
                           key={i}
-                          className="aspect-4/3 rounded-2xl overflow-hidden bg-muted shadow-2xs"
+                          className="aspect-4/3 rounded-2xl overflow-hidden bg-muted "
                         >
                           <img
                             src={imgUrl}
@@ -277,7 +277,7 @@ function NoticiaDetailPage() {
 
         {/* ── Tags / Assuntos Relacionados ── */}
         {article.tags && article.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 pt-4 border-t border-border/60">
+          <div className="flex flex-wrap gap-2 pt-4 ">
             {article.tags.map((tag: string) => (
               <span
                 key={tag}
@@ -294,7 +294,7 @@ function NoticiaDetailPage() {
 
         {/* ── Matérias Relacionadas ── */}
         {related && related.length > 0 && (
-          <div className="mt-12 pt-8 border-t border-border/80 space-y-4">
+          <div className="mt-12 pt-8  space-y-4">
             <h3 className="text-lg font-black text-foreground">Leia Também</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {related.map((rel: any) => (
@@ -302,7 +302,7 @@ function NoticiaDetailPage() {
                   key={rel.id}
                   to="/noticias/$slug"
                   params={{ slug: rel.slug }}
-                  className="flex gap-3 p-3 rounded-2xl border border-border/60 bg-card hover-elevate transition-all group"
+                  className="flex gap-3 p-3 rounded-2xl  bg-card hover-elevate transition-all group"
                 >
                   {rel.cover_media_url && (
                     <div className="size-20 rounded-xl overflow-hidden bg-muted shrink-0">

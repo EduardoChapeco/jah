@@ -11,21 +11,21 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-foreground text-background hover:opacity-90 shadow-2xs font-bold border border-border/20",
+          "bg-foreground text-background hover:opacity-90  font-bold ",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-2xs font-bold",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90  font-bold",
         outline:
-          "border border-border bg-background hover:bg-muted text-foreground hover:border-foreground/30 font-semibold shadow-2xs",
+          " bg-background hover:bg-muted text-foreground hover:border-foreground/30 font-semibold ",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 font-semibold border border-border/40 shadow-2xs",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 font-semibold  ",
         ghost: "hover:bg-muted hover:text-foreground text-muted-foreground",
         link: "text-primary underline-offset-4 hover:underline font-semibold",
         pillow:
-          "rounded-xl bg-foreground text-background font-bold shadow-xs hover:opacity-90 hover:scale-[1.02] active:scale-[0.97]",
+          "rounded-xl bg-foreground text-background font-bold  hover:opacity-90 hover:scale-[1.02] active:scale-[0.97]",
         pillowOutline:
-          "rounded-xl border border-border bg-card hover:bg-muted text-foreground font-bold shadow-2xs hover:scale-[1.02] active:scale-[0.97]",
+          "rounded-xl  bg-card hover:bg-muted text-foreground font-bold  hover:scale-[1.02] active:scale-[0.97]",
         heroAction:
-          "rounded-2xl bg-foreground text-background font-black shadow-md hover:scale-[1.02] hover:shadow-lg active:scale-[0.97] border border-border/30",
+          "rounded-2xl bg-foreground text-background font-black  hover:scale-[1.02] hover: active:scale-[0.97] ",
       },
       size: {
         default: "h-11 px-5.5 py-2.5", /* 44px — padrão ergonômico Apple Squircle */

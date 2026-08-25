@@ -22,7 +22,7 @@ import {
 
 export const Route = createFileRoute("/_store/conta/mobilidade")({
   head: () => ({
-    meta: [{ title: "Minhas Corridas & Mudanças — JAH" }],
+    meta: [{ title: "Minhas Corridas & Mudanças — Wider" }],
   }),
   loader: async () => {
     const requests = await listCustomerMobilityRequests().catch(() => []);
@@ -50,22 +50,19 @@ function CustomerMobilityHistoryPage() {
   });
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6 pb-24">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold text-foreground tracking-tight">
-            Minhas Corridas & Mudanças
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            Acompanhe o status dos seus trajetos, entregas e fretes contratados.
-          </p>
+    <div className="w-full max-w-4xl mx-auto space-y-6 pb-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="font-mono text-[10px] uppercase font-bold px-2.5 py-0.5">
+            Mobilidade
+          </Badge>
+          <span className="text-xs text-muted-foreground font-mono">Trajetos & Entregas</span>
         </div>
 
-        <Button asChild className="rounded-xl h-10 px-4 font-semibold text-xs bg-foreground text-background hover:opacity-90 gap-2">
+        <Button asChild size="sm" className="rounded-xl h-9 px-4 font-bold text-xs bg-primary text-primary-foreground gap-1.5 ">
           <Link to="/mobilidade">
-            <Plus className="size-4" />
-            <span>Fazer Novo Chamado</span>
+            <Plus className="size-3.5" />
+            <span>Novo Chamado</span>
           </Link>
         </Button>
       </div>
@@ -77,7 +74,7 @@ function CustomerMobilityHistoryPage() {
       )}
 
       {!isLoading && requests && requests.length === 0 && (
-        <div className="py-20 text-center space-y-3 bg-muted/20 rounded-2xl border border-border p-8">
+        <div className="py-20 text-center space-y-3 bg-muted/20 rounded-2xl  p-8">
           <Car className="size-10 text-muted-foreground/50 mx-auto" />
           <div className="space-y-1">
             <h2 className="text-sm font-semibold text-foreground">Nenhuma corrida solicitada</h2>
@@ -102,9 +99,9 @@ function CustomerMobilityHistoryPage() {
             return (
               <div
                 key={req.id}
-                className="rounded-2xl border border-border bg-card p-5 shadow-xs space-y-3 hover:border-foreground/20 transition-colors"
+                className="rounded-2xl  bg-card p-5  space-y-3 hover:border-foreground/20 transition-colors"
               >
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
+                <div className="flex flex-wrap items-center justify-between gap-2  pb-3">
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-xs font-medium text-muted-foreground">
                       #{req.magic_token || req.id.substring(0, 8)}
@@ -141,7 +138,7 @@ function CustomerMobilityHistoryPage() {
 
                 {/* Assigned Driver (if any) */}
                 {req.courier_profiles && (
-                  <div className="p-3 rounded-xl bg-muted/30 border border-border flex items-center justify-between gap-3 text-xs">
+                  <div className="p-3 rounded-xl bg-muted/30  flex items-center justify-between gap-3 text-xs">
                     <div className="flex items-center gap-3">
                       <div className="size-8 rounded-lg bg-foreground text-background flex items-center justify-center font-bold">
                         {req.courier_profiles.full_name.charAt(0)}
@@ -158,7 +155,7 @@ function CustomerMobilityHistoryPage() {
                       href={`https://wa.me/55${req.courier_profiles.phone.replace(/\D/g, "")}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="px-3 py-1.5 rounded-lg border border-border bg-background hover:bg-muted text-foreground font-medium text-xs flex items-center gap-1.5 transition-colors"
+                      className="px-3 py-1.5 rounded-lg  bg-background hover:bg-muted text-foreground font-medium text-xs flex items-center gap-1.5 transition-colors"
                     >
                       <Phone className="size-3.5" />
                       <span>WhatsApp</span>
@@ -167,7 +164,7 @@ function CustomerMobilityHistoryPage() {
                 )}
 
                 {/* Price & Summary */}
-                <div className="flex items-center justify-between pt-2 border-t border-border text-xs">
+                <div className="flex items-center justify-between pt-2  text-xs">
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className="text-[10px] uppercase font-mono">
                       {req.service_type}

@@ -19,14 +19,7 @@ import {
 } from "@/services/master.functions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { SheetPage } from "@/components/ui/sheet-page";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { formatDateTime } from "@/lib/datetime";
@@ -68,7 +61,7 @@ function AdminDenunciasPage() {
   const handleExecuteAction = async () => {
     if (!selectedReport || !actionType) return;
     if (!moderatorNotes.trim()) {
-      toast.error("Informe uma justificativa interna para registrar no log forense.");
+      toast.error("Informe uma justificativa para registrar no histórico de moderação.");
       return;
     }
 
@@ -134,7 +127,7 @@ function AdminDenunciasPage() {
       </div>
 
       {filteredReports.length === 0 ? (
-        <div className="border border-dashed border-border rounded-xl p-12 text-center">
+        <div className="border-0 rounded-xl p-12 text-center">
           <ShieldAlert className="size-12 text-muted-foreground mx-auto mb-3 opacity-40" />
           <h3 className="text-base font-bold text-foreground">Nenhuma denúncia pendente</h3>
           <p className="text-xs text-muted-foreground mt-1">
@@ -146,7 +139,7 @@ function AdminDenunciasPage() {
           {filteredReports.map((r: any) => (
             <div
               key={r.id}
-              className="border border-border bg-card rounded-xl p-5 shadow-xs space-y-4"
+              className=" bg-card rounded-xl p-5  space-y-4"
             >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3">
                 <div className="flex items-center gap-2">
@@ -208,7 +201,7 @@ function AdminDenunciasPage() {
                         href={url}
                         target="_blank"
                         rel="noreferrer"
-                        className="size-16 rounded-lg overflow-hidden border border-border shrink-0 hover:opacity-80"
+                        className="size-16 rounded-lg overflow-hidden  shrink-0 hover:opacity-80"
                       >
                         <img
                           src={url}
@@ -266,8 +259,8 @@ function AdminDenunciasPage() {
         </div>
       )}
 
-      {/* Dialog de Confirmação & Justificativa Forense */}
-      <Dialog
+      {/* SheetPage de Julgamento & Parecer de Moderação */}
+      <SheetPage
         open={!!selectedReport && !!actionType}
         onOpenChange={(open) => {
           if (!open) {
@@ -275,34 +268,17 @@ function AdminDenunciasPage() {
             setActionType(null);
           }
         }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirmar Ação de Moderação Master</DialogTitle>
-            <DialogDescription>
-              Esta ação será auditada e gravada de forma imutável no log forense de litígios.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-3 py-2">
-            <div className="space-y-1">
-              <Label>Justificativa Interna & Parecer do Auditor *</Label>
-              <Textarea
-                value={moderatorNotes}
-                onChange={(e) => setModeratorNotes(e.target.value)}
-                placeholder="Descreva a fundamentação legal ou violação de diretrizes comunitárias..."
-                rows={4}
-              />
-            </div>
-          </div>
-
-          <DialogFooter>
+        title="Julgamento de Moderação Master"
+        size="default"
+        footer={
+          <>
             <Button
               variant="outline"
               onClick={() => {
                 setSelectedReport(null);
                 setActionType(null);
               }}
+              className="h-11 px-4 rounded-xl text-xs font-bold"
             >
               Cancelar
             </Button>
@@ -310,18 +286,44 @@ function AdminDenunciasPage() {
               variant="destructive"
               onClick={handleExecuteAction}
               disabled={isSubmitting || !moderatorNotes.trim()}
+              className="h-11 px-6 rounded-xl text-xs font-bold"
             >
               {isSubmitting ? (
                 <>
                   <Loader2 className="size-4 animate-spin mr-2" /> Executando...
                 </>
               ) : (
-                "Executar Ação"
+                "Executar Decisão"
               )}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          {selectedReport && (
+            <div className="p-3.5 rounded-xl bg-card  space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-foreground">Alvo da Denúncia</span>
+                <Badge variant="outline">{selectedReport.target_type}</Badge>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Motivo: <strong className="text-foreground">{selectedReport.reason}</strong>
+              </p>
+            </div>
+          )}
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold">Justificativa & Parecer do Auditor *</Label>
+            <Textarea
+              value={moderatorNotes}
+              onChange={(e) => setModeratorNotes(e.target.value)}
+              placeholder="Fundamentação da decisão (violação das diretrizes comunitárias, sanção aplicada...)"
+              rows={5}
+              className="rounded-xl text-xs"
+            />
+          </div>
+        </div>
+      </SheetPage>
     </div>
   );
 }

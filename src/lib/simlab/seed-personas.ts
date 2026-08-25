@@ -1,5 +1,5 @@
 /**
- * Catálogo Canônico de Seed Personas (JAH SimLab — derivado do Simwork Engine)
+ * Catálogo Canônico de Seed Personas (Wider SimLab — derivado do Simwork Engine)
  * Personas brasileiras calibradas para simulação de mercado, produtos e eventos.
  */
 

@@ -127,7 +127,265 @@ export const getPostMediaSignedUrl = createServerFn({ method: "POST" })
   });
 
 /**
- * Retorna uma URL assinada para que o cliente faça o upload diretamente para o Supabase Storage,
- * aliviando o servidor (BFF) de processar buffers/base64 de grandes arquivos (LGPD/Performance).
- * API_CONTRACTS.md - 8.1 Solicitar URL de upload
+ * Upload direto de mídia de lojas e espaços (logos, capas e banners).
  */
+export const uploadStoreMedia = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      fileName: z.string().min(1),
+      fileType: z.string().min(1),
+      base64Data: z.string().min(1),
+      bucket: z.string().default("cms-media"),
+    }),
+  )
+  .handler(async ({ data: { fileName, fileType, base64Data, bucket } }) => {
+    try {
+      const supabase = getServerClient();
+      const ext = fileName.split(".").pop() || "png";
+      const uniqueName = `stores/${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${ext}`;
+
+      // Extrai os bytes a partir da string base64
+      const base64Content = base64Data.includes(",") ? base64Data.split(",")[1] : base64Data;
+      const buffer = Buffer.from(base64Content, "base64");
+
+      let { error: uploadError } = await supabase.storage
+        .from(bucket)
+        .upload(uniqueName, buffer, {
+          contentType: fileType,
+          upsert: true,
+        });
+
+      if (uploadError && (uploadError.message.includes("Bucket not found") || uploadError.message.includes("The related resource does not exist"))) {
+        await supabase.storage.createBucket(bucket, {
+          public: true,
+          fileSizeLimit: 20 * 1024 * 1024,
+        });
+        const retry = await supabase.storage
+          .from(bucket)
+          .upload(uniqueName, buffer, {
+            contentType: fileType,
+            upsert: true,
+          });
+        uploadError = retry.error;
+      }
+
+      if (uploadError) {
+        throw new Error(`Erro ao fazer upload da mídia: ${uploadError.message}`);
+      }
+
+      const { data: publicUrlData } = supabase.storage.from(bucket).getPublicUrl(uniqueName);
+
+      return {
+        url: publicUrlData.publicUrl,
+        path: uniqueName,
+      };
+    } catch (e: any) {
+      console.error("[storage] uploadStoreMedia error:", e);
+      throw new Error(e.message || "Erro no upload");
+    }
+  });
+
+/**
+ * Upload direto de fotos e vídeos do Mural a partir de arquivo local (Base64 / File Reader)
+ */
+export const uploadPostMedia = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      fileName: z.string().min(1),
+      fileType: z.string().min(1),
+      base64Data: z.string().min(1),
+    }),
+  )
+  .handler(async ({ data: { fileName, fileType, base64Data } }) => {
+    try {
+      const { getServerIdentity } = await import("@/lib/server-access");
+      const identity = await getServerIdentity();
+      if (!identity.id) throw new Error("Faça login para enviar fotos ou vídeos.");
+
+      const supabase = getServerClient();
+      const ext = fileName.split(".").pop() || "jpg";
+      const uniqueName = `${identity.id}/${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${ext}`;
+      const bucket = "post-media";
+
+      const base64Content = base64Data.includes(",") ? base64Data.split(",")[1] : base64Data;
+      const buffer = Buffer.from(base64Content, "base64");
+
+      let { error: uploadError } = await supabase.storage
+        .from(bucket)
+        .upload(uniqueName, buffer, {
+          contentType: fileType,
+          upsert: true,
+        });
+
+      if (
+        uploadError &&
+        (uploadError.message.includes("Bucket not found") ||
+          uploadError.message.includes("The related resource does not exist"))
+      ) {
+        await supabase.storage.createBucket(bucket, {
+          public: true,
+          fileSizeLimit: 100 * 1024 * 1024,
+        });
+        const retry = await supabase.storage
+          .from(bucket)
+          .upload(uniqueName, buffer, {
+            contentType: fileType,
+            upsert: true,
+          });
+        uploadError = retry.error;
+      }
+
+      if (uploadError) {
+        throw new Error(`Erro ao salvar mídia: ${uploadError.message}`);
+      }
+
+      const { data: publicUrlData } = supabase.storage.from(bucket).getPublicUrl(uniqueName);
+
+      return {
+        url: publicUrlData.publicUrl,
+        path: uniqueName,
+      };
+    } catch (e: any) {
+      console.error("[storage] uploadPostMedia error:", e);
+      throw new Error(e.message || "Erro no upload do arquivo.");
+    }
+  });
+
+/**
+ * Upload de mídia para a administração global (Admin Master)
+ * Utilizado para ícones customizados, cards de super nichos e banners do app.
+ */
+export const uploadAdminMedia = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      fileName: z.string().min(1),
+      fileType: z.string().min(1),
+      base64Data: z.string().min(1),
+      folder: z.string().default("platform"),
+    }),
+  )
+  .handler(async ({ data: { fileName, fileType, base64Data, folder } }) => {
+    try {
+      const { requireAdmin } = await import("@/lib/server-access");
+      const identity = await requireAdmin();
+      if (identity.role !== "platform_admin") {
+        throw new Error("Acesso restrito ao Administrador Master Global.");
+      }
+
+      const supabase = getServerClient();
+      const ext = fileName.split(".").pop() || "png";
+      const uniqueName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${ext}`;
+      const bucket = "cms-media";
+
+      const base64Content = base64Data.includes(",") ? base64Data.split(",")[1] : base64Data;
+      const buffer = Buffer.from(base64Content, "base64");
+
+      let { error: uploadError } = await supabase.storage
+        .from(bucket)
+        .upload(uniqueName, buffer, {
+          contentType: fileType,
+          upsert: true,
+        });
+
+      if (
+        uploadError &&
+        (uploadError.message.includes("Bucket not found") ||
+          uploadError.message.includes("The related resource does not exist"))
+      ) {
+        await supabase.storage.createBucket(bucket, {
+          public: true,
+          fileSizeLimit: 20 * 1024 * 1024,
+        });
+        const retry = await supabase.storage
+          .from(bucket)
+          .upload(uniqueName, buffer, {
+            contentType: fileType,
+            upsert: true,
+          });
+        uploadError = retry.error;
+      }
+
+      if (uploadError) {
+        throw new Error(`Erro ao salvar imagem no servidor: ${uploadError.message}`);
+      }
+
+      const { data: publicUrlData } = supabase.storage.from(bucket).getPublicUrl(uniqueName);
+
+      return {
+        url: publicUrlData.publicUrl,
+        path: uniqueName,
+      };
+    } catch (e: any) {
+      console.error("[storage] uploadAdminMedia error:", e);
+      throw new Error(e.message || "Erro no upload do admin.");
+    }
+  });
+
+/**
+ * Upload universal e resiliente de mídia (imagens e vídeos) via Server Function
+ * Bypassa RLS client-side através do service_role e auto-cria buckets faltantes.
+ */
+export const uploadMediaUniversal = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      fileName: z.string().min(1),
+      fileType: z.string().min(1),
+      base64Data: z.string().min(1),
+      bucket: z.string().default("post-media"),
+      folder: z.string().default("uploads"),
+    }),
+  )
+  .handler(async ({ data: { fileName, fileType, base64Data, bucket, folder } }) => {
+    try {
+      const supabase = getServerClient();
+      const ext = fileName.split(".").pop()?.toLowerCase() || "jpg";
+      const cleanName = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${ext}`;
+      const uniqueName = `${folder}/${cleanName}`;
+
+      const base64Content = base64Data.includes(",") ? base64Data.split(",")[1] : base64Data;
+      const buffer = Buffer.from(base64Content, "base64");
+
+      let { error: uploadError } = await supabase.storage
+        .from(bucket)
+        .upload(uniqueName, buffer, {
+          contentType: fileType,
+          upsert: true,
+        });
+
+      if (
+        uploadError &&
+        (uploadError.message.includes("Bucket not found") ||
+          uploadError.message.includes("The related resource does not exist"))
+      ) {
+        await supabase.storage.createBucket(bucket, {
+          public: true,
+          fileSizeLimit: 100 * 1024 * 1024,
+        });
+        const retry = await supabase.storage
+          .from(bucket)
+          .upload(uniqueName, buffer, {
+            contentType: fileType,
+            upsert: true,
+          });
+        uploadError = retry.error;
+      }
+
+      if (uploadError) {
+        throw new Error(`Erro ao persistir mídia no storage: ${uploadError.message}`);
+      }
+
+      const { data: publicUrlData } = supabase.storage.from(bucket).getPublicUrl(uniqueName);
+
+      return {
+        id: cleanName,
+        url: publicUrlData.publicUrl,
+        path: uniqueName,
+        name: fileName,
+        type: fileType.startsWith("video/") ? ("video" as const) : ("image" as const),
+      };
+    } catch (e: any) {
+      console.error("[storage] uploadMediaUniversal error:", e);
+      throw new Error(e.message || "Erro no upload da mídia.");
+    }
+  });
+

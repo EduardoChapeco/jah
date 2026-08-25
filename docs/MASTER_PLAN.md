@@ -1,6 +1,6 @@
-# Master Plan — Jah Community Platform
+# Master Plan — Wider Community Platform
 
-Este documento normaliza o briefing completo do projeto Jah Community Platform em um plano mestre. Ele é a porta de entrada para qualquer pessoa (humana ou agente) que for trabalhar no produto. Os detalhes técnicos aprofundados vivem em documentos irmãos, que são fontes únicas de verdade (single source of truth) para seus respectivos temas:
+Este documento normaliza o briefing completo do projeto Wider Community Platform em um plano mestre. Ele é a porta de entrada para qualquer pessoa (humana ou agente) que for trabalhar no produto. Os detalhes técnicos aprofundados vivem em documentos irmãos, que são fontes únicas de verdade (single source of truth) para seus respectivos temas:
 
 - `DESIGN.md` — design system, tokens visuais, tipografia (Inter, Space Grotesk, Oswald, JetBrains Mono), cores, espaçamentos, primitivas de superfície (Surface).
 - `.agents/AGENTS.md` — regras de comportamento vinculantes para agentes/IA e protocolo obrigatório do Time de Elite (Arquitetura, Design Ops, QA).

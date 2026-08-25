@@ -19,7 +19,7 @@ import { getDeliveryByToken, confirmDeliveryByPin } from "@/services/dispatch.fu
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/_store/entrega/$token")({
-  head: () => ({ meta: [{ title: "Painel do Entregador | JAH Delivery" }] }),
+  head: () => ({ meta: [{ title: "Painel do Entregador | Wider Delivery" }] }),
   loader: async ({ params }) => {
     return await getDeliveryByToken({ data: { token: params.token } });
   },
@@ -83,7 +83,7 @@ function DeliveryCourierPage() {
     <div className="min-h-screen bg-muted/20 flex flex-col justify-between p-4 max-w-lg mx-auto">
       <div className="space-y-4">
         {/* Header da Corrida */}
-        <div className="squircle-soft bg-card border border-border p-4 flex items-center justify-between shadow-xs">
+        <div className="squircle-soft bg-card  p-4 flex items-center justify-between ">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-primary/10 text-primary rounded-xl">
               <Truck className="size-6" />
@@ -104,7 +104,7 @@ function DeliveryCourierPage() {
         </div>
 
         {/* Taxa da Corrida */}
-        <div className="squircle-soft bg-card border border-border p-4 flex items-center justify-between shadow-xs">
+        <div className="squircle-soft bg-card  p-4 flex items-center justify-between ">
           <div>
             <span className="text-xs text-muted-foreground">Sua Taxa de Entrega</span>
             <p className="text-xl font-black text-primary">
@@ -117,7 +117,7 @@ function DeliveryCourierPage() {
         </div>
 
         {/* Dados do Destinatário & Endereço */}
-        <div className="squircle-soft bg-card border border-border p-4 space-y-4 shadow-xs">
+        <div className="squircle-soft bg-card  p-4 space-y-4 ">
           <div className="space-y-1">
             <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
               Cliente / Destinatário
@@ -128,7 +128,7 @@ function DeliveryCourierPage() {
             )}
           </div>
 
-          <div className="space-y-1 pt-2 border-t border-border/60">
+          <div className="space-y-1 pt-2 ">
             <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
               <MapPin className="size-3 text-primary" /> Endereço de Entrega
             </span>
@@ -175,7 +175,7 @@ function DeliveryCourierPage() {
         </div>
 
         {/* Confirmação de Entrega por PIN */}
-        <div className="squircle-soft bg-card border border-border p-5 space-y-4 shadow-xs">
+        <div className="squircle-soft bg-card  p-5 space-y-4 ">
           {isDelivered ? (
             <div className="text-center py-4 space-y-2">
               <div className="size-12 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center mx-auto">
@@ -213,7 +213,7 @@ function DeliveryCourierPage() {
               <Button
                 type="submit"
                 disabled={isConfirming || pin.length !== 4}
-                className="w-full h-11 rounded-xl font-bold gap-2 text-sm shadow-xs"
+                className="w-full h-11 rounded-xl font-bold gap-2 text-sm "
               >
                 {isConfirming ? (
                   <>

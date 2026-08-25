@@ -37,7 +37,7 @@ function Page() {
                 <AccordionItem
                   key={i}
                   value={`faq-${i}`}
-                  className="border border-border rounded-xl px-4 bg-card"
+                  className=" rounded-xl px-4 bg-card"
                 >
                   <AccordionTrigger className="text-base font-medium py-4 hover:no-underline text-left">
                     {question}

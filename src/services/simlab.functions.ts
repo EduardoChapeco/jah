@@ -1,5 +1,5 @@
 /**
- * Server Functions para o JAH SimLab (Simulação de Personas e Validação de Ofertas)
+ * Server Functions para o Wider SimLab (Simulação de Personas e Validação de Ofertas)
  */
 
 import { createServerFn } from "@tanstack/react-start";

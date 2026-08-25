@@ -1,58 +1,44 @@
 import React from "react";
 import { Link } from "@tanstack/react-router";
-import { Flame, ArrowRight, Sparkle } from "@phosphor-icons/react";
 
 interface HitsLeadCardProps {
-  badge?: string;
-  title: string;
-  subtitle?: string;
-  actionLabel?: string;
   actionTo: string;
+  coverImage?: string;
   gradient?: string;
+  ariaLabel?: string;
 }
 
+/**
+ * HitsLeadCard — Card Líder de Seção 100% Limpo
+ * Projetado para exibir banners verticais ou artes limpas cadastradas no admin.
+ * Sem textos estáticos ou tags poluindo a arte.
+ */
 export function HitsLeadCard({
-  badge = "TOP 10",
-  title = "Mais Pedidos",
-  subtitle = "Os favoritos da cidade com os melhores preços",
-  actionLabel = "Ver mais",
   actionTo,
+  coverImage,
   gradient = "from-amber-500 via-orange-500 to-red-600",
+  ariaLabel = "Destaque da Seção",
 }: HitsLeadCardProps) {
   return (
     <Link
       to={actionTo as any}
-      className={`group relative overflow-hidden rounded-2xl p-4 w-[160px] sm:w-[180px] h-[260px] sm:h-[280px] bg-gradient-to-b ${gradient} text-white shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between select-none active:scale-[0.98]`}
+      aria-label={ariaLabel}
+      className="group relative overflow-hidden rounded-3xl  bg-card w-[150px] sm:w-[170px] h-[145px] sm:h-[155px] transition-transform duration-200 active:scale-[0.98] select-none block shrink-0 snap-start"
     >
-      {/* Decorative Glow & Geometry */}
-      <div className="absolute -right-10 -bottom-10 size-32 rounded-full bg-white/20 blur-xl pointer-events-none" />
-      <div className="absolute top-0 right-0 p-3 opacity-10 font-black text-6xl select-none pointer-events-none">
-        #1
-      </div>
-
-      <div className="relative z-10 space-y-2">
-        <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/25 backdrop-blur-md text-[10px] font-black uppercase tracking-wider">
-          <Flame size={12} weight="fill" className="text-yellow-300" />
-          <span>{badge}</span>
+      {coverImage ? (
+        <img
+          src={coverImage}
+          alt={ariaLabel}
+          className="size-full object-cover group-hover:scale-103 transition-transform duration-500"
+          loading="lazy"
+        />
+      ) : (
+        <div className={`size-full bg-linear-to-br ${gradient} flex items-center justify-center`}>
+          <div className="size-16 rounded-2xl bg-white/20 backdrop-blur-md border border-white/20 flex items-center justify-center group-hover:scale-105 transition-transform">
+            <span className="text-white font-black text-xl font-mono">#1</span>
+          </div>
         </div>
-
-        <h4 className="text-lg sm:text-xl font-black leading-tight tracking-tight drop-shadow-xs">
-          {title}
-        </h4>
-
-        {subtitle && (
-          <p className="text-[11px] text-white/90 font-medium leading-snug line-clamp-3">
-            {subtitle}
-          </p>
-        )}
-      </div>
-
-      <div className="relative z-10 pt-2 border-t border-white/20 flex items-center justify-between text-xs font-bold">
-        <span className="group-hover:underline">{actionLabel}</span>
-        <div className="size-6 rounded-full bg-white/20 flex items-center justify-center group-hover:translate-x-1 transition-transform">
-          <ArrowRight size={12} weight="bold" />
-        </div>
-      </div>
+      )}
     </Link>
   );
 }

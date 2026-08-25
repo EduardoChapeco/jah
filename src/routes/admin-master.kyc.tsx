@@ -31,7 +31,7 @@ import { Label } from "@/components/ui/label";
 import { formatDateTime } from "@/lib/datetime";
 
 export const Route = createFileRoute("/admin-master/kyc")({
-  head: () => ({ meta: [{ title: "Verificação Facial & KYC — JAH Master" }] }),
+  head: () => ({ meta: [{ title: "Verificação Facial & KYC — Wider Master" }] }),
   loader: async () => {
     const kycList = await listKycVerifications({ data: { status: "all" } });
     return { kycList };
@@ -135,7 +135,7 @@ function AdminKycPage() {
       </div>
 
       {filteredList.length === 0 ? (
-        <div className="border border-dashed border-border rounded-xl p-12 text-center">
+        <div className="border-0 rounded-xl p-12 text-center">
           <ShieldCheck className="size-12 text-muted-foreground mx-auto mb-3 opacity-40" />
           <h3 className="text-base font-bold text-foreground">Nenhuma verificação na fila</h3>
           <p className="text-xs text-muted-foreground mt-1">
@@ -147,7 +147,7 @@ function AdminKycPage() {
           {filteredList.map((k: any) => (
             <div
               key={k.id}
-              className="border border-border bg-card rounded-xl p-5 shadow-xs space-y-4"
+              className=" bg-card rounded-xl p-5  space-y-4"
             >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3">
                 <div className="flex items-center gap-2">
@@ -180,7 +180,7 @@ function AdminKycPage() {
                   <span className="text-[11px] font-bold uppercase text-muted-foreground block mb-2">
                     Selfie / Prova de Vida
                   </span>
-                  <div className="aspect-square rounded-xl overflow-hidden border border-border bg-muted/20">
+                  <div className="aspect-square rounded-xl overflow-hidden  bg-muted/20">
                     <img
                       src={k.selfie_url}
                       alt="Selfie"
@@ -193,7 +193,7 @@ function AdminKycPage() {
                   <span className="text-[11px] font-bold uppercase text-muted-foreground block mb-2">
                     Documento Oficial (Frente)
                   </span>
-                  <div className="aspect-square rounded-xl overflow-hidden border border-border bg-muted/20">
+                  <div className="aspect-square rounded-xl overflow-hidden  bg-muted/20">
                     <img
                       src={k.document_front_url}
                       alt="Documento Frente"
@@ -207,7 +207,7 @@ function AdminKycPage() {
                     <span className="text-[11px] font-bold uppercase text-muted-foreground block mb-2">
                       Documento Oficial (Verso)
                     </span>
-                    <div className="aspect-square rounded-xl overflow-hidden border border-border bg-muted/20">
+                    <div className="aspect-square rounded-xl overflow-hidden  bg-muted/20">
                       <img
                         src={k.document_back_url}
                         alt="Documento Verso"

@@ -1,36 +1,46 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
+import { useState, useMemo } from "react";
 import {
-  SlidersHorizontal,
-  SquaresFour,
-  ListDashes,
   Sparkle,
-  MagnifyingGlass,
-  Storefront,
-  MapPin,
   Flame,
+  Storefront,
   ForkKnife,
-  TShirt,
-  Heartbeat,
   Coffee,
-  Key,
-  Scissors,
-  Wrench,
-  CaretRight,
+  Heartbeat,
+  Clock,
+  ShieldCheck,
+  Truck,
+  ArrowRight,
+  Package,
+  Broom,
+  Tag,
+  CheckCircle,
+  CalendarCheck,
+  ShoppingBag,
+  MagnifyingGlass,
+  SlidersHorizontal,
+  MapPin,
+  Leaf,
+  Grains,
+  Drop,
+  Buildings,
 } from "@phosphor-icons/react";
-import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { EmptyState, UnconfiguredState } from "@/components/state/states";
-import { ProductGrid } from "@/components/commerce/product-grid";
+import { EmptyState } from "@/components/state/states";
 import { PageSkeleton } from "@/components/state/loading";
 import { HorizontalRail } from "@/components/commerce/horizontal-rail";
 import { OfferCard } from "@/components/commerce/offer-card";
 import { StoreCard } from "@/components/commerce/store-card";
 import { HotpagesRail } from "@/components/commerce/hotpages-rail";
+import {
+  DiscoveryControlBar,
+  type ViewModeType,
+  type FilterChipOption,
+} from "@/components/commerce/discovery-control-bar";
+import { GroceryProductCard } from "@/components/commerce/grocery-product-card";
 import {
   listPublishedProducts,
   listPublishedCategories,
@@ -40,15 +50,18 @@ import { getMarketplaceFeed } from "@/services/marketplace.functions";
 import { listActiveBanners } from "@/services/banner.functions";
 import { listHotpages } from "@/services/hotpage.functions";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
-import type { ProductListResult, CategoryDTO } from "@/types/catalog";
+import type { ProductCardDTO } from "@/types/catalog";
 import { formatMoney } from "@/lib/money";
 
 // ─── Search Schema & View Modes ───────────────────────────────────────────────
 const SearchSchema = z.object({
-  view: z.enum(["feed", "grid", "list"]).default("feed").optional(),
+  q: z.string().optional(),
+  view: z.enum(["feed", "grid", "list"]).default("grid").optional(),
   sort: z.enum(["newest", "price_asc", "price_desc", "in_stock"]).default("newest").optional(),
   niche: z.string().optional(),
   categoria: z.string().optional(),
+  loja: z.string().optional(),
+  dieta: z.string().optional(),
   minCents: z.number().int().min(0).optional(),
   maxCents: z.number().int().min(0).optional(),
   atributos: z.record(z.string()).optional(),
@@ -56,34 +69,38 @@ const SearchSchema = z.object({
 
 type CatalogSearch = z.infer<typeof SearchSchema>;
 
-const SORT_LABELS: Record<string, string> = {
-  newest: "Mais recentes",
-  price_asc: "Menor preço",
-  price_desc: "Maior preço",
-  in_stock: "Em estoque",
-};
+// ─── Departamentos e Corredores do Supermercado ──────────────────────────────
+const SUPERMARKET_DEPARTMENTS: FilterChipOption[] = [
+  { id: "todos", label: "Tudo", emoji: "🛒", icon: Sparkle },
+  { id: "tabloide", label: "Tabloide da Semana", emoji: "⚡️", icon: Flame, badge: "Economia" },
+  { id: "hortifruti", label: "Hortifrúti & Feira", emoji: "🥦", icon: Storefront },
+  { id: "carnes", label: "Açougue & Carnes", emoji: "🥩", icon: ForkKnife },
+  { id: "padaria", label: "Padaria & Frios", emoji: "🍞", icon: Coffee },
+  { id: "laticinios", label: "Laticínios & Queijos", emoji: "🧀", icon: Storefront },
+  { id: "bebidas", label: "Bebidas & Adega", emoji: "🍻", icon: Package },
+  { id: "mercearia", label: "Mercearia & Despensa", emoji: "🥫", icon: Package },
+  { id: "limpeza", label: "Limpeza & Lavanderia", emoji: "🧼", icon: Broom },
+  { id: "higiene", label: "Higiene & Cuidados", emoji: "🧴", icon: Heartbeat },
+  { id: "congelados", label: "Congelados & Prontos", emoji: "🧊", icon: Package },
+  { id: "pet", label: "Pet Shop & Ração", emoji: "🐾", icon: Heartbeat },
+];
 
-const CATEGORIES_TAXONOMY = [
-  { label: "Tudo", icon: Sparkle, niche: undefined },
-  { label: "Ofertas", icon: Flame, niche: "ofertas" },
-  { label: "Gastronomia", icon: ForkKnife, niche: "gastronomia" },
-  { label: "Mercado & Horti", icon: Storefront, niche: "mercado" },
-  { label: "Farmácia", icon: Heartbeat, niche: "farmacia" },
-  { label: "Moda & Roupas", icon: TShirt, niche: "moda" },
-  { label: "Conveniência", icon: Coffee, niche: "conveniencia" },
-  { label: "Pet Shop", icon: Heartbeat, niche: "pet" },
-  { label: "Beleza & Cosméticos", icon: Scissors, niche: "beleza" },
-  { label: "Eletrônicos & Casa", icon: Sparkle, niche: "eletronicos" },
+const DIETARY_FILTERS = [
+  { id: "todos", label: "Todos os Itens" },
+  { id: "organico", label: "Orgânicos & Locais", icon: Leaf },
+  { id: "sem_gluten", label: "Sem Glúten", icon: Grains },
+  { id: "sem_lactose", label: "Sem Lactose", icon: Drop },
+  { id: "oferta_relampago", label: "Ofertas da Semana", icon: Flame },
 ];
 
 export const Route = createFileRoute("/_store/mercado")({
   head: () => ({
     meta: [
-      { title: "Mercado Central & Descoberta | JAH" },
+      { title: "Mercado — Supermercados & Mercearias da Região | Wider" },
       {
         name: "description",
         content:
-          "Explore o Mercado da JAH: ofertas relâmpago, gastronomia, marcas autorais e comércio local.",
+          "Feed completo e unificado de todos os supermercados, atacados, açougues e hortifrútis da região. Compare ofertas e faça compras online com entrega agendada ou retirada express.",
       },
     ],
   }),
@@ -95,35 +112,35 @@ export const Route = createFileRoute("/_store/mercado")({
       listPublishedProducts({
         data: {
           categorySlug: search.categoria,
-          niche: search.niche === "ofertas" ? undefined : search.niche,
+          niche: search.niche === "tabloide" || search.niche === "todos" ? undefined : search.niche,
           sort: search.sort ?? "newest",
           minCents: search.minCents,
           maxCents: search.maxCents,
           attributes: search.atributos,
-          limit: 24,
+          limit: 60,
         },
-      }),
-      listPublishedCategories(),
-      listAvailableAttributes(),
-      getMarketplaceFeed({ data: { niche: search.niche } }),
+      }).catch(() => ({ status: "ok" as const, data: [] as ProductCardDTO[] })),
+      listPublishedCategories().catch(() => []),
+      listAvailableAttributes().catch(() => []),
+      getMarketplaceFeed({ data: { niche: search.niche || "mercado" } }).catch(() => ({ sections: [], allProducts: [] })),
       listActiveBanners({ data: { placement: "mercado" } }).catch(() => []),
       listHotpages({ data: { module: "mercado" } }).catch(() => []),
     ]);
 
     return {
-      products: productsRes,
+      products: productsRes || { status: "ok", data: [] },
       categories: categoriesRes || [],
       availableAttributes: attributesRes || [],
-      feed: feedRes,
+      feed: feedRes || { sections: [], allProducts: [] },
       banners: bannersRes || [],
       hotpages: hotpagesRes || [],
     };
   },
   pendingComponent: PageSkeleton,
-  component: MarketplacePage,
+  component: SupermarketMasterPage,
 });
 
-function MarketplacePage() {
+function SupermarketMasterPage() {
   const {
     products: result,
     categories,
@@ -134,164 +151,213 @@ function MarketplacePage() {
   } = Route.useLoaderData();
   const search = Route.useSearch();
   const navigate = useNavigate();
-  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
-  const currentView = search.view || "feed";
 
-  const setViewMode = (mode: "feed" | "grid" | "list") => {
+  const currentView = (search.view || "grid") as ViewModeType;
+  const [localSearch, setLocalSearch] = useState(search.q || "");
+  const [selectedDietary, setSelectedDietary] = useState(search.dieta || "todos");
+  const [selectedStore, setSelectedStore] = useState<string>(search.loja || "todos");
+
+  const handleSearchSubmit = (val: string) => {
+    setLocalSearch(val);
+    navigate({
+      to: Route.fullPath,
+      search: (s: Record<string, any>) => ({
+        ...s,
+        q: val || undefined,
+      }),
+    });
+  };
+
+  const handleSelectDepartment = (deptId: string) => {
+    navigate({
+      to: Route.fullPath,
+      search: (s: Record<string, any>) => ({
+        ...s,
+        niche: deptId === "todos" ? undefined : deptId,
+        categoria: undefined,
+      }),
+    });
+  };
+
+  const handleViewModeChange = (mode: ViewModeType) => {
     navigate({
       to: Route.fullPath,
       search: (s: Record<string, any>) => ({ ...s, view: mode }),
     });
   };
 
+  const allProducts: ProductCardDTO[] =
+    result.status === "ok" && result.data.length > 0
+      ? result.data
+      : (feed.allProducts || []).map((p: any) => ({
+          id: p.id,
+          slug: p.slug,
+          title: p.title,
+          brand: p.store_name,
+          priceCents: p.price_cents,
+          compareAtCents: p.original_price_cents,
+          coverUrl: p.cover_image,
+          coverAlt: p.title,
+          isOutOfStock: false,
+          attributes: {},
+        }));
+
+  // Lista dinâmica de todos os supermercados parceiros presentes no catálogo
+  const availableStores = useMemo(() => {
+    const storesSet = new Set<string>();
+    allProducts.forEach((p: any) => {
+      const name = p.store_name || p.storeName || p.brand;
+      if (name) storesSet.add(name);
+    });
+    return Array.from(storesSet);
+  }, [allProducts]);
+
+  // Filtragem multi-loja e preferências
+  const displayedProducts = useMemo(() => {
+    return allProducts.filter((prod: any) => {
+      // Filtro por supermercado / empório parceiro
+      if (selectedStore !== "todos") {
+        const storeName = prod.store_name || prod.storeName || prod.brand;
+        if (storeName !== selectedStore) return false;
+      }
+
+      // Filtro de busca textual
+      if (localSearch.trim()) {
+        const q = localSearch.toLowerCase().trim();
+        const matchesTitle = prod.title?.toLowerCase().includes(q);
+        const matchesBrand = prod.brand?.toLowerCase().includes(q);
+        const matchesStore = prod.store_name?.toLowerCase().includes(q);
+        if (!matchesTitle && !matchesBrand && !matchesStore) return false;
+      }
+
+      // Filtro de ofertas da semana
+      if (selectedDietary === "oferta_relampago") {
+        return prod.compareAtCents && prod.compareAtCents > prod.priceCents;
+      }
+
+      return true;
+    });
+  }, [allProducts, localSearch, selectedDietary, selectedStore]);
+
   return (
-    <div className="w-full space-y-8">
-      {/* ── 1. Top Universal Banner Hero (Apenas se houver banners ativos) ── */}
+    <div className="w-full space-y-6 pb-20">
+      {/* ── 1. Top Banners do Mercado ── */}
       {banners && banners.length > 0 && (
         <BannerHeroCarousel banners={banners} className="w-full" />
       )}
 
-      {/* ── 1.5. Hotpages & Categorias Visuais ── */}
+      {/* ── 3. Seletor de Supermercados Parceiros (Multi-Store Filter) ── */}
+      {availableStores.length > 0 && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+              <Buildings size={14} weight="bold" className="text-primary" />
+              <span>Filtrar por Supermercado Parceiro</span>
+            </span>
+
+            {selectedStore !== "todos" && (
+              <button
+                type="button"
+                onClick={() => setSelectedStore("todos")}
+                className="text-[11px] font-bold text-primary hover:underline cursor-pointer"
+              >
+                Ver todos os mercados
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+            <button
+              type="button"
+              onClick={() => setSelectedStore("todos")}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
+                selectedStore === "todos"
+                  ? "bg-foreground text-background "
+                  : "bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted "
+              }`}
+            >
+              Todos os Supermercados
+            </button>
+
+            {availableStores.map((store) => (
+              <button
+                key={store}
+                type="button"
+                onClick={() => setSelectedStore(store)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+                  selectedStore === store
+                    ? "bg-foreground text-background "
+                    : "bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted "
+                }`}
+              >
+                <Storefront size={14} weight="bold" />
+                <span>{store}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── 4. Hotpages Promocionais Contextuais ── */}
       {hotpages && hotpages.length > 0 && (
         <section aria-label="Categorias em Destaque">
           <HotpagesRail hotpages={hotpages} activeSlug={search.niche} />
         </section>
       )}
 
-      {/* ── 2. Category Cards Bar (Cards Gordinhos Squircle) ── */}
-      <section aria-label="Categorias do Mercado" className="space-y-2">
-        <div className="flex items-center gap-3 overflow-x-auto pb-2 pt-1 scrollbar-none w-full px-0.5">
-          {CATEGORIES_TAXONOMY.map((item) => {
-            const Icon = item.icon;
-            const isSelected =
-              item.niche === search.niche || (!item.niche && !search.niche && !search.categoria);
+      {/* ── 5. Barra de Controle de Descoberta (Busca + Corredores + Modos) ── */}
+      <DiscoveryControlBar
+        search={localSearch}
+        onSearchChange={handleSearchSubmit}
+        searchPlaceholder="Buscar carnes, hortifrúti, arroz, laticínios, limpeza..."
+        categories={SUPERMARKET_DEPARTMENTS.map((dept) => {
+          const match = hotpages?.find((hp) => hp.slug === dept.id);
+          return {
+            ...dept,
+            icon_url: match?.custom_icon_url || match?.icon_url || dept.icon_url,
+          };
+        })}
+        activeCategory={search.niche || "todos"}
+        onSelectCategory={handleSelectDepartment}
+        viewMode={currentView}
+        onViewModeChange={handleViewModeChange}
+        allowedViewModes={["feed", "grid", "list"]}
+        resultsCount={displayedProducts.length}
+      />
 
-            return (
-              <button
-                key={item.label}
-                type="button"
-                onClick={() =>
-                  navigate({
-                    to: Route.fullPath,
-                    search: (s: Record<string, any>) => ({
-                      ...s,
-                      niche: item.niche,
-                      categoria: undefined,
-                    }),
-                  })
-                }
-                className={`min-w-[104px] sm:min-w-[114px] h-[94px] sm:h-[100px] p-3 rounded-2xl flex flex-col items-center justify-between border cursor-pointer select-none shrink-0 transition-all group ${
-                  isSelected
-                    ? "bg-foreground text-background border-foreground shadow-xs font-bold scale-102"
-                    : "bg-card text-muted-foreground border-border hover:bg-muted/70 hover:text-foreground hover:border-foreground/30 shadow-2xs"
-                }`}
-              >
-                <div
-                  className={`size-9 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 ${
-                    isSelected ? "bg-background/20 text-background" : "bg-muted text-foreground"
-                  }`}
-                >
-                  <Icon size={20} weight={isSelected ? "fill" : "bold"} />
-                </div>
-                <span className="text-xs font-bold text-center leading-tight line-clamp-1">
-                  {item.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* ── 3. Toolbar: View Mode Switcher & Ordenação ───────────── */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pt-1 border-t border-border/60">
-        <div className="flex items-center gap-2">
-          {/* View Mode Switcher (Feed / Grid / List) */}
-          <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-xl border border-border/60">
+      {/* ── 6. Filtros Especiais de Dieta & Estilo de Vida (Pills) ── */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        {DIETARY_FILTERS.map((f) => {
+          const isSelected = selectedDietary === f.id;
+          const Icon = f.icon;
+          return (
             <button
-              onClick={() => setViewMode("feed")}
-              title="Modo Feed (Descoberta)"
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                currentView === "feed"
-                  ? "bg-background text-foreground shadow-2xs font-bold"
-                  : "text-muted-foreground hover:text-foreground"
+              key={f.id}
+              type="button"
+              onClick={() => setSelectedDietary(f.id)}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
+                isSelected
+                  ? "bg-foreground text-background "
+                  : "bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted "
               }`}
             >
-              <Sparkle size={14} weight="bold" />
-              <span className="hidden sm:inline">Descoberta</span>
+              {Icon && <Icon size={14} weight="bold" />}
+              <span>{f.label}</span>
             </button>
-
-            <button
-              onClick={() => setViewMode("grid")}
-              title="Modo Grid (Catálogo denso)"
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                currentView === "grid"
-                  ? "bg-background text-foreground shadow-2xs font-bold"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <SquaresFour size={14} weight="bold" />
-              <span className="hidden sm:inline">Grade</span>
-            </button>
-
-            <button
-              onClick={() => setViewMode("list")}
-              title="Modo Lista (Comparativo)"
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                currentView === "list"
-                  ? "bg-background text-foreground shadow-2xs font-bold"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <ListDashes size={14} weight="bold" />
-              <span className="hidden sm:inline">Lista</span>
-            </button>
-          </div>
-
-          <span className="text-xs font-mono text-muted-foreground pl-2 hidden md:inline">
-            {result.status === "ok" ? `${result.data.length} itens encontrados` : ""}
-          </span>
-        </div>
-
-        {/* Sort Chips */}
-        <div className="flex items-center gap-2">
-          <div className="hidden sm:flex items-center gap-1 bg-muted/40 p-1 rounded-xl border border-border/60">
-            {Object.entries(SORT_LABELS).map(([val, label]) => (
-              <button
-                key={val}
-                onClick={() =>
-                  navigate({
-                    to: Route.fullPath,
-                    search: (s: Record<string, any>) => ({
-                      ...s,
-                      sort: val as CatalogSearch["sort"],
-                    }),
-                  })
-                }
-                className={`text-xs px-2.5 py-1 rounded-lg font-medium transition-colors ${
-                  (search.sort ?? "newest") === val
-                    ? "bg-background text-foreground font-bold shadow-2xs"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
+          );
+        })}
       </div>
 
-      {/* ── 4. RENDERIZAÇÃO CONFORME O VIEW MODE ──────────────────── */}
+      {/* ── 7. Renderização Conforme o Modo de Visualização ── */}
 
-      {/* MODE 1: FEED DE DESCOBERTA NARRATIVA E RAILS HORIZONTAIS */}
+      {/* MODE 1: FEED DE CORREDORES VIRTUAIS & ENCARTE DIGITAL */}
       {currentView === "feed" && (
         <div className="space-y-10">
-          {/* Rail 1: Ofertas Relâmpago */}
-          {feed.allProducts.filter((p: any) => p.has_flash_offer).length > 0 && (
+          {/* Encarte de Ofertas da Semana Unificado */}
+          {feed.allProducts && feed.allProducts.filter((p: any) => p.has_flash_offer).length > 0 && (
             <HorizontalRail
-              title="Ofertas Relâmpago"
-              badge="Tempo Limitado"
-              actionLabel="Ver todas as ofertas"
-              onAction={() => setViewMode("grid")}
+              title="Tabloide de Ofertas da Semana"
+              hideHeader={true}
             >
               {feed.allProducts
                 .filter((p: any) => p.has_flash_offer)
@@ -301,12 +367,11 @@ function MarketplacePage() {
             </HorizontalRail>
           )}
 
-          {/* Rail 2: Lojas & Produtores Locais */}
+          {/* Supermercados e Mercearias Parceiras */}
           {(feed?.sections?.find((s: any) => s.type === "store_rail")?.items?.length ?? 0) > 0 && (
             <HorizontalRail
-              title="Lojas & Produtores da Comunidade"
-              actionLabel="Ver diretório"
-              onAction={() => navigate({ to: "/diretorio" })}
+              title="Supermercados, Mercearias & Empórios Locais"
+              hideHeader={true}
             >
               {(feed?.sections?.find((s: any) => s.type === "store_rail")?.items || []).map(
                 (store: any) => (
@@ -316,19 +381,36 @@ function MarketplacePage() {
             </HorizontalRail>
           )}
 
-          {/* Grade de Lançamentos na Base do Feed */}
-          <div className="space-y-4 pt-4 border-t border-border/60">
-            <h2 className="text-lg font-bold tracking-tight text-foreground">
-              Lançamentos da Comunidade
-            </h2>
+          {/* Gôndola de Produtos Multi-Supermercados */}
+          <div className="space-y-4 pt-4 ">
+            <div className="flex items-center justify-end">
+              <span className="text-xs text-muted-foreground font-mono font-bold">
+                {displayedProducts.length} itens encontrados
+              </span>
+            </div>
 
-            {result.status === "ok" && <ProductGrid result={result} />}
-            {result.status === "empty" && (
-              <div className="py-16 text-center space-y-3 bg-muted/10 rounded-3xl border border-dashed border-border p-8">
-                <EmptyState title="Nenhum produto publicado nesta categoria ainda." />
+            {displayedProducts.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
+                {displayedProducts.map((prod) => (
+                  <GroceryProductCard key={prod.id} product={prod} />
+                ))}
+              </div>
+            ) : (
+              <div className="py-16 text-center space-y-3 bg-muted/10 rounded-3xl border-0 p-8">
+                <EmptyState title="Nenhum produto encontrado neste corredor ou supermercado." />
                 <div className="pt-2">
-                  <Button asChild size="sm" className="rounded-xl font-bold">
-                    <Link to="/criar-negocio">Cadastrar Primeira Loja</Link>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setLocalSearch("");
+                      setSelectedDietary("todos");
+                      setSelectedStore("todos");
+                      handleSelectDepartment("todos");
+                    }}
+                    className="rounded-xl font-bold text-xs"
+                  >
+                    Ver todos os supermercados
                   </Button>
                 </div>
               </div>
@@ -337,70 +419,37 @@ function MarketplacePage() {
         </div>
       )}
 
-      {/* MODE 2: GRID DENSO */}
+      {/* MODE 2: GRADE DENSA MULTI-SUPERMERCADOS */}
       {currentView === "grid" && (
         <div>
-          {result.status === "unconfigured" && <UnconfiguredState />}
-          {result.status === "empty" && (
-            <div className="py-24 text-center space-y-3 bg-muted/10 rounded-3xl border border-border p-8">
-              <EmptyState title="Nenhum produto encontrado nesta categoria" />
+          {displayedProducts.length === 0 ? (
+            <div className="py-24 text-center space-y-3 bg-muted/10 rounded-3xl  p-8">
+              <EmptyState title="Nenhum item encontrado nos supermercados" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+              {displayedProducts.map((prod) => (
+                <GroceryProductCard key={prod.id} product={prod} viewMode="grid" />
+              ))}
             </div>
           )}
-          {result.status === "ok" && <ProductGrid result={result} />}
         </div>
       )}
 
-      {/* MODE 3: LISTA COMPARATIVA */}
+      {/* MODE 3: LISTA ESTILO CONFERÊNCIA DE COMPRAS (LARGURA MÁXIMA) */}
       {currentView === "list" && (
-        <div className="space-y-3">
-          {result.status === "ok" &&
-            result.data.map((p: any) => (
-              <div
-                key={p.id}
-                className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-2xl border border-border/80 bg-card hover:border-primary/50 transition-all gap-4 shadow-2xs"
-              >
-                <div className="flex items-center gap-4 min-w-0">
-                  <Link
-                    to="/produto/$slug"
-                    params={{ slug: p.slug }}
-                    className="size-16 rounded-xl bg-muted overflow-hidden shrink-0"
-                  >
-                    <img
-                      src={p.coverUrl || p.media?.[0]?.url || "/banner-placeholder.png"}
-                      alt={p.title}
-                      className="size-full object-cover"
-                    />
-                  </Link>
-                  <div className="space-y-1 min-w-0">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
-                      {p.category?.name || "Geral"}
-                    </span>
-                    <Link to="/produto/$slug" params={{ slug: p.slug }}>
-                      <h3 className="text-sm font-bold text-foreground hover:text-primary transition-colors truncate">
-                        {p.title}
-                      </h3>
-                    </Link>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0 border-border/40">
-                  <div className="text-right">
-                    <span className="text-base font-black text-primary font-mono block">
-                      {formatMoney(p.priceCents)}
-                    </span>
-                  </div>
-                  <Button
-                    asChild
-                    size="sm"
-                    className="rounded-xl font-bold bg-primary text-primary-foreground text-xs h-9 px-4"
-                  >
-                    <Link to="/produto/$slug" params={{ slug: p.slug }}>
-                      Ver Produto
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            ))}
+        <div className="space-y-3 w-full">
+          {displayedProducts.length === 0 ? (
+            <div className="py-24 text-center space-y-3 bg-muted/10 rounded-3xl  p-8">
+              <EmptyState title="Nenhum item encontrado nos supermercados" />
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3 w-full">
+              {displayedProducts.map((prod) => (
+                <GroceryProductCard key={prod.id} product={prod} viewMode="list" />
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

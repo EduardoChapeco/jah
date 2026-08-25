@@ -74,7 +74,7 @@ export const Route = createFileRoute("/api/feed/xml")({
             return new Response("Error fetching catalog", { status: 500 });
           }
 
-          const storeName = store?.name || "Jah Commerce";
+          const storeName = store?.name || "Wider Commerce";
 
           // Generate RSS XML (Google Merchant / Facebook Catalog compatible)
           let xml = `<?xml version="1.0"?>\n`;
@@ -142,7 +142,7 @@ export const Route = createFileRoute("/api/feed/xml")({
               if (salePriceBrl) {
                 xml += ` <g:sale_price>${salePriceBrl} BRL</g:sale_price>\n`;
               }
-              xml += ` <g:brand>${escapeXml(p.manufacturer || "Jah")}</g:brand>\n`;
+              xml += ` <g:brand>${escapeXml(p.manufacturer || "Wider")}</g:brand>\n`;
               xml += ` <g:mpn>${escapeXml(mpn)}</g:mpn>\n`;
               xml += ` <g:identifier_exists>false</g:identifier_exists>\n`;
               xml += ` <g:google_product_category>Apparel &amp; Accessories &gt; Shoes</g:google_product_category>\n`;

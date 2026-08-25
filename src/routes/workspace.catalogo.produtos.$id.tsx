@@ -94,23 +94,54 @@ import { adjustStock } from "@/services/stock.functions";
 export const Route = createFileRoute("/workspace/catalogo/produtos/$id")({
   head: () => ({ meta: [{ title: "Editor Avançado de Produto" }] }),
   loader: async ({ params }) => {
-    const [product, catsRes, typesRes] = await Promise.all([
-      getProductById({ data: { id: params.id } }),
-      listCategories(),
-      import("@/services/admin-catalog.functions").then((m) => m.listProductTypes()),
-    ]);
-    if (!product) throw new Error("Produto não encontrado.");
-    return {
-      product,
-      categories: catsRes || [],
-      productTypes: typesRes || [],
-    };
+    try {
+      const [product, catsRes, typesRes] = await Promise.all([
+        getProductById({ data: { id: params.id } }).catch(() => null),
+        listCategories().catch(() => []),
+        import("@/services/admin-catalog.functions").then((m) => m.listProductTypes()).catch(() => []),
+      ]);
+      return {
+        product: product || null,
+        categories: catsRes || [],
+        productTypes: typesRes || [],
+      };
+    } catch {
+      return {
+        product: null,
+        categories: [],
+        productTypes: [],
+      };
+    }
   },
   component: EditProductPage,
 });
 
 function EditProductPage() {
   const { product, categories, productTypes } = Route.useLoaderData();
+
+  if (!product) {
+    return (
+      <div className="space-y-6 max-w-4xl animate-in fade-in duration-200">
+        <div className="flex items-center gap-3">
+          <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-bold">
+            <Link to="/workspace/catalogo/produtos">
+              <ArrowLeft className="mr-2 size-3.5" />
+              Voltar ao Catálogo
+            </Link>
+          </Button>
+        </div>
+        <div className="p-12 text-center border-0 rounded-3xl bg-card">
+          <h2 className="text-base font-bold text-foreground">Produto não encontrado</h2>
+          <p className="text-xs text-muted-foreground mt-1">
+            O produto solicitado não existe ou foi removido do catálogo.
+          </p>
+          <Button asChild className="mt-4 rounded-xl text-xs font-bold bg-primary text-primary-foreground" size="sm">
+            <Link to="/workspace/catalogo/produtos">Ir para Lista de Produtos</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   // State for live preview updates
   const [liveTitle, setLiveTitle] = useState(product.title);
@@ -167,7 +198,7 @@ function EditProductPage() {
         preview={
           <div className="space-y-4">
             {/* The Truthful Preview Phone Mockup */}
-            <div className="w-full max-w-[340px] rounded-[2.5rem] border-[4px] border-border bg-background overflow-hidden shadow-xl relative h-[650px] flex flex-col">
+            <div className="w-full max-w-[340px] rounded-[2.5rem] border-[4px] border-border bg-background overflow-hidden  relative h-[650px] flex flex-col">
               {/* Notch */}
               <div className="absolute top-0 inset-x-0 h-5 bg-border rounded-b-xl w-32 z-10 mx-auto" />
 
@@ -185,7 +216,7 @@ function EditProductPage() {
                   <div className="absolute top-4 left-4 z-10">
                     <Badge
                       variant={liveStatus === "published" ? "default" : "secondary"}
-                      className="shadow-sm bg-background text-foreground"
+                      className=" bg-background text-foreground"
                     >
                       {liveStatus === "published"
                         ? "Publicado"
@@ -538,7 +569,7 @@ function GeneralForm({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Marca / Fabricante</Label>
-              <Input {...register("brand")} placeholder="Ex: Jah, Vizzano, Beira Rio..." />
+              <Input {...register("brand")} placeholder="Ex: Wider, Vizzano, Beira Rio..." />
             </div>
             <div className="space-y-2">
               <div className="flex justify-between items-center">
@@ -950,7 +981,7 @@ function VariantsManager({ product }: { product: any }) {
   return (
     <div className="space-y-6">
       <Accordion type="single" collapsible className="w-full">
-        <AccordionItem value="builder" className="border border-border bg-card rounded-xl px-4">
+        <AccordionItem value="builder" className=" bg-card rounded-xl px-4">
           <AccordionTrigger className="hover:no-underline text-base font-semibold">
             <div className="flex items-center gap-2">
               <Sparkles className="size-5 text-warning" />
@@ -1455,7 +1486,7 @@ function OptionGroupsManager({ productId }: { productId: string }) {
   return (
     <div className="space-y-4">
       {groups.length === 0 ? (
-        <div className="border-dashed border border-border rounded-xl">
+        <div className="border-dashed  rounded-xl">
           <div className="py-10 flex flex-col items-center text-center gap-3">
             <Settings className="size-10 text-muted-foreground/40" />
             <div>
@@ -1476,7 +1507,7 @@ function OptionGroupsManager({ productId }: { productId: string }) {
           {groups.map((group, gIdx) => (
             <div
               key={gIdx}
-              className="border border-border rounded-xl bg-card mb-4 overflow-hidden"
+              className=" rounded-xl bg-card mb-4 overflow-hidden"
             >
               <div className="p-4 border-b">
                 <div className="flex items-start justify-between gap-3">

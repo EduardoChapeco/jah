@@ -235,7 +235,7 @@ export const createCustomer = createServerFn({ method: "POST" })
       // 2. Criar o usuário no Supabase Auth usando o admin client
       const { data: authData, error: authError } = await supabase.auth.admin.createUser({
         email: input.email,
-        password: "JahCustomer123!",
+        password: "WiderCustomer123!",
         email_confirm: true,
         user_metadata: {
           full_name: input.fullName,

@@ -366,3 +366,73 @@ export const addQuoteMessage = createServerFn({ method: "POST" })
     if (error) throw new Error(`Erro ao enviar mensagem: ${error.message}`);
     return { ok: true };
   });
+
+export const publicQuoteRequestSchema = z.object({
+  store_id: z.string().uuid("ID da loja/prestador inválido"),
+  customer_name: z.string().min(2, "Nome é obrigatório"),
+  customer_email: z.string().email("E-mail inválido").optional().or(z.literal("")),
+  customer_phone: z.string().min(8, "Telefone/WhatsApp é obrigatório"),
+  service_category: z.string().optional(),
+  project_description: z.string().min(5, "Descreva o que você precisa"),
+  urgency: z.enum(["baixa", "media", "alta", "urgente"]).default("media"),
+  preferred_date: z.string().optional(),
+  location_address: z.string().optional(),
+  estimated_budget_cents: z.number().int().min(0).optional(),
+});
+
+export type PublicQuoteRequestInput = z.infer<typeof publicQuoteRequestSchema>;
+
+/**
+ * Solicitação pública de orçamento feita pelo cliente/morador na vitrine da loja ou no Hub de Serviços.
+ * Grava na tabela quotes com status 'sent' e cria o item descritivo em quote_items.
+ */
+export const requestPublicQuote = createServerFn({ method: "POST" })
+  .validator(publicQuoteRequestSchema)
+  .handler(async ({ data }) => {
+    const db = getServerClient();
+
+    // 1. Criar o orçamento via RPC nativa
+    const { data: quoteId, error: rpcError } = await db.rpc("create_quote", {
+      p_store_id: data.store_id,
+      p_customer_id: null,
+      p_guest_name: data.customer_name,
+      p_guest_email: data.customer_email || null,
+      p_guest_phone: data.customer_phone,
+      p_valid_until: null,
+      p_conditions: `Solicitação via Super App Wider - Categoria: ${data.service_category || "Geral"}. Endereço: ${data.location_address || "Não informado"}. Urgência: ${data.urgency}. Data preferencial: ${data.preferred_date || "A combinar"}`,
+      p_internal_notes: `Orçamento solicitado pelo morador através da vitrine pública.`,
+    });
+
+    if (rpcError || !quoteId) {
+      throw new Error(`Erro ao registrar solicitação de orçamento: ${rpcError?.message}`);
+    }
+
+    // 2. Inserir item descritivo do orçamento
+    const { error: itemError } = await db.from("quote_items").insert({
+      quote_id: quoteId as string,
+      item_type: "service",
+      name: data.service_category ? `Serviço: ${data.service_category}` : "Serviço Especializado / Sob Demanda",
+      description: data.project_description,
+      unit_price_cents: data.estimated_budget_cents ?? 0,
+      quantity: 1,
+      discount_cents: 0,
+      total_cents: data.estimated_budget_cents ?? 0,
+      metadata: {
+        urgency: data.urgency,
+        preferred_date: data.preferred_date,
+        location_address: data.location_address,
+        source: "public_super_app",
+      },
+      position: 0,
+    });
+
+    if (itemError) {
+      console.warn("Aviso: Falha ao inserir item de cotação pública:", itemError.message);
+    }
+
+    return {
+      success: true,
+      quote_id: quoteId as string,
+      message: "Orçamento enviado com sucesso! O prestador entrará em contato em breve.",
+    };
+  });

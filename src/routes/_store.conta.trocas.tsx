@@ -50,7 +50,7 @@ function Page() {
 
   return (
     <section className="font-sans text-foreground space-y-6">
-      <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border pb-6">
+      <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4  pb-6">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight text-foreground flex items-center gap-2">
             <RefreshCw className="size-6 text-primary" strokeWidth={2.5} />
@@ -66,7 +66,7 @@ function Page() {
       </div>
 
       {rmas.length === 0 ? (
-        <div className="border border-border rounded-lg bg-card p-12 flex flex-col items-center text-center gap-4">
+        <div className=" rounded-lg bg-card p-12 flex flex-col items-center text-center gap-4">
           <Package className="size-12 text-muted-foreground" strokeWidth={1.5} />
           <div>
             <p className="font-semibold text-lg">Nenhuma solicitação</p>
@@ -84,9 +84,9 @@ function Page() {
           {rmas.map((rma: any) => (
             <div
               key={rma.id}
-              className="border border-border bg-card rounded-lg flex flex-col transition-all hover:"
+              className=" bg-card rounded-lg flex flex-col transition-all hover:"
             >
-              <div className="p-4 border-b border-border flex flex-wrap items-start justify-between gap-4 bg-muted/50 rounded-t-lg">
+              <div className="p-4  flex flex-wrap items-start justify-between gap-4 bg-muted/50 rounded-t-lg">
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-foreground flex items-center gap-2">
                     <Package className="w-4 h-4 text-primary" strokeWidth={2.5} />
@@ -125,7 +125,7 @@ function Page() {
                 )}
 
                 {rma.trackingCode && (
-                  <div className="mt-4 p-4 border border-border rounded-xl bg-card space-y-4 relative overflow-hidden">
+                  <div className="mt-4 p-4  rounded-xl bg-card space-y-4 relative overflow-hidden">
                     <div className="flex items-center gap-2 font-semibold text-foreground text-sm relative z-10">
                       <Truck className="h-4 w-4 text-primary" />
                       Logística Reversa ({rma.carrier})

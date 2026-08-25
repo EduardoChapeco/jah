@@ -3,7 +3,6 @@ import { Link } from "@tanstack/react-router";
 import {
   ForkKnife,
   Storefront,
-  ArrowRight,
   Flame,
   Heartbeat,
   TShirt,
@@ -15,8 +14,9 @@ import {
   Briefcase,
   CarProfile,
   House,
-  Sparkle,
 } from "@phosphor-icons/react";
+import type { HotpageDTO } from "@/services/hotpage.functions";
+import { DynamicMediaChip } from "@/components/commerce/dynamic-media-chip";
 
 interface MasterHeroCardsProps {
   customCategories?: Array<{
@@ -24,216 +24,246 @@ interface MasterHeroCardsProps {
     label: string;
     to: string;
     icon_url?: string;
-    badge?: string;
   }>;
+  hotpages?: HotpageDTO[];
 }
 
-export function MasterHeroCards({ customCategories }: MasterHeroCardsProps) {
-  return (
-    <div className="w-full space-y-4">
-      {/* ── 1. Top Dual Big Master Cards (iFood Reference Style) ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-        {/* Card 1: Restaurantes & Gastronomia */}
-        <Link
-          to="/mercado"
-          search={{ niche: "gastronomia" }}
-          className="group relative overflow-hidden rounded-3xl p-5 sm:p-6 bg-gradient-to-br from-red-600 via-orange-600 to-amber-600 text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] flex items-center justify-between min-h-[140px] sm:min-h-[160px]"
-        >
-          {/* Background Decorative Shapes */}
-          <div className="absolute -right-6 -bottom-6 size-36 rounded-full bg-white/10 blur-2xl pointer-events-none" />
-          <div className="absolute top-2 right-12 text-white/5 font-black text-7xl select-none pointer-events-none">
-            JAH
-          </div>
-
-          <div className="relative z-10 space-y-2 max-w-[62%]">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-[11px] font-bold tracking-wide uppercase">
-              <ForkKnife size={13} weight="fill" />
-              <span>Mais Pedidos</span>
-            </div>
-            <h3 className="text-xl sm:text-2xl font-black tracking-tight leading-tight">
-              Restaurantes & Lanches
-            </h3>
-            <p className="text-xs text-white/80 font-medium line-clamp-1">
-              Pratos, combos, pizzas e delivery rápido
-            </p>
-            <div className="pt-1 inline-flex items-center gap-1 text-xs font-black uppercase tracking-wider group-hover:translate-x-1 transition-transform">
-              <span>Ver opções</span>
-              <ArrowRight size={14} weight="bold" />
-            </div>
-          </div>
-
-          {/* 3D Visual Icon / Graphic */}
-          <div className="relative z-10 shrink-0 size-24 sm:size-28 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 flex flex-col items-center justify-center shadow-inner group-hover:rotate-3 transition-transform">
-            <span className="text-4xl sm:text-5xl drop-shadow-md">🍔</span>
-            <span className="text-[10px] font-bold mt-1 text-white/90">Entrega Grátis</span>
-          </div>
-        </Link>
-
-        {/* Card 2: Mercados & Hortifrúti */}
-        <Link
-          to="/mercado"
-          search={{ niche: "mercado" }}
-          className="group relative overflow-hidden rounded-3xl p-5 sm:p-6 bg-gradient-to-br from-emerald-600 via-teal-600 to-green-700 text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] flex items-center justify-between min-h-[140px] sm:min-h-[160px]"
-        >
-          {/* Background Decorative Shapes */}
-          <div className="absolute -right-6 -bottom-6 size-36 rounded-full bg-white/10 blur-2xl pointer-events-none" />
-          <div className="absolute top-2 right-12 text-white/5 font-black text-7xl select-none pointer-events-none">
-            ECO
-          </div>
-
-          <div className="relative z-10 space-y-2 max-w-[62%]">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-[11px] font-bold tracking-wide uppercase">
-              <Storefront size={13} weight="fill" />
-              <span>Essencial</span>
-            </div>
-            <h3 className="text-xl sm:text-2xl font-black tracking-tight leading-tight">
-              Mercado & Produtores
-            </h3>
-            <p className="text-xs text-white/80 font-medium line-clamp-1">
-              Hortifrúti fresco, carnes, adega e despensa
-            </p>
-            <div className="pt-1 inline-flex items-center gap-1 text-xs font-black uppercase tracking-wider group-hover:translate-x-1 transition-transform">
-              <span>Buscar lojas</span>
-              <ArrowRight size={14} weight="bold" />
-            </div>
-          </div>
-
-          {/* 3D Visual Icon / Graphic */}
-          <div className="relative z-10 shrink-0 size-24 sm:size-28 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 flex flex-col items-center justify-center shadow-inner group-hover:-rotate-3 transition-transform">
-            <span className="text-4xl sm:text-5xl drop-shadow-md">🛒</span>
-            <span className="text-[10px] font-bold mt-1 text-white/90">Do Produtor</span>
-          </div>
-        </Link>
-      </div>
-
-      {/* ── 2. Squircle Master Subcategories Rail (Chips & 3D Icons) ── */}
-      <div className="space-y-2 pt-1">
-        <div className="flex items-center justify-between px-1">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-            <Sparkle size={14} weight="fill" className="text-primary" />
-            <span>Navegar por Nichos Principais</span>
-          </div>
-          <Link
-            to="/mercado"
-            className="text-xs font-semibold text-primary hover:underline"
-          >
-            Ver todos
-          </Link>
-        </div>
-
-        <div className="flex items-center gap-2.5 overflow-x-auto pb-2 pt-1 scrollbar-none w-full px-0.5">
-          {MASTER_SQUIRCLE_ITEMS.map((item) => {
-            const Icon = item.icon;
-            const customMatch = customCategories?.find((c) => c.slug === item.slug);
-            const iconUrl = customMatch?.icon_url || (item as any).custom_icon_url;
-
-            return (
-              <Link
-                key={item.label}
-                to={item.to as any}
-                className="min-w-[88px] sm:min-w-[96px] h-[92px] sm:h-[98px] p-2.5 rounded-2xl border border-border/80 bg-card hover:bg-muted/60 hover:border-primary/40 flex flex-col items-center justify-between transition-all select-none group cursor-pointer shrink-0 shadow-2xs active:scale-[0.97]"
-              >
-                <div
-                  className={`relative size-10 rounded-xl bg-gradient-to-br ${item.gradient} flex items-center justify-center text-foreground group-hover:scale-110 transition-transform overflow-hidden shadow-xs`}
-                >
-                  {iconUrl ? (
-                    <img
-                      src={iconUrl}
-                      alt={item.label}
-                      className="size-6 object-contain"
-                      loading="lazy"
-                    />
-                  ) : item.emoji ? (
-                    <span className="text-lg leading-none">{item.emoji}</span>
-                  ) : (
-                    <Icon size={20} weight="bold" />
-                  )}
-
-                  {item.badge && (
-                    <span className="absolute -top-1 -right-1 px-1 py-0.2 text-[8px] font-mono font-bold uppercase rounded-sm bg-red-600 text-white shadow-2xs">
-                      {item.badge}
-                    </span>
-                  )}
-                </div>
-
-                <span className="text-[11px] font-bold text-center text-foreground line-clamp-1 leading-tight w-full">
-                  {item.label}
-                </span>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-const MASTER_SQUIRCLE_ITEMS = [
-  {
-    slug: "ofertas",
-    to: "/mercado?niche=ofertas",
-    label: "Ofertas",
-    emoji: "⚡️",
-    icon: Flame,
-    badge: "60% OFF",
-    gradient: "from-red-500/20 to-orange-500/20 text-red-600",
-  },
+// ── Cards Grandes de Mídia 100% Limpos (Para Imagens/Vídeos do Admin — Sem Texto/Tag) ──
+const HERO_MEDIA_CARDS = [
   {
     slug: "gastronomia",
-    to: "/mercado?niche=gastronomia",
-    label: "Delivery",
-    emoji: "🍕",
-    icon: ForkKnife,
-    gradient: "from-orange-500/20 to-amber-500/20 text-orange-600",
+    to: "/gastronomia",
+    search: {},
+    title: "Gastronomia & Delivery",
+    defaultCover: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1000&q=80",
   },
   {
     slug: "mercado",
-    to: "/mercado?niche=mercado",
-    label: "Mercados",
-    emoji: "🥦",
-    icon: Storefront,
-    gradient: "from-emerald-500/20 to-green-500/20 text-emerald-600",
+    to: "/mercado",
+    search: {},
+    title: "Mercado & Hortifrúti",
+    defaultCover: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=1000&q=80",
   },
   {
     slug: "farmacia",
-    to: "/mercado?niche=farmacia",
-    label: "Farmácia",
-    emoji: "💊",
-    icon: Heartbeat,
-    gradient: "from-blue-500/20 to-cyan-500/20 text-blue-600",
+    to: "/farmacia",
+    search: {},
+    title: "Farmácia & Saúde",
+    defaultCover: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=1000&q=80",
   },
   {
-    slug: "conveniencia",
-    to: "/mercado?niche=conveniencia",
-    label: "Bebidas",
-    emoji: "🍻",
-    icon: Coffee,
-    gradient: "from-amber-500/20 to-yellow-500/20 text-amber-600",
+    slug: "bebidas",
+    to: "/bebidas",
+    search: {},
+    title: "Bebidas & Adega",
+    defaultCover: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=1000&q=80",
   },
   {
-    slug: "imoveis",
-    to: "/classificados?deal_type=aluguel",
-    label: "Imóveis",
-    emoji: "🏡",
-    icon: House,
-    badge: "Aluguel",
-    gradient: "from-indigo-500/20 to-violet-500/20 text-indigo-600",
+    slug: "acougue",
+    to: "/acougue",
+    search: {},
+    title: "Açougues & Carnes Nobres",
+    defaultCover: "https://images.unsplash.com/photo-1544025162-d76694265947?w=1000&q=80",
   },
   {
-    slug: "agendar",
-    to: "/agendar",
-    label: "Beleza",
-    emoji: "✂️",
-    icon: Scissors,
-    gradient: "from-purple-500/20 to-pink-500/20 text-purple-600",
+    slug: "eletronicos",
+    to: "/eletronicos",
+    search: {},
+    title: "Eletrônicos & Informática",
+    defaultCover: "https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=1000&q=80",
   },
   {
     slug: "moda",
-    to: "/mercado?niche=moda",
+    to: "/moda",
+    search: {},
+    title: "Roupas & Moda",
+    defaultCover: "https://images.unsplash.com/photo-1445205170230-053b83016050?w=1000&q=80",
+  },
+  {
+    slug: "casa",
+    to: "/casa",
+    search: {},
+    title: "Móveis & Decoração",
+    defaultCover: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1000&q=80",
+  },
+  {
+    slug: "pet",
+    to: "/pet",
+    search: {},
+    title: "Pet Shop & Veterinária",
+    defaultCover: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=1000&q=80",
+  },
+  {
+    slug: "construcao",
+    to: "/construcao",
+    search: {},
+    title: "Construção & Tintas",
+    defaultCover: "https://images.unsplash.com/photo-1581783342308-f792dbdd27c5?w=1000&q=80",
+  },
+  {
+    slug: "limpeza",
+    to: "/limpeza",
+    search: {},
+    title: "Limpeza & Descartáveis",
+    defaultCover: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=1000&q=80",
+  },
+  {
+    slug: "livros",
+    to: "/livros",
+    search: {},
+    title: "Livraria & Papelaria",
+    defaultCover: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1000&q=80",
+  },
+  {
+    slug: "servicos",
+    to: "/servicos",
+    search: {},
+    title: "Serviços Especializados",
+    defaultCover: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=1000&q=80",
+  },
+  {
+    slug: "beleza",
+    to: "/beleza",
+    search: {},
+    title: "Beleza, Cosméticos & Agendamentos",
+    defaultCover: "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=1000&q=80",
+  },
+  {
+    slug: "imoveis",
+    to: "/imoveis",
+    search: {},
+    title: "Imóveis & Moradia",
+    defaultCover: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1000&q=80",
+  },
+  {
+    slug: "doacoes",
+    to: "/doacoes",
+    search: {},
+    title: "Doações & Solidariedade",
+    defaultCover: "https://images.unsplash.com/photo-1532629345422-7515f3d16bb9?w=1000&q=80",
+  },
+];
+
+// ── Botões / Chips de Subcategorias Ampliados (Canônico / Rota Corrigida / Suporte a Mídia) ──
+const MASTER_CHIP_BUTTONS = [
+  {
+    slug: "ofertas",
+    to: "/ofertas",
+    label: "Ofertas",
+    emoji: "⚡️",
+    icon: Flame,
+  },
+  {
+    slug: "gastronomia",
+    to: "/gastronomia",
+    label: "Delivery",
+    emoji: "🍕",
+    icon: ForkKnife,
+  },
+  {
+    slug: "mercado",
+    to: "/mercado",
+    label: "Mercados",
+    emoji: "🥦",
+    icon: Storefront,
+  },
+  {
+    slug: "farmacia",
+    to: "/farmacia",
+    label: "Farmácia",
+    emoji: "💊",
+    icon: Heartbeat,
+  },
+  {
+    slug: "bebidas",
+    to: "/bebidas",
+    label: "Bebidas",
+    emoji: "🍻",
+    icon: Coffee,
+  },
+  {
+    slug: "acougue",
+    to: "/acougue",
+    label: "Açougue",
+    emoji: "🥩",
+    icon: Flame,
+  },
+  {
+    slug: "eletronicos",
+    to: "/eletronicos",
+    label: "Eletrônicos",
+    emoji: "📱",
+    icon: Storefront,
+  },
+  {
+    slug: "moda",
+    to: "/moda",
     label: "Moda & Estilo",
     emoji: "👗",
     icon: TShirt,
-    gradient: "from-fuchsia-500/20 to-pink-500/20 text-fuchsia-600",
+  },
+  {
+    slug: "casa",
+    to: "/casa",
+    label: "Casa & Móveis",
+    emoji: "🛋️",
+    icon: House,
+  },
+  {
+    slug: "pet",
+    to: "/pet",
+    label: "Pet Shop",
+    emoji: "🐾",
+    icon: Heartbeat,
+  },
+  {
+    slug: "construcao",
+    to: "/construcao",
+    label: "Construção",
+    emoji: "🛠️",
+    icon: Storefront,
+  },
+  {
+    slug: "limpeza",
+    to: "/limpeza",
+    label: "Limpeza",
+    emoji: "🧹",
+    icon: Storefront,
+  },
+  {
+    slug: "livros",
+    to: "/livros",
+    label: "Papelaria",
+    emoji: "📚",
+    icon: Storefront,
+  },
+  {
+    slug: "servicos",
+    to: "/servicos",
+    label: "Serviços",
+    emoji: "💼",
+    icon: Briefcase,
+  },
+  {
+    slug: "imoveis",
+    to: "/imoveis",
+    label: "Imóveis",
+    emoji: "🏡",
+    icon: House,
+  },
+  {
+    slug: "beleza",
+    to: "/beleza",
+    label: "Beleza",
+    emoji: "✂️",
+    icon: Scissors,
+  },
+  {
+    slug: "doacoes",
+    to: "/doacoes",
+    label: "Doações",
+    emoji: "❤️",
+    icon: Heartbeat,
   },
   {
     slug: "empregos",
@@ -241,7 +271,6 @@ const MASTER_SQUIRCLE_ITEMS = [
     label: "Vagas",
     emoji: "💼",
     icon: Briefcase,
-    gradient: "from-sky-500/20 to-indigo-500/20 text-sky-600",
   },
   {
     slug: "agenda",
@@ -249,7 +278,6 @@ const MASTER_SQUIRCLE_ITEMS = [
     label: "Eventos",
     emoji: "🎟️",
     icon: CalendarDots,
-    gradient: "from-violet-500/20 to-purple-500/20 text-violet-600",
   },
   {
     slug: "classificados",
@@ -257,7 +285,6 @@ const MASTER_SQUIRCLE_ITEMS = [
     label: "Classificados",
     emoji: "🏷️",
     icon: Tag,
-    gradient: "from-rose-500/20 to-red-500/20 text-rose-600",
   },
   {
     slug: "turismo",
@@ -265,7 +292,6 @@ const MASTER_SQUIRCLE_ITEMS = [
     label: "Turismo",
     emoji: "✈️",
     icon: AirplaneTilt,
-    gradient: "from-teal-500/20 to-emerald-500/20 text-teal-600",
   },
   {
     slug: "mobilidade",
@@ -273,6 +299,101 @@ const MASTER_SQUIRCLE_ITEMS = [
     label: "Mobilidade",
     emoji: "🚗",
     icon: CarProfile,
-    gradient: "from-slate-500/20 to-zinc-500/20 text-foreground",
   },
 ];
+
+export function MasterHeroCards({ customCategories, hotpages }: MasterHeroCardsProps) {
+  return (
+    <div className="w-full space-y-4">
+      {/* ── 1. Carrossel Horizontal de Cards Grandes MAIORES e 100% LIMPOS (Sem texto/tags, Sem sombras) ── */}
+      <div
+        className="flex gap-4 overflow-x-auto pb-1 scrollbar-none snap-x snap-mandatory focus:outline-none"
+        tabIndex={0}
+        aria-label="Categorias Principais"
+      >
+        {HERO_MEDIA_CARDS.map((card) => {
+          const hotpageMatch = hotpages?.find((hp) => hp.slug === card.slug);
+          const customMatch = customCategories?.find((c) => c.slug === card.slug);
+
+          const isVideo = hotpageMatch?.bg_media_type === "video" && Boolean(hotpageMatch?.bg_media_url);
+          const coverUrl =
+            hotpageMatch?.cover_image_url ||
+            hotpageMatch?.bg_media_url ||
+            customMatch?.icon_url ||
+            card.defaultCover;
+
+          const targetTo = hotpageMatch?.target_route || card.to;
+
+          return (
+            <Link
+              key={card.slug}
+              to={targetTo as any}
+              search={card.search as any}
+              className="group relative overflow-hidden rounded-3xl  bg-card shrink-0 snap-start w-[78vw] max-w-[300px] sm:w-[340px] md:w-[380px] h-[155px] sm:h-[200px] md:h-[220px] transition-transform duration-200 active:scale-[0.98] select-none block"
+            >
+              {isVideo ? (
+                <video
+                  src={hotpageMatch!.bg_media_url!}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="size-full object-cover group-hover:scale-103 transition-transform duration-500"
+                />
+              ) : (
+                <img
+                  src={coverUrl}
+                  alt={card.title}
+                  className="size-full object-cover group-hover:scale-103 transition-transform duration-500"
+                  loading="eager"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src = card.defaultCover;
+                  }}
+                />
+              )}
+            </Link>
+          );
+        })}
+      </div>
+
+      {/* ── 2. Botões / Chips de Subcategorias com Suporte a Vídeo, GIF, Imagem, Textura & Rota Corrigida ── */}
+      <div
+        className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-2 pt-1 scrollbar-none w-full px-0.5 focus:outline-none"
+        tabIndex={0}
+        aria-label="Categorias Rápidas"
+      >
+        {MASTER_CHIP_BUTTONS.map((item) => {
+          const hotpageMatch = hotpages?.find((hp) => hp.slug === item.slug);
+          const customMatch = customCategories?.find((c) => c.slug === item.slug);
+
+          const iconUrl =
+            hotpageMatch?.custom_icon_url ||
+            hotpageMatch?.icon_url ||
+            customMatch?.icon_url;
+
+          const destinationTo = hotpageMatch?.target_route || item.to;
+
+          return (
+            <DynamicMediaChip
+              key={item.label}
+              slug={item.slug}
+              label={hotpageMatch?.title || item.label}
+              to={destinationTo}
+              icon={item.icon}
+              icon_url={iconUrl}
+              emoji={item.emoji}
+              badge={hotpageMatch?.badge_label}
+              bg_media_type={hotpageMatch?.bg_media_type || "none"}
+              bg_media_url={hotpageMatch?.bg_media_url}
+              bg_color={hotpageMatch?.bg_color}
+              bg_overlay_opacity={hotpageMatch?.bg_overlay_opacity}
+              bg_texture={hotpageMatch?.bg_texture}
+              size="md"
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+

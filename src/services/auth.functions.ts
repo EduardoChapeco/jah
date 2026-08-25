@@ -77,23 +77,75 @@ const ResetPasswordSchema = z.object({
 export const getUserSession = createServerFn({ method: "GET" }).handler(async () => {
   try {
     const supabase = await getSSRClient();
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser();
-    if (error || !user) return null;
+    let user: any = null;
+    try {
+      const authRes = await supabase.auth.getUser();
+      user = authRes.data?.user || null;
+    } catch {
+      user = null;
+    }
 
-    const { getServerIdentity } = await import("@/lib/identity.server");
-    const identity = await getServerIdentity();
+    // Se o usuário não está autenticado no Supabase Auth, retorna null imediatamente.
+    if (!user) {
+      return null;
+    }
+
+    const adminDb = getServerClient();
+
+    // 1. Busca perfil real no banco
+    let profile: any = null;
+    try {
+      const { data: p } = await adminDb
+        .from("profiles")
+        .select("id, full_name, username, avatar_url, role")
+        .eq("id", user.id)
+        .maybeSingle();
+      profile = p;
+    } catch {
+      profile = null;
+    }
+
+    // 2. Busca lojas do usuário autenticado
+    let memberships: any[] = [];
+    try {
+      const { data: membershipsData } = await adminDb
+        .from("workspace_members")
+        .select("store_id, role, stores(id, name, slug, logo_url)")
+        .eq("profile_id", user.id);
+
+      if (membershipsData && membershipsData.length > 0) {
+        memberships = membershipsData
+          .filter((m: any) => m.stores)
+          .map((m: any) => ({
+            store_id: m.store_id,
+            role: m.role || "owner",
+            name: m.stores?.name || "Loja",
+            slug: m.stores?.slug || "loja",
+            logo_url: m.stores?.logo_url || null,
+          }));
+      }
+    } catch (e) {
+      console.warn("[auth] Erro ao carregar memberships:", e);
+    }
 
     return {
       id: user.id,
-      email: user.email!,
-      role: identity.role,
-      store_id: identity.store_id,
-      memberships: identity.memberships,
+      user: {
+        id: user.id,
+        email: user.email,
+        user_metadata: {
+          ...user.user_metadata,
+          full_name: profile?.full_name || user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuário",
+          avatar_url: profile?.avatar_url || user.user_metadata?.avatar_url || null,
+        },
+      },
+      email: user.email,
+      role: profile?.role || "customer",
+      store_id: memberships[0]?.store_id || null,
+      memberships,
     };
-  } catch {
+  } catch (e) {
+    console.error("[auth] Erro em getUserSession:", e);
     return null;
   }
 });
@@ -107,16 +159,16 @@ export const signInWithPassword = createServerFn({ method: "POST" })
 
       // --- Rate limit check (before touching Supabase) ---
       const rateCheck = checkRateLimit(ip);
-      if (rateCheck.blocked) {
+      if (!rateCheck.allowed) {
         return {
           status: "rate_limited" as const,
-          message: `Muitas tentativas de login. Tente novamente em ${formatRetryAfter(rateCheck.retryAfterMs!)}.`,
-          retryAfterMs: rateCheck.retryAfterMs,
+          message: `Muitas tentativas de login. Tente novamente em ${formatRetryAfter(rateCheck.retryAfterSec!)}.`,
+          retryAfterSec: rateCheck.retryAfterSec,
         };
       }
 
       // Extract guest session manually before async context drops
-      const guestSessionToken = readCookieFromRequest(request, "jah_guest_session");
+      const guestSessionToken = readCookieFromRequest(request, "wider_guest_session");
 
       // Use global getResponseHeaders implicitly to ensure Set-Cookie is persisted on the RPC response
       const supabase = await getSSRClient();
@@ -173,7 +225,7 @@ export const signInWithOAuth = createServerFn({ method: "POST" })
   .handler(async ({ data: { provider, redirectTo } }) => {
     try {
       const supabase = await getSSRClient();
-      const siteUrl = getEnvVar("VITE_SITE_URL") || "https://jah.pages.dev";
+      const siteUrl = getEnvVar("VITE_SITE_URL") || "https://wider.pages.dev";
       const safeNext = normalizeInternalReturnPath(redirectTo, "/");
       const safeRedirectTo = `${siteUrl}/api/auth/callback?next=${encodeURIComponent(safeNext)}`;
 
@@ -201,14 +253,14 @@ export const signUpWithPassword = createServerFn({ method: "POST" })
     try {
       const request = getRequest();
       // Extract guest session manually before async context drops
-      const guestSessionToken = readCookieFromRequest(request, "jah_guest_session");
+      const guestSessionToken = readCookieFromRequest(request, "wider_guest_session");
 
       const supabase = await getSSRClient();
 
       // Build the confirmation URL. Supabase will append token_hash and type.
       // The app's /api/auth/confirm handler will process these and create the session.
       const safeNext = redirectTo ? normalizeInternalReturnPath(redirectTo, "/") : undefined;
-      const siteUrl = getEnvVar("VITE_SITE_URL") || "https://jah.pages.dev";
+      const siteUrl = getEnvVar("VITE_SITE_URL") || "https://wider.pages.dev";
       const confirmUrl = `${siteUrl}/api/auth/confirm${safeNext ? `?next=${encodeURIComponent(safeNext)}` : ""}`;
 
       const { data, error } = await supabase.auth.signUp({
@@ -280,7 +332,7 @@ export const signOut = createServerFn({ method: "POST" }).handler(async () => {
     // Clear guest session manually using H3-compatible util
     setResponseHeader(
       "Set-Cookie",
-      `jah_guest_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax${
+      `wider_guest_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax${
         getEnvVar("VITE_SITE_URL")?.includes("localhost") ? "" : "; Secure"
       }`,
     );
@@ -358,8 +410,16 @@ export const getProfile = createServerFn({ method: "GET" }).handler(async () => 
     fullName: user.user_metadata?.full_name || profile?.full_name || "",
     phone: user.user_metadata?.phone || profile?.phone || "",
     role: profile?.role || "customer",
-    // Enriched profile fields (may be null if not yet set)
+    // Enriched profile fields
+    username: profile?.username || (user.email ? user.email.split("@")[0].toLowerCase().replace(/[^a-z0-9._]/g, "") : null) || `user_${user.id.slice(0, 6)}`,
     avatarUrl: profile?.avatar_url ?? null,
+    coverUrl: profile?.cover_url ?? null,
+    bio: profile?.bio ?? null,
+    occupation: profile?.occupation ?? null,
+    city: profile?.city ?? null,
+    state: profile?.state ?? null,
+    instagram: profile?.instagram ?? null,
+    website: profile?.website ?? null,
     cpf: profile?.cpf ?? null,
     birthDate: profile?.birth_date ?? null,
     gender: profile?.gender ?? null,
@@ -392,8 +452,20 @@ function isValidCpf(cpf: string): boolean {
 
 const UpdateProfileSchema = z.object({
   fullName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
+  username: z
+    .string()
+    .min(3, "Nome de usuário deve ter pelo menos 3 caracteres")
+    .max(30, "Nome de usuário deve ter no máximo 30 caracteres")
+    .regex(/^[a-z0-9._]+$/, "Nome de usuário deve conter apenas letras minúsculas, números, ponto e underline"),
   phone: z.string().max(20).optional().or(z.literal("")),
-  avatarUrl: z.string().url().optional().or(z.literal("")),
+  avatarUrl: z.string().optional().or(z.literal("")),
+  coverUrl: z.string().optional().or(z.literal("")),
+  bio: z.string().max(500).optional().or(z.literal("")),
+  occupation: z.string().max(100).optional().or(z.literal("")),
+  city: z.string().max(100).optional().or(z.literal("")),
+  state: z.string().max(20).optional().or(z.literal("")),
+  instagram: z.string().max(100).optional().or(z.literal("")),
+  website: z.string().max(200).optional().or(z.literal("")),
   cpf: z
     .string()
     .optional()
@@ -402,6 +474,37 @@ const UpdateProfileSchema = z.object({
   birthDate: z.string().optional().or(z.literal("")), // ISO date string
   gender: z.enum(["feminino", "masculino", "outro", "prefiro_nao_dizer"]).optional(),
   newsletterOptIn: z.boolean().optional(),
+  biolinks: z.array(z.object({
+    id: z.string(),
+    label: z.string(),
+    url: z.string(),
+    icon: z.string().optional(),
+    isHighlight: z.boolean().optional(),
+  })).optional(),
+  resumeData: z.object({
+    headline: z.string().optional(),
+    summary: z.string().optional(),
+    hiringStatus: z.enum(["none", "open_to_work", "hiring"]).optional(),
+    experiences: z.array(z.object({
+      id: z.string(),
+      title: z.string(),
+      company: z.string(),
+      location: z.string().optional(),
+      startDate: z.string().optional(),
+      endDate: z.string().optional(),
+      isCurrent: z.boolean().optional(),
+      description: z.string().optional(),
+    })).optional(),
+    education: z.array(z.object({
+      id: z.string(),
+      degree: z.string(),
+      institution: z.string(),
+      year: z.string().optional(),
+    })).optional(),
+    skills: z.array(z.string()).optional(),
+  }).optional(),
+  featuredBannerUrl: z.string().optional().or(z.literal("")),
+  featuredBannerLink: z.string().optional().or(z.literal("")),
 });
 
 export type UpdateProfileInput = z.infer<typeof UpdateProfileSchema>;
@@ -413,29 +516,70 @@ export async function _updateProfile(data: UpdateProfileInput) {
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Não autorizado");
 
-  // Update Supabase Auth metadata (name only — phone not in auth metadata)
+  // Update Supabase Auth metadata
   const { error: authError } = await supabase.auth.updateUser({
     data: { full_name: data.fullName },
   });
   if (authError) throw new Error(authError.message);
 
   // Build profile update payload — only include defined fields
+  const cleanUsername = data.username
+    ? data.username.toLowerCase().trim().replace(/[^a-z0-9._]/g, "")
+    : user.email ? user.email.split("@")[0].toLowerCase().replace(/[^a-z0-9._]/g, "") : `user_${user.id.slice(0, 6)}`;
+
+  // 1. Atualiza metadados no Supabase Auth para refletir na sessão de imediato
+  try {
+    await supabase.auth.updateUser({
+      data: {
+        full_name: data.fullName,
+        username: cleanUsername,
+        avatar_url: data.avatarUrl || undefined,
+      },
+    });
+  } catch (authErr) {
+    console.warn("[auth] updateUser auth metadata warning:", authErr);
+  }
+
+  // 2. Prepara payload com ID para UPSERT atômico (garante persistência mesmo que a linha não existisse)
   const profileUpdate: Record<string, unknown> = {
+    id: user.id,
     full_name: data.fullName,
+    username: cleanUsername,
+    updated_at: new Date().toISOString(),
   };
+
   if (data.phone !== undefined) profileUpdate.phone = data.phone || null;
   if (data.avatarUrl !== undefined) profileUpdate.avatar_url = data.avatarUrl || null;
+  if (data.coverUrl !== undefined) profileUpdate.cover_url = data.coverUrl || null;
+  if (data.bio !== undefined) profileUpdate.bio = data.bio || null;
+  if (data.occupation !== undefined) profileUpdate.occupation = data.occupation || null;
+  if (data.city !== undefined) profileUpdate.city = data.city || null;
+  if (data.state !== undefined) profileUpdate.state = data.state || null;
+  if (data.instagram !== undefined) profileUpdate.instagram = data.instagram || null;
+  if (data.website !== undefined) profileUpdate.website = data.website || null;
   if (data.cpf !== undefined) profileUpdate.cpf = data.cpf || null;
   if (data.birthDate !== undefined) profileUpdate.birth_date = data.birthDate || null;
   if (data.gender !== undefined) profileUpdate.gender = data.gender;
   if (data.newsletterOptIn !== undefined) profileUpdate.newsletter_opt_in = data.newsletterOptIn;
+  if (data.biolinks !== undefined) profileUpdate.biolinks = data.biolinks;
+  if (data.resumeData !== undefined) profileUpdate.resume_data = data.resumeData;
+  if (data.featuredBannerUrl !== undefined) profileUpdate.featured_banner_url = data.featuredBannerUrl || null;
+  if (data.featuredBannerLink !== undefined) profileUpdate.featured_banner_link = data.featuredBannerLink || null;
 
+  // Realiza UPSERT no Supabase com onConflict id
   const { error: dbError } = await supabase
     .from("profiles")
-    .update(profileUpdate)
-    .eq("id", user.id);
+    .upsert(profileUpdate, { onConflict: "id" });
 
-  if (dbError) throw new Error(dbError.message);
+  if (dbError) {
+    console.error("[auth] Erro ao gravar perfil em profiles:", dbError);
+    // Tentativa de update direto caso upsert tenha restrição de schema
+    const { error: fallbackErr } = await supabase
+      .from("profiles")
+      .update(profileUpdate)
+      .eq("id", user.id);
+    if (fallbackErr) throw new Error(dbError.message || fallbackErr.message);
+  }
 
   return { status: "success" as const };
 }

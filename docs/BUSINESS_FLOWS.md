@@ -1127,3 +1127,23 @@ $$\text{Score}_{\text{novo}} = (\text{Score}_{\text{anterior}} \times 0.95) + \t
    - *🏪 Lojas & Negócios com Ofertas Ativas*
 
 
+
+## Módulo 13 — Logística Contextual & Regras Canônicas de Entrega (Padrão iFood vs E-commerce)
+
+Para evitar poluição visual e garantir uma experiência de compra instantânea e natural, a exibição de frete na plataforma JAH segue regras estritas de contexto geográfico e nicho:
+
+### 13.1 Comércio Local (Gastronomia, Supermercado, Farmácia, Conveniência)
+1. **Sem Formulários Redundantes de Simulação**:
+   - É **estritamente proibido** exibir caixas ou formulários intrusivos de "Simular Frete digitando CEP" em produtos de lanches, refeições ou compras locais da mesma cidade.
+2. **Cálculo Automático por Localização (GPS / Perfil Logado)**:
+   - Se o cliente já possui endereço cadastrado ou localização identificada pelo GPS/LocationMasterPill, a vitrine e a página de produto exibem diretamente o valor real da taxa da loja:
+     - Exemplo: `Entrega: R$ 6,00 (35-50 min)` ou `Entrega Grátis`.
+   - Se o cliente ainda não selecionou endereço, exibe sutilmente `Entrega a partir de R$ 5,00` ou o badge de entrega da loja.
+3. **Resolução de Bairros no Checkout**:
+   - No fechamento do pedido (`_store.finalizar-compra.tsx`), o sistema cruza o bairro do endereço selecionado com a tabela `delivery_zones` da loja e aplica a taxa automaticamente, sem fricção.
+
+### 13.2 E-commerce & Envio Intermunicipal/Nacional
+1. **Transportadoras e Correios**:
+   - A cotação de frete por CEP/cubagem/peso é reservada **exclusivamente** para lojas e produtos do tipo e-commerce físico (`type: "ecommerce"`) onde a loja permite entregas para fora da sua cidade-sede.
+2. **Orçamentos e Fretes Especiais (Mudanças & Cargas)**:
+   - Itens de grande porte ou serviços de logística sem preço fixo acionam o fluxo de orçamento prévio (`quote_request`), onde o prestador responde com o valor personalizado antes da confirmação.

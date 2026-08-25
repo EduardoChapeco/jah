@@ -75,7 +75,7 @@ function ServicesIndexPage() {
           }
         />
       ) : (
-        <div className="border border-border bg-card rounded-xl overflow-hidden">
+        <div className=" bg-card rounded-xl overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>

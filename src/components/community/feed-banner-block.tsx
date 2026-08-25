@@ -20,7 +20,7 @@ export function FeedBannerBlock({
   actionHref = "/mercado",
 }: FeedBannerBlockProps) {
   return (
-    <div className="relative my-4 overflow-hidden rounded-2xl border border-border bg-card p-5">
+    <div className="relative my-4 overflow-hidden rounded-2xl  bg-card p-5">
       {imageUrl && (
         <>
           <img

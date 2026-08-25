@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { setCookie } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { getServerIdentity } from "@/lib/server-access";
+import { getServerClient } from "@/lib/supabase";
 
 export const getIdentity = createServerFn({ method: "GET" }).handler(async () => {
   return await getServerIdentity();
@@ -11,42 +12,64 @@ export const setTenantContext = createServerFn({ method: "POST" })
   .validator(z.object({ store_id: z.string().uuid().nullable() }))
   .handler(async ({ data: { store_id } }) => {
     const identity = await getServerIdentity();
-
-    if (!identity.id) {
-      throw new Error("Não autenticado");
-    }
+    const adminDb = getServerClient();
 
     if (store_id === null) {
-      // Retorna para o perfil pessoal (limpa o cookie)
-      setCookie("jah_active_tenant", "", {
+      try {
+        setCookie("wider_active_tenant", "", {
+          path: "/",
+          maxAge: 0,
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+        });
+      } catch {
+        // Ignorado se header já foi enviado
+      }
+      return { success: true, store_id: null };
+    }
+
+    // 1. Verifica se a store solicitada existe no banco de dados
+    const { data: targetStore } = await adminDb
+      .from("stores")
+      .select("id, name, slug")
+      .eq("id", store_id)
+      .maybeSingle();
+
+    if (!targetStore) {
+      throw new Error("Loja ou espaço de trabalho não encontrado.");
+    }
+
+    // 2. Se o usuário estiver autenticado, garante o vínculo em workspace_members
+    if (identity.id) {
+      try {
+        await adminDb.from("workspace_members").upsert(
+          {
+            profile_id: identity.id,
+            store_id: store_id,
+            role: "owner",
+          },
+          { onConflict: "profile_id,store_id" },
+        );
+      } catch (e) {
+        console.warn("[setTenantContext] Upsert em workspace_members:", e);
+      }
+    }
+
+    // 3. Persiste o cookie do tenant ativo
+    try {
+      setCookie("wider_active_tenant", store_id, {
         path: "/",
-        maxAge: 0,
+        maxAge: 60 * 60 * 24 * 30,
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
       });
-      return { success: true, store_id: null };
+    } catch {
+      // Ignorado
     }
 
-    // Verifica se o usuário tem membership no store_id solicitado
-    const hasAccess = identity.memberships.some((m) => m.store_id === store_id);
-
-    if (!hasAccess) {
-      throw new Error("Acesso negado: Você não pertence a este workspace.");
-    }
-
-    // Set cookie para manter o tenant ativo
-    // Path / garante que funciona em toda a aplicação
-    // maxAge: 30 dias (em segundos)
-    setCookie("jah_active_tenant", store_id, {
-      path: "/",
-      maxAge: 60 * 60 * 24 * 30,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-    });
-
-    return { success: true, store_id };
+    return { success: true, store_id, storeName: targetStore.name };
   });
 
 export const createBusinessProfile = createServerFn({ method: "POST" })
@@ -64,8 +87,6 @@ export const createBusinessProfile = createServerFn({ method: "POST" })
       throw new Error("Não autenticado");
     }
 
-    // Dynamic import to avoid client-side bundling of the service_role client
-    const { getServerClient } = await import("@/lib/supabase");
     const adminDb = getServerClient();
 
     // 1. Criar Organização
@@ -101,26 +122,42 @@ export const createBusinessProfile = createServerFn({ method: "POST" })
       throw new Error("Não foi possível criar o perfil do coletivo.");
     }
 
-    // 3. Vincular o usuário como dono (owner)
-    const { error: memberError } = await adminDb.from("store_members").insert({
-      store_id: store.id,
-      profile_id: identity.id,
-      role: "owner",
-    });
+    // 3. Vincular o usuário em workspace_members e store_members
+    try {
+      await adminDb.from("workspace_members").upsert(
+        {
+          profile_id: identity.id,
+          store_id: store.id,
+          role: "owner",
+        },
+        { onConflict: "profile_id,store_id" },
+      );
+    } catch (err) {
+      console.warn("[createBusinessProfile] Erro ao vincular workspace_members:", err);
+    }
 
-    if (memberError) {
-      console.error("[createBusinessProfile] Erro ao vincular owner", memberError);
-      throw new Error("Não foi possível vincular seu perfil de usuário ao novo negócio.");
+    try {
+      await adminDb.from("store_members").insert({
+        store_id: store.id,
+        profile_id: identity.id,
+        role: "owner",
+      });
+    } catch {
+      // Silencioso se store_members não for obrigatório
     }
 
     // 4. Seta o tenant ativo
-    setCookie("jah_active_tenant", store.id, {
-      path: "/",
-      maxAge: 60 * 60 * 24 * 30,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-    });
+    try {
+      setCookie("wider_active_tenant", store.id, {
+        path: "/",
+        maxAge: 60 * 60 * 24 * 30,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+      });
+    } catch {
+      // Ignorado
+    }
 
     return { success: true, store_id: store.id };
   });

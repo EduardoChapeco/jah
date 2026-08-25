@@ -6,6 +6,7 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  isRedirect,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import { CookieBanner } from "@/components/commerce/cookie-banner";
@@ -38,6 +39,10 @@ function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+  if (isRedirect(error)) {
+    throw error;
+  }
+
   console.error(error);
   const router = useRouter();
   useEffect(() => {
@@ -99,13 +104,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     const storeRaw = (loaderData as any)?.store;
     const store = storeRaw?.data || storeRaw;
     const theme = (loaderData as any)?.theme;
-    const storeName = store?.name || "Jah";
+    const storeName = store?.name || "Wider";
 
     const seoTitle = store?.seo_title || `${storeName} — Conforto e Estilo`;
     const seoDesc =
       store?.seo_description ||
       store?.description ||
-      "Moda feminina contemporânea com conforto e estilo. Descubra a curadoria da Jah.";
+      "Moda feminina contemporânea com conforto e estilo. Descubra a plataforma Wider.";
     const seoKeywords = store?.seo_keywords || "";
 
     const metaTags = [
@@ -231,6 +236,7 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 import { Toaster } from "@/components/ui/sonner";
+import { CartProvider } from "@/lib/cart-context";
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
@@ -247,9 +253,11 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
-      <Toaster />
+      <CartProvider>
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
+        <Toaster />
+      </CartProvider>
     </QueryClientProvider>
   );
 }

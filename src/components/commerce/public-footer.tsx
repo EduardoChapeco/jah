@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Logo } from "@/components/commerce/logo";
 
 export function PublicFooter({ menuItems = [], store }: { menuItems?: any[]; store?: any }) {
-  const storeName = store?.name || "Jah";
+  const storeName = store?.name || "Wider";
   const storeDesc =
     store?.description ||
     "Plataforma da comunidade para produtores culturais, negócios e artistas locais.";
@@ -15,7 +15,7 @@ export function PublicFooter({ menuItems = [], store }: { menuItems?: any[]; sto
   const col1 = navItems.slice(0, colSize);
   const col2 = navItems.slice(colSize);
   return (
-    <footer className="mt-16 border-t border-border bg-card">
+    <footer className="mt-16  bg-card">
       <div className="mx-auto max-w-screen-xl px-4 py-12 md:px-6">
         <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
           <div className="space-y-3">
@@ -60,7 +60,7 @@ export function PublicFooter({ menuItems = [], store }: { menuItems?: any[]; sto
             </nav>
           )}
         </div>
-        <div className="mt-10 flex flex-col gap-2 border-t border-border pt-6 text-xs text-muted-foreground md:flex-row md:items-center md:justify-between">
+        <div className="mt-10 flex flex-col gap-2  pt-6 text-xs text-muted-foreground md:flex-row md:items-center md:justify-between">
           <p>
             © {new Date().getFullYear()} {storeName}. Todos os direitos reservados.
           </p>

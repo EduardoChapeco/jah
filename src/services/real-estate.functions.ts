@@ -128,7 +128,14 @@ export const resolveMaintenanceRequest = createServerFn({ method: "POST" })
   .validator(
     z.object({
       requestId: z.string().uuid(),
-      status: z.enum(["in_progress", "resolved", "cancelled"]),
+      status: z.enum([
+        "open",
+        "in_progress",
+        "in_review",
+        "quote_approved",
+        "resolved",
+        "cancelled",
+      ]),
       estimatedCostCents: z.number().int().min(0).optional().nullable(),
       adminNotes: z.string().optional().nullable(),
     }),

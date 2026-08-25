@@ -71,7 +71,7 @@ function IntegrationCard({
   };
 
   return (
-    <Card className="bg-surface-paper shadow-sm rounded-xl border border-border">
+    <Card className="bg-surface-paper  rounded-xl ">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -100,7 +100,7 @@ function IntegrationCard({
 
       {isActive && (
         <form onSubmit={handleSave}>
-          <CardContent className="space-y-4 pt-4 border-t border-border/10">
+          <CardContent className="space-y-4 pt-4 ">
             {existingSetting?.is_active && (
               <div className="bg-success/10 text-success-foreground p-3 rounded-xl text-sm mb-4 flex items-center gap-2">
                 <CheckCircle className="size-4" />
@@ -121,7 +121,7 @@ function IntegrationCard({
               </div>
             ))}
           </CardContent>
-          <CardFooter className="flex justify-between border-t border-border/10 pt-4 pb-4">
+          <CardFooter className="flex justify-between  pt-4 pb-4">
             {existingSetting ? (
               <Button
                 type="button"

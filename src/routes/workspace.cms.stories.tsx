@@ -117,7 +117,7 @@ function CmsStoriesPage() {
       <PageHeader
         title="Gerenciar Stories"
         actions={
-          <Button onClick={handleOpenNew} className="font-bold border border-border ">
+          <Button onClick={handleOpenNew} className="font-bold  ">
             <Plus className="mr-2 h-4 w-4" />
             Novo Story
           </Button>

@@ -504,6 +504,16 @@ const ProvisionBusinessSchema = z.object({
   name: z.string().min(2, "Nome muito curto"),
   type: z.string().optional(),
   document: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  address: z.string().optional(),
+  phone: z.string().optional(),
+  email: z.string().optional(),
+  logoUrl: z.string().optional(),
+  bannerUrl: z.string().optional(),
+  workingHours: z.record(z.any()).optional(),
+  deliveryZones: z.array(z.any()).optional(),
+  complianceDocuments: z.array(z.any()).optional(),
 });
 
 export const provisionBusiness = createServerFn({ method: "POST" })
@@ -517,6 +527,13 @@ export const provisionBusiness = createServerFn({ method: "POST" })
 
     const db = getServerClient(); // Bypass RLS para provisionamento
 
+    // 0. Garantir existência de profile no banco
+    await db.from("profiles").upsert({
+      id: user.id,
+      full_name: user.user_metadata?.full_name || data.name,
+      role: "owner",
+    });
+
     // 1. Criar Organização
     const orgSlug = generateSlug(data.name) + "-" + Math.floor(1000 + Math.random() * 9000);
     const { data: org, error: orgError } = await db
@@ -526,26 +543,57 @@ export const provisionBusiness = createServerFn({ method: "POST" })
       .single();
     if (orgError) throw new Error("Erro ao criar organização: " + orgError.message);
 
-    // 2. Criar Loja
+    // 2. Montar objeto settings estruturado e persistido com type, logoUrl e configurações
+    const settings: Record<string, any> = {
+      type: data.type || "ecommerce",
+      logoUrl: data.logoUrl || null,
+      bannerUrl: data.bannerUrl || null,
+      working_hours: data.workingHours || null,
+      delivery_zones: data.deliveryZones || [],
+      compliance_documents: data.complianceDocuments || [],
+    };
+
+    // 3. Criar Loja com colunas canônicas seguras
+    const storePayload: Record<string, any> = {
+      organization_id: org.id,
+      name: data.name,
+      slug: orgSlug,
+      cnpj: data.document || null,
+      city: data.city || "Chapecó",
+      state: data.state || "SC",
+      address: data.address || null,
+      phone: data.phone || null,
+      email: data.email || null,
+      settings,
+    };
+
     const { data: store, error: storeError } = await db
       .from("stores")
-      .insert({
-        organization_id: org.id,
-        name: data.name,
-        slug: orgSlug,
-        cnpj: data.document || null,
-      })
+      .insert(storePayload)
       .select("id")
       .single();
     if (storeError) throw new Error("Erro ao criar loja: " + storeError.message);
 
-    // 3. Vincular Usuário como Owner
-    const { error: memberError } = await db.from("workspace_members").insert({
+    // 4. Vincular Usuário como Owner
+    const { error: memberError } = await db.from("workspace_members").upsert({
       profile_id: user.id,
       store_id: store.id,
       role: "owner",
     });
     if (memberError) throw new Error("Erro ao vincular membro: " + memberError.message);
+
+    // 5. Vincular theme_settings se logo ou banner presentes
+    if (data.logoUrl || data.bannerUrl) {
+      try {
+        await db.from("theme_settings").upsert({
+          store_id: store.id,
+          logo_url: data.logoUrl || null,
+          banner_url: data.bannerUrl || null,
+        });
+      } catch {
+        // Ignora caso theme_settings não exista estruturalmente
+      }
+    }
 
     return { status: "success" as const, storeId: store.id };
   });

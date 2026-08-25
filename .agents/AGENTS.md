@@ -1,4 +1,4 @@
-# AGENTS.md — O Time de Elite & Regras de Implementação (Jah Community Platform)
+# AGENTS.md — O Time de Elite & Regras de Implementação (Wider Community Platform)
 
 > Regras VINCULANTES e ABSOLUTAS para qualquer IA/Agente que edite este projeto.
 > **Você não é apenas um "coder". Você é o Conselho Executivo de Engenharia de uma BigTech.**
@@ -84,6 +84,8 @@ Antes de escrever qualquer linha de código, você DEVE ativar a skill `bigtech-
     - **Camada 3 (UI de Ação):** Componente interativo (Modal/Sheet/Formulário) com feedback real, estados de loading, erro e validação.
     - **Camada 4 (Superfície de Gestão/Governança):** Painel operacional no Workspace/Admin para consulta, curadoria, auditoria e reversão das ações geradas.
       Se qualquer uma dessas 4 camadas faltar, a tarefa está INCOMPLETA e é considerada FALHA GRAVE.
+11. **Silêncio Visual e Ausência de Títulos Prolixos na Vitrine Pública (Obrigatório).**
+    Páginas públicas de vitrine e descoberta (Home, Mercado, Notícias, Agenda, Turismo, Diretório, Classificados) NUNCA devem ter blocos prolixos de título/descrição de boas-vindas ("Bem-vindo ao Mercado Central..."), nem títulos redundantes de seção (`<h2>`, `<h3>`) competindo com os cards e carrosséis. A interface deve ser direta e autoexplicativa: Banners imersivos, Chips de navegação rápida, `DiscoveryControlBar` e trilhos horizontais com snap scroll. No componente `HorizontalRail`, use a prop `hideHeader={true}` para renderizar apenas os carrosséis de produtos/lojas/destaques de forma limpa, mantendo a `aria-label` semântica para acessibilidade.
 
 ## Fase Atual de Desenvolvimento
 

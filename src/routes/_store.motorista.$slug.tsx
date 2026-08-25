@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_store/motorista/$slug")({
   head: ({ loaderData }: any) => ({
     meta: [
       {
-        title: `${loaderData?.courier?.full_name || "Motorista Parceiro"} — JAH Mobilidade`,
+        title: `${loaderData?.courier?.full_name || "Motorista Parceiro"} — Wider Mobilidade`,
       },
     ],
   }),
@@ -43,10 +43,10 @@ function DriverDirectPage() {
   const phoneDigits = courier.phone ? courier.phone.replace(/\D/g, "") : "";
 
   return (
-    <div className="w-full max-w-xl mx-auto space-y-6 pb-24">
+    <div className="w-full max-w-xl mx-auto space-y-6 pb-6">
       {/* Profile Card */}
-      <div className="rounded-2xl border border-border bg-card p-6 shadow-xs text-center space-y-5">
-        <div className="size-20 rounded-2xl mx-auto overflow-hidden border border-border bg-muted flex items-center justify-center font-bold text-xl text-foreground">
+      <div className="rounded-2xl  bg-card p-6  text-center space-y-5">
+        <div className="size-20 rounded-2xl mx-auto overflow-hidden  bg-muted flex items-center justify-center font-bold text-xl text-foreground">
           {courier.avatar_url ? (
             <img
               src={courier.avatar_url}
@@ -72,7 +72,7 @@ function DriverDirectPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 p-3 rounded-xl bg-muted/40 border border-border text-center">
+        <div className="grid grid-cols-3 gap-3 p-3 rounded-xl bg-muted/40  text-center">
           <div>
             <div className="flex items-center justify-center gap-1 font-semibold text-sm text-foreground">
               <Star className="size-3.5 fill-foreground text-foreground" />

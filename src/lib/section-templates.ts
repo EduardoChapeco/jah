@@ -579,7 +579,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
   community_feed: {
     id: "community_feed",
     name: "Zine Comunitário",
-    description: "Um mural interativo para classificados e anúncios da comunidade Jah.",
+    description: "Um mural interativo para classificados e anúncios da Comunidade Wider.",
     category: "social",
     previewImageUrl:
       "https://images.unsplash.com/photo-1517404215738-15263e9f9178?auto=format&fit=crop&w=300&q=80",

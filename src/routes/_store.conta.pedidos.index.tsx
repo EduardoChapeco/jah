@@ -37,7 +37,7 @@ function Page() {
 
   return (
     <section>
-      <h2 className="font-semibold text-2xl text-foreground mb-6">Histórico de Pedidos</h2>
+      <h1 className="text-xl font-bold text-foreground mb-6 tracking-tight">Histórico de Pedidos</h1>
 
       {orders.length === 0 ? (
         <EmptyState
@@ -51,8 +51,8 @@ function Page() {
       ) : (
         <div className="space-y-6">
           {orders.map((order: any) => (
-            <div key={order.id} className="border border-border rounded-xl overflow-hidden bg-card">
-              <div className="bg-muted/40 p-4 border-b flex flex-wrap justify-between items-center gap-4">
+            <div key={order.id} className="rounded-3xl overflow-hidden bg-card shadow-none">
+              <div className="bg-muted/30 p-4 flex flex-wrap justify-between items-center gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Pedido realizado em</p>
                   <p className="font-medium">{formatDate(order.created_at)}</p>

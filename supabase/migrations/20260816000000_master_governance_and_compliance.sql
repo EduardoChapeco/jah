@@ -100,12 +100,30 @@ ALTER TABLE public.identity_kyc_verifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.store_moderation_suspensions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.forensic_audit_events ENABLE ROW LEVEL SECURITY;
 
+-- Ensure profiles has role column
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'customer';
+
 -- Platform Admins have full access to everything
-CREATE POLICY "Platform Admins manage user sanctions" ON public.user_moderation_sanctions FOR ALL USING (auth.uid() IN (SELECT id FROM public.profiles WHERE role = 'platform_admin'));
-CREATE POLICY "Platform Admins manage legal acceptances" ON public.legal_terms_acceptances FOR ALL USING (auth.uid() IN (SELECT id FROM public.profiles WHERE role = 'platform_admin'));
-CREATE POLICY "Platform Admins manage kyc verifications" ON public.identity_kyc_verifications FOR ALL USING (auth.uid() IN (SELECT id FROM public.profiles WHERE role = 'platform_admin'));
-CREATE POLICY "Platform Admins manage store suspensions" ON public.store_moderation_suspensions FOR ALL USING (auth.uid() IN (SELECT id FROM public.profiles WHERE role = 'platform_admin'));
-CREATE POLICY "Platform Admins manage forensic audit" ON public.forensic_audit_events FOR ALL USING (auth.uid() IN (SELECT id FROM public.profiles WHERE role = 'platform_admin'));
+CREATE POLICY "Platform Admins manage user sanctions" ON public.user_moderation_sanctions FOR ALL USING (
+  auth.uid() IN (SELECT id FROM public.profiles WHERE role IN ('platform_admin', 'master', 'admin'))
+  OR EXISTS (SELECT 1 FROM public.workspace_members wm WHERE wm.profile_id = auth.uid() AND wm.role IN ('owner', 'admin'))
+);
+CREATE POLICY "Platform Admins manage legal acceptances" ON public.legal_terms_acceptances FOR ALL USING (
+  auth.uid() IN (SELECT id FROM public.profiles WHERE role IN ('platform_admin', 'master', 'admin'))
+  OR EXISTS (SELECT 1 FROM public.workspace_members wm WHERE wm.profile_id = auth.uid() AND wm.role IN ('owner', 'admin'))
+);
+CREATE POLICY "Platform Admins manage kyc verifications" ON public.identity_kyc_verifications FOR ALL USING (
+  auth.uid() IN (SELECT id FROM public.profiles WHERE role IN ('platform_admin', 'master', 'admin'))
+  OR EXISTS (SELECT 1 FROM public.workspace_members wm WHERE wm.profile_id = auth.uid() AND wm.role IN ('owner', 'admin'))
+);
+CREATE POLICY "Platform Admins manage store suspensions" ON public.store_moderation_suspensions FOR ALL USING (
+  auth.uid() IN (SELECT id FROM public.profiles WHERE role IN ('platform_admin', 'master', 'admin'))
+  OR EXISTS (SELECT 1 FROM public.workspace_members wm WHERE wm.profile_id = auth.uid() AND wm.role IN ('owner', 'admin'))
+);
+CREATE POLICY "Platform Admins manage forensic audit" ON public.forensic_audit_events FOR ALL USING (
+  auth.uid() IN (SELECT id FROM public.profiles WHERE role IN ('platform_admin', 'master', 'admin'))
+  OR EXISTS (SELECT 1 FROM public.workspace_members wm WHERE wm.profile_id = auth.uid() AND wm.role IN ('owner', 'admin'))
+);
 
 -- Users can view their own KYC status and submit
 CREATE POLICY "Users view own kyc" ON public.identity_kyc_verifications FOR SELECT USING (auth.uid() = user_id);

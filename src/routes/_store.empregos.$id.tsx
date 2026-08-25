@@ -33,10 +33,19 @@ import {
   DialogTrigger,
   DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import { getPublicJobById, applyToJob, type JobItemDTO } from "@/services/jobs.functions";
 import { getUserSession } from "@/services/auth.functions";
 import { formatDate } from "@/lib/datetime";
 import { toast } from "sonner";
+import { trackAndOpenWhatsApp } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/_store/empregos/$id")({
   head: ({ loaderData }: any) => ({
@@ -44,7 +53,7 @@ export const Route = createFileRoute("/_store/empregos/$id")({
       {
         title: loaderData?.job
           ? `${loaderData.job.title} na ${loaderData.job.company_name} — Vagas JAH`
-          : "Vaga de Emprego — JAH",
+          : "Vaga de Emprego — Wider",
       },
       {
         name: "description",
@@ -113,11 +122,7 @@ function JobDetailPage() {
     );
   }
 
-  const cleanWhatsapp = job.contact_whatsapp?.replace(/\D/g, "") || "";
-  const whatsappMessage = encodeURIComponent(
-    `Olá! Vi o anúncio da vaga de *${job.title}* na plataforma JAH e gostaria de mais informações.`,
-  );
-  const whatsappUrl = cleanWhatsapp ? `https://wa.me/55${cleanWhatsapp}?text=${whatsappMessage}` : null;
+  // whatsappUrl: removido — agora usa trackAndOpenWhatsApp para rastreamento real de conversões
 
   const handleShare = () => {
     if (typeof window !== "undefined" && navigator.clipboard) {
@@ -127,7 +132,7 @@ function JobDetailPage() {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-8 pb-24">
+    <div className="w-full max-w-4xl mx-auto space-y-8 pb-6">
       {/* ── 1. Top Navigation & Breadcrumb ── */}
       <div className="flex items-center justify-between pt-2">
         <Link
@@ -150,10 +155,10 @@ function JobDetailPage() {
       </div>
 
       {/* ── 2. Hero Header da Vaga ── */}
-      <header className="rounded-3xl border border-border bg-card p-6 sm:p-8 space-y-6 shadow-2xs">
+      <header className="rounded-3xl  bg-card p-6 sm:p-8 space-y-6 ">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-5">
           <div className="flex items-start gap-4">
-            <div className="size-16 sm:size-20 rounded-2xl bg-muted border border-border flex items-center justify-center text-foreground font-black text-xl shrink-0 overflow-hidden">
+            <div className="size-16 sm:size-20 rounded-2xl bg-muted  flex items-center justify-center text-foreground font-black text-xl shrink-0 overflow-hidden">
               {job.company_logo_url ? (
                 <img
                   src={job.company_logo_url}
@@ -212,7 +217,7 @@ function JobDetailPage() {
         </div>
 
         {/* Tags Rápidas de Contratação */}
-        <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-border">
+        <div className="flex flex-wrap items-center gap-2 pt-4 ">
           <Badge variant="secondary" className="rounded-xl px-3 py-1 text-xs font-bold gap-1.5">
             <Briefcase size={14} weight="bold" />
             {job.contract_type}
@@ -231,7 +236,7 @@ function JobDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <main className="lg:col-span-2 space-y-8">
           {/* Descrição das Atividades */}
-          <section className="rounded-3xl border border-border bg-card p-6 sm:p-8 space-y-4 shadow-2xs">
+          <section className="rounded-3xl  bg-card p-6 sm:p-8 space-y-4 ">
             <h2 className="text-base font-bold text-foreground flex items-center gap-2">
               <Briefcase size={18} weight="bold" />
               <span>Sobre a Vaga e Atribuições</span>
@@ -243,7 +248,7 @@ function JobDetailPage() {
 
           {/* Requisitos & Qualificações */}
           {job.requirements && job.requirements.length > 0 && (
-            <section className="rounded-3xl border border-border bg-card p-6 sm:p-8 space-y-4 shadow-2xs">
+            <section className="rounded-3xl  bg-card p-6 sm:p-8 space-y-4 ">
               <h2 className="text-base font-bold text-foreground flex items-center gap-2">
                 <CheckCircle size={18} weight="bold" />
                 <span>Requisitos & Conhecimentos</span>
@@ -263,7 +268,7 @@ function JobDetailPage() {
 
           {/* Benefícios & Vantagens */}
           {job.benefits && job.benefits.length > 0 && (
-            <section className="rounded-3xl border border-border bg-card p-6 sm:p-8 space-y-4 shadow-2xs">
+            <section className="rounded-3xl  bg-card p-6 sm:p-8 space-y-4 ">
               <h2 className="text-base font-bold text-foreground flex items-center gap-2">
                 <Sparkle size={18} weight="bold" />
                 <span>Benefícios & Vantagens</span>
@@ -272,7 +277,7 @@ function JobDetailPage() {
                 {job.benefits.map((ben: string, idx: number) => (
                   <div
                     key={idx}
-                    className="p-3.5 rounded-2xl border border-border bg-muted/30 flex items-center gap-3 text-xs font-semibold text-foreground"
+                    className="p-3.5 rounded-2xl  bg-muted/30 flex items-center gap-3 text-xs font-semibold text-foreground"
                   >
                     <Sparkle size={16} weight="fill" className="text-foreground shrink-0" />
                     <span>{ben}</span>
@@ -285,7 +290,7 @@ function JobDetailPage() {
 
         {/* ── 4. Coluna Lateral de Ação / Candidatura ── */}
         <aside className="space-y-5">
-          <div className="sticky top-20 rounded-3xl border border-border bg-card p-6 space-y-5 shadow-2xs">
+          <div className="sticky top-20 rounded-3xl  bg-card p-6 space-y-5 ">
             <div className="space-y-1">
               <h3 className="text-sm font-bold text-foreground">Candidate-se a esta vaga</h3>
               <p className="text-xs text-muted-foreground">
@@ -294,23 +299,29 @@ function JobDetailPage() {
             </div>
 
             {/* Modal de Candidatura Real */}
-            <Dialog open={isApplyOpen} onOpenChange={setIsApplyOpen}>
-              <DialogTrigger asChild>
-                <Button className="w-full rounded-xl font-bold h-12 text-sm bg-foreground text-background shadow-xs gap-2">
+            <Sheet open={isApplyOpen} onOpenChange={setIsApplyOpen}>
+              <SheetTrigger asChild>
+                <Button className="w-full rounded-xl font-bold h-12 text-sm bg-foreground text-background  gap-2">
                   <PaperPlaneTilt size={18} weight="bold" />
                   <span>Enviar Candidatura</span>
                 </Button>
-              </DialogTrigger>
+              </SheetTrigger>
 
-              <DialogContent className="max-w-md rounded-3xl p-6 sm:p-8">
-                <DialogHeader className="space-y-2">
-                  <DialogTitle className="text-lg font-black text-foreground">
+              <SheetContent side="right" className="w-full sm:max-w-xl md:max-w-2xl p-0 flex flex-col h-full bg-background overflow-hidden border-l border-border">
+                <div className="p-6 pb-4 border-b border-border/40 shrink-0">
+                  <SheetTitle className="text-xl font-extrabold text-foreground">
+                    Candidatura — {job.title}
+                  </SheetTitle>
+                </div>
+                <div className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-none">
+                <SheetHeader className="space-y-2">
+                  <SheetTitle className="text-lg font-black text-foreground">
                     Candidatura para {job.title}
-                  </DialogTitle>
-                  <DialogDescription className="text-xs text-muted-foreground">
+                  </SheetTitle>
+                  <SheetDescription className="text-xs text-muted-foreground">
                     Preencha os dados abaixo para enviar seu perfil profissional para {job.company_name}.
-                  </DialogDescription>
-                </DialogHeader>
+                  </SheetDescription>
+                </SheetHeader>
 
                 {hasApplied ? (
                   <div className="py-8 text-center space-y-3">
@@ -422,27 +433,36 @@ function JobDetailPage() {
                     </Button>
                   </form>
                 )}
-              </DialogContent>
-            </Dialog>
+              </div>
+              </SheetContent>
+            </Sheet>
 
-            {/* Contato WhatsApp Direto */}
-            {whatsappUrl && (
+            {/* Contato WhatsApp Direto — Rastreado */}
+            {job.contact_whatsapp && (
               <Button
-                asChild
+                type="button"
                 variant="outline"
-                className="w-full rounded-xl font-bold h-11 text-xs border-border gap-2"
+                onClick={() =>
+                  trackAndOpenWhatsApp({
+                    phone: job.contact_whatsapp!,
+                    storeId: (job as any).store_id || null,
+                    entityType: "job",
+                    entityId: job.id,
+                    entityTitle: `${job.title} — ${job.company_name}`,
+                    niche: job.category || "empregos",
+                  })
+                }
+                className="w-full rounded-xl font-bold h-11 text-xs border-border gap-2 cursor-pointer"
               >
-                <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-                  <WhatsappLogo size={18} weight="bold" />
-                  <span>Falar com o Recrutador</span>
-                </a>
+                <WhatsappLogo size={18} weight="bold" />
+                <span>Falar com o Recrutador</span>
               </Button>
             )}
 
-            <div className="pt-3 border-t border-border space-y-2 text-[11px] text-muted-foreground">
+            <div className="pt-3  space-y-2 text-[11px] text-muted-foreground">
               <div className="flex items-center gap-2">
                 <ShieldCheck size={16} weight="bold" className="text-foreground shrink-0" />
-                <span>Processo seletivo verificado pela comunidade JAH.</span>
+                <span>Processo seletivo verificado pela Comunidade Wider.</span>
               </div>
             </div>
           </div>

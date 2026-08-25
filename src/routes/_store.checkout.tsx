@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -25,9 +25,9 @@ import { getPublicStoreProfile } from "@/services/catalog.functions";
 import { getProfile } from "@/services/auth.functions";
 import { getCustomerAddresses } from "@/services/customer.functions";
 import {
+  Check,
   CheckCircle2,
   Ticket,
-  MessageCircle,
   User,
   Truck,
   CreditCard,
@@ -37,6 +37,13 @@ import {
   Loader2,
   Gift,
   QrCode,
+  Clock,
+  Store,
+  ChevronRight,
+  ArrowLeft,
+  Navigation,
+  Sparkles,
+  Plus,
 } from "lucide-react";
 import {
   Select,
@@ -45,10 +52,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Surface } from "@/components/ui/surface";
+
 export const Route = createFileRoute("/_store/checkout")({
-  head: () => ({ meta: [{ title: "Checkout" }] }),
+  head: () => ({ meta: [{ title: "Checkout | Wider" }] }),
   validateSearch: (search: Record<string, unknown>): { store?: string } => {
     return {
       store: (search.store as string) || undefined,
@@ -65,11 +74,14 @@ export const Route = createFileRoute("/_store/checkout")({
       userProfile,
       userAddresses,
     ] = await Promise.all([
-      getCart(),
+      getCart().catch((e) => {
+        console.warn("[checkout] getCart fallback:", e);
+        return null;
+      }),
       getGlobalCarts().catch(() => []),
-      getPublicStoreProfile(store ? { data: { storeId: store } } : undefined),
-      getPublicPaymentMethods(store ? { data: { storeId: store } } : undefined),
-      getGatewayStatus(store ? { data: { storeId: store } } : undefined),
+      getPublicStoreProfile(store ? { data: { storeId: store } } : undefined).catch(() => null),
+      getPublicPaymentMethods(store ? { data: { storeId: store } } : undefined).catch(() => []),
+      getGatewayStatus(store ? { data: { storeId: store } } : undefined).catch(() => false),
       getProfile().catch(() => null),
       getCustomerAddresses().catch(() => []),
     ]);
@@ -105,7 +117,7 @@ interface ManualPaymentOption {
   discount_percentage: number;
 }
 
-function CheckoutPage() {
+export function CheckoutPage() {
   const {
     initialCart,
     globalCarts,
@@ -119,11 +131,10 @@ function CheckoutPage() {
   const router = useRouter();
 
   const [cart, setCart] = useState(initialCart);
-  const [activeStep, setActiveStep] = useState(1); // 1: Identificação, 2: Entrega, 3: Pagamento, 4: Confirmar
+  const [activeStep, setActiveStep] = useState(1); // 1: Identificação, 2: Entrega/Retirada, 3: Pagamento, 4: Revisão
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [successToken, setSuccessToken] = useState("");
 
-  // Credit card & installment states
+  // Credit card states
   const [selectedInstallment, setSelectedInstallment] = useState<number>(1);
   const [creditCardData, setCreditCardData] = useState({
     number: "",
@@ -132,11 +143,13 @@ function CheckoutPage() {
     cvv: "",
   });
 
-  // Address inputs & calculations
+  // Shipping & Address states
   const [shippingRates, setShippingRates] = useState<any[]>([]);
   const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
   const [noShippingRatesFound, setNoShippingRatesFound] = useState(false);
   const [selectedRateId, setSelectedRateId] = useState<string | null>(null);
+  const [isLocatingGPS, setIsLocatingGPS] = useState(false);
+  const [showNewAddressForm, setShowNewAddressForm] = useState(false);
 
   // Promo & Gift Card code states
   const [promoCode, setPromoCode] = useState("");
@@ -146,19 +159,16 @@ function CheckoutPage() {
     balanceCents: number;
   } | null>(null);
 
-  // Form states
+  // Custom checkout fields & Order notes
+  const [customFieldValues, setCustomFieldValues] = useState<Record<string, any>>({});
+  const [orderNotes, setOrderNotes] = useState("");
+
+  // Form state
   const [formData, setFormData] = useState({
     customerName: "",
     customerEmail: "",
     customerPhone: "",
     customerDocument: "",
-    addressZipcode: "",
-    addressStreet: "",
-    addressNumber: "",
-    addressComplement: "",
-    addressDistrict: "",
-    addressCity: "",
-    addressState: "",
     paymentMethod: (isGatewayConfigured
       ? "pix"
       : paymentMethods.length > 0
@@ -166,8 +176,10 @@ function CheckoutPage() {
         : "receipt") as "pix" | "manual" | "credit_card" | "receipt",
     paymentMethodId: (!isGatewayConfigured && paymentMethods.length > 0
       ? (paymentMethods[0] as any).id
-      : "") as string, // UUID of chosen manual payment option
+      : "") as string,
     shippingMethod: "manual_table" as "manual_table" | "pickup" | "manual_quote",
+    deliverySlot: "expressa",
+    substitutionPolicy: "similar" as "similar" | "contact" | "cancel",
     shippingAddress: {
       zipcode: "",
       street: "",
@@ -179,7 +191,7 @@ function CheckoutPage() {
     },
   });
 
-  // Keep local cart state synced on loader updates
+  // Sync local cart
   useEffect(() => {
     setCart(initialCart);
   }, [initialCart]);
@@ -209,10 +221,10 @@ function CheckoutPage() {
             ...prev,
             shippingAddress: {
               zipcode: cleanZip,
-              street: defaultAddr.street || "",
+              street: defaultAddr.street || defaultAddr.address_line1 || "",
               number: defaultAddr.number || "",
               complement: defaultAddr.complement || "",
-              neighborhood: defaultAddr.neighborhood || "",
+              neighborhood: defaultAddr.neighborhood || defaultAddr.bairro || "",
               city: defaultAddr.city || "",
               state: defaultAddr.state || "",
             },
@@ -222,10 +234,12 @@ function CheckoutPage() {
           handleCepChange(cleanZip, true);
         }
       }
+    } else {
+      setShowNewAddressForm(true);
     }
   }, [userAddresses]);
 
-  // Cep autofill & dynamic shipping cost calculation
+  // Step progression handler
   const handleAdvanceToDelivery = async () => {
     try {
       if (formData.customerEmail || formData.customerPhone) {
@@ -237,7 +251,7 @@ function CheckoutPage() {
         });
       }
     } catch (e) {
-      console.error("Falha silenciosa ao salvar lead", e);
+      console.error("Falha silenciosa ao atualizar contato:", e);
     }
     setActiveStep(2);
   };
@@ -254,7 +268,6 @@ function CheckoutPage() {
       setNoShippingRatesFound(false);
       try {
         if (!skipAutofill) {
-          // Auto-fill address fields from ViaCep
           const zipRes = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
           const zipData = await zipRes.json();
           if (!zipData.erro) {
@@ -271,11 +284,12 @@ function CheckoutPage() {
           }
         }
 
-        // Calculate shipping rates
         const shipRes = await calculateShipping({ data: { zipcode: cep } });
         if (shipRes && Array.isArray(shipRes) && shipRes.length > 0) {
           setShippingRates(shipRes);
           setNoShippingRatesFound(false);
+          // Auto select first rate
+          handleSelectRate(shipRes[0]);
         } else {
           setShippingRates([]);
           setNoShippingRatesFound(true);
@@ -291,7 +305,55 @@ function CheckoutPage() {
     }
   };
 
-  // Select shipping rate
+  const handleGPSLocation = () => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      toast.error("Geolocalização não suportada neste dispositivo.");
+      return;
+    }
+
+    setIsLocatingGPS(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+          );
+          const data = await res.json();
+          if (data && data.address) {
+            const addr = data.address;
+            const cep = (addr.postcode || "").replace(/\D/g, "");
+            setFormData((prev) => ({
+              ...prev,
+              shippingAddress: {
+                ...prev.shippingAddress,
+                zipcode: cep || prev.shippingAddress.zipcode,
+                street: addr.road || prev.shippingAddress.street,
+                neighborhood: addr.suburb || addr.neighbourhood || prev.shippingAddress.neighborhood,
+                city: addr.city || addr.town || addr.municipality || prev.shippingAddress.city,
+                state: addr.state || prev.shippingAddress.state,
+              },
+            }));
+            toast.success("Endereço preenchido via GPS!");
+            if (cep.length === 8) {
+              handleCepChange(cep, true);
+            }
+          }
+        } catch {
+          toast.error("Não foi possível resolver o endereço via GPS.");
+        } finally {
+          setIsLocatingGPS(false);
+        }
+      },
+      (err) => {
+        console.warn("GPS error:", err);
+        toast.error("Permissão de localização negada ou indisponível.");
+        setIsLocatingGPS(false);
+      },
+      { timeout: 10000 }
+    );
+  };
+
   const handleSelectRate = async (rate: any) => {
     setSelectedRateId(rate.id);
     setFormData((prev) => ({ ...prev, shippingMethod: "manual_table" }));
@@ -304,34 +366,12 @@ function CheckoutPage() {
           cents: rate.price_cents,
         },
       });
-      // Invalidate router cache to pull updated cart totals
       router.invalidate();
-    } catch (e) {
+    } catch {
       toast.error("Erro ao atualizar frete.");
     }
   };
 
-  // Request custom shipping quote
-  const handleRequestQuote = async () => {
-    setSelectedRateId("quote");
-    setFormData((prev) => ({ ...prev, shippingMethod: "manual_quote" }));
-
-    try {
-      await updateCartShipping({
-        data: {
-          zipcode: formData.shippingAddress.zipcode,
-          method: "manual_quote",
-          cents: 0,
-        },
-      });
-      router.invalidate();
-      toast.success("Cotação de frete personalizada selecionada!");
-    } catch (e) {
-      toast.error("Erro ao atualizar cotação.");
-    }
-  };
-
-  // Handle local pickup
   const handleSelectPickup = async () => {
     setSelectedRateId("pickup");
     setFormData((prev) => ({ ...prev, shippingMethod: "pickup" }));
@@ -341,12 +381,11 @@ function CheckoutPage() {
         data: { method: "pickup", zipcode: "", cents: 0 },
       });
       router.invalidate();
-    } catch (e) {
+    } catch {
       toast.error("Erro ao atualizar retirada.");
     }
   };
 
-  // Surcharges & discount reactive calculation
   const getSelectedPaymentMethodInfo = () => {
     if (formData.paymentMethod === "manual" && formData.paymentMethodId) {
       const match = paymentMethods.find((p: any) => p.id === formData.paymentMethodId);
@@ -368,18 +407,17 @@ function CheckoutPage() {
   if (paymentInfo) {
     if (Number(paymentInfo.discount_percentage) > 0) {
       paymentDiscountCents = Math.floor(
-        cart.subtotalCents * (Number(paymentInfo.discount_percentage) / 100),
+        cart.subtotalCents * (Number(paymentInfo.discount_percentage) / 100)
       );
     } else if (Number(paymentInfo.surcharge_percentage) > 0) {
       paymentSurchargeCents = Math.floor(
-        cart.subtotalCents * (Number(paymentInfo.surcharge_percentage) / 100),
+        cart.subtotalCents * (Number(paymentInfo.surcharge_percentage) / 100)
       );
     }
   } else if (formData.paymentMethod === "pix" && pixDiscountPercent > 0) {
     paymentDiscountCents = Math.floor(cart.subtotalCents * (pixDiscountPercent / 100));
   }
 
-  // Calculate installment options helper
   const calculateInstallmentOptions = (totalCents: number) => {
     const maxInst = maxInstallments;
     const freeInst = interestFreeInstallments;
@@ -412,14 +450,13 @@ function CheckoutPage() {
           valueCents: installmentValue,
           totalCents: installmentValue * n,
           interestFree: false,
-          formattedText: `${i}x de ${formatMoney(installmentValue)} com juros (${(r * 100).toFixed(2)}% a.m.)`,
+          formattedText: `${i}x de ${formatMoney(installmentValue)} com juros`,
         });
       }
     }
     return options;
   };
 
-  // Calculate totals before applying Gift Card
   const preGiftTotalCents =
     cart.subtotalCents +
     (formData.shippingMethod === "pickup" ? 0 : cart.shippingCents) -
@@ -427,12 +464,11 @@ function CheckoutPage() {
     paymentDiscountCents +
     paymentSurchargeCents;
 
-  // Deduct Gift Card value
   const giftCardDeductionCents = appliedGiftCard
     ? Math.min(appliedGiftCard.balanceCents, preGiftTotalCents)
     : 0;
 
-  const finalTotalCents = preGiftTotalCents - giftCardDeductionCents;
+  const finalTotalCents = Math.max(0, preGiftTotalCents - giftCardDeductionCents);
   const installmentOptions = calculateInstallmentOptions(finalTotalCents);
   const activeInstallmentOption = installmentOptions.find((o) => o.number === selectedInstallment);
   const checkoutTotalCents =
@@ -441,21 +477,19 @@ function CheckoutPage() {
       : finalTotalCents;
 
   const handleApplyPromo = async () => {
-    if (!promoCode) return;
+    if (!promoCode.trim()) return;
     setIsApplyingPromo(true);
     try {
-      // 1. Try coupon first
       const codeUpper = promoCode.toUpperCase().trim();
       const res = await applyCouponToCart({ data: { code: codeUpper } });
       if (res) {
         toast.success(res.message || "Cupom aplicado!");
         setPromoCode("");
-        setAppliedGiftCard(null); // Clear gift card if coupon works
+        setAppliedGiftCard(null);
         router.invalidate();
         return;
       }
 
-      // 2. Try gift card lookup
       const gcRes = await checkGiftCardBalance({ data: { code: promoCode.trim() } });
       if (gcRes && gcRes.balanceCents > 0) {
         setAppliedGiftCard({
@@ -467,47 +501,52 @@ function CheckoutPage() {
         return;
       }
 
-      toast.error("Cupom ou Vale-presente inválido ou expirado.");
+      toast.error("Cupom ou Vale-presente inválido.");
     } catch (err: unknown) {
-      toast.error(
-        (err instanceof Error ? err.message : String(err)) || "Código inválido ou expirado.",
-      );
+      toast.error((err instanceof Error ? err.message : String(err)) || "Código inválido.");
     } finally {
       setIsApplyingPromo(false);
     }
   };
 
-  // Process checkout submission
   const handleSubmitOrder = async () => {
     if (isSubmitting) return;
 
-    // Validate fields based on shipping choice
     if (formData.shippingMethod !== "pickup") {
       const { zipcode, street, number, neighborhood, city, state } = formData.shippingAddress;
       if (!zipcode || !street || !number || !neighborhood || !city || !state) {
-        toast.error("Por favor, preencha todos os campos obrigatórios do endereço.");
+        toast.error("Preencha todos os campos obrigatórios do endereço de entrega.");
+        setActiveStep(2);
         return;
       }
 
       if (!selectedRateId) {
-        toast.error("Por favor, escolha uma opção de entrega ou solicite uma cotação.");
+        toast.error("Escolha uma opção de frete para entrega.");
+        setActiveStep(2);
         return;
       }
     }
 
-    // Validate credit card inputs
     if (formData.paymentMethod === "credit_card") {
       const { number, holderName, expiryDate, cvv } = creditCardData;
-      if (
-        !number ||
-        number.length < 15 ||
-        !holderName ||
-        !expiryDate ||
-        expiryDate.length < 5 ||
-        !cvv ||
-        cvv.length < 3
-      ) {
-        toast.error("Por favor, preencha todos os campos obrigatórios do Cartão de Crédito.");
+      if (!number || number.length < 15 || !holderName || !expiryDate || !cvv) {
+        toast.error("Preencha todos os campos do Cartão de Crédito.");
+        setActiveStep(3);
+        return;
+      }
+    }
+
+    if (!cart.id || !cart.items || cart.items.length === 0) {
+      toast.error("Sua sacola está vazia.");
+      return;
+    }
+
+    // Required custom checkout fields validation
+    const storeCustomFields: any[] = storeProfile?.settings?.custom_checkout_fields || [];
+    for (const f of storeCustomFields) {
+      const fieldKey = f.label || f.id;
+      if (f.required && (!customFieldValues[fieldKey] || String(customFieldValues[fieldKey]).trim() === "")) {
+        toast.error(`Preencha o campo obrigatório: "${f.label || "Pergunta da Loja"}"`);
         return;
       }
     }
@@ -528,6 +567,8 @@ function CheckoutPage() {
           paymentMethodId:
             formData.paymentMethod === "manual" ? formData.paymentMethodId : undefined,
           giftCardCode: appliedGiftCard?.code || undefined,
+          customFields: Object.keys(customFieldValues).length > 0 ? customFieldValues : undefined,
+          notes: orderNotes.trim() || undefined,
         },
       });
 
@@ -546,26 +587,15 @@ function CheckoutPage() {
             },
           });
         } catch (payErr: unknown) {
-          console.error("Erro na transação inicial do pagamento:", payErr);
-          toast.warning(
-            `O pedido #${res.orderToken} foi gerado, mas a inicialização automática do pagamento falhou (${(payErr instanceof Error ? payErr.message : String(payErr)) || "erro de rede"}). Direcionando para as instruções de pagamento do seu pedido...`,
-          );
-          // Redirecionamento obrigatório pois o pedido já foi persistido no banco e o carrinho finalizado
-          navigate({
-            to: "/pedido/$publicToken/confirmacao",
-            params: { publicToken: res.orderToken },
-          });
-          return;
+          console.warn("Transação de gateway:", payErr);
         }
       }
 
       toast.success("Pedido realizado com sucesso!");
 
-      // Redirecionamento canônico ao invés de view local
-      // Checa se há outros carrinhos pendentes para voltar ao hub (a esteira de checkout)
       const remainingCarts = globalCarts.filter((c: any) => c.id !== cart.id);
       if (remainingCarts.length > 0) {
-        toast.info(`Você tem mais ${remainingCarts.length} pacote(s) aguardando pagamento.`);
+        toast.info(`Você tem mais ${remainingCarts.length} pacote(s) pendente(s).`);
         navigate({ to: "/checkout" });
       } else {
         navigate({
@@ -574,1078 +604,1000 @@ function CheckoutPage() {
         });
       }
     } catch (err: unknown) {
-      if (
-        (err instanceof Error ? err.message : String(err)) &&
-        (err instanceof Error ? err.message : String(err)).includes("unconfigured_integration")
-      ) {
-        toast.error(
-          "Integração de pagamento não configurada. A compra não pode ser concluída no momento.",
-        );
-      } else {
-        toast.error(
-          (err instanceof Error ? err.message : String(err)) ||
-            "Erro inesperado ao finalizar compra.",
-        );
-      }
+      toast.error((err instanceof Error ? err.message : String(err)) || "Erro ao finalizar pedido.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleCancelThisCart = async () => {
-    if (
-      confirm(
-        "Você tem certeza que deseja desistir desta compra específica? O pacote desta loja será removido da sua sacola.",
-      )
-    ) {
-      try {
-        await cancelCart({ data: { cartId: cart.id } });
-        toast.success("Pacote removido com sucesso.");
-        navigate({ to: "/checkout" });
-      } catch (err: unknown) {
-        toast.error(
-          (err instanceof Error ? err.message : String(err)) || "Erro ao remover pacote.",
-        );
-      }
-    }
-  };
+  // Check if store is supermarket/mercado niche
+  const isMarketNiche =
+    storeProfile?.type === "mercado" ||
+    storeProfile?.type === "supermercado" ||
+    storeProfile?.type === "hortifruti";
+
+  // Check custom delivery windows configured by store
+  const storeDeliveryWindows: any[] = storeProfile?.settings?.delivery_windows || [];
+
+  // Steps definition for Menu Tabs
+  const steps = [
+    { number: 1, label: "Identificação", isReady: Boolean(formData.customerName && formData.customerEmail && formData.customerPhone) },
+    { number: 2, label: "Entrega / Retirada", isReady: Boolean(formData.shippingMethod === "pickup" || selectedRateId) },
+    { number: 3, label: "Pagamento", isReady: Boolean(formData.paymentMethod) },
+    { number: 4, label: "Revisão", isReady: true },
+  ];
+
+  if (!cart.items || cart.items.length === 0) {
+    return (
+      <div className="max-w-xl mx-auto py-16 text-center space-y-6 px-4">
+        <div className="size-16 rounded-full bg-muted flex items-center justify-center mx-auto text-muted-foreground">
+          <ShoppingBag className="size-8 stroke-[1.5]" />
+        </div>
+        <div className="space-y-1">
+          <h2 className="text-xl font-bold text-foreground">Sua sacola está vazia</h2>
+          <p className="text-xs text-muted-foreground">
+            Explore as lojas e produtos locais para adicionar itens.
+          </p>
+        </div>
+        <Button asChild className="rounded-xl px-6 h-10 font-bold text-xs">
+          <Link to="/">Explorar Produtos</Link>
+        </Button>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 border-b border-border pb-6">
-          <h1 className="text-4xl font-semibold text-foreground tracking-tight flex items-center gap-3">
-            <ShoppingBag className="size-8 text-primary" strokeWidth={3} />
-            Finalizar Compra
-          </h1>
-          <Button
-            variant="outline"
-            className="border border-border bg-muted/30 text-foreground rounded-xl font-bold "
-            onClick={handleCancelThisCart}
+    <div className="w-full max-w-5xl mx-auto pb-16 space-y-6">
+      {/* ── Sub-Header Clean (Silêncio Operacional) ── */}
+      <div className="flex items-center justify-between gap-4 pb-2 ">
+        <div className="flex items-center gap-2.5">
+          <Link
+            to="/"
+            className="size-8 rounded-xl  flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+            aria-label="Voltar"
           >
-            Desistir desta compra
-          </Button>
+            <ArrowLeft size={16} />
+          </Link>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold text-foreground">
+                {storeProfile?.name || "Checkout Seguro"}
+              </span>
+              {storeProfile?.type && (
+                <Badge variant="secondary" className="text-[10px] uppercase font-bold py-0 h-4">
+                  {storeProfile.type}
+                </Badge>
+              )}
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Accordion Steps Layout */}
-          <div className="lg:col-span-2 space-y-4">
-            {/* Passo 1: Seus Dados */}
-            <Surface
-              variant="default"
-              padding="none"
-              className="overflow-hidden border border-border mb-4"
-            >
+        <span className="text-xs text-muted-foreground font-medium">
+          {cart.items.length} {cart.items.length === 1 ? "item" : "itens"}
+        </span>
+      </div>
+
+      {/* ── MENU TABS DE ETAPAS (Scroll Horizontal no Mobile) ── */}
+      <div className="w-full overflow-x-auto no-scrollbar scrollbar-none py-1">
+        <div className="flex items-center gap-2 min-w-max p-1 bg-muted/40 rounded-2xl ">
+          {steps.map((step) => {
+            const isActive = activeStep === step.number;
+            const isCompleted = activeStep > step.number || (step.number < activeStep && step.isReady);
+            const canNavigate = step.number < activeStep || step.isReady;
+
+            return (
               <button
-                onClick={() => setActiveStep(1)}
+                key={step.number}
+                type="button"
+                onClick={() => canNavigate && setActiveStep(step.number)}
+                disabled={!canNavigate}
                 className={cn(
-                  "w-full flex items-center justify-between p-5 border-b border-border font-bold font-sans text-muted-foreground text-xl transition-colors",
-                  activeStep === 1
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted/30 text-foreground hover:bg-secondary",
+                  "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all select-none cursor-pointer",
+                  isActive
+                    ? "bg-foreground text-background  scale-102"
+                    : isCompleted
+                    ? "bg-card text-foreground  hover:bg-card/80"
+                    : "text-muted-foreground/60 cursor-not-allowed"
                 )}
               >
-                <span className="flex items-center gap-3">
-                  <span
-                    className={cn(
-                      "size-8 rounded-xl border border-current flex items-center justify-center text-sm font-mono font-black",
-                      activeStep > 1
-                        ? "bg-secondary text-foreground"
-                        : activeStep === 1
-                          ? "bg-background text-foreground"
-                          : "bg-primary text-primary-foreground",
-                    )}
-                  >
-                    1
-                  </span>
-                  Identificação
-                </span>
-                {activeStep > 1 && (
-                  <span className="text-xs font-medium bg-secondary text-secondary-foreground px-2 py-1 rounded">
-                    Editar
-                  </span>
-                )}
-              </button>
-
-              {activeStep === 1 && (
-                <div className="p-6 space-y-4">
-                  {userProfile && (
-                    <div className="flex items-center gap-2 p-3 bg-primary/5 text-primary text-xs font-medium border border-primary/10">
-                      <User className="size-4 shrink-0" />
-                      <span>
-                        Conectado como <strong>{userProfile.email}</strong>. Seus dados foram
-                        preenchidos automaticamente.
-                      </span>
-                    </div>
+                <span
+                  className={cn(
+                    "size-5 rounded-full flex items-center justify-center text-[10px] font-mono font-bold",
+                    isActive
+                      ? "bg-background text-foreground"
+                      : isCompleted
+                      ? "bg-emerald-500 text-white"
+                      : "bg-muted text-muted-foreground"
                   )}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2 md:col-span-2">
-                      <Label>Nome Completo *</Label>
-                      <Input
-                        required
-                        placeholder="Nome completo do destinatário"
-                        value={formData.customerName}
-                        onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>E-mail *</Label>
-                      <Input
-                        type="email"
-                        required
-                        placeholder="seuemail@exemplo.com"
-                        value={formData.customerEmail}
-                        onChange={(e) =>
-                          setFormData({ ...formData, customerEmail: e.target.value })
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>WhatsApp / Telefone *</Label>
-                      <Input
-                        type="tel"
-                        required
-                        placeholder="(99) 99999-9999"
-                        value={formData.customerPhone}
-                        onChange={(e) =>
-                          setFormData({ ...formData, customerPhone: e.target.value })
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <Label>CPF / CNPJ (Opcional)</Label>
-                      <Input
-                        placeholder="000.000.000-00"
-                        value={formData.customerDocument}
-                        onChange={(e) =>
-                          setFormData({ ...formData, customerDocument: e.target.value })
-                        }
-                      />
-                    </div>
+                >
+                  {isCompleted ? <Check size={11} strokeWidth={3} /> : step.number}
+                </span>
+                <span>{step.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── CORPO PRINCIPAL (Etapa Ativa + Resumo Lateral) ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-start">
+        {/* Coluna da Esquerda: Etapa Ativa */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* ── ETAPA 1: IDENTIFICAÇÃO DO CLIENTE ── */}
+          {activeStep === 1 && (
+            <Surface variant="default" className="p-5 sm:p-6 rounded-3xl  space-y-5">
+              {userProfile ? (
+                <div className="flex items-start gap-3.5 p-3.5 rounded-2xl bg-muted/30 ">
+                  <div className="size-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm shrink-0">
+                    {(userProfile.fullName || userProfile.email || "U").charAt(0).toUpperCase()}
                   </div>
-                  <div className="flex justify-end pt-4 border-t border-border gap-4 mt-6">
-                    <Button
-                      className="bg-primary text-primary-foreground border border-border font-bold rounded-xl px-6 "
-                      disabled={
-                        !formData.customerName || !formData.customerEmail || !formData.customerPhone
-                      }
-                      onClick={handleAdvanceToDelivery}
-                    >
-                      Continuar para Entrega
-                    </Button>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-bold text-foreground truncate">
+                      {userProfile.fullName || "Membro Wider"}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground truncate">{userProfile.email}</p>
+                    {(!userProfile.phone || !userProfile.cpf) && (
+                      <p className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold mt-1">
+                        Complete seus dados de contato abaixo para agilizar a entrega.
+                      </p>
+                    )}
                   </div>
                 </div>
+              ) : (
+                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-muted/20 ">
+                  <span className="text-xs text-muted-foreground">Já possui conta no Wider?</span>
+                  <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-bold h-8">
+                    <Link to="/entrar">Fazer Login</Link>
+                  </Button>
+                </div>
               )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label className="text-xs font-bold text-foreground">Nome Completo *</Label>
+                  <Input
+                    required
+                    placeholder="Seu nome completo"
+                    value={formData.customerName}
+                    onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
+                    className="h-10 rounded-xl"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-foreground">E-mail *</Label>
+                  <Input
+                    type="email"
+                    required
+                    placeholder="seuemail@exemplo.com"
+                    value={formData.customerEmail}
+                    onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
+                    className="h-10 rounded-xl"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-foreground">WhatsApp / Telefone *</Label>
+                  <Input
+                    type="tel"
+                    required
+                    placeholder="(99) 99999-9999"
+                    value={formData.customerPhone}
+                    onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
+                    className="h-10 rounded-xl"
+                  />
+                </div>
+
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label className="text-xs font-bold text-foreground">
+                    CPF / CNPJ <span className="text-muted-foreground font-normal">(Opcional para NF-e)</span>
+                  </Label>
+                  <Input
+                    placeholder="000.000.000-00"
+                    value={formData.customerDocument}
+                    onChange={(e) => setFormData({ ...formData, customerDocument: e.target.value })}
+                    className="h-10 rounded-xl"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-3  flex justify-end">
+                <Button
+                  onClick={handleAdvanceToDelivery}
+                  disabled={!formData.customerName || !formData.customerEmail || !formData.customerPhone}
+                  className="rounded-xl px-6 h-10 font-bold text-xs  cursor-pointer active:scale-98 transition-all"
+                >
+                  <span>Continuar para Entrega</span>
+                  <ChevronRight size={14} className="ml-1" />
+                </Button>
+              </div>
             </Surface>
+          )}
 
-            {/* Passo 2: Entrega */}
-            <Surface
-              variant="default"
-              padding="none"
-              className={cn(
-                "overflow-hidden border border-border mb-4 transition-opacity",
-                activeStep < 2 && !formData.customerName && "opacity-50",
-              )}
-            >
-              <button
-                onClick={() => formData.customerName && setActiveStep(2)}
-                disabled={activeStep < 2 && !formData.customerName}
-                className={cn(
-                  "w-full flex items-center justify-between p-5 border-b border-border font-bold font-sans text-muted-foreground text-xl transition-colors",
-                  activeStep === 2
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted/30 text-foreground hover:bg-secondary",
-                )}
-              >
-                <span className="flex items-center gap-3">
-                  <span
-                    className={cn(
-                      "size-8 rounded-xl border border-current flex items-center justify-center text-sm font-mono font-black",
-                      activeStep > 2
-                        ? "bg-secondary text-foreground"
-                        : activeStep === 2
-                          ? "bg-background text-foreground"
-                          : "bg-primary text-primary-foreground",
-                    )}
-                  >
-                    2
-                  </span>
-                  Entrega ou Retirada
-                </span>
-                {activeStep > 2 && (
-                  <span className="text-xs font-mono uppercase font-black bg-primary text-primary-foreground px-2 py-1 ">
-                    Editar
-                  </span>
-                )}
-              </button>
-
-              {activeStep === 2 && (
-                <div className="p-6 space-y-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, shippingMethod: "manual_table" })}
-                      className={`flex flex-col items-center justify-center p-4 border gap-2 transition-all ${formData.shippingMethod !== "pickup" ? "border-primary bg-primary/5 ring-1 ring-primary" : "hover:bg-muted/50"}`}
-                    >
-                      <Truck className="size-6 text-muted-foreground" />
-                      <span className="text-sm font-semibold">Entregar no Endereço</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleSelectPickup}
-                      className={`flex flex-col items-center justify-center p-4 border gap-2 transition-all ${formData.shippingMethod === "pickup" ? "border-primary bg-primary/5 ring-1 ring-primary" : "hover:bg-muted/50"}`}
-                    >
-                      <MapPin className="size-6 text-muted-foreground" />
-                      <span className="text-sm font-semibold">Retirar na Loja</span>
-                    </button>
+          {/* ── ETAPA 2: ENTREGA OU RETIRADA ── */}
+          {activeStep === 2 && (
+            <Surface variant="default" className="p-5 sm:p-6 rounded-3xl  space-y-5">
+              {/* Seletor de Modalidade: Entrega vs Retirada */}
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, shippingMethod: "manual_table" })}
+                  className={cn(
+                    "p-3.5 rounded-2xl border text-left flex items-center gap-3 transition-all cursor-pointer",
+                    formData.shippingMethod !== "pickup"
+                      ? "bg-foreground text-background border-foreground  font-bold"
+                      : "bg-card border-border/80 text-foreground hover:bg-muted/40"
+                  )}
+                >
+                  <Truck size={20} className={formData.shippingMethod !== "pickup" ? "text-background" : "text-muted-foreground"} />
+                  <div>
+                    <p className="text-xs font-bold">Entrega no Endereço</p>
+                    <p className={cn("text-[10px]", formData.shippingMethod !== "pickup" ? "text-background/80" : "text-muted-foreground")}>
+                      Receba em casa ou trabalho
+                    </p>
                   </div>
+                </button>
 
-                  {formData.shippingMethod !== "pickup" ? (
-                    <div className="space-y-4">
-                      {userAddresses && userAddresses.length > 0 && (
-                        <div className="space-y-3 bg-muted/20 p-4 border mb-4">
-                          <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                            <MapPin className="size-3.5 text-primary" /> Meus Endereços Cadastrados
-                          </Label>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {userAddresses.map((addr: any) => {
-                              const cleanZip = (addr.zipcode || "").replace(/\D/g, "");
-                              const isSelected =
-                                formData.shippingAddress.zipcode === cleanZip &&
-                                formData.shippingAddress.street === addr.street &&
-                                formData.shippingAddress.number === addr.number;
-                              return (
-                                <button
-                                  key={addr.id}
-                                  type="button"
-                                  onClick={async () => {
-                                    const selectedStreet =
-                                      addr.street || addr.address_line1 || addr.logradouro || "";
+                <button
+                  type="button"
+                  onClick={handleSelectPickup}
+                  className={cn(
+                    "p-3.5 rounded-2xl border text-left flex items-center gap-3 transition-all cursor-pointer",
+                    formData.shippingMethod === "pickup"
+                      ? "bg-foreground text-background border-foreground  font-bold"
+                      : "bg-card border-border/80 text-foreground hover:bg-muted/40"
+                  )}
+                >
+                  <Store size={20} className={formData.shippingMethod === "pickup" ? "text-background" : "text-muted-foreground"} />
+                  <div>
+                    <p className="text-xs font-bold">Retirar na Loja</p>
+                    <p className={cn("text-[10px]", formData.shippingMethod === "pickup" ? "text-background/80" : "text-muted-foreground")}>
+                      Grátis no balcão
+                    </p>
+                  </div>
+                </button>
+              </div>
 
-                                    setFormData((prev) => ({
-                                      ...prev,
-                                      shippingAddress: {
-                                        zipcode: cleanZip,
-                                        street: selectedStreet,
-                                        number: addr.number || "",
-                                        complement: addr.complement || "",
-                                        neighborhood: addr.neighborhood || addr.bairro || "",
-                                        city: addr.city || "",
-                                        state: addr.state || "",
-                                      },
-                                    }));
+              {/* Opção 1: Entrega no Endereço */}
+              {formData.shippingMethod !== "pickup" ? (
+                <div className="space-y-4 pt-1">
+                  {/* Endereços Salvos do Usuário */}
+                  {userAddresses && userAddresses.length > 0 && !showNewAddressForm && (
+                    <div className="space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                          <MapPin size={13} className="text-primary" /> Meus Endereços Salvos
+                        </Label>
+                        <button
+                          type="button"
+                          onClick={() => setShowNewAddressForm(true)}
+                          className="text-xs text-primary font-bold hover:underline cursor-pointer flex items-center gap-1"
+                        >
+                          <Plus size={12} /> Outro Endereço
+                        </button>
+                      </div>
 
-                                    if (cleanZip.length === 8) {
-                                      setIsCalculatingShipping(true);
-                                      setNoShippingRatesFound(false);
-                                      try {
-                                        const shipRes = await calculateShipping({
-                                          data: { zipcode: cleanZip },
-                                        });
-                                        if (
-                                          shipRes &&
-                                          Array.isArray(shipRes) &&
-                                          shipRes.length > 0
-                                        ) {
-                                          setShippingRates(shipRes);
-                                          setNoShippingRatesFound(false);
-                                        } else {
-                                          setShippingRates([]);
-                                          setNoShippingRatesFound(true);
-                                        }
-                                      } catch (e) {
-                                        setShippingRates([]);
-                                        setNoShippingRatesFound(true);
-                                      } finally {
-                                        setIsCalculatingShipping(false);
-                                      }
-                                    }
-                                  }}
-                                  className={`p-3 border text-left text-xs space-y-1 transition-all ${isSelected ? "border-primary bg-primary/5 ring-1 ring-primary font-medium" : "hover:bg-card bg-background"}`}
-                                >
-                                  <div className="flex items-center justify-between font-semibold">
-                                    <span className="truncate">
-                                      {addr.street}, {addr.number}
-                                    </span>
-                                    {addr.is_default && (
-                                      <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-mono">
-                                        Padrão
-                                      </span>
-                                    )}
-                                  </div>
-                                  <p className="text-muted-foreground truncate">
-                                    {addr.neighborhood} - {addr.city}/{addr.state}
-                                  </p>
-                                  <p className="font-mono text-muted-foreground">{addr.zipcode}</p>
-                                </button>
-                              );
-                            })}
-                          </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        {userAddresses.map((addr: any) => {
+                          const cleanZip = (addr.zipcode || "").replace(/\D/g, "");
+                          const isSelected =
+                            formData.shippingAddress.zipcode === cleanZip &&
+                            formData.shippingAddress.number === addr.number;
+
+                          return (
+                            <button
+                              key={addr.id}
+                              type="button"
+                              onClick={() => {
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  shippingAddress: {
+                                    zipcode: cleanZip,
+                                    street: addr.street || addr.address_line1 || "",
+                                    number: addr.number || "",
+                                    complement: addr.complement || "",
+                                    neighborhood: addr.neighborhood || addr.bairro || "",
+                                    city: addr.city || "",
+                                    state: addr.state || "",
+                                  },
+                                }));
+                                handleCepChange(cleanZip, true);
+                              }}
+                              className={cn(
+                                "p-3 rounded-2xl border text-left text-xs transition-all cursor-pointer space-y-1",
+                                isSelected
+                                  ? "border-primary bg-primary/5 ring-1 ring-primary font-medium"
+                                  : "bg-card border-border/80 hover:bg-muted/40"
+                              )}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-foreground truncate">
+                                  {addr.street || "Rua"}, {addr.number}
+                                </span>
+                                {addr.is_default && (
+                                  <Badge variant="secondary" className="text-[9px] font-bold px-1.5 py-0">
+                                    Padrão
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-muted-foreground truncate">
+                                {addr.neighborhood} - {addr.city}/{addr.state}
+                              </p>
+                              <p className="font-mono text-[10px] text-muted-foreground">{addr.zipcode}</p>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Formulário de Endereço (Novo ou Editável) */}
+                  {(showNewAddressForm || !userAddresses || userAddresses.length === 0) && (
+                    <div className="p-4 rounded-2xl bg-muted/20  space-y-3.5">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-bold text-foreground">Endereço de Entrega</Label>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleGPSLocation}
+                            disabled={isLocatingGPS}
+                            className="rounded-xl h-7 px-2.5 text-[11px] font-bold gap-1 cursor-pointer"
+                          >
+                            {isLocatingGPS ? (
+                              <Loader2 size={12} className="animate-spin text-primary" />
+                            ) : (
+                              <Navigation size={12} className="text-primary" />
+                            )}
+                            <span>Puxar via GPS</span>
+                          </Button>
+                          {userAddresses && userAddresses.length > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => setShowNewAddressForm(false)}
+                              className="text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+                            >
+                              Cancelar
+                            </button>
+                          )}
                         </div>
-                      )}
-                      <div className="grid grid-cols-3 gap-4">
-                        <div className="space-y-2">
-                          <Label>CEP *</Label>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-[11px] font-bold text-muted-foreground">CEP *</Label>
                           <Input
                             placeholder="89800-000"
                             maxLength={9}
                             value={formData.shippingAddress.zipcode}
                             onChange={(e) => handleCepChange(e.target.value)}
+                            className="h-9 rounded-xl text-xs font-mono"
                           />
                         </div>
-                        <div className="space-y-2 col-span-2">
-                          <Label>Rua / Logradouro *</Label>
+
+                        <div className="space-y-1 sm:col-span-2">
+                          <Label className="text-[11px] font-bold text-muted-foreground">Rua / Avenida *</Label>
                           <Input
-                            placeholder="Rua Exemplo"
+                            placeholder="Nome da rua"
                             value={formData.shippingAddress.street}
                             onChange={(e) =>
                               setFormData({
                                 ...formData,
-                                shippingAddress: {
-                                  ...formData.shippingAddress,
-                                  street: e.target.value,
-                                },
+                                shippingAddress: { ...formData.shippingAddress, street: e.target.value },
                               })
                             }
+                            className="h-9 rounded-xl text-xs"
                           />
                         </div>
-                      </div>
 
-                      <div className="grid grid-cols-3 gap-4">
-                        <div className="space-y-2">
-                          <Label>Número *</Label>
+                        <div className="space-y-1">
+                          <Label className="text-[11px] font-bold text-muted-foreground">Número *</Label>
                           <Input
                             placeholder="123"
                             value={formData.shippingAddress.number}
                             onChange={(e) =>
                               setFormData({
                                 ...formData,
-                                shippingAddress: {
-                                  ...formData.shippingAddress,
-                                  number: e.target.value,
-                                },
+                                shippingAddress: { ...formData.shippingAddress, number: e.target.value },
                               })
                             }
+                            className="h-9 rounded-xl text-xs"
                           />
                         </div>
-                        <div className="space-y-2 col-span-2">
-                          <Label>Complemento</Label>
+
+                        <div className="space-y-1 sm:col-span-2">
+                          <Label className="text-[11px] font-bold text-muted-foreground">Complemento</Label>
                           <Input
-                            placeholder="Apto 101"
+                            placeholder="Apto, bloco, etc."
                             value={formData.shippingAddress.complement}
                             onChange={(e) =>
                               setFormData({
                                 ...formData,
-                                shippingAddress: {
-                                  ...formData.shippingAddress,
-                                  complement: e.target.value,
-                                },
+                                shippingAddress: { ...formData.shippingAddress, complement: e.target.value },
                               })
                             }
+                            className="h-9 rounded-xl text-xs"
                           />
                         </div>
-                      </div>
 
-                      <div className="grid grid-cols-3 gap-4">
-                        <div className="space-y-2">
-                          <Label>Bairro *</Label>
+                        <div className="space-y-1">
+                          <Label className="text-[11px] font-bold text-muted-foreground">Bairro *</Label>
                           <Input
-                            placeholder="Centro"
+                            placeholder="Bairro"
                             value={formData.shippingAddress.neighborhood}
                             onChange={(e) =>
                               setFormData({
                                 ...formData,
-                                shippingAddress: {
-                                  ...formData.shippingAddress,
-                                  neighborhood: e.target.value,
-                                },
+                                shippingAddress: { ...formData.shippingAddress, neighborhood: e.target.value },
                               })
                             }
+                            className="h-9 rounded-xl text-xs"
                           />
                         </div>
-                        <div className="space-y-2">
-                          <Label>Cidade *</Label>
+
+                        <div className="space-y-1">
+                          <Label className="text-[11px] font-bold text-muted-foreground">Cidade *</Label>
                           <Input
+                            placeholder="Cidade"
                             value={formData.shippingAddress.city}
                             onChange={(e) =>
                               setFormData({
                                 ...formData,
-                                shippingAddress: {
-                                  ...formData.shippingAddress,
-                                  city: e.target.value,
-                                },
+                                shippingAddress: { ...formData.shippingAddress, city: e.target.value },
                               })
                             }
+                            className="h-9 rounded-xl text-xs"
                           />
                         </div>
-                        <div className="space-y-2">
-                          <Label>Estado (UF) *</Label>
-                          <Select
+
+                        <div className="space-y-1">
+                          <Label className="text-[11px] font-bold text-muted-foreground">UF *</Label>
+                          <Input
+                            placeholder="SC"
+                            maxLength={2}
                             value={formData.shippingAddress.state}
-                            onValueChange={(v) =>
+                            onChange={(e) =>
                               setFormData({
                                 ...formData,
-                                shippingAddress: { ...formData.shippingAddress, state: v },
+                                shippingAddress: { ...formData.shippingAddress, state: e.target.value.toUpperCase() },
                               })
                             }
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="UF" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {[
-                                "SP",
-                                "RJ",
-                                "MG",
-                                "RS",
-                                "PR",
-                                "SC",
-                                "BA",
-                                "DF",
-                                "GO",
-                                "PE",
-                                "CE",
-                              ].map((uf) => (
-                                <SelectItem key={uf} value={uf}>
-                                  {uf}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                            className="h-9 rounded-xl text-xs uppercase"
+                          />
                         </div>
                       </div>
-
-                      {/* Shipping Rates Options */}
-                      <div className="border-t pt-4 mt-4">
-                        <Label className="text-sm font-semibold mb-2 block">
-                          Selecione o Frete
-                        </Label>
-                        {isCalculatingShipping ? (
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground py-2 font-normal">
-                            <Loader2 className="animate-spin size-4" />
-                            Calculando fretes disponíveis...
-                          </div>
-                        ) : shippingRates.length > 0 ? (
-                          <div className="grid gap-2">
-                            {shippingRates.map((rate) => (
-                              <button
-                                key={rate.id}
-                                type="button"
-                                onClick={() => handleSelectRate(rate)}
-                                className={`flex items-center justify-between p-3 border text-left transition-all ${selectedRateId === rate.id ? "border-primary bg-primary/5 ring-1 ring-primary" : "hover:bg-muted/50"}`}
-                              >
-                                <div>
-                                  <p className="font-semibold text-sm">{rate.name}</p>
-                                  {rate.estimated_days && (
-                                    <p className="text-xs text-muted-foreground font-normal">
-                                      Prazo: {rate.estimated_days} dias úteis
-                                    </p>
-                                  )}
-                                </div>
-                                <p className="font-bold text-sm">{formatMoney(rate.price_cents)}</p>
-                              </button>
-                            ))}
-                          </div>
-                        ) : noShippingRatesFound && formData.shippingAddress.zipcode ? (
-                          <div className="bg-warning/15 border border-warning/30 rounded-xl p-4 space-y-3">
-                            <div className="flex gap-2">
-                              <AlertCircle className="size-5 text-warning shrink-0" />
-                              <div className="text-sm text-warning font-normal">
-                                <p className="font-semibold">
-                                  Nenhum frete automático cadastrado para este bairro.
-                                </p>
-                                <p className="text-xs">
-                                  Você pode solicitar uma cotação de frete personalizada. Nossa
-                                  vendedora informará o valor do frete antes de solicitar o
-                                  pagamento.
-                                </p>
-                              </div>
-                            </div>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              className="bg-background text-foreground border-warning/40 hover:bg-warning/20 rounded-xl"
-                              onClick={handleRequestQuote}
-                            >
-                              Solicitar Cotação de Frete
-                            </Button>
-                          </div>
-                        ) : (
-                          <p className="text-xs text-muted-foreground font-normal">
-                            Digite o CEP para ver as opções de entrega.
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="p-4 bg-muted/30 border border-border rounded-xl space-y-1">
-                      <p className="font-semibold text-sm">Retirada na Jah</p>
-                      <p className="text-xs text-muted-foreground font-normal">
-                        Rua Principal, Chapecó - SC. Horário: Seg a Sex 09h às 18h.
-                      </p>
                     </div>
                   )}
 
-                  <div className="flex justify-end pt-6 border-t border-border gap-4 mt-6">
-                    <Button
-                      variant="outline"
-                      className="border border-border text-foreground font-bold rounded-xl px-6"
-                      onClick={() => setActiveStep(1)}
-                    >
-                      Voltar
-                    </Button>
-                    <Button
-                      className="bg-primary text-primary-foreground border border-border font-bold rounded-xl px-6 "
-                      disabled={
-                        formData.shippingMethod !== "pickup" &&
-                        (!formData.shippingAddress.zipcode ||
-                          !formData.shippingAddress.street ||
-                          !selectedRateId)
-                      }
-                      onClick={() => setActiveStep(3)}
-                    >
-                      Continuar para Pagamento
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </Surface>
-
-            {/* Passo 3: Pagamento */}
-            <Surface
-              variant="default"
-              padding="none"
-              className={cn(
-                "overflow-hidden border border-border mb-4 transition-opacity",
-                activeStep < 3 && "opacity-50",
-              )}
-            >
-              <button
-                onClick={() => activeStep >= 3 && setActiveStep(3)}
-                disabled={activeStep < 3}
-                className={cn(
-                  "w-full flex items-center justify-between p-5 border-b border-border font-bold font-sans text-muted-foreground text-xl transition-colors",
-                  activeStep === 3
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted/30 text-foreground hover:bg-secondary",
-                )}
-              >
-                <span className="flex items-center gap-3">
-                  <span
-                    className={cn(
-                      "size-8 rounded-xl border border-current flex items-center justify-center text-sm font-mono font-black",
-                      activeStep > 3
-                        ? "bg-secondary text-foreground"
-                        : activeStep === 3
-                          ? "bg-background text-foreground"
-                          : "bg-primary text-primary-foreground",
-                    )}
-                  >
-                    3
-                  </span>
-                  Forma de Pagamento
-                </span>
-                {activeStep > 3 && (
-                  <span className="text-xs font-mono uppercase font-black bg-primary text-primary-foreground px-2 py-1 ">
-                    Editar
-                  </span>
-                )}
-              </button>
-
-              {activeStep === 3 && (
-                <div className="p-6 space-y-6">
-                  <div>
-                    {!isGatewayConfigured && paymentMethods.length === 0 && (
-                      <div className="bg-warning/15 text-warning border border-warning/30 rounded-xl p-5 space-y-4 mb-6">
-                        <div className="flex items-center gap-3">
-                          <AlertCircle className="size-5 shrink-0 text-warning" />
-                          <p className="text-sm font-semibold">
-                            Esta loja ainda não aceita pagamentos automáticos pelo site.
-                          </p>
-                        </div>
-                        <p className="text-xs">
-                          Para finalizar sua compra, você deverá enviar seu pedido diretamente para
-                          a loja através do WhatsApp.
-                        </p>
-                        <Button
-                          type="button"
-                          className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white flex items-center justify-center gap-2"
-                          onClick={() => {
-                            const wppNumber = storeProfile?.phone?.replace(/\D/g, "");
-                            if (wppNumber) {
-                              const text = encodeURIComponent(
-                                `Olá! Gostaria de finalizar o pedido da minha sacola no valor de ${formatMoney(checkoutTotalCents)}.`,
-                              );
-                              window.open(`https://wa.me/55${wppNumber}?text=${text}`, "_blank");
-                            } else {
-                              toast.error("Número de WhatsApp da loja não disponível.");
-                            }
-                          }}
-                        >
-                          <MessageCircle className="size-4" /> Finalizar pelo WhatsApp
-                        </Button>
+                  {/* Seleção de Taxas e Opções de Frete */}
+                  <div className="space-y-2 pt-2">
+                    <Label className="text-xs font-bold text-foreground">Opções de Frete Disponíveis</Label>
+                    {isCalculatingShipping ? (
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground py-3">
+                        <Loader2 className="animate-spin size-4 text-primary" />
+                        <span>Calculando opções de entrega...</span>
                       </div>
-                    )}
-
-                    {isGatewayConfigured && (
-                      <>
-                        <Label className="text-sm font-semibold mb-3 block">
-                          Opções Principais
-                        </Label>
-                        <div className="grid grid-cols-2 gap-3 mb-6">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setFormData({
-                                ...formData,
-                                paymentMethod: "pix",
-                                paymentMethodId: "",
-                              })
-                            }
-                            className={`flex items-center justify-center p-3 border gap-2 font-medium transition-all ${formData.paymentMethod === "pix" ? "border-primary bg-primary/5 ring-1 ring-primary" : "hover:bg-muted/50"}`}
-                          >
-                            PIX
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setFormData({
-                                ...formData,
-                                paymentMethod: "credit_card",
-                                paymentMethodId: "",
-                              })
-                            }
-                            className={`flex items-center justify-center p-3 border gap-2 font-medium transition-all ${formData.paymentMethod === "credit_card" ? "border-primary bg-primary/5 ring-1 ring-primary" : "hover:bg-muted/50"}`}
-                          >
-                            Cartão de Crédito
-                          </button>
-                        </div>
-                      </>
-                    )}
-
-                    {/* PIX instructions card */}
-                    {formData.paymentMethod === "pix" && (
-                      <div className="bg-primary/5 border border-primary/20 p-5 space-y-3 mb-6">
-                        <div className="flex items-center gap-2">
-                          <QrCode className="size-5 text-primary animate-pulse" />
-                          <span className="font-bold text-sm text-foreground">
-                            Pagamento Instantâneo via PIX
-                          </span>
-                        </div>
-                        {pixDiscountPercent > 0 && (
-                          <p className="text-xs text-success font-semibold bg-success/10 px-2.5 py-1 rounded border border-success/20 w-fit">
-                            Desconto Ativo: Economize {pixDiscountPercent}% no total da sua compra!
-                          </p>
-                        )}
-                        {storeProfile?.pixKey && (
-                          <div className="space-y-1 bg-background p-3 border border-border mt-2">
-                            <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
-                              Chave PIX da Loja
-                            </span>
-                            <p className="text-sm font-mono font-bold select-all text-foreground break-all">
-                              {storeProfile.pixKey}
-                            </p>
-                          </div>
-                        )}
-                        {storeProfile?.paymentInstructions && (
-                          <p className="text-xs text-muted-foreground whitespace-pre-line bg-background/50 p-2.5 rounded border border-dashed mt-2">
-                            {storeProfile.paymentInstructions}
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Credit Card inputs & dynamic installments */}
-                    {formData.paymentMethod === "credit_card" && (
-                      <div className="border border-border p-5 space-y-4 bg-muted/10 mb-6">
-                        <div className="flex items-center gap-2">
-                          <CreditCard className="size-5 text-primary" />
-                          <span className="font-semibold text-sm">Dados do Cartão de Crédito</span>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-1.5 md:col-span-2">
-                            <Label className="text-xs">Número do Cartão *</Label>
-                            <Input
-                              placeholder="0000 0000 0000 0000"
-                              value={creditCardData.number}
-                              onChange={(e) => {
-                                const val = e.target.value
-                                  .replace(/\D/g, "")
-                                  .replace(/(.{4})/g, "$1")
-                                  .trim();
-                                setCreditCardData({
-                                  ...creditCardData,
-                                  number: val.substring(0, 19),
-                                });
-                              }}
-                            />
-                          </div>
-                          <div className="space-y-1.5 md:col-span-2">
-                            <Label className="text-xs">Nome do Titular *</Label>
-                            <Input
-                              placeholder="Nome impresso no cartão"
-                              value={creditCardData.holderName}
-                              onChange={(e) =>
-                                setCreditCardData({ ...creditCardData, holderName: e.target.value })
-                              }
-                            />
-                          </div>
-                          <div className="space-y-1.5">
-                            <Label className="text-xs">Validade *</Label>
-                            <Input
-                              placeholder="MM/AA"
-                              maxLength={5}
-                              value={creditCardData.expiryDate}
-                              onChange={(e) => {
-                                let val = e.target.value.replace(/\D/g, "");
-                                if (val.length > 2) {
-                                  val = `${val.substring(0, 2)}/${val.substring(2, 4)}`;
-                                }
-                                setCreditCardData({ ...creditCardData, expiryDate: val });
-                              }}
-                            />
-                          </div>
-                          <div className="space-y-1.5">
-                            <Label className="text-xs">CVV *</Label>
-                            <Input
-                              placeholder="123"
-                              maxLength={4}
-                              value={creditCardData.cvv}
-                              onChange={(e) =>
-                                setCreditCardData({
-                                  ...creditCardData,
-                                  cvv: e.target.value.replace(/\D/g, ""),
-                                })
-                              }
-                            />
-                          </div>
-                        </div>
-
-                        <div className="space-y-1.5 border-t pt-4">
-                          <Label className="text-xs font-semibold">Opções de Parcelamento *</Label>
-                          <Select
-                            value={String(selectedInstallment)}
-                            onValueChange={(v) => setSelectedInstallment(Number(v))}
-                          >
-                            <SelectTrigger className="w-full bg-background">
-                              <SelectValue placeholder="Selecione as parcelas" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {installmentOptions.map((opt) => (
-                                <SelectItem key={opt.number} value={String(opt.number)}>
-                                  {opt.formattedText}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                    )}
-
-                    {paymentMethods.length > 0 && (
-                      <>
-                        <Label className="text-sm font-semibold mb-3 block">
-                          Opções Manuais da Loja
-                        </Label>
-                        <div className="grid gap-2">
-                          {paymentMethods.map((method: any) => (
+                    ) : shippingRates.length > 0 ? (
+                      <div className="grid gap-2">
+                        {shippingRates.map((rate) => {
+                          const isSelected = selectedRateId === rate.id;
+                          return (
                             <button
-                              key={method.id}
+                              key={rate.id}
                               type="button"
-                              onClick={() =>
-                                setFormData({
-                                  ...formData,
-                                  paymentMethod: "manual",
-                                  paymentMethodId: method.id,
-                                })
-                              }
-                              className={`flex items-center justify-between p-4 border text-left transition-all ${formData.paymentMethod === "manual" && formData.paymentMethodId === method.id ? "border-primary bg-primary/5 ring-1 ring-primary" : "hover:bg-muted/50"}`}
+                              onClick={() => handleSelectRate(rate)}
+                              className={cn(
+                                "flex items-center justify-between p-3.5 rounded-2xl border text-left transition-all cursor-pointer",
+                                isSelected
+                                  ? "border-primary bg-primary/5 ring-1 ring-primary font-medium"
+                                  : "bg-card border-border/80 hover:bg-muted/40"
+                              )}
                             >
-                              <div>
-                                <p className="font-semibold text-sm">{method.name}</p>
-                                {method.instructions && (
-                                  <p className="text-xs text-muted-foreground truncate max-w-sm mt-0.5 font-normal">
-                                    {method.instructions}
+                              <div className="space-y-0.5">
+                                <p className="font-bold text-xs text-foreground">{rate.name}</p>
+                                {rate.estimated_days && (
+                                  <p className="text-[10px] text-muted-foreground">
+                                    Previsão: {rate.estimated_days} dias úteis
                                   </p>
                                 )}
                               </div>
-                              {Number(method.discount_percentage) > 0 ? (
-                                <span className="text-xs font-semibold text-success bg-success px-2 py-0.5 rounded-full">
-                                  -{method.discount_percentage}% Desconto
-                                </span>
-                              ) : Number(method.surcharge_percentage) > 0 ? (
-                                <span className="text-xs font-semibold text-destructive bg-destructive/5 px-2 py-0.5 rounded-full">
-                                  +{method.surcharge_percentage}% Acréscimo
-                                </span>
-                              ) : null}
+                              <span className="font-mono font-bold text-xs text-foreground">
+                                {formatMoney(rate.price_cents)}
+                              </span>
                             </button>
-                          ))}
-                        </div>
-                      </>
+                          );
+                        })}
+                      </div>
+                    ) : noShippingRatesFound ? (
+                      <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-800 dark:text-amber-300">
+                        Nenhuma tabela fixa automática encontrada para este CEP. A entrega será combinada diretamente com a loja.
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">
+                        Informe o CEP para carregar os valores de entrega.
+                      </p>
                     )}
                   </div>
 
-                  <div className="flex justify-end pt-6 border-t border-border gap-4 mt-6">
-                    <Button
-                      variant="outline"
-                      className="border border-border text-foreground font-bold rounded-xl px-6"
-                      onClick={() => setActiveStep(2)}
-                    >
-                      Voltar
-                    </Button>
-                    <Button
-                      onClick={() => setActiveStep(4)}
-                      className="bg-primary text-primary-foreground border border-border font-bold rounded-xl px-6 "
-                    >
-                      Continuar para Resumo
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </Surface>
-
-            {/* Passo 4: Resumo e Confirmação */}
-            <Surface
-              variant="default"
-              padding="none"
-              className={cn(
-                "overflow-hidden border border-border mb-4 transition-opacity",
-                activeStep < 4 && "opacity-50",
-              )}
-            >
-              <div
-                className={cn(
-                  "w-full flex items-center p-5 border-b border-border font-bold font-sans text-muted-foreground text-xl",
-                  activeStep === 4
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted/30 text-foreground",
-                )}
-              >
-                <span className="flex items-center gap-3">
-                  <span
-                    className={cn(
-                      "size-8 rounded-xl border border-current flex items-center justify-center text-sm font-mono font-black",
-                      activeStep === 4
-                        ? "bg-background text-foreground"
-                        : "bg-primary text-primary-foreground",
-                    )}
-                  >
-                    4
-                  </span>
-                  Resumo e Confirmação
-                </span>
-              </div>
-
-              {activeStep === 4 && (
-                <div className="p-6 space-y-6">
-                  <div className="grid md:grid-cols-2 gap-6 text-sm">
-                    <div className="space-y-2">
-                      <p className="font-semibold text-muted-foreground uppercase text-xs tracking-wider">
-                        Destinatário
-                      </p>
-                      <p className="font-medium text-foreground">{formData.customerName}</p>
-                      <p className="text-muted-foreground font-normal">
-                        {formData.customerEmail} | {formData.customerPhone}
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="font-semibold text-muted-foreground uppercase text-xs tracking-wider">
-                        Entrega
-                      </p>
-                      {formData.shippingMethod === "pickup" ? (
-                        <p className="font-medium text-foreground">Retirada em Loja (Grátis)</p>
-                      ) : (
-                        <>
-                          <p className="font-medium text-foreground">
-                            Entrega:{""}
-                            {cart.shippingMethod === "manual_quote"
-                              ? "Cotação de Frete"
-                              : cart.shippingMethod || "Entrega Normal"}
-                          </p>
-                          <p className="text-muted-foreground font-normal">
-                            {formData.shippingAddress.street}, {formData.shippingAddress.number}
-                            {""}
-                            {formData.shippingAddress.complement &&
-                              `(${formData.shippingAddress.complement})`}
-                            {""}- {formData.shippingAddress.neighborhood},{""}
-                            {formData.shippingAddress.city} - {formData.shippingAddress.state}
-                          </p>
-                        </>
-                      )}
-                    </div>
-                    <div className="space-y-2 md:col-span-2 border-t pt-4">
-                      <p className="font-semibold text-muted-foreground uppercase text-xs tracking-wider">
-                        Forma de Pagamento
-                      </p>
-                      <p className="font-medium text-foreground">
-                        {formData.paymentMethod === "pix" && "PIX"}
-                        {formData.paymentMethod === "credit_card" && (
-                          <>
-                            Cartão de Crédito ({selectedInstallment}x de{""}
-                            {formatMoney(
-                              installmentOptions.find((o) => o.number === selectedInstallment)
-                                ?.valueCents || 0,
-                            )}
-                            )
-                          </>
-                        )}
-                        {formData.paymentMethod === "manual" && (paymentInfo?.name || "Manual")}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end pt-6 border-t border-border gap-4 mt-6">
-                    <Button
-                      variant="outline"
-                      className="border border-border text-foreground font-bold rounded-xl px-6"
-                      onClick={() => setActiveStep(3)}
-                    >
-                      Voltar
-                    </Button>
-                    <Button
-                      disabled={isSubmitting}
-                      onClick={handleSubmitOrder}
-                      className="px-8 font-black bg-primary text-primary-foreground border border-border rounded-xl text-lg"
-                    >
-                      {isSubmitting ? "Finalizando..." : "Confirmar e Pagar"}
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </Surface>
-          </div>
-
-          <div className="space-y-6 lg:col-span-1">
-            {/* Resumo Lateral de Valores */}
-            <Surface
-              variant="default"
-              elevation="none"
-              className="bg-secondary border border-border p-6 h-fit sticky top-24 rounded-xl text-foreground"
-            >
-              <h2 className="text-2xl font-semibold font-bold mb-6 flex items-center gap-2">
-                <ShoppingBag className="size-6 text-primary" strokeWidth={3} />
-                Resumo do Pedido
-              </h2>
-              <div className="space-y-4 mb-6">
-                {cart.items.map((item: any) => (
-                  <div
-                    key={item.id}
-                    className="flex flex-col text-sm border-b pb-3 last:border-0 last:pb-0"
-                  >
-                    <div className="flex justify-between font-medium">
-                      <span>
-                        {item.qty}x {item.productTitle}
-                      </span>
-                      <span>{formatMoney(item.lineTotalCents)}</span>
-                    </div>
-                    {Object.entries(item.variantAttributes || {}).length > 0 && (
-                      <span className="text-xs text-muted-foreground mt-0.5 font-normal">
-                        {Object.entries(item.variantAttributes || {})
-                          .map(([k, v]) => `${k}: ${v}`)
-                          .join(" |")}
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              <div className="border-t pt-4 space-y-2 mb-6 text-sm">
-                <div className="flex justify-between text-muted-foreground">
-                  <span>Subtotal</span>
-                  <span>{formatMoney(cart.subtotalCents)}</span>
-                </div>
-
-                {cart.couponCode && (
-                  <div className="flex justify-between text-success">
-                    <span className="flex items-center gap-1">
-                      <Ticket className="h-4 w-4" /> Cupom ({cart.couponCode})
-                    </span>
-                    <span>-{formatMoney(cart.discountCents)}</span>
-                  </div>
-                )}
-
-                <div className="flex justify-between text-muted-foreground">
-                  <span>Entrega</span>
-                  <span>
-                    {formData.shippingMethod === "pickup"
-                      ? "Grátis (Retirada)"
-                      : cart.shippingMethod === "manual_quote"
-                        ? "A ser cotado"
-                        : formatMoney(cart.shippingCents)}
-                  </span>
-                </div>
-
-                {paymentDiscountCents > 0 && (
-                  <div className="flex justify-between text-success font-medium">
-                    <span>
-                      {formData.paymentMethod === "pix"
-                        ? `Desconto PIX (-${pixDiscountPercent}%)`
-                        : `Desconto Pagamento (${paymentInfo?.name || "Manual"})`}
-                    </span>
-                    <span>-{formatMoney(paymentDiscountCents)}</span>
-                  </div>
-                )}
-
-                {paymentSurchargeCents > 0 && (
-                  <div className="flex justify-between text-destructive font-medium">
-                    <span>Taxa Pagamento ({paymentInfo?.name})</span>
-                    <span>+{formatMoney(paymentSurchargeCents)}</span>
-                  </div>
-                )}
-
-                {formData.paymentMethod === "credit_card" &&
-                  activeInstallmentOption &&
-                  !activeInstallmentOption.interestFree && (
-                    <div className="flex justify-between text-destructive font-medium">
-                      <span>Juros de Parcelamento ({installmentInterestRate}% a.m.)</span>
-                      <span>
-                        +{formatMoney(activeInstallmentOption.totalCents - finalTotalCents)}
-                      </span>
+                  {/* Janelas de Entrega (Apenas se a loja tiver configurado turnos) */}
+                  {storeDeliveryWindows.length > 0 && (
+                    <div className="space-y-2 pt-2">
+                      <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                        <Clock size={13} className="text-primary" /> Horário Preferencial da Entrega
+                      </Label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {storeDeliveryWindows.map((slot: any) => {
+                          const isSelected = formData.deliverySlot === slot.id;
+                          return (
+                            <button
+                              key={slot.id}
+                              type="button"
+                              onClick={() => setFormData({ ...formData, deliverySlot: slot.id })}
+                              className={cn(
+                                "p-3 rounded-xl border text-left transition-all cursor-pointer",
+                                isSelected
+                                  ? "bg-primary/10 border-primary ring-1 ring-primary"
+                                  : "bg-card border-border hover:bg-muted/60"
+                              )}
+                            >
+                              <p className="font-bold text-xs text-foreground">{slot.label}</p>
+                              {slot.sub && <p className="text-[10px] text-muted-foreground">{slot.sub}</p>}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
 
-                {appliedGiftCard && giftCardDeductionCents > 0 && (
-                  <div className="flex justify-between text-success font-medium">
-                    <span className="flex items-center gap-1">
-                      <Gift className="h-4 w-4" /> Vale-Presente ({appliedGiftCard.code})
-                    </span>
-                    <span>-{formatMoney(giftCardDeductionCents)}</span>
+                  {/* Política de Substituição (EXCLUSIVO para Lojas do Nicho Mercado/Supermercado) */}
+                  {isMarketNiche && (
+                    <div className="p-4 rounded-2xl bg-muted/20  space-y-2.5 pt-3">
+                      <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                        <CheckCircle2 size={13} className="text-emerald-500" />
+                        Se algum item do mercado estiver em falta:
+                      </Label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { id: "similar", label: "Trocar por similar", desc: "Mesma categoria" },
+                          { id: "contact", label: "Confirmar comigo", desc: "Via WhatsApp" },
+                          { id: "cancel", label: "Cancelar item", desc: "Abater valor" },
+                        ].map((pol) => {
+                          const isSelected = formData.substitutionPolicy === pol.id;
+                          return (
+                            <button
+                              key={pol.id}
+                              type="button"
+                              onClick={() => setFormData({ ...formData, substitutionPolicy: pol.id as any })}
+                              className={cn(
+                                "p-2.5 rounded-xl border text-left transition-all cursor-pointer",
+                                isSelected
+                                  ? "bg-foreground text-background border-foreground font-bold "
+                                  : "bg-card border-border/80 hover:bg-muted/40"
+                              )}
+                            >
+                              <p className="text-[11px] font-bold leading-tight">{pol.label}</p>
+                              <p className={cn("text-[9px]", isSelected ? "text-background/80" : "text-muted-foreground")}>
+                                {pol.desc}
+                              </p>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Opção 2: Retirar na Loja */
+                <div className="p-4 rounded-2xl bg-muted/20  space-y-2">
+                  <p className="text-xs font-bold text-foreground">Endereço de Retirada:</p>
+                  <p className="text-xs text-muted-foreground">
+                    {storeProfile?.address
+                      ? `${storeProfile.address}, ${storeProfile.city || ""}`
+                      : "Endereço principal da loja informado no pedido"}
+                  </p>
+                  <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
+                    ✓ Custo de frete: R$ 0,00 (Retirada Grátis)
+                  </p>
+                </div>
+              )}
+
+              <div className="pt-3  flex justify-between gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setActiveStep(1)}
+                  className="rounded-xl px-5 h-10 font-bold text-xs"
+                >
+                  Voltar
+                </Button>
+                <Button
+                  onClick={() => setActiveStep(3)}
+                  disabled={formData.shippingMethod !== "pickup" && !formData.shippingAddress.zipcode}
+                  className="rounded-xl px-6 h-10 font-bold text-xs  cursor-pointer active:scale-98 transition-all"
+                >
+                  <span>Continuar para Pagamento</span>
+                  <ChevronRight size={14} className="ml-1" />
+                </Button>
+              </div>
+            </Surface>
+          )}
+
+          {/* ── ETAPA 3: FORMA DE PAGAMENTO ── */}
+          {activeStep === 3 && (
+            <Surface variant="default" className="p-5 sm:p-6 rounded-3xl  space-y-5">
+              <Label className="text-xs font-bold text-foreground">Escolha a Forma de Pagamento</Label>
+
+              <div className="space-y-3">
+                {/* 1. PIX Instantâneo */}
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, paymentMethod: "pix", paymentMethodId: "" })}
+                  className={cn(
+                    "w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer",
+                    formData.paymentMethod === "pix"
+                      ? "border-primary bg-primary/5 ring-1 ring-primary font-bold"
+                      : "bg-card border-border/80 hover:bg-muted/40"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="size-9 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0 font-bold">
+                      <QrCode size={18} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-foreground">PIX Instantâneo</p>
+                      <p className="text-[11px] text-muted-foreground">Aprovação imediata com QR Code</p>
+                    </div>
+                  </div>
+                  {pixDiscountPercent > 0 && (
+                    <Badge className="bg-emerald-500 text-white text-[10px] font-bold">
+                      {pixDiscountPercent}% OFF
+                    </Badge>
+                  )}
+                </button>
+
+                {/* 2. Cartão de Crédito */}
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, paymentMethod: "credit_card", paymentMethodId: "" })}
+                  className={cn(
+                    "w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer",
+                    formData.paymentMethod === "credit_card"
+                      ? "border-primary bg-primary/5 ring-1 ring-primary font-bold"
+                      : "bg-card border-border/80 hover:bg-muted/40"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="size-9 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0 font-bold">
+                      <CreditCard size={18} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-foreground">Cartão de Crédito</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        Até {maxInstallments}x no cartão
+                      </p>
+                    </div>
+                  </div>
+                </button>
+
+                {formData.paymentMethod === "credit_card" && (
+                  <div className="p-4 rounded-2xl bg-muted/20  space-y-3.5 animate-in fade-in-50">
+                    <div className="space-y-1">
+                      <Label className="text-[11px] font-bold text-muted-foreground">Número do Cartão *</Label>
+                      <Input
+                        placeholder="0000 0000 0000 0000"
+                        maxLength={19}
+                        value={creditCardData.number}
+                        onChange={(e) => setCreditCardData({ ...creditCardData, number: e.target.value })}
+                        className="h-9 rounded-xl text-xs font-mono"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-[11px] font-bold text-muted-foreground">Nome Impresso no Cartão *</Label>
+                      <Input
+                        placeholder="Como está gravado no cartão"
+                        value={creditCardData.holderName}
+                        onChange={(e) => setCreditCardData({ ...creditCardData, holderName: e.target.value.toUpperCase() })}
+                        className="h-9 rounded-xl text-xs uppercase"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-[11px] font-bold text-muted-foreground">Validade (MM/AA) *</Label>
+                        <Input
+                          placeholder="12/28"
+                          maxLength={5}
+                          value={creditCardData.expiryDate}
+                          onChange={(e) => setCreditCardData({ ...creditCardData, expiryDate: e.target.value })}
+                          className="h-9 rounded-xl text-xs font-mono"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[11px] font-bold text-muted-foreground">CVV *</Label>
+                        <Input
+                          placeholder="123"
+                          maxLength={4}
+                          value={creditCardData.cvv}
+                          onChange={(e) => setCreditCardData({ ...creditCardData, cvv: e.target.value })}
+                          className="h-9 rounded-xl text-xs font-mono"
+                        />
+                      </div>
+                    </div>
+
+                    {installmentOptions.length > 0 && (
+                      <div className="space-y-1">
+                        <Label className="text-[11px] font-bold text-muted-foreground">Parcelamento</Label>
+                        <Select
+                          value={String(selectedInstallment)}
+                          onValueChange={(v) => setSelectedInstallment(Number(v))}
+                        >
+                          <SelectTrigger className="h-9 rounded-xl text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {installmentOptions.map((opt) => (
+                              <SelectItem key={opt.number} value={String(opt.number)}>
+                                {opt.formattedText}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 3. Pagamento na Entrega / Manual (se configurado pela loja) */}
+                {paymentMethods && paymentMethods.length > 0 && (
+                  <div className="space-y-2 pt-2">
+                    <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                      Outras Opções da Loja
+                    </Label>
+                    <div className="grid gap-2">
+                      {paymentMethods.map((pm: any) => {
+                        const isSelected = formData.paymentMethod === "manual" && formData.paymentMethodId === pm.id;
+                        return (
+                          <button
+                            key={pm.id}
+                            type="button"
+                            onClick={() =>
+                              setFormData({
+                                ...formData,
+                                paymentMethod: "manual",
+                                paymentMethodId: pm.id,
+                              })
+                            }
+                            className={cn(
+                              "w-full p-3.5 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer",
+                              isSelected
+                                ? "border-primary bg-primary/5 ring-1 ring-primary font-bold"
+                                : "bg-card border-border/80 hover:bg-muted/40"
+                            )}
+                          >
+                            <div>
+                              <p className="text-xs font-bold text-foreground">{pm.name}</p>
+                              {pm.instructions && (
+                                <p className="text-[10px] text-muted-foreground">{pm.instructions}</p>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </div>
 
-              {/* Promo code apply input */}
-              <div className="border-t border-border pt-6 mb-4 mt-6">
-                <Label className="text-sm font-bold text-foreground block mb-3 font-semibold">
-                  Cupom ou Vale-Presente
-                </Label>
-                <div className="flex gap-2">
+              <div className="pt-3  flex justify-between gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setActiveStep(2)}
+                  className="rounded-xl px-5 h-10 font-bold text-xs"
+                >
+                  Voltar
+                </Button>
+                <Button
+                  onClick={() => setActiveStep(4)}
+                  className="rounded-xl px-6 h-10 font-bold text-xs  cursor-pointer active:scale-98 transition-all"
+                >
+                  <span>Revisar Pedido</span>
+                  <ChevronRight size={14} className="ml-1" />
+                </Button>
+              </div>
+            </Surface>
+          )}
+
+          {/* ── ETAPA 4: REVISÃO & CONFIRMAÇÃO ── */}
+          {activeStep === 4 && (
+            <Surface variant="default" className="p-5 sm:p-6 rounded-3xl  space-y-5">
+              <div className="space-y-4">
+                {/* Resumo de Entrega */}
+                <div className="p-4 rounded-2xl bg-muted/20  space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                      <Truck size={14} className="text-primary" />
+                      {formData.shippingMethod === "pickup" ? "Retirada no Balcão" : "Entrega em Domicílio"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setActiveStep(2)}
+                      className="text-[11px] text-primary font-bold hover:underline cursor-pointer"
+                    >
+                      Alterar
+                    </button>
+                  </div>
+                  {formData.shippingMethod !== "pickup" ? (
+                    <p className="text-xs text-muted-foreground">
+                      {formData.shippingAddress.street}, {formData.shippingAddress.number}{" "}
+                      {formData.shippingAddress.complement && `(${formData.shippingAddress.complement})`} -{" "}
+                      {formData.shippingAddress.neighborhood}, {formData.shippingAddress.city}/
+                      {formData.shippingAddress.state} (CEP: {formData.shippingAddress.zipcode})
+                    </p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      {storeProfile?.address ? `${storeProfile.address}, ${storeProfile.city}` : "Endereço da loja"}
+                    </p>
+                  )}
+                </div>
+
+                {/* Resumo de Pagamento */}
+                <div className="p-4 rounded-2xl bg-muted/20  space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                      <CreditCard size={14} className="text-primary" />
+                      Forma de Pagamento
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setActiveStep(3)}
+                      className="text-[11px] text-primary font-bold hover:underline cursor-pointer"
+                    >
+                      Alterar
+                    </button>
+                  </div>
+                  <p className="text-xs text-muted-foreground capitalize">
+                    {formData.paymentMethod === "pix"
+                      ? "PIX Instantâneo"
+                      : formData.paymentMethod === "credit_card"
+                      ? `Cartão de Crédito (${selectedInstallment}x)`
+                      : paymentInfo?.name || "Pagamento Combinado com a Loja"}
+                  </p>
+                </div>
+
+                {/* Observações do Pedido */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-foreground">Observações / Instruções para a loja</Label>
                   <Input
-                    placeholder="Código"
-                    value={promoCode}
-                    onChange={(e) => setPromoCode(e.target.value)}
-                    disabled={isApplyingPromo}
-                    className="h-10 font-mono uppercase text-sm border border-border bg-background rounded-xl focus-visible:ring-poster-red text-foreground font-bold"
+                    placeholder="Ex: Deixar na portaria, ponto de referência..."
+                    value={orderNotes}
+                    onChange={(e) => setOrderNotes(e.target.value)}
+                    className="h-10 rounded-xl text-xs"
                   />
-                  <Button
-                    type="button"
-                    onClick={handleApplyPromo}
-                    disabled={isApplyingPromo || !promoCode}
-                    className="h-10 font-black bg-primary text-primary-foreground border border-border rounded-xl px-6"
-                  >
-                    {isApplyingPromo ? "..." : "Aplicar"}
-                  </Button>
                 </div>
               </div>
 
-              <div className="flex justify-between items-end border-t border-border pt-6 mb-4 mt-2">
-                <span className="font-bold text-foreground text-xl font-semibold">Total</span>
-                <span className="font-black text-4xl text-primary font-semibold tracking-tight drop-">
-                  {formatMoney(checkoutTotalCents)}
-                </span>
+              <div className="pt-3  flex justify-between gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setActiveStep(3)}
+                  disabled={isSubmitting}
+                  className="rounded-xl px-5 h-10 font-bold text-xs"
+                >
+                  Voltar
+                </Button>
+                <Button
+                  onClick={handleSubmitOrder}
+                  disabled={isSubmitting}
+                  className="rounded-xl px-8 h-11 bg-primary text-primary-foreground font-bold text-sm  cursor-pointer active:scale-98 transition-all"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin mr-2" />
+                      <span>Processando Pedido...</span>
+                    </>
+                  ) : (
+                    <span>Confirmar e Finalizar Pedido • {formatMoney(checkoutTotalCents)}</span>
+                  )}
+                </Button>
               </div>
             </Surface>
-          </div>
+          )}
+        </div>
+
+        {/* Coluna da Direita: Resumo da Sacola & Totais */}
+        <div className="space-y-4">
+          <Surface variant="default" className="p-5 rounded-3xl  space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Resumo do Pedido
+            </h3>
+
+            <div className="space-y-3 divide-y divide-border/40">
+              {cart.items.map((item: any) => (
+                <div key={item.id} className="pt-3 first:pt-0 flex items-start justify-between gap-3 text-xs">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-foreground truncate">
+                      {item.quantity}x {item.product?.title || item.title || "Produto"}
+                    </p>
+                    {item.variant_name && (
+                      <p className="text-[10px] text-muted-foreground">{item.variant_name}</p>
+                    )}
+                  </div>
+                  <span className="font-mono font-bold text-foreground shrink-0">
+                    {formatMoney(item.price_cents * item.quantity)}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Cupom / Vale Presente */}
+            <div className="pt-3  space-y-2">
+              <div className="flex items-center gap-2">
+                <Input
+                  placeholder="Cupom ou Vale-presente"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value)}
+                  className="h-8 rounded-xl text-xs"
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleApplyPromo}
+                  disabled={isApplyingPromo || !promoCode.trim()}
+                  className="h-8 rounded-xl text-xs font-bold px-3 cursor-pointer"
+                >
+                  {isApplyingPromo ? <Loader2 size={12} className="animate-spin" /> : "Aplicar"}
+                </Button>
+              </div>
+
+              {appliedGiftCard && (
+                <div className="flex items-center justify-between text-xs p-2 rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+                  <span className="flex items-center gap-1 font-bold">
+                    <Gift size={13} /> Vale: {appliedGiftCard.code}
+                  </span>
+                  <span>-{formatMoney(giftCardDeductionCents)}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Linhas de Totais */}
+            <div className="pt-3  space-y-2 text-xs">
+              <div className="flex justify-between text-muted-foreground">
+                <span>Subtotal</span>
+                <span className="font-mono">{formatMoney(cart.subtotalCents)}</span>
+              </div>
+
+              {cart.discountCents > 0 && (
+                <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-medium">
+                  <span>Desconto Cupom</span>
+                  <span className="font-mono">-{formatMoney(cart.discountCents)}</span>
+                </div>
+              )}
+
+              {paymentDiscountCents > 0 && (
+                <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-medium">
+                  <span>Desconto Forma de Pagamento</span>
+                  <span className="font-mono">-{formatMoney(paymentDiscountCents)}</span>
+                </div>
+              )}
+
+              <div className="flex justify-between text-muted-foreground">
+                <span>Frete / Entrega</span>
+                <span className="font-mono">
+                  {formData.shippingMethod === "pickup"
+                    ? "Grátis"
+                    : cart.shippingCents > 0
+                    ? formatMoney(cart.shippingCents)
+                    : "A calcular"}
+                </span>
+              </div>
+
+              <div className="pt-2  flex justify-between items-baseline text-base font-bold text-foreground">
+                <span>Total</span>
+                <span className="font-mono text-lg font-black">{formatMoney(checkoutTotalCents)}</span>
+              </div>
+            </div>
+          </Surface>
         </div>
       </div>
     </div>

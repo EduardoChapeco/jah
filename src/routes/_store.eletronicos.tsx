@@ -1,0 +1,226 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { z } from "zod";
+import { useState, useMemo } from "react";
+import {
+  Laptop,
+  Sparkle,
+  DeviceMobile,
+  GameController,
+  Headphones,
+  Television,
+  Plug,
+  Storefront,
+  ShoppingBag,
+} from "@phosphor-icons/react";
+
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/state/states";
+import { PageSkeleton } from "@/components/state/loading";
+import { HorizontalRail } from "@/components/commerce/horizontal-rail";
+import { StoreCard } from "@/components/commerce/store-card";
+import { HotpagesRail } from "@/components/commerce/hotpages-rail";
+import {
+  DiscoveryControlBar,
+  type ViewModeType,
+  type FilterChipOption,
+} from "@/components/commerce/discovery-control-bar";
+import { GroceryProductCard } from "@/components/commerce/grocery-product-card";
+import { getMarketplaceFeed } from "@/services/marketplace.functions";
+import { listActiveBanners } from "@/services/banner.functions";
+import { listHotpages } from "@/services/hotpage.functions";
+import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
+
+const SearchSchema = z.object({
+  q: z.string().optional(),
+  view: z.enum(["feed", "grid", "list"]).default("feed").optional(),
+  sort: z.enum(["newest", "price_asc", "price_desc", "in_stock"]).default("newest").optional(),
+  categoria: z.string().optional(),
+});
+
+type EletronicosSearch = z.infer<typeof SearchSchema>;
+
+const ELETRONICOS_DEPARTMENTS: FilterChipOption[] = [
+  { id: "todos", label: "Tudo em Eletrônicos & Tech", icon: Sparkle },
+  { id: "smartphones", label: "Smartphones & Celulares", icon: DeviceMobile },
+  { id: "notebooks", label: "Notebooks & Computadores", icon: Laptop },
+  { id: "gamer", label: "PC Gamer & Periféricos", icon: GameController },
+  { id: "audio", label: "Fones, Caixas & Áudio", icon: Headphones },
+  { id: "tvs", label: "Smart TVs & Monitores", icon: Television },
+  { id: "acessorios", label: "Cabos, Carregadores & Suportes", icon: Plug },
+];
+
+export const Route = createFileRoute("/_store/eletronicos")({
+  head: () => ({
+    meta: [
+      { title: "Eletrônicos, Informática, Smartphones & Gamers | Wider" },
+      {
+        name: "description",
+        content:
+          "Encontre celulares, computadores, consoles, fones de ouvido, televisores e acessórios nas melhores lojas de tecnologia da sua cidade.",
+      },
+    ],
+  }),
+  validateSearch: (search: Record<string, unknown>): EletronicosSearch => SearchSchema.parse(search),
+  loaderDeps: ({ search }) => search,
+  loader: async () => {
+    const [banners, hotpages, marketplaceFeed] = await Promise.all([
+      listActiveBanners({ data: { placement: "eletronicos" } }).catch(() => []),
+      listHotpages({ data: { module: "eletronicos" } }).catch(() => []),
+      getMarketplaceFeed({ data: { niche: "eletronicos" } }).catch(() => null),
+    ]);
+
+    return {
+      banners,
+      hotpages,
+      marketplaceFeed,
+    };
+  },
+  component: EletronicosVerticalPage,
+  pendingComponent: PageSkeleton,
+});
+
+function EletronicosVerticalPage() {
+  const { banners, hotpages, marketplaceFeed } = Route.useLoaderData();
+  const search = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
+
+  const [activeDepartment, setActiveDepartment] = useState(search.categoria || "todos");
+  const [viewMode, setViewMode] = useState<ViewModeType>(search.view || "feed");
+
+  const handleDepartmentChange = (depId: string) => {
+    setActiveDepartment(depId);
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        categoria: depId === "todos" ? undefined : depId,
+      }),
+    });
+  };
+
+  const handleViewModeChange = (mode: ViewModeType) => {
+    setViewMode(mode);
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        view: mode === "feed" ? undefined : mode,
+      }),
+    });
+  };
+
+  const handleSearchChange = (q: string) => {
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        q: q || undefined,
+      }),
+    });
+  };
+
+  const relevantHotpages = useMemo(() => {
+    if (!hotpages) return [];
+    return hotpages.filter(
+      (hp) =>
+        hp.module === "marketplace" ||
+        hp.slug.includes("tech") ||
+        hp.slug.includes("gamer") ||
+        hp.slug.includes("fone") ||
+        hp.slug.includes("celular"),
+    );
+  }, [hotpages]);
+
+  const allProducts = useMemo(() => {
+    if (!marketplaceFeed?.allProducts) return [];
+    let list = marketplaceFeed.allProducts;
+    if (search.q) {
+      const qLower = search.q.toLowerCase();
+      list = list.filter((p: any) => p.title.toLowerCase().includes(qLower));
+    }
+    return list;
+  }, [marketplaceFeed, search.q]);
+
+  const relevantStores = useMemo(() => {
+    if (!marketplaceFeed?.sections) return [];
+    const storeSection = marketplaceFeed.sections.find((s: any) => s.type === "store_rail");
+    return storeSection?.items || [];
+  }, [marketplaceFeed]);
+
+  return (
+    <div className="w-full space-y-6 pb-20">
+      {/* ── 1. Banners de Tecnologia & Eletrônicos ── */}
+      {banners && banners.length > 0 && (
+        <section aria-label="Destaques de Tecnologia">
+          <BannerHeroCarousel banners={banners} />
+        </section>
+      )}
+
+      {/* ── 2. Hotpages de Eletrônicos & Informática ── */}
+      {relevantHotpages.length > 0 && (
+        <section aria-label="Coleções de Tecnologia">
+          <HotpagesRail hotpages={relevantHotpages} basePath="/eletronicos" />
+        </section>
+      )}
+
+      {/* ── 3. Barra Canônica de Controle de Descoberta ── */}
+      <DiscoveryControlBar
+        search={search.q || ""}
+        onSearchChange={handleSearchChange}
+        searchPlaceholder="Buscar celulares, computadores, periféricos, cabos..."
+        categories={ELETRONICOS_DEPARTMENTS}
+        activeCategory={activeDepartment}
+        onSelectCategory={handleDepartmentChange}
+        viewMode={viewMode}
+        onViewModeChange={handleViewModeChange}
+        resultsCount={allProducts.length}
+      />
+
+      {/* ── 4. Lojas Especializadas em Tecnologia da Região ── */}
+      {relevantStores.length > 0 && (
+        <section aria-label="Lojas de Tecnologia">
+          <HorizontalRail
+            title="Lojas de Eletrônicos & Informática"
+            hideHeader={true}
+            actionTo="/buscar"
+          >
+            {relevantStores.map((store: any) => (
+              <StoreCard key={store.id} {...store} />
+            ))}
+          </HorizontalRail>
+        </section>
+      )}
+
+      {/* ── 5. Grade / Feed de Produtos de Tecnologia ── */}
+      {allProducts.length === 0 ? (
+        <EmptyState
+          title="Nenhum produto eletrônico encontrado"
+          description="Tente ajustar os termos de busca ou navegue pelos departamentos acima."
+          action={
+            <Button
+              variant="outline"
+              onClick={() => handleDepartmentChange("todos")}
+              className="rounded-xl border-border"
+            >
+              Ver todos os eletrônicos
+            </Button>
+          }
+        />
+      ) : viewMode === "list" ? (
+        <section aria-label="Produtos de Eletrônicos">
+          <div className="flex flex-col gap-3">
+            {allProducts.map((product: any) => (
+              <GroceryProductCard key={product.id} product={product} viewMode="list" />
+            ))}
+          </div>
+        </section>
+      ) : (
+        <section aria-label="Produtos de Eletrônicos">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+            {allProducts.map((product: any) => (
+              <GroceryProductCard key={product.id} product={product} viewMode="grid" />
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}

@@ -94,9 +94,9 @@ export function NewsCommentsSection({ articleId }: NewsCommentsSectionProps) {
   };
 
   return (
-    <section className="mt-10 pt-8 border-t border-border/80 space-y-6">
+    <section className="mt-10 pt-8  space-y-6">
       {/* ── Header de Interação (Likes + Total Comentários) ── */}
-      <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-muted/40 border border-border/60">
+      <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-muted/40 ">
         <div className="flex items-center gap-3">
           <Button
             variant={isLiked ? "default" : "outline"}
@@ -131,7 +131,7 @@ export function NewsCommentsSection({ articleId }: NewsCommentsSectionProps) {
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="Deixe sua opinião ou contribuição sobre esta notícia..."
             rows={3}
-            className="w-full p-3.5 rounded-2xl border border-border bg-card text-foreground text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none shadow-2xs"
+            className="w-full p-3.5 rounded-2xl  bg-card text-foreground text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none "
           />
         </div>
 
@@ -166,7 +166,7 @@ export function NewsCommentsSection({ articleId }: NewsCommentsSectionProps) {
           comments.map((c) => (
             <div
               key={c.id}
-              className="p-4 rounded-2xl border border-border/60 bg-card shadow-2xs space-y-1.5"
+              className="p-4 rounded-2xl  bg-card  space-y-1.5"
             >
               <div className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">

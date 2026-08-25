@@ -3,6 +3,7 @@ import {
   getCart,
   getGlobalCarts,
   updateCartItemQty,
+  updateCartItemOptions,
   removeFromCart,
 } from "@/services/cart.functions";
 import type { CartDTO } from "@/types/orders";
@@ -17,9 +18,17 @@ interface CartContextType {
   setIsCartOpen: (open: boolean) => void;
   refreshCart: () => Promise<void>;
   updateQty: (variantId: string, delta: number) => Promise<void>;
+  updateItemOptions: (
+    itemId: string,
+    params: {
+      variantId?: string;
+      options?: Record<string, string | string[]>;
+      quantity?: number;
+    },
+  ) => Promise<void>;
   removeItem: (itemId: string) => Promise<void>;
   initCart: (initialCart: CartDTO | null, initialGlobalCarts?: CartDTO[]) => void;
-  setCartData: (cart: CartDTO | null) => void;
+  setCartData: (cart: CartDTO | null, globalCarts?: CartDTO[]) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -79,6 +88,34 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateItemOptions = async (
+    itemId: string,
+    params: {
+      variantId?: string;
+      options?: Record<string, string | string[]>;
+      quantity?: number;
+    },
+  ) => {
+    setIsCartUpdating(true);
+    try {
+      await updateCartItemOptions({
+        data: {
+          itemId,
+          variantId: params.variantId,
+          options: params.options,
+          quantity: params.quantity,
+        },
+      });
+      toast.success("Item atualizado no carrinho!");
+    } catch (e: unknown) {
+      toast.error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao atualizar item do carrinho",
+      );
+    } finally {
+      await refreshCart();
+    }
+  };
+
   const removeItem = async (itemId: string) => {
     setIsCartUpdating(true);
     try {
@@ -92,8 +129,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const setCartData = (newCart: CartDTO | null) => {
-    setCart(newCart);
+  const setCartData = (newCart: CartDTO | null, newGlobalCarts?: CartDTO[]) => {
+    if (newCart) setCart(newCart);
+    if (newGlobalCarts && newGlobalCarts.length > 0) {
+      setGlobalCarts(newGlobalCarts);
+    } else if (newCart && newCart.itemCount > 0) {
+      setGlobalCarts((prev) => {
+        const otherCarts = prev.filter((c) => c.id !== newCart.id);
+        return [newCart, ...otherCarts];
+      });
+    }
     refreshCart();
   };
 
@@ -107,6 +152,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setIsCartOpen,
         refreshCart,
         updateQty,
+        updateItemOptions,
         removeItem,
         initCart,
         setCartData,
@@ -117,10 +163,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
   );
 }
 
+const fallbackCartContext: CartContextType = {
+  cart: null,
+  globalCarts: [],
+  isCartOpen: false,
+  isCartUpdating: false,
+  setIsCartOpen: () => {},
+  refreshCart: async () => {},
+  updateQty: async () => {},
+  updateItemOptions: async () => {},
+  removeItem: async () => {},
+  initCart: () => {},
+  setCartData: () => {},
+};
+
 export function useCartContext() {
   const context = useContext(CartContext);
   if (!context) {
-    throw new Error("useCartContext must be used within a CartProvider");
+    return fallbackCartContext;
   }
   return context;
 }
+
+export const useCart = useCartContext;
