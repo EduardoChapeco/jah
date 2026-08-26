@@ -223,7 +223,6 @@ function EditProductPage() {
                 sku: String(data.sku || `${data.slug || "prod"}-default`),
                 attributes: {},
                 stock: Number(data.stock || 10),
-                price_cents: Number(data.price_cents),
                 price_override_cents: null,
                 image_url: images[0] || null,
               },

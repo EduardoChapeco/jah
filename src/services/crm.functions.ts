@@ -242,7 +242,7 @@ export const addCustomerClinicalRecord = createServerFn({ method: "POST" })
         customer_id: input.customerId,
         store_id: identity.store_id,
         service_title: input.serviceTitle,
-        professional_name: input.professionalName || (identity as any).name || identity.email || "Especialista",
+        professional_name: input.professionalName || (identity as any).name || (identity as any).email || "Especialista",
         notes: input.notes,
         allergies: input.allergies || null,
         attachments: input.attachments || [],

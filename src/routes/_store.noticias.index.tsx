@@ -140,7 +140,7 @@ export function NoticiasFeedPage() {
           {CATEGORIES.map((cat) => {
             const isSelected = selectedCategory === cat.id;
             const Icon = cat.icon;
-            const hotpageMatch = hotpages?.find((hp) => hp.slug === cat.id);
+            const hotpageMatch = hotpages?.find((hp: any) => hp.slug === cat.id);
             const iconUrl = hotpageMatch?.custom_icon_url || hotpageMatch?.icon_url;
 
             return (

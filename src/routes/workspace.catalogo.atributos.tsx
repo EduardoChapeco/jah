@@ -639,7 +639,7 @@ function EditableOptionPriceCell({ option }: { option: any }) {
       value={priceCents}
       onChange={(val) => {
         setPriceCents(val || 0);
-        handleSave(val);
+        handleSave(val ?? 0);
       }}
       className="h-7 text-xs font-mono rounded-lg bg-background"
       disabled={isSaving}

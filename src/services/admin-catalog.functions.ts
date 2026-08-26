@@ -905,6 +905,7 @@ export const updateProduct = createServerFn({ method: "POST" })
     z.object({
       id: z.string().uuid(),
       title: z.string().min(1).max(300).optional(),
+      slug: z.string().optional(),
       description: z.string().optional().nullable(),
       short_description: z.string().optional().nullable(),
       manufacturer: z.string().optional().nullable(),

@@ -64,9 +64,9 @@ function AdminMasterMarcaPage() {
   const [logoUrl, setLogoUrl] = useState<string | null>(initialBrand.logo_url || null);
   const [faviconUrl, setFaviconUrl] = useState<string | null>(initialBrand.favicon_url || null);
   const [loginSplitImageUrl, setLoginSplitImageUrl] = useState<string | null>(initialBrand.login_split_image_url || null);
-  const [loginBgDesktopUrl, setLoginBgDesktopUrl] = useState<string | null>(initialBrand.login_bg_desktop_url || initialBrand.login_split_image_url || null);
-  const [loginBgTabletUrl, setLoginBgTabletUrl] = useState<string | null>(initialBrand.login_bg_tablet_url || initialBrand.login_split_image_url || null);
-  const [loginBgMobileUrl, setLoginBgMobileUrl] = useState<string | null>(initialBrand.login_bg_mobile_url || initialBrand.login_split_image_url || null);
+  const [loginBgDesktopUrl, setLoginBgDesktopUrl] = useState<string | null>((initialBrand as any).login_bg_desktop_url || initialBrand.login_split_image_url || null);
+  const [loginBgTabletUrl, setLoginBgTabletUrl] = useState<string | null>((initialBrand as any).login_bg_tablet_url || initialBrand.login_split_image_url || null);
+  const [loginBgMobileUrl, setLoginBgMobileUrl] = useState<string | null>((initialBrand as any).login_bg_mobile_url || initialBrand.login_split_image_url || null);
 
   const [supportEmail, setSupportEmail] = useState(initialBrand.support_email || "contato@wider.com.br");
   const [supportWhatsapp, setSupportWhatsapp] = useState(initialBrand.support_whatsapp || "");

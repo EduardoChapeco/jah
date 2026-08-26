@@ -207,7 +207,6 @@ export function UnifiedNewProductPage() {
               sku: String(data.sku || `${generatedSlug}-default`),
               attributes: {},
               stock: Number(data.stock || 10),
-              price_cents: Number(data.price_cents),
               price_override_cents: null,
               image_url: images[0] || null,
             },

@@ -561,6 +561,7 @@ export const getArticleLikeStatus = createServerFn({ method: "GET" })
 export const recordSponsorImpression = createServerFn({ method: "POST" })
   .validator(z.object({ sponsorId: z.string().uuid(), placement: z.string().optional() }))
   .handler(async ({ data: { sponsorId, placement } }) => {
+    const supabase = getServerClient();
     try {
       await supabase.rpc("increment_sponsor_impressions", {
         p_sponsor_id: sponsorId,

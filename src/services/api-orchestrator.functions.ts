@@ -301,7 +301,7 @@ async function getNextActiveKey(provider: ApiProvider): Promise<{ id: string; ra
       .from("api_key_pools")
       .update({
         last_used_at: new Date().toISOString(),
-        daily_request_count: (data.daily_request_count || 0) + 1,
+        daily_request_count: ((data as any).daily_request_count || 0) + 1,
       })
       .eq("id", data.id);
 
