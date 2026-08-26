@@ -210,8 +210,8 @@ function CmsBioPage() {
   return (
     <div className="flex flex-col h-full bg-background min-h-screen">
       <PageHeader
+        eyebrow="Cultural, CMS & Zines"
         title="Editor de Link da Bio & Perfil Público"
-        description="Construa uma página de apresentação de alto impacto com temas visuais, links de alta conversão, chave PIX e integração direta."
         actions={
           <div className="flex items-center gap-2">
             <Button

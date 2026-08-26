@@ -6,7 +6,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getServerClient } from "@/lib/supabase";
-import { getCurrentIdentity } from "@/services/cart-helpers";
+import { getServerIdentity } from "@/lib/server-access";
 
 export interface PriceTableDTO {
   id: string;
@@ -44,7 +44,7 @@ export interface PriceTableItemDTO {
 export const listPriceTables = createServerFn({ method: "GET" }).handler(
   async (): Promise<PriceTableDTO[]> => {
     const supabase = getServerClient();
-    const identity = await getCurrentIdentity();
+    const identity = await getServerIdentity();
     if (!identity.store_id) return [];
 
     const { data, error } = await supabase
@@ -114,7 +114,7 @@ export const createPriceTable = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     const supabase = getServerClient();
-    const identity = await getCurrentIdentity();
+    const identity = await getServerIdentity();
     if (!identity.store_id) throw new Error("Acesso não autorizado.");
 
     // Se marcou como padrão, remove padrão das outras
@@ -176,7 +176,7 @@ export const updatePriceTable = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: { id, ...patch } }) => {
     const supabase = getServerClient();
-    const identity = await getCurrentIdentity();
+    const identity = await getServerIdentity();
     if (!identity.store_id) throw new Error("Acesso não autorizado.");
 
     if (patch.is_default) {
@@ -204,7 +204,7 @@ export const deletePriceTable = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: { id } }) => {
     const supabase = getServerClient();
-    const identity = await getCurrentIdentity();
+    const identity = await getServerIdentity();
     if (!identity.store_id) throw new Error("Acesso não autorizado.");
 
     const { error } = await supabase
@@ -223,7 +223,7 @@ export const listPriceTableItems = createServerFn({ method: "GET" })
   .validator(z.object({ priceTableId: z.string() }))
   .handler(async ({ data: { priceTableId } }): Promise<PriceTableItemDTO[]> => {
     const supabase = getServerClient();
-    const identity = await getCurrentIdentity();
+    const identity = await getServerIdentity();
     if (!identity.store_id) return [];
 
     // Busca dados da tabela
@@ -309,7 +309,7 @@ export const upsertPriceTableItem = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     const supabase = getServerClient();
-    const identity = await getCurrentIdentity();
+    const identity = await getServerIdentity();
     if (!identity.store_id) throw new Error("Acesso não autorizado.");
 
     const { data, error } = await supabase

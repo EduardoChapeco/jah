@@ -433,7 +433,7 @@ function WorkspacePriceTablesPage() {
               </SheetDescription>
             </SheetHeader>
 
-            <form id="price-table-form" onSubmit={handleCreateTable} className="space-y-4 py-2">
+            <form id="price-table-form" onSubmit={handleSaveTable} className="space-y-4 py-2">
               <div className="space-y-1.5">
                 <Label className="text-xs">Nome da Tabela</Label>
                 <Input

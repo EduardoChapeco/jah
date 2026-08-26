@@ -249,7 +249,7 @@ async function _issueComplimentaryTicket(params: {
     .insert({
       event_id: params.eventId,
       lot_id: params.lotId,
-      user_id: identity.userId, // issuer or holder profile
+      user_id: identity.id, // issuer or holder profile
       qr_hash: qrHash,
       status: "valid",
     })
@@ -259,7 +259,9 @@ async function _issueComplimentaryTicket(params: {
   if (error) throw new Error(error.message);
 
   // Increment sold_count in the lot
-  await supabase.rpc("increment_lot_sold_count", { p_lot_id: params.lotId }).catch(() => {});
+  try {
+    await supabase.rpc("increment_lot_sold_count", { p_lot_id: params.lotId });
+  } catch {}
 
   await logAuditAction(identity, "INSERT", "tickets", ticket.id, {
     type: "complimentary",

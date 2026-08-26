@@ -242,8 +242,9 @@ export function UnifiedNewProductPage() {
         if (imported.description) setValue("description", imported.description);
         if (imported.price_cents) setValue("price_cents", imported.price_cents);
         if (imported.brand) setValue("brand", imported.brand);
-        if (imported.media_urls && imported.media_urls.length > 0) {
-          setImages(imported.media_urls);
+        const importedImages = (imported as any).media_urls || (imported as any).images;
+        if (Array.isArray(importedImages) && importedImages.length > 0) {
+          setImages(importedImages);
         }
         toast.success("Informações do produto importadas com IA!");
         setIsImportModalOpen(false);

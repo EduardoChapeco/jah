@@ -561,17 +561,18 @@ export const getArticleLikeStatus = createServerFn({ method: "GET" })
 export const recordSponsorImpression = createServerFn({ method: "POST" })
   .validator(z.object({ sponsorId: z.string().uuid(), placement: z.string().optional() }))
   .handler(async ({ data: { sponsorId, placement } }) => {
-    const supabase = getServerClient();
-    await supabase.rpc("increment_sponsor_impressions", {
-      p_sponsor_id: sponsorId,
-      p_placement: placement || "feed",
-    }).catch(async () => {
+    try {
+      await supabase.rpc("increment_sponsor_impressions", {
+        p_sponsor_id: sponsorId,
+        p_placement: placement || "feed",
+      });
+    } catch {
       // Fallback update
       const { data } = await supabase.from("sponsors").select("views_count").eq("id", sponsorId).single();
       if (data) {
         await supabase.from("sponsors").update({ views_count: (data.views_count || 0) + 1 }).eq("id", sponsorId);
       }
-    });
+    }
     return { success: true };
   });
 

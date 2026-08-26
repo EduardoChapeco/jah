@@ -338,28 +338,22 @@ function PdvTerminal() {
             ? ` (${item.selectedModifiers.map((m) => m.title).join(", ")})`
             : "";
         return {
-          product_id: item.product.id,
-          variant_id: item.variant.id || null,
-          product_title: `${item.product.title}${modifiersSuffix}`,
-          variant_sku: item.variant.sku || "DEFAULT",
+          variantId: item.product.id,
+          title: `${item.product.title}${modifiersSuffix}`,
+          sku: item.variant?.sku || item.product.slug || "DEFAULT",
           qty: item.qty,
-          unit_price_cents: item.unitPriceCents,
-          total_cents: item.unitPriceCents * item.qty,
-          notes: item.notes || null,
+          priceCents: item.unitPriceCents,
         };
       });
 
       const res = await processPOSSale({
         data: {
+          registerId: activeRegister?.id || "00000000-0000-0000-0000-000000000001",
           items: itemsPayload,
-          payment_method: paymentMethod,
-          subtotal_cents: cartSubtotal,
-          discount_cents: discountCents,
-          total_cents: cartTotal,
-          amount_paid_cents: paymentMethod === "cash" ? amountPaidCents : cartTotal,
-          change_cents: changeCents,
-          customer_doc: customerDoc.trim() || undefined,
-          table_identifier: paymentMethod === "open_tab" ? tableIdentifier.trim() : undefined,
+          paymentMethod: paymentMethod as any,
+          discountCents: discountCents,
+          amountPaidCents: paymentMethod === "cash" ? amountPaidCents : cartTotal,
+          customerName: customerDoc.trim() || undefined,
         },
       });
 
@@ -367,7 +361,7 @@ function PdvTerminal() {
 
       // Salva dados para emissão do cupom
       setLastSaleReceipt({
-        saleId: res?.saleId || Math.random().toString(36).slice(2, 8).toUpperCase(),
+        saleId: res?.receiptId || res?.orderId || Math.random().toString(36).slice(2, 8).toUpperCase(),
         items: cart,
         subtotal: cartSubtotal,
         discount: discountCents,

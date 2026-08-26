@@ -60,7 +60,7 @@ import {
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/eventos/$id")({
-  head: ({ loaderData }) => ({
+  head: ({ loaderData }: { loaderData?: any }) => ({
     meta: [
       {
         title: loaderData?.event?.title
@@ -585,7 +585,7 @@ function SubPainelEventoPage() {
               <Label htmlFor="cost-amount" className="text-xs">Valor (R$)</Label>
               <CurrencyField
                 value={newCostCents}
-                onChange={(val) => setNewCostCents(val)}
+                onChange={(val) => setNewCostCents(val || 0)}
               />
             </div>
             <Button type="submit" size="sm" className="font-bold gap-1.5 shrink-0">
@@ -665,7 +665,7 @@ function SubPainelEventoPage() {
                 <Label htmlFor="lot-price">Valor (R$) *</Label>
                 <CurrencyField
                   value={lotForm.priceCents}
-                  onChange={(val) => setLotForm({ ...lotForm, priceCents: val })}
+                  onChange={(val) => setLotForm({ ...lotForm, priceCents: val || 0 })}
                 />
               </div>
 
