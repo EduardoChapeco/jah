@@ -1,5 +1,5 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { Plus, MoreHorizontal, Edit, Trash2, Search } from "lucide-react";
+import { Plus, MoreHorizontal, Edit, Trash2, Search, ChevronDown, ChevronRight, Check } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -48,6 +48,7 @@ import {
   listOptionGroups,
   upsertOptionGroup,
   deleteOptionGroup,
+  quickUpdateOptionValue,
 } from "@/services/admin-catalog.functions";
 
 const optionValueSchema = z.object({
@@ -234,58 +235,23 @@ function OptionGroupsPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[30px]"></TableHead>
                 <TableHead>Nome Interno</TableHead>
                 <TableHead>Nome Exibido</TableHead>
                 <TableHead>Tipo</TableHead>
                 <TableHead>Regras</TableHead>
-                <TableHead>Opções</TableHead>
+                <TableHead>Opções / Valores</TableHead>
                 <TableHead className="w-[80px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredGroups.map((group: any) => (
-                <TableRow key={group.id}>
-                  <TableCell className="font-medium text-xs uppercase">
-                    {group.internal_name}
-                  </TableCell>
-                  <TableCell className="font-semibold">{group.display_name}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="text-xs">
-                      {group.selection_type === "single"
-                        ? "Escolha Única (Radio)"
-                        : "Múltipla (Checkbox)"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
-                    {group.is_required && (
-                      <Badge className="mr-2 bg-primary/20 text-primary">Obrigatório</Badge>
-                    )}
-                    Min: {group.min_selections} | Max: {group.max_selections}
-                  </TableCell>
-                  <TableCell className="text-xs">{group.values?.length || 0} valor(es)</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEdit(group)}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-destructive focus:text-destructive"
-                          onClick={() => handleDelete(group.id)}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
+                <OptionGroupTableRow
+                  key={group.id}
+                  group={group}
+                  onEdit={() => handleEdit(group)}
+                  onDelete={() => handleDelete(group.id)}
+                />
               ))}
             </TableBody>
           </Table>
@@ -483,3 +449,233 @@ function OptionGroupsPage() {
     </div>
   );
 }
+
+function OptionGroupTableRow({
+  group,
+  onEdit,
+  onDelete,
+}: {
+  group: any;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const values = group.values || [];
+
+  return (
+    <>
+      <TableRow className="hover:bg-muted/30 transition-colors">
+        <TableCell className="p-2 text-center">
+          {values.length > 0 && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 rounded-md text-muted-foreground hover:text-foreground"
+              onClick={() => setIsExpanded(!isExpanded)}
+            >
+              {isExpanded ? (
+                <ChevronDown className="size-3.5" />
+              ) : (
+                <ChevronRight className="size-3.5" />
+              )}
+            </Button>
+          )}
+        </TableCell>
+        <TableCell className="font-medium text-xs uppercase">
+          {group.internal_name}
+        </TableCell>
+        <TableCell className="font-semibold">{group.display_name}</TableCell>
+        <TableCell>
+          <Badge variant="outline" className="text-xs">
+            {group.selection_type === "single"
+              ? "Escolha Única (Radio)"
+              : "Múltipla (Checkbox)"}
+          </Badge>
+        </TableCell>
+        <TableCell className="text-xs text-muted-foreground">
+          {group.is_required && (
+            <Badge className="mr-2 bg-primary/20 text-primary">Obrigatório</Badge>
+          )}
+          Min: {group.min_selections} | Max: {group.max_selections}
+        </TableCell>
+        <TableCell className="text-xs">
+          <button
+            type="button"
+            className="hover:underline text-primary font-medium cursor-pointer"
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
+            {values.length} valor(es) {isExpanded ? "▲" : "▼"}
+          </button>
+        </TableCell>
+        <TableCell>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={onEdit}>
+                <Edit className="mr-2 h-4 w-4" />
+                Editar Grupo
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onClick={onDelete}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Excluir
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </TableCell>
+      </TableRow>
+
+      {isExpanded && values.length > 0 && (
+        <TableRow className="bg-muted/15 hover:bg-muted/15 border-b">
+          <TableCell colSpan={7} className="p-3 pl-10">
+            <div className="rounded-xl border border-border/60 bg-background/80 overflow-hidden">
+              <div className="p-2 bg-muted/40 border-b border-border/40 flex items-center justify-between text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                <span>Edição Rápida de Valores / Opções ({group.display_name})</span>
+                <span className="text-[10px] font-normal lowercase">
+                  * alterações salvas automaticamente ao mudar de célula
+                </span>
+              </div>
+              <Table className="text-xs">
+                <TableHeader>
+                  <TableRow className="bg-transparent border-b">
+                    <TableHead className="h-8 text-xs font-semibold">Nome da Opção</TableHead>
+                    <TableHead className="h-8 text-xs font-semibold w-40">Preço Adicional</TableHead>
+                    <TableHead className="h-8 text-xs font-semibold w-24 text-center">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {values.map((val: any) => (
+                    <TableRow key={val.id} className="hover:bg-muted/20">
+                      <TableCell className="p-2">
+                        <EditableOptionLabelCell option={val} />
+                      </TableCell>
+                      <TableCell className="p-2">
+                        <EditableOptionPriceCell option={val} />
+                      </TableCell>
+                      <TableCell className="p-2 text-center">
+                        <EditableOptionActiveCell option={val} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </TableCell>
+        </TableRow>
+      )}
+    </>
+  );
+}
+
+function EditableOptionLabelCell({ option }: { option: any }) {
+  const [value, setValue] = useState(option.label || "");
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleBlur = async () => {
+    if (value.trim() === "" || value === option.label) return;
+    setIsSaving(true);
+    try {
+      await quickUpdateOptionValue({
+        data: {
+          id: option.id,
+          label: value.trim(),
+        },
+      });
+      toast.success("Nome da opção atualizado!");
+    } catch {
+      toast.error("Erro ao atualizar nome da opção.");
+      setValue(option.label);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className="relative">
+      <Input
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onBlur={handleBlur}
+        onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
+        className="h-7 text-xs font-medium rounded-lg bg-background"
+        disabled={isSaving}
+      />
+    </div>
+  );
+}
+
+function EditableOptionPriceCell({ option }: { option: any }) {
+  const [priceCents, setPriceCents] = useState(option.price_modifier_cents ?? 0);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSave = async (newVal: number | null) => {
+    const val = newVal ?? 0;
+    if (val === option.price_modifier_cents) return;
+    setIsSaving(true);
+    try {
+      await quickUpdateOptionValue({
+        data: {
+          id: option.id,
+          price_modifier_cents: val,
+        },
+      });
+      setPriceCents(val);
+      toast.success("Preço adicional atualizado!");
+    } catch {
+      toast.error("Erro ao atualizar preço.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <CurrencyField
+      value={priceCents}
+      onChange={(val) => {
+        setPriceCents(val || 0);
+        handleSave(val);
+      }}
+      className="h-7 text-xs font-mono rounded-lg bg-background"
+      disabled={isSaving}
+    />
+  );
+}
+
+function EditableOptionActiveCell({ option }: { option: any }) {
+  const [isActive, setIsActive] = useState(option.is_active ?? true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleToggle = async (checked: boolean) => {
+    setIsSaving(true);
+    try {
+      await quickUpdateOptionValue({
+        data: {
+          id: option.id,
+          is_active: checked,
+        },
+      });
+      setIsActive(checked);
+      toast.success(checked ? "Opção ativada" : "Opção desativada");
+    } catch {
+      toast.error("Erro ao alterar status.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <Checkbox
+      checked={isActive}
+      onCheckedChange={(c) => handleToggle(!!c)}
+      disabled={isSaving}
+      className="rounded-md"
+    />
+  );
+}
+

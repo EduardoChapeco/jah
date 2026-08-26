@@ -28,7 +28,7 @@ async function _getProductBySlug(slug: string): Promise<ProductDetailDTO> {
       .select(
         `id, slug, title, description, brand, manufacturer, ean,
          price_cents, compare_at_cents, allows_preorder, store_id,
-         seo_title, seo_description, meta_title, meta_description, short_description, status,
+         seo_title, seo_description, meta_title, meta_description, short_description, status, show_stock_publicly,
          is_physical, weight_kg, width_cm, height_cm, length_cm, preparation_time_days, stores(id, name, slug, logo_url, city, state, address, is_verified, rating),
          product_media(id, url, alt, media_type, sort_order, focal_point, variant_id),
          product_variants(
@@ -229,6 +229,7 @@ async function _getProductBySlug(slug: string): Promise<ProductDetailDTO> {
         categories: ((rawProduct.product_categories as any[] | null) ?? [])
           .map((pc: any) => pc.categories)
           .filter(Boolean),
+        showStockPublicly: (product.show_stock_publicly as boolean | null) ?? false,
       };
     }
 

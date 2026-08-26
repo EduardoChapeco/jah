@@ -294,3 +294,71 @@ export const confirmDeliveryByPin = createServerFn({ method: "POST" })
 
     return { success: true, deliveredAt: now };
   });
+
+export const startDeliveryPickup = createServerFn({ method: "POST" })
+  .validator(z.object({ token: z.string() }))
+  .handler(async ({ data: { token } }) => {
+    const supabase = getServerClient();
+    const now = new Date().toISOString();
+
+    const { data: link, error } = await supabase
+      .from("delivery_magic_links")
+      .update({ used_at: now })
+      .eq("token", token)
+      .select("id, fulfillment_id")
+      .single();
+
+    if (error) {
+      console.error("[dispatch] Error starting delivery pickup:", error);
+      throw new Error("Erro ao registrar início da rota.");
+    }
+
+    if (link?.fulfillment_id) {
+      await supabase
+        .from("orders")
+        .update({ status: "shipped" })
+        .eq("id", link.fulfillment_id);
+    }
+
+    return { success: true, startedAt: now };
+  });
+
+export const updateDeliveryPaymentMethod = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      token: z.string(),
+      paymentMethod: z.enum(["cash", "pix", "card", "wallet"]),
+      notes: z.string().optional(),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    const supabase = getServerClient();
+
+    const { data: link, error: linkErr } = await supabase
+      .from("delivery_magic_links")
+      .select("id, fulfillment_id, store_id")
+      .eq("token", input.token)
+      .single();
+
+    if (linkErr || !link) {
+      throw new Error("Link de entrega não encontrado.");
+    }
+
+    if (link.fulfillment_id) {
+      const { error: updErr } = await supabase
+        .from("orders")
+        .update({
+          payment_method: input.paymentMethod,
+          payment_method_id: input.paymentMethod,
+          notes: input.notes ? `[Alteração Entregador]: ${input.notes}` : undefined,
+        })
+        .eq("id", link.fulfillment_id);
+
+      if (updErr) {
+        console.error("[dispatch] Error updating order payment method:", updErr);
+        throw new Error("Erro ao atualizar forma de pagamento no pedido.");
+      }
+    }
+
+    return { success: true };
+  });

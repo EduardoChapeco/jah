@@ -198,16 +198,13 @@ function WorkspaceStoreBannersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 ">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4">
         <div>
           <h1 className="text-xl font-bold text-foreground">Banners da Loja</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Gerencie os destaques visuais e carrosséis da vitrine e do seu app próprio.
-          </p>
         </div>
         <Button
           onClick={handleOpenCreate}
-          className="h-10 px-4 rounded-xl text-xs font-bold gap-2 cursor-pointer "
+          className="h-10 px-4 rounded-xl text-xs font-bold gap-2 cursor-pointer"
         >
           <Plus className="size-4" />
           <span>Novo Banner</span>

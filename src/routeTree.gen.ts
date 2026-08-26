@@ -79,6 +79,7 @@ import { Route as StoreColecaoSlugRouteImport } from './routes/_store.colecao.$s
 import { Route as StoreContaIndexRouteImport } from './routes/_store.conta.index'
 import { Route as StoreContaAgendamentosRouteImport } from './routes/_store.conta.agendamentos'
 import { Route as StoreContaAvaliacoesRouteImport } from './routes/_store.conta.avaliacoes'
+import { Route as StoreContaCandidaturasRouteImport } from './routes/_store.conta.candidaturas'
 import { Route as StoreContaCreditosRouteImport } from './routes/_store.conta.creditos'
 import { Route as StoreContaEnderecosRouteImport } from './routes/_store.conta.enderecos'
 import { Route as StoreContaGiftCardsRouteImport } from './routes/_store.conta.gift-cards'
@@ -121,6 +122,7 @@ import { Route as VerifyDocumentCodeRouteImport } from './routes/verify.document
 import { Route as WorkspaceAgendaIndexRouteImport } from './routes/workspace.agenda.index'
 import { Route as WorkspaceAgendaRecursosRouteImport } from './routes/workspace.agenda.recursos'
 import { Route as WorkspaceCatalogoAtributosRouteImport } from './routes/workspace.catalogo.atributos'
+import { Route as WorkspaceCatalogoTabelasRouteImport } from './routes/workspace.catalogo.tabelas'
 import { Route as WorkspaceCatalogoTiposRouteImport } from './routes/workspace.catalogo.tipos'
 import { Route as WorkspaceClientesIndexRouteImport } from './routes/workspace.clientes.index'
 import { Route as WorkspaceClientesIdRouteImport } from './routes/workspace.clientes.$id'
@@ -138,6 +140,8 @@ import { Route as WorkspaceEstoqueIndexRouteImport } from './routes/workspace.es
 import { Route as WorkspaceEstoqueAlertasRouteImport } from './routes/workspace.estoque.alertas'
 import { Route as WorkspaceEstoqueMovimentosRouteImport } from './routes/workspace.estoque.movimentos'
 import { Route as WorkspaceEstudioIndexRouteImport } from './routes/workspace.estudio.index'
+import { Route as WorkspaceEventosIndexRouteImport } from './routes/workspace.eventos.index'
+import { Route as WorkspaceEventosIdRouteImport } from './routes/workspace.eventos.$id'
 import { Route as WorkspaceFinanceiroAfiliadosRouteImport } from './routes/workspace.financeiro.afiliados'
 import { Route as WorkspaceFinanceiroComissoesRouteImport } from './routes/workspace.financeiro.comissoes'
 import { Route as WorkspaceFinanceiroComprovantesRouteImport } from './routes/workspace.financeiro.comprovantes'
@@ -549,6 +553,11 @@ const StoreContaAvaliacoesRoute = StoreContaAvaliacoesRouteImport.update({
   path: '/avaliacoes',
   getParentRoute: () => StoreContaRoute,
 } as any)
+const StoreContaCandidaturasRoute = StoreContaCandidaturasRouteImport.update({
+  id: '/candidaturas',
+  path: '/candidaturas',
+  getParentRoute: () => StoreContaRoute,
+} as any)
 const StoreContaCreditosRoute = StoreContaCreditosRouteImport.update({
   id: '/creditos',
   path: '/creditos',
@@ -760,6 +769,12 @@ const WorkspaceCatalogoAtributosRoute =
     path: '/catalogo/atributos',
     getParentRoute: () => WorkspaceRoute,
   } as any)
+const WorkspaceCatalogoTabelasRoute =
+  WorkspaceCatalogoTabelasRouteImport.update({
+    id: '/catalogo/tabelas',
+    path: '/catalogo/tabelas',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
 const WorkspaceCatalogoTiposRoute = WorkspaceCatalogoTiposRouteImport.update({
   id: '/catalogo/tipos',
   path: '/catalogo/tipos',
@@ -849,6 +864,16 @@ const WorkspaceEstoqueMovimentosRoute =
 const WorkspaceEstudioIndexRoute = WorkspaceEstudioIndexRouteImport.update({
   id: '/estudio/',
   path: '/estudio/',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
+const WorkspaceEventosIndexRoute = WorkspaceEventosIndexRouteImport.update({
+  id: '/eventos/',
+  path: '/eventos/',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
+const WorkspaceEventosIdRoute = WorkspaceEventosIdRouteImport.update({
+  id: '/eventos/$id',
+  path: '/eventos/$id',
   getParentRoute: () => WorkspaceRoute,
 } as any)
 const WorkspaceFinanceiroAfiliadosRoute =
@@ -1147,9 +1172,9 @@ const WorkspaceConfiguracoesFretesCotacoesRoute =
   } as any)
 const WorkspaceEventosIdCheckinRoute =
   WorkspaceEventosIdCheckinRouteImport.update({
-    id: '/eventos/$id/checkin',
-    path: '/eventos/$id/checkin',
-    getParentRoute: () => WorkspaceRoute,
+    id: '/checkin',
+    path: '/checkin',
+    getParentRoute: () => WorkspaceEventosIdRoute,
   } as any)
 const WorkspaceFinanceiroCaixaIndexRoute =
   WorkspaceFinanceiroCaixaIndexRouteImport.update({
@@ -1267,6 +1292,7 @@ export interface FileRoutesByFullPath {
   '/colecao/$slug': typeof StoreColecaoSlugRoute
   '/conta/agendamentos': typeof StoreContaAgendamentosRoute
   '/conta/avaliacoes': typeof StoreContaAvaliacoesRoute
+  '/conta/candidaturas': typeof StoreContaCandidaturasRoute
   '/conta/creditos': typeof StoreContaCreditosRoute
   '/conta/enderecos': typeof StoreContaEnderecosRoute
   '/conta/gift-cards': typeof StoreContaGiftCardsRoute
@@ -1304,6 +1330,7 @@ export interface FileRoutesByFullPath {
   '/verify/document/$code': typeof VerifyDocumentCodeRoute
   '/workspace/agenda/recursos': typeof WorkspaceAgendaRecursosRoute
   '/workspace/catalogo/atributos': typeof WorkspaceCatalogoAtributosRoute
+  '/workspace/catalogo/tabelas': typeof WorkspaceCatalogoTabelasRoute
   '/workspace/catalogo/tipos': typeof WorkspaceCatalogoTiposRoute
   '/workspace/clientes/$id': typeof WorkspaceClientesIdRoute
   '/workspace/cms/avaliacoes': typeof WorkspaceCmsAvaliacoesRoute
@@ -1317,6 +1344,7 @@ export interface FileRoutesByFullPath {
   '/workspace/empregos/candidatos': typeof WorkspaceEmpregosCandidatosRoute
   '/workspace/estoque/alertas': typeof WorkspaceEstoqueAlertasRoute
   '/workspace/estoque/movimentos': typeof WorkspaceEstoqueMovimentosRoute
+  '/workspace/eventos/$id': typeof WorkspaceEventosIdRouteWithChildren
   '/workspace/financeiro/afiliados': typeof WorkspaceFinanceiroAfiliadosRoute
   '/workspace/financeiro/comissoes': typeof WorkspaceFinanceiroComissoesRoute
   '/workspace/financeiro/comprovantes': typeof WorkspaceFinanceiroComprovantesRoute
@@ -1355,6 +1383,7 @@ export interface FileRoutesByFullPath {
   '/workspace/configuracoes/': typeof WorkspaceConfiguracoesIndexRoute
   '/workspace/estoque/': typeof WorkspaceEstoqueIndexRoute
   '/workspace/estudio/': typeof WorkspaceEstudioIndexRoute
+  '/workspace/eventos/': typeof WorkspaceEventosIndexRoute
   '/workspace/lojas/': typeof WorkspaceLojasIndexRoute
   '/workspace/moderacao/': typeof WorkspaceModeracaoIndexRoute
   '/workspace/noticias/': typeof WorkspaceNoticiasIndexRoute
@@ -1451,6 +1480,7 @@ export interface FileRoutesByTo {
   '/colecao/$slug': typeof StoreColecaoSlugRoute
   '/conta/agendamentos': typeof StoreContaAgendamentosRoute
   '/conta/avaliacoes': typeof StoreContaAvaliacoesRoute
+  '/conta/candidaturas': typeof StoreContaCandidaturasRoute
   '/conta/creditos': typeof StoreContaCreditosRoute
   '/conta/enderecos': typeof StoreContaEnderecosRoute
   '/conta/gift-cards': typeof StoreContaGiftCardsRoute
@@ -1488,6 +1518,7 @@ export interface FileRoutesByTo {
   '/verify/document/$code': typeof VerifyDocumentCodeRoute
   '/workspace/agenda/recursos': typeof WorkspaceAgendaRecursosRoute
   '/workspace/catalogo/atributos': typeof WorkspaceCatalogoAtributosRoute
+  '/workspace/catalogo/tabelas': typeof WorkspaceCatalogoTabelasRoute
   '/workspace/catalogo/tipos': typeof WorkspaceCatalogoTiposRoute
   '/workspace/clientes/$id': typeof WorkspaceClientesIdRoute
   '/workspace/cms/avaliacoes': typeof WorkspaceCmsAvaliacoesRoute
@@ -1501,6 +1532,7 @@ export interface FileRoutesByTo {
   '/workspace/empregos/candidatos': typeof WorkspaceEmpregosCandidatosRoute
   '/workspace/estoque/alertas': typeof WorkspaceEstoqueAlertasRoute
   '/workspace/estoque/movimentos': typeof WorkspaceEstoqueMovimentosRoute
+  '/workspace/eventos/$id': typeof WorkspaceEventosIdRouteWithChildren
   '/workspace/financeiro/afiliados': typeof WorkspaceFinanceiroAfiliadosRoute
   '/workspace/financeiro/comissoes': typeof WorkspaceFinanceiroComissoesRoute
   '/workspace/financeiro/comprovantes': typeof WorkspaceFinanceiroComprovantesRoute
@@ -1539,6 +1571,7 @@ export interface FileRoutesByTo {
   '/workspace/configuracoes': typeof WorkspaceConfiguracoesIndexRoute
   '/workspace/estoque': typeof WorkspaceEstoqueIndexRoute
   '/workspace/estudio': typeof WorkspaceEstudioIndexRoute
+  '/workspace/eventos': typeof WorkspaceEventosIndexRoute
   '/workspace/lojas': typeof WorkspaceLojasIndexRoute
   '/workspace/moderacao': typeof WorkspaceModeracaoIndexRoute
   '/workspace/noticias': typeof WorkspaceNoticiasIndexRoute
@@ -1644,6 +1677,7 @@ export interface FileRoutesById {
   '/_store/colecao/$slug': typeof StoreColecaoSlugRoute
   '/_store/conta/agendamentos': typeof StoreContaAgendamentosRoute
   '/_store/conta/avaliacoes': typeof StoreContaAvaliacoesRoute
+  '/_store/conta/candidaturas': typeof StoreContaCandidaturasRoute
   '/_store/conta/creditos': typeof StoreContaCreditosRoute
   '/_store/conta/enderecos': typeof StoreContaEnderecosRoute
   '/_store/conta/gift-cards': typeof StoreContaGiftCardsRoute
@@ -1681,6 +1715,7 @@ export interface FileRoutesById {
   '/verify/document/$code': typeof VerifyDocumentCodeRoute
   '/workspace/agenda/recursos': typeof WorkspaceAgendaRecursosRoute
   '/workspace/catalogo/atributos': typeof WorkspaceCatalogoAtributosRoute
+  '/workspace/catalogo/tabelas': typeof WorkspaceCatalogoTabelasRoute
   '/workspace/catalogo/tipos': typeof WorkspaceCatalogoTiposRoute
   '/workspace/clientes/$id': typeof WorkspaceClientesIdRoute
   '/workspace/cms/avaliacoes': typeof WorkspaceCmsAvaliacoesRoute
@@ -1694,6 +1729,7 @@ export interface FileRoutesById {
   '/workspace/empregos/candidatos': typeof WorkspaceEmpregosCandidatosRoute
   '/workspace/estoque/alertas': typeof WorkspaceEstoqueAlertasRoute
   '/workspace/estoque/movimentos': typeof WorkspaceEstoqueMovimentosRoute
+  '/workspace/eventos/$id': typeof WorkspaceEventosIdRouteWithChildren
   '/workspace/financeiro/afiliados': typeof WorkspaceFinanceiroAfiliadosRoute
   '/workspace/financeiro/comissoes': typeof WorkspaceFinanceiroComissoesRoute
   '/workspace/financeiro/comprovantes': typeof WorkspaceFinanceiroComprovantesRoute
@@ -1732,6 +1768,7 @@ export interface FileRoutesById {
   '/workspace/configuracoes/': typeof WorkspaceConfiguracoesIndexRoute
   '/workspace/estoque/': typeof WorkspaceEstoqueIndexRoute
   '/workspace/estudio/': typeof WorkspaceEstudioIndexRoute
+  '/workspace/eventos/': typeof WorkspaceEventosIndexRoute
   '/workspace/lojas/': typeof WorkspaceLojasIndexRoute
   '/workspace/moderacao/': typeof WorkspaceModeracaoIndexRoute
   '/workspace/noticias/': typeof WorkspaceNoticiasIndexRoute
@@ -1837,6 +1874,7 @@ export interface FileRouteTypes {
     | '/colecao/$slug'
     | '/conta/agendamentos'
     | '/conta/avaliacoes'
+    | '/conta/candidaturas'
     | '/conta/creditos'
     | '/conta/enderecos'
     | '/conta/gift-cards'
@@ -1874,6 +1912,7 @@ export interface FileRouteTypes {
     | '/verify/document/$code'
     | '/workspace/agenda/recursos'
     | '/workspace/catalogo/atributos'
+    | '/workspace/catalogo/tabelas'
     | '/workspace/catalogo/tipos'
     | '/workspace/clientes/$id'
     | '/workspace/cms/avaliacoes'
@@ -1887,6 +1926,7 @@ export interface FileRouteTypes {
     | '/workspace/empregos/candidatos'
     | '/workspace/estoque/alertas'
     | '/workspace/estoque/movimentos'
+    | '/workspace/eventos/$id'
     | '/workspace/financeiro/afiliados'
     | '/workspace/financeiro/comissoes'
     | '/workspace/financeiro/comprovantes'
@@ -1925,6 +1965,7 @@ export interface FileRouteTypes {
     | '/workspace/configuracoes/'
     | '/workspace/estoque/'
     | '/workspace/estudio/'
+    | '/workspace/eventos/'
     | '/workspace/lojas/'
     | '/workspace/moderacao/'
     | '/workspace/noticias/'
@@ -2021,6 +2062,7 @@ export interface FileRouteTypes {
     | '/colecao/$slug'
     | '/conta/agendamentos'
     | '/conta/avaliacoes'
+    | '/conta/candidaturas'
     | '/conta/creditos'
     | '/conta/enderecos'
     | '/conta/gift-cards'
@@ -2058,6 +2100,7 @@ export interface FileRouteTypes {
     | '/verify/document/$code'
     | '/workspace/agenda/recursos'
     | '/workspace/catalogo/atributos'
+    | '/workspace/catalogo/tabelas'
     | '/workspace/catalogo/tipos'
     | '/workspace/clientes/$id'
     | '/workspace/cms/avaliacoes'
@@ -2071,6 +2114,7 @@ export interface FileRouteTypes {
     | '/workspace/empregos/candidatos'
     | '/workspace/estoque/alertas'
     | '/workspace/estoque/movimentos'
+    | '/workspace/eventos/$id'
     | '/workspace/financeiro/afiliados'
     | '/workspace/financeiro/comissoes'
     | '/workspace/financeiro/comprovantes'
@@ -2109,6 +2153,7 @@ export interface FileRouteTypes {
     | '/workspace/configuracoes'
     | '/workspace/estoque'
     | '/workspace/estudio'
+    | '/workspace/eventos'
     | '/workspace/lojas'
     | '/workspace/moderacao'
     | '/workspace/noticias'
@@ -2213,6 +2258,7 @@ export interface FileRouteTypes {
     | '/_store/colecao/$slug'
     | '/_store/conta/agendamentos'
     | '/_store/conta/avaliacoes'
+    | '/_store/conta/candidaturas'
     | '/_store/conta/creditos'
     | '/_store/conta/enderecos'
     | '/_store/conta/gift-cards'
@@ -2250,6 +2296,7 @@ export interface FileRouteTypes {
     | '/verify/document/$code'
     | '/workspace/agenda/recursos'
     | '/workspace/catalogo/atributos'
+    | '/workspace/catalogo/tabelas'
     | '/workspace/catalogo/tipos'
     | '/workspace/clientes/$id'
     | '/workspace/cms/avaliacoes'
@@ -2263,6 +2310,7 @@ export interface FileRouteTypes {
     | '/workspace/empregos/candidatos'
     | '/workspace/estoque/alertas'
     | '/workspace/estoque/movimentos'
+    | '/workspace/eventos/$id'
     | '/workspace/financeiro/afiliados'
     | '/workspace/financeiro/comissoes'
     | '/workspace/financeiro/comprovantes'
@@ -2301,6 +2349,7 @@ export interface FileRouteTypes {
     | '/workspace/configuracoes/'
     | '/workspace/estoque/'
     | '/workspace/estudio/'
+    | '/workspace/eventos/'
     | '/workspace/lojas/'
     | '/workspace/moderacao/'
     | '/workspace/noticias/'
@@ -2844,6 +2893,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreContaAvaliacoesRouteImport
       parentRoute: typeof StoreContaRoute
     }
+    '/_store/conta/candidaturas': {
+      id: '/_store/conta/candidaturas'
+      path: '/candidaturas'
+      fullPath: '/conta/candidaturas'
+      preLoaderRoute: typeof StoreContaCandidaturasRouteImport
+      parentRoute: typeof StoreContaRoute
+    }
     '/_store/conta/creditos': {
       id: '/_store/conta/creditos'
       path: '/creditos'
@@ -3138,6 +3194,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspaceCatalogoAtributosRouteImport
       parentRoute: typeof WorkspaceRoute
     }
+    '/workspace/catalogo/tabelas': {
+      id: '/workspace/catalogo/tabelas'
+      path: '/catalogo/tabelas'
+      fullPath: '/workspace/catalogo/tabelas'
+      preLoaderRoute: typeof WorkspaceCatalogoTabelasRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
     '/workspace/catalogo/tipos': {
       id: '/workspace/catalogo/tipos'
       path: '/catalogo/tipos'
@@ -3255,6 +3318,20 @@ declare module '@tanstack/react-router' {
       path: '/estudio'
       fullPath: '/workspace/estudio/'
       preLoaderRoute: typeof WorkspaceEstudioIndexRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/eventos/': {
+      id: '/workspace/eventos/'
+      path: '/eventos'
+      fullPath: '/workspace/eventos/'
+      preLoaderRoute: typeof WorkspaceEventosIndexRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/eventos/$id': {
+      id: '/workspace/eventos/$id'
+      path: '/eventos/$id'
+      fullPath: '/workspace/eventos/$id'
+      preLoaderRoute: typeof WorkspaceEventosIdRouteImport
       parentRoute: typeof WorkspaceRoute
     }
     '/workspace/financeiro/afiliados': {
@@ -3623,10 +3700,10 @@ declare module '@tanstack/react-router' {
     }
     '/workspace/eventos/$id/checkin': {
       id: '/workspace/eventos/$id/checkin'
-      path: '/eventos/$id/checkin'
+      path: '/checkin'
       fullPath: '/workspace/eventos/$id/checkin'
       preLoaderRoute: typeof WorkspaceEventosIdCheckinRouteImport
-      parentRoute: typeof WorkspaceRoute
+      parentRoute: typeof WorkspaceEventosIdRoute
     }
     '/workspace/financeiro/caixa/': {
       id: '/workspace/financeiro/caixa/'
@@ -3702,6 +3779,7 @@ const StoreAgendarRouteWithChildren = StoreAgendarRoute._addFileChildren(
 interface StoreContaRouteChildren {
   StoreContaAgendamentosRoute: typeof StoreContaAgendamentosRoute
   StoreContaAvaliacoesRoute: typeof StoreContaAvaliacoesRoute
+  StoreContaCandidaturasRoute: typeof StoreContaCandidaturasRoute
   StoreContaCreditosRoute: typeof StoreContaCreditosRoute
   StoreContaEnderecosRoute: typeof StoreContaEnderecosRoute
   StoreContaGiftCardsRoute: typeof StoreContaGiftCardsRoute
@@ -3728,6 +3806,7 @@ interface StoreContaRouteChildren {
 const StoreContaRouteChildren: StoreContaRouteChildren = {
   StoreContaAgendamentosRoute: StoreContaAgendamentosRoute,
   StoreContaAvaliacoesRoute: StoreContaAvaliacoesRoute,
+  StoreContaCandidaturasRoute: StoreContaCandidaturasRoute,
   StoreContaCreditosRoute: StoreContaCreditosRoute,
   StoreContaEnderecosRoute: StoreContaEnderecosRoute,
   StoreContaGiftCardsRoute: StoreContaGiftCardsRoute,
@@ -3962,6 +4041,17 @@ const AdminMasterRouteWithChildren = AdminMasterRoute._addFileChildren(
   AdminMasterRouteChildren,
 )
 
+interface WorkspaceEventosIdRouteChildren {
+  WorkspaceEventosIdCheckinRoute: typeof WorkspaceEventosIdCheckinRoute
+}
+
+const WorkspaceEventosIdRouteChildren: WorkspaceEventosIdRouteChildren = {
+  WorkspaceEventosIdCheckinRoute: WorkspaceEventosIdCheckinRoute,
+}
+
+const WorkspaceEventosIdRouteWithChildren =
+  WorkspaceEventosIdRoute._addFileChildren(WorkspaceEventosIdRouteChildren)
+
 interface WorkspaceMarketingAnunciosRouteChildren {
   WorkspaceMarketingAnunciosNovoRoute: typeof WorkspaceMarketingAnunciosNovoRoute
 }
@@ -3981,6 +4071,7 @@ interface WorkspaceRouteChildren {
   WorkspaceIndexRoute: typeof WorkspaceIndexRoute
   WorkspaceAgendaRecursosRoute: typeof WorkspaceAgendaRecursosRoute
   WorkspaceCatalogoAtributosRoute: typeof WorkspaceCatalogoAtributosRoute
+  WorkspaceCatalogoTabelasRoute: typeof WorkspaceCatalogoTabelasRoute
   WorkspaceCatalogoTiposRoute: typeof WorkspaceCatalogoTiposRoute
   WorkspaceClientesIdRoute: typeof WorkspaceClientesIdRoute
   WorkspaceCmsAvaliacoesRoute: typeof WorkspaceCmsAvaliacoesRoute
@@ -3994,6 +4085,7 @@ interface WorkspaceRouteChildren {
   WorkspaceEmpregosCandidatosRoute: typeof WorkspaceEmpregosCandidatosRoute
   WorkspaceEstoqueAlertasRoute: typeof WorkspaceEstoqueAlertasRoute
   WorkspaceEstoqueMovimentosRoute: typeof WorkspaceEstoqueMovimentosRoute
+  WorkspaceEventosIdRoute: typeof WorkspaceEventosIdRouteWithChildren
   WorkspaceFinanceiroAfiliadosRoute: typeof WorkspaceFinanceiroAfiliadosRoute
   WorkspaceFinanceiroComissoesRoute: typeof WorkspaceFinanceiroComissoesRoute
   WorkspaceFinanceiroComprovantesRoute: typeof WorkspaceFinanceiroComprovantesRoute
@@ -4025,6 +4117,7 @@ interface WorkspaceRouteChildren {
   WorkspaceConfiguracoesIndexRoute: typeof WorkspaceConfiguracoesIndexRoute
   WorkspaceEstoqueIndexRoute: typeof WorkspaceEstoqueIndexRoute
   WorkspaceEstudioIndexRoute: typeof WorkspaceEstudioIndexRoute
+  WorkspaceEventosIndexRoute: typeof WorkspaceEventosIndexRoute
   WorkspaceLojasIndexRoute: typeof WorkspaceLojasIndexRoute
   WorkspaceModeracaoIndexRoute: typeof WorkspaceModeracaoIndexRoute
   WorkspaceNoticiasIndexRoute: typeof WorkspaceNoticiasIndexRoute
@@ -4040,7 +4133,6 @@ interface WorkspaceRouteChildren {
   WorkspaceCatalogoProdutosIdRoute: typeof WorkspaceCatalogoProdutosIdRoute
   WorkspaceCatalogoProdutosNovoRoute: typeof WorkspaceCatalogoProdutosNovoRoute
   WorkspaceConfiguracoesFretesCotacoesRoute: typeof WorkspaceConfiguracoesFretesCotacoesRoute
-  WorkspaceEventosIdCheckinRoute: typeof WorkspaceEventosIdCheckinRoute
   WorkspaceFinanceiroCaixaLancamentosRoute: typeof WorkspaceFinanceiroCaixaLancamentosRoute
   WorkspaceFinanceiroCaixaTurnosRoute: typeof WorkspaceFinanceiroCaixaTurnosRoute
   WorkspacePedidosEntregadoresIdRoute: typeof WorkspacePedidosEntregadoresIdRoute
@@ -4059,6 +4151,7 @@ const WorkspaceRouteChildren: WorkspaceRouteChildren = {
   WorkspaceIndexRoute: WorkspaceIndexRoute,
   WorkspaceAgendaRecursosRoute: WorkspaceAgendaRecursosRoute,
   WorkspaceCatalogoAtributosRoute: WorkspaceCatalogoAtributosRoute,
+  WorkspaceCatalogoTabelasRoute: WorkspaceCatalogoTabelasRoute,
   WorkspaceCatalogoTiposRoute: WorkspaceCatalogoTiposRoute,
   WorkspaceClientesIdRoute: WorkspaceClientesIdRoute,
   WorkspaceCmsAvaliacoesRoute: WorkspaceCmsAvaliacoesRoute,
@@ -4073,6 +4166,7 @@ const WorkspaceRouteChildren: WorkspaceRouteChildren = {
   WorkspaceEmpregosCandidatosRoute: WorkspaceEmpregosCandidatosRoute,
   WorkspaceEstoqueAlertasRoute: WorkspaceEstoqueAlertasRoute,
   WorkspaceEstoqueMovimentosRoute: WorkspaceEstoqueMovimentosRoute,
+  WorkspaceEventosIdRoute: WorkspaceEventosIdRouteWithChildren,
   WorkspaceFinanceiroAfiliadosRoute: WorkspaceFinanceiroAfiliadosRoute,
   WorkspaceFinanceiroComissoesRoute: WorkspaceFinanceiroComissoesRoute,
   WorkspaceFinanceiroComprovantesRoute: WorkspaceFinanceiroComprovantesRoute,
@@ -4104,6 +4198,7 @@ const WorkspaceRouteChildren: WorkspaceRouteChildren = {
   WorkspaceConfiguracoesIndexRoute: WorkspaceConfiguracoesIndexRoute,
   WorkspaceEstoqueIndexRoute: WorkspaceEstoqueIndexRoute,
   WorkspaceEstudioIndexRoute: WorkspaceEstudioIndexRoute,
+  WorkspaceEventosIndexRoute: WorkspaceEventosIndexRoute,
   WorkspaceLojasIndexRoute: WorkspaceLojasIndexRoute,
   WorkspaceModeracaoIndexRoute: WorkspaceModeracaoIndexRoute,
   WorkspaceNoticiasIndexRoute: WorkspaceNoticiasIndexRoute,
@@ -4120,7 +4215,6 @@ const WorkspaceRouteChildren: WorkspaceRouteChildren = {
   WorkspaceCatalogoProdutosNovoRoute: WorkspaceCatalogoProdutosNovoRoute,
   WorkspaceConfiguracoesFretesCotacoesRoute:
     WorkspaceConfiguracoesFretesCotacoesRoute,
-  WorkspaceEventosIdCheckinRoute: WorkspaceEventosIdCheckinRoute,
   WorkspaceFinanceiroCaixaLancamentosRoute:
     WorkspaceFinanceiroCaixaLancamentosRoute,
   WorkspaceFinanceiroCaixaTurnosRoute: WorkspaceFinanceiroCaixaTurnosRoute,

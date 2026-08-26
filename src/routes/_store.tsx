@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, isRedirect } from "@tanstack/react-router";
 import { getNavigationMenus, getPublicStoreSettings } from "@/services/cms.functions";
+import { getPublicBrandSettings } from "@/services/master.functions";
 import { getCart, getGlobalCarts } from "@/services/cart.functions";
 import { getActiveGlobalPopups } from "@/services/builder.functions";
 import { getUserSession } from "@/services/auth.functions";
@@ -14,9 +15,10 @@ import { ErrorState, UnconfiguredState } from "@/components/state/states";
 export const Route = createFileRoute("/_store")({
   loader: async () => {
     try {
-      const [menusRes, storeRes, carts, globalCarts, popupsRes, sessionRes] = await Promise.all([
+      const [menusRes, storeRes, brandRes, carts, globalCarts, popupsRes, sessionRes] = await Promise.all([
         getNavigationMenus().catch(() => []),
         getPublicStoreSettings().catch(() => null),
+        getPublicBrandSettings().catch(() => null),
         getCart().catch(() => null),
         getGlobalCarts().catch(() => []),
         getActiveGlobalPopups().catch(() => []),
@@ -25,6 +27,7 @@ export const Route = createFileRoute("/_store")({
       return {
         menus: menusRes || [],
         store: storeRes || null,
+        brand: brandRes || null,
         carts,
         globalCarts: globalCarts || [],
         popups: popupsRes || [],
@@ -34,6 +37,7 @@ export const Route = createFileRoute("/_store")({
       return {
         menus: [],
         store: null,
+        brand: null,
         carts: null,
         globalCarts: [],
         popups: [],
@@ -75,7 +79,7 @@ function StoreRouteError({ error }: { error: Error }) {
 }
 
 function StoreLayout() {
-  const { store, carts, globalCarts, popups, session } = Route.useLoaderData() as any;
+  const { store, brand, carts, globalCarts, popups, session } = Route.useLoaderData() as any;
   const { initCart } = useCartContext();
 
   useEffect(() => {
@@ -83,9 +87,12 @@ function StoreLayout() {
   }, [carts, globalCarts, initCart]);
 
   const storeData = store?.data || store;
-  const storeName = storeData?.name || "Wider";
+  const storeName = brand?.platform_name || storeData?.name || "Wider";
   const logoUrl =
-    storeData?.logoUrl || storeData?.settings?.logoUrl || storeData?.settings?.logo_url;
+    brand?.logo_url ||
+    storeData?.logoUrl ||
+    storeData?.settings?.logoUrl ||
+    storeData?.settings?.logo_url;
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://wider.com.br";
 
   // JSON-LD Structured Data (Organization + WebSite with SearchAction)
@@ -98,10 +105,10 @@ function StoreLayout() {
         name: storeName,
         url: baseUrl,
         logo: logoUrl || `${baseUrl}/logo.png`,
-        contactPoint: storeData?.contactPhone
+        contactPoint: (brand?.support_whatsapp || storeData?.contactPhone)
           ? {
               "@type": "ContactPoint",
-              telephone: storeData.contactPhone,
+              telephone: brand?.support_whatsapp || storeData.contactPhone,
               contactType: "customer service",
             }
           : undefined,
@@ -124,15 +131,13 @@ function StoreLayout() {
     ],
   };
 
-  const brandSettings = storeData
-    ? {
-        logo_url: storeData.logoUrl || storeData.settings?.logoUrl || null,
-        favicon_url: storeData.faviconUrl || storeData.settings?.faviconUrl || null,
-        show_logo: storeData.settings?.show_logo !== false,
-        show_name: storeData.settings?.show_name !== false,
-        platform_name: storeData.name || "Wider",
-      }
-    : null;
+  const brandSettings = {
+    logo_url: brand?.logo_url || storeData?.logoUrl || storeData?.settings?.logoUrl || null,
+    favicon_url: brand?.favicon_url || storeData?.faviconUrl || storeData?.settings?.faviconUrl || null,
+    show_logo: brand?.show_logo !== false && storeData?.settings?.show_logo !== false,
+    show_name: brand?.show_name !== false && storeData?.settings?.show_name !== false,
+    platform_name: brand?.platform_name || storeData?.name || "Wider",
+  };
 
   return (
     <AppShell session={session} brandSettings={brandSettings}>

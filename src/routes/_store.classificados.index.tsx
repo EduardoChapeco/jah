@@ -60,8 +60,8 @@ export const Route = createFileRoute("/_store/classificados/")({
   }),
   loader: async () => {
     const [banners, hotpages, classifieds] = await Promise.all([
-      listActiveBanners({ data: { placement: "home" } }).catch(() => []),
-      listHotpages({ data: { module: "home" } }).catch(() => []),
+      listActiveBanners({ data: { placement: "classificados" } }).catch(() => []),
+      listHotpages({ data: { module: "classificados" } }).catch(() => []),
       getPublicClassifieds().catch(() => []),
     ]);
 

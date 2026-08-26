@@ -493,25 +493,7 @@ export const getCourierBySlug = createServerFn({ method: "GET" })
       .maybeSingle();
 
     if (error || !courier) {
-      // Fallback para motorista demonstrativo
-      return {
-        id: "d0000000-0000-0000-0000-000000000001",
-        user_id: null,
-        store_id: null,
-        slug,
-        full_name: "Marcos Vinícius — Entregas & Frete",
-        phone: "(49) 99881-2233",
-        avatar_url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&q=80",
-        vehicle_type: "motorcycle",
-        vehicle_plate: "MRA-4G88",
-        vehicle_model: "Honda CG 160 Titan",
-        vehicle_color: "Preta",
-        receives_direct_requests: true,
-        receives_pool_requests: true,
-        is_available: true,
-        rating: 4.95,
-        total_rides: 482,
-      } as CourierProfileDTO;
+      return null;
     }
 
     return courier as CourierProfileDTO;
@@ -617,5 +599,75 @@ export const deleteLogisticsPriceTable = createServerFn({ method: "POST" })
 
     if (error) throw new Error(`Erro ao remover tabela de preço: ${error.message}`);
     return { status: "success" };
+  });
+
+export interface LogisticsInvoiceDTO {
+  id: string;
+  store_id: string | null;
+  courier_profile_id: string | null;
+  courier_name: string;
+  courier_phone: string | null;
+  period: string;
+  total_rides: number;
+  gross_amount_cents: number;
+  platform_fee_cents: number;
+  net_payable_cents: number;
+  status: "paid" | "pending" | "cancelled";
+  paid_at: string | null;
+  created_at: string;
+}
+
+/**
+ * 12. Lista as faturas e repasses de frotas e motoristas reais no Workspace com isolamento multi-tenant estrito.
+ */
+export const listLogisticsInvoices = createServerFn({ method: "GET" }).handler(
+  async (): Promise<LogisticsInvoiceDTO[]> => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity().catch(() => null);
+    if (!identity?.store_id) return [];
+
+    const { data, error } = await supabase
+      .from("logistics_invoices")
+      .select("*")
+      .eq("store_id", identity.store_id)
+      .order("created_at", { ascending: false });
+
+    if (error || !data) {
+      return [];
+    }
+
+    return data as LogisticsInvoiceDTO[];
+  },
+);
+
+/**
+ * 13. Liquida uma fatura de logística (baixa PIX com persistência real).
+ */
+export const settleLogisticsInvoice = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string().uuid() }))
+  .handler(async ({ data: { id } }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "finance"]);
+
+    const now = new Date().toISOString();
+
+    const { data, error } = await supabase
+      .from("logistics_invoices")
+      .update({
+        status: "paid",
+        paid_at: now,
+        updated_at: now,
+      })
+      .eq("id", id)
+      .eq("store_id", identity.store_id)
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(`Erro ao liquidar fatura: ${error.message}`);
+    }
+
+    return data as LogisticsInvoiceDTO;
   });
 

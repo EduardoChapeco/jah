@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { listOrders, updateOrderStatus } from "@/services/order.functions";
+import { getBrowserClient } from "@/lib/supabase";
 import { formatMoney } from "@/lib/money";
 import { formatDateTime } from "@/lib/datetime";
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Separator } from "@/components/ui/separator";
 
 export const Route = createFileRoute("/workspace/pedidos/gestor")({
-  head: () => ({ meta: [{ title: "KDS - Gestor de Pedidos" }] }),
+  head: () => ({ meta: [{ title: "KDS - Gestor de Pedidos em Tempo Real" }] }),
   loader: async () => {
     const res = await listOrders();
     // Filter only orders that make sense for the kitchen/fulfillment display
@@ -31,6 +32,25 @@ export const Route = createFileRoute("/workspace/pedidos/gestor")({
   component: KDSPage,
 });
 
+function playOrderChime() {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15); // A5
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.45);
+  } catch (e) {
+    console.warn("Web Audio chime not supported:", e);
+  }
+}
+
 function KDSPage() {
   const router = useRouter();
   const initialOrders = Route.useLoaderData();
@@ -38,7 +58,33 @@ function KDSPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
 
-  // Optional: Add auto-refresh polling here in the future
+  // Supabase Realtime WebSockets Listener
+  useEffect(() => {
+    const supabase = getBrowserClient();
+    const channel = supabase
+      .channel("orders-kds-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "orders" },
+        async (payload) => {
+          if (payload.eventType === "INSERT") {
+            playOrderChime();
+            toast.success(`🔔 Novo pedido #${(payload.new as any).id?.slice(0, 6)} recebido na cozinha!`);
+          }
+          const updated = await listOrders().catch(() => []);
+          setOrders(
+            (updated || []).filter(
+              (o: any) => !["draft", "cancelled", "refunded"].includes(o.status),
+            ),
+          );
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {

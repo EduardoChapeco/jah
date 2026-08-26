@@ -229,6 +229,7 @@ export async function _createProduct(input: {
   height_cm?: number | null;
   length_cm?: number | null;
   preparation_time_days?: number | null;
+  show_stock_publicly?: boolean;
   media_urls?: string[];
   category_ids?: string[];
   option_group_ids?: string[];
@@ -305,6 +306,7 @@ export async function _createProduct(input: {
       height_cm: input.height_cm || null,
       length_cm: input.length_cm || null,
       preparation_time_days: input.preparation_time_days || null,
+      show_stock_publicly: input.show_stock_publicly ?? false,
     })
     .select()
     .single();
@@ -415,6 +417,7 @@ export const createProduct = createServerFn({ method: "POST" })
       height_cm: z.number().min(0).optional().nullable(),
       length_cm: z.number().min(0).optional().nullable(),
       preparation_time_days: z.number().int().min(0).optional().nullable(),
+      show_stock_publicly: z.boolean().default(false).optional(),
       media_urls: z.array(z.string().url()).optional(),
       category_ids: z.array(z.string().uuid()).optional(),
       option_group_ids: z.array(z.string().uuid()).optional(),
@@ -819,6 +822,7 @@ export async function _updateProduct(input: {
   preparation_time_days?: number | null;
   preparation_time_minutes?: number | null;
   type_id?: string | null;
+  show_stock_publicly?: boolean;
   category_ids?: string[];
   option_group_ids?: string[];
   options?: any;
@@ -921,6 +925,7 @@ export const updateProduct = createServerFn({ method: "POST" })
       preparation_time_days: z.number().int().min(0).optional().nullable(),
       preparation_time_minutes: z.number().int().min(0).optional().nullable(),
       type_id: z.string().uuid().optional().nullable(),
+      show_stock_publicly: z.boolean().optional(),
       category_ids: z.array(z.string().uuid()).optional(),
       option_group_ids: z.array(z.string().uuid()).optional(),
       options: z.unknown().optional(),
@@ -1978,5 +1983,52 @@ export const deleteOptionGroup = createServerFn({ method: "POST" })
     }
   });
 
+export const quickUpdateOptionValue = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string().uuid(),
+      label: z.string().min(1).optional(),
+      price_modifier_cents: z.number().int().optional(),
+      is_active: z.boolean().optional(),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    try {
+      await requireAdmin();
+      const db = getServerClient();
+      const { getServerIdentity } = await import("@/lib/server-access");
+      const { store_id } = await getServerIdentity();
 
+      // Ensure the option value belongs to an option_group of the current tenant
+      const { data: optVal, error: findErr } = await db
+        .from("option_values")
+        .select("id, group_id, option_groups!inner(store_id)")
+        .eq("id", input.id)
+        .eq("option_groups.store_id", store_id)
+        .single();
+
+      if (findErr || !optVal) {
+        throw new Error("Opção não encontrada ou não pertence à sua loja.");
+      }
+
+      const updateData: Record<string, any> = {};
+      if (input.label !== undefined) updateData.label = input.label;
+      if (input.price_modifier_cents !== undefined)
+        updateData.price_modifier_cents = input.price_modifier_cents;
+      if (input.is_active !== undefined) updateData.is_active = input.is_active;
+
+      const { error: updErr } = await db
+        .from("option_values")
+        .update(updateData)
+        .eq("id", input.id);
+
+      if (updErr) throw updErr;
+      return { success: true };
+    } catch (e: unknown) {
+      console.error("[admin-catalog] quickUpdateOptionValue error:", e);
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao atualizar valor de opção.",
+      );
+    }
+  });
 

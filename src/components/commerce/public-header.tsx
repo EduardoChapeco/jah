@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useCartContext } from "@/lib/cart-context";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
-const FALLBACK_NAV = [
+const DEFAULT_NAV_LINKS = [
   { url: "/", label: "Mural" },
   { url: "/mapa", label: "Mapa" },
   { url: "/mercado", label: "Mercado" },
@@ -30,7 +30,7 @@ export function PublicHeader({
 
   hideNameWithLogo?: boolean;
 }) {
-  const navItems = menuItems.length > 0 ? menuItems : FALLBACK_NAV;
+  const navItems = menuItems.length > 0 ? menuItems : DEFAULT_NAV_LINKS;
   const navigate = useNavigate();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");

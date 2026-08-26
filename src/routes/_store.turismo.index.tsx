@@ -119,16 +119,13 @@ function TourismMasterPage() {
         <BannerHeroCarousel banners={banners} className="w-full" />
       )}
 
-      {/* ── 2. Banner Fino Dinâmico e Customizável (Editável pelo Admin Master Global) ── */}
-      <SlimActionBanner
-        banner={banners?.find((b: any) => (b as any).format === "slim")}
-        title="Vai viajar? Cote seu pacote com as melhores agências"
-        subtitle="Informe origem, destino, quantidade de passageiros e idades das crianças para receber orçamentos sob medida no seu WhatsApp."
-        badgeText="✈️ Assessoria & Cotação"
-        ctaLabel="Solicitar Cotação Grátis"
-        gradientStyle="blue"
-        onCtaClick={() => handleOpenQuote()}
-      />
+      {/* ── 2. Banner Fino Dinâmico (Renderiza SOMENTE se cadastrado no Admin Master) ── */}
+      {banners?.some((b: any) => (b as any).format === "slim") && (
+        <SlimActionBanner
+          banner={banners?.find((b: any) => (b as any).format === "slim")}
+          onCtaClick={() => handleOpenQuote()}
+        />
+      )}
 
       {/* ── 3. Hotpages Contextuais de Turismo ── */}
       {hotpages && hotpages.length > 0 && (

@@ -45,8 +45,9 @@ function getClientIp(req: Request): string {
 // ---------------------------------------------------------------------------
 
 const LoginSchema = z.object({
-  email: z.string().email("E-mail inválido"),
-  password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
+  email: z.string().optional(),
+  identifier: z.string().optional(),
+  password: z.string().min(1, "A senha é obrigatória"),
   redirectTo: z.string().optional(),
 });
 
@@ -152,7 +153,7 @@ export const getUserSession = createServerFn({ method: "GET" }).handler(async ()
 
 export const signInWithPassword = createServerFn({ method: "POST" })
   .validator(LoginSchema)
-  .handler(async ({ data: { email, password, redirectTo } }) => {
+  .handler(async ({ data: { email, identifier, password, redirectTo } }) => {
     try {
       const request = getRequest();
       const ip = getClientIp(request);
@@ -167,13 +168,44 @@ export const signInWithPassword = createServerFn({ method: "POST" })
         };
       }
 
+      const rawIdentifier = (identifier || email || "").trim();
+      if (!rawIdentifier) {
+        throw new Error("Informe seu e-mail, telefone, CPF ou @usuário.");
+      }
+
+      let targetEmail = rawIdentifier;
+
+      // Resolução inteligente se não for um e-mail direto
+      if (!targetEmail.includes("@")) {
+        const adminDb = getServerClient();
+        const cleanUser = targetEmail.startsWith("@") ? targetEmail.slice(1) : targetEmail;
+        const cleanDigits = targetEmail.replace(/\D/g, "");
+
+        let profileQuery = adminDb.from("profiles").select("id");
+        if (cleanDigits.length >= 10) {
+          profileQuery = profileQuery.or(
+            `tax_id.eq.${cleanDigits},phone.eq.${cleanDigits},username.eq.${cleanUser}`,
+          );
+        } else {
+          profileQuery = profileQuery.or(`username.eq.${cleanUser},phone.eq.${cleanUser}`);
+        }
+
+        const { data: matchedProfile } = await profileQuery.limit(1).maybeSingle();
+        if (matchedProfile?.id) {
+          const { data: authUser } = await adminDb.auth.admin.getUserById(matchedProfile.id);
+          if (authUser?.user?.email) {
+            targetEmail = authUser.user.email;
+          }
+        }
+      }
+
       // Extract guest session manually before async context drops
       const guestSessionToken = readCookieFromRequest(request, "wider_guest_session");
 
       // Use global getResponseHeaders implicitly to ensure Set-Cookie is persisted on the RPC response
       const supabase = await getSSRClient();
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: targetEmail,
         password,
       });
 
@@ -187,7 +219,7 @@ export const signInWithPassword = createServerFn({ method: "POST" })
         if (error.message.includes("Email not confirmed")) {
           throw new Error("E-mail não confirmado. Verifique sua caixa de entrada.");
         }
-        throw new Error("E-mail ou senha incorretos.");
+        throw new Error("Identificador ou senha incorretos.");
       }
 
       // Successful login: clear the failed attempts counter

@@ -19,13 +19,11 @@ import {
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
   SheetFooter,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
-import { Surface } from "@/components/ui/surface";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -44,7 +42,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { formatDate } from "../lib/datetime";
-import { Badge } from "@/components/ui/badge";
+
 import {
   listProductTypes,
   createProductType,
@@ -191,45 +189,33 @@ function ProductTypesPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-3xl  bg-card ">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary">
-              Estrutura de Catálogo
-            </span>
-            <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/20">
-              {types.length} {types.length === 1 ? "tipo ativo" : "tipos ativos"}
-            </Badge>
-          </div>
-          <h1 className="text-xl font-bold tracking-tight text-foreground">
-            Tipos de Produto
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            Defina especificações e atributos dinâmicos específicos para cada tipo de item (ex: Tênis, Vestuário, Eletrônicos).
-          </p>
-        </div>
+      <PageHeader
+        eyebrow="Catálogo"
+        title="Tipos de Produto"
+        actions={
+          <Button
+            onClick={handleOpenNew}
+            size="sm"
+            className="rounded-xl text-xs font-bold gap-1.5 bg-primary text-primary-foreground shrink-0"
+          >
+            <Plus className="size-3.5" aria-hidden />
+            <span>Novo Tipo</span>
+          </Button>
+        }
+      />
 
-        <Sheet
-          open={open}
-          onOpenChange={(val) => {
-            setOpen(val);
-            if (!val) setEditingType(null);
-          }}
-        >
-          <SheetTrigger asChild>
-            <Button onClick={handleOpenNew} size="sm" className="rounded-xl text-xs font-bold gap-1.5 bg-primary text-primary-foreground  shrink-0">
-              <Plus className="size-3.5" aria-hidden />
-              <span>Novo Tipo</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="right" className="max-w-2xl overflow-y-auto p-6 bg-card ">
-            <SheetHeader className="space-y-1.5 pb-4 ">
+      <Sheet
+        open={open}
+        onOpenChange={(val) => {
+          setOpen(val);
+          if (!val) setEditingType(null);
+        }}
+      >
+        <SheetContent side="right" className="max-w-2xl overflow-y-auto p-6 bg-card">
+            <SheetHeader className="space-y-1.5 pb-4">
               <SheetTitle className="text-lg font-bold text-foreground">
                 {editingType ? "Editar tipo de produto" : "Criar tipo de produto"}
               </SheetTitle>
-              <SheetDescription className="text-xs text-muted-foreground">
-                Um tipo de produto define quais atributos e grades um produto deve ter (ex: Tamanho, Cor, Material).
-              </SheetDescription>
             </SheetHeader>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-5">
               <div className="grid grid-cols-2 gap-4">
@@ -394,7 +380,7 @@ function ProductTypesPage() {
             </form>
           </SheetContent>
         </Sheet>
-      </div>
+
 
       <div className="flex items-center gap-3">
         <div className="relative flex-1 max-w-sm">

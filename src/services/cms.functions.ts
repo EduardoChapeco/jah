@@ -235,24 +235,37 @@ export const getPublicStoreSettings = createServerFn({ method: "GET" }).handler(
   try {
     const { resolveTenantStoreId } = await import("@/lib/tenant.server");
     const storeId = await resolveTenantStoreId();
-    if (!storeId) return { status: "not_found" as const };
-
     const db = getServerClient();
-    const { data: store, error } = await db
-      .from("stores")
-      .select(
-        "id, name, slug, type, email, phone, cnpj, address, city, state, zip_code, description, seo_title, seo_description, seo_keywords, settings",
-      )
-      .eq("id", storeId)
-      .single();
-    if (error || !store) return { status: "not_found" as const };
 
-    // Map settings to root level for convenience
-    const logoUrl = store.settings?.logoUrl;
-    const faviconUrl = store.settings?.faviconUrl;
+    let store: any = null;
+
+    if (storeId) {
+      const { data, error } = await db
+        .from("stores")
+        .select(
+          "id, name, slug, type, email, phone, cnpj, address, city, state, zip_code, description, seo_title, seo_description, seo_keywords, settings",
+        )
+        .eq("id", storeId)
+        .maybeSingle();
+
+      if (!error && data) store = data;
+    }
+
+    // Se não há store de tenant (ex: navegando na Home/SuperApp), resolve a loja matriz da plataforma
+    if (!store) {
+      const { resolvePlatformRootStore } = await import("@/services/master.functions");
+      store = await resolvePlatformRootStore(db);
+    }
+
+    if (!store) return { status: "not_found" as const };
+
+    const settings = (store.settings as Record<string, any>) || {};
+    const logoUrl = settings.logoUrl || settings.logo_url || null;
+    const faviconUrl = settings.faviconUrl || settings.favicon_url || null;
 
     return { status: "ok" as const, data: { ...store, logoUrl, faviconUrl } };
-  } catch {
+  } catch (err) {
+    console.error("[cms.functions] getPublicStoreSettings error:", err);
     throw new Error("Erro ao carregar dados da loja.");
   }
 });

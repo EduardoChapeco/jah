@@ -176,12 +176,53 @@ function CustomersPage() {
     }
   };
 
-  // Filter customers by search term
-  const filteredCustomers = customers.filter(
-    (c: any) =>
+  // RFM Classification
+  const [rfmFilter, setRfmFilter] = useState<"all" | "vip" | "recurring" | "new" | "at_risk">("all");
+
+  const getCustomerRfm = (c: any) => {
+    if (c.ltvCents >= 50000 || c.orderCount >= 5) {
+      return {
+        id: "vip",
+        label: "VIP / Campeão",
+        badgeClass: "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30",
+        message: `Olá ${c.name}! Como cliente VIP especial da nossa loja, gostaríamos de compartilhar novidades exclusivas em primeira mão!`,
+      };
+    }
+    if (c.orderCount >= 2) {
+      return {
+        id: "recurring",
+        label: "Recorrente",
+        badgeClass: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
+        message: `Olá ${c.name}! Agradecemos por ser um cliente fiel da nossa loja. Confira nossas novidades da semana!`,
+      };
+    }
+    if (c.orderCount === 1) {
+      return {
+        id: "new",
+        label: "Novo Cliente",
+        badgeClass: "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30",
+        message: `Olá ${c.name}! Esperamos que tenha gostado da sua primeira compra conosco. Estamos à disposição para qualquer dúvida!`,
+      };
+    }
+    return {
+      id: "at_risk",
+      label: "Em Risco / Inativo",
+      badgeClass: "bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30",
+      message: `Olá ${c.name}! Sentimos sua falta. Preparamos uma condição especial para você conferir nossos novos produtos!`,
+    };
+  };
+
+  // Filter customers by search term & RFM
+  const filteredCustomers = customers.filter((c: any) => {
+    const matchesSearch =
       c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.tags.some((t: string) => t.toLowerCase().includes(searchTerm.toLowerCase())),
-  );
+      c.tags.some((t: string) => t.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    if (!matchesSearch) return false;
+    if (rfmFilter === "all") return true;
+    const rfm = getCustomerRfm(c);
+    return rfm.id === rfmFilter;
+  });
 
   // Group leads for Kanban Columns
   const leadsNew = leads.filter((l: any) => l.status === "new");
@@ -203,152 +244,85 @@ function CustomersPage() {
       />
 
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetContent side="right" className="sm:max-w-2xl p-0 overflow-y-auto">
-          <SheetHeader className="px-6 py-4  bg-muted/30">
-            <SheetTitle className="flex items-center gap-2 text-xl font-semibold">
+        <SheetContent side="right" className="sm:max-w-md p-6 bg-background overflow-y-auto">
+          <SheetHeader className="pb-4 border-b border-border/40">
+            <SheetTitle className="text-xl font-bold flex items-center gap-2">
               <UserCheck className="size-5 text-primary" />
-              Cadastrar Novo Cliente
+              <span>Novo Cliente</span>
             </SheetTitle>
-            <SheetDescription>
-              Preencha os dados abaixo para adicionar um contato ao seu CRM e habilitar o histórico
-              de compras.
+            <SheetDescription className="text-xs">
+              Cadastre os dados e habilite o histórico e segmentação RFM no CRM.
             </SheetDescription>
           </SheetHeader>
-          <form onSubmit={handleCreate} className="px-6 py-4">
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Coluna 1: Dados Pessoais e Contato */}
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="cli-name" className="text-sm font-medium text-foreground">
-                    Nome Completo *
-                  </Label>
-                  <Input
-                    id="cli-name"
-                    required
-                    value={form.fullName}
-                    onChange={(e) => setForm({ ...form, fullName: e.target.value })}
-                    placeholder="Ex: Carlos Souza"
-                    className="h-10 bg-background"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="cli-tax" className="text-sm font-medium text-foreground">
-                    CPF ou CNPJ
-                  </Label>
-                  <div className="relative">
-                    <FileText className="absolute left-3 top-3 size-4 text-muted-foreground/50" />
-                    <Input
-                      id="cli-tax"
-                      value={form.taxId}
-                      onChange={(e) => setForm({ ...form, taxId: e.target.value })}
-                      placeholder="000.000.000-00"
-                      className="pl-9 h-10 bg-background"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="cli-email" className="text-sm font-medium text-foreground">
-                    E-mail *
-                  </Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3 size-4 text-muted-foreground/50" />
-                    <Input
-                      id="cli-email"
-                      type="email"
-                      required
-                      value={form.email}
-                      onChange={(e) => setForm({ ...form, email: e.target.value })}
-                      placeholder="carlos@exemplo.com"
-                      className="pl-9 h-10 bg-background"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="cli-phone" className="text-xs font-bold text-muted-foreground">
-                    Telefone / WhatsApp
-                  </Label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-3 size-4 text-muted-foreground/50" />
-                    <Input
-                      id="cli-phone"
-                      type="tel"
-                      value={form.phone}
-                      onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                      placeholder="(49) 99999-9999"
-                      className="pl-9 h-10 bg-background"
-                    />
-                  </div>
-                </div>
-              </div>
 
-              {/* Coluna 2: Segmentação e Notas CRM */}
-              <div className="space-y-4 md:border-l md:pl-6">
-                <div className="space-y-2">
-                  <Label htmlFor="cli-tags" className="text-xs font-bold text-muted-foreground">
-                    Tags de Segmentação
-                  </Label>
-                  <Input
-                    id="cli-tags"
-                    value={form.tagsRaw}
-                    onChange={(e) => setForm({ ...form, tagsRaw: e.target.value })}
-                    placeholder="Ex: VIP, Atacado, Compra Frequente"
-                    className="h-10 bg-background"
-                  />
-                  <p className="text-[10px] text-muted-foreground">Separe as tags por vírgulas.</p>
-                </div>
-                <div className="flex items-start space-x-2 pt-2 pb-2 border-y border-dashed border-border/80">
-                  <Checkbox
-                    id="cli-consent-lgpd"
-                    checked={form.isConsentLgpd}
-                    onCheckedChange={(checked) => setForm({ ...form, isConsentLgpd: !!checked })}
-                  />
-                  <div className="grid gap-1.5 leading-none">
-                    <label
-                      htmlFor="cli-consent-lgpd"
-                      className="text-xs font-bold text-muted-foreground cursor-pointer flex items-center gap-1"
-                    >
-                      <ShieldCheck className="size-3.5 text-success" /> Consentimento LGPD
-                    </label>
-                    <p className="text-[10px] text-muted-foreground leading-snug">
-                      O cliente autoriza expressamente a coleta e o processamento de seus dados
-                      cadastrais.
-                    </p>
-                  </div>
-                </div>
-                <div className="space-y-2 h-full flex flex-col">
-                  <Label
-                    htmlFor="cli-notes"
-                    className="text-xs font-bold text-muted-foreground flex items-center gap-1.5"
-                  >
-                    <MessageSquare className="size-3.5" /> Notas Internas do CRM
-                  </Label>
-                  <textarea
-                    id="cli-notes"
-                    value={form.notes}
-                    onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                    placeholder="Observações importantes sobre preferências ou negociações..."
-                    className="flex min-h-[80px] w-full flex-1 rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  />
-                </div>
-              </div>
+          <form onSubmit={handleCreate} className="space-y-4 py-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">Nome Completo *</Label>
+              <Input
+                required
+                value={form.fullName}
+                onChange={(e) => setForm({ ...form, fullName: e.target.value })}
+                placeholder="Ex: João da Silva"
+                className="h-9 text-xs rounded-xl"
+              />
             </div>
 
-            <SheetFooter className="pt-6 mt-4  px-6 pb-6">
-              <Button type="button" variant="ghost" className="h-10">
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSaving}
-                className="h-10 min-w-32 font-bold bg-primary text-primary-foreground hover:bg-primary/90"
-              >
-                {isSaving ? (
-                  "Salvando..."
-                ) : (
-                  <>
-                    <CheckCircle className="size-4 mr-2" /> Cadastrar Cliente
-                  </>
-                )}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">CPF ou CNPJ</Label>
+              <Input
+                value={form.taxId}
+                onChange={(e) => setForm({ ...form, taxId: e.target.value })}
+                placeholder="000.000.000-00"
+                className="h-9 text-xs font-mono rounded-xl"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">E-mail *</Label>
+              <Input
+                type="email"
+                required
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                placeholder="joao@email.com"
+                className="h-9 text-xs rounded-xl"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">WhatsApp / Telefone</Label>
+              <Input
+                type="tel"
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                placeholder="(49) 99999-9999"
+                className="h-9 text-xs rounded-xl"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">Tags (Separadas por vírgula)</Label>
+              <Input
+                value={form.tagsRaw}
+                onChange={(e) => setForm({ ...form, tagsRaw: e.target.value })}
+                placeholder="atacado, vip, eventos"
+                className="h-9 text-xs rounded-xl"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">Anotações do CRM</Label>
+              <Textarea
+                value={form.notes}
+                onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                placeholder="Preferências de compra, observações especiais..."
+                className="text-xs rounded-xl resize-none h-20 leading-relaxed"
+              />
+            </div>
+
+            <SheetFooter className="pt-3">
+              <Button type="submit" disabled={isSaving} className="w-full rounded-xl font-bold text-xs h-10">
+                {isSaving ? "Salvando..." : "Cadastrar Cliente"}
               </Button>
             </SheetFooter>
           </form>
@@ -357,125 +331,171 @@ function CustomersPage() {
 
       <Sheet open={!!selectedLeadId} onOpenChange={(open) => !open && setSelectedLeadId(null)}>
         {selectedLead && (
-          <LeadDetailsSheetContent
-            lead={selectedLead}
-
-            onClose={() => setSelectedLeadId(null)}
-          />
+          <LeadDetailsSheetContent lead={selectedLead} onClose={() => setSelectedLeadId(null)} />
         )}
       </Sheet>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3  bg-card rounded-2xl px-4 py-3  mb-6">
-          <TabsList className="grid grid-cols-3 h-8 w-auto min-w-[300px]">
-            <TabsTrigger value="customers" className="text-xs">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-card border border-border/70 rounded-2xl px-4 py-3 mb-6">
+          <TabsList className="grid grid-cols-3 h-9 w-auto min-w-[320px]">
+            <TabsTrigger value="customers" className="text-xs font-bold">
               Clientes CRM ({filteredCustomers.length})
             </TabsTrigger>
-            <TabsTrigger value="kanban" className="text-xs">
+            <TabsTrigger value="kanban" className="text-xs font-bold">
               Funil de Leads ({leads.length})
             </TabsTrigger>
-            <TabsTrigger value="messages" className="text-xs">
+            <TabsTrigger value="messages" className="text-xs font-bold">
               Mensagens
             </TabsTrigger>
           </TabsList>
 
           {activeTab === "customers" && (
-            <div className="relative w-full sm:w-72">
-              <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground"
-                aria-hidden
-              />
-              <Input
-                type="search"
-                placeholder="Buscar cliente ou tag..."
-                className="pl-8 text-xs w-full rounded-xl h-8 bg-background"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="relative w-full sm:w-64">
+                <Search
+                  className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground"
+                  aria-hidden
+                />
+                <Input
+                  type="search"
+                  placeholder="Buscar cliente ou tag..."
+                  className="pl-8 text-xs w-full rounded-xl h-9 bg-background"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
             </div>
           )}
         </div>
 
         {/* Tab 1: Customers CRM List */}
         <TabsContent value="customers" className="space-y-4">
+          {/* Filtros Rápidos de Segmentação RFM */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+            {[
+              { id: "all", label: "Todos os Clientes" },
+              { id: "vip", label: "VIP / Campeões" },
+              { id: "recurring", label: "Recorrentes" },
+              { id: "new", label: "Novos" },
+              { id: "at_risk", label: "Em Risco (Inativos)" },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setRfmFilter(tab.id as any)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
+                  rfmFilter === tab.id
+                    ? "bg-foreground text-background"
+                    : "bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
           {filteredCustomers.length === 0 ? (
-            <EmptyState title="Nenhum cliente encontrado" />
+            <EmptyState title="Nenhum cliente encontrado neste segmento" />
           ) : (
-            <div className="bg-surface-paper  rounded-xl  overflow-hidden">
+            <div className="bg-card border border-border/70 rounded-2xl overflow-hidden shadow-2xs">
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-muted/40 ">
-                      <TableHead>Cliente</TableHead>
-                      <TableHead>Desde</TableHead>
-                      <TableHead className="text-center">Pedidos</TableHead>
-                      <TableHead className="text-right">LTV</TableHead>
-                      <TableHead>Tags</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
+                    <TableRow className="bg-muted/40 border-b border-border/60">
+                      <TableHead className="font-bold text-xs">Cliente</TableHead>
+                      <TableHead className="font-bold text-xs">Segmento RFM</TableHead>
+                      <TableHead className="text-center font-bold text-xs">Pedidos</TableHead>
+                      <TableHead className="text-right font-bold text-xs">LTV Total</TableHead>
+                      <TableHead className="font-bold text-xs">Tags</TableHead>
+                      <TableHead className="text-right font-bold text-xs">Ações Rápidas</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredCustomers.map((c: any) => (
-                      <TableRow key={c.id} className="hover:bg-muted/30 transition-colors">
-                        <TableCell>
-                          <div className="font-semibold text-foreground text-sm flex items-center gap-2">
-                            {c.name}
-                            {c.isConsentLgpd && (
-                              <Badge
-                                variant="outline"
-                                className="text-[9px] text-success border-success/40 bg-success/10 hover:bg-success/15 h-4 px-1"
-                              >
-                                LGPD
-                              </Badge>
-                            )}
-                          </div>
-                          {c.taxId && (
-                            <p className="text-[10px] text-muted-foreground font-mono mt-0.5">
-                              {c.taxId}
-                            </p>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-xs text-muted-foreground">
-                          {formatDate(c.joinedAt)}
-                        </TableCell>
-                        <TableCell className="text-center text-sm font-semibold">
-                          {c.orderCount}
-                        </TableCell>
-                        <TableCell className="text-right text-sm font-bold text-foreground">
-                          {formatMoney(c.ltvCents)}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            {c.tags.length > 0 ? (
-                              c.tags.slice(0, 2).map((tag: string) => (
+                    {filteredCustomers.map((c: any) => {
+                      const rfm = getCustomerRfm(c);
+                      const whatsappLink = c.phone
+                        ? `https://wa.me/${c.phone.replace(/\D/g, "")}?text=${encodeURIComponent(rfm.message)}`
+                        : null;
+
+                      return (
+                        <TableRow key={c.id} className="hover:bg-muted/30 transition-colors">
+                          <TableCell>
+                            <div className="font-bold text-foreground text-xs flex items-center gap-2">
+                              {c.name}
+                              {c.isConsentLgpd && (
                                 <Badge
-                                  key={tag}
-                                  variant="secondary"
-                                  className="text-[10px] h-5 border-border/30"
+                                  variant="outline"
+                                  className="text-[9px] text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/10 h-4 px-1"
                                 >
-                                  {tag}
+                                  LGPD
                                 </Badge>
-                              ))
-                            ) : (
-                              <span className="text-xs text-muted-foreground">-</span>
+                              )}
+                            </div>
+                            {c.email && (
+                              <p className="text-[10px] text-muted-foreground truncate">
+                                {c.email}
+                              </p>
                             )}
-                            {c.tags.length > 2 && (
-                              <Badge variant="outline" className="text-[10px] h-5 border-border/30">
-                                +{c.tags.length - 2}
-                              </Badge>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="sm" asChild className="h-8">
-                            <Link to="/workspace/clientes/$id" params={{ id: c.id }}>
-                              Detalhes
-                              <ArrowRight className="ml-1.5 size-3.5" />
-                            </Link>
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={`text-[10px] font-bold ${rfm.badgeClass}`}>
+                              {rfm.label}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center text-xs font-mono font-bold">
+                            {c.orderCount}
+                          </TableCell>
+                          <TableCell className="text-right text-xs font-black text-foreground font-mono">
+                            {formatMoney(c.ltvCents)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1">
+                              {c.tags.length > 0 ? (
+                                c.tags.slice(0, 2).map((tag: string) => (
+                                  <Badge
+                                    key={tag}
+                                    variant="secondary"
+                                    className="text-[10px] h-5 border-border/30"
+                                  >
+                                    {tag}
+                                  </Badge>
+                                ))
+                              ) : (
+                                <span className="text-xs text-muted-foreground">-</span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              {whatsappLink && (
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  asChild
+                                  className="size-7 rounded-lg text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10"
+                                  title="Enviar mensagem contextual no WhatsApp"
+                                >
+                                  <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
+                                    <Phone className="size-3.5" />
+                                  </a>
+                                </Button>
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                asChild
+                                className="h-7 text-xs font-bold rounded-lg"
+                              >
+                                <Link to="/workspace/clientes/$id" params={{ id: c.id }}>
+                                  Detalhes
+                                  <ArrowRight className="ml-1 size-3" />
+                                </Link>
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>

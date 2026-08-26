@@ -284,65 +284,74 @@ function AdminMasterBotoesPage() {
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredHotpages.map((item) => (
             <div
               key={item.id}
-              className="group rounded-2xl bg-card p-3.5 space-y-2.5 flex flex-col justify-between hover:border-primary/40 transition-colors border border-border/60 shadow-2xs"
+              className="group rounded-2xl bg-card p-4 space-y-3 flex flex-col justify-between hover:border-primary/40 transition-all border border-border/60 shadow-xs overflow-hidden"
             >
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-mono text-muted-foreground uppercase">
+              <div className="space-y-3 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[10px] font-mono text-muted-foreground uppercase px-2 py-0.5 rounded-md bg-muted/60">
                     {item.module}
                   </span>
                   {item.badge_label && (
-                    <span className="text-[10px] bg-primary/10 text-primary font-medium px-1.5 py-0.5 rounded">
+                    <span className="text-[10px] bg-primary/10 text-primary font-medium px-2 py-0.5 rounded-md truncate max-w-[120px]">
                       {item.badge_label}
                     </span>
                   )}
                 </div>
 
-                <div className="pt-1 flex justify-center">
-                  <DynamicMediaChip
-                    label={item.title}
-                    to={item.target_route || `/${item.slug}`}
-                    badge={item.badge_label}
-                    icon_url={item.custom_icon_url || item.icon_url}
-                    bg_media_type={item.bg_media_type}
-                    bg_media_url={item.bg_media_url}
-                    bg_color={item.bg_color}
-                    bg_overlay_opacity={item.bg_overlay_opacity}
-                    bg_texture={item.bg_texture}
-                  />
+                {/* Preview Real do Chip (Contido e Sem Overflow) */}
+                <div className="p-2.5 rounded-xl bg-muted/30 border border-border/40 w-full overflow-hidden flex items-center justify-center min-w-0">
+                  <div className="pointer-events-none w-full flex justify-center min-w-0 overflow-hidden">
+                    <DynamicMediaChip
+                      size="sm"
+                      label={item.title}
+                      badge={item.badge_label}
+                      icon_url={item.custom_icon_url || item.icon_url}
+                      bg_media_type={item.bg_media_type}
+                      bg_media_url={item.bg_media_url}
+                      bg_color={item.bg_color}
+                      bg_overlay_opacity={item.bg_overlay_opacity}
+                      bg_texture={item.bg_texture}
+                      className="w-full justify-center"
+                    />
+                  </div>
                 </div>
 
-                <div className="text-center">
-                  <p className="text-xs font-semibold text-foreground truncate">{item.title}</p>
-                  <p className="text-[10px] text-muted-foreground truncate font-mono mt-0.5">
+                <div className="space-y-0.5 min-w-0">
+                  <p className="text-xs font-bold text-foreground truncate">{item.title}</p>
+                  <p className="text-[10px] text-muted-foreground truncate font-mono">
                     {item.target_route || `/${item.slug}`}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-1 pt-2 border-t border-border/40">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="size-7 p-0 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer"
-                  onClick={() => handleOpenEdit(item)}
-                  title="Editar"
-                >
-                  <Pencil className="size-3" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="size-7 p-0 rounded-lg text-muted-foreground hover:text-destructive cursor-pointer"
-                  onClick={() => handleDelete(item.id)}
-                  title="Excluir"
-                >
-                  <Trash2 className="size-3" />
-                </Button>
+              <div className="flex items-center justify-between pt-2 border-t border-border/40">
+                <span className="text-[10px] font-mono text-muted-foreground">
+                  Ordem: {item.sort_order ?? 0}
+                </span>
+                <div className="flex items-center gap-1">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="size-7 p-0 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer"
+                    onClick={() => handleOpenEdit(item)}
+                    title="Editar"
+                  >
+                    <Pencil className="size-3.5" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="size-7 p-0 rounded-lg text-muted-foreground hover:text-destructive cursor-pointer"
+                    onClick={() => handleDelete(item.id)}
+                    title="Excluir"
+                  >
+                    <Trash2 className="size-3.5" />
+                  </Button>
+                </div>
               </div>
             </div>
           ))}

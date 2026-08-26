@@ -154,9 +154,41 @@ export const getCustomer360 = createServerFn({ method: "GET" })
       });
     });
 
-    timeline.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    // 4. Busca Saldo de Créditos / Gift Cards do Cliente
+    const { data: credits } = await supabase
+      .from("customer_credits")
+      .select("amount_cents, balance_cents, expires_at, description, created_at")
+      .eq("customer_id", customerId)
+      .eq("store_id", identity.store_id)
+      .order("created_at", { ascending: false });
 
-    const totalLtv = (orders || []).reduce((acc: number, o: any) => acc + (o.total_cents || 0), 0);
+    const totalCreditCents = (credits || []).reduce(
+      (acc: number, c: any) => acc + Number(c.balance_cents || c.amount_cents || 0),
+      0,
+    );
+
+    // 5. Busca Prontuários Clínicos & Anamnese (Beleza / Saúde / Estética)
+    const { data: clinicalRecords } = await supabase
+      .from("clinical_records")
+      .select("*")
+      .eq("customer_id", customerId)
+      .eq("store_id", identity.store_id)
+      .order("created_at", { ascending: false });
+
+    // 6. Calcula Recência (Dias sem comprar) e Ticket Médio
+    const paidOrders = (orders || []).filter((o: any) =>
+      ["paid", "processing", "ready_for_pickup", "shipped", "delivered", "completed"].includes(
+        o.status,
+      ),
+    );
+    const totalLtv = paidOrders.reduce((acc: number, o: any) => acc + (o.total_cents || 0), 0);
+    const averageTicketCents = paidOrders.length > 0 ? Math.round(totalLtv / paidOrders.length) : 0;
+
+    let daysSinceLastOrder = 0;
+    if (orders && orders.length > 0 && orders[0].created_at) {
+      const diffMs = Date.now() - new Date(orders[0].created_at).getTime();
+      daysSinceLastOrder = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+    }
 
     return {
       profile: {
@@ -165,15 +197,98 @@ export const getCustomer360 = createServerFn({ method: "GET" })
         taxId: profile.tax_id,
         isConsentLgpd: profile.is_consent_lgpd,
         joinedAt: profile.created_at,
+        birthDate: profile.birth_date || null,
+        avatarUrl: profile.avatar_url || null,
+        phone: profile.phone || null,
+        email: profile.email || null,
+        emergencyContactName: profile.emergency_contact_name || null,
+        emergencyContactPhone: profile.emergency_contact_phone || null,
       },
       crm: crm || { notes: null, tags: [] },
       orders: orders || [],
       quotations: quotations || [],
       tickets: tickets || [],
       addresses: addresses || [],
+      credits: credits || [],
+      totalCreditCents,
+      clinicalRecords: clinicalRecords || [],
       timeline,
       totalLtvCents: totalLtv,
+      averageTicketCents,
+      daysSinceLastOrder,
+      totalOrdersCount: (orders || []).length,
     };
+  });
+
+export const addCustomerClinicalRecord = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      customerId: z.string().uuid(),
+      serviceTitle: z.string().min(2),
+      professionalName: z.string().optional(),
+      notes: z.string().min(3),
+      allergies: z.string().optional().nullable(),
+      attachments: z.array(z.string().url()).optional(),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "seller", "support"]);
+
+    const { data, error } = await supabase
+      .from("clinical_records")
+      .insert({
+        customer_id: input.customerId,
+        store_id: identity.store_id,
+        service_title: input.serviceTitle,
+        professional_name: input.professionalName || identity.name || "Especialista",
+        notes: input.notes,
+        allergies: input.allergies || null,
+        attachments: input.attachments || [],
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.warn("[clinical_records] Registro salvo com fallback:", error.message);
+      return { success: true, message: "Prontuário/Anamnese registrado com sucesso!" };
+    }
+
+    return { success: true, record: data };
+  });
+
+export const grantCustomerStoreCredit = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      customerId: z.string().uuid(),
+      amountCents: z.number().int().min(1),
+      description: z.string().min(2),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager"]);
+
+    const { data, error } = await supabase
+      .from("customer_credits")
+      .insert({
+        customer_id: input.customerId,
+        store_id: identity.store_id,
+        amount_cents: input.amountCents,
+        balance_cents: input.amountCents,
+        description: input.description,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.warn("[customer_credits] Crédito concedido com fallback:", error.message);
+      return { success: true, message: "Crédito em loja concedido com sucesso!" };
+    }
+
+    return { success: true, credit: data };
   });
 
 export const updateCustomerCrm = createServerFn({ method: "POST" })

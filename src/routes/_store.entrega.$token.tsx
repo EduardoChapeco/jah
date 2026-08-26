@@ -15,8 +15,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { MediaUploader } from "@/components/ui/media-uploader";
-import { getDeliveryByToken, confirmDeliveryByPin } from "@/services/dispatch.functions";
+import {
+  getDeliveryByToken,
+  confirmDeliveryByPin,
+  startDeliveryPickup,
+  updateDeliveryPaymentMethod,
+} from "@/services/dispatch.functions";
 import { formatMoney } from "@/lib/money";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const Route = createFileRoute("/_store/entrega/$token")({
   head: () => ({ meta: [{ title: "Painel do Entregador | Wider Delivery" }] }),
@@ -35,6 +47,42 @@ function DeliveryCourierPage() {
   const [isConfirming, setIsConfirming] = useState(false);
   const [isDelivered, setIsDelivered] = useState(delivery.status === "delivered");
   const [deliveredAt, setDeliveredAt] = useState((delivery as any).delivered_at);
+  const [selectedPayment, setSelectedPayment] = useState<"cash" | "pix" | "card" | "wallet">("cash");
+  const [isUpdatingPayment, setIsUpdatingPayment] = useState(false);
+  const [isStartingPickup, setIsStartingPickup] = useState(false);
+  const [pickupStarted, setPickupStarted] = useState(delivery.status === "in_transit" || delivery.status === "delivered");
+
+  const handleStartPickup = async () => {
+    setIsStartingPickup(true);
+    try {
+      await startDeliveryPickup({ data: { token } });
+      setPickupStarted(true);
+      toast.success("Coleta registrada! Rota iniciada.");
+    } catch {
+      toast.error("Erro ao registrar início de rota.");
+    } finally {
+      setIsStartingPickup(false);
+    }
+  };
+
+  const handleUpdatePayment = async (newMethod: "cash" | "pix" | "card" | "wallet") => {
+    setIsUpdatingPayment(true);
+    try {
+      await updateDeliveryPaymentMethod({
+        data: {
+          token,
+          paymentMethod: newMethod,
+          notes: "Atualizado pelo entregador no momento da entrega",
+        },
+      });
+      setSelectedPayment(newMethod);
+      toast.success(`Forma de pagamento atualizada para ${newMethod.toUpperCase()} no sistema da loja!`);
+    } catch {
+      toast.error("Erro ao atualizar forma de pagamento.");
+    } finally {
+      setIsUpdatingPayment(false);
+    }
+  };
 
   const handleOpenMaps = () => {
     const encodedAddress = encodeURIComponent(delivery.delivery_address);
@@ -194,6 +242,57 @@ function DeliveryCourierPage() {
             )}
           </div>
         </div>
+
+        {/* ── Status de Coleta na Loja ── */}
+        {!isDelivered && (
+          <div className="bg-card rounded-2xl p-4 border border-border/60 shadow-2xs space-y-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-foreground">Status da Coleta</p>
+                <p className="text-[11px] text-muted-foreground">
+                  {pickupStarted ? "Pedido já retirado no restaurante/loja." : "Confirme assim que retirar o pacote."}
+                </p>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant={pickupStarted ? "secondary" : "default"}
+                disabled={isStartingPickup || pickupStarted}
+                onClick={handleStartPickup}
+                className="rounded-xl text-xs font-bold h-9"
+              >
+                {pickupStarted ? "✓ Coletado" : isStartingPickup ? "Registrando..." : "Confirmar Coleta"}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Alterar Forma de Pagamento no Ato da Entrega ── */}
+        {!isDelivered && (
+          <div className="bg-card rounded-2xl p-4 border border-border/60 shadow-2xs space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-foreground">Forma de Pagamento</span>
+              <span className="text-[10px] text-muted-foreground font-mono">Sincronização em tempo real</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Select
+                value={selectedPayment}
+                onValueChange={(val: any) => handleUpdatePayment(val)}
+                disabled={isUpdatingPayment}
+              >
+                <SelectTrigger className="h-9 text-xs rounded-xl flex-1 bg-background">
+                  <SelectValue placeholder="Selecione a forma..." />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl text-xs">
+                  <SelectItem value="cash">Dinheiro na Entrega</SelectItem>
+                  <SelectItem value="pix">PIX na Maquininha / QR Code</SelectItem>
+                  <SelectItem value="card">Cartão Débito / Crédito (Maquininha)</SelectItem>
+                  <SelectItem value="wallet">Carteira / Saldo App</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        )}
 
         {/* Confirmação de Entrega por PIN & Foto de Prova */}
         <div className="bg-card rounded-2xl p-5 space-y-4 border border-border/60 shadow-2xs">

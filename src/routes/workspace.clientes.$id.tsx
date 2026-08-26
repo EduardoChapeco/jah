@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { toast } from "sonner";
 import {
   User,
   ChevronLeft,
@@ -16,70 +17,77 @@ import {
   Sparkles,
   Search,
   AlertTriangle,
+  Gift,
+  DollarSign,
+  HeartPulse,
+  Calendar,
+  Clock,
+  Building,
+  CreditCard,
+  History,
+  Tag,
 } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { toast } from "sonner";
-import { useState } from "react";
-
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CitySelect } from "@/components/ui/city-select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Surface } from "@/components/ui/surface";
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
-  SheetFooter,
   SheetHeader,
   SheetTitle,
+  SheetDescription,
+  SheetFooter,
 } from "@/components/ui/sheet";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { EmptyState } from "@/components/state/states";
 import {
   getCustomer360,
   updateCustomerCrm,
   upsertCustomerAddress,
   deleteCustomerAddress,
+  addCustomerClinicalRecord,
+  grantCustomerStoreCredit,
 } from "@/services/crm.functions";
 import { formatMoney } from "@/lib/money";
-import { formatDate } from "../lib/datetime";
 
 export const Route = createFileRoute("/workspace/clientes/$id")({
-  head: () => ({ meta: [{ title: "Detalhes do Cliente" }] }),
+  head: () => ({ meta: [{ title: "Ficha 360° do Cliente | Workspace" }] }),
   loader: async ({ params }) => {
     return await getCustomer360({ data: { customerId: params.id } });
   },
   component: CustomerDetailPage,
 });
 
-const CrmSchema = z.object({
-  notes: z.string().nullable(),
-  tags: z.string(), // We'll parse this into an array
-});
-
 function CustomerDetailPage() {
-  const data = Route.useLoaderData();
+  const data = Route.useLoaderData() as any;
   const { id } = Route.useParams();
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Address Dialog states
-  const [isAddressOpen, setIsAddressOpen] = useState(false);
-  const [editingAddress, setEditingAddress] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState("timeline");
+
+  // CRM State
+  const [notes, setNotes] = useState(data.crm.notes || "");
+  const [tags, setTags] = useState(data.crm.tags ? data.crm.tags.join(", ") : "");
+  const [isSavingCrm, setIsSavingCrm] = useState(false);
+
+  // Modal de Concessão de Crédito
+  const [isCreditModalOpen, setIsCreditModalOpen] = useState(false);
+  const [creditAmount, setCreditAmount] = useState("");
+  const [creditDescription, setCreditDescription] = useState("");
+  const [isSavingCredit, setIsSavingCredit] = useState(false);
+
+  // Modal de Prontuário / Anamnese
+  const [isClinicalModalOpen, setIsClinicalModalOpen] = useState(false);
+  const [serviceTitle, setServiceTitle] = useState("");
+  const [clinicalNotes, setClinicalNotes] = useState("");
+  const [allergies, setAllergies] = useState("");
+  const [isSavingClinical, setIsSavingClinical] = useState(false);
+
+  // Modal de Endereço
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [addressForm, setAddressForm] = useState({
     zipcode: "",
     street: "",
@@ -90,630 +98,583 @@ function CustomerDetailPage() {
     state: "",
     is_default: false,
   });
-  const [isSearchingCep, setIsSearchingCep] = useState(false);
   const [isSavingAddress, setIsSavingAddress] = useState(false);
 
-  const form = useForm({
-    resolver: zodResolver(CrmSchema),
-    defaultValues: {
-      notes: data.crm.notes || "",
-      tags: data.crm.tags ? data.crm.tags.join(",") : "",
-    },
-  });
-
-  const onSubmit = async (formData: z.infer<typeof CrmSchema>) => {
-    setIsSubmitting(true);
+  const handleSaveCrm = async () => {
+    setIsSavingCrm(true);
     try {
-      const tagsArray = formData.tags
+      const tagsArray = tags
         .split(",")
-        .map((t) => t.trim())
-        .filter((t) => t.length > 0);
+        .map((t: string) => t.trim())
+        .filter((t: string) => t.length > 0);
 
       await updateCustomerCrm({
         data: {
           customerId: id,
-          notes: formData.notes || null,
+          notes: notes || null,
           tags: tagsArray,
         },
       });
-      toast.success("Ficha do cliente atualizada.");
+      toast.success("Ficha do cliente atualizada com sucesso!");
       router.invalidate();
-    } catch (e: unknown) {
-      toast.error(
-        e instanceof Error ? (e instanceof Error ? e.message : String(e)) : "Erro ao salvar",
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleCepLookup = async (cep: string) => {
-    const cleanCep = cep.replace(/\D/g, "");
-    if (cleanCep.length !== 8) return;
-    setIsSearchingCep(true);
-    try {
-      const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
-      const resData = await res.json();
-      if (!resData.erro) {
-        setAddressForm((prev) => ({
-          ...prev,
-          zipcode: cep,
-          street: resData.logradouro || "",
-          neighborhood: resData.bairro || "",
-          city: resData.localidade || "",
-          state: resData.uf || "",
-        }));
-        toast.success("Endereço preenchido automaticamente via CEP!");
-      } else {
-        toast.error("CEP não encontrado");
-      }
     } catch {
-      toast.error("Erro ao buscar CEP");
+      toast.error("Erro ao atualizar ficha do cliente.");
     } finally {
-      setIsSearchingCep(false);
+      setIsSavingCrm(false);
     }
   };
 
-  const handleOpenNewAddress = () => {
-    setEditingAddress(null);
-    setAddressForm({
-      zipcode: "",
-      street: "",
-      number: "",
-      complement: "",
-      neighborhood: "",
-      city: "",
-      state: "",
-      is_default: data.addresses.length === 0,
-    });
-    setIsAddressOpen(true);
-  };
-
-  const handleOpenEditAddress = (addr: any) => {
-    setEditingAddress(addr);
-    setAddressForm({
-      zipcode: addr.zipcode,
-      street: addr.street,
-      number: addr.number,
-      complement: addr.complement || "",
-      neighborhood: addr.neighborhood,
-      city: addr.city,
-      state: addr.state,
-      is_default: addr.is_default,
-    });
-    setIsAddressOpen(true);
-  };
-
-  const handleSaveAddress = async (e: React.FormEvent) => {
+  const handleGrantCredit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (
-      !addressForm.zipcode ||
-      !addressForm.street ||
-      !addressForm.number ||
-      !addressForm.neighborhood ||
-      !addressForm.city ||
-      !addressForm.state
-    ) {
-      toast.error("Preencha todos os campos obrigatórios");
+    const amountVal = parseFloat(creditAmount.replace(",", "."));
+    if (isNaN(amountVal) || amountVal <= 0) {
+      toast.error("Informe um valor de crédito válido.");
       return;
     }
-    setIsSavingAddress(true);
+
+    setIsSavingCredit(true);
     try {
-      const res = await upsertCustomerAddress({
+      await grantCustomerStoreCredit({
         data: {
-          id: editingAddress?.id,
-          customer_id: id,
-          zipcode: addressForm.zipcode,
-          street: addressForm.street,
-          number: addressForm.number,
-          complement: addressForm.complement || null,
-          neighborhood: addressForm.neighborhood,
-          city: addressForm.city,
-          state: addressForm.state,
-          is_default: addressForm.is_default,
+          customerId: id,
+          amountCents: Math.round(amountVal * 100),
+          description: creditDescription.trim() || "Crédito / Troca / Bonificação",
         },
       });
-
-      if (res) {
-        toast.success(editingAddress ? "Endereço atualizado!" : "Endereço cadastrado!");
-        setIsAddressOpen(false);
-        router.invalidate();
-      } else {
-        toast.error(res.message || "Erro ao salvar endereço");
-      }
-    } catch (e: unknown) {
-      toast.error((e instanceof Error ? e.message : String(e)) || "Erro inesperado");
+      toast.success("Crédito concedido com sucesso!");
+      setIsCreditModalOpen(false);
+      setCreditAmount("");
+      setCreditDescription("");
+      router.invalidate();
+    } catch {
+      toast.error("Erro ao conceder crédito.");
     } finally {
-      setIsSavingAddress(false);
+      setIsSavingCredit(false);
     }
   };
 
-  const handleDeleteAddress = async (addressId: string) => {
-    if (!confirm("Tem certeza que deseja remover este endereço permanentemente?")) return;
+  const handleSaveClinical = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!serviceTitle.trim() || !clinicalNotes.trim()) {
+      toast.error("Informe o procedimento e as anotações do atendimento.");
+      return;
+    }
+
+    setIsSavingClinical(true);
     try {
-      await deleteCustomerAddress({
+      await addCustomerClinicalRecord({
         data: {
-          addressId,
           customerId: id,
+          serviceTitle: serviceTitle.trim(),
+          notes: clinicalNotes.trim(),
+          allergies: allergies.trim() || null,
         },
       });
-      toast.success("Endereço removido");
+      toast.success("Prontuário/Anamnese registrado com sucesso!");
+      setIsClinicalModalOpen(false);
+      setServiceTitle("");
+      setClinicalNotes("");
+      setAllergies("");
       router.invalidate();
     } catch {
-      toast.error("Erro inesperado");
+      toast.error("Erro ao salvar prontuário.");
+    } finally {
+      setIsSavingClinical(false);
     }
   };
 
   return (
-    <div className="space-y-6">
-      <nav aria-label="Breadcrumb" className="flex items-center text-sm text-muted-foreground">
-        <Link to="/workspace/clientes" className="hover:text-foreground flex items-center">
-          <ChevronLeft className="mr-1 size-4" />
-          Voltar para Clientes
-        </Link>
-      </nav>
+    <div className="w-full space-y-6 pb-12">
+      {/* Header */}
+      <PageHeader
+        title={data.profile.name}
+        actions={
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsCreditModalOpen(true)}
+              className="gap-1.5 font-bold text-xs"
+            >
+              <Gift className="size-3.5" />
+              Conceder Crédito
+            </Button>
 
-      {/* Identidade Resumida & LTV */}
-      <div className="squircle-soft  bg-card p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 ">
-        <div className="flex items-center gap-4">
-          <div className="size-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-bold text-xl">
-            {data.profile.name.charAt(0).toUpperCase()}
+            <Button
+              size="sm"
+              onClick={() => setIsClinicalModalOpen(true)}
+              className="gap-1.5 font-bold text-xs"
+            >
+              <HeartPulse className="size-3.5" />
+              Novo Atendimento / Anamnese
+            </Button>
           </div>
-          <div className="space-y-1">
-            <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
-              {data.profile.name}
+        }
+      />
+
+      {/* ── 1. Topo da Ficha: Perfil & KPIs 360° ── */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+        {/* Card de Identificação (4 cols) */}
+        <div className="md:col-span-4 bg-card rounded-2xl border border-border/60 p-5 space-y-4">
+          <div className="flex items-center gap-3.5">
+            <div className="size-14 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground overflow-hidden font-bold text-lg shrink-0">
+              {data.profile.avatarUrl ? (
+                <img
+                  src={data.profile.avatarUrl}
+                  alt={data.profile.name}
+                  className="size-full object-cover"
+                />
+              ) : (
+                <User className="size-7" />
+              )}
+            </div>
+
+            <div className="min-w-0 space-y-0.5">
+              <h2 className="text-base font-bold text-foreground truncate">
+                {data.profile.name}
+              </h2>
+              {data.profile.taxId ? (
+                <span className="text-xs font-mono text-muted-foreground block">
+                  CPF/CNPJ: {data.profile.taxId}
+                </span>
+              ) : (
+                <span className="text-[11px] text-muted-foreground">Documento não informado</span>
+              )}
               {data.profile.isConsentLgpd && (
-                <Badge
-                  variant="outline"
-                  className="text-[10px] text-emerald-600 border-emerald-500/40 bg-emerald-500/10 h-5 px-1.5"
-                >
+                <Badge variant="outline" className="text-[10px] text-emerald-600 gap-1 border-emerald-500/30">
+                  <ShieldCheck className="size-3" />
                   LGPD Consentido
                 </Badge>
               )}
-            </h1>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <FileText className="size-3.5" /> {data.profile.taxId || "CPF/CNPJ não informado"}
-              </span>
-              <span>•</span>
-              <span>Cliente desde {formatDate(data.profile.joinedAt)}</span>
             </div>
+          </div>
+
+          <div className="space-y-2 pt-2 border-t border-border/40 text-xs">
+            {data.profile.email && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Mail className="size-3.5 shrink-0" />
+                <span className="truncate">{data.profile.email}</span>
+              </div>
+            )}
+            {data.profile.phone && (
+              <div className="flex items-center gap-2 text-muted-foreground font-mono">
+                <Phone className="size-3.5 shrink-0" />
+                <span>{data.profile.phone}</span>
+              </div>
+            )}
+            {data.profile.birthDate && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Calendar className="size-3.5 shrink-0" />
+                <span>Aniversário: {new Date(data.profile.birthDate).toLocaleDateString("pt-BR")}</span>
+              </div>
+            )}
+            {data.profile.emergencyContactName && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <HeartPulse className="size-3.5 shrink-0" />
+                <span>
+                  Emergência: {data.profile.emergencyContactName} ({data.profile.emergencyContactPhone})
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="flex items-center gap-6 border-t sm:border-t-0 sm: pt-3 sm:pt-0 sm:pl-6">
-          <div>
-            <span className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">
-              LTV Total
+        {/* Grid de KPIs 360° (8 cols) */}
+        <div className="md:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="bg-card rounded-2xl border border-border/60 p-4 space-y-1">
+            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+              LTV Total (Gastos)
             </span>
-            <p className="text-xl font-bold text-primary">
-              {formatMoney((data as any).totalLtvCents || 0)}
-            </p>
+            <div className="text-lg sm:text-xl font-black text-foreground">
+              {formatMoney(data.totalLtvCents)}
+            </div>
+            <span className="text-[10px] text-muted-foreground font-mono">
+              {data.totalOrdersCount} compras realizadas
+            </span>
           </div>
-          <div>
-            <span className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">
-              Pedidos
+
+          <div className="bg-card rounded-2xl border border-border/60 p-4 space-y-1">
+            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+              Ticket Médio
             </span>
-            <p className="text-xl font-bold text-foreground">{data.orders.length}</p>
+            <div className="text-lg sm:text-xl font-black text-foreground">
+              {formatMoney(data.averageTicketCents)}
+            </div>
+            <span className="text-[10px] text-muted-foreground">Por compra</span>
+          </div>
+
+          <div className="bg-card rounded-2xl border border-border/60 p-4 space-y-1">
+            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+              Créditos / Troca
+            </span>
+            <div className="text-lg sm:text-xl font-black text-emerald-600 dark:text-emerald-400">
+              {formatMoney(data.totalCreditCents)}
+            </div>
+            <span className="text-[10px] text-muted-foreground">Disponível em loja</span>
+          </div>
+
+          <div className="bg-card rounded-2xl border border-border/60 p-4 space-y-1">
+            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+              Recência
+            </span>
+            <div className="text-lg sm:text-xl font-black text-foreground">
+              {data.daysSinceLastOrder} dias
+            </div>
+            <span className="text-[10px] text-muted-foreground">
+              {data.daysSinceLastOrder > 60 ? "⚠️ Risco de Churn" : "Cliente Ativo"}
+            </span>
           </div>
         </div>
       </div>
 
-      <Tabs defaultValue="timeline" className="w-full">
-        <TabsList className="grid grid-cols-5 max-w-2xl mb-6 h-10 p-1 bg-muted rounded-xl">
-          <TabsTrigger value="timeline" className="text-xs font-bold rounded-lg">
-            Timeline 360
+      {/* ── 2. Abas de Detalhamento 360° ── */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid grid-cols-2 sm:grid-cols-5 h-10 w-full mb-6">
+          <TabsTrigger value="timeline" className="text-xs font-semibold gap-1.5">
+            <History className="size-3.5" />
+            Timeline & Pedidos
           </TabsTrigger>
-          <TabsTrigger value="crm" className="text-xs font-bold rounded-lg">
-            Ficha CRM
-          </TabsTrigger>
-          <TabsTrigger value="pedidos" className="text-xs font-bold rounded-lg">
-            Pedidos ({data.orders.length})
-          </TabsTrigger>
-          <TabsTrigger value="orcamentos" className="text-xs font-bold rounded-lg">
-            Orçamentos ({(data as any).quotations?.length || 0})
-          </TabsTrigger>
-          <TabsTrigger value="enderecos" className="text-xs font-bold rounded-lg">
+          <TabsTrigger value="addresses" className="text-xs font-semibold gap-1.5">
+            <MapPin className="size-3.5" />
             Endereços ({data.addresses.length})
+          </TabsTrigger>
+          <TabsTrigger value="credits" className="text-xs font-semibold gap-1.5">
+            <Gift className="size-3.5" />
+            Créditos & Saldos
+          </TabsTrigger>
+          <TabsTrigger value="clinical" className="text-xs font-semibold gap-1.5">
+            <HeartPulse className="size-3.5" />
+            Anamnese ({data.clinicalRecords.length})
+          </TabsTrigger>
+          <TabsTrigger value="crm" className="text-xs font-semibold gap-1.5">
+            <Tag className="size-3.5" />
+            Notas & Tags
           </TabsTrigger>
         </TabsList>
 
-        {/* Tab 1: Timeline 360 */}
+        {/* ── Aba 1: Timeline de Pedidos & Interações ── */}
         <TabsContent value="timeline" className="space-y-4">
-          <div className="squircle-soft  bg-card p-6 ">
-            <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
-              <Sparkles className="size-4 text-primary" />
-              Linha do Tempo de Interações (Timeline 360)
-            </h3>
-
-            {!(data as any).timeline || (data as any).timeline.length === 0 ? (
-              <p className="text-xs text-muted-foreground text-center py-8">
-                Nenhuma interação registrada ainda para este cliente.
-              </p>
-            ) : (
-              <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-border">
-                {(data as any).timeline.map((event: any) => (
-                  <div key={event.id} className="relative flex items-start gap-4">
-                    <div className="absolute -left-6 top-1 size-3 rounded-full bg-primary ring-4 ring-card" />
-                    <div className="flex-1 bg-background  rounded-xl p-3.5 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs font-bold text-foreground">{event.title}</p>
-                        <span className="text-[10px] text-muted-foreground">
-                          {formatDate(event.timestamp)}
-                        </span>
-                      </div>
-                      <p className="text-xs text-muted-foreground">{event.description}</p>
-                      <Badge variant="outline" className="text-[10px] rounded-full uppercase mt-1">
-                        {event.status}
-                      </Badge>
+          {data.timeline.length === 0 ? (
+            <EmptyState
+              title="Nenhuma interação registrada ainda"
+              description="Quando o cliente realizar pedidos, solicitar orçamentos ou emitir ingressos, a timeline será preenchida automaticamente."
+            />
+          ) : (
+            <div className="space-y-3">
+              {data.timeline.map((event: any) => (
+                <div
+                  key={event.id}
+                  className="p-4 rounded-2xl bg-card border border-border/60 flex items-center justify-between gap-4"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="size-10 rounded-xl bg-muted flex items-center justify-center shrink-0">
+                      {event.type === "order" ? (
+                        <CreditCard className="size-5 text-primary" />
+                      ) : event.type === "quote" ? (
+                        <FileText className="size-5 text-amber-500" />
+                      ) : (
+                        <Calendar className="size-5 text-emerald-500" />
+                      )}
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </TabsContent>
-
-        {/* Tab: Orçamentos */}
-        <TabsContent value="orcamentos" className="space-y-4">
-          <div className="squircle-soft  bg-card p-6  space-y-4">
-            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-              <FileText className="size-4 text-primary" />
-              Histórico de Orçamentos
-            </h3>
-            {!(data as any).quotations || (data as any).quotations.length === 0 ? (
-              <p className="text-xs text-muted-foreground text-center py-8">
-                Nenhum orçamento emitido para este cliente.
-              </p>
-            ) : (
-              <div className="divide-y divide-border/60">
-                {(data as any).quotations.map((q: any) => (
-                  <div key={q.id} className="py-3 flex items-center justify-between text-xs">
                     <div>
-                      <p className="font-bold text-foreground">
-                        {q.title || `Orçamento #${q.code}`}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground">
-                        {formatDate(q.created_at)}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-bold text-primary">
-                        {formatMoney(q.total_cents || 0)}
-                      </span>
-                      <Badge variant="outline" className="text-[10px] uppercase">
-                        {q.status}
-                      </Badge>
+                      <h4 className="font-bold text-sm text-foreground">{event.title}</h4>
+                      <p className="text-xs text-muted-foreground">{event.description}</p>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </TabsContent>
 
-        <TabsContent value="crm" className="space-y-4">
-          <div className="max-w-2xl pt-2">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="tags"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs font-bold text-muted-foreground">
-                        Tags (separadas por vírgula)
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="vip, atacado, revenda..."
-                          {...field}
-                          className="h-10 bg-background"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="notes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs font-bold text-muted-foreground">
-                        Anotações Internas do CRM
-                      </FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Preferências de marcas, cores, tamanho do calçado, histórico de conversas..."
-                          className="min-h-[140px] bg-background"
-                          {...field}
-                          value={field.value || ""}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <Button type="submit" disabled={isSubmitting} className="font-bold">
-                  <Save className="mr-2 size-4" />
-                  {isSubmitting ? "Salvando..." : "Salvar Ficha"}
-                </Button>
-              </form>
-            </Form>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="enderecos" className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-bold text-foreground">Endereços Cadastrados</h3>
-              <p className="text-xs text-muted-foreground">
-                Gerencie múltiplos endereços de envio do cliente.
-              </p>
-            </div>
-            <Button
-              onClick={handleOpenNewAddress}
-              size="sm"
-              className="font-bold flex items-center gap-1 text-xs"
-            >
-              <Plus className="size-4" /> Novo Endereço
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {data.addresses.map((addr: any) => (
-              <div
-                key={addr.id}
-                className={cn(
-                  "relative overflow-hidden border rounded-lg",
-                  addr.is_default ? "border-primary bg-primary/5" : "border-border bg-card",
-                )}
-              >
-                {addr.is_default && (
-                  <div className="absolute top-2 right-2 flex items-center gap-1 text-xs text-primary font-bold">
-                    <Check className="size-3.5" /> Padrão
-                  </div>
-                )}
-                <div className="p-4 pb-2">
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <MapPin className="size-3.5 text-primary" />
-                    <span>CEP {addr.zipcode}</span>
-                  </div>
-                  <h4 className="text-sm font-bold mt-1 text-foreground">
-                    {addr.street}, nº {addr.number}
-                  </h4>
-                  {addr.complement && (
-                    <p className="text-xs text-muted-foreground font-mono mt-1">
-                      {addr.complement}
-                    </p>
-                  )}
+                  <span className="text-[11px] text-muted-foreground font-mono shrink-0">
+                    {new Date(event.timestamp).toLocaleDateString("pt-BR", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </span>
                 </div>
-                <div className="p-4 pt-0 text-xs space-y-3">
-                  <p className="text-muted-foreground">
-                    {addr.neighborhood} — {addr.city}/{addr.state}
-                  </p>
+              ))}
+            </div>
+          )}
+        </TabsContent>
 
-                  <div className="flex items-center justify-between border-t pt-3">
-                    <div className="flex gap-2">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="size-7 text-muted-foreground hover:text-foreground"
-                        onClick={() => handleOpenEditAddress(addr)}
-                      >
-                        <Settings className="size-3.5" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="size-7 text-destructive hover:text-destructive hover:bg-destructive/10"
-                        onClick={() => handleDeleteAddress(addr.id)}
-                      >
-                        <Trash2 className="size-3.5" />
-                      </Button>
-                    </div>
-
-                    {!addr.is_default && (
-                      <Button
-                        type="button"
-                        variant="link"
-                        size="sm"
-                        className="text-[11px] h-7 px-2 font-bold"
-                        onClick={async () => {
-                          try {
-                            const res = await upsertCustomerAddress({
-                              data: {
-                                ...addr,
-                                is_default: true,
-                              },
-                            });
-                            if (res) {
-                              toast.success("Endereço padrão atualizado!");
-                              router.invalidate();
-                            }
-                          } catch {
-                            toast.error("Falha ao salvar padrão");
-                          }
-                        }}
-                      >
-                        Definir como padrão
-                      </Button>
+        {/* ── Aba 2: Endereços Múltiplos ── */}
+        <TabsContent value="addresses" className="space-y-4">
+          {data.addresses.length === 0 ? (
+            <EmptyState
+              title="Nenhum endereço cadastrado"
+              description="Os endereços salvos pelo cliente no checkout ou no perfil aparecerão aqui para entrega rápida."
+            />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {data.addresses.map((addr: any) => (
+                <div
+                  key={addr.id}
+                  className="p-4 rounded-2xl bg-card border border-border/60 space-y-2"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-sm text-foreground flex items-center gap-1.5">
+                      <MapPin className="size-4 text-primary" />
+                      {addr.street}, {addr.number}
+                    </span>
+                    {addr.is_default && (
+                      <Badge variant="secondary" className="text-[10px]">
+                        Principal
+                      </Badge>
                     )}
                   </div>
+                  <p className="text-xs text-muted-foreground">
+                    {addr.neighborhood} • {addr.city} - {addr.state}
+                  </p>
+                  <span className="text-[11px] font-mono text-muted-foreground block">
+                    CEP: {addr.zipcode}
+                  </span>
                 </div>
-              </div>
-            ))}
-
-            {data.addresses.length === 0 && (
-              <div className="col-span-full border-0 rounded-xl p-8 text-center text-xs text-muted-foreground flex flex-col items-center justify-center gap-2">
-                <AlertTriangle className="size-5 text-warning" />
-                Nenhum endereço de entrega cadastrado para este cliente.
-              </div>
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
-        <TabsContent value="pedidos">
-          <div className=" rounded-lg bg-card overflow-hidden">
-            {data.orders.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground text-xs">
-                Este cliente ainda não fez nenhum pedido no e-commerce ou balcão.
-              </div>
-            ) : (
-              <div className="divide-y divide-border">
-                {data.orders.map((o: any) => (
-                  <div
-                    key={o.id}
-                    className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors"
-                  >
+        {/* ── Aba 3: Créditos & Gift Cards ── */}
+        <TabsContent value="credits" className="space-y-4">
+          {data.credits.length === 0 ? (
+            <EmptyState
+              title="Nenhum saldo ou crédito concedido"
+              description="Conceda créditos em loja para devoluções, trocas, cashback ou premiações de fidelidade."
+            />
+          ) : (
+            <div className="space-y-3">
+              {data.credits.map((cr: any, idx: number) => (
+                <div
+                  key={idx}
+                  className="p-4 rounded-2xl bg-card border border-border/60 flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-3">
+                    <Gift className="size-5 text-emerald-500 shrink-0" />
                     <div>
-                      <div className="font-semibold text-foreground text-sm">
-                        Pedido #{o.public_token}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {formatDate(o.created_at)}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold text-foreground text-sm">
-                        {formatMoney(o.total_cents)}
-                      </div>
-                      <Badge variant="secondary" className="mt-1 text-[9px] h-5">
-                        {o.status}
-                      </Badge>
+                      <h4 className="font-bold text-sm text-foreground">
+                        {cr.description || "Crédito em Loja"}
+                      </h4>
+                      <span className="text-[11px] text-muted-foreground">
+                        Concedido em {new Date(cr.created_at).toLocaleDateString("pt-BR")}
+                      </span>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
+                  <span className="font-black text-sm text-emerald-600 dark:text-emerald-400">
+                    {formatMoney(cr.amount_cents)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        {/* ── Aba 4: Anamnese & Prontuários Clínicos/Estética ── */}
+        <TabsContent value="clinical" className="space-y-4">
+          {data.clinicalRecords.length === 0 ? (
+            <EmptyState
+              title="Nenhum atendimento ou anamnese registrado"
+              description="Para salões, clínicas e terapeutas: registre procedimentos realizados, alergias, laudos e histórico clínico."
+            />
+          ) : (
+            <div className="space-y-3">
+              {data.clinicalRecords.map((rec: any) => (
+                <div
+                  key={rec.id}
+                  className="p-5 rounded-2xl bg-card border border-border/60 space-y-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <HeartPulse className="size-4 text-rose-500" />
+                      <h4 className="font-bold text-sm text-foreground">{rec.service_title}</h4>
+                    </div>
+                    <span className="text-[11px] text-muted-foreground">
+                      {new Date(rec.created_at).toLocaleDateString("pt-BR", {
+                        day: "2-digit",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-foreground whitespace-pre-line leading-relaxed">
+                    {rec.notes}
+                  </p>
+
+                  {rec.allergies && (
+                    <div className="p-2.5 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs font-semibold flex items-center gap-2">
+                      <AlertTriangle className="size-3.5" />
+                      <span>Alergias / Contraindicações: {rec.allergies}</span>
+                    </div>
+                  )}
+
+                  {rec.professional_name && (
+                    <span className="text-[11px] text-muted-foreground block">
+                      Atendido por: {rec.professional_name}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        {/* ── Aba 5: Notas & Tags de Segmentação ── */}
+        <TabsContent value="crm" className="space-y-4">
+          <div className="bg-card rounded-2xl border border-border/60 p-5 space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">Tags de Segmentação (separadas por vírgula)</Label>
+              <Input
+                value={tags}
+                onChange={(e) => setTags(e.target.value)}
+                placeholder="Ex: VIP, Atacado, Pontual, Prefere WhatsApp"
+                className="text-xs"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs">Observações Internas Confidenciais</Label>
+              <Textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Anotações privadas sobre preferências, restrições e histórico do cliente..."
+                rows={5}
+                className="text-xs"
+              />
+            </div>
+
+            <Button
+              onClick={handleSaveCrm}
+              disabled={isSavingCrm}
+              className="gap-1.5 font-bold text-xs"
+            >
+              <Save className="size-3.5" />
+              {isSavingCrm ? "Salvando..." : "Salvar Ficha"}
+            </Button>
           </div>
         </TabsContent>
       </Tabs>
 
-      {/* Address Form Dialog Modal */}
-      <Sheet open={isAddressOpen} onOpenChange={setIsAddressOpen}>
-        <SheetContent side="right" className="sm:max-w-lg overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle className="flex items-center gap-2">
-              <MapPin className="size-5 text-primary" />
-              {editingAddress ? "Editar Endereço" : "Cadastrar Novo Endereço"}
-            </SheetTitle>
-            <SheetDescription>
-              Preencha os detalhes logísticos para entrega de pedidos.
-            </SheetDescription>
-          </SheetHeader>
+      {/* Drawer Lateral no Desktop / Fullscreen no Mobile: Conceder Crédito */}
+      <Sheet open={isCreditModalOpen} onOpenChange={setIsCreditModalOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-md flex flex-col justify-between overflow-y-auto">
+          <div>
+            <SheetHeader className="pb-4">
+              <SheetTitle>Conceder Crédito em Loja</SheetTitle>
+              <SheetDescription>
+                Adicione saldo na carteira do cliente para compras futuras, trocas ou bonificação.
+              </SheetDescription>
+            </SheetHeader>
 
-          <form onSubmit={handleSaveAddress} className="space-y-4 pt-2">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="addr-zip">CEP *</Label>
-                <div className="relative">
-                  <Input
-                    id="addr-zip"
-                    required
-                    maxLength={9}
-                    placeholder="00000-000"
-                    value={addressForm.zipcode}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      setAddressForm({ ...addressForm, zipcode: value });
-                      if (value.replace(/\D/g, "").length === 8) {
-                        handleCepLookup(value);
-                      }
-                    }}
-                  />
-                  {isSearchingCep && (
-                    <span className="absolute right-3 top-3 text-[10px] text-muted-foreground animate-pulse">
-                      Buscando...
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="addr-num">Número *</Label>
+            <form id="grant-credit-form" onSubmit={handleGrantCredit} className="space-y-4 py-2">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Valor do Crédito (R$)</Label>
                 <Input
-                  id="addr-num"
+                  type="number"
+                  step="0.01"
+                  value={creditAmount}
+                  onChange={(e) => setCreditAmount(e.target.value)}
+                  placeholder="Ex: 50,00"
+                  className="text-xs font-mono font-bold"
                   required
-                  placeholder="Ex: 123"
-                  value={addressForm.number}
-                  onChange={(e) => setAddressForm({ ...addressForm, number: e.target.value })}
                 />
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="addr-street">Logradouro / Rua *</Label>
-              <Input
-                id="addr-street"
-                required
-                placeholder="Rua, Avenida..."
-                value={addressForm.street}
-                onChange={(e) => setAddressForm({ ...addressForm, street: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="addr-comp">Complemento (Opcional)</Label>
-              <Input
-                id="addr-comp"
-                placeholder="Ex: Apto 402, Bloco B"
-                value={addressForm.complement}
-                onChange={(e) => setAddressForm({ ...addressForm, complement: e.target.value })}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="addr-neigh">Bairro *</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Motivo / Descrição</Label>
                 <Input
-                  id="addr-neigh"
+                  value={creditDescription}
+                  onChange={(e) => setCreditDescription(e.target.value)}
+                  placeholder="Ex: Devolução Pedido #1234 / Bônus Aniversário"
+                  className="text-xs"
+                />
+              </div>
+            </form>
+          </div>
+
+          <SheetFooter className="pt-4 border-t border-border/40">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsCreditModalOpen(false)}
+              className="text-xs"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              form="grant-credit-form"
+              disabled={isSavingCredit}
+              className="text-xs font-bold"
+            >
+              {isSavingCredit ? "Concedendo..." : "Conceder Crédito"}
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+
+      {/* Drawer Lateral no Desktop / Fullscreen no Mobile: Novo Atendimento / Anamnese */}
+      <Sheet open={isClinicalModalOpen} onOpenChange={setIsClinicalModalOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-lg flex flex-col justify-between overflow-y-auto">
+          <div>
+            <SheetHeader className="pb-4">
+              <SheetTitle>Registro de Atendimento & Anamnese</SheetTitle>
+              <SheetDescription>
+                Histórico clínico para profissionais de saúde, estética, beleza e bem-estar.
+              </SheetDescription>
+            </SheetHeader>
+
+            <form id="clinical-form" onSubmit={handleSaveClinical} className="space-y-4 py-2">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Procedimento / Serviço Realizado</Label>
+                <Input
+                  value={serviceTitle}
+                  onChange={(e) => setServiceTitle(e.target.value)}
+                  placeholder="Ex: Limpeza de Pele Profunda, Corte com Química, Massoterapia"
+                  className="text-xs"
                   required
-                  placeholder="Bairro"
-                  value={addressForm.neighborhood}
-                  onChange={(e) => setAddressForm({ ...addressForm, neighborhood: e.target.value })}
                 />
               </div>
-              <div>
-                <CitySelect
-                  stateValue={addressForm.state || "SC"}
-                  cityValue={addressForm.city || "Chapecó"}
-                  onStateChange={(uf) => setAddressForm({ ...addressForm, state: uf })}
-                  onCityChange={(city) => setAddressForm({ ...addressForm, city })}
+
+              <div className="space-y-1.5">
+                <Label className="text-xs">Alergias / Restrições (se houver)</Label>
+                <Input
+                  value={allergies}
+                  onChange={(e) => setAllergies(e.target.value)}
+                  placeholder="Ex: Alergia a iodo, pele sensível, pressão alta"
+                  className="text-xs text-destructive"
                 />
               </div>
-            </div>
 
-            <div className="flex items-center space-x-2 pt-2 border-t border-dashed">
-              <Checkbox
-                id="addr-default"
-                checked={addressForm.is_default}
-                onCheckedChange={(checked) =>
-                  setAddressForm({ ...addressForm, is_default: !!checked })
-                }
-              />
-              <Label
-                htmlFor="addr-default"
-                className="text-xs text-muted-foreground cursor-pointer"
-              >
-                Definir como endereço padrão de envio.
-              </Label>
-            </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Observações do Atendimento & Evolução</Label>
+                <Textarea
+                  value={clinicalNotes}
+                  onChange={(e) => setClinicalNotes(e.target.value)}
+                  placeholder="Descreva o procedimento realizado, produtos aplicados e recomendações..."
+                  rows={4}
+                  className="text-xs"
+                  required
+                />
+              </div>
+            </form>
+          </div>
 
-            <SheetFooter className="pt-4 mt-2">
-              <Button type="button" variant="outline" onClick={() => setIsAddressOpen(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={isSavingAddress} className="font-bold">
-                {isSavingAddress ? "Salvando..." : "Salvar Endereço"}
-              </Button>
-            </SheetFooter>
-          </form>
+          <SheetFooter className="pt-4 border-t border-border/40">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsClinicalModalOpen(false)}
+              className="text-xs"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              form="clinical-form"
+              disabled={isSavingClinical}
+              className="text-xs font-bold"
+            >
+              {isSavingClinical ? "Salvando..." : "Salvar Prontuário"}
+            </Button>
+          </SheetFooter>
         </SheetContent>
       </Sheet>
     </div>

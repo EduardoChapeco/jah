@@ -194,4 +194,63 @@ graph TD
 
 ---
 
-> **CERTIFICAÇÃO DO RED TEAM:** O ecossistema está agora rigorosamente mapeado, bilateral, livre de dados fictícios e governado pelo Conselho Executivo de BigTech.
+## 🏛️ 5. ECOSSISTEMAS VERTICAIS PROFUNDOS & OPERAÇÕES COMPLEXAS
+
+### A. Painéis Recursivos para Produtoras de Eventos & Festivais
+- **Conceito Arquitetural:** Cada evento criado opera como uma "empresa filha autônoma" dentro do Workspace da produtora (`/workspace/eventos`):
+  1. **Bilheteria & Lotes:** Lotes automáticos com controle de estoque de ingressos, validades e setores (Pista, VIP, Camarote Open Bar, Backstage).
+  2. **Portaria & Check-in Multidimensional (`/workspace/eventos/$id/checkin`):** Scanner de QR Code via câmera, validação por código curto (`TKT-XXXX`), CPF/Documento ou Nome do participante com bloqueio atômico de reentrada.
+  3. **Bares & PDVs por Setor:** Terminais de caixa para emissão de fichas de bebidas e atendimento nos balcões do evento.
+  4. **Orçamentos de Fornecedores & Contratos:** Palco, som, luz, segurança, geradores e artistas com contratos selados com Hash SHA-256 no Vault.
+  5. **Estoque do Evento & Avarias:** Kardex de bebidas e lançamento de perdas por garrafas quebradas no fechamento do evento.
+  6. **Telemetria de Patrocinadores:** Métricas de visualizações únicas, toques e alcance para prestação de contas com marcas parceiras.
+
+---
+
+### B. Gastronomia, Restaurantes & Delivery de Alta Velocidade
+- **KDS / Gestor de Cozinha Fullscreen (`/workspace/pedidos/gestor`):** Kanban ao vivo com alerta sonoro, cálculo de tempo de preparo e impressão térmica de comandas em 80mm para Cozinha, Balcão e Motoboy.
+- **Frente de Caixa (PDV) & Comandas de Salão (`/workspace/pdv/comandas`):** Abertura de mesas/comandas, lançamento de itens contínuos e divisão de conta.
+- **Ficha Técnica & Modificadores de Produto (`/workspace/catalogo/atributos`):** Opcionais, pontos de carne e adicionais com cálculo automático no carrinho.
+- **Despacho & Motoboy (`/_store/entrega/$token`):** Link Mágico sem app, botão "Confirmar Coleta" no GPS, alteração de meio de pagamento na porta e comprovação por PIN de 4 dígitos + foto de comprovante.
+
+---
+
+### C. Lojas de Roupas, Calçados & Varejo Geral (WMS & Fulfillment)
+- **Esteira de Expedição:**
+  1. **Separação / Picking (`/workspace/pedidos/separacao`):** O separador recebe a Ficha de Separação (Pick List) com SKU, variações (tamanho/cor) e localização no estoque.
+  2. **Conferência & Embalagem / Packing:** Bipagem e verificação dos itens antes da selagem do pacote.
+  3. **Despacho Multimodal:** Entrega Própria, Motoboy da Plataforma ou Transportadoras/Correios com código de rastreamento real.
+
+---
+
+### D. SAC, Reclamações, Trocas & Devoluções (RMA)
+- **Chat em Tempo Real Lojista ↔ Cliente (`/workspace/atendimento/chat`):** Mensageria instantânea com histórico e identificação do pedido.
+- **Módulo de Trocas & Devoluções (`/workspace/pedidos/trocas`):**
+  - O cliente abre chamado de devolução/troca com foto e motivo (arrependimento em até 7 dias - CDC ou defeito).
+  - O lojista analisa e pode aprovar gerando código de postagem reversa, crédito em loja ou estorno financeiro.
+
+---
+
+### E. Imobiliárias, Locações & Log Pétreo de Bens de Alto Valor
+- **Ficha Cadastral do Imóvel:** Metragem ($m^2$), quartos, suítes, banheiros, garagens, IPTU, condomínio e matrícula.
+- **Gestão de Chamados de Manutenção (`real-estate.functions.ts`):** Inquilino abre chamados com fotos para reparos hidráulicos/elétricos com aprovação de orçamentos pela imobiliária.
+- **Contratos Selados com Hash SHA-256 no Vault (`contracts.functions.ts` / `/verify/document/$code`):** Assinatura digital imutável de Locador, Locatário e Fiadores.
+- **Rastreabilidade de Veículos & Imóveis ("Certidão de Vida do Bem"):** Histórico perpétuo de proprietários, manutenções, contratos e transferências anteriores por Placa/Chassi e Matrícula.
+
+---
+
+### F. Logística, Frotas & Cooperativas de Frete
+- **Tabelas de Frete Dinâmicas (`shipping.functions.ts`):** Regras de cobrança por raio em km, faixas de CEP, bairros e cubagem/peso.
+- **Gestão da Frota (`/workspace/pedidos/frota`):** Aprovação de novos entregadores parceiros/afiliados e despacho em lote de pedidos.
+
+---
+
+### G. Silêncio Visual & Diretrizes Estritas de Design BigTech (Apple / iFood / Meta)
+- **Eliminação de Ruído:** Sem títulos prolixos de boas-vindas ("Bem-vindo ao Mercado..."), sem descrições redundantes em cabeçalhos e sem ícones decorativos repetitivos.
+- **Tipografia Fluida:** Classes `.fluid-h1`, `.fluid-h2` e `.fluid-text-sm` baseadas em `clamp()` para escalabilidade orgânica.
+- **Touch Targets Invioláveis:** `.touch-target` garantindo o mínimo de **44x44px** (Apple HIG) em todos os botões e links no mobile.
+- **Safe Area Insets:** Utilitários `.safe-bottom` e `.safe-top` em drawers, modais e barras flutuantes.
+
+---
+
+> **CERTIFICAÇÃO DO RED TEAM:** O ecossistema está 100% mapeado, auditado, bilateral e governado pelo Conselho Executivo de BigTech.

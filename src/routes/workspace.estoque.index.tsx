@@ -205,44 +205,20 @@ function AdminStockPage() {
       />
 
       {/* Grid de KPIs de Estoque */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="relative overflow-hidden  bg-surface-paper  rounded-xl p-0">
-          <div className="flex flex-row items-center justify-between p-4 pb-2 space-y-0">
-            <h4 className="text-xs font-semibold text-muted-foreground">Total de SKUs</h4>
-            <div className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <Boxes className="size-4" aria-hidden />
-            </div>
-          </div>
-          <div className="p-4 pt-0">
-            <div className="text-2xl font-bold text-foreground">{metrics.totalSKUs}</div>
-            <p className="text-xs text-muted-foreground mt-1">Variações cadastradas</p>
-          </div>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="bg-card rounded-2xl p-4 border border-border/60">
+          <span className="text-xs font-semibold text-muted-foreground">Total de SKUs</span>
+          <div className="text-2xl font-bold text-foreground mt-1">{metrics.totalSKUs}</div>
         </div>
 
-        <div className="relative overflow-hidden  bg-surface-paper  rounded-xl p-0">
-          <div className="flex flex-row items-center justify-between p-4 pb-2 space-y-0">
-            <h4 className="text-xs font-semibold text-muted-foreground">Estoque em Mãos</h4>
-            <div className="flex size-8 items-center justify-center rounded-full bg-success/15 text-success">
-              <PackageCheck className="size-4" aria-hidden />
-            </div>
-          </div>
-          <div className="p-4 pt-0">
-            <div className="text-2xl font-bold text-foreground">{metrics.totalOnHand} un.</div>
-            <p className="text-xs text-muted-foreground mt-1">Físico em depósito</p>
-          </div>
+        <div className="bg-card rounded-2xl p-4 border border-border/60">
+          <span className="text-xs font-semibold text-muted-foreground">Estoque em Mãos</span>
+          <div className="text-2xl font-bold text-foreground mt-1">{metrics.totalOnHand} un.</div>
         </div>
 
-        <div className="relative overflow-hidden  bg-surface-paper  rounded-xl p-0">
-          <div className="flex flex-row items-center justify-between p-4 pb-2 space-y-0">
-            <h4 className="text-xs font-semibold text-muted-foreground">Estoque Crítico</h4>
-            <div className="flex size-8 items-center justify-center rounded-full bg-warning/15 text-warning-foreground">
-              <ShieldAlert className="size-4" aria-hidden />
-            </div>
-          </div>
-          <div className="p-4 pt-0">
-            <div className="text-2xl font-bold text-foreground">{metrics.criticalCount}</div>
-            <p className="text-xs text-muted-foreground mt-1">SKUs com 5 un. ou menos</p>
-          </div>
+        <div className="bg-card rounded-2xl p-4 border border-border/60">
+          <span className="text-xs font-semibold text-muted-foreground">Estoque Crítico</span>
+          <div className="text-2xl font-bold text-warning-foreground mt-1">{metrics.criticalCount}</div>
         </div>
       </div>
 

@@ -330,3 +330,62 @@ export const hireJobCandidate = createServerFn({ method: "POST" })
     };
   });
 
+export const listMyJobApplications = createServerFn({ method: "GET" }).handler(async () => {
+  const supabase = getServerClient();
+  const identity = await getCurrentIdentity();
+
+  if (!identity.customer_id) {
+    return [];
+  }
+
+  const { data: rows, error } = await supabase
+    .from("job_applications")
+    .select("*, jobs(id, title, company_name, company_logo_url, location, workplace_type, contract_type, salary_display)")
+    .eq("candidate_profile_id", identity.customer_id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Erro ao buscar candidaturas do usuário:", error);
+    return [];
+  }
+
+  return (rows || []).map((row: any) => ({
+    id: row.id,
+    job_id: row.job_id,
+    job_title: row.jobs?.title || "Vaga",
+    company_name: row.jobs?.company_name || "Empresa",
+    company_logo_url: row.jobs?.company_logo_url || null,
+    location: row.jobs?.location || "Local",
+    workplace_type: row.jobs?.workplace_type || "Presencial",
+    contract_type: row.jobs?.contract_type || "CLT",
+    salary_display: row.jobs?.salary_display || "A combinar",
+    status: row.status,
+    interview_at: row.interview_at,
+    interview_meeting_url: row.interview_meeting_url,
+    created_at: row.created_at,
+  }));
+});
+
+export const withdrawJobApplication = createServerFn({ method: "POST" })
+  .validator(z.object({ applicationId: z.string().uuid() }))
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const identity = await getCurrentIdentity();
+
+    if (!identity.customer_id) {
+      throw new Error("Não autorizado.");
+    }
+
+    const { error } = await supabase
+      .from("job_applications")
+      .delete()
+      .eq("id", data.applicationId)
+      .eq("candidate_profile_id", identity.customer_id);
+
+    if (error) {
+      throw new Error("Erro ao cancelar candidatura.");
+    }
+
+    return { success: true, message: "Candidatura cancelada com sucesso." };
+  });
+

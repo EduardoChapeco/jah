@@ -761,12 +761,14 @@ function ProductContent({
             )}
           </div>
 
-          {/* Out of stock — only shown when all variants are truly unavailable (no backorder) */}
-          {allOutOfStock && (
+
+          {/* Disponibilidade — visível somente quando a loja optar por exibir estoque */}
+          {product.showStockPublicly && allOutOfStock && (
             <Badge variant="destructive" className="w-fit text-xs font-bold py-1 px-3">
               Sem estoque disponível
             </Badge>
           )}
+
 
           {/* Selectores de Atributos Customizados */}
           {attributeKeys.length > 0 && (

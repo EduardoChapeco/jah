@@ -112,3 +112,28 @@ Toda página pública de exploração segue o mesmo ritmo visual hierárquico:
 1. **Visualizações Únicas:** Calculadas combinando `user_id` autenticado com `session_hash` (IP + User-Agent mascarados via hash SHA-256 no backend).
 2. **Tempo de Visualização Ativo:** Monitorado via evento de heartbeat a cada 5 segundos enquanto o elemento estiver visível no viewport (IntersectionObserver com ratio > 0.5 e document em foco).
 3. **Curtidas Únicas:** Inserção atômica com chave primária composta `(item_id, user_id)` impedindo contagens duplicadas.
+
+---
+
+## 7. Responsividade Adaptativa Mobile & Ergonomia Tátil Proporcional (Apple HIG, Material 3, iFood, Threads, Avec, Belasis)
+
+### 7.1 A Regra de Adaptação ao Frame de Visualização (Viewport Elasticity)
+A interface móvel deve se adaptar organicamente ao frame de qualquer aparelho móvel (de iPhones compactos de 320px/375px a modelos Max/Plus de 430px e dobráveis):
+- **Tipografia Fluida com `clamp()`**: Títulos e textos de corpo utilizam funções `clamp(min, val, max)` para escalar continuamente sem saltos bruscos de breakpoint.
+- **Touch Targets Invioláveis de 44x44px**: Todo botão, ícone de ação, trigger de filtro, switch ou chip possui área de toque mínima de **44x44px** (altura `h-11` ou padding compensado com `.touch-target`), mesmo quando o elemento visual for visualmente menor.
+- **Safe Areas & Dynamic Viewport (`dvh`)**:
+  - Uso obrigatório de `safe-bottom` (`env(safe-area-inset-bottom)`) em barras fixas inferiores, drawers (`Vaul`) e botões de checkout para não colidir com o Home Indicator do iOS.
+  - Uso de `safe-top` (`env(safe-area-inset-top)`) em cabeçalhos fixos para acomodar Dynamic Island e Notch sem sobreposição.
+  - Alturas de tela cheia usam sempre `100dvh` (Dynamic Viewport Height) em vez de `100vh`, evitando o salto de layout ao abrir a barra de endereços do Safari/Chrome.
+
+### 7.2 Compressão Progressiva & Colapso de Rótulos
+Em telas ultra-compactas ou com alta densidade de informação:
+- **Prioridade Visual de Texto**: Textos secundários e descrições são truncados ou omitidos antes de qualquer redução de legibilidade.
+- **Colapso Inteligente de Botões (`.mobile-collapse-label`)**: Em viewports estreitos (< 380px), botões que continham texto + ícone mantêm apenas o ícone centralizado com `touch-target` de 44px intacto e `aria-label` para acessibilidade.
+- **Container Queries em Cards**: Cards de produtos de gôndola (`GroceryProductCard`), cards de lojas (`StoreCard`) e feeds (`ThreadsFeedCard`) usam `@container` para rearranjar a imagem e informações conforme a largura real do slot, evitando quebras de linha artificiais.
+
+### 7.3 Arquitetura da Zona do Polegar (Thumb-Zone Navigation)
+Inspirada nos aplicativos de alta retenção (*iFood, Instagram, Threads, WhatsApp*):
+- **Ações Primárias no Terço Inferior**: Botões de "Adicionar à Sacola", "Confirmar Pedido", "Finalizar Atendimento" e abas de navegação principal residem fixos no terço inferior da tela, ao alcance natural do polegar.
+- **Snap-Scroll Horizontal**: Trilhos de banners e categorias usam `scroll-snap-type: x mandatory` com desaceleração nativa de toque (`-webkit-overflow-scrolling: touch`) e sem barras de rolagem visíveis.
+

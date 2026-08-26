@@ -191,6 +191,11 @@ export interface ProductDetailDTO {
   type_id?: string | null;
   /** Custom dynamic attributes defined by the product type schema */
   attributes?: Record<string, any>;
+  /**
+   * Quando TRUE, exibe o indicador de estoque na vitrine pública do produto.
+   * Controlado pela loja no painel de gestão. FALSE por padrão.
+   */
+  showStockPublicly?: boolean;
 }
 
 // ---------------------------------------------------------------------------

@@ -73,6 +73,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 
 import {
   getProductById,
@@ -396,6 +397,7 @@ function GeneralForm({
       preparation_time_days: product.preparation_time_days || 0,
       preparation_time_minutes: (product as any).preparation_time_minutes || "",
       type_id: product.type_id || "none",
+      show_stock_publicly: product.show_stock_publicly ?? false,
       attributes: product.attributes || {},
     },
   });
@@ -492,6 +494,7 @@ function GeneralForm({
           preparation_time_minutes: values.preparation_time_minutes
             ? parseInt(values.preparation_time_minutes, 10)
             : null,
+          show_stock_publicly: values.show_stock_publicly ?? false,
           category_ids: selectedCategory ? [selectedCategory] : [],
           type_id: values.type_id !== "none" ? values.type_id : null,
           attributes: values.attributes,
@@ -708,6 +711,26 @@ function GeneralForm({
                 <SelectItem value="archived">Arquivado (Inativo)</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Visibilidade de Estoque</Label>
+            <Controller
+              control={control}
+              name="show_stock_publicly"
+              render={({ field }) => (
+                <div className="flex items-center justify-between gap-3 h-10 px-3 rounded-md border border-input bg-background">
+                  <span className="text-sm text-muted-foreground">
+                    Exibir disponibilidade na vitrine
+                  </span>
+                  <Switch
+                    id="edit_show_stock_publicly"
+                    checked={field.value ?? false}
+                    onCheckedChange={field.onChange}
+                  />
+                </div>
+              )}
+            />
           </div>
         </div>
       </div>

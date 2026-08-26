@@ -65,3 +65,5 @@ Ao criar ou editar qualquer tela na plataforma JAH, execute a seguinte verifica�
 3. **Contraste**: O texto preto está sobre fundo claro ou branco no dark mode sem inversões caóticas?
 4. **Alinhamento de Imagens**: Proporções padronizadas (1:1 produtos, 16:9 banners, 21:9 hero desktop)?
 5. **Silêncio Operacional**: Ausência de textos prolixos de IA, caixas de ajuda redundantes ou bullet points desnecessários?
+6. **Responsividade Adaptativa Mobile**: Textos com tipografia fluida `clamp()`, safe-areas (`safe-bottom` com `env(safe-area-inset-bottom)`) e alturas de tela cheia usando `100dvh`?
+7. **Thumb-Zone & Touch Area**: Ações primárias no terço inferior da tela móvel e todos os botões/chips com área de toque mínima de 44x44px (`.touch-target` ou `h-11`)?

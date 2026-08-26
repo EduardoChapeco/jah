@@ -39,6 +39,7 @@ const ROUTE_NICHE_MAP: Record<string, { id: string; label: string; emoji: string
 export function AdminContextualBar({ userRole }: AdminContextualBarProps) {
   const routerState = useRouterState();
   const pathname = routerState.location.pathname;
+  const [isMinimized, setIsMinimized] = React.useState(false);
 
   // Renderiza apenas se for platform_admin e estiver em uma vitrine pública (não admin ou workspace)
   if (userRole !== "platform_admin" || pathname.startsWith("/admin-master") || pathname.startsWith("/workspace")) {
@@ -52,21 +53,34 @@ export function AdminContextualBar({ userRole }: AdminContextualBarProps) {
     emoji: "🌐",
   };
 
+  if (isMinimized) {
+    return (
+      <button
+        onClick={() => setIsMinimized(false)}
+        aria-label="Expandir Barra de Governança"
+        className="fixed bottom-4 right-4 z-50 size-10 rounded-2xl bg-primary text-primary-foreground shadow-2xl flex items-center justify-center border border-border/40 hover:scale-105 transition-all cursor-pointer"
+        title="Admin Master Ativo - Clique para expandir"
+      >
+        <Shield className="size-4" />
+      </button>
+    );
+  }
+
   return (
     <aside
       aria-label="Barra de Governança Contextual Master"
-      className="fixed bottom-3 left-1/2 -translate-x-1/2 z-50 max-w-2xl w-[94%] sm:w-auto bg-card/95 backdrop-blur-xl border border-primary/40 shadow-2xl rounded-2xl p-2 px-3.5 flex items-center justify-between gap-3 text-xs animate-in slide-in-from-bottom-3 duration-300"
+      className="fixed bottom-4 right-4 sm:left-auto sm:right-6 z-50 max-w-md w-auto bg-card/95 backdrop-blur-2xl border border-border/80 shadow-2xl rounded-2xl p-2 px-3 flex items-center justify-between gap-2.5 text-xs animate-in slide-in-from-bottom-3 duration-300"
     >
       <div className="flex items-center gap-2">
         <div className="size-6 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-bold text-[10px]">
           <Shield className="size-3.5" />
         </div>
-        <div className="hidden sm:block">
-          <div className="flex items-center gap-1.5 font-bold text-foreground">
+        <div className="hidden sm:block text-left pr-1">
+          <div className="flex items-center gap-1 font-bold text-foreground text-[11px]">
             <span>{activeNiche.emoji}</span>
-            <span>{activeNiche.label}</span>
+            <span className="truncate max-w-[120px]">{activeNiche.label}</span>
           </div>
-          <p className="text-[10px] text-muted-foreground">Admin Master Ativo</p>
+          <p className="text-[9px] text-muted-foreground font-mono uppercase tracking-wider">Admin Master</p>
         </div>
       </div>
 
@@ -75,11 +89,11 @@ export function AdminContextualBar({ userRole }: AdminContextualBarProps) {
           asChild
           size="sm"
           variant="outline"
-          className="h-8 px-2.5 rounded-xl text-[11px] font-bold gap-1 cursor-pointer bg-background hover:bg-muted/70"
+          className="h-7 px-2 rounded-xl text-[11px] font-bold gap-1 cursor-pointer bg-background/80 hover:bg-muted/70 border-border/60"
         >
           <Link to="/admin-master/banners">
             <ImageIcon className="size-3 text-primary" />
-            <span>Editar Banners</span>
+            <span className="hidden sm:inline">Banners</span>
           </Link>
         </Button>
 
@@ -87,23 +101,31 @@ export function AdminContextualBar({ userRole }: AdminContextualBarProps) {
           asChild
           size="sm"
           variant="outline"
-          className="h-8 px-2.5 rounded-xl text-[11px] font-bold gap-1 cursor-pointer bg-background hover:bg-muted/70"
+          className="h-7 px-2 rounded-xl text-[11px] font-bold gap-1 cursor-pointer bg-background/80 hover:bg-muted/70 border-border/60"
         >
           <Link to="/admin-master/botoes">
             <Sparkles className="size-3 text-amber-500" />
-            <span>Editar Botões</span>
+            <span className="hidden sm:inline">Botões</span>
           </Link>
         </Button>
 
         <Button
           asChild
           size="sm"
-          className="h-8 px-3 rounded-xl text-[11px] font-bold bg-primary text-primary-foreground gap-1 cursor-pointer"
+          className="h-7 px-2.5 rounded-xl text-[11px] font-bold gap-1 cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
         >
           <Link to="/admin-master">
-            <span>Painel Master</span>
+            <span>Master</span>
           </Link>
         </Button>
+
+        <button
+          onClick={() => setIsMinimized(true)}
+          className="size-7 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer ml-0.5"
+          title="Minimizar barra de atalho"
+        >
+          ✕
+        </button>
       </div>
     </aside>
   );

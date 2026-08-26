@@ -96,12 +96,9 @@ export default function WorkspaceDashboardPage() {
               ● {activeStore?.name || "Espaço Sem Nome"}
             </Badge>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Painel de Operações & Gestão
+          <h1 className="text-xl font-bold tracking-tight text-foreground">
+            Painel de Operações
           </h1>
-          <p className="text-xs text-muted-foreground">
-            Visão unificada em tempo real de vendas, agendamentos, estoque e clientes.
-          </p>
         </div>
 
         {/* Quick Top Actions */}
@@ -301,10 +298,6 @@ export default function WorkspaceDashboardPage() {
             </div>
             <Badge variant="secondary" className="text-[10px]">Ativo</Badge>
           </div>
-
-          <p className="text-xs text-muted-foreground">
-            Gerencie canais de venda, promoções e catálogo de serviços cadastrados para esta unidade.
-          </p>
 
           <div className="space-y-2 pt-2">
             <Link

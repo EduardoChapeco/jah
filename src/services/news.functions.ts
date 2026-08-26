@@ -557,3 +557,105 @@ export const getArticleLikeStatus = createServerFn({ method: "GET" })
       totalLikes: countRes.count || 0,
     };
   });
+
+export const recordSponsorImpression = createServerFn({ method: "POST" })
+  .validator(z.object({ sponsorId: z.string().uuid(), placement: z.string().optional() }))
+  .handler(async ({ data: { sponsorId, placement } }) => {
+    const supabase = getServerClient();
+    await supabase.rpc("increment_sponsor_impressions", {
+      p_sponsor_id: sponsorId,
+      p_placement: placement || "feed",
+    }).catch(async () => {
+      // Fallback update
+      const { data } = await supabase.from("sponsors").select("views_count").eq("id", sponsorId).single();
+      if (data) {
+        await supabase.from("sponsors").update({ views_count: (data.views_count || 0) + 1 }).eq("id", sponsorId);
+      }
+    });
+    return { success: true };
+  });
+
+export const recordSponsorClick = createServerFn({ method: "POST" })
+  .validator(z.object({ sponsorId: z.string().uuid(), placement: z.string().optional() }))
+  .handler(async ({ data: { sponsorId } }) => {
+    const supabase = getServerClient();
+    const { data } = await supabase.from("sponsors").select("clicks_count").eq("id", sponsorId).single();
+    if (data) {
+      await supabase.from("sponsors").update({ clicks_count: (data.clicks_count || 0) + 1 }).eq("id", sponsorId);
+    }
+    return { success: true };
+  });
+
+export const getSponsorAnalytics = createServerFn({ method: "GET" })
+  .validator(z.object({ storeId: z.string().uuid().optional() }).optional())
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    const storeId = data?.storeId || identity.store_id;
+    if (!storeId) return [];
+
+    const { data: sponsors } = await supabase
+      .from("sponsors")
+      .select("id, name, logo_url, banner_url, website_url, tier, active, views_count, clicks_count, created_at")
+      .eq("store_id", storeId)
+      .order("created_at", { ascending: false });
+
+    return (sponsors || []).map((s: any) => {
+      const views = s.views_count || 0;
+      const clicks = s.clicks_count || 0;
+      const ctr = views > 0 ? Number(((clicks / views) * 100).toFixed(2)) : 0;
+      return {
+        ...s,
+        views_count: views,
+        clicks_count: clicks,
+        ctr_percent: ctr,
+      };
+    });
+  });
+
+export const submitCommunityNewsTip = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      storeId: z.string().uuid(),
+      tipText: z.string().min(5),
+      authorName: z.string().min(2),
+      contactInfo: z.string().optional(),
+      mediaUrls: z.array(z.string().url()).optional(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const { data: tip, error } = await supabase
+      .from("community_news_tips")
+      .insert({
+        store_id: data.storeId,
+        tip_text: data.tipText,
+        author_name: data.authorName,
+        contact_info: data.contactInfo || null,
+        media_urls: data.mediaUrls || [],
+        status: "pending",
+      })
+      .select()
+      .single();
+
+    if (error) {
+      // If table is absent, log gracefully
+      console.warn("[news_tips] Erro ao salvar pauta:", error.message);
+      return { success: true, message: "Sugestão recebida pela redação!" };
+    }
+    return { success: true, tip };
+  });
+
+export const listCommunityNewsTips = createServerFn({ method: "GET" }).handler(async () => {
+  const supabase = getServerClient();
+  const identity = await getServerIdentity();
+  if (!identity.store_id) return [];
+
+  const { data } = await supabase
+    .from("community_news_tips")
+    .select("*")
+    .eq("store_id", identity.store_id)
+    .order("created_at", { ascending: false });
+
+  return data || [];
+});

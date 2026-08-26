@@ -82,20 +82,24 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   loader: async () => {
     try {
       const { getPublicPixels } = await import("@/services/integrations.functions");
-      const [themeRes, storeRes, pixelsRes] = await Promise.all([
+      const { getPublicBrandSettings } = await import("@/services/master.functions");
+      const [themeRes, storeRes, brandRes, pixelsRes] = await Promise.all([
         getThemeSettings().catch(() => null),
         getPublicStoreSettings().catch(() => null),
+        getPublicBrandSettings().catch(() => null),
         getPublicPixels().catch(() => []),
       ]);
       return {
         theme: themeRes || null,
         store: storeRes || null,
+        brand: brandRes || null,
         pixels: pixelsRes || [],
       };
     } catch {
       return {
         theme: null,
         store: null,
+        brand: null,
         pixels: [],
       };
     }
@@ -103,14 +107,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: ({ loaderData }) => {
     const storeRaw = (loaderData as any)?.store;
     const store = storeRaw?.data || storeRaw;
+    const brand = (loaderData as any)?.brand;
     const theme = (loaderData as any)?.theme;
-    const storeName = store?.name || "Wider";
+    const storeName = brand?.platform_name || store?.name || "Wider";
 
-    const seoTitle = store?.seo_title || `${storeName} — Conforto e Estilo`;
+    const seoTitle = store?.seo_title || `${storeName} — Super App Comunitário`;
     const seoDesc =
       store?.seo_description ||
       store?.description ||
-      "Moda feminina contemporânea com conforto e estilo. Descubra a plataforma Wider.";
+      "Explore mercado, farmácia, gastronomia, empregos, eventos culturais, mobilidade e classificados na sua região.";
     const seoKeywords = store?.seo_keywords || "";
 
     const metaTags = [
@@ -125,7 +130,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content: seoDesc,
       },
       { name: "author", content: storeName },
-      { name: "theme-color", content: theme?.background_color || "#f4f4f0" },
+      { name: "theme-color", content: theme?.background_color || "#09090b" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
@@ -143,6 +148,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     }
 
     const faviconUrl =
+      brand?.favicon_url ||
+      brand?.faviconUrl ||
       store?.faviconUrl ||
       store?.settings?.faviconUrl ||
       store?.settings?.favicon_url ||
@@ -154,9 +161,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       meta: metaTags,
       links: [
         { rel: "manifest", href: "/manifest.json" },
-        { rel: "apple-touch-icon", href: "/icons/icon-192x192.png" },
+        { rel: "apple-touch-icon", href: brand?.logo_url || "/icons/icon-192x192.png" },
         { rel: "stylesheet", href: appCss },
         { rel: "icon", href: faviconUrl },
+        { rel: "shortcut icon", href: faviconUrl },
         { rel: "preconnect", href: "https://fonts.googleapis.com" },
         {
           rel: "preconnect",

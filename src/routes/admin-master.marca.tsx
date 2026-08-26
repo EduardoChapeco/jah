@@ -64,6 +64,10 @@ function AdminMasterMarcaPage() {
   const [logoUrl, setLogoUrl] = useState<string | null>(initialBrand.logo_url || null);
   const [faviconUrl, setFaviconUrl] = useState<string | null>(initialBrand.favicon_url || null);
   const [loginSplitImageUrl, setLoginSplitImageUrl] = useState<string | null>(initialBrand.login_split_image_url || null);
+  const [loginBgDesktopUrl, setLoginBgDesktopUrl] = useState<string | null>(initialBrand.login_bg_desktop_url || initialBrand.login_split_image_url || null);
+  const [loginBgTabletUrl, setLoginBgTabletUrl] = useState<string | null>(initialBrand.login_bg_tablet_url || initialBrand.login_split_image_url || null);
+  const [loginBgMobileUrl, setLoginBgMobileUrl] = useState<string | null>(initialBrand.login_bg_mobile_url || initialBrand.login_split_image_url || null);
+
   const [supportEmail, setSupportEmail] = useState(initialBrand.support_email || "contato@wider.com.br");
   const [supportWhatsapp, setSupportWhatsapp] = useState(initialBrand.support_whatsapp || "");
   const [supportHours, setSupportHours] = useState(initialBrand.support_hours || "Segunda a Sexta, das 08h às 18h");
@@ -75,10 +79,16 @@ function AdminMasterMarcaPage() {
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isUploadingFavicon, setIsUploadingFavicon] = useState(false);
   const [isUploadingSplit, setIsUploadingSplit] = useState(false);
+  const [isUploadingDesktop, setIsUploadingDesktop] = useState(false);
+  const [isUploadingTablet, setIsUploadingTablet] = useState(false);
+  const [isUploadingMobile, setIsUploadingMobile] = useState(false);
 
   const logoInputRef = useRef<HTMLInputElement>(null);
   const faviconInputRef = useRef<HTMLInputElement>(null);
   const splitInputRef = useRef<HTMLInputElement>(null);
+  const desktopInputRef = useRef<HTMLInputElement>(null);
+  const tabletInputRef = useRef<HTMLInputElement>(null);
+  const mobileInputRef = useRef<HTMLInputElement>(null);
 
   const handleUploadFile = async (
     file: File,
@@ -125,13 +135,16 @@ function AdminMasterMarcaPage() {
           support_whatsapp: supportWhatsapp || undefined,
           support_hours: supportHours || undefined,
           login_split_image_url: loginSplitImageUrl || undefined,
+          login_bg_desktop_url: loginBgDesktopUrl || undefined,
+          login_bg_tablet_url: loginBgTabletUrl || undefined,
+          login_bg_mobile_url: loginBgMobileUrl || undefined,
           social_instagram: socialInstagram || undefined,
           social_facebook: socialFacebook || undefined,
           social_linkedin: socialLinkedin || undefined,
         },
       });
       toast.success(
-        "Identidade da marca e canais atualizados com sucesso!",
+        "Identidade da marca e backgrounds de login atualizados com sucesso!",
       );
       router.invalidate();
     } catch (e: any) {
@@ -378,76 +391,173 @@ function AdminMasterMarcaPage() {
             </Button>
           </div>
 
-          {/* 4. Imagem do Split de Login / Cadastro */}
-          <div className="p-5 rounded-2xl bg-card border border-border/70 space-y-4">
+          {/* 4. Backgrounds Responsivos da Tela de Login (3 Breakpoints) */}
+          <div className="p-5 rounded-2xl bg-card border border-border/70 space-y-5">
             <div className="flex items-center gap-3">
               <div className="size-9 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center shrink-0">
                 <Image className="size-4" />
               </div>
               <div>
-                <p className="text-sm font-bold text-foreground">Imagem do Split de Login</p>
+                <p className="text-sm font-bold text-foreground">Background Imersivo da Tela de Login (3 Breakpoints)</p>
                 <p className="text-[11px] text-muted-foreground">
-                  Banner lateral imersivo exibido nas telas de login e cadastro
+                  Imagens em tela cheia sem scroll, recortadas proporcionalmente conforme o dispositivo.
                 </p>
               </div>
             </div>
 
-            <div className="relative rounded-2xl overflow-hidden bg-muted/40 aspect-video max-h-40 flex items-center justify-center border border-border/40">
-              {loginSplitImageUrl ? (
-                <img
-                  src={loginSplitImageUrl}
-                  alt="Split de Login"
-                  className="size-full object-cover"
-                />
-              ) : (
-                <span className="text-xs text-muted-foreground font-medium">
-                  Nenhuma imagem personalizada (usando padrão editorial)
-                </span>
-              )}
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Breakpoint 1: Desktop (16:9) */}
+              <div className="p-4 rounded-xl bg-muted/20 border border-border/40 space-y-3 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-foreground">🖥️ Desktop (16:9)</span>
+                    <span className="text-[10px] font-mono text-muted-foreground">1920×1080</span>
+                  </div>
+                  <div className="relative rounded-xl overflow-hidden bg-muted/40 aspect-video flex items-center justify-center border border-border/40">
+                    {loginBgDesktopUrl ? (
+                      <img src={loginBgDesktopUrl} alt="Desktop" className="size-full object-cover" />
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground text-center p-2">Padrão da Plataforma</span>
+                    )}
+                  </div>
+                </div>
 
-            <input
-              ref={splitInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file)
-                  handleUploadFile(
-                    file,
-                    "brand/login-split",
-                    setLoginSplitImageUrl,
-                    setIsUploadingSplit,
-                  );
-              }}
-            />
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => splitInputRef.current?.click()}
-                disabled={isUploadingSplit}
-                className="flex-1 rounded-xl text-xs font-bold h-9 gap-2 cursor-pointer"
-              >
-                {isUploadingSplit ? (
-                  <Loader2 className="size-3.5 animate-spin" />
-                ) : (
-                  <Upload className="size-3.5" />
-                )}
-                <span>{isUploadingSplit ? "Enviando..." : "Upload do Split Login"}</span>
-              </Button>
-              {loginSplitImageUrl && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setLoginSplitImageUrl(null)}
-                  className="size-9 rounded-xl hover:bg-destructive/10 hover:text-destructive shrink-0"
-                >
-                  <Trash2 className="size-4" />
-                </Button>
-              )}
+                <input
+                  ref={desktopInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleUploadFile(file, "brand/login-bg-desktop", setLoginBgDesktopUrl, setIsUploadingDesktop);
+                  }}
+                />
+                <div className="flex items-center gap-1.5 pt-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => desktopInputRef.current?.click()}
+                    disabled={isUploadingDesktop}
+                    className="flex-1 rounded-xl text-[11px] font-bold h-8 gap-1.5 cursor-pointer"
+                  >
+                    {isUploadingDesktop ? <Loader2 className="size-3 animate-spin" /> : <Upload className="size-3" />}
+                    <span>Upload Desktop</span>
+                  </Button>
+                  {loginBgDesktopUrl && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setLoginBgDesktopUrl(null)}
+                      className="size-8 rounded-xl hover:bg-destructive/10 hover:text-destructive shrink-0"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* Breakpoint 2: Tablet (4:3) */}
+              <div className="p-4 rounded-xl bg-muted/20 border border-border/40 space-y-3 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-foreground">📱 Tablet (4:3)</span>
+                    <span className="text-[10px] font-mono text-muted-foreground">1024×768</span>
+                  </div>
+                  <div className="relative rounded-xl overflow-hidden bg-muted/40 aspect-[4/3] max-h-36 flex items-center justify-center border border-border/40">
+                    {loginBgTabletUrl ? (
+                      <img src={loginBgTabletUrl} alt="Tablet" className="size-full object-cover" />
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground text-center p-2">Padrão da Plataforma</span>
+                    )}
+                  </div>
+                </div>
+
+                <input
+                  ref={tabletInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleUploadFile(file, "brand/login-bg-tablet", setLoginBgTabletUrl, setIsUploadingTablet);
+                  }}
+                />
+                <div className="flex items-center gap-1.5 pt-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => tabletInputRef.current?.click()}
+                    disabled={isUploadingTablet}
+                    className="flex-1 rounded-xl text-[11px] font-bold h-8 gap-1.5 cursor-pointer"
+                  >
+                    {isUploadingTablet ? <Loader2 className="size-3 animate-spin" /> : <Upload className="size-3" />}
+                    <span>Upload Tablet</span>
+                  </Button>
+                  {loginBgTabletUrl && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setLoginBgTabletUrl(null)}
+                      className="size-8 rounded-xl hover:bg-destructive/10 hover:text-destructive shrink-0"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* Breakpoint 3: Mobile (9:16) */}
+              <div className="p-4 rounded-xl bg-muted/20 border border-border/40 space-y-3 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-foreground">📲 Mobile (9:16)</span>
+                    <span className="text-[10px] font-mono text-muted-foreground">1080×1920</span>
+                  </div>
+                  <div className="relative rounded-xl overflow-hidden bg-muted/40 aspect-[9/16] max-h-36 mx-auto flex items-center justify-center border border-border/40">
+                    {loginBgMobileUrl ? (
+                      <img src={loginBgMobileUrl} alt="Mobile" className="size-full object-cover" />
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground text-center p-2">Padrão da Plataforma</span>
+                    )}
+                  </div>
+                </div>
+
+                <input
+                  ref={mobileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleUploadFile(file, "brand/login-bg-mobile", setLoginBgMobileUrl, setIsUploadingMobile);
+                  }}
+                />
+                <div className="flex items-center gap-1.5 pt-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => mobileInputRef.current?.click()}
+                    disabled={isUploadingMobile}
+                    className="flex-1 rounded-xl text-[11px] font-bold h-8 gap-1.5 cursor-pointer"
+                  >
+                    {isUploadingMobile ? <Loader2 className="size-3 animate-spin" /> : <Upload className="size-3" />}
+                    <span>Upload Mobile</span>
+                  </Button>
+                  {loginBgMobileUrl && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setLoginBgMobileUrl(null)}
+                      className="size-8 rounded-xl hover:bg-destructive/10 hover:text-destructive shrink-0"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 

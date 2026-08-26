@@ -92,9 +92,9 @@ export function DynamicMediaChip({
 
   const content = (
     <div
-      className={`relative overflow-hidden inline-flex items-center gap-2.5 sm:gap-3.5 border transition-all select-none group cursor-pointer shrink-0 active:scale-[0.98] ${heightClasses} ${
+      className={`relative overflow-hidden inline-flex items-center gap-2 sm:gap-3 border transition-all select-none group cursor-pointer shrink-0 max-w-full active:scale-[0.98] ${heightClasses} ${
         isActive
-          ? "border-foreground  ring-2 ring-foreground/10 font-bold"
+          ? "border-foreground ring-2 ring-foreground/10 font-bold"
           : "border-border hover:border-foreground/30 hover:bg-muted/60"
       } ${!hasMedia && !bg_color ? (isActive ? "bg-foreground text-background" : "bg-card text-foreground") : ""} ${className}`}
       style={{
@@ -136,7 +136,7 @@ export function DynamicMediaChip({
       )}
 
       {/* 2. Conteúdo em Primeiro Plano (Ícone + Label + Badges) */}
-      <div className="relative z-10 flex items-center gap-2.5 sm:gap-3.5 w-full">
+      <div className="relative z-10 flex items-center gap-2 sm:gap-2.5 w-full min-w-0">
         {/* Ícone / Emoji / PNG */}
         <div
           className={`relative ${iconSizes} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 ${
@@ -169,7 +169,7 @@ export function DynamicMediaChip({
 
         {/* Label de Texto com Contraste Automático */}
         <span
-          className={`font-bold whitespace-nowrap tracking-tight transition-colors ${
+          className={`font-bold truncate tracking-tight transition-colors min-w-0 ${
             hasMedia
               ? "text-white drop- group-hover:text-amber-200"
               : isActive
@@ -183,7 +183,7 @@ export function DynamicMediaChip({
         {/* Contador Opcional */}
         {typeof count === "number" && (
           <span
-            className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
+            className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold shrink-0 ${
               hasMedia
                 ? "bg-black/40 text-white border border-white/20"
                 : isActive
@@ -199,7 +199,7 @@ export function DynamicMediaChip({
         {badge && (
           <Badge
             variant="outline"
-            className={`text-[9px] uppercase font-mono px-1.5 py-0 h-4 ${
+            className={`text-[9px] uppercase font-mono px-1.5 py-0 h-4 shrink-0 max-w-[110px] truncate ${
               hasMedia
                 ? "bg-amber-500/20 text-amber-300 border-amber-400/40"
                 : isActive

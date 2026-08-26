@@ -109,6 +109,7 @@ const WORKSPACE_MODULES: NavGroup[] = [
     icon: Package,
     items: [
       { path: "/workspace/catalogo/produtos", label: "Produtos", icon: Package },
+      { path: "/workspace/catalogo/tabelas", label: "Tabelas de Preços", icon: DollarSign },
       { path: "/workspace/catalogo/categorias", label: "Categorias", icon: Tags },
       { path: "/workspace/catalogo/colecoes", label: "Coleções", icon: Sliders },
       { path: "/workspace/catalogo/atributos", label: "Atributos", icon: Boxes },

@@ -127,12 +127,8 @@ function WorkspacePromotionsPage() {
             </span>
             <div>
               <h1 className="text-xl font-bold tracking-tight text-foreground">
-                Promoções & Ofertas Relâmpago
+                Promoções & Ofertas
               </h1>
-              <p className="text-xs text-muted-foreground">
-                Crie mecânicas de desconto, ofertas por tempo limitado e impulsione seu canal no
-                Mercado Wider.
-              </p>
             </div>
           </div>
         </div>

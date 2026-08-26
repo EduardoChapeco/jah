@@ -116,6 +116,17 @@ export const toggleStoreStatus = createServerFn({ method: "POST" })
     const admin = await requirePlatformAdmin();
     const db = getServerClient();
 
+    // Proteção de Imunidade: A loja oficial da plataforma (Root) nunca pode ser suspensa
+    const { data: targetStore } = await db
+      .from("stores")
+      .select("id, slug, is_platform_root")
+      .eq("id", data.storeId)
+      .single();
+
+    if (targetStore?.is_platform_root || targetStore?.slug === "wider") {
+      throw new Error("A loja oficial da plataforma (Wider Root) é protegida contra suspensão ou exclusão.");
+    }
+
     const { error } = await db
       .from("stores")
       .update({ is_active: data.isActive })
@@ -311,7 +322,7 @@ export const listAllUsers = createServerFn({ method: "GET" })
 
     let query = db
       .from("profiles")
-      .select("*, user_moderation_sanctions(*)")
+      .select("*")
       .order("created_at", { ascending: false })
       .limit(100);
 
@@ -323,9 +334,41 @@ export const listAllUsers = createServerFn({ method: "GET" })
       query = query.eq("role", params.role);
     }
 
-    const { data, error } = await query;
-    if (error) throw new Error("Erro ao buscar usuários: " + error.message);
-    return data || [];
+    const { data: profiles, error: profErr } = await query;
+    if (profErr) {
+      console.error("[listAllUsers] Erro ao buscar profiles:", profErr);
+      throw new Error("Erro ao buscar usuários: " + profErr.message);
+    }
+
+    if (!profiles || profiles.length === 0) return [];
+
+    // Busca sanções de forma desacoplada e segura
+    try {
+      const userIds = profiles.map((p: any) => p.id);
+      const { data: sanctions } = await db
+        .from("user_moderation_sanctions")
+        .select("*")
+        .in("user_id", userIds)
+        .eq("is_active", true);
+
+      const sanctionsMap = new Map<string, any[]>();
+      (sanctions || []).forEach((s: any) => {
+        const list = sanctionsMap.get(s.user_id) || [];
+        list.push(s);
+        sanctionsMap.set(s.user_id, list);
+      });
+
+      return profiles.map((p: any) => ({
+        ...p,
+        user_moderation_sanctions: sanctionsMap.get(p.id) || [],
+      }));
+    } catch (err) {
+      console.warn("[listAllUsers] Falha não impeditiva ao enriquecer sanções:", err);
+      return profiles.map((p: any) => ({
+        ...p,
+        user_moderation_sanctions: [],
+      }));
+    }
   });
 
 export const applyUserSanction = createServerFn({ method: "POST" })
@@ -417,16 +460,41 @@ export const listKycVerifications = createServerFn({ method: "GET" })
 
     let query = db
       .from("identity_kyc_verifications")
-      .select("*, user:profiles(id, full_name, avatar_url, role)")
+      .select("*")
       .order("created_at", { ascending: false });
 
     if (params?.status && params.status !== "all") {
       query = query.eq("status", params.status);
     }
 
-    const { data, error } = await query;
-    if (error) throw new Error("Erro ao buscar verificações KYC: " + error.message);
-    return data || [];
+    const { data: verifications, error } = await query;
+    if (error) {
+      console.error("[listKycVerifications] Erro na consulta:", error);
+      throw new Error("Erro ao buscar verificações KYC: " + error.message);
+    }
+
+    if (!verifications || verifications.length === 0) return [];
+
+    try {
+      const userIds = Array.from(new Set(verifications.map((v: any) => v.user_id).filter(Boolean)));
+      if (userIds.length > 0) {
+        const { data: users } = await db
+          .from("profiles")
+          .select("id, full_name, avatar_url, role")
+          .in("id", userIds);
+
+        const usersMap = new Map<string, any>((users || []).map((u: any) => [u.id, u]));
+
+        return verifications.map((v: any) => ({
+          ...v,
+          user: usersMap.get(v.user_id) || null,
+        }));
+      }
+      return verifications;
+    } catch (err) {
+      console.warn("[listKycVerifications] Falha não impeditiva ao enriquecer usuários:", err);
+      return verifications;
+    }
   });
 
 export const reviewKycVerification = createServerFn({ method: "POST" })
@@ -505,11 +573,12 @@ export const getUser360Dossier = createServerFn({ method: "GET" })
       generated_at: new Date().toISOString(),
     };
 
-    // Gera Hash SHA-256 do Dossiê para Imutabilidade e Validade Jurídica
-    const sha256 = crypto
-      .createHash("sha256")
-      .update(JSON.stringify(dossierSnapshot))
-      .digest("hex");
+    // Gera Hash SHA-256 do Dossiê para Imutabilidade e Validade Jurídica (Web Crypto API)
+    const jsonStr = JSON.stringify(dossierSnapshot);
+    const msgBuffer = new TextEncoder().encode(jsonStr);
+    const hashBuffer = await globalThis.crypto.subtle.digest("SHA-256", msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const sha256 = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 
     return {
       dossier: dossierSnapshot,
@@ -537,8 +606,42 @@ export const adminTriggerPasswordReset = createServerFn({ method: "POST" })
   });
 
 // ============================================================
+// ============================================================
 // 8. IDENTIDADE DA MARCA (Logo, Favicon, Nome da Plataforma)
 // ============================================================
+
+/**
+ * Localiza de forma resiliente a loja matriz/raiz da plataforma.
+ * Se nenhuma loja tiver is_platform_root=true, seleciona a loja padrão e a marca como matriz.
+ */
+export async function resolvePlatformRootStore(db: any) {
+  // 1. Tenta buscar por is_platform_root=true ou slugs canônicos
+  const { data: store } = await db
+    .from("stores")
+    .select("id, name, address, city, state, settings, is_platform_root, slug")
+    .or("is_platform_root.eq.true,slug.eq.wider-matriz,slug.eq.wider,slug.eq.matriz")
+    .limit(1)
+    .maybeSingle();
+
+  if (store) return store;
+
+  // 2. Fallback de resiliência: primeira store registrada
+  const { data: firstStore } = await db
+    .from("stores")
+    .select("id, name, address, city, state, settings, is_platform_root, slug")
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (firstStore) {
+    try {
+      await db.from("stores").update({ is_platform_root: true }).eq("id", firstStore.id);
+    } catch {}
+    return { ...firstStore, is_platform_root: true };
+  }
+
+  return null;
+}
 
 /**
  * Busca as configurações públicas de identidade e canais da plataforma.
@@ -546,13 +649,7 @@ export const adminTriggerPasswordReset = createServerFn({ method: "POST" })
  */
 export const getPublicBrandSettings = createServerFn({ method: "GET" }).handler(async () => {
   const db = getServerClient();
-
-  const { data: store } = await db
-    .from("stores")
-    .select("id, name, address, city, state, settings")
-    .or("slug.eq.wider-matriz,is_platform_root.eq.true")
-    .limit(1)
-    .maybeSingle();
+  const store = await resolvePlatformRootStore(db);
 
   const settings = (store?.settings as Record<string, any>) || {};
   return {
@@ -566,6 +663,9 @@ export const getPublicBrandSettings = createServerFn({ method: "GET" }).handler(
     support_whatsapp: settings.support_whatsapp || null,
     support_hours: settings.support_hours || "Segunda a Sexta, das 08h às 18h",
     login_split_image_url: settings.login_split_image_url || null,
+    login_bg_desktop_url: settings.login_bg_desktop_url || settings.login_split_image_url || null,
+    login_bg_tablet_url: settings.login_bg_tablet_url || settings.login_split_image_url || null,
+    login_bg_mobile_url: settings.login_bg_mobile_url || settings.login_split_image_url || null,
     social_instagram: settings.social_instagram || null,
     social_facebook: settings.social_facebook || null,
     social_linkedin: settings.social_linkedin || null,
@@ -581,16 +681,7 @@ export const getPublicBrandSettings = createServerFn({ method: "GET" }).handler(
 export const getPlatformBrandSettings = createServerFn({ method: "GET" }).handler(async () => {
   await requirePlatformAdmin();
   const db = getServerClient();
-
-  // Busca a loja raiz da plataforma (store_id master, is_platform_root ou slug 'wider-matriz')
-  const { data: store, error } = await db
-    .from("stores")
-    .select("id, name, address, city, state, settings")
-    .or("slug.eq.wider-matriz,is_platform_root.eq.true")
-    .limit(1)
-    .maybeSingle();
-
-  if (error) throw new Error("Erro ao buscar configurações de marca: " + error.message);
+  const store = await resolvePlatformRootStore(db);
 
   const settings = (store?.settings as Record<string, any>) || {};
   return {
@@ -604,6 +695,9 @@ export const getPlatformBrandSettings = createServerFn({ method: "GET" }).handle
     support_whatsapp: settings.support_whatsapp || null,
     support_hours: settings.support_hours || "Segunda a Sexta, das 08h às 18h",
     login_split_image_url: settings.login_split_image_url || null,
+    login_bg_desktop_url: settings.login_bg_desktop_url || settings.login_split_image_url || null,
+    login_bg_tablet_url: settings.login_bg_tablet_url || settings.login_split_image_url || null,
+    login_bg_mobile_url: settings.login_bg_mobile_url || settings.login_split_image_url || null,
     social_instagram: settings.social_instagram || null,
     social_facebook: settings.social_facebook || null,
     social_linkedin: settings.social_linkedin || null,
@@ -629,6 +723,9 @@ export const updatePlatformBrandSettings = createServerFn({ method: "POST" })
       support_whatsapp: z.string().nullable().optional(),
       support_hours: z.string().nullable().optional(),
       login_split_image_url: z.string().url().nullable().optional(),
+      login_bg_desktop_url: z.string().url().nullable().optional(),
+      login_bg_tablet_url: z.string().url().nullable().optional(),
+      login_bg_mobile_url: z.string().url().nullable().optional(),
       social_instagram: z.string().nullable().optional(),
       social_facebook: z.string().nullable().optional(),
       social_linkedin: z.string().nullable().optional(),
@@ -638,35 +735,51 @@ export const updatePlatformBrandSettings = createServerFn({ method: "POST" })
     await requirePlatformAdmin();
     const db = getServerClient();
 
-    // Busca a loja raiz
-    const { data: store, error: fetchErr } = await db
-      .from("stores")
-      .select("id, name, settings")
-      .or("slug.eq.wider-matriz,is_platform_root.eq.true")
-      .limit(1)
-      .maybeSingle();
+    // Busca a loja raiz com fallback resiliente
+    let store = await resolvePlatformRootStore(db);
 
-    if (fetchErr || !store) throw new Error("Loja raiz da plataforma não encontrada.");
+    if (!store) {
+      // Se não existir nenhuma store no banco, cria a loja raiz oficial
+      const { data: newStore, error: createErr } = await db
+        .from("stores")
+        .insert({
+          name: input.platform_name || "Wider",
+          slug: "wider-matriz",
+          is_platform_root: true,
+          is_active: true,
+          settings: {},
+        })
+        .select()
+        .single();
+
+      if (createErr || !newStore) {
+        throw new Error("Erro ao inicializar loja matriz da plataforma.");
+      }
+      store = newStore;
+    }
 
     const existingSettings = (store.settings as Record<string, any>) || {};
 
     // Merge seguro: preserva todas as configurações existentes
     const updatedSettings = {
       ...existingSettings,
-      ...(input.logo_url !== undefined && { logoUrl: input.logo_url }),
-      ...(input.favicon_url !== undefined && { faviconUrl: input.favicon_url }),
+      ...(input.logo_url !== undefined && { logoUrl: input.logo_url, logo_url: input.logo_url }),
+      ...(input.favicon_url !== undefined && { faviconUrl: input.favicon_url, favicon_url: input.favicon_url }),
       ...(input.show_name !== undefined && { show_name: input.show_name }),
       ...(input.show_logo !== undefined && { show_logo: input.show_logo }),
       ...(input.support_email !== undefined && { support_email: input.support_email }),
       ...(input.support_whatsapp !== undefined && { support_whatsapp: input.support_whatsapp }),
       ...(input.support_hours !== undefined && { support_hours: input.support_hours }),
       ...(input.login_split_image_url !== undefined && { login_split_image_url: input.login_split_image_url }),
+      ...(input.login_bg_desktop_url !== undefined && { login_bg_desktop_url: input.login_bg_desktop_url }),
+      ...(input.login_bg_tablet_url !== undefined && { login_bg_tablet_url: input.login_bg_tablet_url }),
+      ...(input.login_bg_mobile_url !== undefined && { login_bg_mobile_url: input.login_bg_mobile_url }),
       ...(input.social_instagram !== undefined && { social_instagram: input.social_instagram }),
       ...(input.social_facebook !== undefined && { social_facebook: input.social_facebook }),
       ...(input.social_linkedin !== undefined && { social_linkedin: input.social_linkedin }),
     };
 
-    const updatePayload: Record<string, any> = { settings: updatedSettings };
+    const updatePayload: Record<string, any> = { settings: updatedSettings, is_platform_root: true };
     if (input.platform_name) updatePayload.name = input.platform_name;
 
     const { error: updateErr } = await db

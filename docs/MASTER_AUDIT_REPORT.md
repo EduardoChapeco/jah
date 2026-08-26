@@ -63,12 +63,12 @@
 ## 🔍 MÓDULO 4: CATÁLOGO DE PRODUTOS, VARIAÇÕES & MATRIZ MULTIDIMENSIONAL
 
 ### 1. Camada de Dados
-- `public.products`: Título, slug, marca, EAN, dimensões e peso logístico (`weight_kg`, `width_cm`, `height_cm`, `length_cm`).
+- `public.products`: Título, slug, marca, EAN, dimensões e peso logístico (`weight_kg`, `width_cm`, `height_cm`, `length_cm`), flag `show_stock_publicly` (opt-in de visibilidade de estoque na vitrine).
 - `public.product_variants`: Matriz multidimensional com SKU, override de preço, estoque em mãos e suporte a backorder (`allow_backorder`, `backorder_lead_time_days`).
 - Procedure Atômica `create_product_transaction_v1` e `batch_upsert_variant_matrix_v4`.
 
-### 2. Contratos BFF (`src/services/admin-catalog.functions.ts`)
-- `listAdminProducts`, `createProductTransaction`, `updateProduct`, `toggleProductStatus`, `duplicateProduct`.
+### 2. Contratos BFF (`src/services/admin-catalog.functions.ts` & `src/services/product.functions.ts`)
+- `listAdminProducts`, `createProduct`, `updateProduct`, `getProductById`, `getProductBySlug` (`showStockPublicly`), `toggleProductStatus`, `duplicateProduct`.
 
 ---
 

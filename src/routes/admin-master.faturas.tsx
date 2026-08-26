@@ -24,16 +24,33 @@ import {
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
+import { ErrorState } from "@/components/state/states";
+
 export const Route = createFileRoute("/admin-master/faturas")({
   head: () => ({ meta: [{ title: "Faturas & Planos | Admin Master" }] }),
   loader: async () => {
-    const [invoices, stores] = await Promise.all([
-      getPlatformInvoicesList(),
-      getPlatformStoresList(),
-    ]);
-    return { invoices, stores };
+    try {
+      const [invoices, stores] = await Promise.all([
+        getPlatformInvoicesList().catch(() => []),
+        getPlatformStoresList().catch(() => []),
+      ]);
+      return { invoices: invoices || [], stores: stores || [] };
+    } catch {
+      return { invoices: [], stores: [] };
+    }
   },
   component: MasterFaturasPage,
+  errorComponent: () => (
+    <div className="mx-auto max-w-xl px-4 py-20">
+      <ErrorState
+        title="Faturas Indisponíveis"
+        description="Não foi possível carregar as faturas e planos da plataforma. Tente novamente."
+        onRetry={() => {
+          if (typeof window !== "undefined") window.location.reload();
+        }}
+      />
+    </div>
+  ),
 });
 
 function MasterFaturasPage() {

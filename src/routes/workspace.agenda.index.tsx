@@ -227,9 +227,6 @@ function AdminAppointmentsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 ">
         <div>
           <h1 className="text-xl font-bold text-foreground">Agenda de Atendimentos</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Gestão de horários, profissionais e atendimentos (Padrão Booksy / Avec).
-          </p>
         </div>
         <div className="flex items-center gap-2">
           <Link
@@ -425,27 +422,41 @@ function AdminAppointmentsPage() {
                       </div>
 
                       {["pending", "confirmed"].includes(appt.status) && (
-                        <div className="grid grid-cols-2 gap-1.5 pt-1">
+                        <div className="flex flex-col gap-1.5 pt-1">
+                          <div className="grid grid-cols-2 gap-1.5">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 rounded-lg text-[11px] font-bold cursor-pointer"
+                              onClick={() =>
+                                statusMutation.mutate({ id: appt.id, status: "in_service" })
+                              }
+                            >
+                              <Play className="size-3 mr-1 text-primary" />
+                              Iniciar
+                            </Button>
+                            <Button
+                              size="sm"
+                              className="h-8 rounded-lg text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
+                              onClick={() =>
+                                statusMutation.mutate({ id: appt.id, status: "completed" })
+                              }
+                            >
+                              <CheckCircle2 className="size-3 mr-1" />
+                              Concluir
+                            </Button>
+                          </div>
                           <Button
                             size="sm"
-                            variant="outline"
-                            className="h-8 rounded-lg text-[11px] font-bold cursor-pointer"
-                            onClick={() =>
-                              statusMutation.mutate({ id: appt.id, status: "in_service" })
-                            }
+                            variant="ghost"
+                            className="h-7 text-[10px] text-muted-foreground hover:text-destructive cursor-pointer"
+                            onClick={() => {
+                              if (confirm(`Registrar falta / No-show para ${appt.guest_name || "o cliente"}?`)) {
+                                statusMutation.mutate({ id: appt.id, status: "no_show" });
+                              }
+                            }}
                           >
-                            <Play className="size-3 mr-1 text-primary" />
-                            Iniciar
-                          </Button>
-                          <Button
-                            size="sm"
-                            className="h-8 rounded-lg text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
-                            onClick={() =>
-                              statusMutation.mutate({ id: appt.id, status: "completed" })
-                            }
-                          >
-                            <CheckCircle2 className="size-3 mr-1" />
-                            Concluir
+                            Registrar Falta (No-Show)
                           </Button>
                         </div>
                       )}

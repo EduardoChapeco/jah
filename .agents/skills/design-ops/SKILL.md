@@ -42,7 +42,15 @@ Antes de codar uma tela:
 2. **Contraste de Ação**: O botão principal é escuro/sólido (`bg-foreground text-background`). Todo o resto é outline ou ghost (`variant="ghost"`).
 3. **Erradicação do Lixo Visual**: Remova divisórias desnecessárias. Remova textos redundantes. Menos é mais.
 
+## Mobile First & Elastic Responsiveness (Apple HIG, iFood, Threads, Avec, Belasis)
+
+- **Tipografia Fluida**: Utilize `fluid-h1`, `fluid-h2` ou `clamp()` para títulos e blocos que escalam organicamente com a largura da tela sem saltos bruscos.
+- **Touch Target Inviolável (44px)**: No mobile, todos os botões, checkboxes, ícones e triggers devem possuir área de clique mínima de 44x44px (`touch-target` ou `h-11`).
+- **Safe Area Insets**: Sempre inclua `safe-bottom` em footers fixos, barras de navegação e drawers para não sobrepor o Home Indicator do iOS.
+- **Compressão Adaptativa**: Em viewports estreitos (< 380px), utilize `mobile-collapse-label` para recolher textos secundários e manter apenas o ícone do botão com a área de toque preservada.
+
 ## O que NÃO Fazer:
 
 - Não crie elementos extravagantes ou cores literais no className.
 - Nunca crie páginas que parecem Landing Pages coloridas dentro da área operacional. A operação é focada no trabalho do usuário.
+- Nunca crie botões mobile com altura inferior a 44px (`h-8` solto sem touch target compensado).

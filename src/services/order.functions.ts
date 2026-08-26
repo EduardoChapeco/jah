@@ -115,17 +115,16 @@ export async function _updateOrderStatus(
 
 export const listOrders = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    // SECURITY FIX: Enforce administrative authorization
-    await requireAdmin();
     const identity = await getServerIdentity();
-    if (!identity.store_id) throw new Error("Contexto de loja inválido");
+    assertStoreAccess(identity, ["owner", "admin", "manager", "seller"]);
+    if (!identity.store_id) return [];
 
     const data = await _listOrders(identity.store_id);
-    return data;
+    return data || [];
   } catch (e: unknown) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[order.functions] listOrders:", e instanceof Error ? e.message : String(e));
-    throw new Error("Erro ao buscar pedidos.");
+    return [];
   }
 });
 
@@ -133,9 +132,8 @@ export const getOrderById = createServerFn({ method: "GET" })
   .validator(z.object({ orderId: z.string().uuid() }))
   .handler(async ({ data: { orderId } }) => {
     try {
-      // SECURITY FIX: Enforce administrative authorization
-      await requireAdmin();
       const identity = await getServerIdentity();
+      assertStoreAccess(identity, ["owner", "admin", "manager", "seller"]);
       if (!identity.store_id) throw new Error("Contexto de loja inválido");
 
       const data = await _getOrderById(orderId, identity.store_id);
@@ -156,9 +154,8 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: params }) => {
     try {
-      // SECURITY FIX: Enforce administrative authorization
-      await requireAdmin();
       const identity = await getServerIdentity();
+      assertStoreAccess(identity, ["owner", "admin", "manager", "seller"]);
       if (!identity.store_id) throw new Error("Contexto de loja inválido");
 
       return await _updateOrderStatus(params.orderId, params.status, identity.store_id);

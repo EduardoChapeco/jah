@@ -158,6 +158,129 @@ export const upsertEventLot = createServerFn({ method: "POST" })
   .validator(ticketLotSchema.partial().extend({ event_id: z.string().uuid(), name: z.string() }))
   .handler(async ({ data }) => _upsertEventLot(data));
 
+async function _deleteEventLot(lotId: string) {
+  const supabase = getServerClient();
+  const identity = await getServerIdentity();
+  assertStoreAccess(identity, ["owner", "admin", "manager"]);
+
+  const { data: lot } = await supabase
+    .from("ticket_lots")
+    .select("id, event_id, sold_count, events!inner(store_id)")
+    .eq("id", lotId)
+    .single();
+
+  if (!lot || (lot.events as any)?.store_id !== identity.store_id) {
+    throw new Error("Acesso negado ou lote inexistente");
+  }
+
+  if ((lot.sold_count || 0) > 0) {
+    throw new Error("Não é possível excluir um lote que já possui ingressos vendidos. Pause o lote.");
+  }
+
+  const { error } = await supabase.from("ticket_lots").delete().eq("id", lotId);
+  if (error) throw new Error(error.message);
+
+  await logAuditAction(identity, "DELETE", "ticket_lots", lotId, { event_id: lot.event_id });
+  return { success: true };
+}
+
+export const deleteEventLot = createServerFn({ method: "POST" })
+  .validator(z.object({ lotId: z.string().uuid() }))
+  .handler(async ({ data }) => _deleteEventLot(data.lotId));
+
+async function _listEventTickets(eventId: string) {
+  const supabase = getServerClient();
+  const identity = await getServerIdentity();
+  assertStoreAccess(identity, ["owner", "admin", "manager", "seller"]);
+
+  const { data: evt } = await supabase
+    .from("events")
+    .select("id")
+    .eq("id", eventId)
+    .eq("store_id", identity.store_id)
+    .single();
+  if (!evt) throw new Error("Acesso negado");
+
+  const { data: tickets, error } = await supabase
+    .from("tickets")
+    .select(`
+      id,
+      status,
+      qr_hash,
+      created_at,
+      ticket_lots(id, name, price_cents),
+      profiles(id, full_name, tax_id, phone, email)
+    `)
+    .eq("event_id", eventId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw new Error(error.message);
+  return tickets || [];
+}
+
+export const listEventTickets = createServerFn({ method: "GET" })
+  .validator(z.string().uuid())
+  .handler(async ({ data: eventId }) => _listEventTickets(eventId));
+
+async function _issueComplimentaryTicket(params: {
+  eventId: string;
+  lotId: string;
+  recipientName: string;
+  recipientEmail?: string;
+  recipientTaxId?: string;
+}) {
+  const supabase = getServerClient();
+  const identity = await getServerIdentity();
+  assertStoreAccess(identity, ["owner", "admin", "manager"]);
+
+  // Ensure event ownership
+  const { data: evt } = await supabase
+    .from("events")
+    .select("id")
+    .eq("id", params.eventId)
+    .eq("store_id", identity.store_id)
+    .single();
+  if (!evt) throw new Error("Acesso negado");
+
+  const qrHash = `TKT-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+  const { data: ticket, error } = await supabase
+    .from("tickets")
+    .insert({
+      event_id: params.eventId,
+      lot_id: params.lotId,
+      user_id: identity.userId, // issuer or holder profile
+      qr_hash: qrHash,
+      status: "valid",
+    })
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
+
+  // Increment sold_count in the lot
+  await supabase.rpc("increment_lot_sold_count", { p_lot_id: params.lotId }).catch(() => {});
+
+  await logAuditAction(identity, "INSERT", "tickets", ticket.id, {
+    type: "complimentary",
+    recipient: params.recipientName,
+  });
+
+  return ticket;
+}
+
+export const issueComplimentaryTicket = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      eventId: z.string().uuid(),
+      lotId: z.string().uuid(),
+      recipientName: z.string().min(2),
+      recipientEmail: z.string().email().optional(),
+      recipientTaxId: z.string().optional(),
+    }),
+  )
+  .handler(async ({ data }) => _issueComplimentaryTicket(data));
+
 // ---------------------------------------------------------------------------
 // TICKETS / CHECK-IN
 // ---------------------------------------------------------------------------
@@ -176,28 +299,31 @@ async function _validateTicketCheckin(eventId: string, ticketCode: string) {
     .single();
   if (!evt) throw new Error("Acesso negado ao evento");
 
-  // Find the ticket by ID (uuid) or by QR Hash
+  // Find the ticket by ID (uuid), QR Hash, or participant name/document
   let query = supabase
     .from("tickets")
-    .select("id, status, profiles!inner(full_name), ticket_lots!inner(name)")
+    .select("id, status, qr_hash, profiles!inner(full_name, tax_id, phone), ticket_lots!inner(name)")
     .eq("event_id", eventId);
 
-  // Basic validation if it's a UUID
+  const cleanInput = ticketCode.trim();
   const isUuid =
     /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(
-      ticketCode,
+      cleanInput,
     );
+
   if (isUuid) {
-    query = query.eq("id", ticketCode);
+    query = query.eq("id", cleanInput);
+  } else if (cleanInput.startsWith("TKT-") || cleanInput.length >= 8) {
+    query = query.or(`qr_hash.eq.${cleanInput},id.ilike.%${cleanInput}%`);
   } else {
-    // Or it might be the qr_hash
-    query = query.eq("qr_hash", ticketCode);
+    // Busca por CPF ou nome do titular
+    query = query.or(`qr_hash.eq.${cleanInput},profiles.tax_id.eq.${cleanInput},profiles.full_name.ilike.%${cleanInput}%`);
   }
 
   const { data: ticket, error } = await query.maybeSingle();
 
   if (error || !ticket) {
-    throw new Error("Ingresso não encontrado para este evento.");
+    throw new Error("Ingresso não localizado para este evento. Verifique o código, QR ou CPF.");
   }
 
   if (ticket.status === "used") {

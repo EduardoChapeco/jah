@@ -30,13 +30,30 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { formatDateTime } from "@/lib/datetime";
 
+import { ErrorState } from "@/components/state/states";
+
 export const Route = createFileRoute("/admin-master/kyc")({
   head: () => ({ meta: [{ title: "Verificação Facial & KYC — Wider Master" }] }),
   loader: async () => {
-    const kycList = await listKycVerifications({ data: { status: "all" } });
-    return { kycList };
+    try {
+      const kycList = await listKycVerifications({ data: { status: "all" } }).catch(() => []);
+      return { kycList: kycList || [] };
+    } catch {
+      return { kycList: [] };
+    }
   },
   component: AdminKycPage,
+  errorComponent: () => (
+    <div className="mx-auto max-w-xl px-4 py-20">
+      <ErrorState
+        title="Verificações KYC Indisponíveis"
+        description="Não foi possível carregar a lista de verificações faciais no momento. Tente novamente."
+        onRetry={() => {
+          if (typeof window !== "undefined") window.location.reload();
+        }}
+      />
+    </div>
+  ),
 });
 
 function AdminKycPage() {

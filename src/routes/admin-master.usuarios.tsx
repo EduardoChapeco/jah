@@ -36,13 +36,30 @@ import {
 } from "@/components/ui/select";
 import { formatDateTime } from "@/lib/datetime";
 
+import { ErrorState } from "@/components/state/states";
+
 export const Route = createFileRoute("/admin-master/usuarios")({
-  head: () => ({ meta: [{ title: "Gestão Global de Usuários & Sanções" }] }),
+  head: () => ({ meta: [{ title: "Gestão Global de Usuários & Sanções | Admin Master" }] }),
   loader: async () => {
-    const users = await listAllUsers();
-    return { users };
+    try {
+      const users = await listAllUsers().catch(() => []);
+      return { users: users || [] };
+    } catch {
+      return { users: [] };
+    }
   },
   component: AdminUsuariosPage,
+  errorComponent: () => (
+    <div className="mx-auto max-w-xl px-4 py-20">
+      <ErrorState
+        title="Painel de Usuários Indisponível"
+        description="Não foi possível carregar os dados de usuários no momento. Verifique sua conexão e permissão de acesso."
+        onRetry={() => {
+          if (typeof window !== "undefined") window.location.reload();
+        }}
+      />
+    </div>
+  ),
 });
 
 function AdminUsuariosPage() {

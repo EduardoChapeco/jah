@@ -16,7 +16,7 @@ import {
 } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { listPublicArticles, type NewsArticleDTO } from "@/services/news.functions";
+import { listPublicArticles, listWorkspaceSponsors, type NewsArticleDTO, type SponsorDTO } from "@/services/news.functions";
 import { listActiveBanners } from "@/services/banner.functions";
 import { listHotpages } from "@/services/hotpage.functions";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
@@ -24,6 +24,7 @@ import { HotpagesRail } from "@/components/commerce/hotpages-rail";
 import { HorizontalRail } from "@/components/commerce/horizontal-rail";
 import { HitsLeadCard } from "@/components/commerce/hits-lead-card";
 import { NewsCard } from "@/components/news/news-card";
+import { NewsSponsorBanner } from "@/components/news/news-sponsor-banner";
 
 export const Route = createFileRoute("/_store/noticias/")({
   head: () => ({
@@ -36,12 +37,13 @@ export const Route = createFileRoute("/_store/noticias/")({
     ],
   }),
   loader: async () => {
-    const [articles, banners, hotpages] = await Promise.all([
+    const [articles, banners, hotpages, sponsors] = await Promise.all([
       listPublicArticles({ data: { limit: 40 } }).catch(() => []),
       listActiveBanners({ data: { placement: "noticias" } }).catch(() => []),
       listHotpages({ data: { module: "noticias" } }).catch(() => []),
+      listWorkspaceSponsors().catch(() => []),
     ]);
-    return { articles, banners, hotpages };
+    return { articles, banners, hotpages, sponsors };
   },
   component: NoticiasFeedPage,
 });
@@ -58,7 +60,7 @@ const CATEGORIES = [
 ];
 
 export function NoticiasFeedPage() {
-  const { articles: initialArticles, banners, hotpages } = Route.useLoaderData();
+  const { articles: initialArticles, banners, hotpages, sponsors } = Route.useLoaderData() as any;
   const [articles, setArticles] = useState<NewsArticleDTO[]>(initialArticles || []);
   const [selectedCategory, setSelectedCategory] = useState("todas");
   const [searchQuery, setSearchQuery] = useState("");
@@ -348,9 +350,23 @@ export function NoticiasFeedPage() {
           </div>
 
           <div className="space-y-6">
-            {(searchQuery ? articles : gridArticles).map((article) => (
-              <NewsCard key={article.id} article={article} />
-            ))}
+            {(searchQuery ? articles : gridArticles).map((article, idx) => {
+              const showSponsor = sponsors && sponsors.length > 0 && idx > 0 && idx % 3 === 0;
+              const sponsor = showSponsor ? sponsors[(idx / 3 - 1) % sponsors.length] : null;
+
+              return (
+                <div key={article.id} className="space-y-6">
+                  {showSponsor && sponsor && (
+                    <NewsSponsorBanner
+                      sponsor={sponsor}
+                      articleId={article.id}
+                      placementType="news_in_article"
+                    />
+                  )}
+                  <NewsCard article={article} />
+                </div>
+              );
+            })}
           </div>
         </section>
       )}

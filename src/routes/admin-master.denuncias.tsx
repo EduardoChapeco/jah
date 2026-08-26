@@ -24,13 +24,30 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { formatDateTime } from "@/lib/datetime";
 
+import { ErrorState } from "@/components/state/states";
+
 export const Route = createFileRoute("/admin-master/denuncias")({
   head: () => ({ meta: [{ title: "Trust & Safety — Central de Denúncias" }] }),
   loader: async () => {
-    const reports = await listModerationReports({ data: { status: "all" } });
-    return { reports };
+    try {
+      const reports = await listModerationReports({ data: { status: "all" } }).catch(() => []);
+      return { reports: reports || [] };
+    } catch {
+      return { reports: [] };
+    }
   },
   component: AdminDenunciasPage,
+  errorComponent: () => (
+    <div className="mx-auto max-w-xl px-4 py-20">
+      <ErrorState
+        title="Central de Denúncias Indisponível"
+        description="Não foi possível carregar as denúncias no momento. Tente novamente."
+        onRetry={() => {
+          if (typeof window !== "undefined") window.location.reload();
+        }}
+      />
+    </div>
+  ),
 });
 
 function AdminDenunciasPage() {

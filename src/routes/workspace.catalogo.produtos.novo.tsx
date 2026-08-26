@@ -43,9 +43,19 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { MediaUploader } from "@/components/ui/media-uploader";
 import { createProduct } from "@/services/admin-catalog.functions";
+import { importProductFromUrl } from "@/services/api-orchestrator.functions";
 import { VariantMatrixGrid, type RawVariant } from "@/components/admin/catalog/variant-matrix-grid";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
 
 export const Route = createFileRoute("/workspace/catalogo/produtos/novo")({
   head: () => ({ meta: [{ title: "Criar Novo Produto | Workspace Wider" }] }),
@@ -113,6 +123,12 @@ export function UnifiedNewProductPage() {
   // Aba móvel no modo inpage (editor ou preview)
   const [mobileTab, setMobileTab] = useState<"edit" | "preview">("edit");
 
+  // Modal: Importador Inteligente por URL
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [importUrl, setImportUrl] = useState("");
+  const [importTone, setImportTone] = useState<"profissional" | "persuasivo" | "tecnico" | "minimalista">("profissional");
+  const [isImporting, setIsImporting] = useState(false);
+
   // React Hook Form
   const {
     register,
@@ -136,6 +152,7 @@ export function UnifiedNewProductPage() {
       sku: "",
       selling_unit: "un",
       stock: 10,
+      show_stock_publicly: false,
       is_physical: true,
       weight_kg: 0.5,
       width_cm: 15,
@@ -226,6 +243,7 @@ export function UnifiedNewProductPage() {
           preparation_time_days: data.preparation_time_days
             ? Number(data.preparation_time_days)
             : null,
+          show_stock_publicly: data.show_stock_publicly ?? false,
           meta_title: data.meta_title || null,
           meta_description: data.meta_description || null,
           media_urls: images,
@@ -254,10 +272,46 @@ export function UnifiedNewProductPage() {
     }
   };
 
+  const handleImportProduct = async () => {
+    if (!importUrl.trim()) {
+      toast.error("Informe a URL do produto ou cardápio para importar.");
+      return;
+    }
+    setIsImporting(true);
+    try {
+      const data = await importProductFromUrl({
+        data: { url: importUrl, tone: importTone },
+      });
+
+      if (data.title) {
+        setValue("title", data.title);
+        setValue("slug", slugify(data.title));
+      }
+      if (data.subtitle) setValue("short_description", data.subtitle);
+      if (data.description) setValue("description", data.description);
+      if (data.price_cents > 0) setValue("price_cents", data.price_cents);
+      if (data.compare_at_cents && data.compare_at_cents > 0) {
+        setValue("compare_at_cents", data.compare_at_cents);
+      }
+      if (data.brand) setValue("brand", data.brand);
+      if (data.images && data.images.length > 0) {
+        setImages(data.images);
+      }
+
+      toast.success("Dados do produto importados com sucesso pela IA! Revise e publique.");
+      setIsImportModalOpen(false);
+      setImportUrl("");
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao importar produto via URL.");
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-6">
       {/* ── 1. Top Header com Alternância de Modo ────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 ">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border/40">
         <div className="flex items-center gap-3">
           <Button
             asChild
@@ -283,6 +337,17 @@ export function UnifiedNewProductPage() {
             type="button"
             variant="outline"
             size="sm"
+            onClick={() => setIsImportModalOpen(true)}
+            className="rounded-xl font-bold text-xs h-9 gap-1.5 border-primary/40 text-primary hover:bg-primary/10"
+          >
+            <Sparkles className="size-3.5" />
+            <span>Importar via Link (IA)</span>
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
             onClick={() => setEditorMode(editorMode === "inpage" ? "advanced" : "inpage")}
             className="rounded-xl text-xs font-semibold gap-1.5 h-9"
           >
@@ -293,7 +358,7 @@ export function UnifiedNewProductPage() {
               </>
             ) : (
               <>
-                <Sparkles className="size-3.5" />
+                <Eye className="size-3.5" />
                 <span>Modo In-Page (Mockup Fiel)</span>
               </>
             )}
@@ -302,7 +367,7 @@ export function UnifiedNewProductPage() {
           <Button
             onClick={handleSubmit(onSubmit, onFormError)}
             disabled={isSubmitting}
-            className="rounded-xl text-xs font-bold gap-1.5 h-9 bg-primary text-primary-foreground  cursor-pointer"
+            className="rounded-xl text-xs font-bold gap-1.5 h-9 bg-primary text-primary-foreground cursor-pointer"
           >
             {isSubmitting ? (
               <span className="size-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -313,6 +378,81 @@ export function UnifiedNewProductPage() {
           </Button>
         </div>
       </div>
+
+      {/* Modal: Importador Inteligente de Produto via URL */}
+      <Dialog open={isImportModalOpen} onOpenChange={setIsImportModalOpen}>
+        <DialogContent className="sm:max-w-md rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+              <Sparkles className="size-5 text-primary" />
+              <span>Importar Produto via Link</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Cole o link de qualquer e-commerce, cardápio ou fornecedor. A IA do Wider extrairá fotos, título, preço e descrição refinada.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">URL do Produto de Origem</Label>
+              <Input
+                value={importUrl}
+                onChange={(e) => setImportUrl(e.target.value)}
+                placeholder="https://exemplo.com.br/produto/tenis-running"
+                className="h-10 text-xs rounded-xl"
+                disabled={isImporting}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">Tom da Descrição do Produto</Label>
+              <Select
+                value={importTone}
+                onValueChange={(v: any) => setImportTone(v)}
+                disabled={isImporting}
+              >
+                <SelectTrigger className="h-10 text-xs rounded-xl">
+                  <SelectValue placeholder="Selecione o tom" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl">
+                  <SelectItem value="profissional">Profissional & Elegante</SelectItem>
+                  <SelectItem value="persuasivo">Persuasivo & Vendedor (Copywriting)</SelectItem>
+                  <SelectItem value="tecnico">Técnico & Detalhado (Especificações)</SelectItem>
+                  <SelectItem value="minimalista">Minimalista & Direto ao Ponto</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsImportModalOpen(false)}
+              disabled={isImporting}
+              className="rounded-xl text-xs"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleImportProduct}
+              disabled={isImporting || !importUrl.trim()}
+              className="rounded-xl font-bold text-xs gap-1.5"
+            >
+              {isImporting ? (
+                <>
+                  <span className="size-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Processando com IA...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="size-3.5" />
+                  <span>Extrair & Preencher</span>
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Tabs Mobile para alternar entre formulário e prévia no modo inpage */}
       {editorMode === "inpage" && (
@@ -469,6 +609,27 @@ export function UnifiedNewProductPage() {
                   />
                 </div>
               </div>
+
+              {/* Toggle: Exibir disponibilidade na vitrine */}
+              <Controller
+                control={control}
+                name="show_stock_publicly"
+                render={({ field }) => (
+                  <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-background border border-border/50">
+                    <div className="space-y-0.5">
+                      <p className="text-xs font-medium text-foreground">Exibir disponibilidade na vitrine</p>
+                      <p className="text-[11px] text-muted-foreground leading-tight">
+                        Quando ativo, clientes veem o indicador de "sem estoque" na página do produto.
+                      </p>
+                    </div>
+                    <Switch
+                      id="show_stock_publicly"
+                      checked={field.value ?? false}
+                      onCheckedChange={field.onChange}
+                    />
+                  </div>
+                )}
+              />
             </div>
 
             {/* 3. Galeria de Fotos */}
