@@ -523,15 +523,21 @@ export const getMyStoresList = createServerFn({ method: "GET" }).handler(async (
       });
     }
 
-    // Se a lista de IDs estiver vazia, carrega todas as lojas ativas do banco como fallback
+    const isPlatformAdmin = identity.role === "platform_admin";
+
+    // Se o usuário não possui lojas vinculadas e não é admin da plataforma, retorna vazio
+    if (storeIds.length === 0 && !isPlatformAdmin) {
+      return [];
+    }
+
     let query = db
       .from("stores")
       .select("id, name, slug, type, logo_url, banner_url, phone, email, cnpj, address, city, state, description, status, settings, created_at");
 
     if (storeIds.length > 0) {
       query = query.in("id", storeIds);
-    } else {
-      query = query.limit(20);
+    } else if (isPlatformAdmin) {
+      query = query.order("created_at", { ascending: false }).limit(30);
     }
 
     const { data: stores, error } = await query;

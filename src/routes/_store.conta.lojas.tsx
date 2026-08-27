@@ -75,21 +75,44 @@ export default function ContaLojasPage() {
         </div>
       </div>
 
-      {/* ── Grid de Lojas ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {stores.map((st: any) => {
-          const isCurrentActive = st.is_active_context;
-          const isCurrentSwitching = switchingId === st.id;
+      {/* ── Grid de Lojas / Empty State ── */}
+      {stores.length === 0 ? (
+        <Card className="p-12 text-center rounded-3xl border border-dashed border-border/80 bg-card space-y-4 max-w-xl mx-auto my-6">
+          <div className="size-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
+            <Store className="size-8" />
+          </div>
+          <div className="space-y-1.5">
+            <h3 className="text-base font-bold text-foreground">
+              Nenhum negócio vinculado ao seu perfil
+            </h3>
+            <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
+              Você ainda não cadastrou uma loja ou filial com este usuário. Crie seu primeiro negócio para gerenciar produtos, pedidos, equipe e catálogo no Workspace operacional.
+            </p>
+          </div>
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Button asChild className="rounded-xl text-xs font-bold gap-2">
+              <Link to="/criar-negocio">
+                <Plus className="size-4" />
+                Cadastrar Meu Negócio
+              </Link>
+            </Button>
+          </div>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {stores.map((st: any) => {
+            const isCurrentActive = st.is_active_context;
+            const isCurrentSwitching = switchingId === st.id;
 
-          return (
-            <Card
-              key={st.id}
-              className={`p-5 rounded-2xl border transition-all flex flex-col justify-between relative overflow-hidden bg-card ${
-                isCurrentActive
-                  ? "border-primary/50  ring-1 ring-primary/20"
-                  : "border-border hover:border-foreground/20 hover:"
-              }`}
-            >
+            return (
+              <Card
+                key={st.id}
+                className={`p-5 rounded-2xl border transition-all flex flex-col justify-between relative overflow-hidden bg-card ${
+                  isCurrentActive
+                    ? "border-primary/50 ring-1 ring-primary/20"
+                    : "border-border hover:border-foreground/20"
+                }`}
+              >
               {isCurrentActive && (
                 <div className="absolute top-3 right-3">
                   <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[10px] font-bold px-2 py-0.5">
@@ -182,6 +205,7 @@ export default function ContaLojasPage() {
           );
         })}
       </div>
+      )}
     </div>
   );
 }
