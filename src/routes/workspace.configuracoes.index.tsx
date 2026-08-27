@@ -37,6 +37,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CitySelect } from "@/components/ui/city-select";
 import { CHAPECO_NEIGHBORHOODS, type NeighborhoodPreset } from "@/lib/constants/cities";
@@ -277,43 +278,14 @@ export default function WorkspaceConfiguracoesPage() {
             {/* Banner / Capa */}
             <div className="space-y-2">
               <Label className="text-xs font-bold text-foreground">Capa de Cabeçalho (Banner)</Label>
-              <div className="relative h-40 w-full rounded-3xl  overflow-hidden bg-muted/40 group">
-                {bannerUrl ? (
-                  <img
-                    src={bannerUrl}
-                    alt="Capa da Loja"
-                    className="size-full object-cover"
-                  />
-                ) : (
-                  <div className="size-full flex flex-col items-center justify-center text-muted-foreground gap-1">
-                    <ImageIcon className="size-8 opacity-40" />
-                    <span className="text-xs">Nenhum banner cadastrado</span>
-                  </div>
-                )}
-
-                <label className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer text-white text-xs font-bold gap-2">
-                  {isUploadingBanner ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    <>
-                      <Upload className="size-4" />
-                      <span>Fazer Upload de Capa</span>
-                    </>
-                  )}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => handleFileUpload(e, "banner")}
-                    disabled={isUploadingBanner}
-                  />
-                </label>
-              </div>
-              <Input
+              <ImageUpload
                 value={bannerUrl}
-                onChange={(e) => setBannerUrl(e.target.value)}
-                placeholder="Ou insira a URL direta da imagem..."
-                className="rounded-xl text-xs h-9"
+                onChange={(url) => setBannerUrl(url)}
+                onRemove={() => setBannerUrl("")}
+                bucket="cms-media"
+                aspectPreset="banner"
+                className="w-full"
+                helperText="Formato panorâmico (21:9 / 16:9). Arraste ou dê zoom para enquadrar perfeitamente a vitrine."
               />
             </div>
 
@@ -321,44 +293,19 @@ export default function WorkspaceConfiguracoesPage() {
             <div className="space-y-2">
               <Label className="text-xs font-bold text-foreground">Logotipo Oficial</Label>
               <div className="flex items-center gap-4">
-                <div className="relative size-20 rounded-2xl  overflow-hidden bg-muted/50 shrink-0 group">
-                  {logoUrl ? (
-                    <img
-                      src={logoUrl}
-                      alt="Logo"
-                      className="size-full object-cover"
-                    />
-                  ) : (
-                    <div className="size-full flex items-center justify-center text-muted-foreground">
-                      <Store className="size-8 opacity-40" />
-                    </div>
-                  )}
-
-                  <label className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer text-white">
-                    {isUploadingLogo ? (
-                      <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                      <Upload className="size-4" />
-                    )}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => handleFileUpload(e, "logo")}
-                      disabled={isUploadingLogo}
-                    />
-                  </label>
-                </div>
-
+                <ImageUpload
+                  value={logoUrl}
+                  onChange={(url) => setLogoUrl(url)}
+                  onRemove={() => setLogoUrl("")}
+                  bucket="cms-media"
+                  aspectPreset="square"
+                  className="w-24 h-24 shrink-0"
+                  helperText="Quadrado (1:1)"
+                />
                 <div className="flex-1 space-y-1.5">
-                  <Input
-                    value={logoUrl}
-                    onChange={(e) => setLogoUrl(e.target.value)}
-                    placeholder="URL do logotipo (PNG ou SVG transparente)..."
-                    className="rounded-xl text-xs h-9"
-                  />
+                  <p className="text-xs font-bold text-foreground">Formato Quadrado (Recomendado 512x512px)</p>
                   <p className="text-[11px] text-muted-foreground">
-                    Recomendado: 512x512px com fundo limpo.
+                    Aparece no cabeçalho da loja, na sacola de compras, recibos do PDV e nas listagens de busca.
                   </p>
                 </div>
               </div>

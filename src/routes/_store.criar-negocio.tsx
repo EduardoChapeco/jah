@@ -32,6 +32,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { CitySelect } from "@/components/ui/city-select";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { CHAPECO_NEIGHBORHOODS, type NeighborhoodPreset } from "@/lib/constants/cities";
 import { provisionBusiness } from "@/services/onboarding.functions";
 import { uploadStoreMedia } from "@/services/storage.functions";
@@ -550,48 +551,36 @@ function CriarNegocioPage() {
             {/* Banner de Capa */}
             <div className="space-y-2">
               <Label className="text-xs font-bold text-foreground">Capa de Cabeçalho (Banner da Loja)</Label>
-              <div className="relative h-36 w-full rounded-2xl  overflow-hidden bg-muted/40 group flex items-center justify-center">
-                {bannerUrl ? (
-                  <img src={bannerUrl} alt="Capa" className="size-full object-cover" />
-                ) : (
-                  <div className="text-center text-muted-foreground space-y-1">
-                    <ImageIcon className="size-7 mx-auto opacity-40" />
-                    <p className="text-xs">Nenhum banner selecionado</p>
-                  </div>
-                )}
-                <label className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer text-white text-xs font-bold gap-2">
-                  {isUploadingBanner ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
-                  <span>{bannerUrl ? "Alterar Capa" : "Upload de Capa"}</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => handleFileUpload(e, "banner")}
-                  />
-                </label>
-              </div>
+              <ImageUpload
+                value={bannerUrl}
+                onChange={(url) => {
+                  setBannerUrl(url);
+                  toast.success("Capa atualizada com sucesso!");
+                }}
+                onRemove={() => setBannerUrl("")}
+                bucket="cms-media"
+                aspectPreset="banner"
+                className="w-full"
+                helperText="Formato panorâmico (21:9 / 16:9). Recorte, arraste e ajuste o zoom livremente."
+              />
             </div>
 
             {/* Logotipo Oficial */}
             <div className="space-y-2">
               <Label className="text-xs font-bold text-foreground">Logotipo Oficial da Loja</Label>
               <div className="flex items-center gap-4">
-                <div className="relative size-20 rounded-2xl  overflow-hidden bg-muted/50 shrink-0 group flex items-center justify-center">
-                  {logoUrl ? (
-                    <img src={logoUrl} alt="Logo" className="size-full object-cover" />
-                  ) : (
-                    <Store className="size-7 text-muted-foreground opacity-40" />
-                  )}
-                  <label className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer text-white">
-                    {isUploadingLogo ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => handleFileUpload(e, "logo")}
-                    />
-                  </label>
-                </div>
+                <ImageUpload
+                  value={logoUrl}
+                  onChange={(url) => {
+                    setLogoUrl(url);
+                    toast.success("Logotipo atualizado com sucesso!");
+                  }}
+                  onRemove={() => setLogoUrl("")}
+                  bucket="cms-media"
+                  aspectPreset="square"
+                  className="w-24 h-24 shrink-0"
+                  helperText="Quadrado (1:1)"
+                />
                 <div className="space-y-1">
                   <p className="text-xs font-bold text-foreground">Formato Quadrado (Recomendado 500x500px)</p>
                   <p className="text-[11px] text-muted-foreground">

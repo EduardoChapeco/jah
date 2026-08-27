@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import {
   ArrowLeft,
   CheckCircle2,
+  Plus,
   ImagePlus,
   Eye,
   ShoppingBag,
@@ -16,6 +17,7 @@ import {
   Truck,
   ShieldCheck,
   Loader2,
+  Box,
 } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
@@ -35,6 +37,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { MediaUploader } from "@/components/ui/media-uploader";
+import { VariantMatrixGrid, type RawVariant } from "@/components/admin/catalog/variant-matrix-grid";
 import {
   Dialog,
   DialogContent,
@@ -111,6 +114,7 @@ export function UnifiedNewProductPage() {
   const [importUrl, setImportUrl] = useState("");
   const [importTone, setImportTone] = useState<"profissional" | "persuasivo" | "tecnico" | "minimalista">("profissional");
   const [isImporting, setIsImporting] = useState(false);
+  const [variantsMatrix, setVariantsMatrix] = useState<RawVariant[]>([]);
 
   // React Hook Form
   const {
@@ -178,6 +182,28 @@ export function UnifiedNewProductPage() {
       const generatedSlug = data.slug.trim() || slugify(data.title);
       const categoryIds = data.category_id ? [data.category_id] : [];
 
+      const variantsPayload =
+        variantsMatrix.length > 0
+          ? variantsMatrix.map((v, idx) => ({
+              sku: String(v.sku || `${generatedSlug}-var-${idx + 1}`),
+              attributes: (v.attributes || {}) as Record<string, unknown>,
+              stock: Number(v.stock ?? 10),
+              price_override_cents:
+                v.price_override_cents != null && Number(v.price_override_cents) > 0
+                  ? Number(v.price_override_cents)
+                  : null,
+              image_url: v.image_url || null,
+            }))
+          : [
+              {
+                sku: String(data.sku || `${generatedSlug}-default`),
+                attributes: {},
+                stock: Number(data.stock || 10),
+                price_override_cents: null,
+                image_url: images[0] || null,
+              },
+            ];
+
       await createProduct({
         data: {
           title: data.title.trim(),
@@ -202,15 +228,7 @@ export function UnifiedNewProductPage() {
           media_urls: images,
           category_ids: categoryIds,
           option_group_ids: selectedOptionGroupIds.length > 0 ? selectedOptionGroupIds : undefined,
-          variants: [
-            {
-              sku: String(data.sku || `${generatedSlug}-default`),
-              attributes: {},
-              stock: Number(data.stock || 10),
-              price_override_cents: null,
-              image_url: images[0] || null,
-            },
-          ],
+          variants: variantsPayload,
         },
       });
 
@@ -643,6 +661,84 @@ export function UnifiedNewProductPage() {
                     </div>
                   )}
                 />
+              </div>
+
+              {/* Card de Variações & Grade ERP Combinatória */}
+              <div className="bg-card rounded-2xl p-5 space-y-4 border border-border/60">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
+                    <Box className="size-4 text-primary" />
+                    <span>Grade de Variações (Tamanho, Cor, Voltagem, etc.)</span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const dim = window.prompt("Nome da primeira dimensão (Ex: Tamanho, Cor, Sabor):");
+                      if (dim && dim.trim()) {
+                        const val1 = window.prompt(`Primeiro valor para "${dim.trim()}" (Ex: P, Azul, 350ml):`);
+                        if (val1 && val1.trim()) {
+                          setVariantsMatrix([
+                            {
+                              sku: `${formValues.slug || "prod"}-${val1.trim().toLowerCase()}`,
+                              attributes: { [dim.trim()]: val1.trim() },
+                              stock: formValues.stock || 10,
+                              price_override_cents: null,
+                            },
+                          ]);
+                        }
+                      }
+                    }}
+                    className="h-8 rounded-xl text-xs font-bold gap-1.5"
+                  >
+                    <Plus className="size-3.5" />
+                    <span>Adicionar Variação</span>
+                  </Button>
+                </div>
+
+                {variantsMatrix.length > 0 ? (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">
+                      {variantsMatrix.length} variação(ões) configurada(s). Edite estoque individual, SKU e preços diretamente na grade:
+                    </p>
+                    <VariantMatrixGrid
+                      variants={variantsMatrix}
+                      onChange={setVariantsMatrix}
+                      basePriceCents={formValues.price_cents || 0}
+                    />
+                  </div>
+                ) : (
+                  <div className="p-6 text-center rounded-xl border border-dashed border-border/70 space-y-2">
+                    <p className="text-xs text-muted-foreground">
+                      Este produto atualmente é simples (sem variações).
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const dim = window.prompt("Nome da propriedade de variação (Ex: Tamanho, Cor, Voltagem):");
+                        if (dim && dim.trim()) {
+                          const val = window.prompt(`Primeiro valor para ${dim.trim()} (Ex: P, Branco, 110v):`);
+                          if (val && val.trim()) {
+                            setVariantsMatrix([
+                              {
+                                sku: `${formValues.slug || "prod"}-${val.trim().toLowerCase()}`,
+                                attributes: { [dim.trim()]: val.trim() },
+                                stock: formValues.stock || 10,
+                                price_override_cents: null,
+                              },
+                            ]);
+                          }
+                        }
+                      }}
+                      className="rounded-xl text-xs font-bold"
+                    >
+                      <Plus className="size-3.5 mr-1" /> Adicionar Variações (Cor, Tamanho, etc.)
+                    </Button>
+                  </div>
+                )}
               </div>
             </TabsContent>
 

@@ -23,6 +23,7 @@ import {
   Globe,
   Clock,
   Loader2,
+  Box,
 } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
@@ -44,6 +45,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { MediaUploader } from "@/components/ui/media-uploader";
 import { VariantMatrixGrid, type RawVariant } from "@/components/admin/catalog/variant-matrix-grid";
+import { VariantOptionsBuilder } from "@/components/admin/product-editor/variant-options-builder";
 import {
   getProductById,
   updateProduct,
@@ -144,6 +146,7 @@ function EditProductPage() {
     }));
   }, [product.product_variants]);
   const [variantsMatrix, setVariantsMatrix] = useState<RawVariant[]>(initialVariants);
+  const [showOptionsBuilder, setShowOptionsBuilder] = useState(false);
 
   // Form State
   const initialCategoryId = product.product_categories?.[0]?.category_id || "";
@@ -571,6 +574,66 @@ function EditProductPage() {
                     </div>
                   )}
                 />
+              </div>
+
+              {/* Card de Variações & Grade ERP Combinatória */}
+              <div className="bg-card rounded-2xl p-5 space-y-4 border border-border/60">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
+                    <Box className="size-4 text-primary" />
+                    <span>Grade de Variações (Tamanho, Cor, Voltagem, etc.)</span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowOptionsBuilder(!showOptionsBuilder)}
+                    className="h-8 rounded-xl text-xs font-bold gap-1.5"
+                  >
+                    <Plus className="size-3.5" />
+                    <span>{showOptionsBuilder ? "Ocultar Construtor" : "Gerenciar Opções & Atributos"}</span>
+                  </Button>
+                </div>
+
+                {showOptionsBuilder && (
+                  <div className="p-4 rounded-xl bg-muted/20 border border-border/50">
+                    <VariantOptionsBuilder
+                      product={product}
+                      onClose={() => {
+                        setShowOptionsBuilder(false);
+                        router.invalidate();
+                      }}
+                    />
+                  </div>
+                )}
+
+                {variantsMatrix.length > 0 ? (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">
+                      {variantsMatrix.length} variação(ões) configurada(s). Edite estoque individual, SKU e preços de sobreposição diretamente na grade:
+                    </p>
+                    <VariantMatrixGrid
+                      variants={variantsMatrix}
+                      onChange={setVariantsMatrix}
+                      basePriceCents={formValues.price_cents || 0}
+                    />
+                  </div>
+                ) : (
+                  <div className="p-6 text-center rounded-xl border border-dashed border-border/70 space-y-2">
+                    <p className="text-xs text-muted-foreground">
+                      Este produto atualmente é simples (sem variações cadastradas).
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowOptionsBuilder(true)}
+                      className="rounded-xl text-xs font-bold"
+                    >
+                      <Plus className="size-3.5 mr-1" /> Adicionar Opções (Cor, Tamanho, etc.)
+                    </Button>
+                  </div>
+                )}
               </div>
             </TabsContent>
 
