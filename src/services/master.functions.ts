@@ -951,3 +951,147 @@ export const updatePlatformApiIntegrations = createServerFn({ method: "POST" })
 
     return { success: true };
   });
+
+// ============================================================
+// 6. CMS & APRESENTAÇÃO DE LOGÍSTICA / MOTOLINK
+// ============================================================
+
+export interface LogisticsPresentationSettings {
+  title: string;
+  subtitle: string;
+  badge: string;
+  disclaimer: string;
+  image_desktop_url: string | null;
+  image_tablet_url: string | null;
+  image_mobile_url: string | null;
+  motolink_name: string;
+  features: Array<{
+    title: string;
+    desc: string;
+    icon: string;
+  }>;
+}
+
+export const DEFAULT_LOGISTICS_PRESENTATION: LogisticsPresentationSettings = {
+  title: "Logística Integrada & MotoLink",
+  subtitle: "Conecte-se aos entregadores autônomos da sua cidade sem intermediários e com zero taxa de frete.",
+  badge: "Zero Taxa de Intermediação",
+  disclaimer: "A Wider é uma infraestrutura tecnológica aberta. Não intermediamos pagamentos de fretes nem cobramos comissão entre entregadores e empresas. A relação comercial e operacional é direta e independente entre as partes.",
+  image_desktop_url: "https://images.unsplash.com/photo-1616401784845-180882ba9ba8?auto=format&fit=crop&w=1600&q=80",
+  image_tablet_url: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=1000&q=80",
+  image_mobile_url: "https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=600&q=80",
+  motolink_name: "MotoLink",
+  features: [
+    {
+      title: "Zero Comissão de Frete",
+      desc: "Economize de 20% a 30% por entrega. O valor acordado vai 100% para o entregador, sem taxas da plataforma.",
+      icon: "BadgePercent",
+    },
+    {
+      title: "Ficha Completa & Segurança",
+      desc: "Consulte foto, modelo da moto, placa, contato, selo de verificação e avaliações de outros lojistas da região.",
+      icon: "ShieldCheck",
+    },
+    {
+      title: "Frota de Confiança & Bloqueio",
+      desc: "Favorite seus motoboys parceiros para chamadas prioritárias e bloqueie condutores com histórico inadequado.",
+      icon: "Users",
+    },
+    {
+      title: "MotoLink / Magic Link",
+      desc: "Despacho em 1 clique com link inteligente de rastreio em tempo real enviado direto no WhatsApp com rota GPS.",
+      icon: "Zap",
+    },
+  ],
+};
+
+export const getLogisticsPresentationSettings = createServerFn({ method: "GET" }).handler(async () => {
+  await requirePlatformAdmin();
+  const db = getServerClient();
+  const store = await resolvePlatformRootStore(db);
+
+  const settings = (store?.settings as Record<string, any>) || {};
+  const saved = settings.logistics_presentation as Partial<LogisticsPresentationSettings> | undefined;
+
+  return {
+    ...DEFAULT_LOGISTICS_PRESENTATION,
+    ...(saved || {}),
+    features: saved?.features && saved.features.length > 0 ? saved.features : DEFAULT_LOGISTICS_PRESENTATION.features,
+  };
+});
+
+export const getPublicLogisticsPresentation = createServerFn({ method: "GET" }).handler(async () => {
+  const db = getServerClient();
+  try {
+    const store = await resolvePlatformRootStore(db);
+    const settings = (store?.settings as Record<string, any>) || {};
+    const saved = settings.logistics_presentation as Partial<LogisticsPresentationSettings> | undefined;
+
+    return {
+      ...DEFAULT_LOGISTICS_PRESENTATION,
+      ...(saved || {}),
+      features: saved?.features && saved.features.length > 0 ? saved.features : DEFAULT_LOGISTICS_PRESENTATION.features,
+    };
+  } catch {
+    return DEFAULT_LOGISTICS_PRESENTATION;
+  }
+});
+
+export const updateLogisticsPresentationSettings = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      title: z.string().min(2),
+      subtitle: z.string().min(2),
+      badge: z.string().min(2),
+      disclaimer: z.string().min(5),
+      image_desktop_url: z.string().url().nullable().optional(),
+      image_tablet_url: z.string().url().nullable().optional(),
+      image_mobile_url: z.string().url().nullable().optional(),
+      motolink_name: z.string().min(2).default("MotoLink"),
+      features: z
+        .array(
+          z.object({
+            title: z.string(),
+            desc: z.string(),
+            icon: z.string(),
+          }),
+        )
+        .optional(),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    const admin = await requirePlatformAdmin();
+    const db = getServerClient();
+    const store = await resolvePlatformRootStore(db);
+
+    if (!store) throw new Error("Loja raiz da plataforma não encontrada.");
+
+    const existingSettings = (store.settings as Record<string, any>) || {};
+    const updatedSettings = {
+      ...existingSettings,
+      logistics_presentation: {
+        title: input.title.trim(),
+        subtitle: input.subtitle.trim(),
+        badge: input.badge.trim(),
+        disclaimer: input.disclaimer.trim(),
+        image_desktop_url: input.image_desktop_url || null,
+        image_tablet_url: input.image_tablet_url || null,
+        image_mobile_url: input.image_mobile_url || null,
+        motolink_name: input.motolink_name.trim(),
+        features: input.features || DEFAULT_LOGISTICS_PRESENTATION.features,
+        updated_at: new Date().toISOString(),
+        updated_by: admin.id,
+      },
+    };
+
+    const { error } = await db
+      .from("stores")
+      .update({ settings: updatedSettings })
+      .eq("id", store.id);
+
+    if (error) {
+      throw new Error("Erro ao salvar apresentação de logística: " + error.message);
+    }
+
+    return { success: true };
+  });

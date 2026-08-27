@@ -22,6 +22,11 @@ import {
   Building2,
   ChevronRight,
   UserPlus,
+  Bike,
+  ShieldCheck,
+  Zap,
+  BadgePercent,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +52,7 @@ import { CHAPECO_NEIGHBORHOODS, type NeighborhoodPreset } from "@/lib/constants/
 import { provisionBusiness } from "@/services/onboarding.functions";
 import { uploadStoreMedia } from "@/services/storage.functions";
 import { getUserSession } from "@/services/auth.functions";
+import { getPublicLogisticsPresentation } from "@/services/master.functions";
 import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
@@ -56,6 +62,10 @@ export const Route = createFileRoute("/_store/criar-negocio")({
     return {
       segment: (search.segment as string) || undefined,
     };
+  },
+  loader: async () => {
+    const logisticsInfo = await getPublicLogisticsPresentation().catch(() => null);
+    return { logisticsInfo };
   },
   beforeLoad: async ({ location }) => {
     const session = await getUserSession();
@@ -709,13 +719,153 @@ function CriarNegocioPage() {
       {/* ═════════════════════════════════════════════════════════════════════ */}
       {/* ── ETAPA 4: OPERAÇÃO & LOGÍSTICA ── */}
       {/* ═════════════════════════════════════════════════════════════════════ */}
+      {/* ═════════════════════════════════════════════════════════════════════ */}
+      {/* ── ETAPA 4: OPERAÇÃO & LOGÍSTICA (MOTOLINK / ENTREGA INTEGRADA) ── */}
+      {/* ═════════════════════════════════════════════════════════════════════ */}
       {step === 4 && (
-        <div className="space-y-6 max-w-3xl mx-auto">
+        <div className="space-y-6 max-w-4xl mx-auto">
+          {/* 1. Banner & Apresentação de Logística Democratizada */}
+          <div className="relative rounded-3xl overflow-hidden border border-border/80 bg-card shadow-sm">
+            {/* Imagem Responsiva com Tag Picture */}
+            <div className="relative h-44 sm:h-56 md:h-64 w-full overflow-hidden bg-muted">
+              <picture>
+                {logisticsInfo?.image_mobile_url && (
+                  <source
+                    media="(max-width: 640px)"
+                    srcSet={logisticsInfo.image_mobile_url}
+                  />
+                )}
+                {logisticsInfo?.image_tablet_url && (
+                  <source
+                    media="(max-width: 1024px)"
+                    srcSet={logisticsInfo.image_tablet_url}
+                  />
+                )}
+                <img
+                  src={
+                    logisticsInfo?.image_desktop_url ||
+                    "https://images.unsplash.com/photo-1616401784845-180882ba9ba8?auto=format&fit=crop&w=1600&q=80"
+                  }
+                  alt="Logística Integrada e Entregadores"
+                  className="size-full object-cover"
+                />
+              </picture>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+
+              {/* Informações Sobrepostas no Banner */}
+              <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7 text-white space-y-2">
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-emerald-500 text-white text-[10px] font-extrabold px-2.5 py-0.5 border-none shadow-sm">
+                    {logisticsInfo?.badge || "Zero Taxa de Intermediação"}
+                  </Badge>
+                  <span className="text-[11px] text-white/80 font-medium">
+                    Rede Aberta & Descentralizada
+                  </span>
+                </div>
+                <h2 className="text-lg sm:text-2xl font-black tracking-tight text-white">
+                  {logisticsInfo?.title || "Logística Integrada & MotoLink"}
+                </h2>
+                <p className="text-xs sm:text-sm text-white/90 max-w-2xl leading-relaxed">
+                  {logisticsInfo?.subtitle ||
+                    "Você não precisa ter motoboy próprio nem pagar taxas abusivas. Conecte-se aos entregadores autônomos da sua cidade com 1 clique."}
+                </p>
+              </div>
+            </div>
+
+            {/* Grid de 4 Pilares da Entrega Democratizada */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 p-5 bg-card/60 divide-y sm:divide-y-0 sm:divide-x divide-border/50 border-t border-border/60">
+              <div className="pt-3 sm:pt-0 sm:px-3 space-y-1">
+                <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  <BadgePercent className="size-3.5 text-emerald-500 shrink-0" />
+                  <span>Sem Taxa de Frete</span>
+                </p>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Economize até 30% por entrega. O valor vai 100% para o condutor.
+                </p>
+              </div>
+
+              <div className="pt-3 sm:pt-0 sm:px-3 space-y-1">
+                <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  <ShieldCheck className="size-3.5 text-primary shrink-0" />
+                  <span>Ficha do Motoboy</span>
+                </p>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Consulte foto, placa, modelo da moto, contato e avaliações reais.
+                </p>
+              </div>
+
+              <div className="pt-3 sm:pt-0 sm:px-3 space-y-1">
+                <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  <Users className="size-3.5 text-sky-500 shrink-0" />
+                  <span>Frota de Confiança</span>
+                </p>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Favorite seus entregadores parceiros e bloqueie condutores indesejados.
+                </p>
+              </div>
+
+              <div className="pt-3 sm:pt-0 sm:px-3 space-y-1">
+                <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  <Zap className="size-3.5 text-amber-500 shrink-0" />
+                  <span>MotoLink em 1 Clique</span>
+                </p>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Despache pedidos gerando link GPS no WhatsApp do motoboy e cliente.
+                </p>
+              </div>
+            </div>
+
+            {/* Ficha Ilustrativa do Motoboy & Disclaimer de Transparência */}
+            <div className="p-5 bg-muted/20 border-t border-border/60 space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-2xl bg-card border border-border/70">
+                <div className="flex items-center gap-3">
+                  <div className="size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold text-sm shrink-0">
+                    <Bike className="size-6" />
+                  </div>
+                  <div className="space-y-0.5 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-bold text-xs text-foreground">Exemplo: Ficha de Entregador Parceiro</p>
+                      <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-[9px] font-bold">
+                        Selo Verificado
+                      </Badge>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">
+                      Honda CG 160 Fan • Placa: ABC-1D23 • WhatsApp verificado
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <Badge variant="outline" className="text-xs font-bold gap-1 bg-amber-500/10 text-amber-600 border-amber-500/20">
+                    <Star className="size-3 fill-amber-500 text-amber-500" />
+                    <span>4.9 (218 entregas)</span>
+                  </Badge>
+                  <Badge variant="outline" className="text-[10px] text-muted-foreground">
+                    Favorito em 14 lojas
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Termo de Esclarecimento Legal */}
+              <div className="p-3.5 rounded-2xl bg-background border border-border/60 text-[11px] text-muted-foreground leading-relaxed space-y-1">
+                <p className="font-bold text-foreground flex items-center gap-1.5 text-xs">
+                  <ShieldCheck className="size-3.5 text-primary" />
+                  <span>Transparência da Plataforma Wider</span>
+                </p>
+                <p>
+                  {logisticsInfo?.disclaimer ||
+                    "A Wider é uma infraestrutura tecnológica aberta. Não intermediamos pagamentos de fretes nem cobramos comissão entre entregadores e empresas. A relação comercial e operacional é direta e independente entre as partes."}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. Configurações Operacionais da Loja */}
           <div className="bg-card p-6 sm:p-8 rounded-3xl border border-border/70 space-y-6">
             <div className="space-y-1 pb-2 border-b border-border/60">
-              <h2 className="text-lg font-bold text-foreground">Operação, Horários & Entrega</h2>
+              <h3 className="text-base font-bold text-foreground">Configurações de Atendimento da Loja</h3>
               <p className="text-xs text-muted-foreground">
-                Defina as modalidades de entrega, horário de funcionamento semanal e taxas por bairro.
+                Selecione as modalidades que sua loja atenderá no catálogo e defina horários de funcionamento.
               </p>
             </div>
 
@@ -726,10 +876,10 @@ function CriarNegocioPage() {
                   <div className="space-y-0.5">
                     <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
                       <Truck className="size-4 text-primary" />
-                      <span>Delivery Próprio / Motoboy</span>
+                      <span>Delivery & MotoLink</span>
                     </p>
                     <p className="text-[11px] text-muted-foreground">
-                      Receba pedidos para entregar no endereço do cliente.
+                      Entregas no endereço do cliente via motoboys ou frota própria.
                     </p>
                   </div>
                   <Switch checked={hasDelivery} onCheckedChange={setHasDelivery} />
@@ -742,7 +892,7 @@ function CriarNegocioPage() {
                       <span>Retirada no Balcão</span>
                     </p>
                     <p className="text-[11px] text-muted-foreground">
-                      Permita que clientes retirem na loja física.
+                      Permita que clientes retirem pessoalmente na sua loja.
                     </p>
                   </div>
                   <Switch checked={hasPickup} onCheckedChange={setHasPickup} />

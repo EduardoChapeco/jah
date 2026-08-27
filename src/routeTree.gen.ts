@@ -63,6 +63,7 @@ import { Route as AdminMasterFaturasRouteImport } from './routes/admin-master.fa
 import { Route as AdminMasterHubsRouteImport } from './routes/admin-master.hubs'
 import { Route as AdminMasterIntegracoesRouteImport } from './routes/admin-master.integracoes'
 import { Route as AdminMasterKycRouteImport } from './routes/admin-master.kyc'
+import { Route as AdminMasterLogisticaRouteImport } from './routes/admin-master.logistica'
 import { Route as AdminMasterLojasRouteImport } from './routes/admin-master.lojas'
 import { Route as AdminMasterMarcaRouteImport } from './routes/admin-master.marca'
 import { Route as AdminMasterTermosRouteImport } from './routes/admin-master.termos'
@@ -471,6 +472,11 @@ const AdminMasterIntegracoesRoute = AdminMasterIntegracoesRouteImport.update({
 const AdminMasterKycRoute = AdminMasterKycRouteImport.update({
   id: '/kyc',
   path: '/kyc',
+  getParentRoute: () => AdminMasterRoute,
+} as any)
+const AdminMasterLogisticaRoute = AdminMasterLogisticaRouteImport.update({
+  id: '/logistica',
+  path: '/logistica',
   getParentRoute: () => AdminMasterRoute,
 } as any)
 const AdminMasterLojasRoute = AdminMasterLojasRouteImport.update({
@@ -1278,6 +1284,7 @@ export interface FileRoutesByFullPath {
   '/admin-master/hubs': typeof AdminMasterHubsRoute
   '/admin-master/integracoes': typeof AdminMasterIntegracoesRoute
   '/admin-master/kyc': typeof AdminMasterKycRoute
+  '/admin-master/logistica': typeof AdminMasterLogisticaRoute
   '/admin-master/lojas': typeof AdminMasterLojasRoute
   '/admin-master/marca': typeof AdminMasterMarcaRoute
   '/admin-master/termos': typeof AdminMasterTermosRoute
@@ -1465,6 +1472,7 @@ export interface FileRoutesByTo {
   '/admin-master/hubs': typeof AdminMasterHubsRoute
   '/admin-master/integracoes': typeof AdminMasterIntegracoesRoute
   '/admin-master/kyc': typeof AdminMasterKycRoute
+  '/admin-master/logistica': typeof AdminMasterLogisticaRoute
   '/admin-master/lojas': typeof AdminMasterLojasRoute
   '/admin-master/marca': typeof AdminMasterMarcaRoute
   '/admin-master/termos': typeof AdminMasterTermosRoute
@@ -1662,6 +1670,7 @@ export interface FileRoutesById {
   '/admin-master/hubs': typeof AdminMasterHubsRoute
   '/admin-master/integracoes': typeof AdminMasterIntegracoesRoute
   '/admin-master/kyc': typeof AdminMasterKycRoute
+  '/admin-master/logistica': typeof AdminMasterLogisticaRoute
   '/admin-master/lojas': typeof AdminMasterLojasRoute
   '/admin-master/marca': typeof AdminMasterMarcaRoute
   '/admin-master/termos': typeof AdminMasterTermosRoute
@@ -1860,6 +1869,7 @@ export interface FileRouteTypes {
     | '/admin-master/hubs'
     | '/admin-master/integracoes'
     | '/admin-master/kyc'
+    | '/admin-master/logistica'
     | '/admin-master/lojas'
     | '/admin-master/marca'
     | '/admin-master/termos'
@@ -2047,6 +2057,7 @@ export interface FileRouteTypes {
     | '/admin-master/hubs'
     | '/admin-master/integracoes'
     | '/admin-master/kyc'
+    | '/admin-master/logistica'
     | '/admin-master/lojas'
     | '/admin-master/marca'
     | '/admin-master/termos'
@@ -2243,6 +2254,7 @@ export interface FileRouteTypes {
     | '/admin-master/hubs'
     | '/admin-master/integracoes'
     | '/admin-master/kyc'
+    | '/admin-master/logistica'
     | '/admin-master/lojas'
     | '/admin-master/marca'
     | '/admin-master/termos'
@@ -2779,6 +2791,13 @@ declare module '@tanstack/react-router' {
       path: '/kyc'
       fullPath: '/admin-master/kyc'
       preLoaderRoute: typeof AdminMasterKycRouteImport
+      parentRoute: typeof AdminMasterRoute
+    }
+    '/admin-master/logistica': {
+      id: '/admin-master/logistica'
+      path: '/logistica'
+      fullPath: '/admin-master/logistica'
+      preLoaderRoute: typeof AdminMasterLogisticaRouteImport
       parentRoute: typeof AdminMasterRoute
     }
     '/admin-master/lojas': {
@@ -4015,6 +4034,7 @@ interface AdminMasterRouteChildren {
   AdminMasterHubsRoute: typeof AdminMasterHubsRoute
   AdminMasterIntegracoesRoute: typeof AdminMasterIntegracoesRoute
   AdminMasterKycRoute: typeof AdminMasterKycRoute
+  AdminMasterLogisticaRoute: typeof AdminMasterLogisticaRoute
   AdminMasterLojasRoute: typeof AdminMasterLojasRoute
   AdminMasterMarcaRoute: typeof AdminMasterMarcaRoute
   AdminMasterTermosRoute: typeof AdminMasterTermosRoute
@@ -4030,6 +4050,7 @@ const AdminMasterRouteChildren: AdminMasterRouteChildren = {
   AdminMasterHubsRoute: AdminMasterHubsRoute,
   AdminMasterIntegracoesRoute: AdminMasterIntegracoesRoute,
   AdminMasterKycRoute: AdminMasterKycRoute,
+  AdminMasterLogisticaRoute: AdminMasterLogisticaRoute,
   AdminMasterLojasRoute: AdminMasterLojasRoute,
   AdminMasterMarcaRoute: AdminMasterMarcaRoute,
   AdminMasterTermosRoute: AdminMasterTermosRoute,

@@ -17,6 +17,7 @@ import {
   ExternalLink,
   Menu,
   X,
+  Truck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -64,6 +65,7 @@ const NAV_ITEMS = [
   { to: "/admin-master", label: "Dashboard Global", icon: LayoutDashboard },
   { to: "/admin-master/banners", label: "Banners & Vitrines", icon: ImageIcon },
   { to: "/admin-master/marca", label: "Identidade & Marca", icon: Palette },
+  { to: "/admin-master/logistica", label: "Logística & MotoLink", icon: Truck },
   { to: "/admin-master/botoes", label: "Botões & Hotpages", icon: Sparkles },
   { to: "/admin-master/lojas", label: "Lojas & Empresas", icon: Store },
   { to: "/admin-master/usuarios", label: "Usuários & Perfis", icon: Users },
