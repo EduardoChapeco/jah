@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyField } from "@/components/ui/currency-field";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -301,17 +302,17 @@ function WorkspacePackagesPage() {
 
                 <div className="space-y-1.5">
                   <Label className="text-xs">Preço Total (R$) *</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={(editingPkg.price_cents / 100).toFixed(2)}
-                    onChange={(e) =>
+                  <CurrencyField
+                    value={editingPkg.price_cents}
+                    onChange={(cents) =>
                       setEditingPkg({
                         ...editingPkg,
-                        price_cents: Math.round(Number(e.target.value) * 100),
+                        price_cents: cents ?? 0,
                       })
                     }
-                    className="rounded-xl h-10 text-xs font-mono"
+                    placeholder="0,00"
+                    allowZero={false}
+                    className="rounded-xl h-10 text-xs font-mono font-bold"
                   />
                 </div>
 

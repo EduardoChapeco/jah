@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyField } from "@/components/ui/currency-field";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RawVariant } from "./variant-matrix-grid";
@@ -77,24 +78,13 @@ export function AdvancedVariantEditor({
 
           <div className="space-y-2">
             <Label>Preço de Venda Específico</Label>
-            <div className="relative">
-              <span className="absolute left-3 top-2.5 text-muted-foreground text-sm">R$</span>
-              <Input
-                type="number"
-                step="0.01"
-                className="pl-8"
-                value={
-                  formData.price_override_cents != null
-                    ? (formData.price_override_cents / 100).toFixed(2)
-                    : ""
-                }
-                onChange={(e) => {
-                  const val = parseFloat(e.target.value);
-                  handleChange("price_override_cents", isNaN(val) ? null : Math.round(val * 100));
-                }}
-                placeholder={`Base: ${formatMoney(basePriceCents)}`}
-              />
-            </div>
+            <CurrencyField
+              value={formData.price_override_cents}
+              onChange={(cents) => handleChange("price_override_cents", cents ?? null)}
+              placeholder={`Base: ${formatMoney(basePriceCents)}`}
+              allowZero={true}
+              className="h-10 rounded-xl"
+            />
             <p className="text-xs text-muted-foreground">
               Deixe em branco para herdar o preço do produto mãe.
             </p>
@@ -102,19 +92,13 @@ export function AdvancedVariantEditor({
 
           <div className="space-y-2">
             <Label>Preço de Custo (Margem)</Label>
-            <div className="relative">
-              <span className="absolute left-3 top-2.5 text-muted-foreground text-sm">R$</span>
-              <Input
-                type="number"
-                step="0.01"
-                className="pl-8"
-                value={formData.cost_cents != null ? (formData.cost_cents / 100).toFixed(2) : ""}
-                onChange={(e) => {
-                  const val = parseFloat(e.target.value);
-                  handleChange("cost_cents", isNaN(val) ? null : Math.round(val * 100));
-                }}
-              />
-            </div>
+            <CurrencyField
+              value={formData.cost_cents}
+              onChange={(cents) => handleChange("cost_cents", cents ?? null)}
+              placeholder="0,00"
+              allowZero={true}
+              className="h-10 rounded-xl"
+            />
           </div>
 
           <div className="space-y-2">

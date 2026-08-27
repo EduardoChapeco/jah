@@ -22,6 +22,7 @@ import {
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyField } from "@/components/ui/currency-field";
 import { Badge } from "@/components/ui/badge";
 import {
   Sheet,
@@ -380,17 +381,16 @@ function WorkspacePriceTablesPage() {
                           </td>
 
                           <td className="py-2.5 px-3 text-right">
-                            <div className="inline-flex items-center gap-1.5 justify-end">
-                              <span className="text-muted-foreground font-mono">R$</span>
-                              <input
-                                type="number"
-                                step="0.01"
-                                value={(item.custom_price_cents / 100).toFixed(2)}
-                                onChange={(e) => {
-                                  const val = parseFloat(e.target.value) || 0;
-                                  handleInlinePriceChange(item.product_id, Math.round(val * 100));
+                            <div className="inline-flex items-center gap-1.5 justify-end w-36 ml-auto">
+                              <CurrencyField
+                                compact
+                                value={item.custom_price_cents}
+                                onChange={(cents) => {
+                                  handleInlinePriceChange(item.product_id, cents ?? 0);
                                 }}
-                                className="w-24 h-8 px-2 text-right text-xs font-mono font-bold bg-background border border-border/60 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+                                onEnter={() => handleSaveInlineItem(item)}
+                                placeholder="0,00"
+                                className="text-right font-mono font-bold bg-background text-xs"
                               />
                             </div>
                           </td>
@@ -401,7 +401,7 @@ function WorkspacePriceTablesPage() {
                               size="icon"
                               onClick={() => handleSaveInlineItem(item)}
                               className="size-7 text-primary hover:bg-primary/10"
-                              title="Salvar Preço"
+                              title="Salvar Preço (Enter)"
                             >
                               <Save className="size-3.5" />
                             </Button>

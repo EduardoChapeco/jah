@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyField } from "@/components/ui/currency-field";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { formatMoney } from "@/lib/money";
@@ -166,96 +167,52 @@ function WorkspaceLogisticsPriceTablesPage() {
                 <Label className="text-[11px] font-bold text-muted-foreground uppercase">
                   Tarifa Base (Partida)
                 </Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">
-                    R$
-                  </span>
-                  <Input
-                    type="number"
-                    step="0.50"
-                    value={(table.base_fee_cents / 100).toFixed(2)}
-                    onChange={(e) =>
-                      handleUpdate(
-                        table.id,
-                        "base_fee_cents",
-                        Math.round(parseFloat(e.target.value || "0") * 100),
-                      )
-                    }
-                    className="h-10 pl-9 rounded-xl text-xs font-mono font-bold"
-                  />
-                </div>
+                <CurrencyField
+                  value={table.base_fee_cents}
+                  onChange={(cents) => handleUpdate(table.id, "base_fee_cents", cents ?? 0)}
+                  placeholder="0,00"
+                  allowZero={true}
+                  className="h-10 rounded-xl text-xs font-mono font-bold"
+                />
               </div>
 
               <div className="space-y-1.5">
                 <Label className="text-[11px] font-bold text-muted-foreground uppercase">
                   Valor por KM Rodado
                 </Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">
-                    R$
-                  </span>
-                  <Input
-                    type="number"
-                    step="0.10"
-                    value={(table.km_rate_cents / 100).toFixed(2)}
-                    onChange={(e) =>
-                      handleUpdate(
-                        table.id,
-                        "km_rate_cents",
-                        Math.round(parseFloat(e.target.value || "0") * 100),
-                      )
-                    }
-                    className="h-10 pl-9 rounded-xl text-xs font-mono font-bold"
-                  />
-                </div>
+                <CurrencyField
+                  value={table.km_rate_cents}
+                  onChange={(cents) => handleUpdate(table.id, "km_rate_cents", cents ?? 0)}
+                  placeholder="0,00"
+                  allowZero={true}
+                  className="h-10 rounded-xl text-xs font-mono font-bold"
+                />
               </div>
 
               <div className="space-y-1.5">
                 <Label className="text-[11px] font-bold text-muted-foreground uppercase">
                   Tarifa Mínima do Chamado
                 </Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">
-                    R$
-                  </span>
-                  <Input
-                    type="number"
-                    step="1.00"
-                    value={(table.min_fare_cents / 100).toFixed(2)}
-                    onChange={(e) =>
-                      handleUpdate(
-                        table.id,
-                        "min_fare_cents",
-                        Math.round(parseFloat(e.target.value || "0") * 100),
-                      )
-                    }
-                    className="h-10 pl-9 rounded-xl text-xs font-mono font-bold"
-                  />
-                </div>
+                <CurrencyField
+                  value={table.min_fare_cents}
+                  onChange={(cents) => handleUpdate(table.id, "min_fare_cents", cents ?? 0)}
+                  placeholder="0,00"
+                  allowZero={true}
+                  className="h-10 rounded-xl text-xs font-mono font-bold"
+                />
               </div>
 
               <div className="space-y-1.5">
                 <Label className="text-[11px] font-bold text-muted-foreground uppercase">
                   Adicional Ajudante
                 </Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">
-                    R$
-                  </span>
-                  <Input
-                    type="number"
-                    step="5.00"
-                    value={(table.helper_fee_cents / 100).toFixed(2)}
-                    onChange={(e) =>
-                      handleUpdate(
-                        table.id,
-                        "helper_fee_cents",
-                        Math.round(parseFloat(e.target.value || "0") * 100),
-                      )
-                    }
-                    className="h-10 pl-9 rounded-xl text-xs font-mono font-bold"
-                  />
-                </div>
+                <CurrencyField
+                  value={table.helper_fee_cents}
+                  onChange={(cents) => handleUpdate(table.id, "helper_fee_cents", cents ?? 0)}
+                  placeholder="0,00"
+                  allowZero={true}
+                  className="h-10 rounded-xl text-xs font-mono font-bold"
+                />
               </div>
             </div>
           </div>

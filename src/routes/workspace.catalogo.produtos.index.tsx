@@ -22,6 +22,7 @@ import {
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyField } from "@/components/ui/currency-field";
 import { Surface } from "@/components/ui/surface";
 import {
   Table,
@@ -72,21 +73,21 @@ function EditablePriceCell({
   onSave: (val: number) => Promise<boolean>;
 }) {
   const [editing, setEditing] = useState(false);
-  const [val, setVal] = useState((initialCents / 100).toFixed(2));
+  const [centsVal, setCentsVal] = useState<number | undefined>(initialCents);
   const [isSaving, setIsSaving] = useState(false);
 
   const save = async () => {
     setIsSaving(true);
-    const cents = Math.round(parseFloat(val.replace(",", ".")) * 100);
-    if (!isNaN(cents) && cents >= 0) {
-      const ok = await onSave(cents);
+    const finalCents = centsVal ?? initialCents;
+    if (finalCents >= 0) {
+      const ok = await onSave(finalCents);
       if (ok) {
         setEditing(false);
       } else {
-        setVal((initialCents / 100).toFixed(2));
+        setCentsVal(initialCents);
       }
     } else {
-      setVal((initialCents / 100).toFixed(2));
+      setCentsVal(initialCents);
     }
     setIsSaving(false);
     setEditing(false);
@@ -94,17 +95,16 @@ function EditablePriceCell({
 
   if (editing) {
     return (
-      <div className="flex items-center gap-1">
-        <Input
-          type="number"
-          step="0.01"
+      <div className="flex items-center gap-1 w-28">
+        <CurrencyField
+          compact
           autoFocus
-          className="h-7 w-20 px-2 text-xs"
-          value={val}
-          onChange={(e) => setVal(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && save()}
+          value={centsVal}
+          onChange={(c) => setCentsVal(c)}
+          onEnter={save}
           onBlur={save}
           disabled={isSaving}
+          className="h-7 text-xs font-mono font-bold"
         />
       </div>
     );
@@ -112,9 +112,12 @@ function EditablePriceCell({
 
   return (
     <div
-      onClick={() => setEditing(true)}
+      onClick={() => {
+        setCentsVal(initialCents);
+        setEditing(true);
+      }}
       className="font-bold text-sm text-foreground cursor-text hover:bg-muted/50 p-1 rounded -ml-1 transition-colors border border-transparent hover:border-border"
-      title="Clique para editar"
+      title="Clique para editar com máscara"
     >
       {formatMoney(initialCents)}
     </div>

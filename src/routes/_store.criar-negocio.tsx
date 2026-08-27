@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyField } from "@/components/ui/currency-field";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -959,19 +960,17 @@ function CriarNegocioPage() {
                         </label>
 
                         {n.active && (
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] text-muted-foreground">Taxa: R$</span>
-                            <Input
-                              type="number"
-                              step="0.50"
-                              value={(n.defaultFeeCents / 100).toFixed(2)}
-                              onChange={(e) =>
-                                handleUpdateNeighborhoodFee(
-                                  idx,
-                                  Math.round(parseFloat(e.target.value || "0") * 100)
-                                )
+                          <div className="flex items-center gap-1.5 w-28">
+                            <CurrencyField
+                              compact
+                              currencySymbol="R$"
+                              allowZero={true}
+                              value={n.defaultFeeCents}
+                              onChange={(cents) =>
+                                handleUpdateNeighborhoodFee(idx, cents ?? 0)
                               }
-                              className="w-20 h-7 text-xs rounded-lg font-mono text-right"
+                              placeholder="0,00"
+                              className="w-full h-7 text-xs rounded-lg font-mono text-right"
                             />
                           </div>
                         )}

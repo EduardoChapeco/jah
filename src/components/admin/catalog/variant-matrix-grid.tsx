@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { X, Copy, Plus, Trash2, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyField } from "@/components/ui/currency-field";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { formatMoney } from "@/lib/money";
 import { Settings } from "lucide-react";
@@ -445,44 +446,21 @@ function PriceInput({
   basePriceCents: number;
   onChange: (v: number | null) => void;
 }) {
-  const [str, setStr] = React.useState(valueCents != null ? (valueCents / 100).toString() : "");
-
-  React.useEffect(() => {
-    const currentVal = str === "" ? null : Math.round(parseFloat(str) * 100);
-    if (currentVal !== valueCents) {
-      setStr(valueCents != null ? (valueCents / 100).toString() : "");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [valueCents]);
-
-  const handleBlur = () => {
-    if (str && !isNaN(parseFloat(str))) {
-      setStr(parseFloat(str).toFixed(2));
-    } else {
-      setStr("");
-      onChange(null);
-    }
-  };
-
   return (
-    <Input
-      type="number"
-      step="0.01"
-      value={str}
+    <CurrencyField
+      compact
+      currencySymbol="R$"
+      allowZero={true}
+      value={valueCents}
       placeholder={`Base: ${formatMoney(basePriceCents)}`}
-      onChange={(e) => {
-        setStr(e.target.value);
-        if (e.target.value === "") {
-          onChange(null);
-          return;
-        }
-        const val = parseFloat(e.target.value);
-        if (!isNaN(val)) {
-          onChange(Math.round(val * 100));
-        }
+      onChange={(cents) => {
+        onChange(cents === undefined ? null : cents);
       }}
-      onBlur={handleBlur}
-      className={`h-9 font-mono text-xs transition-colors ${valueCents != null ? "bg-warning/10 text-warning font-bold border-warning/30" : "bg-muted/20 hover:bg-muted/40 focus:bg-background"}`}
+      className={`h-9 font-mono text-xs transition-colors ${
+        valueCents != null
+          ? "bg-warning/10 text-warning font-bold border-warning/30"
+          : "bg-muted/20 hover:bg-muted/40 focus:bg-background"
+      }`}
     />
   );
 }
