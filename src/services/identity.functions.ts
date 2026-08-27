@@ -61,7 +61,7 @@ export const setTenantContext = createServerFn({ method: "POST" })
       setCookie("wider_active_tenant", store_id, {
         path: "/",
         maxAge: 60 * 60 * 24 * 30,
-        httpOnly: true,
+        httpOnly: false,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
       });

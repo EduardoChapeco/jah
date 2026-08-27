@@ -92,6 +92,8 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
 
   if (matchedMembership) {
     activeStoreId = matchedMembership.store_id;
+  } else if (isPlatformAdmin && activeStoreId) {
+    // Se for platform_admin, respeita o store_id do cookie ativamente
   } else {
     activeStoreId = memberships[0]?.store_id || null;
   }
