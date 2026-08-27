@@ -241,10 +241,16 @@ export const listPriceTableItems = createServerFn({ method: "GET" })
     // Busca produtos da loja
     const { data: products } = await supabase
       .from("products")
-      .select("id, name, sku, price_cents, images")
+      .select(`
+        id,
+        title,
+        price_cents,
+        product_variants (sku),
+        product_media (url)
+      `)
       .eq("store_id", identity.store_id)
-      .eq("status", "active")
-      .order("name", { ascending: true })
+      .eq("status", "published")
+      .order("title", { ascending: true })
       .limit(100);
 
     // Busca customizações específicas na tabela
@@ -280,13 +286,16 @@ export const listPriceTableItems = createServerFn({ method: "GET" })
         }
       }
 
+      const defaultSku = prod.product_variants?.[0]?.sku || null;
+      const imageUrl = prod.product_media?.[0]?.url || null;
+
       return {
         id: custom?.id || `item-${prod.id}`,
         price_table_id: priceTableId,
         product_id: prod.id,
-        product_name: prod.name,
-        product_sku: prod.sku,
-        product_image_url: Array.isArray(prod.images) ? prod.images[0] : null,
+        product_name: prod.title,
+        product_sku: defaultSku,
+        product_image_url: imageUrl,
         base_price_cents: baseCents,
         custom_price_cents: custom ? Number(custom.custom_price_cents) : calculatedCents,
         calculated_price_cents: calculatedCents,
@@ -354,7 +363,7 @@ export const resolveCustomerPrice = createServerFn({ method: "POST" })
     // 1. Busca preço base do produto
     const { data: prod } = await supabase
       .from("products")
-      .select("price_cents, name")
+      .select("price_cents, title")
       .eq("id", data.productId)
       .single();
 
