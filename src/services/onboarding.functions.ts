@@ -514,6 +514,17 @@ const ProvisionBusinessSchema = z.object({
   workingHours: z.record(z.any()).optional(),
   deliveryZones: z.array(z.any()).optional(),
   complianceDocuments: z.array(z.any()).optional(),
+  teamMembers: z
+    .array(
+      z.object({
+        email: z.string().email("E-mail inválido"),
+        fullName: z.string().optional(),
+        role: z
+          .enum(["admin", "manager", "seller", "finance", "content", "support", "stock"])
+          .default("seller"),
+      })
+    )
+    .optional(),
 });
 
 export const provisionBusiness = createServerFn({ method: "POST" })
@@ -592,6 +603,60 @@ export const provisionBusiness = createServerFn({ method: "POST" })
         });
       } catch {
         // Ignora caso theme_settings não exista estruturalmente
+      }
+    }
+
+    // 6. Convidar e Vincular Membros Iniciais da Equipe (se informados)
+    if (data.teamMembers && data.teamMembers.length > 0) {
+      for (const member of data.teamMembers) {
+        const cleanEmail = member.email.trim().toLowerCase();
+        if (!cleanEmail) continue;
+
+        try {
+          // A. Verifica se o usuário já possui conta Auth no Supabase
+          const { data: existingUsers } = await db
+            .schema("auth")
+            .from("users")
+            .select("id, email")
+            .eq("email", cleanEmail)
+            .limit(1);
+
+          let targetUserId = existingUsers?.[0]?.id;
+
+          // B. Se não existir, provisiona o usuário inicial no Auth
+          if (!targetUserId) {
+            const { data: newAuth, error: createError } = await db.auth.admin.createUser({
+              email: cleanEmail,
+              password: `Wider#${Math.floor(100000 + Math.random() * 900000)}!`,
+              email_confirm: true,
+              user_metadata: {
+                full_name: member.fullName || cleanEmail.split("@")[0],
+                invited_by: user.id,
+                store_id: store.id,
+              },
+            });
+
+            if (!createError && newAuth?.user) {
+              targetUserId = newAuth.user.id;
+              await db.from("profiles").upsert({
+                id: targetUserId,
+                full_name: member.fullName || cleanEmail.split("@")[0],
+                role: "staff",
+              });
+            }
+          }
+
+          // C. Vincula à loja em workspace_members
+          if (targetUserId) {
+            await db.from("workspace_members").upsert({
+              profile_id: targetUserId,
+              store_id: store.id,
+              role: member.role || "seller",
+            });
+          }
+        } catch (memberErr) {
+          console.warn("[onboarding] Falha ao vincular membro:", cleanEmail, memberErr);
+        }
       }
     }
 
