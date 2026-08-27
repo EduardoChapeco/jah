@@ -88,6 +88,7 @@ interface InvitedTeamMember {
 }
 
 function CriarNegocioPage() {
+  const { logisticsInfo } = Route.useLoaderData();
   const search = Route.useSearch();
   const initialSegment = search?.segment || "";
   const foundInitial = BUSINESS_SEGMENTS.find((s) => s.id === initialSegment);
