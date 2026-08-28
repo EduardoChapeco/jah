@@ -47,10 +47,10 @@ export function TravelQuoteModal({
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
 
   // Form states
-  const [origin, setOrigin] = useState("Chapecó (XAP)");
-  const [originIata, setOriginIata] = useState("XAP");
-  const [destination, setDestination] = useState(defaultDestination || "Natal (NAT)");
-  const [destinationIata, setDestinationIata] = useState("NAT");
+  const [origin, setOrigin] = useState("");
+  const [originIata, setOriginIata] = useState("");
+  const [destination, setDestination] = useState(defaultDestination || "");
+  const [destinationIata, setDestinationIata] = useState("");
 
   const [departureDate, setDepartureDate] = useState("");
   const [returnDate, setReturnDate] = useState("");

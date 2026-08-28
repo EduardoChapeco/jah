@@ -18,7 +18,7 @@ export const createJusDemandSchema = z.object({
   description: z.string().min(10, "Descreva detalhadamente o caso"),
   estimated_value_cents: z.number().int().nonnegative().optional(),
   urgency: z.enum(["low", "normal", "high", "urgent"]).default("normal"),
-  city: z.string().default("Chapecó"),
+  city: z.string().default("Regional"),
   state: z.string().default("SC"),
   documents: z.array(z.string().url()).default([]),
   is_anonymous: z.boolean().default(false),
@@ -223,3 +223,25 @@ export const acceptJusProposal = createServerFn({ method: "POST" })
 
     return contract;
   });
+
+/**
+ * 6. Lista demandas abertas pelo próprio cidadão logado
+ */
+export const getMyDemands = createServerFn({ method: "GET" }).handler(async () => {
+  const identity = await getServerIdentity();
+  if (!identity) return [];
+
+  const supabase = getServerClient();
+  const { data: demands, error } = await supabase
+    .from("jus_demands")
+    .select("*, proposals:jus_proposals(*)")
+    .eq("profile_id", identity.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("[JUS] Erro ao buscar minhas demandas:", error);
+    return [];
+  }
+  return demands || [];
+});
+

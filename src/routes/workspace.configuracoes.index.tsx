@@ -458,7 +458,7 @@ export default function WorkspaceConfiguracoesPage() {
         <TabsContent value="entrega" className="space-y-6">
           <Card className="p-6 rounded-3xl border-border bg-card space-y-5">
             <NeighborhoodsManager
-              cityName={city || "Chapecó"}
+              cityName={city || "Sua Cidade"}
               value={neighborhoods}
               onChange={setNeighborhoods}
             />

@@ -173,3 +173,25 @@ export function findCityByLabel(label: string): CityRecord | undefined {
       c.id.toLowerCase() === label.toLowerCase()
   );
 }
+
+export function findClosestCanonicalCity(lat: number, lng: number): CityRecord | undefined {
+  if (typeof lat !== "number" || typeof lng !== "number" || isNaN(lat) || isNaN(lng)) return undefined;
+
+  let closest: CityRecord | undefined = undefined;
+  let minDistanceSq = Infinity;
+
+  for (const city of CANONICAL_CITIES) {
+    if (typeof city.lat === "number" && typeof city.lng === "number") {
+      const dLat = city.lat - lat;
+      const dLng = city.lng - lng;
+      const distSq = dLat * dLat + dLng * dLng;
+      if (distSq < minDistanceSq) {
+        minDistanceSq = distSq;
+        closest = city;
+      }
+    }
+  }
+
+  return closest;
+}
+

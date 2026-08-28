@@ -10,6 +10,7 @@ import {
   Maximize2,
   Minimize2,
   Crosshair,
+  Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { findClosestCanonicalCity } from "@/lib/constants/cities";
 import { toast } from "sonner";
 
 export interface LocationState {
@@ -31,34 +33,134 @@ export interface LocationState {
   source: "gps" | "cep" | "manual" | "map_pin" | "default";
 }
 
-const DEFAULT_LOCATION: LocationState = {
-  city: "Chapecó",
-  state: "SC",
-  lat: -27.1004,
-  lng: -52.6152,
-  address: "Centro, Chapecó - SC",
+export const GLOBAL_DEFAULT_LOCATION: LocationState = {
+  city: "Global",
+  state: "",
+  address: "Todas as Regiões",
   source: "default",
 };
 
+export function getStoredLocation(): LocationState {
+  if (typeof window !== "undefined") {
+    const saved = localStorage.getItem("wider_master_location");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed.city === "string") {
+          return parsed;
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }
+  return GLOBAL_DEFAULT_LOCATION;
+}
+
+export async function resolveGeoCoordinates(
+  lat: number,
+  lng: number
+): Promise<{ city: string; state: string; address: string }> {
+  // 1. Provedor Primário: BigDataCloud Client API (ultra-rápido, suporte nativo pt-BR, sem rate limit do OSM)
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 2500);
+    const res = await fetch(
+      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=pt`,
+      { signal: controller.signal }
+    );
+    clearTimeout(timer);
+    if (res.ok) {
+      const data = await res.json();
+      const city = data.city || data.locality || data.principalSubdivision || "";
+      const state = (data.principalSubdivisionCode || "").replace("BR-", "") || data.principalSubdivision || "";
+      if (city) {
+        const fullAddr = `${city}${state ? ` - ${state}` : ""}`;
+        return { city, state, address: fullAddr };
+      }
+    }
+  } catch {
+    // fallback
+  }
+
+  // 2. Provedor Secundário: OpenStreetMap Nominatim
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 2500);
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+      { headers: { "User-Agent": "WiderPlatform/1.0" }, signal: controller.signal }
+    );
+    clearTimeout(timer);
+    if (res.ok) {
+      const data = await res.json();
+      const city =
+        data.address?.city ||
+        data.address?.town ||
+        data.address?.municipality ||
+        data.address?.village ||
+        "";
+      const state = data.address?.state_code || data.address?.state || "";
+      if (city) {
+        const fullAddr = data.display_name || `${city}${state ? ` - ${state}` : ""}`;
+        return { city, state, address: fullAddr };
+      }
+    }
+  } catch {
+    // fallback
+  }
+
+  // 3. Provedor Determinístico: Cálculo de distância mínima euclidiana na base canônica (0ms, offline-first)
+  const closest = findClosestCanonicalCity(lat, lng);
+  if (closest) {
+    return {
+      city: closest.name,
+      state: closest.state,
+      address: closest.label,
+    };
+  }
+
+  return {
+    city: "Localização Atual",
+    state: "",
+    address: `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
+  };
+}
+
 export function useMasterLocation() {
-  const [location, setLocation] = useState<LocationState>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("wider_master_location");
-      if (saved) {
+  const [location, setLocation] = useState<LocationState>(getStoredLocation);
+
+  useEffect(() => {
+    const handleUpdate = (e: any) => {
+      if (e.detail) {
+        setLocation(e.detail);
+      }
+    };
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "wider_master_location" && e.newValue) {
         try {
-          return JSON.parse(saved);
+          setLocation(JSON.parse(e.newValue));
         } catch {
           // ignore
         }
       }
-    }
-    return DEFAULT_LOCATION;
-  });
+    };
+
+    window.addEventListener("wider:location-updated", handleUpdate as EventListener);
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      window.removeEventListener("wider:location-updated", handleUpdate as EventListener);
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, []);
 
   const updateLocation = (newLoc: LocationState) => {
     setLocation(newLoc);
     if (typeof window !== "undefined") {
       localStorage.setItem("wider_master_location", JSON.stringify(newLoc));
+      window.dispatchEvent(new CustomEvent("wider:location-updated", { detail: newLoc }));
     }
   };
 
@@ -87,39 +189,31 @@ export function LocationMasterPill({ className = "" }: { className?: string }) {
       async (pos) => {
         const { latitude, longitude } = pos.coords;
         try {
-          // Reverse geocode via OpenStreetMap Nominatim
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
-            { headers: { "User-Agent": "WiderCommunityCommerce/1.0" } },
-          );
-          const data = await res.json();
-          const city =
-            data.address?.city ||
-            data.address?.town ||
-            data.address?.municipality ||
-            data.address?.village ||
-            "Sua Localização";
-          const state = data.address?.state_code || data.address?.state || "";
+          const resolved = await resolveGeoCoordinates(latitude, longitude);
 
           const newLoc: LocationState = {
-            city: city,
-            state: state,
+            city: resolved.city,
+            state: resolved.state,
             lat: latitude,
             lng: longitude,
-            address: data.display_name || `${city}, ${state}`,
+            address: resolved.address,
             source: "gps",
           };
 
           updateLocation(newLoc);
-          toast.success(`Localização atualizada: ${city} - ${state}`);
+          if (typeof window !== "undefined") {
+            localStorage.setItem("wider_geo_permission_granted", "true");
+          }
+          toast.success(`Localização ativada: ${resolved.city}${resolved.state ? ` - ${resolved.state}` : ""}`);
         } catch (e) {
-          updateLocation({
+          const fallbackLoc: LocationState = {
             city: "Minha Localização",
             state: "",
             lat: latitude,
             lng: longitude,
             source: "gps",
-          });
+          };
+          updateLocation(fallbackLoc);
           toast.success("GPS sincronizado com sucesso!");
         } finally {
           setIsLocating(false);
@@ -129,7 +223,7 @@ export function LocationMasterPill({ className = "" }: { className?: string }) {
         setIsLocating(false);
         toast.error("Permissão de GPS negada ou indisponível. Selecione manualmente.");
       },
-      { timeout: 10000, enableHighAccuracy: true },
+      { timeout: 8000, enableHighAccuracy: true },
     );
   };
 
@@ -160,6 +254,8 @@ export function LocationMasterPill({ className = "" }: { className?: string }) {
     setIsHolding(false);
   };
 
+  const isGlobal = !location.city || location.city.toLowerCase() === "global";
+
   return (
     <>
       <button
@@ -167,19 +263,21 @@ export function LocationMasterPill({ className = "" }: { className?: string }) {
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
         title="Clique para escolher cidade/CEP/mapa ou segure para ativar GPS"
-        className={`inline-flex items-center gap-1 px-2 sm:px-3 h-8 sm:h-9 rounded-2xl text-[11px] sm:text-xs font-bold transition-all border select-none cursor-pointer shrink-0 ${
+        className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 h-8 sm:h-9 rounded-2xl text-[11px] sm:text-xs font-bold transition-all border select-none cursor-pointer shrink-0 ${
           isHolding
             ? "scale-95 bg-primary/20 border-primary text-primary"
             : "bg-muted/60 hover:bg-muted text-foreground border-border/80 hover:border-primary/40"
         } ${className}`}
       >
         {isLocating ? (
-          <Loader2 className="size-3 sm:size-3.5 animate-spin text-primary shrink-0" />
+          <Loader2 className="size-3.5 animate-spin text-primary shrink-0" />
+        ) : isGlobal ? (
+          <Globe className="size-3.5 text-primary shrink-0" />
         ) : (
-          <MapPin className="size-3 sm:size-3.5 text-primary shrink-0" />
+          <MapPin className="size-3.5 text-primary shrink-0" />
         )}
-        <span className="truncate max-w-[60px] sm:max-w-[120px] lg:max-w-[160px]">
-          {location.city}{location.state ? ` · ${location.state}` : ""}
+        <span className="truncate max-w-[70px] sm:max-w-[130px] lg:max-w-[180px]">
+          {isGlobal ? "Global" : `${location.city}${location.state ? ` · ${location.state}` : ""}`}
         </span>
       </button>
 
@@ -190,7 +288,11 @@ export function LocationMasterPill({ className = "" }: { className?: string }) {
         onSelectLocation={(loc) => {
           updateLocation(loc);
           setModalOpen(false);
-          toast.success(`Localidade definida para ${loc.city}`);
+          toast.success(
+            loc.city === "Global"
+              ? "Modo Global ativado (Todas as Cidades)"
+              : `Localidade definida para ${loc.city}`
+          );
         }}
         onTriggerGPS={triggerGeolocation}
       />
@@ -216,18 +318,26 @@ export function LocationPickerModal({
   const [isSearchingCep, setIsSearchingCep] = useState(false);
 
   // Map pin states
-  const [pinLat, setPinLat] = useState(currentLocation.lat || -27.1004);
-  const [pinLng, setPinLng] = useState(currentLocation.lng || -52.6152);
-  const [resolvedAddress, setResolvedAddress] = useState(currentLocation.address || "Chapecó - SC");
+  const [pinLat, setPinLat] = useState(currentLocation.lat || -26.7264);
+  const [pinLng, setPinLng] = useState(currentLocation.lng || -53.5186);
+  const [resolvedAddress, setResolvedAddress] = useState(
+    currentLocation.address || "São Miguel do Oeste - SC"
+  );
   const [isResolvingPin, setIsResolvingPin] = useState(false);
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
 
   const POPULAR_CITIES = [
-    { city: "Chapecó", state: "SC", lat: -27.1004, lng: -52.6152 },
-    { city: "Florianópolis", state: "SC", lat: -27.5954, lng: -48.548 },
-    { city: "Curitiba", state: "PR", lat: -25.4284, lng: -49.2733 },
-    { city: "Porto Alegre", state: "RS", lat: -30.0346, lng: -51.2177 },
-    { city: "São Paulo", state: "SP", lat: -23.5505, lng: -46.6333 },
+    { city: "Global", state: "", label: "🌐 Global (Todas as Cidades)", lat: undefined, lng: undefined },
+    { city: "São Miguel do Oeste", state: "SC", label: "São Miguel do Oeste - SC", lat: -26.7264, lng: -53.5186 },
+    { city: "Chapecó", state: "SC", label: "Chapecó - SC", lat: -27.1004, lng: -52.6152 },
+    { city: "Xanxerê", state: "SC", label: "Xanxerê - SC", lat: -26.8747, lng: -52.4036 },
+    { city: "Concórdia", state: "SC", label: "Concórdia - SC", lat: -27.2341, lng: -52.0264 },
+    { city: "Maravilha", state: "SC", label: "Maravilha - SC", lat: -26.7622, lng: -53.1764 },
+    { city: "Pinhalzinho", state: "SC", label: "Pinhalzinho - SC", lat: -26.8458, lng: -52.9933 },
+    { city: "Florianópolis", state: "SC", label: "Florianópolis - SC", lat: -27.5954, lng: -48.5480 },
+    { city: "Curitiba", state: "PR", label: "Curitiba - PR", lat: -25.4284, lng: -49.2733 },
+    { city: "Porto Alegre", state: "RS", label: "Porto Alegre - RS", lat: -30.0346, lng: -51.2177 },
+    { city: "São Paulo", state: "SP", label: "São Paulo - SP", lat: -23.5505, lng: -46.6333 },
   ];
 
   const handleSearchCep = async (e: React.FormEvent) => {
@@ -394,7 +504,7 @@ export function LocationPickerModal({
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {POPULAR_CITIES.map((c) => {
-                  const isSelected = currentLocation.city.toLowerCase() === c.city.toLowerCase();
+                  const isSelected = (currentLocation.city || "Global").toLowerCase() === c.city.toLowerCase();
 
                   return (
                     <button
@@ -406,20 +516,20 @@ export function LocationPickerModal({
                           state: c.state,
                           lat: c.lat,
                           lng: c.lng,
-                          address: `${c.city} - ${c.state}`,
-                          source: "manual",
+                          address: c.city === "Global" ? "Todas as Cidades e Regiões" : `${c.city}${c.state ? ` - ${c.state}` : ""}`,
+                          source: c.city === "Global" ? "default" : "manual",
                         })
                       }
                       className={`flex items-center justify-between p-3 rounded-xl border text-xs font-semibold transition-all ${
                         isSelected
-                          ? "bg-primary text-primary-foreground border-primary font-bold "
+                          ? "bg-primary text-primary-foreground border-primary font-bold shadow-xs"
                           : "bg-card hover:bg-muted text-foreground border-border/80"
                       }`}
                     >
-                      <span>
-                        {c.city} - {c.state}
+                      <span className="truncate">
+                        {c.label || `${c.city}${c.state ? ` - ${c.state}` : ""}`}
                       </span>
-                      {isSelected && <Check className="size-3.5 shrink-0" />}
+                      {isSelected && <Check className="size-3.5 shrink-0 ml-1" />}
                     </button>
                   );
                 })}

@@ -353,7 +353,7 @@ function JobPostCard({ job }: { job: JobItemDTO }) {
             {/* Localização / Cidade */}
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
               <MapPin size={14} weight="bold" className="text-foreground shrink-0" />
-              <span className="truncate">{job.location || "Chapecó - SC"}</span>
+              <span className="truncate">{job.location || "Regional"}</span>
             </div>
 
             {/* Benefícios em Pílulas */}
@@ -464,7 +464,7 @@ function JobListItem({ job }: { job: JobItemDTO }) {
               {job.salary_display || "A combinar"}
             </span>
             <span>•</span>
-            <span className="truncate">{job.location || "Chapecó - SC"}</span>
+            <span className="truncate">{job.location || "Regional"}</span>
           </div>
         </div>
       </Link>

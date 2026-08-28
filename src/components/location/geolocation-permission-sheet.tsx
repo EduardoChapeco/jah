@@ -18,7 +18,11 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
-import { useMasterLocation, type LocationState } from "./location-master-pill";
+import {
+  useMasterLocation,
+  resolveGeoCoordinates,
+  type LocationState,
+} from "./location-master-pill";
 import { toast } from "sonner";
 
 export function GeolocationPermissionSheet() {
@@ -32,7 +36,7 @@ export function GeolocationPermissionSheet() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // Se já foi concedido ou dispensado recentemente, não abre
+    // Se já foi concedido ou dispensado, não abre a sheet
     const hasGranted = localStorage.getItem("wider_geo_permission_granted");
     const hasDismissed = localStorage.getItem("wider_geo_permission_dismissed");
 
@@ -40,10 +44,10 @@ export function GeolocationPermissionSheet() {
       return;
     }
 
-    // Abre o banner/modal suavemente após 800ms
+    // Abre o banner/modal suavemente após 1s
     const timer = setTimeout(() => {
       setOpen(true);
-    }, 800);
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -51,8 +55,7 @@ export function GeolocationPermissionSheet() {
   const handleDismiss = () => {
     if (typeof window !== "undefined") {
       localStorage.setItem("wider_geo_permission_dismissed", "true");
-      // Expira em 7 dias
-      document.cookie = "wider_geo_dismissed=true; path=/; max-age=604800; SameSite=Lax";
+      document.cookie = "wider_geo_dismissed=true; path=/; max-age=31536000; SameSite=Lax";
     }
     setOpen(false);
   };
@@ -65,45 +68,30 @@ export function GeolocationPermissionSheet() {
     }
 
     setIsVerifying(true);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("wider_geo_permission_granted", "true");
+      localStorage.setItem("wider_show_location_posts", String(showLocationInPosts));
+      localStorage.setItem("wider_filter_region", String(filterContentByRegion));
+      document.cookie = "wider_geo_granted=true; path=/; max-age=31536000; SameSite=Lax";
+    }
 
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude, longitude } = pos.coords;
         try {
-          // Reverse geocoding via OpenStreetMap Nominatim
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
-            { headers: { "User-Agent": "WiderCommunityCommerce/1.0" } },
-          );
-          const data = await res.json();
-          const city =
-            data.address?.city ||
-            data.address?.town ||
-            data.address?.municipality ||
-            data.address?.village ||
-            "Sua Cidade";
-          const state = data.address?.state_code || data.address?.state || "";
+          const resolved = await resolveGeoCoordinates(latitude, longitude);
 
           const newLoc: LocationState = {
-            city,
-            state,
+            city: resolved.city,
+            state: resolved.state,
             lat: latitude,
             lng: longitude,
-            address: data.display_name || `${city}, ${state}`,
+            address: resolved.address,
             source: "gps",
           };
 
           updateLocation(newLoc);
-
-          if (typeof window !== "undefined") {
-            localStorage.setItem("wider_geo_permission_granted", "true");
-            localStorage.setItem("wider_show_location_posts", String(showLocationInPosts));
-            localStorage.setItem("wider_filter_region", String(filterContentByRegion));
-            document.cookie = "wider_geo_granted=true; path=/; max-age=31536000; SameSite=Lax";
-            window.dispatchEvent(new CustomEvent("wider:location-updated", { detail: newLoc }));
-          }
-
-          toast.success(`Localização ativada: ${city} - ${state}!`);
+          toast.success(`Localização ativada: ${resolved.city}${resolved.state ? ` - ${resolved.state}` : ""}`);
         } catch {
           const fallbackLoc: LocationState = {
             city: "Minha Localização",
@@ -113,21 +101,18 @@ export function GeolocationPermissionSheet() {
             source: "gps",
           };
           updateLocation(fallbackLoc);
-          if (typeof window !== "undefined") {
-            localStorage.setItem("wider_geo_permission_granted", "true");
-          }
           toast.success("Localização GPS sincronizada com sucesso!");
         } finally {
           setIsVerifying(false);
           setOpen(false);
         }
       },
-      () => {
+      (err) => {
         setIsVerifying(false);
-        toast.info("Permissão não concedida. Você pode escolher sua cidade a qualquer momento no topo.");
+        toast.info("Permissão de GPS negada. Você pode escolher sua cidade a qualquer momento no topo.");
         handleDismiss();
       },
-      { timeout: 12000, enableHighAccuracy: true },
+      { timeout: 8000, enableHighAccuracy: true },
     );
   };
 

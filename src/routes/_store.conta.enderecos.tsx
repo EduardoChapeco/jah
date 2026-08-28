@@ -171,7 +171,7 @@ function AddressesPage() {
             <div className="md:col-span-2">
               <CitySelect
                 stateValue={formData.state || "SC"}
-                cityValue={formData.city || "Chapecó"}
+                cityValue={formData.city || ""}
                 onStateChange={(uf: string) => setFormData({ ...formData, state: uf })}
                 onCityChange={(city: string) => setFormData({ ...formData, city })}
               />

@@ -98,6 +98,10 @@ function CriarNegocioPage() {
   const initialSegment = search?.segment || "";
   const foundInitial = BUSINESS_SEGMENTS.find((s) => s.id === initialSegment);
 
+  const { location: masterLoc } = useMasterLocation();
+  const detectedCity = masterLoc.city && masterLoc.city.toLowerCase() !== "global" ? masterLoc.city : "";
+  const detectedState = masterLoc.state || "";
+
   const [step, setStep] = useState<OnboardingStep>(foundInitial ? 2 : 1);
   const [selectedSegmentId, setSelectedSegmentId] = useState<string>(
     foundInitial ? foundInitial.id : "gastronomy"
@@ -118,13 +122,13 @@ function CriarNegocioPage() {
     number: "",
     complement: "",
     neighborhood: "",
-    city: "Chapecó",
-    state: "SC",
+    city: detectedCity,
+    state: detectedState,
     fullAddress: "",
-    latitude: -27.1004,
-    longitude: -52.6152,
+    latitude: masterLoc.lat || undefined,
+    longitude: masterLoc.lng || undefined,
     serviceRadiusKm: 15,
-    coverageCities: ["Chapecó"],
+    coverageCities: detectedCity ? [detectedCity] : [],
   });
 
   // Etapa 3: Identidade Visual
@@ -268,8 +272,8 @@ function CriarNegocioPage() {
           name: name.trim(),
           type: selectedSegment.id as any,
           document: docNumber ? docNumber.trim() : undefined,
-          city: locationData.city || "Chapecó",
-          state: locationData.state || "SC",
+          city: locationData.city || detectedCity || "Sua Cidade",
+          state: locationData.state || detectedState || "",
           street: locationData.street || undefined,
           number: locationData.number || undefined,
           complement: locationData.complement || undefined,
@@ -811,7 +815,7 @@ function CriarNegocioPage() {
                     {hasDelivery && (
                       <div className="pt-4 border-t border-border/60">
                         <NeighborhoodsManager
-                          cityName={locationData.city || "Chapecó"}
+                          cityName={locationData.city || detectedCity || "Sua Cidade"}
                           value={neighborhoods}
                           onChange={setNeighborhoods}
                         />

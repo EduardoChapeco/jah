@@ -24,7 +24,7 @@ export const addRssFeedSchema = z.object({
   website_url: z.string().url().optional(),
   category: z.string().default("general"),
   entity_type: z.string().default("news"),
-  region: z.string().default("Chapecó/SC"),
+  region: z.string().default("Geral/Nacional"),
 });
 
 // ============================================================

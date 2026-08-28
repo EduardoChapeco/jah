@@ -32,8 +32,8 @@ export const Route = createFileRoute("/_store/contato")({
           support_whatsapp: null,
           support_hours: "Segunda a Sexta, das 08h às 18h",
           address: null,
-          city: "Chapecó",
-          state: "SC",
+          city: "Brasil",
+          state: "",
         },
       };
     }

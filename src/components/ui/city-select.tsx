@@ -26,7 +26,7 @@ export interface CitySelectProps {
 
 export function CitySelect({
   stateValue = "SC",
-  cityValue = "Chapecó",
+  cityValue = "",
   onStateChange,
   onCityChange,
   labelCity = "Cidade",

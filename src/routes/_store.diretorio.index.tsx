@@ -376,7 +376,7 @@ function DirectoryBusinessCard({
           {/* Endereço / Localização */}
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium pt-1">
             <MapPin size={14} weight="bold" className="text-primary shrink-0" />
-            <span className="truncate">{item.address || "Chapecó - SC"}</span>
+            <span className="truncate">{item.address || "Regional"}</span>
           </div>
 
           {/* Especialidades / Tags */}
@@ -504,7 +504,7 @@ function DirectoryListItem({ item }: { item: DirectoryListingDTO }) {
                 <span>{Number(item.rating).toFixed(1)}</span>
               </div>
               <span>•</span>
-              <span className="truncate">{item.address || "Chapecó - SC"}</span>
+              <span className="truncate">{item.address || "Regional"}</span>
             </div>
           )}
         </div>

@@ -911,7 +911,7 @@ export function UnifiedNewProductPage() {
                 <div className="pt-3 border-t space-y-2 text-xs text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <Truck className="size-4 text-primary" />
-                    <span>Entrega rápida em Chapecó e região</span>
+                    <span>Entrega rápida em toda a região</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="size-4 text-primary" />

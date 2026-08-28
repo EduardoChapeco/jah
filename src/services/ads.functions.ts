@@ -71,7 +71,7 @@ export const listAdCampaigns = createServerFn({ method: "GET" }).handler(async (
       store_id: c.store_id,
       title: c.title || "Campanha Promocional",
       format,
-      target_location: "Chapecó / SC e Região",
+      target_location: (c.settings as any)?.target_location || "Toda a Região",
       target_radius_km: 15,
       daily_budget_cents: Math.round(c.budget_cents / 5),
       total_budget_cents: c.budget_cents,

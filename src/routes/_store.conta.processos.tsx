@@ -15,38 +15,43 @@ import {
   MagnifyingGlass, 
   Buildings,
   ShieldCheck,
-  ArrowSquareOut
+  ArrowSquareOut,
 } from "@phosphor-icons/react";
-import { listMyLawsuits, createJusDemand } from "@/services/jus.functions";
+import { useQuery } from "@tanstack/react-query";
+import { listMyLawsuits, createJusDemand, getMyDemands } from "@/services/jus.functions";
+import { useMasterLocation } from "@/components/location/location-master-pill";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/conta/processos")({
-  loader: async () => {
-    try {
-      const lawsuits = await listMyLawsuits().catch(() => []);
-      return { lawsuits };
-    } catch {
-      return { lawsuits: [] };
-    }
-  },
-  component: MyLawsuitsPage,
+  component: UserLawsuitsPage,
 });
 
-function MyLawsuitsPage() {
-  const { lawsuits } = Route.useLoaderData();
-  const [activeTab, setActiveTab] = useState<"lawsuits" | "new_demand">("lawsuits");
+function UserLawsuitsPage() {
+  const { location: masterLoc } = useMasterLocation();
+  const [activeTab, setActiveTab] = useState<"lawsuits" | "demands" | "new_demand">("lawsuits");
   const [isPending, startTransition] = useTransition();
 
-  // Form State para Nova Demanda
+  // New Demand Form State
   const [title, setTitle] = useState("");
-  const [legalArea, setLegalArea] = useState("Trabalhista");
+  const [legalArea, setLegalArea] = useState<any>("civel");
   const [description, setDescription] = useState("");
-  const [urgency, setUrgency] = useState<"low" | "normal" | "high" | "urgent">("normal");
+  const [urgency, setUrgency] = useState<"low" | "medium" | "high" | "urgent">("medium");
   const [isAnonymous, setIsAnonymous] = useState(false);
+
+  // Queries
+  const { data: lawsuits, isLoading: loadingLawsuits } = useQuery({
+    queryKey: ["jus_lawsuits_user"],
+    queryFn: () => getMyLawsuits(),
+  });
+
+  const { data: demands, isLoading: loadingDemands } = useQuery({
+    queryKey: ["jus_demands_user"],
+    queryFn: () => getMyDemands(),
+  });
 
   const handleCreateDemand = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !description) {
+    if (!title.trim() || !description.trim()) {
       toast.error("Preencha o título e a descrição do seu caso");
       return;
     }
@@ -56,12 +61,12 @@ function MyLawsuitsPage() {
         await createJusDemand({
           data: {
             title,
-            legal_area: legalArea,
+            legalArea,
             description,
             urgency,
             is_anonymous: isAnonymous,
-            city: "Chapecó",
-            state: "SC",
+            city: (masterLoc.city && masterLoc.city.toLowerCase() !== "global") ? masterLoc.city : "Regional",
+            state: masterLoc.state || "SC",
             documents: [],
           },
         });
@@ -220,7 +225,7 @@ function MyLawsuitsPage() {
               <div>
                 <h2 className="text-lg font-bold text-foreground">Solicitar Assessoria Jurídica</h2>
                 <p className="text-xs text-muted-foreground">
-                  Seu caso será apresentado para advogados com OAB verificada em Chapecó e região.
+                  Seu caso será apresentado para advogados com OAB verificada na sua região.
                 </p>
               </div>
             </div>

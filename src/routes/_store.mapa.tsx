@@ -33,17 +33,17 @@ import { formatRelativeTime } from "@/lib/datetime";
 import { MapLibreCanvas, type MapMarkerItem } from "@/components/mobility/maplibre-canvas";
 import { PublishMomentModal } from "@/components/community/publish-moment-modal";
 import { MomentDetailDrawer } from "@/components/community/moment-detail-drawer";
+import { useMasterLocation } from "@/components/location/location-master-pill";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_store/mapa")({
   head: () => ({
     meta: [
-      { title: "Moments Ao Vivo — Mapa Social da Cidade | Wider" },
+      { title: "Mapa Interativo da Cidade — Wider" },
       {
         name: "description",
-        content:
-          "Veja o que as pessoas estão fazendo agora pela cidade no mapa interativo em tempo real. Fotos instantâneas ao vivo, atividades cotidianas e mesas abertas para socializar e dividir a conta.",
+        content: "Descubra lugares, eventos, vibes e moments ao vivo na sua região.",
       },
     ],
   }),
@@ -69,15 +69,16 @@ const VIBE_FILTERS = [
 
 function FullscreenMapaPage() {
   const { mapData: initialMapData } = Route.useLoaderData();
+  const { location } = useMasterLocation();
   const [activeVibe, setActiveVibe] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   const [isExpandedMobile, setIsExpandedMobile] = useState(false);
-  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({
-    lat: -27.1004,
-    lng: -52.6152,
-  });
+  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>(() => ({
+    lat: location.lat || -26.7264,
+    lng: location.lng || -53.5186,
+  }));
   const [mapZoom, setMapZoom] = useState(13.5);
 
   const { data: mapData, refetch } = useQuery({
@@ -255,7 +256,7 @@ function FullscreenMapaPage() {
             <div className="flex items-center gap-2">
               <span className="size-2 rounded-full bg-destructive animate-ping" />
               <h2 className="text-xs font-bold uppercase tracking-wider text-foreground">
-                Moments Ao Vivo • Chapecó
+                Moments Ao Vivo • {location.city && location.city.toLowerCase() !== "global" ? location.city : "Região"}
               </h2>
             </div>
 

@@ -56,8 +56,10 @@ export function CityCombobox({
       const matched = findCityByLabel(lastPart) || findCityByLabel(value);
       if (matched) return matched;
     }
-    const defaultMatched = findCityByLabel(masterLoc.city) || CANONICAL_CITIES[0];
-    return defaultMatched;
+    if (masterLoc.city && masterLoc.city.toLowerCase() !== "global") {
+      return findCityByLabel(masterLoc.city) || null;
+    }
+    return null;
   });
 
   const [neighborhood, setNeighborhood] = useState(() => {
@@ -72,7 +74,7 @@ export function CityCombobox({
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Inicializa o valor se vier vazio
+  // Inicializa o valor se vier preenchido
   useEffect(() => {
     if (!value && selectedCity) {
       const formatted = neighborhood
@@ -115,9 +117,9 @@ export function CityCombobox({
 
   const handleNeighborhoodChange = (newNeigh: string) => {
     setNeighborhood(newNeigh);
-    const cityLabel = selectedCity ? selectedCity.label : "Chapecó - SC";
-    const cityName = selectedCity ? selectedCity.name : "Chapecó";
-    const cityState = selectedCity ? selectedCity.state : "SC";
+    const cityLabel = selectedCity ? selectedCity.label : (masterLoc.city !== "Global" ? masterLoc.city : "Sua Cidade");
+    const cityName = selectedCity ? selectedCity.name : (masterLoc.city !== "Global" ? masterLoc.city : "Sua Cidade");
+    const cityState = selectedCity ? selectedCity.state : (masterLoc.state || "");
     const formatted = newNeigh.trim() ? `${newNeigh.trim()} — ${cityLabel}` : cityLabel;
     onChange(formatted, {
       city: cityName,
@@ -128,20 +130,24 @@ export function CityCombobox({
   };
 
   const handleAutoFillCurrent = () => {
+    if (!masterLoc.city || masterLoc.city.toLowerCase() === "global") {
+      return;
+    }
     const matched =
       findCityByLabel(masterLoc.city) ||
-      CANONICAL_CITIES.find((c) => c.name.toLowerCase() === masterLoc.city.toLowerCase()) ||
-      CANONICAL_CITIES[0];
-    setSelectedCity(matched);
-    const neigh = masterLoc.address?.split(",")[0]?.trim() || "";
-    setNeighborhood(neigh);
-    const formatted = neigh ? `${neigh} — ${matched.label}` : matched.label;
-    onChange(formatted, {
-      city: matched.name,
-      state: matched.state,
-      neighborhood: neigh,
-      formatted,
-    });
+      CANONICAL_CITIES.find((c) => c.name.toLowerCase() === masterLoc.city.toLowerCase());
+    if (matched) {
+      setSelectedCity(matched);
+      const neigh = masterLoc.address?.split(",")[0]?.trim() || "";
+      setNeighborhood(neigh);
+      const formatted = neigh ? `${neigh} — ${matched.label}` : matched.label;
+      onChange(formatted, {
+        city: matched.name,
+        state: matched.state,
+        neighborhood: neigh,
+        formatted,
+      });
+    }
   };
 
   return (
@@ -154,14 +160,16 @@ export function CityCombobox({
         </Label>
 
         {/* Botão de Autopreenchimento Rápido */}
-        <button
-          type="button"
-          onClick={handleAutoFillCurrent}
-          className="text-[11px] text-primary hover:underline font-medium flex items-center gap-1 cursor-pointer transition-colors"
-        >
-          <Crosshair className="size-3" />
-          <span>Usar {masterLoc.city}</span>
-        </button>
+        {masterLoc.city && masterLoc.city.toLowerCase() !== "global" && (
+          <button
+            type="button"
+            onClick={handleAutoFillCurrent}
+            className="text-[11px] text-primary hover:underline font-medium flex items-center gap-1 cursor-pointer transition-colors"
+          >
+            <Crosshair className="size-3" />
+            <span>Usar {masterLoc.city}</span>
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5">

@@ -55,7 +55,7 @@ export const Route = createFileRoute("/_store/classificados/")({
       {
         name: "description",
         content:
-          "Compre, alugue imóveis, reserve hospedagens por temporada, compre veículos e desapegos direto em Chapecó e região.",
+          "Compre, alugue imóveis, reserve hospedagens por temporada, veículos e serviços na sua região.",
       },
     ],
   }),
@@ -355,7 +355,7 @@ function ClassifiedsMasterPage() {
                   <div className="flex items-center justify-between text-xs text-muted-foreground font-mono pt-2 ">
                     <span className="flex items-center gap-1.5 truncate">
                       <MapPin size={12} weight="bold" className="shrink-0 text-primary" />
-                      <span className="truncate">{item.location_name || item.location_text || "Chapecó, SC"}</span>
+                      <span className="truncate">{item.location_name || item.location_text || "Regional"}</span>
                     </span>
                     <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors hidden sm:inline">
                       Ver Anúncio →
@@ -448,7 +448,7 @@ function ClassifiedsMasterPage() {
 
                           <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono pt-0.5">
                             <MapPin size={13} weight="bold" className="shrink-0 text-foreground" />
-                            <span className="truncate">{item.location_name || item.location_text || "Chapecó, SC"}</span>
+                            <span className="truncate">{item.location_name || item.location_text || "Regional"}</span>
                           </div>
                         </div>
                       </Link>
@@ -534,7 +534,7 @@ function ClassifiedsMasterPage() {
                     <div className="px-3 pb-2.5 text-[10px] text-muted-foreground font-mono flex items-center justify-between pt-1.5 mt-1">
                       <span className="flex items-center gap-1 truncate">
                         <MapPin size={10} weight="bold" className="shrink-0 text-foreground" />
-                        <span className="truncate">{item.location_name || item.location_text || "Chapecó"}</span>
+                        <span className="truncate">{item.location_name || item.location_text || "Regional"}</span>
                       </span>
                     </div>
                   </Link>

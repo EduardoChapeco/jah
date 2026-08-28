@@ -88,7 +88,7 @@ function ProfilePage() {
     coverUrl: profile.coverUrl || "",
     bio: profile.bio || "",
     occupation: profile.occupation || "",
-    city: profile.city || "Chapecó",
+    city: profile.city || "",
     state: profile.state || "SC",
     instagram: profile.instagram || "",
     website: profile.website || "",
@@ -535,7 +535,7 @@ function ProfilePage() {
               <div className="pt-1">
                 <CitySelect
                   stateValue={formData.state || "SC"}
-                  cityValue={formData.city || "Chapecó"}
+                  cityValue={formData.city || ""}
                   onStateChange={(uf) => set("state", uf)}
                   onCityChange={(city) => set("city", city)}
                 />
@@ -693,7 +693,7 @@ function ProfilePage() {
                         <Input
                           value={exp.location}
                           onChange={(e) => updateExperience(idx, "location", e.target.value)}
-                          placeholder="Chapecó, SC"
+                          placeholder="Cidade, UF"
                           className="h-8 rounded-lg text-xs"
                         />
                       </div>

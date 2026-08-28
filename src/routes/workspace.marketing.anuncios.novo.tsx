@@ -123,7 +123,7 @@ function NovoAnuncioPage() {
   const [destinationType, setDestinationType] = useState<"product" | "post" | "whatsapp" | "custom_url">("whatsapp");
   const [selectedProductId, setSelectedProductId] = useState<string>(products[0]?.id || "");
   const [customUrl, setCustomUrl] = useState("");
-  const [location, setLocation] = useState("Chapecó / SC e Região");
+  const [location, setLocation] = useState("Toda a Região de Cobertura");
   const [radiusKm, setRadiusKm] = useState(15);
   const [dailyBudgetCents, setDailyBudgetCents] = useState<number | undefined>(2000);
   const [totalBudgetCents, setTotalBudgetCents] = useState<number | undefined>(10000);
@@ -387,7 +387,7 @@ function NovoAnuncioPage() {
                 id="ad-location"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                placeholder="Ex: Bairro Centro, Chapecó / SC"
+                placeholder="Ex: Cidade / Região ou Bairro"
                 className="h-10 text-xs rounded-xl"
                 required
               />

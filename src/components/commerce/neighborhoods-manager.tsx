@@ -40,7 +40,7 @@ interface NeighborhoodsManagerProps {
 }
 
 export function NeighborhoodsManager({
-  cityName = "Chapecó",
+  cityName = "Sua Cidade",
   value = [],
   onChange,
   className,

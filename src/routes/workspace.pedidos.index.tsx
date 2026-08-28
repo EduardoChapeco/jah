@@ -506,7 +506,7 @@ function AdminOrdersPage() {
                             {order.customer_snapshot?.name || "Cliente Wider"}
                           </p>
                           <p className="text-[11px] text-muted-foreground">
-                            {order.customer_snapshot?.address_city || "Chapecó - SC"}
+                            {order.customer_snapshot?.address_city || order.customer_snapshot?.city || "Localidade não informada"}
                           </p>
                         </div>
 

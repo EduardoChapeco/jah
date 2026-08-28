@@ -187,7 +187,7 @@ export const saveUserPreferences = createServerFn({ method: "POST" })
         {
           user_id: userId,
           selected_niches: data.selected_niches,
-          default_city: data.default_city || "Chapecó - SC",
+          default_city: data.default_city || "Global",
           onboarding_done: data.onboarding_done,
           updated_at: new Date().toISOString(),
         },
@@ -245,7 +245,7 @@ export const getUserPreferences = createServerFn({ method: "GET" }).handler(
     if (error || !data) return null;
     return {
       selected_niches: data.selected_niches || [],
-      default_city: data.default_city || "Chapecó - SC",
+      default_city: data.default_city || "Global",
       onboarding_done: !!data.onboarding_done,
     };
   },
