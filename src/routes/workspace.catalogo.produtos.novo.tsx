@@ -52,6 +52,7 @@ import {
   listProductTypes,
   listOptionGroups,
 } from "@/services/admin-catalog.functions";
+import { ProductModifiersCard } from "@/components/admin/catalog/product-modifiers-card";
 import { importProductFromUrl } from "@/services/api-orchestrator.functions";
 import { getStoreSettings } from "@/services/store.functions";
 import { formatMoney } from "@/lib/money";
@@ -106,7 +107,8 @@ export function UnifiedNewProductPage() {
   const [images, setImages] = useState<string[]>([]);
   const [activePreviewImage, setActivePreviewImage] = useState(0);
 
-  // Grupos de Opções / Adicionais selecionados
+  // Grupos de Opções / Adicionais gerenciados e selecionados
+  const [optionGroups, setOptionGroups] = useState<any[]>(optionGroupsList || []);
   const [selectedOptionGroupIds, setSelectedOptionGroupIds] = useState<string[]>([]);
 
   // Modal: Importador Inteligente por URL
@@ -115,6 +117,39 @@ export function UnifiedNewProductPage() {
   const [importTone, setImportTone] = useState<"profissional" | "persuasivo" | "tecnico" | "minimalista">("profissional");
   const [isImporting, setIsImporting] = useState(false);
   const [variantsMatrix, setVariantsMatrix] = useState<RawVariant[]>([]);
+
+  const [isAddDimensionOpen, setIsAddDimensionOpen] = useState(false);
+  const [newDimensionName, setNewDimensionName] = useState("");
+  const [newDimensionValue, setNewDimensionValue] = useState("");
+
+  const handleAddDimensionSubmit = () => {
+    if (!newDimensionName.trim() || !newDimensionValue.trim()) {
+      toast.error("Preencha o nome da dimensão e o primeiro valor.");
+      return;
+    }
+    const dim = newDimensionName.trim();
+    const val = newDimensionValue.trim();
+    setVariantsMatrix((prev) => {
+      if (prev.length === 0) {
+        return [
+          {
+            sku: `${formValues.slug || "prod"}-${val.toLowerCase().replace(/\s+/g, "-")}`,
+            attributes: { [dim]: val },
+            stock: formValues.stock || 10,
+            price_override_cents: null,
+          },
+        ];
+      }
+      return prev.map((v) => ({
+        ...v,
+        attributes: { ...v.attributes, [dim]: v.attributes[dim] || val },
+      }));
+    });
+    setIsAddDimensionOpen(false);
+    setNewDimensionName("");
+    setNewDimensionValue("");
+    toast.success(`Dimensão "${dim}" configurada com sucesso!`);
+  };
 
   // React Hook Form
   const {
@@ -301,7 +336,7 @@ export function UnifiedNewProductPage() {
               onClick={handleSubmit(onSubmit)}
               disabled={isSubmitting}
               size="sm"
-              className="rounded-xl text-xs font-bold bg-primary text-primary-foreground gap-1.5 shadow-sm"
+              className="rounded-xl text-xs font-bold bg-primary text-primary-foreground gap-1.5"
             >
               {isSubmitting ? (
                 <>
@@ -321,7 +356,7 @@ export function UnifiedNewProductPage() {
 
       {/* ── Dialog: Importador Inteligente por URL ── */}
       <Dialog open={isImportModalOpen} onOpenChange={setIsImportModalOpen}>
-        <DialogContent className="sm:max-w-md rounded-3xl">
+        <DialogContent className="sm:max-w-md sm:rounded-3xl">
           <DialogHeader>
             <DialogTitle className="text-base font-bold flex items-center gap-2">
               <Sparkles className="size-4 text-primary" />
@@ -674,22 +709,7 @@ export function UnifiedNewProductPage() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => {
-                      const dim = window.prompt("Nome da primeira dimensão (Ex: Tamanho, Cor, Sabor):");
-                      if (dim && dim.trim()) {
-                        const val1 = window.prompt(`Primeiro valor para "${dim.trim()}" (Ex: P, Azul, 350ml):`);
-                        if (val1 && val1.trim()) {
-                          setVariantsMatrix([
-                            {
-                              sku: `${formValues.slug || "prod"}-${val1.trim().toLowerCase()}`,
-                              attributes: { [dim.trim()]: val1.trim() },
-                              stock: formValues.stock || 10,
-                              price_override_cents: null,
-                            },
-                          ]);
-                        }
-                      }
-                    }}
+                    onClick={() => setIsAddDimensionOpen(true)}
                     className="h-8 rounded-xl text-xs font-bold gap-1.5"
                   >
                     <Plus className="size-3.5" />
@@ -717,22 +737,7 @@ export function UnifiedNewProductPage() {
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => {
-                        const dim = window.prompt("Nome da propriedade de variação (Ex: Tamanho, Cor, Voltagem):");
-                        if (dim && dim.trim()) {
-                          const val = window.prompt(`Primeiro valor para ${dim.trim()} (Ex: P, Branco, 110v):`);
-                          if (val && val.trim()) {
-                            setVariantsMatrix([
-                              {
-                                sku: `${formValues.slug || "prod"}-${val.trim().toLowerCase()}`,
-                                attributes: { [dim.trim()]: val.trim() },
-                                stock: formValues.stock || 10,
-                                price_override_cents: null,
-                              },
-                            ]);
-                          }
-                        }
-                      }}
+                      onClick={() => setIsAddDimensionOpen(true)}
                       className="rounded-xl text-xs font-bold"
                     >
                       <Plus className="size-3.5 mr-1" /> Adicionar Variações (Cor, Tamanho, etc.)
@@ -762,6 +767,7 @@ export function UnifiedNewProductPage() {
                   folder="products"
                   aspect={1}
                   enableCrop={true}
+                  lockAspect={true}
                   maxFiles={8}
                 />
               </div>
@@ -769,75 +775,19 @@ export function UnifiedNewProductPage() {
 
             {/* ── ABA 4: ADICIONAIS & MODIFICADORES ── */}
             <TabsContent value="opcoes" className="space-y-4 m-0">
-              <div className="bg-card rounded-2xl p-5 space-y-3 border border-border/60">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
-                    <SlidersHorizontal className="size-4 text-primary" />
-                    <span>Adicionais & Modificadores</span>
-                  </div>
-                  <Link
-                    to="/workspace/catalogo/atributos"
-                    className="text-[11px] text-primary hover:underline font-medium"
-                    target="_blank"
-                  >
-                    Gerenciar grupos
-                  </Link>
-                </div>
-                <p className="text-[11px] text-muted-foreground">
-                  Selecione quais grupos de complementos estarão ativos neste item:
-                </p>
-
-                {optionGroupsList && optionGroupsList.length > 0 ? (
-                  <div className="grid grid-cols-1 gap-2 pt-1">
-                    {optionGroupsList.map((grp: any) => {
-                      const isChecked = selectedOptionGroupIds.includes(grp.id);
-                      return (
-                        <label
-                          key={grp.id}
-                          className={cn(
-                            "flex items-center gap-2.5 p-3 rounded-xl border cursor-pointer transition-colors text-xs select-none",
-                            isChecked
-                              ? "border-primary bg-primary/5 text-foreground font-semibold"
-                              : "border-border/80 bg-background text-muted-foreground hover:border-foreground/30",
-                          )}
-                        >
-                          <input
-                            type="checkbox"
-                            className="rounded border-border text-primary focus:ring-primary size-4"
-                            checked={isChecked}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedOptionGroupIds((prev) => [...prev, grp.id]);
-                              } else {
-                                setSelectedOptionGroupIds((prev) => prev.filter((id) => id !== grp.id));
-                              }
-                            }}
-                          />
-                          <div className="min-w-0 flex-1">
-                            <p className="font-bold truncate">{grp.display_name || grp.internal_name}</p>
-                            <p className="text-[10px] text-muted-foreground">
-                              {grp.values?.length || 0} opção(ões) • {grp.is_required ? "Obrigatório" : "Opcional"}
-                            </p>
-                          </div>
-                        </label>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="py-6 text-center border-dashed rounded-xl p-4">
-                    <p className="text-xs text-muted-foreground">
-                      Nenhum grupo de adicionais cadastrado na loja.
-                    </p>
-                  </div>
-                )}
-              </div>
+              <ProductModifiersCard
+                groups={optionGroups}
+                selectedGroupIds={selectedOptionGroupIds}
+                onSelectedGroupsChange={setSelectedOptionGroupIds}
+                onGroupsListChange={setOptionGroups}
+              />
             </TabsContent>
           </Tabs>
         </div>
 
         {/* COLUNA DIREITA: PREVIEW REAL DA VITRINE (7 COLUNAS STICKY) */}
         <div className="lg:col-span-7 lg:sticky lg:top-24">
-          <div className="bg-card rounded-3xl overflow-hidden border border-border/80 shadow-sm">
+          <div className="bg-card rounded-3xl overflow-hidden border border-border/80">
             {/* Header do Mockup */}
             <div className="bg-muted/40 px-5 py-3 border-b flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -990,6 +940,61 @@ export function UnifiedNewProductPage() {
                 </div>
               </div>
 
+              {/* Adicionais & Modificadores Ativos no Preview */}
+              {selectedOptionGroupIds.length > 0 && (
+                <div className="pt-4 border-t space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5">
+                      <SlidersHorizontal className="size-3.5 text-primary" />
+                      <span>Opções & Personalização</span>
+                    </h3>
+                    <Badge variant="outline" className="text-[10px]">
+                      {selectedOptionGroupIds.length} grupo(s)
+                    </Badge>
+                  </div>
+                  <div className="space-y-2">
+                    {optionGroups
+                      .filter((g) => selectedOptionGroupIds.includes(g.id))
+                      .map((grp) => (
+                        <div
+                          key={grp.id}
+                          className="p-3 rounded-xl bg-muted/20 border border-border/60 space-y-1.5"
+                        >
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="font-bold text-foreground">
+                              {grp.display_name || grp.internal_name}
+                            </span>
+                            <Badge
+                              variant={grp.is_required ? "default" : "secondary"}
+                              className={cn(
+                                "text-[9px] h-4 font-semibold",
+                                grp.is_required ? "bg-amber-600 text-white" : "",
+                              )}
+                            >
+                              {grp.is_required ? "Obrigatório" : "Opcional"}
+                            </Badge>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5 pt-0.5">
+                            {(grp.values || []).map((val: any) => (
+                              <span
+                                key={val.id || val.label}
+                                className="inline-flex items-center gap-1 text-[10px] bg-card border border-border/80 px-2 py-0.5 rounded-md text-foreground font-medium"
+                              >
+                                <span>{val.label}</span>
+                                {val.price_modifier_cents > 0 && (
+                                  <span className="text-primary font-bold">
+                                    +{formatMoney(val.price_modifier_cents)}
+                                  </span>
+                                )}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+
               {/* Descrição na Prévia */}
               {formValues.description && (
                 <div className="pt-4 border-t space-y-2">
@@ -1005,6 +1010,75 @@ export function UnifiedNewProductPage() {
           </div>
         </div>
       </div>
+
+      {/* ── MODAL: NOVA DIMENSÃO / PROPRIEDADE DE VARIAÇÃO ── */}
+      <Dialog open={isAddDimensionOpen} onOpenChange={setIsAddDimensionOpen}>
+        <DialogContent className="sm:max-w-md sm:rounded-3xl sm:p-6 p-5">
+          <DialogHeader className="pb-2">
+            <DialogTitle className="text-base font-bold flex items-center gap-2">
+              <Box className="size-4 text-primary" />
+              <span>Nova Dimensão de Variação</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Ex: Tamanho (P, M, G), Cor (Azul, Preto), Voltagem (110v, 220v) ou Sabor.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold text-foreground">
+                Nome da Dimensão / Propriedade *
+              </Label>
+              <Input
+                value={newDimensionName}
+                onChange={(e) => setNewDimensionName(e.target.value)}
+                placeholder="Ex: Tamanho, Cor, Sabor, Voltagem"
+                className="h-10 rounded-xl text-xs bg-background"
+                autoFocus
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold text-foreground">
+                Primeira Opção / Valor *
+              </Label>
+              <Input
+                value={newDimensionValue}
+                onChange={(e) => setNewDimensionValue(e.target.value)}
+                placeholder="Ex: P, Azul, Morango, 110V"
+                className="h-10 rounded-xl text-xs bg-background"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleAddDimensionSubmit();
+                }}
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Você poderá adicionar mais opções na tabela de grade a seguir.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter className="pt-2 gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsAddDimensionOpen(false)}
+              className="rounded-xl text-xs font-semibold"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleAddDimensionSubmit}
+              className="rounded-xl text-xs font-bold bg-primary text-primary-foreground gap-1.5"
+            >
+              <Plus className="size-3.5" />
+              <span>Adicionar à Grade</span>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

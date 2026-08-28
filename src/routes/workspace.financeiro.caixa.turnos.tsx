@@ -50,7 +50,7 @@ function ShiftsPage() {
 
       <PageHeader title="Histórico de Turnos" />
 
-      <div className=" bg-card rounded-xl overflow-hidden">
+      <div className="bg-card rounded-2xl border border-border/60 overflow-hidden">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>

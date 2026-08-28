@@ -713,7 +713,7 @@ function AdminMasterIntegracoesPage() {
 
       {/* Modal: Adicionar Chave à Pool */}
       <Dialog open={isNewKeyModalOpen} onOpenChange={setIsNewKeyModalOpen}>
-        <DialogContent className="sm:max-w-md rounded-3xl">
+        <DialogContent className="sm:max-w-md sm:rounded-3xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold">Adicionar Chave à Pool</DialogTitle>
             <DialogDescription className="text-xs">
@@ -799,7 +799,7 @@ function AdminMasterIntegracoesPage() {
 
       {/* Modal: Editar Prompt Master */}
       <Dialog open={isPromptModalOpen} onOpenChange={setIsPromptModalOpen}>
-        <DialogContent className="sm:max-w-2xl rounded-3xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl sm:rounded-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold">
               {editingPrompt ? "Editar Prompt Master" : "Novo Prompt Master de IA"}

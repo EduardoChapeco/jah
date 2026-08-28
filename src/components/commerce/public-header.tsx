@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { useCartContext } from "@/lib/cart-context";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { InstantSearchDialog } from "@/components/search/instant-search-dialog";
 
 const DEFAULT_NAV_LINKS = [
   { url: "/", label: "Mural" },
@@ -24,14 +24,15 @@ export function PublicHeader({
 
   hideNameWithLogo = false,
 }: {
-  menuItems?: any[];
+  menuItems?: Array<{ url: string; label: string }>;
   storeName?: string;
   logoUrl?: string;
-
+  cartItemCount?: number;
   hideNameWithLogo?: boolean;
 }) {
   const navItems = menuItems.length > 0 ? menuItems : DEFAULT_NAV_LINKS;
   const navigate = useNavigate();
+  const [instantSearchOpen, setInstantSearchOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -145,27 +146,23 @@ export function PublicHeader({
             </form>
           </div>
 
-          {/* Search Trigger (hidden when search is open) */}
-          {!isSearchOpen && (
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setIsSearchOpen(true)}
-              aria-label="Buscar"
-              className="shrink-0  "
-            >
-              <Search className="size-5 text-foreground" aria-hidden />
-            </Button>
-          )}
-
-          <ThemeToggle className="shrink-0  " />
+          {/* Search Trigger (Abre InstantSearchDialog) */}
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setInstantSearchOpen(true)}
+            aria-label="Buscar na plataforma"
+            className="shrink-0"
+          >
+            <Search className="size-5 text-foreground" aria-hidden />
+          </Button>
 
           <Button
             variant="outline"
             size="icon"
             asChild
             aria-label="Minha conta"
-            className="shrink-0  "
+            className="shrink-0"
           >
             <Link to="/conta">
               <User className="size-5 text-foreground" aria-hidden />
@@ -177,7 +174,7 @@ export function PublicHeader({
             size="icon"
             onClick={() => setIsCartOpen(true)}
             aria-label="Carrinho"
-            className="relative shrink-0  bg-secondary text-foreground"
+            className="relative shrink-0 bg-secondary text-foreground"
           >
             <ShoppingBag className="size-5" aria-hidden />
             {totalItemCount > 0 && (
@@ -188,6 +185,11 @@ export function PublicHeader({
           </Button>
         </div>
       </div>
+
+      <InstantSearchDialog
+        open={instantSearchOpen}
+        onOpenChange={setInstantSearchOpen}
+      />
     </header>
   );
 }

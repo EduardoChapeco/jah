@@ -185,9 +185,9 @@ function ModerationQueuePage() {
             return (
               <div
                 key={rep.id}
-                className=" bg-card rounded-2xl p-5  space-y-3 hover:border-border/80 transition-colors"
+                className="bg-card rounded-2xl p-5 border border-border/60 space-y-3 hover:border-border/80 transition-colors"
               >
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2  pb-2.5">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pb-2.5 border-b border-border/40">
                   <div className="flex items-center gap-2 flex-wrap">
                     <Badge
                       variant={reasonInfo.variant}
@@ -322,7 +322,7 @@ function ModerationQueuePage() {
       {/* Modal de Ação do Moderador */}
       {selectedReport && (
         <Dialog open={!!selectedReport} onOpenChange={() => setSelectedReport(null)}>
-          <DialogContent className="max-w-md rounded-2xl p-6">
+          <DialogContent className="sm:max-w-md sm:rounded-2xl sm:p-6 p-5">
             <DialogHeader className="space-y-1">
               <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
                 <ShieldAlert className="size-5 text-destructive" />

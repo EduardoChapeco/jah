@@ -252,7 +252,7 @@ function TourismDetailPage() {
 
       {/* ── 3. Visual Gallery ── */}
       <div className="space-y-3">
-        <div className="relative w-full aspect-video sm:aspect-21/9 rounded-3xl overflow-hidden bg-black/5  ">
+        <div className="relative w-full aspect-video sm:aspect-21/9 rounded-2xl border border-border/60 overflow-hidden bg-muted">
           <img
             src={images[activeImage] || experience.image_url}
             alt={experience.title}
@@ -298,7 +298,7 @@ function TourismDetailPage() {
                 {experience.included_items.map((item: string, idx: number) => (
                   <div
                     key={idx}
-                    className="flex items-center gap-2.5 p-3 rounded-2xl  bg-card/60 text-xs font-medium text-foreground"
+                    className="flex items-center gap-2.5 p-3 rounded-2xl border border-border/60 bg-card text-xs font-medium text-foreground"
                   >
                     <CheckCircle size={14} weight="bold" className="text-emerald-500 shrink-0" />
                     <span>{item}</span>
@@ -318,7 +318,7 @@ function TourismDetailPage() {
                 {experience.what_to_bring.map((item: string, idx: number) => (
                   <div
                     key={idx}
-                    className="flex items-center gap-2.5 p-3 rounded-2xl  bg-card/60 text-xs font-medium text-foreground"
+                    className="flex items-center gap-2.5 p-3 rounded-2xl border border-border/60 bg-card text-xs font-medium text-foreground"
                   >
                     <span className="size-1.5 rounded-full bg-primary shrink-0" />
                     <span>{item}</span>
@@ -331,7 +331,7 @@ function TourismDetailPage() {
 
         {/* Right Column: Pricing, Instant Booking, WhatsApp */}
         <aside className="space-y-4">
-          <div className="p-6 rounded-3xl  bg-card  space-y-5 sticky top-20">
+          <div className="p-6 rounded-2xl border border-border/60 bg-card space-y-5 sticky top-20">
             <div>
               <span className="text-xs text-muted-foreground font-medium block">Valor da Experiência</span>
               <div className="text-2xl font-black text-foreground mt-0.5">
@@ -348,7 +348,7 @@ function TourismDetailPage() {
                 </Button>
               </DialogTrigger>
 
-              <DialogContent className="max-w-lg rounded-3xl p-6 sm:p-8 bg-card border-border">
+              <DialogContent className="sm:max-w-lg sm:rounded-3xl p-5 sm:p-8 bg-card border-border">
                 <DialogHeader className="space-y-2">
                   <DialogTitle className="text-lg font-black text-foreground">
                     Reservar {experience.title}

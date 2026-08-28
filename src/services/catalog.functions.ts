@@ -990,3 +990,59 @@ export const getStorePublicCatalog = createServerFn({ method: "GET" })
       return { products: [], categories: [] };
     }
   });
+
+export const getCollectionBySlug = createServerFn({ method: "GET" })
+  .validator(z.object({ slug: z.string() }))
+  .handler(async ({ data }) => {
+    try {
+      const db = await getAnonServerClient();
+
+      // 1. Fetch collection metadata
+      const { data: collection, error: colError } = await db
+        .from("collections")
+        .select("id, name, slug, description, cover_url, seo_title, seo_description")
+        .eq("slug", data.slug)
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (colError || !collection) {
+        return { collection: null, products: [] };
+      }
+
+      // 2. Fetch product IDs linked to this collection
+      const { data: links } = await db
+        .from("product_collections")
+        .select("product_id")
+        .eq("collection_id", collection.id)
+        .order("sort_order", { ascending: true });
+
+      if (!links || links.length === 0) {
+        return { collection, products: [] };
+      }
+
+      const productIds = links.map((l: any) => l.product_id);
+
+      // 3. Fetch product data
+      const { data: products } = await db
+        .from("products")
+        .select(`
+          id, slug, title, brand, price_cents, compare_at_cents, published_at,
+          product_media(url, alt, sort_order),
+          product_variants(status, price_override_cents, stock_on_hand, attributes, allow_backorder)
+        `)
+        .in("id", productIds)
+        .eq("status", "published")
+        .order("published_at", { ascending: false });
+
+      const mapped: ProductCardDTO[] = (products || []).flatMap(explodeProductToCards);
+
+      return {
+        collection,
+        products: mapped,
+      };
+    } catch (e) {
+      console.error("[catalog.functions] getCollectionBySlug error:", e);
+      return { collection: null, products: [] };
+    }
+  });
+

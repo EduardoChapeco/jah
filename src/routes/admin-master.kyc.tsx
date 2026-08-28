@@ -116,7 +116,7 @@ function AdminKycPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4">
         <div>
           <h1 className="text-2xl font-black tracking-tight text-foreground flex items-center gap-2">
-            <UserCheck className="size-6 text-blue-600" />
+            <UserCheck className="size-6 text-info" />
             Verificação Facial & KYC Anti-Fraude
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -246,7 +246,7 @@ function AdminKycPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-xs text-red-600 border-red-500/30"
+                      className="text-xs text-destructive border-destructive/30"
                       onClick={() => handleOpenReview(k, "rejected")}
                     >
                       <XCircle className="size-3.5 mr-1" />
@@ -255,7 +255,7 @@ function AdminKycPage() {
                     <Button
                       variant="default"
                       size="sm"
-                      className="text-xs bg-blue-600 hover:bg-blue-700 font-bold"
+                      className="text-xs bg-info hover:bg-info font-bold"
                       onClick={() => handleOpenReview(k, "approved")}
                     >
                       <CheckCircle2 className="size-3.5 mr-1" />
@@ -319,7 +319,7 @@ function AdminKycPage() {
               variant={reviewAction === "approved" ? "default" : "destructive"}
               onClick={handleExecuteReview}
               disabled={isSubmitting}
-              className={reviewAction === "approved" ? "bg-blue-600 hover:bg-blue-700" : ""}
+              className={reviewAction === "approved" ? "bg-info hover:bg-info" : ""}
             >
               {isSubmitting ? (
                 <>

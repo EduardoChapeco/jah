@@ -99,6 +99,42 @@ const EVENT_DATA_BLOCKS = new Set(["event_rail"]);
 const CLASSIFIEDS_DATA_BLOCKS = new Set(["community_feed"]);
 
 // ---------------------------------------------------------------------------
+// BlockErrorBoundary — Prevents single blocks from crashing the whole page
+// ---------------------------------------------------------------------------
+class BlockErrorBoundary extends React.Component<
+  { children: React.ReactNode; isEditing?: boolean; blockName?: string },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error(`[Builder] Render error in block "${this.props.blockName}":`, error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      if (this.props.isEditing) {
+        return (
+          <div className="p-4 border border-dashed border-destructive/40 bg-destructive/10 text-destructive rounded-xl text-sm w-full h-full flex flex-col items-center justify-center">
+            <span className="font-bold">Erro de Renderização no Bloco: {this.props.blockName}</span>
+            <span className="text-xs opacity-80 mt-1">{this.state.error?.message}</span>
+          </div>
+        );
+      }
+      return null; // Silent failure in production to avoid WSOD
+    }
+    return this.props.children;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // ExperienceRenderer — root entry
 // ---------------------------------------------------------------------------
 interface ExperienceRendererProps {
@@ -122,15 +158,16 @@ export function ExperienceRenderer({
   return (
     <>
       {nodes.map((node) => (
-        <ExperienceNodeRenderer
-          key={node.id}
-          node={node}
-          transientData={transientData}
-          bindings={bindings}
-          isEditing={isEditing}
-          selectedNodeId={selectedNodeId}
-          onSelectNode={onSelectNode}
-        />
+        <BlockErrorBoundary key={node.id} isEditing={isEditing} blockName={node.block_type}>
+          <ExperienceNodeRenderer
+            node={node}
+            transientData={transientData}
+            bindings={bindings}
+            isEditing={isEditing}
+            selectedNodeId={selectedNodeId}
+            onSelectNode={onSelectNode}
+          />
+        </BlockErrorBoundary>
       ))}
     </>
   );
@@ -337,7 +374,7 @@ function ExperienceNodeRenderer({
   if (!Component) {
     if (isEditing) {
       return (
-        <div className="p-4 border border-dashed border-orange-500 bg-warning text-warning text-sm">
+        <div className="p-4 border border-dashed border-warning bg-warning text-warning text-sm">
           Falta componente React para: {node.block_type}
         </div>
       );

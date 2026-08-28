@@ -63,5 +63,6 @@ dist-ssr
 .env.secrets
 .env.production 
 .secrets.json
+.supabase_push.ps1
 wrangler.toml  
 scratch/

@@ -1,0 +1,265 @@
+import { useState, useEffect } from "react";
+import {
+  MapPin,
+  Store,
+  Compass,
+  Users,
+  ShieldCheck,
+  Loader2,
+  Check,
+  X,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
+import { useMasterLocation, type LocationState } from "./location-master-pill";
+import { toast } from "sonner";
+
+export function GeolocationPermissionSheet() {
+  const [open, setOpen] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [showLocationInPosts, setShowLocationInPosts] = useState(true);
+  const [filterContentByRegion, setFilterContentByRegion] = useState(true);
+
+  const { updateLocation } = useMasterLocation();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    // Se já foi concedido ou dispensado recentemente, não abre
+    const hasGranted = localStorage.getItem("wider_geo_permission_granted");
+    const hasDismissed = localStorage.getItem("wider_geo_permission_dismissed");
+
+    if (hasGranted === "true" || hasDismissed === "true") {
+      return;
+    }
+
+    // Abre o banner/modal suavemente após 800ms
+    const timer = setTimeout(() => {
+      setOpen(true);
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleDismiss = () => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("wider_geo_permission_dismissed", "true");
+      // Expira em 7 dias
+      document.cookie = "wider_geo_dismissed=true; path=/; max-age=604800; SameSite=Lax";
+    }
+    setOpen(false);
+  };
+
+  const handleAllowLocation = () => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      toast.error("Seu navegador não suporta geolocalização automática.");
+      handleDismiss();
+      return;
+    }
+
+    setIsVerifying(true);
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        try {
+          // Reverse geocoding via OpenStreetMap Nominatim
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
+            { headers: { "User-Agent": "WiderCommunityCommerce/1.0" } },
+          );
+          const data = await res.json();
+          const city =
+            data.address?.city ||
+            data.address?.town ||
+            data.address?.municipality ||
+            data.address?.village ||
+            "Sua Cidade";
+          const state = data.address?.state_code || data.address?.state || "";
+
+          const newLoc: LocationState = {
+            city,
+            state,
+            lat: latitude,
+            lng: longitude,
+            address: data.display_name || `${city}, ${state}`,
+            source: "gps",
+          };
+
+          updateLocation(newLoc);
+
+          if (typeof window !== "undefined") {
+            localStorage.setItem("wider_geo_permission_granted", "true");
+            localStorage.setItem("wider_show_location_posts", String(showLocationInPosts));
+            localStorage.setItem("wider_filter_region", String(filterContentByRegion));
+            document.cookie = "wider_geo_granted=true; path=/; max-age=31536000; SameSite=Lax";
+            window.dispatchEvent(new CustomEvent("wider:location-updated", { detail: newLoc }));
+          }
+
+          toast.success(`Localização ativada: ${city} - ${state}!`);
+        } catch {
+          const fallbackLoc: LocationState = {
+            city: "Minha Localização",
+            state: "",
+            lat: latitude,
+            lng: longitude,
+            source: "gps",
+          };
+          updateLocation(fallbackLoc);
+          if (typeof window !== "undefined") {
+            localStorage.setItem("wider_geo_permission_granted", "true");
+          }
+          toast.success("Localização GPS sincronizada com sucesso!");
+        } finally {
+          setIsVerifying(false);
+          setOpen(false);
+        }
+      },
+      () => {
+        setIsVerifying(false);
+        toast.info("Permissão não concedida. Você pode escolher sua cidade a qualquer momento no topo.");
+        handleDismiss();
+      },
+      { timeout: 12000, enableHighAccuracy: true },
+    );
+  };
+
+  return (
+    <Sheet open={open} onOpenChange={(val) => !val && handleDismiss()}>
+      <SheetContent
+        side="right"
+        className="w-full sm:max-w-md p-6 flex flex-col justify-between overflow-y-auto bg-card text-foreground border-border/60 sm:rounded-l-3xl rounded-none"
+      >
+        <div className="space-y-6">
+          {/* Header com Ícone de Pin */}
+          <SheetHeader className="text-left space-y-3 p-0">
+            <div className="size-14 rounded-3xl bg-primary/10 text-primary flex items-center justify-center font-bold">
+              <MapPin className="size-7 animate-pulse" />
+            </div>
+
+            <div className="space-y-1">
+              <SheetTitle className="text-xl sm:text-2xl font-black tracking-tight text-foreground">
+                Ativar Localização
+              </SheetTitle>
+              <SheetDescription className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                Para mostrar conteúdo, negócios e pessoas próximas a você, precisamos da sua
+                localização.
+              </SheetDescription>
+            </div>
+          </SheetHeader>
+
+          {/* Lista de Benefícios (Print 2) */}
+          <div className="space-y-3.5 py-1">
+            <div className="flex items-start gap-3 p-3 rounded-2xl bg-muted/40 border border-border/40">
+              <div className="size-8 rounded-xl bg-background text-primary flex items-center justify-center shrink-0 shadow-xs">
+                <Store className="size-4" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-foreground">Mostrar negócios e eventos próximos</h4>
+                <p className="text-[11px] text-muted-foreground">
+                  Encontre lojas, delivery e atrações no seu bairro.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 p-3 rounded-2xl bg-muted/40 border border-border/40">
+              <div className="size-8 rounded-xl bg-background text-amber-500 flex items-center justify-center shrink-0 shadow-xs">
+                <Compass className="size-4" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-foreground">Personalizar seu feed local</h4>
+                <p className="text-[11px] text-muted-foreground">
+                  Receba ofertas e novidades mais relevantes para você.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 p-3 rounded-2xl bg-muted/40 border border-border/40">
+              <div className="size-8 rounded-xl bg-background text-info flex items-center justify-center shrink-0 shadow-xs">
+                <Users className="size-4" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-foreground">Conectar com a sua comunidade</h4>
+                <p className="text-[11px] text-muted-foreground">
+                  Interaja em classificados e no mural comunitário.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Switches de Preferência (Print 2) */}
+          <div className="space-y-3 pt-2 border-t border-border/50">
+            <div className="flex items-center justify-between gap-3 p-1">
+              <label htmlFor="geo-post-toggle" className="text-xs font-semibold text-foreground cursor-pointer">
+                Mostrar localização em posts
+              </label>
+              <Switch
+                id="geo-post-toggle"
+                checked={showLocationInPosts}
+                onCheckedChange={setShowLocationInPosts}
+              />
+            </div>
+
+            <div className="flex items-center justify-between gap-3 p-1">
+              <label htmlFor="geo-filter-toggle" className="text-xs font-semibold text-foreground cursor-pointer">
+                Filtrar conteúdo por região
+              </label>
+              <Switch
+                id="geo-filter-toggle"
+                checked={filterContentByRegion}
+                onCheckedChange={setFilterContentByRegion}
+              />
+            </div>
+          </div>
+
+          {/* Aviso de Privacidade */}
+          <div className="flex items-start gap-2 p-3 rounded-xl bg-muted/20 border border-border/30 text-[11px] text-muted-foreground">
+            <ShieldCheck className="size-4 text-emerald-500 shrink-0 mt-0.5" />
+            <span>
+              Sua privacidade é importante. Você pode alterar ou desativar isso a qualquer momento.
+            </span>
+          </div>
+        </div>
+
+        {/* Rodapé de Ações (44px touch targets) */}
+        <div className="pt-6 space-y-2">
+          <Button
+            type="button"
+            disabled={isVerifying}
+            onClick={handleAllowLocation}
+            className="w-full h-11 rounded-2xl font-bold text-xs gap-2 cursor-pointer bg-foreground text-background hover:bg-foreground/90 transition-all active:scale-[0.98]"
+          >
+            {isVerifying ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                <span>Verificando localização...</span>
+              </>
+            ) : (
+              <>
+                <MapPin className="size-4" />
+                <span>Permitir Localização</span>
+              </>
+            )}
+          </Button>
+
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={handleDismiss}
+            disabled={isVerifying}
+            className="w-full h-10 rounded-2xl text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer"
+          >
+            Agora Não
+          </Button>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}

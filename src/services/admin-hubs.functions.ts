@@ -53,7 +53,11 @@ export const listAllAdminHubs = createServerFn({ method: "GET" })
     }
 
     const supabase = getServerClient();
-    let query = supabase.from("hotpages").select("*").order("sort_order", { ascending: true });
+    let query = supabase
+      .from("hotpages")
+      .select("*")
+      .eq("template_type", "category_hub")
+      .order("sort_order", { ascending: true });
 
     if (data?.module && data.module !== "all") {
       query = query.eq("module", data.module);
@@ -61,6 +65,26 @@ export const listAllAdminHubs = createServerFn({ method: "GET" })
 
     const { data: rows, error } = await query;
     if (error) throw new Error(error.message);
+    return (rows || []) as HotpageDTO[];
+  });
+
+export const listPublicCategoryHubs = createServerFn({ method: "GET" })
+  .validator(z.object({ module: z.string().optional() }).optional())
+  .handler(async ({ data }) => {
+    const { getAnonServerClient } = await import("@/lib/supabase");
+    const supabase = getAnonServerClient();
+    let query = supabase
+      .from("hotpages")
+      .select("*")
+      .eq("is_active", true)
+      .eq("template_type", "category_hub")
+      .order("sort_order", { ascending: true });
+
+    if (data?.module && data.module !== "all") {
+      query = query.eq("module", data.module);
+    }
+
+    const { data: rows } = await query;
     return (rows || []) as HotpageDTO[];
   });
 
@@ -83,6 +107,7 @@ export const saveAdminHub = createServerFn({ method: "POST" })
       icon_url: data.custom_icon_url || data.icon_url || null,
       custom_icon_url: data.custom_icon_url || data.icon_url || null,
       module: data.module,
+      template_type: "category_hub",
       sort_order: data.sort_order,
       show_title: data.show_title,
       show_description: data.show_description,

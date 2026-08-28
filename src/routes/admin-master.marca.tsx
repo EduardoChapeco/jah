@@ -1,6 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import {
-  Image,
+  Image as ImageIcon,
   Upload,
   Eye,
   Type,
@@ -10,8 +10,25 @@ import {
   CheckCircle2,
   AlertCircle,
   Trash2,
+  Sparkles,
+  Smartphone,
+  Tablet,
+  Monitor,
+  Phone,
+  Mail,
+  Clock,
+  Instagram,
+  Facebook,
+  Linkedin,
+  Search,
+  MapPin,
+  ShoppingBag,
+  Bell,
+  ArrowRight,
+  ShieldAlert,
+  ChevronLeft,
 } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -19,11 +36,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { getPlatformBrandSettings, updatePlatformBrandSettings } from "@/services/master.functions";
-import { getBrowserClient } from "@/lib/supabase";
+import { uploadBrandAsset } from "@/services/storage.functions";
 
 export const Route = createFileRoute("/admin-master/marca")({
-  head: () => ({ meta: [{ title: "Identidade da Marca | Wider Master" }] }),
+  head: () => ({ meta: [{ title: "Identidade da Marca & CMS | Wider Master" }] }),
   loader: async () => {
     try {
       const brand = await getPlatformBrandSettings();
@@ -38,12 +56,15 @@ export const Route = createFileRoute("/admin-master/marca")({
           show_name: true,
           show_logo: true,
           support_email: "contato@wider.com.br",
-          support_whatsapp: null,
+          support_whatsapp: "+5549991716233",
           support_hours: "Segunda a Sexta, das 08h às 18h",
           login_split_image_url: null,
-          social_instagram: null,
+          login_bg_desktop_url: null,
+          login_bg_tablet_url: null,
+          login_bg_mobile_url: null,
+          social_instagram: "@wider.app",
           social_facebook: null,
-          social_linkedin: null,
+          social_linkedin: "linkedin.com/company/wider",
           address: null,
           city: null,
           state: null,
@@ -58,16 +79,25 @@ function AdminMasterMarcaPage() {
   const { brand: initialBrand } = Route.useLoaderData();
   const router = useRouter();
 
+  // Estados dos Campos
   const [platformName, setPlatformName] = useState(initialBrand.platform_name || "Wider");
   const [showName, setShowName] = useState(initialBrand.show_name !== false);
   const [showLogo, setShowLogo] = useState(initialBrand.show_logo !== false);
   const [logoUrl, setLogoUrl] = useState<string | null>(initialBrand.logo_url || null);
   const [faviconUrl, setFaviconUrl] = useState<string | null>(initialBrand.favicon_url || null);
-  const [loginSplitImageUrl, setLoginSplitImageUrl] = useState<string | null>(initialBrand.login_split_image_url || null);
-  const [loginBgDesktopUrl, setLoginBgDesktopUrl] = useState<string | null>((initialBrand as any).login_bg_desktop_url || initialBrand.login_split_image_url || null);
-  const [loginBgTabletUrl, setLoginBgTabletUrl] = useState<string | null>((initialBrand as any).login_bg_tablet_url || initialBrand.login_split_image_url || null);
-  const [loginBgMobileUrl, setLoginBgMobileUrl] = useState<string | null>((initialBrand as any).login_bg_mobile_url || initialBrand.login_split_image_url || null);
 
+  // Backgrounds de Login
+  const [loginBgDesktopUrl, setLoginBgDesktopUrl] = useState<string | null>(
+    initialBrand.login_bg_desktop_url || initialBrand.login_split_image_url || null,
+  );
+  const [loginBgTabletUrl, setLoginBgTabletUrl] = useState<string | null>(
+    initialBrand.login_bg_tablet_url || initialBrand.login_split_image_url || null,
+  );
+  const [loginBgMobileUrl, setLoginBgMobileUrl] = useState<string | null>(
+    initialBrand.login_bg_mobile_url || initialBrand.login_split_image_url || null,
+  );
+
+  // Canais de Suporte
   const [supportEmail, setSupportEmail] = useState(initialBrand.support_email || "contato@wider.com.br");
   const [supportWhatsapp, setSupportWhatsapp] = useState(initialBrand.support_whatsapp || "");
   const [supportHours, setSupportHours] = useState(initialBrand.support_hours || "Segunda a Sexta, das 08h às 18h");
@@ -75,349 +105,385 @@ function AdminMasterMarcaPage() {
   const [socialFacebook, setSocialFacebook] = useState(initialBrand.social_facebook || "");
   const [socialLinkedin, setSocialLinkedin] = useState(initialBrand.social_linkedin || "");
 
+  // Estados de Upload
+  const [isUploading, setIsUploading] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
-  const [isUploadingFavicon, setIsUploadingFavicon] = useState(false);
-  const [isUploadingSplit, setIsUploadingSplit] = useState(false);
-  const [isUploadingDesktop, setIsUploadingDesktop] = useState(false);
-  const [isUploadingTablet, setIsUploadingTablet] = useState(false);
-  const [isUploadingMobile, setIsUploadingMobile] = useState(false);
+
+  // Estado da Aba do Preview ao Vivo
+  const [previewTab, setPreviewTab] = useState<"topbar" | "login" | "browser" | "footer">("topbar");
+  const [loginBreakpoint, setLoginBreakpoint] = useState<"desktop" | "tablet" | "mobile">("desktop");
 
   const logoInputRef = useRef<HTMLInputElement>(null);
   const faviconInputRef = useRef<HTMLInputElement>(null);
-  const splitInputRef = useRef<HTMLInputElement>(null);
   const desktopInputRef = useRef<HTMLInputElement>(null);
   const tabletInputRef = useRef<HTMLInputElement>(null);
   const mobileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleUploadFile = async (
+  // Verificação de Alterações Pendentes (Dirty State)
+  const isDirty = useMemo(() => {
+    return (
+      platformName !== (initialBrand.platform_name || "Wider") ||
+      showName !== (initialBrand.show_name !== false) ||
+      showLogo !== (initialBrand.show_logo !== false) ||
+      logoUrl !== (initialBrand.logo_url || null) ||
+      faviconUrl !== (initialBrand.favicon_url || null) ||
+      loginBgDesktopUrl !== (initialBrand.login_bg_desktop_url || initialBrand.login_split_image_url || null) ||
+      loginBgTabletUrl !== (initialBrand.login_bg_tablet_url || initialBrand.login_split_image_url || null) ||
+      loginBgMobileUrl !== (initialBrand.login_bg_mobile_url || initialBrand.login_split_image_url || null) ||
+      supportEmail !== (initialBrand.support_email || "contato@wider.com.br") ||
+      supportWhatsapp !== (initialBrand.support_whatsapp || "") ||
+      supportHours !== (initialBrand.support_hours || "Segunda a Sexta, das 08h às 18h") ||
+      socialInstagram !== (initialBrand.social_instagram || "") ||
+      socialFacebook !== (initialBrand.social_facebook || "") ||
+      socialLinkedin !== (initialBrand.social_linkedin || "")
+    );
+  }, [
+    platformName,
+    showName,
+    showLogo,
+    logoUrl,
+    faviconUrl,
+    loginBgDesktopUrl,
+    loginBgTabletUrl,
+    loginBgMobileUrl,
+    supportEmail,
+    supportWhatsapp,
+    supportHours,
+    socialInstagram,
+    socialFacebook,
+    socialLinkedin,
+    initialBrand,
+  ]);
+
+  // Upload Handler Universal via Server Function
+  const handleUpload = async (
     file: File,
-    path: string,
-    setUrl: (url: string | null) => void,
-    setLoading: (v: boolean) => void,
+    category: "logo" | "favicon" | "login_desktop" | "login_tablet" | "login_mobile",
+    setter: (url: string | null) => void,
   ) => {
-    setLoading(true);
+    setIsUploading((prev) => ({ ...prev, [category]: true }));
     try {
-      const db = getBrowserClient();
-      const ext = file.name.split(".").pop() || "png";
-      const filename = `${path}-${Date.now()}.${ext}`;
+      const reader = new FileReader();
+      const base64Promise = new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
 
-      const { error: uploadErr } = await db.storage
-        .from("brand-assets")
-        .upload(filename, file, { upsert: true, contentType: file.type });
+      const base64Data = await base64Promise;
+      const res = await uploadBrandAsset({
+        data: {
+          fileName: file.name,
+          fileType: file.type || "image/png",
+          base64Data,
+          category,
+        },
+      });
 
-      if (uploadErr) throw uploadErr;
-
-      const { data: urlData } = db.storage.from("brand-assets").getPublicUrl(filename);
-      setUrl(urlData.publicUrl);
-      toast.success("Arquivo enviado com sucesso!");
-    } catch (e: any) {
-      toast.error(
-        e?.message ||
-          "Erro ao fazer upload. Verifique se o bucket 'brand-assets' existe no Supabase Storage.",
-      );
+      setter(res.url);
+      toast.success("Mídia enviada com sucesso!");
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao fazer upload da imagem.");
     } finally {
-      setLoading(false);
+      setIsUploading((prev) => ({ ...prev, [category]: false }));
     }
   };
 
+  // Salvar Configurações Globais
   const handleSave = async () => {
     setIsSubmitting(true);
     try {
       await updatePlatformBrandSettings({
         data: {
-          platform_name: platformName,
+          platform_name: platformName.trim(),
           logo_url: logoUrl,
           favicon_url: faviconUrl,
           show_name: showName,
           show_logo: showLogo,
-          support_email: supportEmail || undefined,
-          support_whatsapp: supportWhatsapp || undefined,
-          support_hours: supportHours || undefined,
-          login_split_image_url: loginSplitImageUrl || undefined,
+          support_email: supportEmail.trim() || undefined,
+          support_whatsapp: supportWhatsapp.trim() || undefined,
+          support_hours: supportHours.trim() || undefined,
+          login_split_image_url: loginBgDesktopUrl || undefined,
           login_bg_desktop_url: loginBgDesktopUrl || undefined,
           login_bg_tablet_url: loginBgTabletUrl || undefined,
           login_bg_mobile_url: loginBgMobileUrl || undefined,
-          social_instagram: socialInstagram || undefined,
-          social_facebook: socialFacebook || undefined,
-          social_linkedin: socialLinkedin || undefined,
+          social_instagram: socialInstagram.trim() || undefined,
+          social_facebook: socialFacebook.trim() || undefined,
+          social_linkedin: socialLinkedin.trim() || undefined,
         },
       });
-      toast.success(
-        "Identidade da marca e backgrounds de login atualizados com sucesso!",
-      );
+      toast.success("Identidade da marca e configurações propagadas com sucesso!");
       router.invalidate();
-    } catch (e: any) {
-      toast.error(e?.message || "Erro ao salvar configurações de marca.");
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao salvar identidade da marca.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="space-y-8 max-w-4xl pb-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4  pb-5">
+    <div className="space-y-6 pb-28">
+      {/* ── Cabeçalho do Editor ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border/40 pb-5">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary">
-              Configurações Globais
-            </span>
-            <Badge
-              variant="outline"
-              className="text-[10px] rounded-full border-primary/30 text-primary"
-            >
-              <Globe className="size-3 mr-1 inline" /> Admin Master
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+              Identidade & Marca Global
+            </h1>
+            <Badge variant="outline" className="text-[11px] font-mono border-primary/30 text-primary">
+              Propagação Bilateral
             </Badge>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black text-foreground tracking-tight">
-            Identidade da Marca
-          </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-            Configure o logo, favicon e o nome da plataforma. Estas alterações se propagam
-            globalmente em todas as páginas.
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Identidade visual, branding, favicon e assets da rede
           </p>
         </div>
-        <Button
-          onClick={handleSave}
-          disabled={isSubmitting}
-          className="rounded-xl text-xs font-bold gap-2 h-9 px-5  shrink-0"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="size-3.5 animate-spin" />
-              <span>Salvando...</span>
-            </>
+
+        {/* Indicador de Status */}
+        <div className="flex items-center gap-2">
+          {isDirty ? (
+            <Badge className="bg-amber-500/10 text-amber-600 border border-amber-500/20 text-xs font-semibold px-2.5 py-1">
+              ● Alterações não salvas
+            </Badge>
           ) : (
-            <>
-              <CheckCircle2 className="size-3.5" />
-              <span>Salvar Alterações</span>
-            </>
+            <Badge className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-xs font-semibold px-2.5 py-1">
+              ✓ Sincronizado com o sistema
+            </Badge>
           )}
-        </Button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Coluna Esquerda — Configurações */}
-        <div className="space-y-6">
-          {/* Nome da Plataforma */}
-          <div className="p-5 rounded-2xl  bg-card  space-y-4">
+      {/* ── Grid Principal de 2 Colunas: Formulário à Esquerda + Truthful Preview à Direita ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Coluna Esquerda: Formulários de Configuração (7 colunas) */}
+        <div className="lg:col-span-7 space-y-6">
+          {/* 1. Nome & Exibição na Barra Superior */}
+          <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-4">
             <div className="flex items-center gap-3">
               <div className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
                 <Type className="size-4" />
               </div>
               <div>
-                <p className="text-sm font-bold text-foreground">Nome da Plataforma</p>
+                <h2 className="text-sm font-bold text-foreground">Nome & Marca da Cidade</h2>
                 <p className="text-[11px] text-muted-foreground">
-                  Texto exibido na barra de navegação
+                  Título canônico exibido nos cabeçalhos, títulos de página e metadados SEO.
                 </p>
               </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3 pt-1">
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  Nome Exibido
+                <Label htmlFor="platform-name" className="text-xs font-bold text-foreground">
+                  Nome da Plataforma
                 </Label>
                 <Input
+                  id="platform-name"
                   value={platformName}
                   onChange={(e) => setPlatformName(e.target.value)}
-                  placeholder="Ex: Wider, Minha Plataforma..."
-                  className="text-sm rounded-xl h-9"
-                  maxLength={64}
+                  placeholder="Ex: Wider"
+                  className="rounded-xl h-10 text-sm font-semibold bg-background"
                 />
               </div>
 
-              <div className="flex items-center justify-between p-3 rounded-xl  bg-muted/30">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-border/40">
+                  <div>
+                    <p className="text-xs font-semibold text-foreground">Exibir Nome</p>
+                    <p className="text-[10px] text-muted-foreground">Texto na barra superior</p>
+                  </div>
+                  <Switch checked={showName} onCheckedChange={setShowName} id="show-name-toggle" />
+                </div>
+
+                <div className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-border/40">
+                  <div>
+                    <p className="text-xs font-semibold text-foreground">Exibir Logo</p>
+                    <p className="text-[10px] text-muted-foreground">Imagem da marca no topo</p>
+                  </div>
+                  <Switch checked={showLogo} onCheckedChange={setShowLogo} id="show-logo-toggle" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. Upload de Logomarca Oficial */}
+          <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="size-9 rounded-xl bg-info/10 text-info flex items-center justify-center shrink-0">
+                  <ImageIcon className="size-4" />
+                </div>
                 <div>
-                  <p className="text-xs font-semibold text-foreground">Exibir nome na barra superior</p>
-                  <p className="text-[11px] text-muted-foreground">Aparece ao lado da logo ou sozinho</p>
+                  <h2 className="text-sm font-bold text-foreground">Logomarca da Plataforma</h2>
+                  <p className="text-[11px] text-muted-foreground">
+                    PNG transparente, SVG ou WebP • Altura recomendada: 48px
+                  </p>
                 </div>
-                <Switch
-                  checked={showName}
-                  onCheckedChange={setShowName}
-                  id="show-name-toggle"
-                />
               </div>
-            </div>
-          </div>
-
-          {/* Upload de Logo */}
-          <div className="p-5 rounded-2xl  bg-card  space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                <Image className="size-4" />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-foreground">Logo da Plataforma</p>
-                <p className="text-[11px] text-muted-foreground">
-                  PNG com fundo transparente, SVG ou WebP
-                </p>
-              </div>
-            </div>
-
-            {/* Preview */}
-            <div className="h-24 rounded-xl border-2 border-dashed border-border/60 bg-muted/20 flex items-center justify-center relative overflow-hidden">
-              {logoUrl ? (
-                <>
-                  <img
-                    src={logoUrl}
-                    alt="Logo da plataforma"
-                    className="max-h-16 max-w-[80%] object-contain"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setLogoUrl(null)}
-                    className="absolute top-2 right-2 size-7 rounded-xl bg-background/90 hover:bg-destructive/10 hover:text-destructive "
-                  >
-                    <Trash2 className="size-3.5" />
-                  </Button>
-                </>
-              ) : (
-                <div className="text-center text-muted-foreground space-y-1">
-                  <Image className="size-8 mx-auto opacity-25" />
-                  <p className="text-xs">Nenhuma logo enviada</p>
-                </div>
-              )}
-            </div>
-
-            <input
-              ref={logoInputRef}
-              type="file"
-              accept="image/png,image/svg+xml,image/webp,image/jpeg"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file)
-                  handleUploadFile(file, "logo/platform-logo", setLogoUrl, setIsUploadingLogo);
-              }}
-            />
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => logoInputRef.current?.click()}
-              disabled={isUploadingLogo}
-              className="w-full rounded-xl text-xs font-bold h-9 gap-2"
-            >
-              {isUploadingLogo ? (
-                <Loader2 className="size-3.5 animate-spin" />
-              ) : (
-                <Upload className="size-3.5" />
-              )}
-              <span>{isUploadingLogo ? "Enviando..." : "Fazer Upload da Logo"}</span>
-            </Button>
-
-            <div className="flex items-center justify-between p-3 rounded-xl  bg-muted/30">
-              <div>
-                <p className="text-xs font-semibold text-foreground">Exibir logo na barra superior</p>
-                <p className="text-[11px] text-muted-foreground">Mostra a imagem ao lado ou no lugar do nome</p>
-              </div>
-              <Switch checked={showLogo} onCheckedChange={setShowLogo} id="show-logo-toggle" />
-            </div>
-          </div>
-
-          {/* Upload de Favicon */}
-          <div className="p-5 rounded-2xl  bg-card  space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                <Palette className="size-4" />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-foreground">Favicon (Ícone da Aba)</p>
-                <p className="text-[11px] text-muted-foreground">
-                  ICO, PNG 32×32 ou SVG • Máximo 1MB
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 p-3 rounded-xl  bg-muted/20">
-              <div className="size-10 rounded-xl  bg-background flex items-center justify-center overflow-hidden shrink-0">
-                {faviconUrl ? (
-                  <img src={faviconUrl} alt="Favicon" className="size-7 object-contain" />
-                ) : (
-                  <Globe className="size-5 text-muted-foreground opacity-30" />
-                )}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-foreground">
-                  {faviconUrl ? "Favicon personalizado ativo" : "Usando favicon padrão"}
-                </p>
-                <p className="text-[11px] text-muted-foreground">
-                  Exibido na aba do navegador e favoritos
-                </p>
-              </div>
-              {faviconUrl && (
+              {logoUrl && (
                 <Button
                   variant="ghost"
-                  size="icon"
-                  onClick={() => setFaviconUrl(null)}
-                  className="size-7 rounded-xl hover:bg-destructive/10 hover:text-destructive shrink-0"
+                  size="sm"
+                  onClick={() => setLogoUrl(null)}
+                  className="text-xs text-destructive hover:bg-destructive/10 h-8 gap-1"
                 >
                   <Trash2 className="size-3.5" />
+                  <span>Remover</span>
                 </Button>
               )}
             </div>
 
-            <input
-              ref={faviconInputRef}
-              type="file"
-              accept="image/png,image/x-icon,image/svg+xml,image/webp"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file)
-                  handleUploadFile(
-                    file,
-                    "favicon/platform-favicon",
-                    setFaviconUrl,
-                    setIsUploadingFavicon,
-                  );
-              }}
-            />
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => faviconInputRef.current?.click()}
-              disabled={isUploadingFavicon}
-              className="w-full rounded-xl text-xs font-bold h-9 gap-2"
-            >
-              {isUploadingFavicon ? (
-                <Loader2 className="size-3.5 animate-spin" />
-              ) : (
-                <Upload className="size-3.5" />
-              )}
-              <span>{isUploadingFavicon ? "Enviando..." : "Fazer Upload do Favicon"}</span>
-            </Button>
+            <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-xl bg-muted/20 border border-dashed border-border/60">
+              <div className="size-20 rounded-xl bg-background border border-border/60 flex items-center justify-center p-2 shrink-0 overflow-hidden shadow-xs">
+                {logoUrl ? (
+                  <img src={logoUrl} alt="Logo" className="size-full object-contain" />
+                ) : (
+                  <span className="text-[10px] font-bold text-muted-foreground text-center">
+                    Sem Logo
+                  </span>
+                )}
+              </div>
+
+              <div className="flex-1 space-y-2 text-center sm:text-left w-full">
+                <p className="text-xs font-semibold text-foreground">
+                  {logoUrl ? "Logomarca personalizada ativa" : "Nenhuma logo enviada"}
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  A logo é aplicada na barra superior, e-mails transacionais e telas de onboarding.
+                </p>
+
+                <input
+                  ref={logoInputRef}
+                  type="file"
+                  accept="image/png,image/svg+xml,image/webp,image/jpeg"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleUpload(file, "logo", setLogoUrl);
+                  }}
+                />
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => logoInputRef.current?.click()}
+                  disabled={isUploading.logo}
+                  className="rounded-xl text-xs font-semibold h-9 gap-2 cursor-pointer w-full sm:w-auto"
+                >
+                  {isUploading.logo ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <Upload className="size-3.5" />
+                  )}
+                  <span>{isUploading.logo ? "Enviando logo..." : "Selecionar Logomarca"}</span>
+                </Button>
+              </div>
+            </div>
           </div>
 
-          {/* 4. Backgrounds Responsivos da Tela de Login (3 Breakpoints) */}
-          <div className="p-5 rounded-2xl bg-card border border-border/70 space-y-5">
+          {/* 3. Upload de Favicon */}
+          <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="size-9 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0">
+                  <Palette className="size-4" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-foreground">Favicon (Ícone do Navegador)</h2>
+                  <p className="text-[11px] text-muted-foreground">
+                    ICO, PNG 32×32 ou SVG • Exibido na aba do navegador e favoritos
+                  </p>
+                </div>
+              </div>
+              {faviconUrl && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setFaviconUrl(null)}
+                  className="text-xs text-destructive hover:bg-destructive/10 h-8 gap-1"
+                >
+                  <Trash2 className="size-3.5" />
+                  <span>Remover</span>
+                </Button>
+              )}
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-xl bg-muted/20 border border-dashed border-border/60">
+              <div className="size-12 rounded-xl bg-background border border-border/60 flex items-center justify-center p-1.5 shrink-0 overflow-hidden shadow-xs">
+                {faviconUrl ? (
+                  <img src={faviconUrl} alt="Favicon" className="size-full object-contain" />
+                ) : (
+                  <Globe className="size-5 text-muted-foreground opacity-40" />
+                )}
+              </div>
+
+              <div className="flex-1 space-y-2 text-center sm:text-left w-full">
+                <p className="text-xs font-semibold text-foreground">
+                  {faviconUrl ? "Favicon personalizado ativo" : "Favicon padrão da plataforma"}
+                </p>
+
+                <input
+                  ref={faviconInputRef}
+                  type="file"
+                  accept="image/png,image/x-icon,image/svg+xml,image/webp"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleUpload(file, "favicon", setFaviconUrl);
+                  }}
+                />
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => faviconInputRef.current?.click()}
+                  disabled={isUploading.favicon}
+                  className="rounded-xl text-xs font-semibold h-9 gap-2 cursor-pointer w-full sm:w-auto"
+                >
+                  {isUploading.favicon ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <Upload className="size-3.5" />
+                  )}
+                  <span>{isUploading.favicon ? "Enviando favicon..." : "Selecionar Favicon"}</span>
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* 4. Backgrounds Imersivos da Tela de Login (3 Breakpoints) */}
+          <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="size-9 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center shrink-0">
-                <Image className="size-4" />
+              <div className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                <ImageIcon className="size-4" />
               </div>
               <div>
-                <p className="text-sm font-bold text-foreground">Background Imersivo da Tela de Login (3 Breakpoints)</p>
+                <h2 className="text-sm font-bold text-foreground">
+                  Background Imersivo da Tela de Login (3 Breakpoints)
+                </h2>
                 <p className="text-[11px] text-muted-foreground">
-                  Imagens em tela cheia sem scroll, recortadas proporcionalmente conforme o dispositivo.
+                  Imagens recortadas na proporção exata de cada dispositivo para tela cheia fluida sem distorção.
                 </p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
               {/* Breakpoint 1: Desktop (16:9) */}
-              <div className="p-4 rounded-xl bg-muted/20 border border-border/40 space-y-3 flex flex-col justify-between">
-                <div className="space-y-2">
+              <div className="p-3 rounded-xl bg-muted/20 border border-border/40 space-y-2.5 flex flex-col justify-between">
+                <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-foreground">🖥️ Desktop (16:9)</span>
+                    <span className="text-xs font-bold text-foreground flex items-center gap-1">
+                      <Monitor className="size-3.5 text-primary" />
+                      <span>Desktop (16:9)</span>
+                    </span>
                     <span className="text-[10px] font-mono text-muted-foreground">1920×1080</span>
                   </div>
-                  <div className="relative rounded-xl overflow-hidden bg-muted/40 aspect-video flex items-center justify-center border border-border/40">
+                  <div className="relative rounded-lg overflow-hidden bg-background aspect-video flex items-center justify-center border border-border/60">
                     {loginBgDesktopUrl ? (
                       <img src={loginBgDesktopUrl} alt="Desktop" className="size-full object-cover" />
                     ) : (
-                      <span className="text-[10px] text-muted-foreground text-center p-2">Padrão da Plataforma</span>
+                      <span className="text-[10px] text-muted-foreground text-center p-1">Padrão da Cidade</span>
                     )}
                   </div>
                 </div>
@@ -429,19 +495,25 @@ function AdminMasterMarcaPage() {
                   className="hidden"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
-                    if (file) handleUploadFile(file, "brand/login-bg-desktop", setLoginBgDesktopUrl, setIsUploadingDesktop);
+                    if (file) handleUpload(file, "login_desktop", setLoginBgDesktopUrl);
                   }}
                 />
-                <div className="flex items-center gap-1.5 pt-1">
+
+                <div className="flex items-center gap-1">
                   <Button
                     type="button"
                     variant="outline"
+                    size="sm"
                     onClick={() => desktopInputRef.current?.click()}
-                    disabled={isUploadingDesktop}
-                    className="flex-1 rounded-xl text-[11px] font-bold h-8 gap-1.5 cursor-pointer"
+                    disabled={isUploading.login_desktop}
+                    className="flex-1 rounded-lg text-[11px] font-semibold h-8 gap-1 cursor-pointer"
                   >
-                    {isUploadingDesktop ? <Loader2 className="size-3 animate-spin" /> : <Upload className="size-3" />}
-                    <span>Upload Desktop</span>
+                    {isUploading.login_desktop ? (
+                      <Loader2 className="size-3 animate-spin" />
+                    ) : (
+                      <Upload className="size-3" />
+                    )}
+                    <span>Desktop</span>
                   </Button>
                   {loginBgDesktopUrl && (
                     <Button
@@ -449,26 +521,29 @@ function AdminMasterMarcaPage() {
                       variant="ghost"
                       size="icon"
                       onClick={() => setLoginBgDesktopUrl(null)}
-                      className="size-8 rounded-xl hover:bg-destructive/10 hover:text-destructive shrink-0"
+                      className="size-8 rounded-lg text-destructive hover:bg-destructive/10 shrink-0"
                     >
-                      <Trash2 className="size-3.5" />
+                      <Trash2 className="size-3" />
                     </Button>
                   )}
                 </div>
               </div>
 
               {/* Breakpoint 2: Tablet (4:3) */}
-              <div className="p-4 rounded-xl bg-muted/20 border border-border/40 space-y-3 flex flex-col justify-between">
-                <div className="space-y-2">
+              <div className="p-3 rounded-xl bg-muted/20 border border-border/40 space-y-2.5 flex flex-col justify-between">
+                <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-foreground">📱 Tablet (4:3)</span>
+                    <span className="text-xs font-bold text-foreground flex items-center gap-1">
+                      <Tablet className="size-3.5 text-info" />
+                      <span>Tablet (4:3)</span>
+                    </span>
                     <span className="text-[10px] font-mono text-muted-foreground">1024×768</span>
                   </div>
-                  <div className="relative rounded-xl overflow-hidden bg-muted/40 aspect-[4/3] max-h-36 flex items-center justify-center border border-border/40">
+                  <div className="relative rounded-lg overflow-hidden bg-background aspect-[4/3] flex items-center justify-center border border-border/60">
                     {loginBgTabletUrl ? (
                       <img src={loginBgTabletUrl} alt="Tablet" className="size-full object-cover" />
                     ) : (
-                      <span className="text-[10px] text-muted-foreground text-center p-2">Padrão da Plataforma</span>
+                      <span className="text-[10px] text-muted-foreground text-center p-1">Padrão da Cidade</span>
                     )}
                   </div>
                 </div>
@@ -480,19 +555,25 @@ function AdminMasterMarcaPage() {
                   className="hidden"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
-                    if (file) handleUploadFile(file, "brand/login-bg-tablet", setLoginBgTabletUrl, setIsUploadingTablet);
+                    if (file) handleUpload(file, "login_tablet", setLoginBgTabletUrl);
                   }}
                 />
-                <div className="flex items-center gap-1.5 pt-1">
+
+                <div className="flex items-center gap-1">
                   <Button
                     type="button"
                     variant="outline"
+                    size="sm"
                     onClick={() => tabletInputRef.current?.click()}
-                    disabled={isUploadingTablet}
-                    className="flex-1 rounded-xl text-[11px] font-bold h-8 gap-1.5 cursor-pointer"
+                    disabled={isUploading.login_tablet}
+                    className="flex-1 rounded-lg text-[11px] font-semibold h-8 gap-1 cursor-pointer"
                   >
-                    {isUploadingTablet ? <Loader2 className="size-3 animate-spin" /> : <Upload className="size-3" />}
-                    <span>Upload Tablet</span>
+                    {isUploading.login_tablet ? (
+                      <Loader2 className="size-3 animate-spin" />
+                    ) : (
+                      <Upload className="size-3" />
+                    )}
+                    <span>Tablet</span>
                   </Button>
                   {loginBgTabletUrl && (
                     <Button
@@ -500,26 +581,29 @@ function AdminMasterMarcaPage() {
                       variant="ghost"
                       size="icon"
                       onClick={() => setLoginBgTabletUrl(null)}
-                      className="size-8 rounded-xl hover:bg-destructive/10 hover:text-destructive shrink-0"
+                      className="size-8 rounded-lg text-destructive hover:bg-destructive/10 shrink-0"
                     >
-                      <Trash2 className="size-3.5" />
+                      <Trash2 className="size-3" />
                     </Button>
                   )}
                 </div>
               </div>
 
               {/* Breakpoint 3: Mobile (9:16) */}
-              <div className="p-4 rounded-xl bg-muted/20 border border-border/40 space-y-3 flex flex-col justify-between">
-                <div className="space-y-2">
+              <div className="p-3 rounded-xl bg-muted/20 border border-border/40 space-y-2.5 flex flex-col justify-between">
+                <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-foreground">📲 Mobile (9:16)</span>
+                    <span className="text-xs font-bold text-foreground flex items-center gap-1">
+                      <Smartphone className="size-3.5 text-emerald-500" />
+                      <span>Mobile (9:16)</span>
+                    </span>
                     <span className="text-[10px] font-mono text-muted-foreground">1080×1920</span>
                   </div>
-                  <div className="relative rounded-xl overflow-hidden bg-muted/40 aspect-[9/16] max-h-36 mx-auto flex items-center justify-center border border-border/40">
+                  <div className="relative rounded-lg overflow-hidden bg-background aspect-[9/16] max-h-36 mx-auto flex items-center justify-center border border-border/60 w-full">
                     {loginBgMobileUrl ? (
                       <img src={loginBgMobileUrl} alt="Mobile" className="size-full object-cover" />
                     ) : (
-                      <span className="text-[10px] text-muted-foreground text-center p-2">Padrão da Plataforma</span>
+                      <span className="text-[10px] text-muted-foreground text-center p-1">Padrão da Cidade</span>
                     )}
                   </div>
                 </div>
@@ -531,19 +615,25 @@ function AdminMasterMarcaPage() {
                   className="hidden"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
-                    if (file) handleUploadFile(file, "brand/login-bg-mobile", setLoginBgMobileUrl, setIsUploadingMobile);
+                    if (file) handleUpload(file, "login_mobile", setLoginBgMobileUrl);
                   }}
                 />
-                <div className="flex items-center gap-1.5 pt-1">
+
+                <div className="flex items-center gap-1">
                   <Button
                     type="button"
                     variant="outline"
+                    size="sm"
                     onClick={() => mobileInputRef.current?.click()}
-                    disabled={isUploadingMobile}
-                    className="flex-1 rounded-xl text-[11px] font-bold h-8 gap-1.5 cursor-pointer"
+                    disabled={isUploading.login_mobile}
+                    className="flex-1 rounded-lg text-[11px] font-semibold h-8 gap-1 cursor-pointer"
                   >
-                    {isUploadingMobile ? <Loader2 className="size-3 animate-spin" /> : <Upload className="size-3" />}
-                    <span>Upload Mobile</span>
+                    {isUploading.login_mobile ? (
+                      <Loader2 className="size-3 animate-spin" />
+                    ) : (
+                      <Upload className="size-3" />
+                    )}
+                    <span>Mobile</span>
                   </Button>
                   {loginBgMobileUrl && (
                     <Button
@@ -551,9 +641,9 @@ function AdminMasterMarcaPage() {
                       variant="ghost"
                       size="icon"
                       onClick={() => setLoginBgMobileUrl(null)}
-                      className="size-8 rounded-xl hover:bg-destructive/10 hover:text-destructive shrink-0"
+                      className="size-8 rounded-lg text-destructive hover:bg-destructive/10 shrink-0"
                     >
-                      <Trash2 className="size-3.5" />
+                      <Trash2 className="size-3" />
                     </Button>
                   )}
                 </div>
@@ -562,67 +652,83 @@ function AdminMasterMarcaPage() {
           </div>
 
           {/* 5. Canais Oficiais de Suporte & Atendimento */}
-          <div className="p-5 rounded-2xl bg-card border border-border/70 space-y-4">
+          <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-4">
             <div className="flex items-center gap-3">
               <div className="size-9 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
                 <Globe className="size-4" />
               </div>
               <div>
-                <p className="text-sm font-bold text-foreground">Canais Oficiais de Suporte</p>
+                <h2 className="text-sm font-bold text-foreground">Canais Oficiais de Suporte</h2>
                 <p className="text-[11px] text-muted-foreground">
-                  Exibidos na página pública /contato e nos rodapés institucionais
+                  Exibidos na página pública /contato e nos rodapés institucionais da cidade.
                 </p>
               </div>
             </div>
 
-            <div className="space-y-3">
-              <div className="space-y-1">
-                <Label className="text-xs font-bold text-foreground">E-mail de Atendimento</Label>
+            <div className="space-y-3 pt-1">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  <Mail className="size-3.5 text-muted-foreground" />
+                  <span>E-mail de Atendimento</span>
+                </Label>
                 <Input
                   value={supportEmail}
                   onChange={(e) => setSupportEmail(e.target.value)}
                   placeholder="Ex: suporte@wider.com.br"
-                  className="rounded-xl h-9 text-xs bg-muted/20"
+                  className="rounded-xl h-9 text-xs bg-background"
                 />
               </div>
 
-              <div className="space-y-1">
-                <Label className="text-xs font-bold text-foreground">WhatsApp Oficial de Suporte</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  <Phone className="size-3.5 text-muted-foreground" />
+                  <span>WhatsApp Oficial de Suporte</span>
+                </Label>
                 <Input
                   value={supportWhatsapp}
                   onChange={(e) => setSupportWhatsapp(e.target.value)}
                   placeholder="Ex: +55 (49) 99999-9999"
-                  className="rounded-xl h-9 text-xs bg-muted/20"
+                  className="rounded-xl h-9 text-xs bg-background"
                 />
               </div>
 
-              <div className="space-y-1">
-                <Label className="text-xs font-bold text-foreground">Horário de Atendimento</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  <Clock className="size-3.5 text-muted-foreground" />
+                  <span>Horário de Atendimento</span>
+                </Label>
                 <Input
                   value={supportHours}
                   onChange={(e) => setSupportHours(e.target.value)}
                   placeholder="Ex: Segunda a Sexta, das 08h às 18h"
-                  className="rounded-xl h-9 text-xs bg-muted/20"
+                  className="rounded-xl h-9 text-xs bg-background"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2 pt-1">
-                <div className="space-y-1">
-                  <Label className="text-[11px] text-muted-foreground">Instagram Oficial</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                    <Instagram className="size-3.5 text-primary" />
+                    <span>Instagram Oficial</span>
+                  </Label>
                   <Input
                     value={socialInstagram}
                     onChange={(e) => setSocialInstagram(e.target.value)}
                     placeholder="@wider.app"
-                    className="rounded-xl h-8 text-xs bg-muted/20"
+                    className="rounded-xl h-9 text-xs bg-background"
                   />
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-[11px] text-muted-foreground">LinkedIn Oficial</Label>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                    <Linkedin className="size-3.5 text-info" />
+                    <span>LinkedIn Oficial</span>
+                  </Label>
                   <Input
                     value={socialLinkedin}
                     onChange={(e) => setSocialLinkedin(e.target.value)}
                     placeholder="linkedin.com/company/wider"
-                    className="rounded-xl h-8 text-xs bg-muted/20"
+                    className="rounded-xl h-9 text-xs bg-background"
                   />
                 </div>
               </div>
@@ -630,113 +736,313 @@ function AdminMasterMarcaPage() {
           </div>
         </div>
 
-        {/* Coluna Direita — Preview ao Vivo */}
-        <div>
+        {/* Coluna Direita: Truthful Live Preview Real (5 colunas) */}
+        <div className="lg:col-span-5">
           <div className="sticky top-6 space-y-4">
-            <div className="p-5 rounded-2xl  bg-card  space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                  <Eye className="size-4" />
+            <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <Eye className="size-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-foreground">Preview em Tempo Real</h3>
+                    <p className="text-[10px] text-muted-foreground">Simulação fiel da interface</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-bold text-foreground">Preview ao Vivo</p>
-                  <p className="text-[11px] text-muted-foreground">
-                    Como ficará a barra de navegação
-                  </p>
-                </div>
+
+                <Badge variant="secondary" className="text-[10px] font-mono">
+                  Live Sync
+                </Badge>
               </div>
 
-              {/* Preview da TopBar */}
-              <div className="rounded-xl  bg-background overflow-hidden ">
-                <div className="px-3 py-2 flex items-center justify-between gap-2 ">
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    {showLogo && logoUrl && (
-                      <img src={logoUrl} alt="Logo" className="h-6 max-w-[80px] object-contain" />
-                    )}
-                    {showName && (
-                      <span className="font-black text-base tracking-tight text-foreground">
-                        {platformName || "Wider"}
-                      </span>
-                    )}
-                    {!showLogo && !showName && (
-                      <span className="text-[10px] text-muted-foreground italic opacity-60">
-                        (nada visível)
-                      </span>
-                    )}
-                    <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-muted/60 text-[10px] text-muted-foreground ">
-                      <span>📍</span>
-                      <span>Chapecó</span>
-                    </div>
-                  </div>
+              {/* Seletor de Modos de Visualização */}
+              <Tabs
+                value={previewTab}
+                onValueChange={(v) => setPreviewTab(v as any)}
+                className="w-full"
+              >
+                <TabsList className="w-full grid grid-cols-3 h-8 p-0.5 bg-muted/40 rounded-xl">
+                  <TabsTrigger value="topbar" className="text-[11px] rounded-lg">
+                    Barra de Topo
+                  </TabsTrigger>
+                  <TabsTrigger value="login" className="text-[11px] rounded-lg">
+                    Tela de Login
+                  </TabsTrigger>
+                  <TabsTrigger value="browser" className="text-[11px] rounded-lg">
+                    Aba & Suporte
+                  </TabsTrigger>
+                </TabsList>
 
-                  <div className="hidden sm:flex flex-1 max-w-[130px] mx-2">
-                    <div className="w-full flex items-center gap-1 px-2 py-1 rounded-lg bg-muted/50 text-[10px] text-muted-foreground ">
-                      <span>🔍</span>
-                      <span>Buscar...</span>
-                    </div>
-                  </div>
+                {/* ── Visualização 1: Barra de Topo Real ── */}
+                <TabsContent value="topbar" className="pt-3 space-y-3">
+                  <div className="rounded-xl bg-background border border-border/60 overflow-hidden shadow-xs">
+                    {/* Header TopBar */}
+                    <div className="px-3.5 py-2.5 flex items-center justify-between gap-2 border-b border-border/40">
+                      {/* Logo + Nome */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        {showLogo && logoUrl ? (
+                          <img
+                            src={logoUrl}
+                            alt="Logo"
+                            className="h-6 max-w-[90px] object-contain"
+                          />
+                        ) : null}
+                        {(showName || !logoUrl) && (
+                          <span className="font-display font-black text-base tracking-tight text-foreground">
+                            {platformName || "Wider"}
+                          </span>
+                        )}
+                        {!showLogo && !showName && (
+                          <span className="text-[10px] text-muted-foreground italic">
+                            (Sem identificador ativo)
+                          </span>
+                        )}
+                      </div>
 
-                  <div className="flex items-center gap-1 shrink-0">
-                    <div className="size-6 rounded-lg bg-muted  flex items-center justify-center text-[10px]">
-                      🛍
+                      {/* Busca Simulada */}
+                      <div className="hidden sm:flex flex-1 max-w-[140px] mx-1">
+                        <div className="w-full flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/40 text-[10px] text-muted-foreground border border-border/30">
+                          <Search className="size-3" />
+                          <span>Buscar produtos...</span>
+                        </div>
+                      </div>
+
+                      {/* Ícones Canônicos */}
+                      <div className="flex items-center gap-1 shrink-0">
+                        <div className="size-7 rounded-lg bg-muted/30 border border-border/40 flex items-center justify-center text-muted-foreground">
+                          <ShoppingBag className="size-3.5" />
+                        </div>
+                        <div className="size-7 rounded-lg bg-muted/30 border border-border/40 flex items-center justify-center text-muted-foreground">
+                          <Bell className="size-3.5" />
+                        </div>
+                        <div className="size-7 rounded-lg bg-primary text-primary-foreground flex items-center justify-center text-[10px] font-bold">
+                          {(platformName?.[0] || "W").toUpperCase()}
+                        </div>
+                      </div>
                     </div>
-                    <div className="size-6 rounded-lg bg-muted  flex items-center justify-center text-[10px]">
-                      🔔
+
+                    {/* Trilho de Chips */}
+                    <div className="px-3 py-1.5 bg-muted/15 flex items-center gap-1.5 overflow-x-auto text-[10px]">
+                      <span className="px-2 py-0.5 rounded-md bg-background border border-border/40 text-foreground font-medium shrink-0">
+                        Início
+                      </span>
+                      <span className="px-2 py-0.5 rounded-md bg-background border border-border/40 text-foreground font-medium shrink-0">
+                        Ofertas
+                      </span>
+                      <span className="px-2 py-0.5 rounded-md bg-background border border-border/40 text-foreground font-medium shrink-0">
+                        Gastronomia
+                      </span>
+                      <span className="px-2 py-0.5 rounded-md bg-background border border-border/40 text-foreground font-medium shrink-0">
+                        Mercado
+                      </span>
                     </div>
-                    <div className="size-6 rounded-lg bg-primary text-primary-foreground border border-primary/30 flex items-center justify-center text-[10px] font-bold">
-                      {(platformName?.[0] || "J").toUpperCase()}
+
+                    <div className="p-2.5 text-[10px] text-muted-foreground text-center bg-muted/5">
+                      Visualização real da barra superior em todas as páginas públicas.
                     </div>
                   </div>
-                </div>
-                <div className="px-3 py-1.5 bg-muted/10 flex gap-1.5 overflow-hidden">
-                  {["Ofertas", "Gastronomia", "Mercado"].map((c) => (
-                    <span
-                      key={c}
-                      className="text-[9px] px-1.5 py-0.5 rounded-md bg-card  text-muted-foreground shrink-0"
-                    >
-                      {c}
+                </TabsContent>
+
+                {/* ── Visualização 2: Tela de Login Real (Interativa com Breakpoints) ── */}
+                <TabsContent value="login" className="pt-3 space-y-3">
+                  <div className="flex items-center justify-between pb-1">
+                    <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                      Breakpoint Simulado
                     </span>
-                  ))}
-                </div>
-                <div className="px-3 py-2 text-[9px] text-muted-foreground/50 text-center">
-                  ↑ Baseado nas suas configurações atuais
-                </div>
-              </div>
-
-              {/* Preview da Aba */}
-              <div className="space-y-1.5">
-                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-                  Aba do Navegador
-                </p>
-                <div className="flex items-center gap-2 bg-muted/40 rounded-lg px-3 py-1.5  w-fit">
-                  <div className="size-3.5 rounded overflow-hidden flex items-center justify-center bg-background  shrink-0">
-                    {faviconUrl ? (
-                      <img src={faviconUrl} alt="favicon" className="size-full object-contain" />
-                    ) : (
-                      <Globe className="size-2.5 text-muted-foreground" />
-                    )}
+                    <div className="flex items-center gap-1">
+                      <Button
+                        type="button"
+                        variant={loginBreakpoint === "desktop" ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setLoginBreakpoint("desktop")}
+                        className="h-6 px-2 text-[10px] rounded-md"
+                      >
+                        Desktop
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={loginBreakpoint === "tablet" ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setLoginBreakpoint("tablet")}
+                        className="h-6 px-2 text-[10px] rounded-md"
+                      >
+                        Tablet
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={loginBreakpoint === "mobile" ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setLoginBreakpoint("mobile")}
+                        className="h-6 px-2 text-[10px] rounded-md"
+                      >
+                        Mobile
+                      </Button>
+                    </div>
                   </div>
-                  <span className="text-[10px] text-foreground font-medium max-w-[110px] truncate">
-                    {platformName || "Wider"} — Comunidade
-                  </span>
-                  <span className="text-[10px] text-muted-foreground ml-1">×</span>
-                </div>
-              </div>
 
-              {!showLogo && !showName && (
-                <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400">
-                  <AlertCircle className="size-4 shrink-0 mt-0.5" />
-                  <p className="text-xs font-medium leading-relaxed">
-                    Ative pelo menos o nome ou a logo. Sem nenhum dos dois, a barra de navegação
-                    ficará sem identidade visual.
-                  </p>
-                </div>
-              )}
+                  {/* Canvas da Tela de Login */}
+                  <div
+                    className={`relative rounded-xl overflow-hidden bg-black border border-border/60 mx-auto transition-all ${
+                      loginBreakpoint === "desktop"
+                        ? "aspect-video w-full"
+                        : loginBreakpoint === "tablet"
+                          ? "aspect-[4/3] w-full"
+                          : "aspect-[9/16] max-h-80 w-44"
+                    }`}
+                  >
+                    {/* Imagem de Fundo Real */}
+                    {loginBreakpoint === "desktop" && loginBgDesktopUrl ? (
+                      <img
+                        src={loginBgDesktopUrl}
+                        alt="Desktop Login"
+                        className="absolute inset-0 size-full object-cover"
+                      />
+                    ) : loginBreakpoint === "tablet" && (loginBgTabletUrl || loginBgDesktopUrl) ? (
+                      <img
+                        src={loginBgTabletUrl || loginBgDesktopUrl!}
+                        alt="Tablet Login"
+                        className="absolute inset-0 size-full object-cover"
+                      />
+                    ) : loginBreakpoint === "mobile" && (loginBgMobileUrl || loginBgTabletUrl || loginBgDesktopUrl) ? (
+                      <img
+                        src={loginBgMobileUrl || loginBgTabletUrl || loginBgDesktopUrl!}
+                        alt="Mobile Login"
+                        className="absolute inset-0 size-full object-cover"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 size-full bg-gradient-to-br from-zinc-900 to-black flex items-center justify-center p-4">
+                        <span className="text-[10px] text-white/50 text-center">
+                          Background padrão ativo (Envie uma foto para customizar)
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Overlay Escuro */}
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-[0.5px]" />
+
+                    {/* Topo do Login */}
+                    <div className="absolute top-2 left-2 right-2 flex items-center justify-between z-10">
+                      <div className="px-2 py-0.5 rounded-lg bg-black/60 backdrop-blur-md border border-white/20 text-white text-[9px] font-bold">
+                        {platformName || "WIDER"}
+                      </div>
+                      <div className="px-2 py-0.5 rounded-lg bg-black/60 backdrop-blur-md border border-white/20 text-white/80 text-[8px]">
+                        Voltar
+                      </div>
+                    </div>
+
+                    {/* Card de Autenticação no Canto */}
+                    <div className="absolute bottom-2 right-2 left-2 sm:left-auto sm:w-56 p-2.5 rounded-xl bg-black/85 backdrop-blur-xl border border-white/25 z-10 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-white">Acessar Conta</span>
+                        <Badge className="bg-primary text-primary-foreground text-[8px] px-1.5 py-0">
+                          {platformName || "Wider"}
+                        </Badge>
+                      </div>
+                      <div className="h-6 rounded-md bg-white/10 border border-white/15 px-2 flex items-center justify-between text-[9px] text-white/60">
+                        <span>E-mail ou CPF...</span>
+                        <ArrowRight className="size-2.5 text-white" />
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* ── Visualização 3: Aba do Navegador & Canais de Suporte ── */}
+                <TabsContent value="browser" className="pt-3 space-y-4">
+                  {/* Mock da Aba do Navegador */}
+                  <div className="space-y-1.5">
+                    <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                      Aba do Navegador
+                    </p>
+                    <div className="flex items-center gap-2 bg-muted/40 rounded-xl px-3 py-2 border border-border/50 w-full">
+                      <div className="size-4 rounded overflow-hidden flex items-center justify-center bg-background border border-border/40 shrink-0">
+                        {faviconUrl ? (
+                          <img src={faviconUrl} alt="favicon" className="size-full object-contain" />
+                        ) : (
+                          <Globe className="size-2.5 text-muted-foreground" />
+                        )}
+                      </div>
+                      <span className="text-xs text-foreground font-medium truncate flex-1">
+                        {platformName || "Wider"} — Super App Comunitário
+                      </span>
+                      <span className="text-xs text-muted-foreground ml-1">×</span>
+                    </div>
+                  </div>
+
+                  {/* Card de Suporte & Rodapé */}
+                  <div className="space-y-1.5">
+                    <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                      Canais no Rodapé
+                    </p>
+                    <div className="p-3.5 rounded-xl bg-background border border-border/60 space-y-2.5 text-xs">
+                      <div className="flex items-center gap-2 text-foreground font-semibold">
+                        <Phone className="size-3.5 text-emerald-500" />
+                        <span>{supportWhatsapp || "Não informado"}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Mail className="size-3.5 text-info" />
+                        <span>{supportEmail || "Não informado"}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Clock className="size-3.5 text-amber-500" />
+                        <span>{supportHours || "Não informado"}</span>
+                      </div>
+                      {socialInstagram && (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Instagram className="size-3.5 text-primary" />
+                          <span>{socialInstagram}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Barra de Ação Flutuante Sticky (Salvar Alterações) ── */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-xl border-t border-border/60 p-4">
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-xs sm:text-sm font-semibold text-foreground">
+              Configurações de Identidade Visual & CMS
+            </span>
+            {isDirty && (
+              <span className="text-xs text-amber-600 font-medium hidden sm:inline">
+                (Alterações prontas para publicação)
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => router.invalidate()}
+              disabled={isSubmitting}
+              className="rounded-xl text-xs font-semibold h-10 px-4 cursor-pointer"
+            >
+              Descartar
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSave}
+              disabled={isSubmitting}
+              className="rounded-xl text-xs font-bold h-10 px-6 gap-2 bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer"
+            >
+              {isSubmitting ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <CheckCircle2 className="size-4" />
+              )}
+              <span>{isSubmitting ? "Propagando..." : "Salvar Alterações"}</span>
+            </Button>
           </div>
         </div>
       </div>
     </div>
   );
 }
-

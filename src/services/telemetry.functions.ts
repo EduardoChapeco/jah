@@ -69,8 +69,29 @@ export const trackBuilderEvent = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data }) => {
-    // Inserção rápida sem bloquear
-    return { success: true };
+    try {
+      const supabase = getAnonServerClient(); // Using anon to not fail if not authenticated (telemetry)
+      
+      // We don't block the UI thread if this fails, but we want to log it
+      const { error } = await supabase.from("builder_analytics_events").insert({
+        event_type: data.event_type,
+        node_id: data.node_id,
+        block_type: data.block_type,
+        document_id: data.document_id || null,
+        session_id: "anonymous", // Assuming simple generic session tracking for now
+        metadata: data.metadata || {},
+      });
+
+      if (error) {
+        console.error("[TELEMETRY] Failed to record builder event:", error.message);
+        return { success: false };
+      }
+      
+      return { success: true };
+    } catch (e) {
+      console.error("[TELEMETRY] Exception recording builder event:", e);
+      return { success: false };
+    }
   });
 
 export const getSponsorMetricsDashboard = createServerFn({ method: "GET" }).handler(

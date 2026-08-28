@@ -185,7 +185,7 @@ export function InterestPickerModal() {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-xl p-6 sm:p-8 rounded-3xl  bg-background ">
+      <DialogContent className="sm:max-w-xl p-5 sm:p-8 sm:rounded-3xl bg-background">
         <DialogHeader className="space-y-2 text-center sm:text-left">
           <div className="size-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold mx-auto sm:mx-0">
             <Sparkles className="size-5" />

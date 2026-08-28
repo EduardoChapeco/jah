@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link2, Save, Share2, Users, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ export const Route = createFileRoute("/workspace/configuracoes/parceiros")({
 function ConfigParceirosPage() {
   const { initialProfile } = Route.useLoaderData();
   const [baseUrl] = useState(() => window.location.origin);
+  const queryClient = useQueryClient();
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ["my-commission-profile"],
@@ -32,6 +33,7 @@ function ConfigParceirosPage() {
     onSuccess: async (data) => {
       await navigator.clipboard.writeText(data.link);
       toast.success("Link de indicação copiado para a área de transferência!");
+      queryClient.invalidateQueries({ queryKey: ["my-commission-profile"] });
     },
     onError: (e: any) => {
       toast.error(e?.message ?? "Erro ao gerar link de afiliação");

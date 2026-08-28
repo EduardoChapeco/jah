@@ -68,7 +68,7 @@ export function MomentsStatusPicker({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md rounded-3xl p-6 space-y-6">
+      <DialogContent className="sm:max-w-md sm:rounded-3xl sm:p-6 p-5 space-y-6">
         <DialogHeader className="text-left space-y-1">
           <DialogTitle className="text-lg font-black tracking-tight flex items-center gap-2">
             <Sparkles className="size-5 text-primary" />

@@ -101,8 +101,8 @@ function NewCategoryPage() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className=" bg-card rounded-3xl p-6 space-y-5 ">
-          <div className=" pb-3">
+        <div className="bg-card rounded-2xl border border-border/60 p-6 space-y-5">
+          <div className="pb-3 border-b border-border/40">
             <h3 className="text-sm font-bold text-foreground">Dados da Categoria</h3>
             <p className="text-xs text-muted-foreground">
               Preencha o nome, identificador e hierarquia.

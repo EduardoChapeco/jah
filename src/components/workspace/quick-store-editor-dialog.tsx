@@ -199,7 +199,7 @@ export function QuickStoreEditorDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl p-6 border-border ">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto sm:rounded-3xl sm:p-6 border-border">
         <DialogHeader>
           <div className="flex items-center gap-2 mb-1">
             <div className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center">

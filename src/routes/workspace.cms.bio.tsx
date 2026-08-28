@@ -291,7 +291,7 @@ function CmsBioPage() {
                     onClick={() => handleAddBlock("pix")}
                     variant="outline"
                     size="sm"
-                    className="rounded-xl text-xs font-bold h-8 gap-1 text-teal-600 dark:text-teal-400"
+                    className="rounded-xl text-xs font-bold h-8 gap-1 text-primary dark:text-primary"
                   >
                     <QrCode className="size-3.5" />
                     <span>PIX</span>
@@ -549,7 +549,7 @@ function CmsBioPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-bold flex items-center gap-1.5">
-                      <Instagram className="size-3.5 text-pink-500" />
+                      <Instagram className="size-3.5 text-primary" />
                       <span>Instagram (@usuario)</span>
                     </Label>
                     <Input
@@ -575,7 +575,7 @@ function CmsBioPage() {
 
                   <div className="space-y-1.5">
                     <Label className="text-xs font-bold flex items-center gap-1.5">
-                      <Youtube className="size-3.5 text-red-500" />
+                      <Youtube className="size-3.5 text-destructive" />
                       <span>YouTube</span>
                     </Label>
                     <Input
@@ -588,7 +588,7 @@ function CmsBioPage() {
 
                   <div className="space-y-1.5">
                     <Label className="text-xs font-bold flex items-center gap-1.5">
-                      <Linkedin className="size-3.5 text-blue-600" />
+                      <Linkedin className="size-3.5 text-info" />
                       <span>LinkedIn</span>
                     </Label>
                     <Input
@@ -639,7 +639,7 @@ function CmsBioPage() {
                       onClick={() => setFormData({ ...formData, theme: theme.id })}
                       className={`p-5 rounded-3xl border-2 transition-all cursor-pointer space-y-3 ${
                         isSelected
-                          ? "border-primary bg-primary/5 shadow-sm"
+                          ? "border-primary bg-primary/5"
                           : "border-border/60 hover:border-border hover:bg-muted/20"
                       }`}
                     >
@@ -674,13 +674,13 @@ function CmsBioPage() {
           </div>
 
           {/* Frame do Smartphone */}
-          <div className="w-[340px] h-[660px] rounded-[44px] bg-zinc-900 p-3 shadow-2xl border-4 border-zinc-800 flex flex-col">
+          <div className="w-[340px] h-[660px] rounded-[44px] bg-zinc-900 p-3 border-4 border-zinc-800 flex flex-col">
             <div className="w-full h-full rounded-[34px] overflow-y-auto scrollbar-none flex flex-col transition-colors duration-300 relative">
               {/* Dynamic Theme Background */}
               <div className={`min-h-full w-full p-5 flex flex-col items-center justify-start space-y-5 ${selectedTheme.bgClass}`}>
                 {/* Header do Perfil */}
                 <div className="flex flex-col items-center text-center space-y-2 pt-4">
-                  <div className="size-20 rounded-full bg-muted/40 border-2 border-white/20 overflow-hidden flex items-center justify-center shadow-md">
+                  <div className="size-20 rounded-full bg-muted/40 border-2 border-white/20 overflow-hidden flex items-center justify-center">
                     {formData.avatar_url ? (
                       <img src={formData.avatar_url} alt="Avatar" className="size-full object-cover" />
                     ) : (
@@ -751,7 +751,7 @@ function CmsBioPage() {
                         >
                           <div className="flex items-center justify-between">
                             <span className="font-bold flex items-center gap-1.5">
-                              <QrCode className="size-3.5 text-teal-400" />
+                              <QrCode className="size-3.5 text-primary" />
                               <span>{block.label}</span>
                             </span>
                             <Badge variant="outline" className="text-[9px] font-mono">

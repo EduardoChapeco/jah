@@ -337,12 +337,12 @@ export function PostCreationDrawer({
   };
 
   const formats = [
-    { id: "simple", label: "Post Padrão", icon: ChatCircleText, color: "text-blue-500" },
+    { id: "simple", label: "Post Padrão", icon: ChatCircleText, color: "text-info" },
     { id: "grid", label: "Grid Orgânico", icon: ImageSquare, color: "text-emerald-500" },
-    { id: "news", label: "Notícia Editorial", icon: ChatCircleText, color: "text-indigo-500" },
+    { id: "news", label: "Notícia Editorial", icon: ChatCircleText, color: "text-primary" },
     { id: "travel", label: "Viagem / Tríptico", icon: MapPin, color: "text-sky-500" },
-    { id: "carousel", label: "Carrossel", icon: ImageSquare, color: "text-pink-500" },
-    { id: "threads", label: "Thread", icon: ListBullets, color: "text-purple-500" },
+    { id: "carousel", label: "Carrossel", icon: ImageSquare, color: "text-primary" },
+    { id: "threads", label: "Thread", icon: ListBullets, color: "text-primary" },
     { id: "moment", label: "Moment", icon: FilmStrip, color: "text-amber-500" },
   ] as const;
 
@@ -463,7 +463,7 @@ export function PostCreationDrawer({
                       <button
                         type="button"
                         onClick={() => handleRemoveMedia(idx)}
-                        className="absolute top-1.5 right-1.5 size-6 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-red-600 transition-colors  cursor-pointer"
+                        className="absolute top-1.5 right-1.5 size-6 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-destructive transition-colors  cursor-pointer"
                         aria-label="Remover mídia"
                       >
                         <Trash size={12} weight="bold" />
@@ -554,7 +554,7 @@ export function PostCreationDrawer({
                 </>
               ) : (
                 <>
-                  <ImageSquare size={15} weight="bold" className="text-pink-500" />
+                  <ImageSquare size={15} weight="bold" className="text-primary" />
                   <span>Foto / Vídeo</span>
                 </>
               )}

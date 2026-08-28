@@ -12,7 +12,6 @@ import { useEffect, type ReactNode } from "react";
 import { CookieBanner } from "@/components/commerce/cookie-banner";
 
 import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
 import { getThemeSettings, getPublicStoreSettings } from "@/services/cms.functions";
 import { themeInitScript } from "@/lib/theme";
 
@@ -45,9 +44,6 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 
   console.error(error);
   const router = useRouter();
-  useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -155,7 +151,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       store?.settings?.favicon_url ||
       theme?.favicon_url ||
       theme?.faviconUrl ||
-      "/favicon.ico";
+      "/favicon.svg";
 
     return {
       meta: metaTags,
@@ -163,8 +159,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { rel: "manifest", href: "/manifest.json" },
         { rel: "apple-touch-icon", href: brand?.logo_url || "/icons/icon-192x192.png" },
         { rel: "stylesheet", href: appCss },
-        { rel: "icon", href: faviconUrl },
-        { rel: "shortcut icon", href: faviconUrl },
+        { rel: "icon", type: "image/svg+xml", href: faviconUrl },
+        { rel: "alternate icon", href: "/favicon.ico" },
         { rel: "preconnect", href: "https://fonts.googleapis.com" },
         {
           rel: "preconnect",

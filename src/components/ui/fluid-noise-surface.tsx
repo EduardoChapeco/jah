@@ -68,7 +68,7 @@ export function FluidNoiseSurface({
       )}
 
       {/* Content wrapper */}
-      <div className={cn("relative z-10", withGlassCard && "p-6 sm:p-8 backdrop-blur-md bg-white/30 dark:bg-black/20 rounded-3xl border border-white/20 dark:border-white/10 shadow-xl")}>
+      <div className={cn("relative z-10", withGlassCard && "p-6 sm:p-8 backdrop-blur-md bg-white/30 dark:bg-black/20 rounded-3xl border border-white/20 dark:border-white/10")}>
         {children}
       </div>
     </div>

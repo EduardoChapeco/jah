@@ -70,7 +70,7 @@ export function StoriesRing({ content }: StoriesRingProps) {
 
       {/* Fullscreen Story Viewer */}
       <Dialog open={!!activeStory} onOpenChange={(open) => !open && setActiveStory(null)}>
-        <DialogContent className="max-w-md w-full h-[80vh] @md:h-[90vh] p-0 overflow-hidden bg-black border-none flex flex-col items-center justify-center">
+        <DialogContent className="sm:max-w-md sm:w-full sm:h-[90vh] h-full p-0 overflow-hidden bg-black border-none flex flex-col items-center justify-center">
           {activeStory &&
             (() => {
               const isVideo =

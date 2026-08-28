@@ -171,8 +171,8 @@ function AdminMasterTermosPage() {
           <h1 className="text-xl sm:text-2xl font-black text-foreground tracking-tight mt-1">
             Termos & Políticas da Plataforma
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-            Gerencie os documentos legais da plataforma e acompanhe o histórico de aceites de políticas pelos usuários.
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Documentos legais, termos de uso e conformidade LGPD
           </p>
         </div>
       </div>

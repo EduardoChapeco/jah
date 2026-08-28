@@ -139,7 +139,7 @@ function AIConfigurationPage() {
               <span>Conectar Provedor (BYOK)</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md rounded-2xl">
+          <DialogContent className="sm:max-w-md sm:rounded-2xl">
             <DialogHeader>
               <DialogTitle className="text-lg font-bold flex items-center gap-2">
                 <Key className="size-5 text-primary" />
@@ -260,48 +260,43 @@ function AIConfigurationPage() {
                       </div>
                     </div>
 
-                    <Badge variant="default" className="text-[10px] uppercase font-mono">
-                      Ativo
+                    <Badge variant="outline" className="text-[10px] font-mono">
+                      {sec.masked_suffix}
                     </Badge>
                   </div>
 
-                  <div className=" rounded-xl p-3 bg-muted/20 flex items-center justify-between text-xs font-mono">
-                    <span className="text-muted-foreground text-[11px]">Chave Mascarada:</span>
-                    <span className="font-bold text-foreground">{sec.masked_suffix}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1">
-                    <span>Verificado em: {formatDate(sec.last_verified_at)}</span>
-                    <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
-                      <CheckCircle2 className="size-3" />
-                      Pronto para Uso
+                  <div className="flex items-center justify-between pt-2 border-t border-border/40 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Lock className="size-3 text-emerald-600" />
+                      Criptografia AES-256
                     </span>
+                    <span>Atualizado {formatDate(sec.created_at)}</span>
                   </div>
                 </div>
               );
             })}
           </div>
         ) : (
-          <div className="border-0 bg-card/60 rounded-2xl p-8 text-center space-y-2">
-            <Key className="size-8 text-muted-foreground/60 mx-auto" />
-            <h3 className="text-sm font-bold text-foreground">Nenhuma chave de IA configurada</h3>
-            <p className="text-xs text-muted-foreground max-w-md mx-auto">
-              Conecte suas credenciais do Gemini, OpenRouter ou OpenAI para habilitar assistente de
-              redação, extração de dados e automações.
+          <div className="bg-card rounded-2xl p-8 border border-border/60 text-center space-y-2">
+            <Key className="size-8 mx-auto text-muted-foreground/50" />
+            <p className="text-xs font-semibold text-foreground">Nenhuma API Key conectada</p>
+            <p className="text-[11px] text-muted-foreground max-w-sm mx-auto">
+              Conecte sua própria chave de API (Gemini, OpenRouter, Claude) para habilitar IA de
+              custo zero na infraestrutura.
             </p>
           </div>
         )}
       </div>
 
       {/* Roteador de Capabilities de IA */}
-      <div className=" bg-card rounded-2xl p-6  space-y-4">
+      <div className="bg-card rounded-2xl p-6 border border-border/60 space-y-4">
         <div className="flex items-center gap-2">
           <Sliders className="size-4 text-primary" />
-          <h2 className="text-sm font-bold text-foreground">Roteador de Modelos por Capability</h2>
+          <h2 className="text-sm font-bold text-foreground">Roteador de Modelos por Capacidade</h2>
         </div>
 
         <div className="space-y-2.5">
-          <div className="p-3.5 rounded-xl  bg-muted/20 flex items-center justify-between text-xs">
+          <div className="p-3.5 rounded-xl border border-border/60 bg-muted/20 flex items-center justify-between text-xs">
             <div>
               <p className="font-bold text-foreground">Assistente de Cláusulas & Contratos</p>
               <p className="text-[11px] text-muted-foreground">
@@ -313,7 +308,7 @@ function AIConfigurationPage() {
             </Badge>
           </div>
 
-          <div className="p-3.5 rounded-xl  bg-muted/20 flex items-center justify-between text-xs">
+          <div className="p-3.5 rounded-xl border border-border/60 bg-muted/20 flex items-center justify-between text-xs">
             <div>
               <p className="font-bold text-foreground">Copywriter de Produtos & Classificados</p>
               <p className="text-[11px] text-muted-foreground">
@@ -325,7 +320,7 @@ function AIConfigurationPage() {
             </Badge>
           </div>
 
-          <div className="p-3.5 rounded-xl  bg-muted/20 flex items-center justify-between text-xs">
+          <div className="p-3.5 rounded-xl border border-border/60 bg-muted/20 flex items-center justify-between text-xs">
             <div>
               <p className="font-bold text-foreground">Visão Computacional & OCR de Documentos</p>
               <p className="text-[11px] text-muted-foreground">

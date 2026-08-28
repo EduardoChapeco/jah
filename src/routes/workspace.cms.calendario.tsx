@@ -51,14 +51,14 @@ const TYPE_CONFIG: Record<
   story: {
     label: "Story / Moment",
     icon: ImageIcon,
-    colorClass: "bg-purple-500/10 text-purple-600",
-    borderClass: "border-purple-500/30",
+    colorClass: "bg-primary/10 text-primary",
+    borderClass: "border-primary/30",
   },
   flyer: {
     label: "Flyer de Evento",
     icon: Layers,
-    colorClass: "bg-pink-500/10 text-pink-600",
-    borderClass: "border-pink-500/30",
+    colorClass: "bg-primary/10 text-primary",
+    borderClass: "border-primary/30",
   },
   product_drop: {
     label: "Drop de Produto",
@@ -69,8 +69,8 @@ const TYPE_CONFIG: Record<
   ad_campaign: {
     label: "Anúncio Patrocinado",
     icon: Megaphone,
-    colorClass: "bg-blue-500/10 text-blue-600",
-    borderClass: "border-blue-500/30",
+    colorClass: "bg-info/10 text-info",
+    borderClass: "border-info/30",
   },
 };
 
@@ -175,7 +175,7 @@ function CalendarioEditorialPage() {
               Agendar Publicação
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md rounded-2xl">
+          <DialogContent className="sm:max-w-md sm:rounded-2xl">
             <DialogHeader>
               <DialogTitle className="text-lg font-bold flex items-center gap-2">
                 <Sparkles className="size-5 text-primary" />

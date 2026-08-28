@@ -97,11 +97,11 @@ export const listActiveBanners = createServerFn({ method: "GET" })
     z.object({
       placement: BannerPlacementSchema.optional(),
       city: z.string().optional(),
+      storeId: z.string().optional(),
     }),
   )
-  .handler(async ({ data: { placement, city } }): Promise<BannerDTO[]> => {
+  .handler(async ({ data: { placement, city, storeId } }): Promise<BannerDTO[]> => {
     const supabase = getAnonServerClient();
-    const now = new Date().toISOString();
 
     const normalizedPlacement =
       placement === "marketplace" ? "mercado" : placement === "events" ? "agenda" : placement;
@@ -116,6 +116,11 @@ export const listActiveBanners = createServerFn({ method: "GET" })
     // Se for filtrado por nicho específico e não for "all"
     if (normalizedPlacement && normalizedPlacement !== "all") {
       query = query.eq("placement", normalizedPlacement);
+    }
+
+    // Se for banner de loja específica
+    if (storeId) {
+      query = query.eq("store_id", storeId);
     }
 
     if (city) {
@@ -168,14 +173,28 @@ export const createBanner = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const identity = await getServerIdentity();
-    assertStoreAccess(identity, ["owner", "admin", "manager", "content"]);
+    const isPlatformAdmin = identity.role === "platform_admin" || identity.role === "master";
+
+    // Se NÃO for Admin Master da Plataforma, é um Lojista: isolamento rígido multi-tenant
+    if (!isPlatformAdmin) {
+      assertStoreAccess(identity, ["owner", "admin", "manager", "content"]);
+      if (!identity.store_id) {
+        throw new Error("Lojista não associado a uma loja válida.");
+      }
+    }
+
     const supabase = getServerClient();
+
+    // Lojista comum só pode criar banner para sua própria vitrine (placement: "store")
+    const finalPlacement = isPlatformAdmin ? data.placement : "store";
+    const finalStoreId = isPlatformAdmin ? (data.placement === "store" ? identity.store_id : null) : identity.store_id;
 
     const { data: banner, error } = await supabase
       .from("banners")
       .insert({
         ...data,
-        store_id: identity.store_id || null,
+        placement: finalPlacement,
+        store_id: finalStoreId,
         starts_at: data.starts_at || new Date().toISOString(),
         is_active: data.is_active !== undefined ? data.is_active : true,
       })
@@ -219,16 +238,26 @@ export const updateBanner = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const identity = await getServerIdentity();
-    assertStoreAccess(identity, ["owner", "admin", "manager", "content"]);
-    const supabase = getServerClient();
+    const isPlatformAdmin = identity.role === "platform_admin" || identity.role === "master";
 
+    if (!isPlatformAdmin) {
+      assertStoreAccess(identity, ["owner", "admin", "manager", "content"]);
+      if (!identity.store_id) {
+        throw new Error("Lojista não associado a uma loja válida.");
+      }
+    }
+
+    const supabase = getServerClient();
     const { id, ...updates } = data;
-    const { data: updated, error } = await supabase
-      .from("banners")
-      .update(updates)
-      .eq("id", id)
-      .select()
-      .single();
+
+    let query = supabase.from("banners").update(updates).eq("id", id);
+
+    // Se for Lojista, bloqueia edição de banners de outras lojas ou globais
+    if (!isPlatformAdmin) {
+      query = query.eq("store_id", identity.store_id);
+    }
+
+    const { data: updated, error } = await query.select().single();
 
     if (error) {
       throw new Error(`Erro ao atualizar banner: ${error.message}`);
@@ -240,11 +269,19 @@ export const deleteBanner = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: { id } }) => {
     const identity = await getServerIdentity();
-    assertStoreAccess(identity, ["owner", "admin", "manager", "content"]);
+    const isPlatformAdmin = identity.role === "platform_admin" || identity.role === "master";
+
+    if (!isPlatformAdmin) {
+      assertStoreAccess(identity, ["owner", "admin", "manager", "content"]);
+      if (!identity.store_id) {
+        throw new Error("Lojista não associado a uma loja válida.");
+      }
+    }
+
     const supabase = getServerClient();
 
     let query = supabase.from("banners").delete().eq("id", id);
-    if (identity.store_id && identity.role !== "platform_admin" && identity.role !== "master") {
+    if (!isPlatformAdmin) {
       query = query.eq("store_id", identity.store_id);
     }
 

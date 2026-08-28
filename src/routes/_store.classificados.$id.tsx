@@ -470,7 +470,7 @@ function ClassifiedDetailPage() {
         {/* Coluna Esquerda: Mídias & Detalhes (7 colunas) */}
         <div className="lg:col-span-7 space-y-6">
           {/* Galeria de Mídias Dominante com Ambient Backdrop */}
-          <div className=" bg-card rounded-3xl overflow-hidden ">
+          <div className="bg-card rounded-2xl border border-border/60 overflow-hidden">
             <div className="relative aspect-[16/10] bg-black/95 flex items-center justify-center overflow-hidden group">
               {/* Ambient Blurred Backdrop para mídias verticais ou formatos mistos */}
               {images.length > 0 && !isVideoUrl(images[activeImage]) && (
@@ -591,7 +591,7 @@ function ClassifiedDetailPage() {
           </div>
 
           {/* Descrição & Especificações */}
-          <div className=" bg-card rounded-3xl p-6 sm:p-7 space-y-4 ">
+          <div className="bg-card rounded-2xl border border-border/60 p-6 sm:p-7 space-y-4">
             <h2 className="text-base font-bold text-foreground  pb-2">
               Descrição do Anúncio
             </h2>
@@ -760,7 +760,7 @@ function ClassifiedDetailPage() {
 
         {/* Coluna Direita: Informações Essenciais & Ações (5 colunas) */}
         <div className="lg:col-span-5 space-y-5 lg:sticky lg:top-24">
-          <div className=" bg-card rounded-3xl p-6 sm:p-7  space-y-6">
+          <div className="bg-card rounded-2xl border border-border/60 p-6 sm:p-7 space-y-6">
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <div className="flex items-center gap-1.5">
@@ -962,7 +962,7 @@ function ClassifiedDetailPage() {
                         Reservar Diárias
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-md rounded-2xl">
+                    <DialogContent className="sm:max-w-md sm:rounded-2xl">
                       {viewerContext === "anonymous" ? (
                         <div className="text-center py-6 space-y-4">
                           <Calendar className="size-10 text-primary mx-auto" />
@@ -1100,7 +1100,7 @@ function ClassifiedDetailPage() {
                         Fazer Oferta Especial / Negociar
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-md rounded-2xl">
+                    <DialogContent className="sm:max-w-md sm:rounded-2xl">
                       {viewerContext === "anonymous" ? (
                         <div className="text-center py-6 space-y-4">
                           <Handshake className="size-10 text-primary mx-auto" />
@@ -1222,7 +1222,7 @@ function ClassifiedDetailPage() {
                         <span>Fazer Proposta / Negociar Valor</span>
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-md rounded-2xl">
+                    <DialogContent className="sm:max-w-md sm:rounded-2xl">
                       {viewerContext === "anonymous" ? (
                         <div className="text-center py-6 space-y-4">
                           <Handshake className="size-10 text-primary mx-auto" />
@@ -1409,7 +1409,7 @@ function ClassifiedDetailPage() {
       {/* Modal Fullscreen de Imagem */}
       {fullscreenImage && (
         <Dialog open={!!fullscreenImage} onOpenChange={() => setFullscreenImage(null)}>
-          <DialogContent className="max-w-4xl p-2 bg-black border-none rounded-2xl overflow-hidden">
+          <DialogContent className="sm:max-w-4xl p-2 bg-black border-none sm:rounded-2xl overflow-hidden">
             <img
               src={fullscreenImage}
               alt="Visualização cheia"

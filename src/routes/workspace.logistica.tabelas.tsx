@@ -1,8 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import {
-  DollarSign,
-  Plus,
   Truck,
   Car,
   Bike,
@@ -10,8 +8,8 @@ import {
   Zap,
   Save,
   CheckCircle2,
-  Sliders,
 } from "lucide-react";
+import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CurrencyField } from "@/components/ui/currency-field";
@@ -100,36 +98,32 @@ function WorkspaceLogisticsPriceTablesPage() {
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-8 pb-6">
+    <div className="w-full space-y-6 pb-12">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-foreground tracking-tight">
-            Tabelas de Preço & Tarifas de Logística
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            Configure tarifas base, valor cobrado por quilômetro rodado e adicionais por tipo de veículo.
-          </p>
-        </div>
-
-        <Button
-          onClick={handleSaveAll}
-          disabled={isSaving}
-          className="rounded-2xl h-11 px-6 font-bold text-xs bg-primary text-primary-foreground gap-2"
-        >
-          <Save className="size-4" />
-          <span>{isSaving ? "Salvando..." : "Salvar Alterações"}</span>
-        </Button>
-      </div>
+      <PageHeader
+        eyebrow="Logística"
+        title="Tabelas de Preço & Tarifas por KM"
+        actions={
+          <Button
+            onClick={handleSaveAll}
+            disabled={isSaving}
+            size="sm"
+            className="font-bold text-xs bg-primary text-primary-foreground gap-2"
+          >
+            <Save className="size-3.5" />
+            <span>{isSaving ? "Salvando..." : "Salvar Alterações"}</span>
+          </Button>
+        }
+      />
 
       {/* Grid de Modais e Tarifas */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {tables.map((table) => (
+        {tables.map((table: PriceTableItem) => (
           <div
             key={table.id}
-            className="rounded-3xl  bg-card p-6  space-y-5"
+            className="rounded-2xl bg-card p-6 border border-border/60 space-y-5 shadow-none"
           >
-            <div className="flex items-center justify-between  pb-3">
+            <div className="flex items-center justify-between pb-3 border-b border-border/40">
               <div className="flex items-center gap-2.5">
                 <div className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
                   {table.service_type === "moving_truck" ? (
@@ -155,65 +149,76 @@ function WorkspaceLogisticsPriceTablesPage() {
                   type="checkbox"
                   checked={table.is_active}
                   onChange={(e) => handleUpdate(table.id, "is_active", e.target.checked)}
-                  className="size-4 rounded border-border text-primary"
+                  className="rounded border-border text-primary size-4"
                 />
-                <span>Ativo</span>
+                <span className={table.is_active ? "text-foreground" : "text-muted-foreground"}>
+                  {table.is_active ? "Ativo" : "Inativo"}
+                </span>
               </label>
             </div>
 
-            {/* Campos de Configuração */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-[11px] font-bold text-muted-foreground uppercase">
-                  Tarifa Base (Partida)
-                </Label>
+                <Label className="text-xs font-bold text-muted-foreground">Tarifa de Saída (Base)</Label>
                 <CurrencyField
                   value={table.base_fee_cents}
-                  onChange={(cents) => handleUpdate(table.id, "base_fee_cents", cents ?? 0)}
+                  onChange={(cents) => handleUpdate(table.id, "base_fee_cents", cents || 0)}
                   placeholder="0,00"
-                  allowZero={true}
-                  className="h-10 rounded-xl text-xs font-mono font-bold"
+                  className="h-10 text-sm font-mono"
                 />
+                <p className="text-[10px] text-muted-foreground">Valor fixo de partida</p>
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-[11px] font-bold text-muted-foreground uppercase">
-                  Valor por KM Rodado
-                </Label>
+                <Label className="text-xs font-bold text-muted-foreground">Valor por KM Rodado</Label>
                 <CurrencyField
                   value={table.km_rate_cents}
-                  onChange={(cents) => handleUpdate(table.id, "km_rate_cents", cents ?? 0)}
+                  onChange={(cents) => handleUpdate(table.id, "km_rate_cents", cents || 0)}
                   placeholder="0,00"
-                  allowZero={true}
-                  className="h-10 rounded-xl text-xs font-mono font-bold"
+                  className="h-10 text-sm font-mono"
                 />
+                <p className="text-[10px] text-muted-foreground">Adicional por KM linear</p>
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-[11px] font-bold text-muted-foreground uppercase">
-                  Tarifa Mínima do Chamado
-                </Label>
+                <Label className="text-xs font-bold text-muted-foreground">Corrida Mínima</Label>
                 <CurrencyField
                   value={table.min_fare_cents}
-                  onChange={(cents) => handleUpdate(table.id, "min_fare_cents", cents ?? 0)}
+                  onChange={(cents) => handleUpdate(table.id, "min_fare_cents", cents || 0)}
                   placeholder="0,00"
-                  allowZero={true}
-                  className="h-10 rounded-xl text-xs font-mono font-bold"
+                  className="h-10 text-sm font-mono"
                 />
+                <p className="text-[10px] text-muted-foreground">Piso mínimo cobrado</p>
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-[11px] font-bold text-muted-foreground uppercase">
-                  Adicional Ajudante
-                </Label>
+                <Label className="text-xs font-bold text-muted-foreground">Taxa de Ajudante / Carga</Label>
                 <CurrencyField
                   value={table.helper_fee_cents}
-                  onChange={(cents) => handleUpdate(table.id, "helper_fee_cents", cents ?? 0)}
+                  onChange={(cents) => handleUpdate(table.id, "helper_fee_cents", cents || 0)}
                   placeholder="0,00"
-                  allowZero={true}
-                  className="h-10 rounded-xl text-xs font-mono font-bold"
+                  className="h-10 text-sm font-mono"
                 />
+                <p className="text-[10px] text-muted-foreground">Mão de obra extra</p>
               </div>
+            </div>
+
+            {/* Simulador Rápido */}
+            <div className="p-3.5 rounded-2xl bg-muted/20 border border-border/50 flex items-center justify-between text-xs">
+              <div className="space-y-0.5">
+                <span className="text-[11px] text-muted-foreground font-medium">Estimativa para 5 km:</span>
+                <p className="font-bold text-foreground">
+                  {formatMoney(
+                    Math.max(
+                      table.min_fare_cents,
+                      table.base_fee_cents + (table.km_rate_cents * 5),
+                    )
+                  )}
+                </p>
+              </div>
+              <Badge variant="outline" className="text-[10px] font-mono">
+                Cálculo em tempo real
+              </Badge>
             </div>
           </div>
         ))}

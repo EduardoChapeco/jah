@@ -18,7 +18,7 @@ Cobrem funções puras e lógica isolada: formatação de moeda (centavos → BR
 
 ### 2.2 Testes de integração
 
-Cobrem a composição entre componentes de UI e a camada de serviços/BFF (com serviços mockados ou com um ambiente de teste do Lovable Cloud), validando fluxos como: navegação entre shells, carregamento de dados em uma tela, submissão de formulário completo.
+Cobrem a composição entre componentes de UI e a camada de serviços/BFF (com serviços mockados ou com um ambiente de teste do Supabase), validando fluxos como: navegação entre shells, carregamento de dados em uma tela, submissão de formulário completo.
 
 ### 2.3 Testes de contrato
 
@@ -72,14 +72,14 @@ Para os componentes definidos como críticos em `COMPONENT_CATALOG.md` (ex.: car
 
 ## 4. Ferramentas de teste
 
-Alinhadas ao stack Lovable (TanStack Start + React + TypeScript + Tailwind v4 + shadcn/ui):
+Alinhadas ao stack (TanStack Start + React + TypeScript + Tailwind v4 + shadcn/ui):
 
 - **Vitest**: executor de testes unitários e de integração, compatível com o ambiente Vite/TanStack Start.
 - **@testing-library/react**: testes de componente orientados a comportamento e acessibilidade (consultas por papel/label, não por detalhes de implementação).
 - **@testing-library/user-event**: simulação realista de interação do usuário (clique, digitação, navegação por teclado).
 - **axe-core (via jest-axe ou equivalente compatível com Vitest)**: verificação automatizada de acessibilidade em testes de componente.
 - **Playwright**: testes end-to-end reais em navegador, incluindo fluxos completos e verificação de PWA a partir da Fase 3.
-- **Testes de RLS**: executados via scripts que autenticam como diferentes papéis/tenants contra o ambiente de teste do Supabase/Lovable Cloud e verificam respostas permitidas/negadas.
+- **Testes de RLS**: executados via scripts que autenticam como diferentes papéis/tenants contra o ambiente de teste do Supabase e verificam respostas permitidas/negadas.
 - **TypeScript estrito + ESLint**: primeira linha de defesa, executados no pipeline de verificação antes de qualquer teste de comportamento.
 
 Todos os testes automatizados devem poder rodar em CI sem intervenção manual, e um teste que falhe bloqueia o avanço de fase, conforme a regra de ouro em `ROADMAP.md`.

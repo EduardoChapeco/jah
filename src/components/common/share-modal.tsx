@@ -96,7 +96,7 @@ export function ShareModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md rounded-2xl p-6">
+      <DialogContent className="sm:max-w-md sm:rounded-2xl sm:p-6 p-5">
         <DialogHeader className="space-y-1">
           <DialogTitle className="text-lg font-bold flex items-center gap-2">
             <Share2 className="size-5 text-primary" />

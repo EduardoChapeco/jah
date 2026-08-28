@@ -265,7 +265,7 @@ function CustomerTripsPage() {
 
       {/* ── Modal Canônico de Voucher Digital (Padrão TravelAgencias / JAH) ── */}
       <Dialog open={isVoucherOpen} onOpenChange={setIsVoucherOpen}>
-        <DialogContent className="max-w-lg rounded-3xl p-6 sm:p-8 bg-card border-border">
+        <DialogContent className="sm:max-w-lg sm:rounded-3xl p-5 sm:p-8 bg-card border-border">
           {selectedBooking && (
             <div className="space-y-6">
               {/* Header do Voucher */}

@@ -253,7 +253,7 @@ function FullscreenMapaPage() {
         <div className="p-3.5 sm:p-4 pb-2 space-y-2.5  shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="size-2 rounded-full bg-red-500 animate-ping" />
+              <span className="size-2 rounded-full bg-destructive animate-ping" />
               <h2 className="text-xs font-bold uppercase tracking-wider text-foreground">
                 Moments Ao Vivo • Chapecó
               </h2>
@@ -365,7 +365,7 @@ function FullscreenMapaPage() {
                       </div>
                     )}
                     {m.is_live && (
-                      <div className="absolute top-1 left-1 size-1.5 rounded-full bg-red-500 animate-ping" />
+                      <div className="absolute top-1 left-1 size-1.5 rounded-full bg-destructive animate-ping" />
                     )}
                   </div>
 

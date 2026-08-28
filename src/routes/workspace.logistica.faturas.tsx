@@ -78,7 +78,7 @@ function WorkspaceLogisticsInvoicesPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="p-6 rounded-3xl bg-card border border-border/50 space-y-2">
+        <div className="p-6 rounded-2xl bg-card border border-border/60 space-y-2">
           <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
             Total Pendente de Repasse
           </span>
@@ -90,7 +90,7 @@ function WorkspaceLogisticsInvoicesPage() {
           </span>
         </div>
 
-        <div className="p-6 rounded-3xl bg-card border border-border/50 space-y-2">
+        <div className="p-6 rounded-2xl bg-card border border-border/60 space-y-2">
           <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
             Total Liquidado (Últimos 30 dias)
           </span>
@@ -104,8 +104,8 @@ function WorkspaceLogisticsInvoicesPage() {
       </div>
 
       {/* Tabela de Faturas */}
-      <div className="rounded-3xl bg-card border border-border/50 overflow-hidden">
-        <div className="p-5 border-b border-border/50 bg-muted/20 flex items-center justify-between">
+      <div className="rounded-2xl bg-card border border-border/60 overflow-hidden">
+        <div className="p-5 border-b border-border/40 bg-muted/20 flex items-center justify-between">
           <h2 className="text-sm font-bold text-foreground">Demonstrativo de Repasses</h2>
           {isLoading && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
         </div>

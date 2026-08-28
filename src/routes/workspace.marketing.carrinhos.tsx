@@ -101,7 +101,7 @@ function AbandonedCartsPage() {
       {carts.length === 0 ? (
         <EmptyState title="Nenhum carrinho abandonado" />
       ) : (
-        <div className=" bg-card rounded-xl overflow-hidden">
+        <div className="bg-card rounded-2xl border border-border/60 overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>

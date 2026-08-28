@@ -399,11 +399,11 @@ function ProductTypesPage() {
       {filteredTypes.length === 0 ? (
         <EmptyState title="Nenhum tipo de produto cadastrado" />
       ) : (
-        <div className=" bg-card rounded-3xl overflow-hidden ">
+        <div className="bg-card rounded-2xl border border-border/60 overflow-hidden">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-muted/30 ">
+                <TableRow className="bg-muted/30 border-b border-border/40">
                   <TableHead className="text-xs font-bold text-foreground">Nome do Tipo</TableHead>
                   <TableHead className="text-xs font-bold text-foreground">Slug</TableHead>
                   <TableHead className="text-xs font-bold text-foreground">Campos & Atributos</TableHead>

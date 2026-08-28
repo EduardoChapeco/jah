@@ -1950,7 +1950,27 @@ export const upsertOptionGroup = createServerFn({ method: "POST" })
         await db.from("option_values").delete().eq("group_id", groupId);
       }
 
-      return { success: true };
+      // Busca o grupo completo para retorno atômico
+      const { data: fullGroup } = await db
+        .from("option_groups")
+        .select(
+          `
+          id, internal_name, display_name, selection_type,
+          min_selections, max_selections, is_required,
+          created_at, updated_at,
+          values:option_values(
+            id, label, price_modifier_cents, is_default, is_active, sort_order
+          )
+        `,
+        )
+        .eq("id", groupId)
+        .single();
+
+      if (fullGroup?.values) {
+        fullGroup.values.sort((a: any, b: any) => a.sort_order - b.sort_order);
+      }
+
+      return { success: true, group: fullGroup };
     } catch (e: unknown) {
       console.error("[admin-catalog] upsertOptionGroup error:", e);
       throw new Error(

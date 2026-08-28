@@ -84,11 +84,43 @@ export const listAdCampaigns = createServerFn({ method: "GET" }).handler(async (
   });
 });
 
+export const getStoreAdTargets = createServerFn({ method: "GET" }).handler(async () => {
+  const supabase = getServerClient();
+  const identity = await getServerIdentity();
+  assertStoreAccess(identity, ["owner", "admin", "manager", "content"]);
+
+  const { data: products } = await supabase
+    .from("products")
+    .select("id, title, price_cents, status")
+    .eq("store_id", identity.store_id)
+    .eq("status", "published")
+    .order("created_at", { ascending: false })
+    .limit(50);
+
+  const { data: store } = await supabase
+    .from("stores")
+    .select("id, name, phone, slug")
+    .eq("id", identity.store_id)
+    .single();
+
+  return {
+    products: products || [],
+    storePhone: store?.phone || null,
+    storeSlug: store?.slug || "",
+  };
+});
+
 export const createAdCampaign = createServerFn({ method: "POST" })
   .validator(
     z.object({
       title: z.string().min(2),
-      format: z.enum(["post_patrocinado", "banner_destaque", "story_patrocinado", "busca_topo"]),
+      headline: z.string().optional(),
+      format: z.enum(["post_patrocinado", "banner_destaque", "story_patrocinado", "busca_topo", "stories_sponsor"]),
+      media_url: z.string().optional(),
+      destination_type: z.enum(["product", "post", "whatsapp", "custom_url"]).default("whatsapp"),
+      destination_id: z.string().optional(),
+      destination_url: z.string().optional(),
+      objective: z.enum(["whatsapp_leads", "direct_sales", "brand_awareness"]).default("whatsapp_leads"),
       target_location: z.string().min(2),
       target_radius_km: z.number().min(1).max(100),
       daily_budget_cents: z.number().int().min(500),
@@ -104,6 +136,7 @@ export const createAdCampaign = createServerFn({ method: "POST" })
       post_patrocinado: ["feed"],
       banner_destaque: ["banner", "market"],
       story_patrocinado: ["story"],
+      stories_sponsor: ["story", "banner"],
       busca_topo: ["search"],
     };
 
@@ -123,6 +156,31 @@ export const createAdCampaign = createServerFn({ method: "POST" })
     if (error) {
       console.error("[ads] Error creating campaign:", error);
       throw new Error("Erro ao criar campanha de anúncio no banco de dados.");
+    }
+
+    // SILENT TRIGGER: Registrar evento no ledger de auditoria
+    try {
+      await supabase.from("audit_logs").insert({
+        store_id: identity.store_id,
+        user_id: identity.id,
+        action: "ad_campaign_created",
+        entity_type: "ad_campaign",
+        entity_id: campaign.id,
+        payload_snapshot: {
+          title: campaign.title,
+          headline: input.headline,
+          format: input.format,
+          media_url: input.media_url,
+          destination_type: input.destination_type,
+          destination_id: input.destination_id,
+          destination_url: input.destination_url,
+          objective: input.objective,
+          budget_cents: input.total_budget_cents,
+          daily_budget_cents: input.daily_budget_cents,
+        },
+      });
+    } catch {
+      // Ignora erro não impeditivo de log
     }
 
     return campaign;

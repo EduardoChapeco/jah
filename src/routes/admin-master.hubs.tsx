@@ -270,8 +270,8 @@ function AdminMasterHubsPage() {
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground mt-1">
             Hubs Verticais & Categorias Globais
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-            Gerencie ícones customizados, fotos de capa, badges e ordenação das categorias de todas as páginas da plataforma.
+          <p className="text-xs text-muted-foreground mt-1">
+            Taxonomia de categorias e botões de atalho da rede
           </p>
         </div>
 
@@ -419,7 +419,7 @@ function AdminMasterHubsPage() {
 
       {/* ── Modal de Criação / Edição de Categoria Global ── */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl">
+        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto sm:rounded-3xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold">
               {editingHub?.id ? "Editar Categoria Global" : "Nova Categoria Global"}

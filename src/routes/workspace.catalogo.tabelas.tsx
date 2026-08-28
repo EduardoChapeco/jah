@@ -197,25 +197,25 @@ function WorkspacePriceTablesPage() {
     <div className="w-full space-y-6 pb-12">
       {/* Header */}
       <PageHeader
+        eyebrow="Catálogo"
         title="Tabelas de Preços"
         actions={
-          <Button onClick={handleOpenCreate} size="sm" className="gap-1.5 font-bold text-xs">
-            <Plus className="size-3.5" />
-            Nova Tabela
-          </Button>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-xs font-mono bg-card">
+              {tables.length} {tables.length === 1 ? "tabela" : "tabelas"}
+            </Badge>
+            <Button onClick={handleOpenCreate} size="sm" className="gap-1.5 font-bold text-xs">
+              <Plus className="size-3.5" />
+              Nova Tabela
+            </Button>
+          </div>
         }
       />
 
       {/* Grid Principal: Lista Lateral de Tabelas + Edição In-Page de Preços */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Coluna 1: Lista de Tabelas (4 cols) */}
-        <div className="lg:col-span-4 space-y-3">
-          <div className="flex items-center justify-between pb-1">
-            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-              Tabelas Cadastradas ({tables.length})
-            </span>
-          </div>
-
+        <div className="lg:col-span-4 space-y-2.5">
           <div className="space-y-2">
             {tables.map((tbl) => {
               const isSelected = selectedTable?.id === tbl.id;

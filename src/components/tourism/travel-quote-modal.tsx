@@ -146,7 +146,7 @@ export function TravelQuoteModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md w-full rounded-3xl p-0 overflow-hidden bg-card border-border ">
+      <DialogContent className="sm:max-w-md sm:w-full sm:rounded-3xl p-0 overflow-hidden bg-card border-border">
         {/* Header no Padrão CVC */}
         <div className="bg-linear-to-r from-blue-700 via-indigo-600 to-violet-700 text-white p-5 space-y-1 relative">
           <div className="flex items-center justify-between">

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Scissors,
   Clock,
@@ -73,6 +73,7 @@ const TIME_SLOTS = [
 
 function BookingIndexPage() {
   const { banners, hotpages } = Route.useLoaderData();
+  const queryClient = useQueryClient();
   const [selectedCategory, setSelectedCategory] = useState("todos");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [search, setSearch] = useState("");
@@ -125,6 +126,7 @@ function BookingIndexPage() {
           ? "Agendamento confirmado com 1 crédito do seu pacote!"
           : "Agendamento confirmado com sucesso!"
       );
+      queryClient.invalidateQueries({ queryKey: ["my-service-passes"] });
     },
     onError: (err: any) => {
       toast.error(err.message || "Erro ao agendar horário.");
@@ -281,7 +283,7 @@ function BookingIndexPage() {
       )}
 
       <Dialog open={!!selectedService} onOpenChange={(open) => !open && setSelectedService(null)}>
-        <DialogContent className="max-w-md rounded-3xl p-6 border-border  bg-card">
+        <DialogContent className="sm:max-w-md sm:rounded-3xl sm:p-6 border-border bg-card">
           <DialogHeader className="pb-3 ">
             <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
               <CalendarDots size={18} className="text-primary" />

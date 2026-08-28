@@ -50,13 +50,6 @@ import {
 export const Route = createFileRoute("/_store/conta/perfil")({
   head: () => ({ meta: [{ title: "Meu Perfil | Wider" }] }),
   loader: async () => {
-    const session = await getUserSession().catch(() => null);
-    if (!session || !session.user) {
-      throw redirect({
-        to: "/entrar",
-        search: { returnUrl: "/conta/perfil" },
-      });
-    }
     return await getProfile();
   },
   component: ProfilePage,
@@ -265,7 +258,7 @@ function ProfilePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
-    const cleanUser = formData.username.trim().toLowerCase().replace(/[^a-z0-9._]/g, "");
+    const cleanUser = formData.username.trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
     if (!cleanUser || cleanUser.length < 3) {
       toast.error("O nome de usuário (@) é obrigatório e deve ter no mínimo 3 caracteres.");
       return;
@@ -511,7 +504,7 @@ function ProfilePage() {
                     <Input
                       required
                       value={formData.username}
-                      onChange={(e) => set("username", e.target.value.toLowerCase().replace(/[^a-z0-9._]/g, ""))}
+                      onChange={(e) => set("username", e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
                       placeholder="seunome"
                       className="h-10 rounded-xl text-xs pl-7 font-mono font-semibold"
                     />

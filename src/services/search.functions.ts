@@ -335,3 +335,49 @@ async function _federatedSearch(input: FederatedSearchInput): Promise<FederatedS
 export const federatedSearch = createServerFn({ method: "GET" })
   .validator(federatedSearchInput)
   .handler(async ({ data }) => _federatedSearch(data));
+
+// ---------------------------------------------------------------------------
+// Instant Typeahead Search (Real-time Overlay)
+// ---------------------------------------------------------------------------
+export const instantTypeaheadSearch = createServerFn({ method: "GET" })
+  .validator(
+    z.object({
+      query: z.string().default(""),
+      limit: z.number().int().min(1).max(20).default(6),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const q = data.query.trim();
+    if (q.length < 2) {
+      return {
+        query: q,
+        suggestions: [],
+        stores: [],
+        products: [],
+      };
+    }
+
+    const db = getServerClient();
+    const { data: res, error } = await db.rpc("search_typeahead_instant", {
+      p_query: q,
+      p_limit: data.limit,
+    });
+
+    if (error || !res) {
+      // Fallback gracioso com queries padrão
+      const [storesRes, productsRes] = await Promise.all([
+        db.from("stores").select("id, name, slug, logo_url").ilike("name", `%${q}%`).limit(4),
+        db.from("products").select("id, title, slug, price_cents, cover_url, store_id").ilike("title", `%${q}%`).eq("status", "active").limit(4),
+      ]);
+
+      return {
+        query: q,
+        suggestions: (productsRes.data || []).map((p: any) => p.title).slice(0, 3),
+        stores: storesRes.data || [],
+        products: productsRes.data || [],
+      };
+    }
+
+    return res;
+  });
+

@@ -238,7 +238,7 @@ function WorkspacePackagesPage() {
 
       {/* ── Modal de Criação / Edição de Pacote ── */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-lg rounded-3xl p-6">
+        <DialogContent className="sm:max-w-lg sm:rounded-3xl sm:p-6">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold">
               {editingPkg?.id ? "Editar Pacote de Aulas" : "Novo Pacote de Aulas / Serviços"}

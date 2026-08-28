@@ -180,7 +180,7 @@ export function ServicePackagesRail({
 
       {/* ── Modal de Compra do Pacote ── */}
       <Dialog open={isBuyModalOpen} onOpenChange={setIsBuyModalOpen}>
-        <DialogContent className="max-w-md rounded-3xl p-6">
+        <DialogContent className="sm:max-w-md sm:rounded-3xl sm:p-6 p-5">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold flex items-center gap-2">
               <Ticket className="size-5 text-primary" />

@@ -31,6 +31,7 @@ import {
 } from "@/services/banner.functions";
 import { toast } from "sonner";
 import { MediaUploader } from "@/components/ui/media-uploader";
+import { DestinationPicker } from "@/components/ui/destination-picker";
 
 export const Route = createFileRoute("/workspace/marketing/banners")({
   head: () => ({ meta: [{ title: "Banners da Loja | Workspace" }] }),
@@ -234,7 +235,7 @@ function WorkspaceStoreBannersPage() {
           {banners.map((b) => (
             <div
               key={b.id}
-              className=" bg-card rounded-2xl overflow-hidden  flex flex-col justify-between group"
+              className="bg-card rounded-2xl border border-border/60 overflow-hidden flex flex-col justify-between group"
             >
               <div className="relative aspect-16/9 bg-muted overflow-hidden">
                 <img
@@ -323,57 +324,88 @@ function WorkspaceStoreBannersPage() {
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs font-bold text-foreground">Mídia do Banner (16:9) *</Label>
+            <Label className="text-xs font-bold text-foreground">Mídia do Banner Panorâmico (21:9) *</Label>
             <MediaUploader
               value={mediaUrl ? [mediaUrl] : []}
               onChange={(urls) => setMediaUrl(urls[0] || "")}
               accept="all"
-              aspect={16 / 9}
+              aspect={21 / 9}
               enableCrop={true}
               lockAspect={true}
               maxFiles={1}
             />
           </div>
+          {/* Seletor de Destino / Link Helper */}
+          <DestinationPicker
+            value={targetUrl}
+            onChange={setTargetUrl}
+            targetType={targetType}
+            onTargetTypeChange={setTargetType}
+            label="Página de Destino / Link do Banner"
+            helperText="Selecione uma página do marketplace ou digite o link para onde o cliente será levado."
+          />
+
+          {/* Textos de Ação e Destaque */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-foreground">Destino do Clique</Label>
-              <Select
-                value={targetType}
-                onValueChange={(val: any) => setTargetType(val)}
-              >
-                <SelectTrigger className="rounded-xl text-xs h-11">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="product">Produto Específico</SelectItem>
-                  <SelectItem value="category">Categoria da Loja</SelectItem>
-                  <SelectItem value="external_url">Link Externo / WhatsApp</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="targetUrl" className="text-xs font-bold text-foreground">
-                URL ou ID de Destino
+              <Label htmlFor="ctaLabel" className="text-xs font-bold text-foreground">
+                Texto do Botão de Ação (CTA)
               </Label>
               <Input
-                id="targetUrl"
-                placeholder="Ex: /produto/slug-do-item ou https://..."
-                value={targetUrl}
-                onChange={(e) => setTargetUrl(e.target.value)}
-                className="rounded-xl text-sm h-11 font-mono text-xs"
+                id="ctaLabel"
+                placeholder="Ex: Ver Oferta, Pedir no WhatsApp, Comprar"
+                value={ctaLabel}
+                onChange={(e) => setCtaLabel(e.target.value)}
+                className="rounded-xl text-sm h-11"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="badgeText" className="text-xs font-bold text-foreground">
+                Badge Promocional (Opcional)
+              </Label>
+              <Input
+                id="badgeText"
+                placeholder="Ex: 50% OFF, Destaque, Lançamento"
+                value={badgeText}
+                onChange={(e) => setBadgeText(e.target.value)}
+                className="rounded-xl text-sm h-11"
               />
             </div>
           </div>
-          <div className="p-4 rounded-2xl  bg-muted/20 space-y-3">
-            <h4 className="text-xs font-bold text-foreground">Configuração Visual</h4>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-foreground font-medium">Exibir Título sobre a Imagem</span>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="subtitle" className="text-xs font-bold text-foreground">
+              Subtítulo / Descrição Rápida (Opcional)
+            </Label>
+            <Input
+              id="subtitle"
+              placeholder="Ex: Válido para pedidos realizados até domingo"
+              value={subtitle}
+              onChange={(e) => setSubtitle(e.target.value)}
+              className="rounded-xl text-sm h-11"
+            />
+          </div>
+
+          {/* Configuração Visual */}
+          <div className="p-4 rounded-2xl bg-muted/20 space-y-3">
+            <h4 className="text-xs font-bold text-foreground">Configuração Visual da Vitrine</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="flex items-center justify-between text-xs p-2.5 rounded-xl bg-background border border-border/50">
+                <span className="text-foreground font-medium">Título sobre Imagem</span>
                 <Switch checked={showTitle} onCheckedChange={setShowTitle} />
               </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-foreground font-medium">Exibir Botão de Ação (CTA)</span>
+              <div className="flex items-center justify-between text-xs p-2.5 rounded-xl bg-background border border-border/50">
+                <span className="text-foreground font-medium">Botão de Ação (CTA)</span>
                 <Switch checked={showCta} onCheckedChange={setShowCta} />
+              </div>
+              <div className="flex items-center justify-between text-xs p-2.5 rounded-xl bg-background border border-border/50">
+                <span className="text-foreground font-medium">Badge Promocional</span>
+                <Switch checked={showBadge} onCheckedChange={setShowBadge} />
+              </div>
+              <div className="flex items-center justify-between text-xs p-2.5 rounded-xl bg-background border border-border/50">
+                <span className="text-foreground font-medium">Sombra / Overlay Escuro</span>
+                <Switch checked={showOverlay} onCheckedChange={setShowOverlay} />
               </div>
             </div>
           </div>

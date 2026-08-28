@@ -181,12 +181,12 @@ function AdminOrdersPage() {
             <span>{soundEnabled ? "Som Ativo" : "Mudo"}</span>
           </Button>
 
-          <div className="flex items-center  rounded-xl p-0.5 bg-muted/40">
+          <div className="flex items-center rounded-xl p-0.5 bg-muted/40 border border-border/60">
             <button
               onClick={() => setViewMode("kitchen")}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                 viewMode === "kitchen"
-                  ? "bg-card text-foreground "
+                  ? "bg-card text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -197,7 +197,7 @@ function AdminOrdersPage() {
               onClick={() => setViewMode("picking")}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                 viewMode === "picking"
-                  ? "bg-card text-foreground "
+                  ? "bg-card text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -208,7 +208,7 @@ function AdminOrdersPage() {
               onClick={() => setViewMode("table")}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                 viewMode === "table"
-                  ? "bg-card text-foreground "
+                  ? "bg-card text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -223,10 +223,10 @@ function AdminOrdersPage() {
       {viewMode === "kitchen" ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Coluna 1: Novos Pedidos */}
-          <div className="space-y-3 p-4 rounded-2xl  bg-card/60">
-            <div className="flex items-center justify-between pb-2 ">
+          <div className="space-y-3 p-4 rounded-2xl border border-border/70 bg-card/60">
+            <div className="flex items-center justify-between pb-2 border-b border-border/40">
               <div className="flex items-center gap-2">
-                <span className="size-2.5 rounded-full bg-red-600 animate-pulse" />
+                <span className="size-2.5 rounded-full bg-destructive animate-pulse" />
                 <h3 className="text-sm font-bold text-foreground">Novos Pedidos</h3>
               </div>
               <Badge variant="secondary" className="font-bold text-xs">
@@ -243,7 +243,7 @@ function AdminOrdersPage() {
                 newOrders.map((order) => (
                   <div
                     key={order.id}
-                    className="p-4 rounded-2xl  bg-card  space-y-3 hover:border-primary/50 transition-colors"
+                    className="p-4 rounded-2xl border border-border bg-card space-y-3 hover:border-primary/50 transition-colors"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div>
@@ -299,8 +299,8 @@ function AdminOrdersPage() {
           </div>
 
           {/* Coluna 2: Em Preparo */}
-          <div className="space-y-3 p-4 rounded-2xl  bg-card/60">
-            <div className="flex items-center justify-between pb-2 ">
+          <div className="space-y-3 p-4 rounded-2xl border border-border/70 bg-card/60">
+            <div className="flex items-center justify-between pb-2 border-b border-border/40">
               <div className="flex items-center gap-2">
                 <span className="size-2.5 rounded-full bg-amber-500" />
                 <h3 className="text-sm font-bold text-foreground">Em Preparo</h3>
@@ -319,7 +319,7 @@ function AdminOrdersPage() {
                 preparingOrders.map((order) => (
                   <div
                     key={order.id}
-                    className="p-4 rounded-2xl  bg-card  space-y-3 hover:border-primary/50 transition-colors"
+                    className="p-4 rounded-2xl border border-border bg-card space-y-3 hover:border-primary/50 transition-colors"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div>
@@ -343,7 +343,7 @@ function AdminOrdersPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 pt-2 ">
+                    <div className="flex items-center gap-2 pt-2 border-t border-border/40">
                       <Button
                         size="sm"
                         onClick={() =>
@@ -376,8 +376,8 @@ function AdminOrdersPage() {
           </div>
 
           {/* Coluna 3: Prontos / Em Entrega */}
-          <div className="space-y-3 p-4 rounded-2xl  bg-card/60">
-            <div className="flex items-center justify-between pb-2 ">
+          <div className="space-y-3 p-4 rounded-2xl border border-border/70 bg-card/60">
+            <div className="flex items-center justify-between pb-2 border-b border-border/40">
               <div className="flex items-center gap-2">
                 <span className="size-2.5 rounded-full bg-emerald-500" />
                 <h3 className="text-sm font-bold text-foreground">Prontos / Em Rota</h3>
@@ -396,7 +396,7 @@ function AdminOrdersPage() {
                 readyOrders.map((order) => (
                   <div
                     key={order.id}
-                    className="p-4 rounded-2xl  bg-card  space-y-3"
+                    className="p-4 rounded-2xl border border-border bg-card space-y-3"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div>
@@ -420,7 +420,7 @@ function AdminOrdersPage() {
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2 pt-2 ">
+                    <div className="flex items-center gap-2 pt-2 border-t border-border/40">
                       <Button
                         size="sm"
                         variant="outline"
@@ -636,7 +636,7 @@ function AdminOrdersPage() {
         </div>
       ) : (
         /* ── Visualização Tabela Clássica ── */
-        <div className=" bg-card overflow-hidden rounded-2xl">
+        <div className="bg-card overflow-hidden rounded-2xl border border-border">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/40">

@@ -385,7 +385,7 @@ export function ContentActionsMenu({
 
       {/* Alert Dialog de Exclusão com Explicação de Dependências */}
       <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
-        <AlertDialogContent className="max-w-md rounded-2xl p-6">
+        <AlertDialogContent className="sm:max-w-md sm:rounded-2xl sm:p-6 p-5">
           <AlertDialogHeader className="space-y-2">
             <div className="size-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
               <Trash2 className="size-5" />

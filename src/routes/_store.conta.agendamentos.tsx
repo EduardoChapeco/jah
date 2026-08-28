@@ -25,12 +25,6 @@ export const Route = createFileRoute("/_store/conta/agendamentos")({
   }),
   loader: async () => {
     const session = await getUserSession().catch(() => null);
-    if (!session?.user) {
-      throw redirect({
-        to: "/entrar",
-        search: { returnUrl: "/conta/agendamentos" },
-      });
-    }
 
     const initialAppointments = await listCustomerAppointments({
       data: { status: "all" },
@@ -293,7 +287,7 @@ function CustomerAgendaPage() {
         open={!!cancellingAppt}
         onOpenChange={(open) => !open && setCancellingAppt(null)}
       >
-        <DialogContent className="sm:max-w-md rounded-3xl p-6">
+        <DialogContent className="sm:max-w-md sm:rounded-3xl sm:p-6">
           <DialogHeader className="space-y-1.5">
             <DialogTitle className="text-base font-bold text-foreground">
               Cancelar Agendamento?

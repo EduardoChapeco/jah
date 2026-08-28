@@ -15,8 +15,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { getServerClient } from "@/lib/supabase";
-import { signContractEnvelope } from "@/services/contracts.functions";
+import { getEnvelopeByToken, signContractEnvelope } from "@/services/contracts.functions";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
@@ -25,26 +24,15 @@ import { formatDate } from "@/lib/datetime";
 export const Route = createFileRoute("/assinar/$token")({
   head: () => ({ meta: [{ title: "Assinatura Eletrônica de Documento — Wider" }] }),
   loader: async ({ params }) => {
-    const supabase = getServerClient();
-    const { data: envelope, error } = await supabase
-      .from("signature_envelopes")
-      .select(
-        `
-        *,
-        contract_version:contract_version_id (
-          id, version_number, title, content_markdown, hash_sha256, sealed_at,
-          contract:contract_id (id, title, category, verification_code)
-        )
-      `,
-      )
-      .eq("signing_token", params.token)
-      .single();
-
-    if (error || !envelope) {
+    try {
+      const envelope = await getEnvelopeByToken({ data: params.token });
+      if (!envelope) {
+        return { envelope: null, error: "Link de assinatura inválido ou expirado." };
+      }
+      return { envelope, error: null };
+    } catch {
       return { envelope: null, error: "Link de assinatura inválido ou expirado." };
     }
-
-    return { envelope, error: null };
   },
   component: SignContractPage,
 });

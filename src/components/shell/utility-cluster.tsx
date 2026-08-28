@@ -150,8 +150,8 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
         {/* 3. Notificações */}
         <NotificationsPopover session={session} />
 
-        {/* 4. Alternador de Tema */}
-        <ThemeToggle className="size-8 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/80" />
+        {/* 4. Alternador de Tema Dark/Light */}
+        <ThemeToggle className="size-8 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-all active:scale-95 cursor-pointer" />
 
         <div className="h-4 w-px bg-border/60 mx-0.5" />
 
@@ -341,7 +341,7 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
 
       {/* Modal de Busca Rápida */}
       <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
-        <DialogContent className="max-w-lg rounded-2xl p-4 top-[20%] translate-y-0">
+        <DialogContent className="sm:max-w-lg sm:rounded-2xl p-4 sm:top-[20%] sm:translate-y-0">
           <DialogHeader className="sr-only">
             <DialogTitle>Buscar no Wider</DialogTitle>
           </DialogHeader>

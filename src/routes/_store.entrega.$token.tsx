@@ -225,7 +225,7 @@ function DeliveryCourierPage() {
               onClick={handleOpenWaze}
               className="rounded-xl text-xs font-semibold gap-1.5 h-9"
             >
-              <Navigation className="size-3.5 text-blue-500" />
+              <Navigation className="size-3.5 text-info" />
               Waze
             </Button>
             {delivery.recipient_phone && (

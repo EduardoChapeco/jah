@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   Car,
@@ -19,7 +19,11 @@ import {
   CreditCard,
   QrCode,
   Banknote,
-  AlertCircle,
+  RotateCw,
+  ArrowLeft,
+  Smartphone,
+  Check,
+  Send,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,11 +43,11 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_store/mobilidade")({
   head: () => ({
     meta: [
-      { title: "Mobilidade, Corridas & Entregas — Wider" },
+      { title: "Solicitar Corrida & Entregas — Wider Mobility" },
       {
         name: "description",
         content:
-          "Chame corridas de carro ou moto, entregas expressas ou mudanças completas com tarifas justas e transparentes.",
+          "Chame corridas de carro ou moto, entregas expressas ou fretes com tarifas transparentes e motoristas locais em tempo real.",
       },
     ],
   }),
@@ -56,13 +60,49 @@ const DEFAULT_ORIGIN: MapPoint = {
   label: "Av. Getúlio Vargas, 500 — Centro",
 };
 
-const ICONS_BY_TYPE: Record<string, typeof Car> = {
-  ride_car: Car,
-  ride_moto: Bike,
-  delivery_express: Zap,
-  freight_van: Truck,
-  moving_truck: Boxes,
-};
+interface MobilityCategoryTab {
+  id: MobilityServiceType;
+  label: string;
+  title: string;
+  icon: typeof Car;
+  placeholderOrigin: string;
+  placeholderDest: string;
+}
+
+const CATEGORY_TABS: MobilityCategoryTab[] = [
+  {
+    id: "ride_car",
+    label: "Corrida",
+    title: "Solicitar corrida",
+    icon: Car,
+    placeholderOrigin: "De onde você vai sair?",
+    placeholderDest: "Para onde você vai?",
+  },
+  {
+    id: "delivery_express",
+    label: "Entrega",
+    title: "Solicitar entrega",
+    icon: Zap,
+    placeholderOrigin: "Onde retirar o pacote?",
+    placeholderDest: "Onde entregar?",
+  },
+  {
+    id: "freight_van",
+    label: "Frete",
+    title: "Solicitar frete",
+    icon: Truck,
+    placeholderOrigin: "Local de coleta da carga",
+    placeholderDest: "Local de entrega do frete",
+  },
+  {
+    id: "ride_moto",
+    label: "Moto",
+    title: "Solicitar moto",
+    icon: Bike,
+    placeholderOrigin: "De onde você vai sair?",
+    placeholderDest: "Para onde você vai?",
+  },
+];
 
 const PRESET_PLACES = [
   { name: "Centro", address: "Av. Getúlio Vargas, Centro", lat: -27.1004, lng: -52.6152 },
@@ -73,6 +113,7 @@ const PRESET_PLACES = [
 ];
 
 function MobilityPage() {
+  const navigate = useNavigate();
   const [selectedService, setSelectedService] = useState<MobilityServiceType>("ride_car");
 
   // Route Coordinates
@@ -82,11 +123,12 @@ function MobilityPage() {
   // Address Inputs
   const [originText, setOriginText] = useState(origin.label || "");
   const [destinationText, setDestinationText] = useState("");
+  const [isLocatingGPS, setIsLocatingGPS] = useState(false);
 
   // Map Pin Mode
   const [pinMode, setPinMode] = useState<"origin" | "destination" | null>(null);
 
-  // Additional Details
+  // Additional Details (Collapsible)
   const [showDetails, setShowDetails] = useState(false);
   const [buildingNumber, setBuildingNumber] = useState("");
   const [complement, setComplement] = useState("");
@@ -95,11 +137,12 @@ function MobilityPage() {
   const [recipientPhone, setRecipientPhone] = useState("");
   const [helpersCount, setHelpersCount] = useState<number>(0);
   const [propertyType, setPropertyType] = useState<"ground" | "elevator" | "stairs">("ground");
-  const [paymentMethod, setPaymentMethod] = useState<string>("pix");
+  const [paymentMethod, setPaymentMethod] = useState<"pix" | "card" | "cash">("pix");
 
-  // Request State
+  // Flow State: 'input' -> 'quoted' -> 'searching' -> 'confirmed'
   const [activeRequest, setActiveRequest] = useState<MobilityRequestDTO | null>(null);
   const [requestStatus, setRequestStatus] = useState<"idle" | "searching" | "confirmed">("idle");
+  const [showPwaBanner, setShowPwaBanner] = useState(true);
 
   // Distance Calculation
   const routeStats = useMemo(() => {
@@ -114,7 +157,7 @@ function MobilityPage() {
     return { distanceKm, durationMin };
   }, [origin, destination]);
 
-  // Consulta cotação dinâmica de tarifas reais do banco de dados (logistics_price_tables)
+  // Consulta cotação dinâmica de tarifas reais
   const { data: quotes, isLoading: isLoadingQuotes } = useQuery({
     queryKey: ["mobility-quotes", routeStats.distanceKm, helpersCount],
     queryFn: () =>
@@ -141,6 +184,10 @@ function MobilityPage() {
     return price;
   }, [selectedQuote, selectedService, propertyType]);
 
+  const activeTabConfig = useMemo(() => {
+    return CATEGORY_TABS.find((t) => t.id === selectedService) || CATEGORY_TABS[0];
+  }, [selectedService]);
+
   const createMutation = useMutation({
     mutationFn: (payload: any) => createMobilityRequest({ data: payload }),
     onSuccess: (data) => {
@@ -149,30 +196,49 @@ function MobilityPage() {
       toast.success("Solicitação enviada! Conectando com motoristas parceiros.");
     },
     onError: (err: any) => {
-      toast.error(err.message || "Erro ao solicitar.");
+      toast.error(err.message || "Erro ao solicitar corrida/entrega.");
       setRequestStatus("idle");
     },
   });
 
   const handleUseCurrentLocation = () => {
-    if (!navigator.geolocation) {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
       toast.info("Geolocalização não disponível.");
       return;
     }
+    setIsLocatingGPS(true);
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        let addr = "Minha Localização (GPS)";
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
+            { headers: { "User-Agent": "WiderMobility/1.0" } },
+          );
+          const data = await res.json();
+          if (data && data.display_name) {
+            addr = data.display_name.split(",").slice(0, 3).join(",");
+          }
+        } catch {
+          // fallback
+        }
+
         const point: MapPoint = {
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-          label: "Minha Localização Atual",
+          lat: latitude,
+          lng: longitude,
+          label: addr,
         };
         setOrigin(point);
-        setOriginText("Minha Localização (GPS)");
+        setOriginText(addr);
+        setIsLocatingGPS(false);
         toast.success("Localização atual identificada!");
       },
       () => {
-        toast.error("Não foi possível acessar a localização.");
+        setIsLocatingGPS(false);
+        toast.error("Não foi possível acessar sua localização.");
       },
+      { timeout: 8000, enableHighAccuracy: true },
     );
   };
 
@@ -189,25 +255,20 @@ function MobilityPage() {
   const handleMapClick = (lat: number, lng: number) => {
     if (!pinMode) return;
     if (pinMode === "origin") {
-      setOrigin({ lat, lng, label: `Localização (${lat.toFixed(4)}, ${lng.toFixed(4)})` });
+      setOrigin({ lat, lng, label: `Ponto de Partida (${lat.toFixed(4)}, ${lng.toFixed(4)})` });
       setOriginText(`Ponto de Partida (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
       toast.success("Origem fixada no mapa!");
     } else {
       setDestination({ lat, lng, label: `Destino (${lat.toFixed(4)}, ${lng.toFixed(4)})` });
-      setDestinationText(`Ponto de Entrega (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
+      setDestinationText(`Ponto de Destino (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
       toast.success("Destino fixado no mapa!");
     }
     setPinMode(null);
   };
 
   const handleSubmitRequest = () => {
-    if (!destination && !destinationText) {
-      toast.error("Informe o endereço de destino.");
-      return;
-    }
-
-    if (!selectedQuote) {
-      toast.error("Nenhuma modalidade com tarifa ativa disponível.");
+    if (!destinationText.trim() && !destination) {
+      toast.error("Por favor, digite ou selecione o endereço de destino.");
       return;
     }
 
@@ -224,7 +285,7 @@ function MobilityPage() {
       destination_lat: destination?.lat || origin.lat + 0.02,
       destination_lng: destination?.lng || origin.lng + 0.02,
       distance_km: routeStats.distanceKm,
-      estimated_price_cents: computedPriceCents,
+      estimated_price_cents: computedPriceCents || 1500,
       helpers_count: helpersCount,
       payment_method: paymentMethod,
       notes: [
@@ -243,20 +304,8 @@ function MobilityPage() {
   };
 
   return (
-    <div className="relative w-full h-[100dvh] min-h-0 bg-background overflow-hidden">
-      {/* Botão Flutuante Voltar */}
-      <div className="absolute top-3 left-3 z-30 pointer-events-auto">
-        <Link
-          to="/"
-          aria-label="Voltar ao Início (Mobilidade)"
-          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-card/90 backdrop-blur-md  text-xs font-bold text-foreground  hover:bg-card active:scale-95 transition-all cursor-pointer"
-        >
-          <Navigation size={14} className="rotate-180" />
-          <span>Início</span>
-        </Link>
-      </div>
-
-      {/* ── 1. MAPA FULL-SCREEN MAPLIBRE (100% FULL BLEED VIEWPORT) ── */}
+    <div className="relative w-full h-[100dvh] min-h-0 bg-background overflow-hidden font-sans select-none">
+      {/* ── 1. MAPA FULL-BLEED MAPLIBRE (100% DA TELA) ── */}
       <div className="absolute inset-0 size-full z-0">
         <MapLibreCanvas
           origin={origin}
@@ -266,22 +315,22 @@ function MobilityPage() {
           className="size-full"
         />
 
-        {/* Floating Route Info Pill */}
+        {/* Floating Route Info Pill (Top Right on Desktop) */}
         {destination && (
-          <div className="absolute top-4 right-4 z-20 hidden sm:flex items-center gap-3 px-4 py-2 rounded-2xl bg-card/90 backdrop-blur-md  text-foreground  text-xs font-mono font-bold">
-            <span className="font-bold">{routeStats.distanceKm} km</span>
+          <div className="absolute top-4 right-4 z-20 hidden sm:flex items-center gap-3 px-4 py-2 rounded-2xl bg-card/95 backdrop-blur-xl border border-border/80 text-foreground text-xs font-mono font-bold">
+            <span className="font-bold text-foreground">{routeStats.distanceKm} km</span>
             <span className="text-muted-foreground">•</span>
             <span className="text-muted-foreground">~{routeStats.durationMin} min</span>
           </div>
         )}
 
-        {/* Pin Picking Mode Banner */}
+        {/* Pin Picking Mode Floating Banner */}
         {pinMode && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 px-4 py-2 rounded-2xl bg-foreground text-background text-xs font-bold  flex items-center gap-2">
-            <span>Clique no mapa para posicionar {pinMode === "origin" ? "a Origem" : "o Destino"}</span>
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 px-5 py-2.5 rounded-2xl bg-foreground text-background text-xs font-bold flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+            <span>Clique no mapa para marcar {pinMode === "origin" ? "a Origem" : "o Destino"}</span>
             <button
               onClick={() => setPinMode(null)}
-              className="ml-2 hover:opacity-75"
+              className="ml-2 p-1 hover:bg-background/20 rounded-full transition-colors"
               aria-label="Cancelar seleção no mapa"
             >
               <X className="size-3.5" />
@@ -290,86 +339,203 @@ function MobilityPage() {
         )}
       </div>
 
-      {/* ── 2. PAINEL FLUTUANTE DE PEDIDO (MODAL LATERAL ESQUERDO FULL VERTICAL) ── */}
-      <div className="
-        absolute z-30
-        /* Mobile: Bottom Sheet ancorado embaixo */
-        bottom-0 left-0 right-0 max-h-[75vh] rounded-t-3xl
-        /* Desktop: Card flutuante lateral esquerdo */
-        sm:bottom-3 sm:top-3 sm:left-3 sm:right-auto sm:w-[420px] sm:max-h-none sm:rounded-3xl
-        overflow-y-auto scrollbar-none  bg-card/95 backdrop-blur-md p-5 text-foreground  space-y-4 animate-in slide-in-from-bottom-4 sm:slide-in-from-left-4 duration-300
-      ">
-        {/* Cabeçalho */}
-        <div className="flex items-center justify-between pb-3 ">
-          <div>
-            <h1 className="text-base font-semibold text-foreground tracking-tight">
-              Mobilidade & Entregas
+      {/* ── 2. PAINEL FLUTUANTE DE SOLICITAÇÃO (CARD LATERAL / MOBILE BOTTOM SHEET) ── */}
+      <div
+        className="
+          absolute z-30
+          /* Mobile: Bottom Sheet ancorado embaixo */
+          bottom-0 left-0 right-0 max-h-[85vh] rounded-t-3xl border-t
+          /* Desktop: Card flutuante lateral esquerdo */
+          sm:bottom-4 sm:top-4 sm:left-4 sm:right-auto sm:w-[420px] sm:max-h-none sm:rounded-3xl sm:border
+          overflow-y-auto scrollbar-none bg-card/95 backdrop-blur-2xl p-5 text-foreground border-border/80 space-y-4 animate-in slide-in-from-bottom-4 sm:slide-in-from-left-4 duration-300
+        "
+      >
+        {/* Cabeçalho do Card: ← Solicitar corrida + Fechar ✕ */}
+        <div className="flex items-center justify-between pb-1">
+          <div className="flex items-center gap-2">
+            <Link
+              to="/"
+              className="size-8 rounded-xl bg-muted/60 hover:bg-muted text-foreground flex items-center justify-center transition-colors"
+              title="Voltar ao Início"
+              aria-label="Voltar ao Início"
+            >
+              <ArrowLeft className="size-4" />
+            </Link>
+            <h1 className="text-base font-black tracking-tight text-foreground">
+              {activeTabConfig.title}
             </h1>
-            <p className="text-xs text-muted-foreground">
-              Tarifas diretas e motoristas locais
-            </p>
           </div>
 
-          <Button
-            asChild
-            variant="ghost"
-            size="sm"
-            className="h-8 text-xs font-medium text-muted-foreground hover:text-foreground rounded-lg"
+          <Link
+            to="/"
+            className="size-8 rounded-xl bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors"
+            title="Fechar"
+            aria-label="Fechar"
           >
-            <Link to="/conta/mobilidade">
-              <Clock className="size-3.5 mr-1.5" />
-              Minhas Corridas
-            </Link>
-          </Button>
+            <X className="size-4" />
+          </Link>
         </div>
 
-        {/* ── SELETOR DE MODALIDADES VINDAS DO BANCO DE DADOS ── */}
-        <div className="space-y-1.5">
-          <span className="text-xs font-medium text-muted-foreground">
-            Modalidade
-          </span>
+        {/* ── SELETOR DE CATEGORIAS (Pills Horizontais: Corrida, Entrega, Frete, Moto) ── */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+          {CATEGORY_TABS.map((tab) => {
+            const Icon = tab.icon;
+            const isSelected = selectedService === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setSelectedService(tab.id)}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all select-none cursor-pointer border ${
+                  isSelected
+                    ? "bg-foreground text-background border-foreground scale-[1.02]"
+                    : "bg-muted/40 text-muted-foreground border-border/60 hover:text-foreground hover:bg-muted/80"
+                }`}
+              >
+                <Icon className="size-3.5" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
 
-          {isLoadingQuotes && (
-            <div className="py-6 flex items-center justify-center text-xs text-muted-foreground gap-2">
-              <Loader2 className="size-4 animate-spin" />
-              <span>Calculando tarifas da região...</span>
+        {/* ── FORMULÁRIO DE ORIGEM & DESTINO ── */}
+        <div className="space-y-3 pt-1">
+          {/* Campo Origem */}
+          <div className="space-y-1">
+            <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              Origem
+            </Label>
+            <div className="relative flex items-center">
+              <div className="absolute left-3 text-muted-foreground pointer-events-none">
+                <Navigation className="size-4" />
+              </div>
+              <Input
+                value={originText}
+                onChange={(e) => setOriginText(e.target.value)}
+                placeholder={activeTabConfig.placeholderOrigin}
+                className="h-11 pl-9 pr-10 rounded-2xl bg-muted/20 border-border/70 text-xs font-medium focus-visible:ring-1 focus-visible:ring-primary"
+              />
+              <button
+                type="button"
+                onClick={handleUseCurrentLocation}
+                disabled={isLocatingGPS}
+                title="Usar minha localização GPS atual"
+                aria-label="Usar minha localização GPS atual"
+                className="absolute right-2 size-7 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+              >
+                <RotateCw className={`size-3.5 ${isLocatingGPS ? "animate-spin text-primary" : ""}`} />
+              </button>
             </div>
-          )}
+          </div>
 
-          {!isLoadingQuotes && availableModals.length === 0 && (
-            <div className="p-3.5 rounded-xl bg-muted/40 border-0 text-center space-y-1">
-              <AlertCircle className="size-5 mx-auto text-muted-foreground opacity-60" />
-              <p className="text-xs font-medium text-foreground">
-                Sem atendimento ou tabela de tarifas configurada
-              </p>
-              <p className="text-[11px] text-muted-foreground">
-                Nenhuma empresa de logística ou motorista cadastrou tarifas ativas para esta região.
-              </p>
+          {/* Campo Destino */}
+          <div className="space-y-1">
+            <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              Destino
+            </Label>
+            <div className="relative flex items-center">
+              <div className="absolute left-3 text-primary pointer-events-none">
+                <MapPin className="size-4" />
+              </div>
+              <Input
+                value={destinationText}
+                onChange={(e) => setDestinationText(e.target.value)}
+                placeholder={activeTabConfig.placeholderDest}
+                className="h-11 pl-9 pr-10 rounded-2xl bg-muted/20 border-border/70 text-xs font-medium focus-visible:ring-1 focus-visible:ring-primary"
+              />
+              <button
+                type="button"
+                onClick={() => setPinMode("destination")}
+                title="Marcar ponto de destino no mapa"
+                aria-label="Marcar ponto de destino no mapa"
+                className={`absolute right-2 size-7 rounded-xl flex items-center justify-center transition-colors ${
+                  pinMode === "destination"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                }`}
+              >
+                <Crosshair className="size-3.5" />
+              </button>
             </div>
-          )}
+          </div>
 
-          {!isLoadingQuotes && availableModals.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {/* Atalhos Rápidos de Destinos Frequentes */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+            {PRESET_PLACES.slice(0, 4).map((p, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => handleSelectPresetDestination(p)}
+                className="px-2.5 py-1 rounded-xl bg-muted/40 hover:bg-muted border border-border/40 text-[11px] font-semibold text-muted-foreground hover:text-foreground whitespace-nowrap transition-colors"
+              >
+                {p.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ── SELEÇÃO DE MODAIS & VALORES DISPONÍVEIS ── */}
+        <div className="space-y-2 pt-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              Opções Disponíveis
+            </span>
+            <div className="flex items-center gap-1.5 text-[11px] font-mono text-muted-foreground font-semibold">
+              <span>{routeStats.distanceKm} km</span>
+              <span>•</span>
+              <span>~{routeStats.durationMin} min</span>
+            </div>
+          </div>
+
+          {isLoadingQuotes ? (
+            <div className="py-4 flex items-center justify-center text-xs text-muted-foreground gap-2">
+              <Loader2 className="size-4 animate-spin text-primary" />
+              <span>Calculando melhores rotas e tarifas...</span>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
               {availableModals.map((mod) => {
-                const Icon = ICONS_BY_TYPE[mod.service_type] || Car;
+                const Icon =
+                  mod.service_type === "ride_moto"
+                    ? Bike
+                    : mod.service_type === "delivery_express"
+                      ? Zap
+                      : mod.service_type === "freight_van"
+                        ? Truck
+                        : mod.service_type === "moving_truck"
+                          ? Boxes
+                          : Car;
+
                 const isSelected = selectedService === mod.service_type;
+
                 return (
                   <button
                     key={mod.service_type}
                     type="button"
                     onClick={() => setSelectedService(mod.service_type)}
-                    className={`p-3 rounded-xl border text-left transition-colors flex flex-col justify-between ${
+                    className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between select-none cursor-pointer ${
                       isSelected
-                        ? "bg-muted border-foreground/30 text-foreground"
-                        : "bg-background border-border text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                        ? "bg-primary/10 border-primary text-foreground ring-1 ring-primary"
+                        : "bg-card border-border/70 text-muted-foreground hover:text-foreground hover:bg-muted/40"
                     }`}
                   >
-                    <Icon className={`size-4 mb-2 ${isSelected ? "text-foreground" : "text-muted-foreground"}`} />
+                    <div className="flex items-center justify-between w-full mb-1.5">
+                      <div
+                        className={`size-7 rounded-xl flex items-center justify-center ${
+                          isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
+                        }`}
+                      >
+                        <Icon className="size-3.5" />
+                      </div>
+                      {isSelected && <Check className="size-3.5 text-primary" />}
+                    </div>
+
                     <div>
-                      <span className="text-xs font-semibold text-foreground block leading-tight">
+                      <span className="text-xs font-bold text-foreground block leading-tight">
                         {mod.label}
                       </span>
-                      <span className="text-[11px] font-medium text-muted-foreground mt-0.5 block">
+                      <span className="text-xs font-black text-foreground mt-0.5 block">
                         {formatMoney(mod.estimated_price_cents)}
                       </span>
                     </div>
@@ -380,272 +546,160 @@ function MobilityPage() {
           )}
         </div>
 
-        {/* ── CAMPOS DE ENDEREÇO ── */}
-        <div className="space-y-3 pt-1">
-          {/* Origem */}
-          <div className="space-y-1">
-            <div className="flex items-center justify-between text-xs">
-              <Label className="font-medium text-foreground">
-                Ponto de Partida
-              </Label>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleUseCurrentLocation}
-                  className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
-                >
-                  <Navigation className="size-3" />
-                  <span>GPS</span>
-                </button>
-                <span className="text-border">|</span>
-                <button
-                  type="button"
-                  onClick={() => setPinMode("origin")}
-                  className={`text-xs flex items-center gap-1 ${pinMode === "origin" ? "text-foreground font-semibold" : "text-muted-foreground hover:text-foreground"}`}
-                >
-                  <Crosshair className="size-3" />
-                  <span>Pin</span>
-                </button>
-              </div>
-            </div>
-            <Input
-              value={originText}
-              onChange={(e) => setOriginText(e.target.value)}
-              placeholder="Endereço de partida..."
-              className="h-10 rounded-xl bg-background border-border text-sm"
-            />
-          </div>
-
-          {/* Destino */}
-          <div className="space-y-1">
-            <div className="flex items-center justify-between text-xs">
-              <Label className="font-medium text-foreground">
-                Destino / Entrega
-              </Label>
-              <button
-                type="button"
-                onClick={() => setPinMode("destination")}
-                className={`text-xs flex items-center gap-1 ${pinMode === "destination" ? "text-foreground font-semibold" : "text-muted-foreground hover:text-foreground"}`}
-              >
-                <Crosshair className="size-3" />
-                <span>Fixar no Mapa</span>
-              </button>
-            </div>
-            <Input
-              value={destinationText}
-              onChange={(e) => setDestinationText(e.target.value)}
-              placeholder="Para onde vamos?"
-              className="h-10 rounded-xl bg-background border-border text-sm"
-            />
-          </div>
-
-          {/* Atalhos Rápidos */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-            {PRESET_PLACES.slice(0, 4).map((p, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => handleSelectPresetDestination(p)}
-                className="px-2.5 py-1 rounded-lg bg-muted/60 hover:bg-muted text-xs text-muted-foreground hover:text-foreground whitespace-nowrap transition-colors"
-              >
-                {p.name}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* ── IDENTIFICAÇÃO COMPLETA DO IMÓVEL (ACCORDION) ── */}
-        <div className="pt-1">
-          <button
-            type="button"
-            onClick={() => setShowDetails(!showDetails)}
-            className="w-full flex items-center justify-between py-2 text-xs font-medium text-muted-foreground hover:text-foreground "
-          >
-            <span className="flex items-center gap-1.5">
-              <MapPin className="size-3.5" />
-              <span>Número, complemento e contato</span>
+        {/* ── FORMA DE PAGAMENTO & DETALHES ── */}
+        <div className="p-3.5 rounded-2xl bg-muted/30 border border-border/50 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              Forma de Pagamento
             </span>
-            {showDetails ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-          </button>
-
-          {showDetails && (
-            <div className="p-3.5 rounded-xl bg-muted/40  space-y-2.5 mt-2">
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label className="text-xs text-muted-foreground">Número</Label>
-                  <Input
-                    value={buildingNumber}
-                    onChange={(e) => setBuildingNumber(e.target.value)}
-                    placeholder="Ex: 500"
-                    className="h-8 rounded-lg bg-background text-xs"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs text-muted-foreground">Complemento</Label>
-                  <Input
-                    value={complement}
-                    onChange={(e) => setComplement(e.target.value)}
-                    placeholder="Ex: Apto 102"
-                    className="h-8 rounded-lg bg-background text-xs"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label className="text-xs text-muted-foreground">Ponto de Referência</Label>
-                <Input
-                  value={referencePoint}
-                  onChange={(e) => setReferencePoint(e.target.value)}
-                  placeholder="Ex: Em frente à praça"
-                  className="h-8 rounded-lg bg-background text-xs"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label className="text-xs text-muted-foreground">Nome do Passageiro/Contato</Label>
-                  <Input
-                    value={recipientName}
-                    onChange={(e) => setRecipientName(e.target.value)}
-                    placeholder="Nome"
-                    className="h-8 rounded-lg bg-background text-xs"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs text-muted-foreground">Telefone / WhatsApp</Label>
-                  <Input
-                    value={recipientPhone}
-                    onChange={(e) => setRecipientPhone(e.target.value)}
-                    placeholder="(49) 99999-9999"
-                    className="h-8 rounded-lg bg-background text-xs"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* ── AJUDANTES PARA MUDANÇA (QUANDO APLICÁVEL) ── */}
-        {selectedService === "moving_truck" && (
-          <div className="p-3.5 rounded-xl bg-muted/40  space-y-3">
-            <span className="text-xs font-semibold text-foreground block">
-              Configurações da Mudança
-            </span>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Ajudantes de Carga:</span>
-              <div className="flex items-center gap-1">
-                {[0, 1, 2, 3].map((num) => (
-                  <button
-                    key={num}
-                    type="button"
-                    onClick={() => setHelpersCount(num)}
-                    className={`size-7 rounded-lg text-xs font-medium transition-colors ${
-                      helpersCount === num
-                        ? "bg-foreground text-background font-semibold"
-                        : "bg-background  text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {num}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between text-xs pt-2 ">
-              <span className="text-muted-foreground">Tipo de Acesso:</span>
-              <select
-                value={propertyType}
-                onChange={(e: any) => setPropertyType(e.target.value)}
-                className="bg-background  rounded-lg px-2 py-1 text-xs text-foreground"
-              >
-                <option value="ground">Casa Térrea</option>
-                <option value="elevator">Com Elevador</option>
-                <option value="stairs">Com Escadas (+R$ 35)</option>
-              </select>
-            </div>
-          </div>
-        )}
-
-        {/* ── PREÇO ESTIMADO & PAGAMENTO ── */}
-        {availableModals.length > 0 && (
-          <div className="p-3.5 rounded-xl  bg-muted/20 flex items-center justify-between">
-            <div>
-              <span className="text-xs text-muted-foreground block">
-                Valor Estimado
-              </span>
-              <span className="font-semibold text-lg text-foreground">
-                {formatMoney(computedPriceCents)}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-1 bg-background p-1 rounded-lg ">
+            <div className="flex items-center gap-1 bg-background p-0.5 rounded-xl border border-border/60">
               <button
                 type="button"
                 onClick={() => setPaymentMethod("pix")}
-                className={`p-1.5 rounded-md text-xs font-medium flex items-center gap-1 ${paymentMethod === "pix" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                title="Pix"
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-all ${
+                  paymentMethod === "pix"
+                    ? "bg-foreground text-background"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
               >
-                <QrCode className="size-3.5" />
+                <QrCode className="size-3" />
                 <span>Pix</span>
               </button>
               <button
                 type="button"
                 onClick={() => setPaymentMethod("card")}
-                className={`p-1.5 rounded-md text-xs font-medium flex items-center gap-1 ${paymentMethod === "card" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                title="Cartão"
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-all ${
+                  paymentMethod === "card"
+                    ? "bg-foreground text-background"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
               >
-                <CreditCard className="size-3.5" />
+                <CreditCard className="size-3" />
                 <span>Cartão</span>
               </button>
               <button
                 type="button"
                 onClick={() => setPaymentMethod("cash")}
-                className={`p-1.5 rounded-md text-xs font-medium flex items-center gap-1 ${paymentMethod === "cash" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                title="Dinheiro"
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-all ${
+                  paymentMethod === "cash"
+                    ? "bg-foreground text-background"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
               >
-                <Banknote className="size-3.5" />
+                <Banknote className="size-3" />
                 <span>Dinheiro</span>
               </button>
             </div>
           </div>
-        )}
 
-        {/* ── BOTÃO DE AÇÃO PRINCIPAL ── */}
+          {/* Accordion de Informações Adicionais */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowDetails(!showDetails)}
+              className="w-full flex items-center justify-between text-xs font-semibold text-muted-foreground hover:text-foreground pt-1"
+            >
+              <span className="flex items-center gap-1.5">
+                <MapPin className="size-3.5" />
+                <span>Número, complemento e contato</span>
+              </span>
+              {showDetails ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+            </button>
+
+            {showDetails && (
+              <div className="space-y-2.5 pt-3 animate-in fade-in duration-200">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-[10px] text-muted-foreground">Número</Label>
+                    <Input
+                      value={buildingNumber}
+                      onChange={(e) => setBuildingNumber(e.target.value)}
+                      placeholder="Ex: 500"
+                      className="h-8 rounded-xl bg-background text-xs"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-[10px] text-muted-foreground">Complemento</Label>
+                    <Input
+                      value={complement}
+                      onChange={(e) => setComplement(e.target.value)}
+                      placeholder="Ex: Apto 102"
+                      className="h-8 rounded-xl bg-background text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-[10px] text-muted-foreground">Ponto de Referência</Label>
+                  <Input
+                    value={referencePoint}
+                    onChange={(e) => setReferencePoint(e.target.value)}
+                    placeholder="Ex: Em frente à praça"
+                    className="h-8 rounded-xl bg-background text-xs"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-[10px] text-muted-foreground">Nome Passageiro/Contato</Label>
+                    <Input
+                      value={recipientName}
+                      onChange={(e) => setRecipientName(e.target.value)}
+                      placeholder="Nome"
+                      className="h-8 rounded-xl bg-background text-xs"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-[10px] text-muted-foreground">Telefone / WhatsApp</Label>
+                    <Input
+                      value={recipientPhone}
+                      onChange={(e) => setRecipientPhone(e.target.value)}
+                      placeholder="(49) 99999-9999"
+                      className="h-8 rounded-xl bg-background text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── BOTÃO PRINCIPAL DE BUSCA / CHAMADO (44px HIG) ── */}
         <Button
           type="button"
           onClick={handleSubmitRequest}
-          disabled={createMutation.isPending || requestStatus === "searching" || availableModals.length === 0}
-          className="w-full h-11 rounded-xl bg-foreground text-background font-semibold text-sm hover:opacity-90 transition-opacity"
+          disabled={createMutation.isPending || requestStatus === "searching"}
+          className="w-full h-12 rounded-2xl bg-foreground text-background font-bold text-xs sm:text-sm hover:bg-foreground/90 transition-all active:scale-[0.98] cursor-pointer"
         >
           {createMutation.isPending || requestStatus === "searching" ? (
             <div className="flex items-center gap-2">
               <Loader2 className="size-4 animate-spin" />
-              <span>Conectando com motoristas...</span>
+              <span>Conectando com motoristas parceiros...</span>
             </div>
-          ) : availableModals.length === 0 ? (
-            <span>Sem Cobertura no Momento</span>
           ) : (
-            <span>Confirmar e Chamar {selectedQuote?.label || "Serviço"}</span>
+            <span>
+              Buscar {activeTabConfig.label.toLowerCase()} • {formatMoney(computedPriceCents)}
+            </span>
           )}
         </Button>
 
-        {/* ── STATUS APÓS SOLICITAÇÃO ── */}
+        {/* ── CONFIRMAÇÃO & RASTREAMENTO EM TEMPO REAL ── */}
         {requestStatus === "confirmed" && activeRequest && (
-          <div className="p-4 rounded-xl  bg-muted/40 space-y-3">
+          <div className="p-4 rounded-2xl bg-muted/40 border border-border/60 space-y-3 animate-in fade-in">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="size-4 text-foreground" />
-                <span className="text-xs font-semibold text-foreground">Chamado Enviado</span>
+                <CheckCircle2 className="size-4 text-emerald-500" />
+                <span className="text-xs font-bold text-foreground">Solicitação Confirmada</span>
               </div>
               <Badge variant="secondary" className="text-[10px] font-mono">
                 #{activeRequest.id.slice(0, 8)}
               </Badge>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Sua solicitação foi enviada. Você pode acompanhar o deslocamento em tempo real.
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Notificando motoristas parceiros próximos. Você pode acompanhar o trajeto ao vivo.
             </p>
             <div className="flex gap-2">
-              <Button asChild size="sm" className="flex-1 rounded-lg text-xs font-semibold bg-foreground text-background">
+              <Button asChild size="sm" className="flex-1 rounded-xl text-xs font-bold bg-foreground text-background">
                 <Link to="/conta/mobilidade">Acompanhar Trajeto</Link>
               </Button>
               <Button
@@ -655,14 +709,61 @@ function MobilityPage() {
                   setRequestStatus("idle");
                   setActiveRequest(null);
                 }}
-                className="rounded-lg text-xs font-medium"
+                className="rounded-xl text-xs font-semibold"
               >
-                Novo
+                Nova Corrida
               </Button>
             </div>
           </div>
         )}
       </div>
+
+      {/* ── 3. FLOATING WIDGET PWA (Canto Inferior Direito como no Print de Referência) ── */}
+      {showPwaBanner && (
+        <div className="hidden lg:flex fixed bottom-4 right-4 z-30 max-w-xs w-full p-4 rounded-3xl bg-card/95 backdrop-blur-2xl border border-border/80 flex-col gap-3 animate-in fade-in slide-in-from-bottom-2">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="size-9 rounded-2xl bg-foreground text-background flex items-center justify-center font-bold">
+                <Smartphone className="size-4" />
+              </div>
+              <div>
+                <p className="text-xs font-black text-foreground">Instalar Wider App</p>
+                <p className="text-[10px] text-muted-foreground">Rápido, offline, notificações</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowPwaBanner(false)}
+              className="text-muted-foreground hover:text-foreground"
+              aria-label="Fechar banner PWA"
+            >
+              <X className="size-3.5" />
+            </button>
+          </div>
+
+          <div className="space-y-1 text-[11px] text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <Check className="size-3 text-emerald-500 shrink-0" />
+              <span>Acesso instantâneo</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Check className="size-3 text-emerald-500 shrink-0" />
+              <span>Funciona offline</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Check className="size-3 text-emerald-500 shrink-0" />
+              <span>Notificações de status da corrida</span>
+            </div>
+          </div>
+
+          <Button
+            size="sm"
+            onClick={() => toast.success("Adicione à tela inicial através do menu do seu navegador.")}
+            className="w-full h-9 rounded-xl font-bold text-xs bg-foreground text-background hover:bg-foreground/90"
+          >
+            Instalar Agora
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

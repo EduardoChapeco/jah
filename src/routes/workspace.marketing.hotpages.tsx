@@ -35,6 +35,7 @@ import { getUserSession } from "@/services/auth.functions";
 import { toast } from "sonner";
 import { MediaUploader } from "@/components/ui/media-uploader";
 import { DynamicMediaChip } from "@/components/commerce/dynamic-media-chip";
+import { DestinationPicker } from "@/components/ui/destination-picker";
 
 export const Route = createFileRoute("/workspace/marketing/hotpages")({
   head: () => ({ meta: [{ title: "Destaques & Hotpages da Loja | Workspace" }] }),
@@ -296,26 +297,23 @@ function WorkspaceStoreHotpagesPage() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Badge / Tag</Label>
-              <Input
-                value={badgeLabel}
-                onChange={(e) => setBadgeLabel(e.target.value)}
-                placeholder="Ex: 20% OFF, Novo"
-                className="rounded-xl text-xs h-9"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Rota de Destino</Label>
-              <Input
-                value={targetRoute}
-                onChange={(e) => setTargetRoute(e.target.value)}
-                placeholder="Ex: /cardapio"
-                className="rounded-xl text-xs h-9"
-              />
-            </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold">Badge / Tag de Destaque</Label>
+            <Input
+              value={badgeLabel}
+              onChange={(e) => setBadgeLabel(e.target.value)}
+              placeholder="Ex: 20% OFF, Novo, Combo Especial"
+              className="rounded-xl text-xs h-9"
+            />
           </div>
+
+          {/* Seletor Canônico de Destino da Página / Link */}
+          <DestinationPicker
+            value={targetRoute}
+            onChange={(url) => setTargetRoute(url)}
+            label="Página / Rota de Destino"
+            helperText="Escolha a página interna ou informe uma URL externa para este destaque."
+          />
 
           {/* Mídia de Fundo */}
           <div className="space-y-2 pt-2 border-t border-border/30">
@@ -341,6 +339,11 @@ function WorkspaceStoreHotpagesPage() {
                 <MediaUploader
                   value={bgMediaUrl ? [bgMediaUrl] : []}
                   onChange={(urls) => setBgMediaUrl(urls[0] || "")}
+                  bucket="cms-media"
+                  folder="botoes"
+                  aspect={16 / 9}
+                  lockAspect={true}
+                  maxFiles={1}
                 />
               </div>
             )}

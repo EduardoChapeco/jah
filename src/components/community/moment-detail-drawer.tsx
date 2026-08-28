@@ -85,7 +85,7 @@ export function MomentDetailDrawer({ moment, onClose }: MomentDetailDrawerProps)
 
         {/* Badges de Ao Vivo & Tempo */}
         <div className="absolute top-3 left-3 flex items-center gap-1.5 z-10">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-600/90 text-white backdrop-blur-md  animate-pulse">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-destructive/90 text-white backdrop-blur-md  animate-pulse">
             <span className="size-1.5 rounded-full bg-white animate-ping" />
             Ao Vivo
           </span>

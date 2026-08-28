@@ -43,6 +43,21 @@ import {
   UtensilsCrossed,
   Compass,
   ExternalLink,
+  Coins,
+  Zap,
+  MessageSquare,
+  Scale,
+  Wrench,
+  MapPin,
+  Star,
+  Navigation,
+  Briefcase,
+  Plane,
+  ShoppingCart,
+  Eye,
+  Receipt,
+  AlertTriangle,
+  ArrowDownUp,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -114,6 +129,8 @@ const WORKSPACE_MODULES: NavGroup[] = [
       { path: "/workspace/catalogo/colecoes", label: "Coleções", icon: Sliders },
       { path: "/workspace/catalogo/atributos", label: "Atributos", icon: Boxes },
       { path: "/workspace/estoque", label: "Estoque", icon: Boxes },
+      { path: "/workspace/estoque/alertas", label: "Alertas de Reposição", icon: AlertTriangle },
+      { path: "/workspace/estoque/movimentos", label: "Movimentações", icon: ArrowDownUp },
     ],
   },
   {
@@ -123,9 +140,11 @@ const WORKSPACE_MODULES: NavGroup[] = [
     items: [
       { path: "/workspace/pedidos", label: "Todos os Pedidos", icon: ShoppingBag },
       { path: "/workspace/pedidos/gestor", label: "Gestor (Kanban)", icon: ClipboardList },
+      { path: "/workspace/pedidos/trocas", label: "Trocas & Devoluções", icon: ArrowRightLeft },
       { path: "/workspace/pedidos/frota", label: "Frota & Despacho", icon: Truck },
       { path: "/workspace/logistica/tabelas", label: "Tabelas de Frete & KM", icon: DollarSign },
       { path: "/workspace/logistica/faturas", label: "Faturas de Frota", icon: Banknote },
+      { path: "/workspace/logistica/pudo", label: "Pontos de Retirada (PUDO)", icon: MapPin },
       { path: "/workspace/pdv", label: "PDV (Frente de Caixa)", icon: Store },
       { path: "/workspace/clientes", label: "Clientes / CRM", icon: Users },
       { path: "/workspace/orcamentos", label: "Orçamentos", icon: FileText },
@@ -138,21 +157,28 @@ const WORKSPACE_MODULES: NavGroup[] = [
     items: [
       { path: "/workspace/marketing/banners", label: "Top Banners (Vídeo/GIF)", icon: ImageIcon },
       { path: "/workspace/marketing/hotpages", label: "Cards de Categorias", icon: Sliders },
+      { path: "/workspace/marketing/vitrine", label: "Vitrine CMS", icon: Eye },
       { path: "/workspace/marketing/patrocinadores", label: "Patrocinadores", icon: Megaphone },
       { path: "/workspace/marketing/telemetria", label: "Telemetria & Audiência", icon: BarChart3 },
       { path: "/workspace/marketing/promocoes", label: "Promoções & Ofertas", icon: Flame },
       { path: "/workspace/marketing/anuncios", label: "Campanhas & Anúncios", icon: Megaphone },
+      { path: "/workspace/marketing/carrinhos", label: "Carrinhos Abandonados", icon: ShoppingCart },
       { path: "/workspace/marketing/gift-cards", label: "Gift Cards", icon: Tag },
     ],
   },
   {
-    id: "financial",
+    id: "finance",
     label: "Financeiro & P2P",
     icon: Banknote,
     items: [
+      { path: "/workspace/tokens", label: "Máquina do Tempo & Tokens", icon: Zap },
       { path: "/workspace/financeiro/caixa", label: "Frente de Caixa", icon: Banknote },
       { path: "/workspace/financeiro/afiliados", label: "Afiliados & Split", icon: Users },
       { path: "/workspace/financeiro/comissoes", label: "Comissões", icon: Tag },
+      { path: "/workspace/financeiro/comprovantes", label: "Comprovantes", icon: Receipt },
+      { path: "/workspace/financeiro/pagamentos", label: "Pagamentos", icon: DollarSign },
+      { path: "/workspace/financeiro/funcionarios", label: "Funcionários & Folha", icon: Users },
+      { path: "/workspace/contador", label: "Módulo Contábil", icon: FileText },
     ],
   },
   {
@@ -174,6 +200,9 @@ const WORKSPACE_MODULES: NavGroup[] = [
       { path: "/workspace/cms/calendario", label: "Calendário Editorial", icon: Calendar },
       { path: "/workspace/cms/stories", label: "Stories & Mídia", icon: ImageIcon },
       { path: "/workspace/cms/bio", label: "Biolink Autoral", icon: Link2 },
+      { path: "/workspace/cms/paginas", label: "Páginas Institucionais", icon: FileText },
+      { path: "/workspace/cms/navegacao", label: "Menus & Navegação", icon: Navigation },
+      { path: "/workspace/cms/avaliacoes", label: "Avaliações & Reviews", icon: Star },
       { path: "/workspace/estudio", label: "Estúdio / Builder", icon: LayoutTemplate },
       { path: "/workspace/moderacao", label: "Moderação da Comunidade", icon: ShieldAlert },
     ],
@@ -185,10 +214,24 @@ const WORKSPACE_MODULES: NavGroup[] = [
     items: [
       { path: "/workspace/configuracoes", label: "Configurações da Loja", icon: Settings },
       { path: "/workspace/lojas", label: "Minhas Lojas / Unidades", icon: Store },
+      { path: "/workspace/qualidade", label: "Curadoria & Selo de Qualidade", icon: ShieldCheck },
       { path: "/workspace/configuracoes/ai", label: "Agentes & IA", icon: Sparkles },
       { path: "/workspace/configuracoes/integracoes", label: "Integrações", icon: Link2 },
       { path: "/workspace/configuracoes/parceiros", label: "Parceiros & Fornecedores", icon: Users },
       { path: "/workspace/configuracoes/fretes/cotacoes", label: "Fretes & Logística", icon: Truck },
+    ],
+  },
+  {
+    id: "verticals",
+    label: "Verticais & Operações",
+    icon: Building2,
+    items: [
+      { path: "/workspace/eventos", label: "Eventos & Ingressos", icon: Calendar },
+      { path: "/workspace/empregos/candidatos", label: "Recrutamento (ATS)", icon: Briefcase },
+      { path: "/workspace/turismo/cotacoes", label: "Turismo & Cotações", icon: Plane },
+      { path: "/workspace/imoveis/manutencoes", label: "Manutenções & Chamados", icon: Wrench },
+      { path: "/workspace/advocacia", label: "Processos Jurídicos", icon: Scale },
+      { path: "/workspace/atendimento", label: "Central de Atendimento", icon: MessageSquare },
     ],
   },
 ];
@@ -326,7 +369,7 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
   const handleLogout = async () => {
     try {
       await signOut();
-      window.location.href = "/entrar";
+      window.location.href = "/";
     } catch (e) {
       console.error(e);
     }
@@ -443,7 +486,7 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
   return (
     <div className="flex min-h-screen bg-background text-foreground selection:bg-primary selection:text-primary-foreground font-sans relative">
       {/* ── 1. BARRA LATERAL CANÔNICA DO WORKSPACE (SEM SIDEBAR ANTIGA/GLOBAL RAIL) ── */}
-      <aside className="hidden lg:flex flex-col w-[250px] shrink-0 h-screen sticky top-0  bg-background py-4 px-3 justify-between select-none">
+      <aside className="hidden lg:flex flex-col w-[250px] shrink-0 h-screen sticky top-0 bg-background border-r border-border/60 py-4 px-3 justify-between select-none">
         <div className="space-y-4">
           {/* Seletor de Loja Ativa (Store Switcher) */}
           <div className="px-1">
@@ -453,7 +496,7 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
                   <button
                     type="button"
                     disabled={isSwitching}
-                    className="flex w-full items-center justify-between p-2 rounded-2xl  bg-card hover:bg-muted/70 transition-all text-left group cursor-pointer "
+                    className="flex w-full items-center justify-between p-2 rounded-2xl border border-border/60 bg-card hover:bg-muted/70 transition-all text-left group cursor-pointer"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20">
@@ -584,7 +627,7 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
 
       {/* ── 2. ÁREA PRINCIPAL COM HEADER OPERACIONAL DEDICADO ── */}
       <div className="flex-1 flex flex-col min-w-0 min-h-screen overflow-y-auto">
-        <header className="h-14  bg-background/90 backdrop-blur-md px-4 md:px-6 lg:px-8 flex items-center justify-between sticky top-0 z-30 shrink-0">
+        <header className="h-14 bg-background/90 backdrop-blur-md border-b border-border/60 px-4 md:px-6 lg:px-8 flex items-center justify-between sticky top-0 z-30 shrink-0">
           <div className="flex items-center gap-3">
             {/* Mobile Sheet Trigger */}
             <div className="lg:hidden">
@@ -677,7 +720,7 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="flex items-center gap-2 p-1 pl-2.5 rounded-xl  bg-card hover:bg-muted/80 transition-all cursor-pointer "
+                  className="flex items-center gap-2 p-1 pl-2.5 rounded-xl border border-border/60 bg-card hover:bg-muted/80 transition-all cursor-pointer"
                 >
                   <span className="text-xs font-bold text-foreground max-w-[120px] truncate hidden md:inline-block">
                     {userDisplayName}
@@ -691,7 +734,7 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
                 </button>
               </DropdownMenuTrigger>
 
-              <DropdownMenuContent align="end" className="w-60 rounded-2xl p-2 border-border ">
+              <DropdownMenuContent align="end" className="w-60 rounded-2xl p-2 border border-border">
                 <DropdownMenuLabel className="font-normal px-2 py-1.5">
                   <p className="text-xs font-bold text-foreground truncate">{userDisplayName}</p>
                   <p className="text-[10px] font-mono text-muted-foreground truncate">{session?.email}</p>
@@ -700,7 +743,7 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
                   </span>
                 </DropdownMenuLabel>
 
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator className="bg-border" />
 
                 <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs">
                   <Link to="/workspace/configuracoes">
@@ -716,7 +759,7 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
                   </Link>
                 </DropdownMenuItem>
 
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator className="bg-border" />
 
                 {/* Alternância Protegida para Perfil Pessoal */}
                 <DropdownMenuItem
@@ -755,7 +798,7 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
                   );
                 })()}
 
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator className="bg-border" />
 
                 <DropdownMenuItem
                   onClick={handleLogout}
@@ -776,8 +819,8 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
 
       {/* ── 3. MODAL DE CONFIRMAÇÃO DE ALTERNÂNCIA DE CONTEXTO (PROTEÇÃO RIGOROSA) ── */}
       <Dialog open={showPersonalSwitchModal} onOpenChange={setShowPersonalSwitchModal}>
-        <DialogContent className="max-w-md p-0 overflow-hidden rounded-3xl  bg-background ">
-          <DialogHeader className="p-6 pb-4  bg-muted/20">
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden sm:rounded-3xl bg-background border border-border">
+          <DialogHeader className="p-6 pb-4 bg-muted/20 border-b border-border/40">
             <div className="size-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-2 border border-primary/20">
               <ArrowRightLeft className="size-5" />
             </div>
@@ -791,7 +834,7 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
 
           <div className="p-6 space-y-4 text-xs">
             {/* Box informativo de transição de identidade */}
-            <div className="rounded-2xl  bg-muted/30 p-3.5 space-y-2">
+            <div className="rounded-2xl border border-border/60 bg-muted/30 p-3.5 space-y-2">
               <div className="flex items-center justify-between text-[11px]">
                 <span className="text-muted-foreground">Ambiente Atual:</span>
                 <span className="font-bold text-foreground">Loja {activeStore?.name || "Matriz"}</span>
@@ -808,19 +851,19 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
             </p>
           </div>
 
-          <DialogFooter className="p-4 bg-muted/20  flex items-center justify-end gap-2">
+          <DialogFooter className="p-4 bg-muted/10 border-t border-border/40 flex flex-col sm:flex-row gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => setShowPersonalSwitchModal(false)}
-              className="rounded-xl text-xs font-bold"
+              className="w-full sm:w-auto rounded-xl text-xs font-bold"
             >
               Permanecer no Painel
             </Button>
             <Button
               type="button"
               onClick={confirmSwitchToPersonal}
-              className="rounded-xl text-xs font-bold gap-1.5"
+              className="w-full sm:w-auto rounded-xl text-xs font-bold gap-1.5"
             >
               <Check className="size-3.5" />
               <span>Sim, alternar para {userDisplayName}</span>

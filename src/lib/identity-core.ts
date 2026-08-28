@@ -43,20 +43,23 @@ export function assertStoreAccess(
   allowedRoles: readonly string[] | string[] = STAFF_ROLES,
 ): asserts identity is ServerIdentity & { id: string; store_id: string } {
   if (!identity.id) {
-    throw new Error("Não autorizado. Faça login para continuar.");
+    throw new Error("Unauthorized: User not authenticated.");
+  }
+
+  if (!identity.store_id) {
+    if (identity.memberships?.[0]?.store_id) {
+      (identity as any).store_id = identity.memberships[0].store_id;
+    } else {
+      throw new Error("Unauthorized: No active store context found.");
+    }
   }
 
   if (identity.role === "platform_admin" || identity.role === "master") {
-    if (!identity.store_id) {
-      (identity as any).store_id = "00000000-0000-0000-0000-000000000001";
-    }
-    return;
+    return; // Global admins have access
   }
 
-  if (
-    !identity.store_id ||
-    !(allowedRoles as readonly string[]).includes(identity.role)
-  ) {
-    throw new Error("Não autorizado. Requer permissão de equipe na loja.");
+  if (!(allowedRoles as readonly string[]).includes(identity.role)) {
+    throw new Error(`Unauthorized: Insufficient role (${identity.role}). Required one of: ${allowedRoles.join(", ")}`);
   }
 }
+

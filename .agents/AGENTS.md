@@ -77,15 +77,20 @@ Antes de escrever qualquer linha de código, você DEVE ativar a skill `bigtech-
    Nunca confie no `tenant_id` ou `store_id` vindo do frontend ou payload do cliente em mutações destrutivas ou de permissão cruzada. O BFF (`services/`) deve derivar a identidade a partir da sessão segura (Supabase JWT/RLS) via `getServerIdentity()`.
 9. **Edição em Profundidades.**
    Siga a taxonomia: Edição de Célula (inline edit, rápido e atômico), Edição de Linha (pequenos grupos), Edição Lateral (Side-panel para preservar o contexto da lista) e Edição Completa (Página inteira com _Truthful Preview_ lateral).
-10. **Completude Quádrupla Obrigatória (Proibição Total de Mocks e Features Fantasmas).**
-    É expressamente PROIBIDO criar botões, formulários ou triggers na interface que apenas emitam `toast()` simulado sem persistência real no banco de dados. Qualquer nova funcionalidade DEVE conter obrigatoriamente as 4 Camadas de Completude:
+10. **Completude Séptupla Obrigatória (Proibição Total de Mocks e Features Fantasmas).**
+    É expressamente PROIBIDO criar botões, formulários ou triggers na interface que apenas emitam `toast()` simulado sem persistência real no banco de dados. Qualquer funcionalidade DEVE conter obrigatoriamente as 7 Camadas de Completude:
     - **Camada 1 (Banco de Dados):** Tabela, colunas, índices, constraints e RLS deny-by-default via migration aplicada.
     - **Camada 2 (BFF & Contratos):** Server Functions (`createServerFn`) com schema Zod rigoroso e checagem de autoridade por sessão.
     - **Camada 3 (UI de Ação):** Componente interativo (Modal/Sheet/Formulário) com feedback real, estados de loading, erro e validação.
     - **Camada 4 (Superfície de Gestão/Governança):** Painel operacional no Workspace/Admin para consulta, curadoria, auditoria e reversão das ações geradas.
-      Se qualquer uma dessas 4 camadas faltar, a tarefa está INCOMPLETA e é considerada FALHA GRAVE.
+    - **Camada 5 (Higiene Visual Anti-AI Smell):** Silêncio visual absoluto — proibição total de caixas conversacionais ("Bem-vindo ao..."), ausência de spam de ícones decorativos e sem títulos prolixos óbvios.
+    - **Camada 6 (Ergonomia Cognitiva dos 3 Toques):** Qualquer objetivo central do usuário (Comprar, Agendar, Encontrar um local) DEVE ser concluído em no máximo **3 toques do polegar** (baseado nos estudos de usabilidade da Nielsen Norman Group e Google Search UX).
+    - **Camada 7 (Fluidez & Zero Layout Shift):** Touch targets mínimos de 44px, tipografia com `clamp()`, ausência de FOUC e prevenção estrita de "efeito sanfona" através de containers unificados (`max-w-6xl` ou `max-w-7xl`).
+      Se qualquer uma dessas 7 camadas faltar, a tarefa está INCOMPLETA e é considerada FALHA GRAVE.
 11. **Silêncio Visual e Ausência de Títulos Prolixos na Vitrine Pública (Obrigatório).**
     Páginas públicas de vitrine e descoberta (Home, Mercado, Notícias, Agenda, Turismo, Diretório, Classificados) NUNCA devem ter blocos prolixos de título/descrição de boas-vindas ("Bem-vindo ao Mercado Central..."), nem títulos redundantes de seção (`<h2>`, `<h3>`) competindo com os cards e carrosséis. A interface deve ser direta e autoexplicativa: Banners imersivos, Chips de navegação rápida, `DiscoveryControlBar` e trilhos horizontais com snap scroll. No componente `HorizontalRail`, use a prop `hideHeader={true}` para renderizar apenas os carrosséis de produtos/lojas/destaques de forma limpa, mantendo a `aria-label` semântica para acessibilidade.
+12. **Arquitetura dos 3 Toques & Zona do Polegar (Nielsen Norman & Apple HIG).**
+    Toda a experiência de compra, busca e agendamento deve colocar as ações primárias fixas no terço inferior da tela móvel (`Thumb Zone`), com alvos de toque mínimos de 44x44px (`h-11`) e preenchimento de formulário/endereço em no máximo 3 toques a partir do produto.
 
 ## Fase Atual de Desenvolvimento
 

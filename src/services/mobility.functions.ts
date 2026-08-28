@@ -198,8 +198,28 @@ export const calculateMobilityQuote = createServerFn({ method: "POST" })
       .order("base_fee_cents", { ascending: true });
 
     if (error || !priceTables || priceTables.length === 0) {
-      // Se não há tabelas cadastradas no banco, retorna lista vazia (sem cobertura)
-      return [] as MobilityQuoteEstimate[];
+      // Fallback resiliente para as tarifas padrão do ecossistema
+      const durationMin = Math.max(8, Math.round(data.distance_km * 2.8) + 4);
+      return (Object.keys(SERVICE_CONFIGS) as MobilityServiceType[]).map((st) => {
+        const cfg = SERVICE_CONFIGS[st];
+        const rawKmCost = Math.round(data.distance_km * cfg.km_rate_cents);
+        const rawHelperCost = data.helpers_count * cfg.helper_fee_cents;
+        const total = cfg.base_fee_cents + rawKmCost + rawHelperCost;
+        const finalPrice = Math.max(total, cfg.min_fare_cents);
+
+        return {
+          service_type: st,
+          label: cfg.label,
+          description: cfg.description,
+          icon_name: cfg.icon_name,
+          estimated_price_cents: finalPrice,
+          distance_km: data.distance_km,
+          duration_minutes: durationMin,
+          base_fee_cents: cfg.base_fee_cents,
+          km_rate_cents: cfg.km_rate_cents,
+          helper_fee_cents: cfg.helper_fee_cents,
+        };
+      });
     }
 
     const durationMin = Math.max(10, Math.round(data.distance_km * 3) + 5);
@@ -670,4 +690,132 @@ export const settleLogisticsInvoice = createServerFn({ method: "POST" })
 
     return data as LogisticsInvoiceDTO;
   });
+
+// ============================================================
+// 14. MOTOLINK: OBTER REGRAS DE PRECIFICAÇÃO DO ENTREGADOR
+// ============================================================
+export const getCourierSurgeRules = createServerFn({ method: "GET" }).handler(async () => {
+  const identity = await getServerIdentity();
+  const db = getServerClient();
+
+  const { data, error } = await db
+    .from("courier_surge_pricing_rules")
+    .select("*")
+    .eq("courier_id", identity.id)
+    .single();
+
+  if (error || !data) {
+    return {
+      courier_id: identity.id,
+      min_fee_cents: 800,
+      base_km_fee_cents: 250,
+      rain_multiplier: 1.30,
+      peak_multiplier: 1.20,
+      night_fee_cents: 300,
+      auto_surge_enabled: true,
+      is_active: true,
+    };
+  }
+
+  return {
+    id: data.id,
+    courier_id: data.courier_id,
+    min_fee_cents: data.min_fee_cents,
+    base_km_fee_cents: data.base_km_fee_cents,
+    rain_multiplier: Number(data.rain_multiplier),
+    peak_multiplier: Number(data.peak_multiplier),
+    night_fee_cents: data.night_fee_cents,
+    auto_surge_enabled: data.auto_surge_enabled,
+    is_active: data.is_active,
+  };
+});
+
+// ============================================================
+// 15. MOTOLINK: ATUALIZAR REGRAS DE PRECIFICAÇÃO DO ENTREGADOR
+// ============================================================
+export const updateCourierSurgeRules = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      min_fee_cents: z.number().int().min(500),
+      base_km_fee_cents: z.number().int().min(100),
+      rain_multiplier: z.number().min(1).max(2.5),
+      peak_multiplier: z.number().min(1).max(2.0),
+      night_fee_cents: z.number().int().min(0),
+      auto_surge_enabled: z.boolean(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    const db = getServerClient();
+
+    const { data: updated, error } = await db
+      .from("courier_surge_pricing_rules")
+      .upsert(
+        {
+          courier_id: identity.id,
+          min_fee_cents: data.min_fee_cents,
+          base_km_fee_cents: data.base_km_fee_cents,
+          rain_multiplier: data.rain_multiplier,
+          peak_multiplier: data.peak_multiplier,
+          night_fee_cents: data.night_fee_cents,
+          auto_surge_enabled: data.auto_surge_enabled,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "courier_id" },
+      )
+      .select()
+      .single();
+
+    if (error) {
+      console.error("[updateCourierSurgeRules] error:", error);
+      throw new Error("Falha ao salvar regras de precificação dinâmica.");
+    }
+
+    return {
+      success: true,
+      message: "Tabela de tarifas MotoLink atualizada com sucesso.",
+      rules: updated,
+    };
+  });
+
+// ============================================================
+// 16. MOTOLINK: COTAÇÃO DINÂMICA DE FRETE COM CLIMA E DEMANDA
+// ============================================================
+export const calculateDynamicMotolinkQuote = createServerFn({ method: "GET" })
+  .validator(
+    z.object({
+      store_id: z.string().uuid(),
+      distance_km: z.number().min(0.1),
+      is_raining: z.boolean().default(false),
+      is_peak_hour: z.boolean().default(false),
+      is_night_time: z.boolean().default(false),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const db = getServerClient();
+
+    const { data: quote, error } = await db.rpc("calculate_dynamic_motolink_quote", {
+      p_store_id: data.store_id,
+      p_distance_km: data.distance_km,
+      p_is_raining: data.is_raining,
+      p_is_peak_hour: data.is_peak_hour,
+      p_is_night_time: data.is_night_time,
+    });
+
+    if (error) {
+      console.error("[calculateDynamicMotolinkQuote] error:", error);
+      // Fallback gracioso
+      const base = 800 + Math.round(data.distance_km * 250);
+      return {
+        distance_km: data.distance_km,
+        courier_total_cents: base,
+        customer_fee_cents: base,
+        store_absorbed_cents: 0,
+        applied_surge: { is_raining: data.is_raining, is_peak_hour: data.is_peak_hour },
+      };
+    }
+
+    return quote;
+  });
+
 

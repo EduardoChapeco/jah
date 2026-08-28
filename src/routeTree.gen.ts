@@ -56,8 +56,10 @@ import { Route as StoreTermosRouteImport } from './routes/_store.termos'
 import { Route as StoreTrocasEDevolucoesRouteImport } from './routes/_store.trocas-e-devolucoes'
 import { Route as StoreTurismoRouteImport } from './routes/_store.turismo'
 import { Route as AdminMasterIndexRouteImport } from './routes/admin-master.index'
+import { Route as AdminMasterAlgoritmoRouteImport } from './routes/admin-master.algoritmo'
 import { Route as AdminMasterBannersRouteImport } from './routes/admin-master.banners'
 import { Route as AdminMasterBotoesRouteImport } from './routes/admin-master.botoes'
+import { Route as AdminMasterCuradoriaRouteImport } from './routes/admin-master.curadoria'
 import { Route as AdminMasterDenunciasRouteImport } from './routes/admin-master.denuncias'
 import { Route as AdminMasterFaturasRouteImport } from './routes/admin-master.faturas'
 import { Route as AdminMasterHubsRouteImport } from './routes/admin-master.hubs'
@@ -66,11 +68,18 @@ import { Route as AdminMasterKycRouteImport } from './routes/admin-master.kyc'
 import { Route as AdminMasterLogisticaRouteImport } from './routes/admin-master.logistica'
 import { Route as AdminMasterLojasRouteImport } from './routes/admin-master.lojas'
 import { Route as AdminMasterMarcaRouteImport } from './routes/admin-master.marca'
+import { Route as AdminMasterMiningRouteImport } from './routes/admin-master.mining'
+import { Route as AdminMasterSimlabsRouteImport } from './routes/admin-master.simlabs'
 import { Route as AdminMasterTermosRouteImport } from './routes/admin-master.termos'
+import { Route as AdminMasterTokensRouteImport } from './routes/admin-master.tokens'
 import { Route as AdminMasterUsuariosRouteImport } from './routes/admin-master.usuarios'
+import { Route as AdminMasterVitrinesRouteImport } from './routes/admin-master.vitrines'
 import { Route as AssinarTokenRouteImport } from './routes/assinar.$token'
+import { Route as AssinaturaTokenRouteImport } from './routes/assinatura.$token'
 import { Route as WorkspaceIndexRouteImport } from './routes/workspace.index'
+import { Route as WorkspaceQualidadeRouteImport } from './routes/workspace.qualidade'
 import { Route as WorkspaceSimulacaoRouteImport } from './routes/workspace.simulacao'
+import { Route as WorkspaceTokensRouteImport } from './routes/workspace.tokens'
 import { Route as StoreAgendarIndexRouteImport } from './routes/_store.agendar.index'
 import { Route as StoreBioSlugRouteImport } from './routes/_store.bio.$slug'
 import { Route as StoreCategoriaSlugRouteImport } from './routes/_store.categoria.$slug'
@@ -92,9 +101,12 @@ import { Route as StoreContaNotificacoesRouteImport } from './routes/_store.cont
 import { Route as StoreContaPacotesRouteImport } from './routes/_store.conta.pacotes'
 import { Route as StoreContaPagamentosRouteImport } from './routes/_store.conta.pagamentos'
 import { Route as StoreContaPerfilRouteImport } from './routes/_store.conta.perfil'
+import { Route as StoreContaProcessosRouteImport } from './routes/_store.conta.processos'
 import { Route as StoreContaSalvosRouteImport } from './routes/_store.conta.salvos'
 import { Route as StoreContaSuporteRouteImport } from './routes/_store.conta.suporte'
+import { Route as StoreContaTokensRouteImport } from './routes/_store.conta.tokens'
 import { Route as StoreContaTrocasRouteImport } from './routes/_store.conta.trocas'
+import { Route as StoreContaVerificacaoRouteImport } from './routes/_store.conta.verificacao'
 import { Route as StoreContaViagensRouteImport } from './routes/_store.conta.viagens'
 import { Route as StoreDestaquesSlugRouteImport } from './routes/_store.destaques.$slug'
 import { Route as StoreDiretorioIndexRouteImport } from './routes/_store.diretorio.index'
@@ -118,10 +130,13 @@ import { Route as StoreVendedoraSlugRouteImport } from './routes/_store.vendedor
 import { Route as ApiAuthCallbackRouteImport } from './routes/api.auth.callback'
 import { Route as ApiAuthConfirmRouteImport } from './routes/api.auth.confirm'
 import { Route as ApiFeedXmlRouteImport } from './routes/api.feed.xml'
+import { Route as ApiWebhooksPixRouteImport } from './routes/api.webhooks.pix'
 import { Route as ApiWebhooksShipmentRouteImport } from './routes/api.webhooks.shipment'
 import { Route as VerifyDocumentCodeRouteImport } from './routes/verify.document.$code'
+import { Route as WorkspaceAdvocaciaIndexRouteImport } from './routes/workspace.advocacia.index'
 import { Route as WorkspaceAgendaIndexRouteImport } from './routes/workspace.agenda.index'
 import { Route as WorkspaceAgendaRecursosRouteImport } from './routes/workspace.agenda.recursos'
+import { Route as WorkspaceAtendimentoIndexRouteImport } from './routes/workspace.atendimento.index'
 import { Route as WorkspaceCatalogoAtributosRouteImport } from './routes/workspace.catalogo.atributos'
 import { Route as WorkspaceCatalogoTabelasRouteImport } from './routes/workspace.catalogo.tabelas'
 import { Route as WorkspaceCatalogoTiposRouteImport } from './routes/workspace.catalogo.tipos'
@@ -136,6 +151,9 @@ import { Route as WorkspaceConfiguracoesIndexRouteImport } from './routes/worksp
 import { Route as WorkspaceConfiguracoesAiRouteImport } from './routes/workspace.configuracoes.ai'
 import { Route as WorkspaceConfiguracoesIntegracoesRouteImport } from './routes/workspace.configuracoes.integracoes'
 import { Route as WorkspaceConfiguracoesParceirosRouteImport } from './routes/workspace.configuracoes.parceiros'
+import { Route as WorkspaceContadorIndexRouteImport } from './routes/workspace.contador.index'
+import { Route as WorkspaceContratosIndexRouteImport } from './routes/workspace.contratos.index'
+import { Route as WorkspaceContratosNovoRouteImport } from './routes/workspace.contratos.novo'
 import { Route as WorkspaceEmpregosCandidatosRouteImport } from './routes/workspace.empregos.candidatos'
 import { Route as WorkspaceEstoqueIndexRouteImport } from './routes/workspace.estoque.index'
 import { Route as WorkspaceEstoqueAlertasRouteImport } from './routes/workspace.estoque.alertas'
@@ -148,6 +166,7 @@ import { Route as WorkspaceFinanceiroComissoesRouteImport } from './routes/works
 import { Route as WorkspaceFinanceiroComprovantesRouteImport } from './routes/workspace.financeiro.comprovantes'
 import { Route as WorkspaceFinanceiroFuncionariosRouteImport } from './routes/workspace.financeiro.funcionarios'
 import { Route as WorkspaceFinanceiroPagamentosRouteImport } from './routes/workspace.financeiro.pagamentos'
+import { Route as WorkspaceFinanceiroRecebiveisRouteImport } from './routes/workspace.financeiro.recebiveis'
 import { Route as WorkspaceImoveisManutencoesRouteImport } from './routes/workspace.imoveis.manutencoes'
 import { Route as WorkspaceLogisticaFaturasRouteImport } from './routes/workspace.logistica.faturas'
 import { Route as WorkspaceLogisticaPudoRouteImport } from './routes/workspace.logistica.pudo'
@@ -161,7 +180,9 @@ import { Route as WorkspaceMarketingHotpagesRouteImport } from './routes/workspa
 import { Route as WorkspaceMarketingPatrocinadoresRouteImport } from './routes/workspace.marketing.patrocinadores'
 import { Route as WorkspaceMarketingPromocoesRouteImport } from './routes/workspace.marketing.promocoes'
 import { Route as WorkspaceMarketingTelemetriaRouteImport } from './routes/workspace.marketing.telemetria'
+import { Route as WorkspaceMarketingVitrineRouteImport } from './routes/workspace.marketing.vitrine'
 import { Route as WorkspaceModeracaoIndexRouteImport } from './routes/workspace.moderacao.index'
+import { Route as WorkspaceModeracaoKycRouteImport } from './routes/workspace.moderacao.kyc'
 import { Route as WorkspaceNoticiasIndexRouteImport } from './routes/workspace.noticias.index'
 import { Route as WorkspaceNoticiasNovoRouteImport } from './routes/workspace.noticias.novo'
 import { Route as WorkspaceOrcamentosIndexRouteImport } from './routes/workspace.orcamentos.index'
@@ -170,6 +191,7 @@ import { Route as WorkspaceOrcamentosNovoRouteImport } from './routes/workspace.
 import { Route as WorkspacePacotesIndexRouteImport } from './routes/workspace.pacotes.index'
 import { Route as WorkspacePdvIndexRouteImport } from './routes/workspace.pdv.index'
 import { Route as WorkspacePdvComandasRouteImport } from './routes/workspace.pdv.comandas'
+import { Route as WorkspacePdvCozinhaRouteImport } from './routes/workspace.pdv.cozinha'
 import { Route as WorkspacePedidosIndexRouteImport } from './routes/workspace.pedidos.index'
 import { Route as WorkspacePedidosIdRouteImport } from './routes/workspace.pedidos.$id'
 import { Route as WorkspacePedidosFrotaRouteImport } from './routes/workspace.pedidos.frota'
@@ -195,6 +217,7 @@ import { Route as WorkspaceCatalogoProdutosIdRouteImport } from './routes/worksp
 import { Route as WorkspaceCatalogoProdutosNovoRouteImport } from './routes/workspace.catalogo.produtos.novo'
 import { Route as WorkspaceCmsPaginasIndexRouteImport } from './routes/workspace.cms.paginas.index'
 import { Route as WorkspaceConfiguracoesFretesCotacoesRouteImport } from './routes/workspace.configuracoes.fretes.cotacoes'
+import { Route as WorkspaceContratosIdEditorRouteImport } from './routes/workspace.contratos.$id.editor'
 import { Route as WorkspaceEventosIdCheckinRouteImport } from './routes/workspace.eventos.$id.checkin'
 import { Route as WorkspaceFinanceiroCaixaIndexRouteImport } from './routes/workspace.financeiro.caixa.index'
 import { Route as WorkspaceFinanceiroCaixaLancamentosRouteImport } from './routes/workspace.financeiro.caixa.lancamentos'
@@ -439,6 +462,11 @@ const AdminMasterIndexRoute = AdminMasterIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminMasterRoute,
 } as any)
+const AdminMasterAlgoritmoRoute = AdminMasterAlgoritmoRouteImport.update({
+  id: '/algoritmo',
+  path: '/algoritmo',
+  getParentRoute: () => AdminMasterRoute,
+} as any)
 const AdminMasterBannersRoute = AdminMasterBannersRouteImport.update({
   id: '/banners',
   path: '/banners',
@@ -447,6 +475,11 @@ const AdminMasterBannersRoute = AdminMasterBannersRouteImport.update({
 const AdminMasterBotoesRoute = AdminMasterBotoesRouteImport.update({
   id: '/botoes',
   path: '/botoes',
+  getParentRoute: () => AdminMasterRoute,
+} as any)
+const AdminMasterCuradoriaRoute = AdminMasterCuradoriaRouteImport.update({
+  id: '/curadoria',
+  path: '/curadoria',
   getParentRoute: () => AdminMasterRoute,
 } as any)
 const AdminMasterDenunciasRoute = AdminMasterDenunciasRouteImport.update({
@@ -489,9 +522,24 @@ const AdminMasterMarcaRoute = AdminMasterMarcaRouteImport.update({
   path: '/marca',
   getParentRoute: () => AdminMasterRoute,
 } as any)
+const AdminMasterMiningRoute = AdminMasterMiningRouteImport.update({
+  id: '/mining',
+  path: '/mining',
+  getParentRoute: () => AdminMasterRoute,
+} as any)
+const AdminMasterSimlabsRoute = AdminMasterSimlabsRouteImport.update({
+  id: '/simlabs',
+  path: '/simlabs',
+  getParentRoute: () => AdminMasterRoute,
+} as any)
 const AdminMasterTermosRoute = AdminMasterTermosRouteImport.update({
   id: '/termos',
   path: '/termos',
+  getParentRoute: () => AdminMasterRoute,
+} as any)
+const AdminMasterTokensRoute = AdminMasterTokensRouteImport.update({
+  id: '/tokens',
+  path: '/tokens',
   getParentRoute: () => AdminMasterRoute,
 } as any)
 const AdminMasterUsuariosRoute = AdminMasterUsuariosRouteImport.update({
@@ -499,9 +547,19 @@ const AdminMasterUsuariosRoute = AdminMasterUsuariosRouteImport.update({
   path: '/usuarios',
   getParentRoute: () => AdminMasterRoute,
 } as any)
+const AdminMasterVitrinesRoute = AdminMasterVitrinesRouteImport.update({
+  id: '/vitrines',
+  path: '/vitrines',
+  getParentRoute: () => AdminMasterRoute,
+} as any)
 const AssinarTokenRoute = AssinarTokenRouteImport.update({
   id: '/assinar/$token',
   path: '/assinar/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AssinaturaTokenRoute = AssinaturaTokenRouteImport.update({
+  id: '/assinatura/$token',
+  path: '/assinatura/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WorkspaceIndexRoute = WorkspaceIndexRouteImport.update({
@@ -509,9 +567,19 @@ const WorkspaceIndexRoute = WorkspaceIndexRouteImport.update({
   path: '/',
   getParentRoute: () => WorkspaceRoute,
 } as any)
+const WorkspaceQualidadeRoute = WorkspaceQualidadeRouteImport.update({
+  id: '/qualidade',
+  path: '/qualidade',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
 const WorkspaceSimulacaoRoute = WorkspaceSimulacaoRouteImport.update({
   id: '/simulacao',
   path: '/simulacao',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
+const WorkspaceTokensRoute = WorkspaceTokensRouteImport.update({
+  id: '/tokens',
+  path: '/tokens',
   getParentRoute: () => WorkspaceRoute,
 } as any)
 const StoreAgendarIndexRoute = StoreAgendarIndexRouteImport.update({
@@ -619,6 +687,11 @@ const StoreContaPerfilRoute = StoreContaPerfilRouteImport.update({
   path: '/perfil',
   getParentRoute: () => StoreContaRoute,
 } as any)
+const StoreContaProcessosRoute = StoreContaProcessosRouteImport.update({
+  id: '/processos',
+  path: '/processos',
+  getParentRoute: () => StoreContaRoute,
+} as any)
 const StoreContaSalvosRoute = StoreContaSalvosRouteImport.update({
   id: '/salvos',
   path: '/salvos',
@@ -629,9 +702,19 @@ const StoreContaSuporteRoute = StoreContaSuporteRouteImport.update({
   path: '/suporte',
   getParentRoute: () => StoreContaRoute,
 } as any)
+const StoreContaTokensRoute = StoreContaTokensRouteImport.update({
+  id: '/tokens',
+  path: '/tokens',
+  getParentRoute: () => StoreContaRoute,
+} as any)
 const StoreContaTrocasRoute = StoreContaTrocasRouteImport.update({
   id: '/trocas',
   path: '/trocas',
+  getParentRoute: () => StoreContaRoute,
+} as any)
+const StoreContaVerificacaoRoute = StoreContaVerificacaoRouteImport.update({
+  id: '/verificacao',
+  path: '/verificacao',
   getParentRoute: () => StoreContaRoute,
 } as any)
 const StoreContaViagensRoute = StoreContaViagensRouteImport.update({
@@ -749,6 +832,11 @@ const ApiFeedXmlRoute = ApiFeedXmlRouteImport.update({
   path: '/api/feed/xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiWebhooksPixRoute = ApiWebhooksPixRouteImport.update({
+  id: '/api/webhooks/pix',
+  path: '/api/webhooks/pix',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiWebhooksShipmentRoute = ApiWebhooksShipmentRouteImport.update({
   id: '/api/webhooks/shipment',
   path: '/api/webhooks/shipment',
@@ -758,6 +846,11 @@ const VerifyDocumentCodeRoute = VerifyDocumentCodeRouteImport.update({
   id: '/verify/document/$code',
   path: '/verify/document/$code',
   getParentRoute: () => rootRouteImport,
+} as any)
+const WorkspaceAdvocaciaIndexRoute = WorkspaceAdvocaciaIndexRouteImport.update({
+  id: '/advocacia/',
+  path: '/advocacia/',
+  getParentRoute: () => WorkspaceRoute,
 } as any)
 const WorkspaceAgendaIndexRoute = WorkspaceAgendaIndexRouteImport.update({
   id: '/agenda/',
@@ -769,6 +862,12 @@ const WorkspaceAgendaRecursosRoute = WorkspaceAgendaRecursosRouteImport.update({
   path: '/agenda/recursos',
   getParentRoute: () => WorkspaceRoute,
 } as any)
+const WorkspaceAtendimentoIndexRoute =
+  WorkspaceAtendimentoIndexRouteImport.update({
+    id: '/atendimento/',
+    path: '/atendimento/',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
 const WorkspaceCatalogoAtributosRoute =
   WorkspaceCatalogoAtributosRouteImport.update({
     id: '/catalogo/atributos',
@@ -845,6 +944,21 @@ const WorkspaceConfiguracoesParceirosRoute =
     path: '/configuracoes/parceiros',
     getParentRoute: () => WorkspaceRoute,
   } as any)
+const WorkspaceContadorIndexRoute = WorkspaceContadorIndexRouteImport.update({
+  id: '/contador/',
+  path: '/contador/',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
+const WorkspaceContratosIndexRoute = WorkspaceContratosIndexRouteImport.update({
+  id: '/contratos/',
+  path: '/contratos/',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
+const WorkspaceContratosNovoRoute = WorkspaceContratosNovoRouteImport.update({
+  id: '/contratos/novo',
+  path: '/contratos/novo',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
 const WorkspaceEmpregosCandidatosRoute =
   WorkspaceEmpregosCandidatosRouteImport.update({
     id: '/empregos/candidatos',
@@ -910,6 +1024,12 @@ const WorkspaceFinanceiroPagamentosRoute =
   WorkspaceFinanceiroPagamentosRouteImport.update({
     id: '/financeiro/pagamentos',
     path: '/financeiro/pagamentos',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
+const WorkspaceFinanceiroRecebiveisRoute =
+  WorkspaceFinanceiroRecebiveisRouteImport.update({
+    id: '/financeiro/recebiveis',
+    path: '/financeiro/recebiveis',
     getParentRoute: () => WorkspaceRoute,
   } as any)
 const WorkspaceImoveisManutencoesRoute =
@@ -988,9 +1108,20 @@ const WorkspaceMarketingTelemetriaRoute =
     path: '/marketing/telemetria',
     getParentRoute: () => WorkspaceRoute,
   } as any)
+const WorkspaceMarketingVitrineRoute =
+  WorkspaceMarketingVitrineRouteImport.update({
+    id: '/marketing/vitrine',
+    path: '/marketing/vitrine',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
 const WorkspaceModeracaoIndexRoute = WorkspaceModeracaoIndexRouteImport.update({
   id: '/moderacao/',
   path: '/moderacao/',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
+const WorkspaceModeracaoKycRoute = WorkspaceModeracaoKycRouteImport.update({
+  id: '/moderacao/kyc',
+  path: '/moderacao/kyc',
   getParentRoute: () => WorkspaceRoute,
 } as any)
 const WorkspaceNoticiasIndexRoute = WorkspaceNoticiasIndexRouteImport.update({
@@ -1032,6 +1163,11 @@ const WorkspacePdvIndexRoute = WorkspacePdvIndexRouteImport.update({
 const WorkspacePdvComandasRoute = WorkspacePdvComandasRouteImport.update({
   id: '/pdv/comandas',
   path: '/pdv/comandas',
+  getParentRoute: () => WorkspaceRoute,
+} as any)
+const WorkspacePdvCozinhaRoute = WorkspacePdvCozinhaRouteImport.update({
+  id: '/pdv/cozinha',
+  path: '/pdv/cozinha',
   getParentRoute: () => WorkspaceRoute,
 } as any)
 const WorkspacePedidosIndexRoute = WorkspacePedidosIndexRouteImport.update({
@@ -1176,6 +1312,12 @@ const WorkspaceConfiguracoesFretesCotacoesRoute =
     path: '/configuracoes/fretes/cotacoes',
     getParentRoute: () => WorkspaceRoute,
   } as any)
+const WorkspaceContratosIdEditorRoute =
+  WorkspaceContratosIdEditorRouteImport.update({
+    id: '/contratos/$id/editor',
+    path: '/contratos/$id/editor',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
 const WorkspaceEventosIdCheckinRoute =
   WorkspaceEventosIdCheckinRouteImport.update({
     id: '/checkin',
@@ -1277,8 +1419,10 @@ export interface FileRoutesByFullPath {
   '/termos': typeof StoreTermosRoute
   '/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
   '/turismo': typeof StoreTurismoRouteWithChildren
+  '/admin-master/algoritmo': typeof AdminMasterAlgoritmoRoute
   '/admin-master/banners': typeof AdminMasterBannersRoute
   '/admin-master/botoes': typeof AdminMasterBotoesRoute
+  '/admin-master/curadoria': typeof AdminMasterCuradoriaRoute
   '/admin-master/denuncias': typeof AdminMasterDenunciasRoute
   '/admin-master/faturas': typeof AdminMasterFaturasRoute
   '/admin-master/hubs': typeof AdminMasterHubsRoute
@@ -1287,10 +1431,17 @@ export interface FileRoutesByFullPath {
   '/admin-master/logistica': typeof AdminMasterLogisticaRoute
   '/admin-master/lojas': typeof AdminMasterLojasRoute
   '/admin-master/marca': typeof AdminMasterMarcaRoute
+  '/admin-master/mining': typeof AdminMasterMiningRoute
+  '/admin-master/simlabs': typeof AdminMasterSimlabsRoute
   '/admin-master/termos': typeof AdminMasterTermosRoute
+  '/admin-master/tokens': typeof AdminMasterTokensRoute
   '/admin-master/usuarios': typeof AdminMasterUsuariosRoute
+  '/admin-master/vitrines': typeof AdminMasterVitrinesRoute
   '/assinar/$token': typeof AssinarTokenRoute
+  '/assinatura/$token': typeof AssinaturaTokenRoute
+  '/workspace/qualidade': typeof WorkspaceQualidadeRoute
   '/workspace/simulacao': typeof WorkspaceSimulacaoRoute
+  '/workspace/tokens': typeof WorkspaceTokensRoute
   '/admin-master/': typeof AdminMasterIndexRoute
   '/workspace/': typeof WorkspaceIndexRoute
   '/bio/$slug': typeof StoreBioSlugRoute
@@ -1311,9 +1462,12 @@ export interface FileRoutesByFullPath {
   '/conta/pacotes': typeof StoreContaPacotesRoute
   '/conta/pagamentos': typeof StoreContaPagamentosRoute
   '/conta/perfil': typeof StoreContaPerfilRoute
+  '/conta/processos': typeof StoreContaProcessosRoute
   '/conta/salvos': typeof StoreContaSalvosRoute
   '/conta/suporte': typeof StoreContaSuporteRoute
+  '/conta/tokens': typeof StoreContaTokensRoute
   '/conta/trocas': typeof StoreContaTrocasRoute
+  '/conta/verificacao': typeof StoreContaVerificacaoRoute
   '/conta/viagens': typeof StoreContaViagensRoute
   '/destaques/$slug': typeof StoreDestaquesSlugRoute
   '/diretorio/$id': typeof StoreDiretorioIdRoute
@@ -1333,6 +1487,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/callback': typeof ApiAuthCallbackRoute
   '/api/auth/confirm': typeof ApiAuthConfirmRoute
   '/api/feed/xml': typeof ApiFeedXmlRoute
+  '/api/webhooks/pix': typeof ApiWebhooksPixRoute
   '/api/webhooks/shipment': typeof ApiWebhooksShipmentRoute
   '/verify/document/$code': typeof VerifyDocumentCodeRoute
   '/workspace/agenda/recursos': typeof WorkspaceAgendaRecursosRoute
@@ -1348,6 +1503,7 @@ export interface FileRoutesByFullPath {
   '/workspace/configuracoes/ai': typeof WorkspaceConfiguracoesAiRoute
   '/workspace/configuracoes/integracoes': typeof WorkspaceConfiguracoesIntegracoesRoute
   '/workspace/configuracoes/parceiros': typeof WorkspaceConfiguracoesParceirosRoute
+  '/workspace/contratos/novo': typeof WorkspaceContratosNovoRoute
   '/workspace/empregos/candidatos': typeof WorkspaceEmpregosCandidatosRoute
   '/workspace/estoque/alertas': typeof WorkspaceEstoqueAlertasRoute
   '/workspace/estoque/movimentos': typeof WorkspaceEstoqueMovimentosRoute
@@ -1357,6 +1513,7 @@ export interface FileRoutesByFullPath {
   '/workspace/financeiro/comprovantes': typeof WorkspaceFinanceiroComprovantesRoute
   '/workspace/financeiro/funcionarios': typeof WorkspaceFinanceiroFuncionariosRoute
   '/workspace/financeiro/pagamentos': typeof WorkspaceFinanceiroPagamentosRoute
+  '/workspace/financeiro/recebiveis': typeof WorkspaceFinanceiroRecebiveisRoute
   '/workspace/imoveis/manutencoes': typeof WorkspaceImoveisManutencoesRoute
   '/workspace/logistica/faturas': typeof WorkspaceLogisticaFaturasRoute
   '/workspace/logistica/pudo': typeof WorkspaceLogisticaPudoRoute
@@ -1369,10 +1526,13 @@ export interface FileRoutesByFullPath {
   '/workspace/marketing/patrocinadores': typeof WorkspaceMarketingPatrocinadoresRoute
   '/workspace/marketing/promocoes': typeof WorkspaceMarketingPromocoesRoute
   '/workspace/marketing/telemetria': typeof WorkspaceMarketingTelemetriaRoute
+  '/workspace/marketing/vitrine': typeof WorkspaceMarketingVitrineRoute
+  '/workspace/moderacao/kyc': typeof WorkspaceModeracaoKycRoute
   '/workspace/noticias/novo': typeof WorkspaceNoticiasNovoRoute
   '/workspace/orcamentos/$id': typeof WorkspaceOrcamentosIdRoute
   '/workspace/orcamentos/novo': typeof WorkspaceOrcamentosNovoRoute
   '/workspace/pdv/comandas': typeof WorkspacePdvComandasRoute
+  '/workspace/pdv/cozinha': typeof WorkspacePdvCozinhaRoute
   '/workspace/pedidos/$id': typeof WorkspacePedidosIdRoute
   '/workspace/pedidos/frota': typeof WorkspacePedidosFrotaRoute
   '/workspace/pedidos/gestor': typeof WorkspacePedidosGestorRoute
@@ -1385,9 +1545,13 @@ export interface FileRoutesByFullPath {
   '/empregos/': typeof StoreEmpregosIndexRoute
   '/noticias/': typeof StoreNoticiasIndexRoute
   '/turismo/': typeof StoreTurismoIndexRoute
+  '/workspace/advocacia/': typeof WorkspaceAdvocaciaIndexRoute
   '/workspace/agenda/': typeof WorkspaceAgendaIndexRoute
+  '/workspace/atendimento/': typeof WorkspaceAtendimentoIndexRoute
   '/workspace/clientes/': typeof WorkspaceClientesIndexRoute
   '/workspace/configuracoes/': typeof WorkspaceConfiguracoesIndexRoute
+  '/workspace/contador/': typeof WorkspaceContadorIndexRoute
+  '/workspace/contratos/': typeof WorkspaceContratosIndexRoute
   '/workspace/estoque/': typeof WorkspaceEstoqueIndexRoute
   '/workspace/estudio/': typeof WorkspaceEstudioIndexRoute
   '/workspace/eventos/': typeof WorkspaceEventosIndexRoute
@@ -1410,6 +1574,7 @@ export interface FileRoutesByFullPath {
   '/workspace/catalogo/produtos/$id': typeof WorkspaceCatalogoProdutosIdRoute
   '/workspace/catalogo/produtos/novo': typeof WorkspaceCatalogoProdutosNovoRoute
   '/workspace/configuracoes/fretes/cotacoes': typeof WorkspaceConfiguracoesFretesCotacoesRoute
+  '/workspace/contratos/$id/editor': typeof WorkspaceContratosIdEditorRoute
   '/workspace/eventos/$id/checkin': typeof WorkspaceEventosIdCheckinRoute
   '/workspace/financeiro/caixa/lancamentos': typeof WorkspaceFinanceiroCaixaLancamentosRoute
   '/workspace/financeiro/caixa/turnos': typeof WorkspaceFinanceiroCaixaTurnosRoute
@@ -1465,8 +1630,10 @@ export interface FileRoutesByTo {
   '/stories': typeof StoreStoriesRoute
   '/termos': typeof StoreTermosRoute
   '/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
+  '/admin-master/algoritmo': typeof AdminMasterAlgoritmoRoute
   '/admin-master/banners': typeof AdminMasterBannersRoute
   '/admin-master/botoes': typeof AdminMasterBotoesRoute
+  '/admin-master/curadoria': typeof AdminMasterCuradoriaRoute
   '/admin-master/denuncias': typeof AdminMasterDenunciasRoute
   '/admin-master/faturas': typeof AdminMasterFaturasRoute
   '/admin-master/hubs': typeof AdminMasterHubsRoute
@@ -1475,10 +1642,17 @@ export interface FileRoutesByTo {
   '/admin-master/logistica': typeof AdminMasterLogisticaRoute
   '/admin-master/lojas': typeof AdminMasterLojasRoute
   '/admin-master/marca': typeof AdminMasterMarcaRoute
+  '/admin-master/mining': typeof AdminMasterMiningRoute
+  '/admin-master/simlabs': typeof AdminMasterSimlabsRoute
   '/admin-master/termos': typeof AdminMasterTermosRoute
+  '/admin-master/tokens': typeof AdminMasterTokensRoute
   '/admin-master/usuarios': typeof AdminMasterUsuariosRoute
+  '/admin-master/vitrines': typeof AdminMasterVitrinesRoute
   '/assinar/$token': typeof AssinarTokenRoute
+  '/assinatura/$token': typeof AssinaturaTokenRoute
+  '/workspace/qualidade': typeof WorkspaceQualidadeRoute
   '/workspace/simulacao': typeof WorkspaceSimulacaoRoute
+  '/workspace/tokens': typeof WorkspaceTokensRoute
   '/': typeof StoreIndexRoute
   '/admin-master': typeof AdminMasterIndexRoute
   '/workspace': typeof WorkspaceIndexRoute
@@ -1500,9 +1674,12 @@ export interface FileRoutesByTo {
   '/conta/pacotes': typeof StoreContaPacotesRoute
   '/conta/pagamentos': typeof StoreContaPagamentosRoute
   '/conta/perfil': typeof StoreContaPerfilRoute
+  '/conta/processos': typeof StoreContaProcessosRoute
   '/conta/salvos': typeof StoreContaSalvosRoute
   '/conta/suporte': typeof StoreContaSuporteRoute
+  '/conta/tokens': typeof StoreContaTokensRoute
   '/conta/trocas': typeof StoreContaTrocasRoute
+  '/conta/verificacao': typeof StoreContaVerificacaoRoute
   '/conta/viagens': typeof StoreContaViagensRoute
   '/destaques/$slug': typeof StoreDestaquesSlugRoute
   '/diretorio/$id': typeof StoreDiretorioIdRoute
@@ -1522,6 +1699,7 @@ export interface FileRoutesByTo {
   '/api/auth/callback': typeof ApiAuthCallbackRoute
   '/api/auth/confirm': typeof ApiAuthConfirmRoute
   '/api/feed/xml': typeof ApiFeedXmlRoute
+  '/api/webhooks/pix': typeof ApiWebhooksPixRoute
   '/api/webhooks/shipment': typeof ApiWebhooksShipmentRoute
   '/verify/document/$code': typeof VerifyDocumentCodeRoute
   '/workspace/agenda/recursos': typeof WorkspaceAgendaRecursosRoute
@@ -1537,6 +1715,7 @@ export interface FileRoutesByTo {
   '/workspace/configuracoes/ai': typeof WorkspaceConfiguracoesAiRoute
   '/workspace/configuracoes/integracoes': typeof WorkspaceConfiguracoesIntegracoesRoute
   '/workspace/configuracoes/parceiros': typeof WorkspaceConfiguracoesParceirosRoute
+  '/workspace/contratos/novo': typeof WorkspaceContratosNovoRoute
   '/workspace/empregos/candidatos': typeof WorkspaceEmpregosCandidatosRoute
   '/workspace/estoque/alertas': typeof WorkspaceEstoqueAlertasRoute
   '/workspace/estoque/movimentos': typeof WorkspaceEstoqueMovimentosRoute
@@ -1546,6 +1725,7 @@ export interface FileRoutesByTo {
   '/workspace/financeiro/comprovantes': typeof WorkspaceFinanceiroComprovantesRoute
   '/workspace/financeiro/funcionarios': typeof WorkspaceFinanceiroFuncionariosRoute
   '/workspace/financeiro/pagamentos': typeof WorkspaceFinanceiroPagamentosRoute
+  '/workspace/financeiro/recebiveis': typeof WorkspaceFinanceiroRecebiveisRoute
   '/workspace/imoveis/manutencoes': typeof WorkspaceImoveisManutencoesRoute
   '/workspace/logistica/faturas': typeof WorkspaceLogisticaFaturasRoute
   '/workspace/logistica/pudo': typeof WorkspaceLogisticaPudoRoute
@@ -1558,10 +1738,13 @@ export interface FileRoutesByTo {
   '/workspace/marketing/patrocinadores': typeof WorkspaceMarketingPatrocinadoresRoute
   '/workspace/marketing/promocoes': typeof WorkspaceMarketingPromocoesRoute
   '/workspace/marketing/telemetria': typeof WorkspaceMarketingTelemetriaRoute
+  '/workspace/marketing/vitrine': typeof WorkspaceMarketingVitrineRoute
+  '/workspace/moderacao/kyc': typeof WorkspaceModeracaoKycRoute
   '/workspace/noticias/novo': typeof WorkspaceNoticiasNovoRoute
   '/workspace/orcamentos/$id': typeof WorkspaceOrcamentosIdRoute
   '/workspace/orcamentos/novo': typeof WorkspaceOrcamentosNovoRoute
   '/workspace/pdv/comandas': typeof WorkspacePdvComandasRoute
+  '/workspace/pdv/cozinha': typeof WorkspacePdvCozinhaRoute
   '/workspace/pedidos/$id': typeof WorkspacePedidosIdRoute
   '/workspace/pedidos/frota': typeof WorkspacePedidosFrotaRoute
   '/workspace/pedidos/gestor': typeof WorkspacePedidosGestorRoute
@@ -1574,9 +1757,13 @@ export interface FileRoutesByTo {
   '/empregos': typeof StoreEmpregosIndexRoute
   '/noticias': typeof StoreNoticiasIndexRoute
   '/turismo': typeof StoreTurismoIndexRoute
+  '/workspace/advocacia': typeof WorkspaceAdvocaciaIndexRoute
   '/workspace/agenda': typeof WorkspaceAgendaIndexRoute
+  '/workspace/atendimento': typeof WorkspaceAtendimentoIndexRoute
   '/workspace/clientes': typeof WorkspaceClientesIndexRoute
   '/workspace/configuracoes': typeof WorkspaceConfiguracoesIndexRoute
+  '/workspace/contador': typeof WorkspaceContadorIndexRoute
+  '/workspace/contratos': typeof WorkspaceContratosIndexRoute
   '/workspace/estoque': typeof WorkspaceEstoqueIndexRoute
   '/workspace/estudio': typeof WorkspaceEstudioIndexRoute
   '/workspace/eventos': typeof WorkspaceEventosIndexRoute
@@ -1599,6 +1786,7 @@ export interface FileRoutesByTo {
   '/workspace/catalogo/produtos/$id': typeof WorkspaceCatalogoProdutosIdRoute
   '/workspace/catalogo/produtos/novo': typeof WorkspaceCatalogoProdutosNovoRoute
   '/workspace/configuracoes/fretes/cotacoes': typeof WorkspaceConfiguracoesFretesCotacoesRoute
+  '/workspace/contratos/$id/editor': typeof WorkspaceContratosIdEditorRoute
   '/workspace/eventos/$id/checkin': typeof WorkspaceEventosIdCheckinRoute
   '/workspace/financeiro/caixa/lancamentos': typeof WorkspaceFinanceiroCaixaLancamentosRoute
   '/workspace/financeiro/caixa/turnos': typeof WorkspaceFinanceiroCaixaTurnosRoute
@@ -1663,8 +1851,10 @@ export interface FileRoutesById {
   '/_store/termos': typeof StoreTermosRoute
   '/_store/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
   '/_store/turismo': typeof StoreTurismoRouteWithChildren
+  '/admin-master/algoritmo': typeof AdminMasterAlgoritmoRoute
   '/admin-master/banners': typeof AdminMasterBannersRoute
   '/admin-master/botoes': typeof AdminMasterBotoesRoute
+  '/admin-master/curadoria': typeof AdminMasterCuradoriaRoute
   '/admin-master/denuncias': typeof AdminMasterDenunciasRoute
   '/admin-master/faturas': typeof AdminMasterFaturasRoute
   '/admin-master/hubs': typeof AdminMasterHubsRoute
@@ -1673,10 +1863,17 @@ export interface FileRoutesById {
   '/admin-master/logistica': typeof AdminMasterLogisticaRoute
   '/admin-master/lojas': typeof AdminMasterLojasRoute
   '/admin-master/marca': typeof AdminMasterMarcaRoute
+  '/admin-master/mining': typeof AdminMasterMiningRoute
+  '/admin-master/simlabs': typeof AdminMasterSimlabsRoute
   '/admin-master/termos': typeof AdminMasterTermosRoute
+  '/admin-master/tokens': typeof AdminMasterTokensRoute
   '/admin-master/usuarios': typeof AdminMasterUsuariosRoute
+  '/admin-master/vitrines': typeof AdminMasterVitrinesRoute
   '/assinar/$token': typeof AssinarTokenRoute
+  '/assinatura/$token': typeof AssinaturaTokenRoute
+  '/workspace/qualidade': typeof WorkspaceQualidadeRoute
   '/workspace/simulacao': typeof WorkspaceSimulacaoRoute
+  '/workspace/tokens': typeof WorkspaceTokensRoute
   '/_store/': typeof StoreIndexRoute
   '/admin-master/': typeof AdminMasterIndexRoute
   '/workspace/': typeof WorkspaceIndexRoute
@@ -1698,9 +1895,12 @@ export interface FileRoutesById {
   '/_store/conta/pacotes': typeof StoreContaPacotesRoute
   '/_store/conta/pagamentos': typeof StoreContaPagamentosRoute
   '/_store/conta/perfil': typeof StoreContaPerfilRoute
+  '/_store/conta/processos': typeof StoreContaProcessosRoute
   '/_store/conta/salvos': typeof StoreContaSalvosRoute
   '/_store/conta/suporte': typeof StoreContaSuporteRoute
+  '/_store/conta/tokens': typeof StoreContaTokensRoute
   '/_store/conta/trocas': typeof StoreContaTrocasRoute
+  '/_store/conta/verificacao': typeof StoreContaVerificacaoRoute
   '/_store/conta/viagens': typeof StoreContaViagensRoute
   '/_store/destaques/$slug': typeof StoreDestaquesSlugRoute
   '/_store/diretorio/$id': typeof StoreDiretorioIdRoute
@@ -1720,6 +1920,7 @@ export interface FileRoutesById {
   '/api/auth/callback': typeof ApiAuthCallbackRoute
   '/api/auth/confirm': typeof ApiAuthConfirmRoute
   '/api/feed/xml': typeof ApiFeedXmlRoute
+  '/api/webhooks/pix': typeof ApiWebhooksPixRoute
   '/api/webhooks/shipment': typeof ApiWebhooksShipmentRoute
   '/verify/document/$code': typeof VerifyDocumentCodeRoute
   '/workspace/agenda/recursos': typeof WorkspaceAgendaRecursosRoute
@@ -1735,6 +1936,7 @@ export interface FileRoutesById {
   '/workspace/configuracoes/ai': typeof WorkspaceConfiguracoesAiRoute
   '/workspace/configuracoes/integracoes': typeof WorkspaceConfiguracoesIntegracoesRoute
   '/workspace/configuracoes/parceiros': typeof WorkspaceConfiguracoesParceirosRoute
+  '/workspace/contratos/novo': typeof WorkspaceContratosNovoRoute
   '/workspace/empregos/candidatos': typeof WorkspaceEmpregosCandidatosRoute
   '/workspace/estoque/alertas': typeof WorkspaceEstoqueAlertasRoute
   '/workspace/estoque/movimentos': typeof WorkspaceEstoqueMovimentosRoute
@@ -1744,6 +1946,7 @@ export interface FileRoutesById {
   '/workspace/financeiro/comprovantes': typeof WorkspaceFinanceiroComprovantesRoute
   '/workspace/financeiro/funcionarios': typeof WorkspaceFinanceiroFuncionariosRoute
   '/workspace/financeiro/pagamentos': typeof WorkspaceFinanceiroPagamentosRoute
+  '/workspace/financeiro/recebiveis': typeof WorkspaceFinanceiroRecebiveisRoute
   '/workspace/imoveis/manutencoes': typeof WorkspaceImoveisManutencoesRoute
   '/workspace/logistica/faturas': typeof WorkspaceLogisticaFaturasRoute
   '/workspace/logistica/pudo': typeof WorkspaceLogisticaPudoRoute
@@ -1756,10 +1959,13 @@ export interface FileRoutesById {
   '/workspace/marketing/patrocinadores': typeof WorkspaceMarketingPatrocinadoresRoute
   '/workspace/marketing/promocoes': typeof WorkspaceMarketingPromocoesRoute
   '/workspace/marketing/telemetria': typeof WorkspaceMarketingTelemetriaRoute
+  '/workspace/marketing/vitrine': typeof WorkspaceMarketingVitrineRoute
+  '/workspace/moderacao/kyc': typeof WorkspaceModeracaoKycRoute
   '/workspace/noticias/novo': typeof WorkspaceNoticiasNovoRoute
   '/workspace/orcamentos/$id': typeof WorkspaceOrcamentosIdRoute
   '/workspace/orcamentos/novo': typeof WorkspaceOrcamentosNovoRoute
   '/workspace/pdv/comandas': typeof WorkspacePdvComandasRoute
+  '/workspace/pdv/cozinha': typeof WorkspacePdvCozinhaRoute
   '/workspace/pedidos/$id': typeof WorkspacePedidosIdRoute
   '/workspace/pedidos/frota': typeof WorkspacePedidosFrotaRoute
   '/workspace/pedidos/gestor': typeof WorkspacePedidosGestorRoute
@@ -1772,9 +1978,13 @@ export interface FileRoutesById {
   '/_store/empregos/': typeof StoreEmpregosIndexRoute
   '/_store/noticias/': typeof StoreNoticiasIndexRoute
   '/_store/turismo/': typeof StoreTurismoIndexRoute
+  '/workspace/advocacia/': typeof WorkspaceAdvocaciaIndexRoute
   '/workspace/agenda/': typeof WorkspaceAgendaIndexRoute
+  '/workspace/atendimento/': typeof WorkspaceAtendimentoIndexRoute
   '/workspace/clientes/': typeof WorkspaceClientesIndexRoute
   '/workspace/configuracoes/': typeof WorkspaceConfiguracoesIndexRoute
+  '/workspace/contador/': typeof WorkspaceContadorIndexRoute
+  '/workspace/contratos/': typeof WorkspaceContratosIndexRoute
   '/workspace/estoque/': typeof WorkspaceEstoqueIndexRoute
   '/workspace/estudio/': typeof WorkspaceEstudioIndexRoute
   '/workspace/eventos/': typeof WorkspaceEventosIndexRoute
@@ -1797,6 +2007,7 @@ export interface FileRoutesById {
   '/workspace/catalogo/produtos/$id': typeof WorkspaceCatalogoProdutosIdRoute
   '/workspace/catalogo/produtos/novo': typeof WorkspaceCatalogoProdutosNovoRoute
   '/workspace/configuracoes/fretes/cotacoes': typeof WorkspaceConfiguracoesFretesCotacoesRoute
+  '/workspace/contratos/$id/editor': typeof WorkspaceContratosIdEditorRoute
   '/workspace/eventos/$id/checkin': typeof WorkspaceEventosIdCheckinRoute
   '/workspace/financeiro/caixa/lancamentos': typeof WorkspaceFinanceiroCaixaLancamentosRoute
   '/workspace/financeiro/caixa/turnos': typeof WorkspaceFinanceiroCaixaTurnosRoute
@@ -1862,8 +2073,10 @@ export interface FileRouteTypes {
     | '/termos'
     | '/trocas-e-devolucoes'
     | '/turismo'
+    | '/admin-master/algoritmo'
     | '/admin-master/banners'
     | '/admin-master/botoes'
+    | '/admin-master/curadoria'
     | '/admin-master/denuncias'
     | '/admin-master/faturas'
     | '/admin-master/hubs'
@@ -1872,10 +2085,17 @@ export interface FileRouteTypes {
     | '/admin-master/logistica'
     | '/admin-master/lojas'
     | '/admin-master/marca'
+    | '/admin-master/mining'
+    | '/admin-master/simlabs'
     | '/admin-master/termos'
+    | '/admin-master/tokens'
     | '/admin-master/usuarios'
+    | '/admin-master/vitrines'
     | '/assinar/$token'
+    | '/assinatura/$token'
+    | '/workspace/qualidade'
     | '/workspace/simulacao'
+    | '/workspace/tokens'
     | '/admin-master/'
     | '/workspace/'
     | '/bio/$slug'
@@ -1896,9 +2116,12 @@ export interface FileRouteTypes {
     | '/conta/pacotes'
     | '/conta/pagamentos'
     | '/conta/perfil'
+    | '/conta/processos'
     | '/conta/salvos'
     | '/conta/suporte'
+    | '/conta/tokens'
     | '/conta/trocas'
+    | '/conta/verificacao'
     | '/conta/viagens'
     | '/destaques/$slug'
     | '/diretorio/$id'
@@ -1918,6 +2141,7 @@ export interface FileRouteTypes {
     | '/api/auth/callback'
     | '/api/auth/confirm'
     | '/api/feed/xml'
+    | '/api/webhooks/pix'
     | '/api/webhooks/shipment'
     | '/verify/document/$code'
     | '/workspace/agenda/recursos'
@@ -1933,6 +2157,7 @@ export interface FileRouteTypes {
     | '/workspace/configuracoes/ai'
     | '/workspace/configuracoes/integracoes'
     | '/workspace/configuracoes/parceiros'
+    | '/workspace/contratos/novo'
     | '/workspace/empregos/candidatos'
     | '/workspace/estoque/alertas'
     | '/workspace/estoque/movimentos'
@@ -1942,6 +2167,7 @@ export interface FileRouteTypes {
     | '/workspace/financeiro/comprovantes'
     | '/workspace/financeiro/funcionarios'
     | '/workspace/financeiro/pagamentos'
+    | '/workspace/financeiro/recebiveis'
     | '/workspace/imoveis/manutencoes'
     | '/workspace/logistica/faturas'
     | '/workspace/logistica/pudo'
@@ -1954,10 +2180,13 @@ export interface FileRouteTypes {
     | '/workspace/marketing/patrocinadores'
     | '/workspace/marketing/promocoes'
     | '/workspace/marketing/telemetria'
+    | '/workspace/marketing/vitrine'
+    | '/workspace/moderacao/kyc'
     | '/workspace/noticias/novo'
     | '/workspace/orcamentos/$id'
     | '/workspace/orcamentos/novo'
     | '/workspace/pdv/comandas'
+    | '/workspace/pdv/cozinha'
     | '/workspace/pedidos/$id'
     | '/workspace/pedidos/frota'
     | '/workspace/pedidos/gestor'
@@ -1970,9 +2199,13 @@ export interface FileRouteTypes {
     | '/empregos/'
     | '/noticias/'
     | '/turismo/'
+    | '/workspace/advocacia/'
     | '/workspace/agenda/'
+    | '/workspace/atendimento/'
     | '/workspace/clientes/'
     | '/workspace/configuracoes/'
+    | '/workspace/contador/'
+    | '/workspace/contratos/'
     | '/workspace/estoque/'
     | '/workspace/estudio/'
     | '/workspace/eventos/'
@@ -1995,6 +2228,7 @@ export interface FileRouteTypes {
     | '/workspace/catalogo/produtos/$id'
     | '/workspace/catalogo/produtos/novo'
     | '/workspace/configuracoes/fretes/cotacoes'
+    | '/workspace/contratos/$id/editor'
     | '/workspace/eventos/$id/checkin'
     | '/workspace/financeiro/caixa/lancamentos'
     | '/workspace/financeiro/caixa/turnos'
@@ -2050,8 +2284,10 @@ export interface FileRouteTypes {
     | '/stories'
     | '/termos'
     | '/trocas-e-devolucoes'
+    | '/admin-master/algoritmo'
     | '/admin-master/banners'
     | '/admin-master/botoes'
+    | '/admin-master/curadoria'
     | '/admin-master/denuncias'
     | '/admin-master/faturas'
     | '/admin-master/hubs'
@@ -2060,10 +2296,17 @@ export interface FileRouteTypes {
     | '/admin-master/logistica'
     | '/admin-master/lojas'
     | '/admin-master/marca'
+    | '/admin-master/mining'
+    | '/admin-master/simlabs'
     | '/admin-master/termos'
+    | '/admin-master/tokens'
     | '/admin-master/usuarios'
+    | '/admin-master/vitrines'
     | '/assinar/$token'
+    | '/assinatura/$token'
+    | '/workspace/qualidade'
     | '/workspace/simulacao'
+    | '/workspace/tokens'
     | '/'
     | '/admin-master'
     | '/workspace'
@@ -2085,9 +2328,12 @@ export interface FileRouteTypes {
     | '/conta/pacotes'
     | '/conta/pagamentos'
     | '/conta/perfil'
+    | '/conta/processos'
     | '/conta/salvos'
     | '/conta/suporte'
+    | '/conta/tokens'
     | '/conta/trocas'
+    | '/conta/verificacao'
     | '/conta/viagens'
     | '/destaques/$slug'
     | '/diretorio/$id'
@@ -2107,6 +2353,7 @@ export interface FileRouteTypes {
     | '/api/auth/callback'
     | '/api/auth/confirm'
     | '/api/feed/xml'
+    | '/api/webhooks/pix'
     | '/api/webhooks/shipment'
     | '/verify/document/$code'
     | '/workspace/agenda/recursos'
@@ -2122,6 +2369,7 @@ export interface FileRouteTypes {
     | '/workspace/configuracoes/ai'
     | '/workspace/configuracoes/integracoes'
     | '/workspace/configuracoes/parceiros'
+    | '/workspace/contratos/novo'
     | '/workspace/empregos/candidatos'
     | '/workspace/estoque/alertas'
     | '/workspace/estoque/movimentos'
@@ -2131,6 +2379,7 @@ export interface FileRouteTypes {
     | '/workspace/financeiro/comprovantes'
     | '/workspace/financeiro/funcionarios'
     | '/workspace/financeiro/pagamentos'
+    | '/workspace/financeiro/recebiveis'
     | '/workspace/imoveis/manutencoes'
     | '/workspace/logistica/faturas'
     | '/workspace/logistica/pudo'
@@ -2143,10 +2392,13 @@ export interface FileRouteTypes {
     | '/workspace/marketing/patrocinadores'
     | '/workspace/marketing/promocoes'
     | '/workspace/marketing/telemetria'
+    | '/workspace/marketing/vitrine'
+    | '/workspace/moderacao/kyc'
     | '/workspace/noticias/novo'
     | '/workspace/orcamentos/$id'
     | '/workspace/orcamentos/novo'
     | '/workspace/pdv/comandas'
+    | '/workspace/pdv/cozinha'
     | '/workspace/pedidos/$id'
     | '/workspace/pedidos/frota'
     | '/workspace/pedidos/gestor'
@@ -2159,9 +2411,13 @@ export interface FileRouteTypes {
     | '/empregos'
     | '/noticias'
     | '/turismo'
+    | '/workspace/advocacia'
     | '/workspace/agenda'
+    | '/workspace/atendimento'
     | '/workspace/clientes'
     | '/workspace/configuracoes'
+    | '/workspace/contador'
+    | '/workspace/contratos'
     | '/workspace/estoque'
     | '/workspace/estudio'
     | '/workspace/eventos'
@@ -2184,6 +2440,7 @@ export interface FileRouteTypes {
     | '/workspace/catalogo/produtos/$id'
     | '/workspace/catalogo/produtos/novo'
     | '/workspace/configuracoes/fretes/cotacoes'
+    | '/workspace/contratos/$id/editor'
     | '/workspace/eventos/$id/checkin'
     | '/workspace/financeiro/caixa/lancamentos'
     | '/workspace/financeiro/caixa/turnos'
@@ -2247,8 +2504,10 @@ export interface FileRouteTypes {
     | '/_store/termos'
     | '/_store/trocas-e-devolucoes'
     | '/_store/turismo'
+    | '/admin-master/algoritmo'
     | '/admin-master/banners'
     | '/admin-master/botoes'
+    | '/admin-master/curadoria'
     | '/admin-master/denuncias'
     | '/admin-master/faturas'
     | '/admin-master/hubs'
@@ -2257,10 +2516,17 @@ export interface FileRouteTypes {
     | '/admin-master/logistica'
     | '/admin-master/lojas'
     | '/admin-master/marca'
+    | '/admin-master/mining'
+    | '/admin-master/simlabs'
     | '/admin-master/termos'
+    | '/admin-master/tokens'
     | '/admin-master/usuarios'
+    | '/admin-master/vitrines'
     | '/assinar/$token'
+    | '/assinatura/$token'
+    | '/workspace/qualidade'
     | '/workspace/simulacao'
+    | '/workspace/tokens'
     | '/_store/'
     | '/admin-master/'
     | '/workspace/'
@@ -2282,9 +2548,12 @@ export interface FileRouteTypes {
     | '/_store/conta/pacotes'
     | '/_store/conta/pagamentos'
     | '/_store/conta/perfil'
+    | '/_store/conta/processos'
     | '/_store/conta/salvos'
     | '/_store/conta/suporte'
+    | '/_store/conta/tokens'
     | '/_store/conta/trocas'
+    | '/_store/conta/verificacao'
     | '/_store/conta/viagens'
     | '/_store/destaques/$slug'
     | '/_store/diretorio/$id'
@@ -2304,6 +2573,7 @@ export interface FileRouteTypes {
     | '/api/auth/callback'
     | '/api/auth/confirm'
     | '/api/feed/xml'
+    | '/api/webhooks/pix'
     | '/api/webhooks/shipment'
     | '/verify/document/$code'
     | '/workspace/agenda/recursos'
@@ -2319,6 +2589,7 @@ export interface FileRouteTypes {
     | '/workspace/configuracoes/ai'
     | '/workspace/configuracoes/integracoes'
     | '/workspace/configuracoes/parceiros'
+    | '/workspace/contratos/novo'
     | '/workspace/empregos/candidatos'
     | '/workspace/estoque/alertas'
     | '/workspace/estoque/movimentos'
@@ -2328,6 +2599,7 @@ export interface FileRouteTypes {
     | '/workspace/financeiro/comprovantes'
     | '/workspace/financeiro/funcionarios'
     | '/workspace/financeiro/pagamentos'
+    | '/workspace/financeiro/recebiveis'
     | '/workspace/imoveis/manutencoes'
     | '/workspace/logistica/faturas'
     | '/workspace/logistica/pudo'
@@ -2340,10 +2612,13 @@ export interface FileRouteTypes {
     | '/workspace/marketing/patrocinadores'
     | '/workspace/marketing/promocoes'
     | '/workspace/marketing/telemetria'
+    | '/workspace/marketing/vitrine'
+    | '/workspace/moderacao/kyc'
     | '/workspace/noticias/novo'
     | '/workspace/orcamentos/$id'
     | '/workspace/orcamentos/novo'
     | '/workspace/pdv/comandas'
+    | '/workspace/pdv/cozinha'
     | '/workspace/pedidos/$id'
     | '/workspace/pedidos/frota'
     | '/workspace/pedidos/gestor'
@@ -2356,9 +2631,13 @@ export interface FileRouteTypes {
     | '/_store/empregos/'
     | '/_store/noticias/'
     | '/_store/turismo/'
+    | '/workspace/advocacia/'
     | '/workspace/agenda/'
+    | '/workspace/atendimento/'
     | '/workspace/clientes/'
     | '/workspace/configuracoes/'
+    | '/workspace/contador/'
+    | '/workspace/contratos/'
     | '/workspace/estoque/'
     | '/workspace/estudio/'
     | '/workspace/eventos/'
@@ -2381,6 +2660,7 @@ export interface FileRouteTypes {
     | '/workspace/catalogo/produtos/$id'
     | '/workspace/catalogo/produtos/novo'
     | '/workspace/configuracoes/fretes/cotacoes'
+    | '/workspace/contratos/$id/editor'
     | '/workspace/eventos/$id/checkin'
     | '/workspace/financeiro/caixa/lancamentos'
     | '/workspace/financeiro/caixa/turnos'
@@ -2405,9 +2685,11 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   WorkspaceRoute: typeof WorkspaceRouteWithChildren
   AssinarTokenRoute: typeof AssinarTokenRoute
+  AssinaturaTokenRoute: typeof AssinaturaTokenRoute
   ApiAuthCallbackRoute: typeof ApiAuthCallbackRoute
   ApiAuthConfirmRoute: typeof ApiAuthConfirmRoute
   ApiFeedXmlRoute: typeof ApiFeedXmlRoute
+  ApiWebhooksPixRoute: typeof ApiWebhooksPixRoute
   ApiWebhooksShipmentRoute: typeof ApiWebhooksShipmentRoute
   VerifyDocumentCodeRoute: typeof VerifyDocumentCodeRoute
   WorkspacePedidosIdReciboRoute: typeof WorkspacePedidosIdReciboRoute
@@ -2744,6 +3026,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMasterIndexRouteImport
       parentRoute: typeof AdminMasterRoute
     }
+    '/admin-master/algoritmo': {
+      id: '/admin-master/algoritmo'
+      path: '/algoritmo'
+      fullPath: '/admin-master/algoritmo'
+      preLoaderRoute: typeof AdminMasterAlgoritmoRouteImport
+      parentRoute: typeof AdminMasterRoute
+    }
     '/admin-master/banners': {
       id: '/admin-master/banners'
       path: '/banners'
@@ -2756,6 +3045,13 @@ declare module '@tanstack/react-router' {
       path: '/botoes'
       fullPath: '/admin-master/botoes'
       preLoaderRoute: typeof AdminMasterBotoesRouteImport
+      parentRoute: typeof AdminMasterRoute
+    }
+    '/admin-master/curadoria': {
+      id: '/admin-master/curadoria'
+      path: '/curadoria'
+      fullPath: '/admin-master/curadoria'
+      preLoaderRoute: typeof AdminMasterCuradoriaRouteImport
       parentRoute: typeof AdminMasterRoute
     }
     '/admin-master/denuncias': {
@@ -2814,11 +3110,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMasterMarcaRouteImport
       parentRoute: typeof AdminMasterRoute
     }
+    '/admin-master/mining': {
+      id: '/admin-master/mining'
+      path: '/mining'
+      fullPath: '/admin-master/mining'
+      preLoaderRoute: typeof AdminMasterMiningRouteImport
+      parentRoute: typeof AdminMasterRoute
+    }
+    '/admin-master/simlabs': {
+      id: '/admin-master/simlabs'
+      path: '/simlabs'
+      fullPath: '/admin-master/simlabs'
+      preLoaderRoute: typeof AdminMasterSimlabsRouteImport
+      parentRoute: typeof AdminMasterRoute
+    }
     '/admin-master/termos': {
       id: '/admin-master/termos'
       path: '/termos'
       fullPath: '/admin-master/termos'
       preLoaderRoute: typeof AdminMasterTermosRouteImport
+      parentRoute: typeof AdminMasterRoute
+    }
+    '/admin-master/tokens': {
+      id: '/admin-master/tokens'
+      path: '/tokens'
+      fullPath: '/admin-master/tokens'
+      preLoaderRoute: typeof AdminMasterTokensRouteImport
       parentRoute: typeof AdminMasterRoute
     }
     '/admin-master/usuarios': {
@@ -2828,11 +3145,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMasterUsuariosRouteImport
       parentRoute: typeof AdminMasterRoute
     }
+    '/admin-master/vitrines': {
+      id: '/admin-master/vitrines'
+      path: '/vitrines'
+      fullPath: '/admin-master/vitrines'
+      preLoaderRoute: typeof AdminMasterVitrinesRouteImport
+      parentRoute: typeof AdminMasterRoute
+    }
     '/assinar/$token': {
       id: '/assinar/$token'
       path: '/assinar/$token'
       fullPath: '/assinar/$token'
       preLoaderRoute: typeof AssinarTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/assinatura/$token': {
+      id: '/assinatura/$token'
+      path: '/assinatura/$token'
+      fullPath: '/assinatura/$token'
+      preLoaderRoute: typeof AssinaturaTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/workspace/': {
@@ -2842,11 +3173,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspaceIndexRouteImport
       parentRoute: typeof WorkspaceRoute
     }
+    '/workspace/qualidade': {
+      id: '/workspace/qualidade'
+      path: '/qualidade'
+      fullPath: '/workspace/qualidade'
+      preLoaderRoute: typeof WorkspaceQualidadeRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
     '/workspace/simulacao': {
       id: '/workspace/simulacao'
       path: '/simulacao'
       fullPath: '/workspace/simulacao'
       preLoaderRoute: typeof WorkspaceSimulacaoRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/tokens': {
+      id: '/workspace/tokens'
+      path: '/tokens'
+      fullPath: '/workspace/tokens'
+      preLoaderRoute: typeof WorkspaceTokensRouteImport
       parentRoute: typeof WorkspaceRoute
     }
     '/_store/agendar/': {
@@ -2996,6 +3341,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreContaPerfilRouteImport
       parentRoute: typeof StoreContaRoute
     }
+    '/_store/conta/processos': {
+      id: '/_store/conta/processos'
+      path: '/processos'
+      fullPath: '/conta/processos'
+      preLoaderRoute: typeof StoreContaProcessosRouteImport
+      parentRoute: typeof StoreContaRoute
+    }
     '/_store/conta/salvos': {
       id: '/_store/conta/salvos'
       path: '/salvos'
@@ -3010,11 +3362,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreContaSuporteRouteImport
       parentRoute: typeof StoreContaRoute
     }
+    '/_store/conta/tokens': {
+      id: '/_store/conta/tokens'
+      path: '/tokens'
+      fullPath: '/conta/tokens'
+      preLoaderRoute: typeof StoreContaTokensRouteImport
+      parentRoute: typeof StoreContaRoute
+    }
     '/_store/conta/trocas': {
       id: '/_store/conta/trocas'
       path: '/trocas'
       fullPath: '/conta/trocas'
       preLoaderRoute: typeof StoreContaTrocasRouteImport
+      parentRoute: typeof StoreContaRoute
+    }
+    '/_store/conta/verificacao': {
+      id: '/_store/conta/verificacao'
+      path: '/verificacao'
+      fullPath: '/conta/verificacao'
+      preLoaderRoute: typeof StoreContaVerificacaoRouteImport
       parentRoute: typeof StoreContaRoute
     }
     '/_store/conta/viagens': {
@@ -3178,6 +3544,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiFeedXmlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/webhooks/pix': {
+      id: '/api/webhooks/pix'
+      path: '/api/webhooks/pix'
+      fullPath: '/api/webhooks/pix'
+      preLoaderRoute: typeof ApiWebhooksPixRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/webhooks/shipment': {
       id: '/api/webhooks/shipment'
       path: '/api/webhooks/shipment'
@@ -3192,6 +3565,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VerifyDocumentCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/workspace/advocacia/': {
+      id: '/workspace/advocacia/'
+      path: '/advocacia'
+      fullPath: '/workspace/advocacia/'
+      preLoaderRoute: typeof WorkspaceAdvocaciaIndexRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
     '/workspace/agenda/': {
       id: '/workspace/agenda/'
       path: '/agenda'
@@ -3204,6 +3584,13 @@ declare module '@tanstack/react-router' {
       path: '/agenda/recursos'
       fullPath: '/workspace/agenda/recursos'
       preLoaderRoute: typeof WorkspaceAgendaRecursosRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/atendimento/': {
+      id: '/workspace/atendimento/'
+      path: '/atendimento'
+      fullPath: '/workspace/atendimento/'
+      preLoaderRoute: typeof WorkspaceAtendimentoIndexRouteImport
       parentRoute: typeof WorkspaceRoute
     }
     '/workspace/catalogo/atributos': {
@@ -3304,6 +3691,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspaceConfiguracoesParceirosRouteImport
       parentRoute: typeof WorkspaceRoute
     }
+    '/workspace/contador/': {
+      id: '/workspace/contador/'
+      path: '/contador'
+      fullPath: '/workspace/contador/'
+      preLoaderRoute: typeof WorkspaceContadorIndexRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/contratos/': {
+      id: '/workspace/contratos/'
+      path: '/contratos'
+      fullPath: '/workspace/contratos/'
+      preLoaderRoute: typeof WorkspaceContratosIndexRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/contratos/novo': {
+      id: '/workspace/contratos/novo'
+      path: '/contratos/novo'
+      fullPath: '/workspace/contratos/novo'
+      preLoaderRoute: typeof WorkspaceContratosNovoRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
     '/workspace/empregos/candidatos': {
       id: '/workspace/empregos/candidatos'
       path: '/empregos/candidatos'
@@ -3386,6 +3794,13 @@ declare module '@tanstack/react-router' {
       path: '/financeiro/pagamentos'
       fullPath: '/workspace/financeiro/pagamentos'
       preLoaderRoute: typeof WorkspaceFinanceiroPagamentosRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/financeiro/recebiveis': {
+      id: '/workspace/financeiro/recebiveis'
+      path: '/financeiro/recebiveis'
+      fullPath: '/workspace/financeiro/recebiveis'
+      preLoaderRoute: typeof WorkspaceFinanceiroRecebiveisRouteImport
       parentRoute: typeof WorkspaceRoute
     }
     '/workspace/imoveis/manutencoes': {
@@ -3479,11 +3894,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspaceMarketingTelemetriaRouteImport
       parentRoute: typeof WorkspaceRoute
     }
+    '/workspace/marketing/vitrine': {
+      id: '/workspace/marketing/vitrine'
+      path: '/marketing/vitrine'
+      fullPath: '/workspace/marketing/vitrine'
+      preLoaderRoute: typeof WorkspaceMarketingVitrineRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
     '/workspace/moderacao/': {
       id: '/workspace/moderacao/'
       path: '/moderacao'
       fullPath: '/workspace/moderacao/'
       preLoaderRoute: typeof WorkspaceModeracaoIndexRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/moderacao/kyc': {
+      id: '/workspace/moderacao/kyc'
+      path: '/moderacao/kyc'
+      fullPath: '/workspace/moderacao/kyc'
+      preLoaderRoute: typeof WorkspaceModeracaoKycRouteImport
       parentRoute: typeof WorkspaceRoute
     }
     '/workspace/noticias/': {
@@ -3540,6 +3969,13 @@ declare module '@tanstack/react-router' {
       path: '/pdv/comandas'
       fullPath: '/workspace/pdv/comandas'
       preLoaderRoute: typeof WorkspacePdvComandasRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/pdv/cozinha': {
+      id: '/workspace/pdv/cozinha'
+      path: '/pdv/cozinha'
+      fullPath: '/workspace/pdv/cozinha'
+      preLoaderRoute: typeof WorkspacePdvCozinhaRouteImport
       parentRoute: typeof WorkspaceRoute
     }
     '/workspace/pedidos/': {
@@ -3717,6 +4153,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspaceConfiguracoesFretesCotacoesRouteImport
       parentRoute: typeof WorkspaceRoute
     }
+    '/workspace/contratos/$id/editor': {
+      id: '/workspace/contratos/$id/editor'
+      path: '/contratos/$id/editor'
+      fullPath: '/workspace/contratos/$id/editor'
+      preLoaderRoute: typeof WorkspaceContratosIdEditorRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
     '/workspace/eventos/$id/checkin': {
       id: '/workspace/eventos/$id/checkin'
       path: '/checkin'
@@ -3810,9 +4253,12 @@ interface StoreContaRouteChildren {
   StoreContaPacotesRoute: typeof StoreContaPacotesRoute
   StoreContaPagamentosRoute: typeof StoreContaPagamentosRoute
   StoreContaPerfilRoute: typeof StoreContaPerfilRoute
+  StoreContaProcessosRoute: typeof StoreContaProcessosRoute
   StoreContaSalvosRoute: typeof StoreContaSalvosRoute
   StoreContaSuporteRoute: typeof StoreContaSuporteRoute
+  StoreContaTokensRoute: typeof StoreContaTokensRoute
   StoreContaTrocasRoute: typeof StoreContaTrocasRoute
+  StoreContaVerificacaoRoute: typeof StoreContaVerificacaoRoute
   StoreContaViagensRoute: typeof StoreContaViagensRoute
   StoreContaIndexRoute: typeof StoreContaIndexRoute
   StoreContaClassificadosNovoRoute: typeof StoreContaClassificadosNovoRoute
@@ -3837,9 +4283,12 @@ const StoreContaRouteChildren: StoreContaRouteChildren = {
   StoreContaPacotesRoute: StoreContaPacotesRoute,
   StoreContaPagamentosRoute: StoreContaPagamentosRoute,
   StoreContaPerfilRoute: StoreContaPerfilRoute,
+  StoreContaProcessosRoute: StoreContaProcessosRoute,
   StoreContaSalvosRoute: StoreContaSalvosRoute,
   StoreContaSuporteRoute: StoreContaSuporteRoute,
+  StoreContaTokensRoute: StoreContaTokensRoute,
   StoreContaTrocasRoute: StoreContaTrocasRoute,
+  StoreContaVerificacaoRoute: StoreContaVerificacaoRoute,
   StoreContaViagensRoute: StoreContaViagensRoute,
   StoreContaIndexRoute: StoreContaIndexRoute,
   StoreContaClassificadosNovoRoute: StoreContaClassificadosNovoRoute,
@@ -4027,8 +4476,10 @@ const StoreRouteChildren: StoreRouteChildren = {
 const StoreRouteWithChildren = StoreRoute._addFileChildren(StoreRouteChildren)
 
 interface AdminMasterRouteChildren {
+  AdminMasterAlgoritmoRoute: typeof AdminMasterAlgoritmoRoute
   AdminMasterBannersRoute: typeof AdminMasterBannersRoute
   AdminMasterBotoesRoute: typeof AdminMasterBotoesRoute
+  AdminMasterCuradoriaRoute: typeof AdminMasterCuradoriaRoute
   AdminMasterDenunciasRoute: typeof AdminMasterDenunciasRoute
   AdminMasterFaturasRoute: typeof AdminMasterFaturasRoute
   AdminMasterHubsRoute: typeof AdminMasterHubsRoute
@@ -4037,14 +4488,20 @@ interface AdminMasterRouteChildren {
   AdminMasterLogisticaRoute: typeof AdminMasterLogisticaRoute
   AdminMasterLojasRoute: typeof AdminMasterLojasRoute
   AdminMasterMarcaRoute: typeof AdminMasterMarcaRoute
+  AdminMasterMiningRoute: typeof AdminMasterMiningRoute
+  AdminMasterSimlabsRoute: typeof AdminMasterSimlabsRoute
   AdminMasterTermosRoute: typeof AdminMasterTermosRoute
+  AdminMasterTokensRoute: typeof AdminMasterTokensRoute
   AdminMasterUsuariosRoute: typeof AdminMasterUsuariosRoute
+  AdminMasterVitrinesRoute: typeof AdminMasterVitrinesRoute
   AdminMasterIndexRoute: typeof AdminMasterIndexRoute
 }
 
 const AdminMasterRouteChildren: AdminMasterRouteChildren = {
+  AdminMasterAlgoritmoRoute: AdminMasterAlgoritmoRoute,
   AdminMasterBannersRoute: AdminMasterBannersRoute,
   AdminMasterBotoesRoute: AdminMasterBotoesRoute,
+  AdminMasterCuradoriaRoute: AdminMasterCuradoriaRoute,
   AdminMasterDenunciasRoute: AdminMasterDenunciasRoute,
   AdminMasterFaturasRoute: AdminMasterFaturasRoute,
   AdminMasterHubsRoute: AdminMasterHubsRoute,
@@ -4053,8 +4510,12 @@ const AdminMasterRouteChildren: AdminMasterRouteChildren = {
   AdminMasterLogisticaRoute: AdminMasterLogisticaRoute,
   AdminMasterLojasRoute: AdminMasterLojasRoute,
   AdminMasterMarcaRoute: AdminMasterMarcaRoute,
+  AdminMasterMiningRoute: AdminMasterMiningRoute,
+  AdminMasterSimlabsRoute: AdminMasterSimlabsRoute,
   AdminMasterTermosRoute: AdminMasterTermosRoute,
+  AdminMasterTokensRoute: AdminMasterTokensRoute,
   AdminMasterUsuariosRoute: AdminMasterUsuariosRoute,
+  AdminMasterVitrinesRoute: AdminMasterVitrinesRoute,
   AdminMasterIndexRoute: AdminMasterIndexRoute,
 }
 
@@ -4088,7 +4549,9 @@ const WorkspaceMarketingAnunciosRouteWithChildren =
   )
 
 interface WorkspaceRouteChildren {
+  WorkspaceQualidadeRoute: typeof WorkspaceQualidadeRoute
   WorkspaceSimulacaoRoute: typeof WorkspaceSimulacaoRoute
+  WorkspaceTokensRoute: typeof WorkspaceTokensRoute
   WorkspaceIndexRoute: typeof WorkspaceIndexRoute
   WorkspaceAgendaRecursosRoute: typeof WorkspaceAgendaRecursosRoute
   WorkspaceCatalogoAtributosRoute: typeof WorkspaceCatalogoAtributosRoute
@@ -4103,6 +4566,7 @@ interface WorkspaceRouteChildren {
   WorkspaceConfiguracoesAiRoute: typeof WorkspaceConfiguracoesAiRoute
   WorkspaceConfiguracoesIntegracoesRoute: typeof WorkspaceConfiguracoesIntegracoesRoute
   WorkspaceConfiguracoesParceirosRoute: typeof WorkspaceConfiguracoesParceirosRoute
+  WorkspaceContratosNovoRoute: typeof WorkspaceContratosNovoRoute
   WorkspaceEmpregosCandidatosRoute: typeof WorkspaceEmpregosCandidatosRoute
   WorkspaceEstoqueAlertasRoute: typeof WorkspaceEstoqueAlertasRoute
   WorkspaceEstoqueMovimentosRoute: typeof WorkspaceEstoqueMovimentosRoute
@@ -4112,6 +4576,7 @@ interface WorkspaceRouteChildren {
   WorkspaceFinanceiroComprovantesRoute: typeof WorkspaceFinanceiroComprovantesRoute
   WorkspaceFinanceiroFuncionariosRoute: typeof WorkspaceFinanceiroFuncionariosRoute
   WorkspaceFinanceiroPagamentosRoute: typeof WorkspaceFinanceiroPagamentosRoute
+  WorkspaceFinanceiroRecebiveisRoute: typeof WorkspaceFinanceiroRecebiveisRoute
   WorkspaceImoveisManutencoesRoute: typeof WorkspaceImoveisManutencoesRoute
   WorkspaceLogisticaFaturasRoute: typeof WorkspaceLogisticaFaturasRoute
   WorkspaceLogisticaPudoRoute: typeof WorkspaceLogisticaPudoRoute
@@ -4124,18 +4589,25 @@ interface WorkspaceRouteChildren {
   WorkspaceMarketingPatrocinadoresRoute: typeof WorkspaceMarketingPatrocinadoresRoute
   WorkspaceMarketingPromocoesRoute: typeof WorkspaceMarketingPromocoesRoute
   WorkspaceMarketingTelemetriaRoute: typeof WorkspaceMarketingTelemetriaRoute
+  WorkspaceMarketingVitrineRoute: typeof WorkspaceMarketingVitrineRoute
+  WorkspaceModeracaoKycRoute: typeof WorkspaceModeracaoKycRoute
   WorkspaceNoticiasNovoRoute: typeof WorkspaceNoticiasNovoRoute
   WorkspaceOrcamentosIdRoute: typeof WorkspaceOrcamentosIdRoute
   WorkspaceOrcamentosNovoRoute: typeof WorkspaceOrcamentosNovoRoute
   WorkspacePdvComandasRoute: typeof WorkspacePdvComandasRoute
+  WorkspacePdvCozinhaRoute: typeof WorkspacePdvCozinhaRoute
   WorkspacePedidosIdRoute: typeof WorkspacePedidosIdRoute
   WorkspacePedidosFrotaRoute: typeof WorkspacePedidosFrotaRoute
   WorkspacePedidosGestorRoute: typeof WorkspacePedidosGestorRoute
   WorkspacePedidosTrocasRoute: typeof WorkspacePedidosTrocasRoute
   WorkspaceTurismoCotacoesRoute: typeof WorkspaceTurismoCotacoesRoute
+  WorkspaceAdvocaciaIndexRoute: typeof WorkspaceAdvocaciaIndexRoute
   WorkspaceAgendaIndexRoute: typeof WorkspaceAgendaIndexRoute
+  WorkspaceAtendimentoIndexRoute: typeof WorkspaceAtendimentoIndexRoute
   WorkspaceClientesIndexRoute: typeof WorkspaceClientesIndexRoute
   WorkspaceConfiguracoesIndexRoute: typeof WorkspaceConfiguracoesIndexRoute
+  WorkspaceContadorIndexRoute: typeof WorkspaceContadorIndexRoute
+  WorkspaceContratosIndexRoute: typeof WorkspaceContratosIndexRoute
   WorkspaceEstoqueIndexRoute: typeof WorkspaceEstoqueIndexRoute
   WorkspaceEstudioIndexRoute: typeof WorkspaceEstudioIndexRoute
   WorkspaceEventosIndexRoute: typeof WorkspaceEventosIndexRoute
@@ -4154,6 +4626,7 @@ interface WorkspaceRouteChildren {
   WorkspaceCatalogoProdutosIdRoute: typeof WorkspaceCatalogoProdutosIdRoute
   WorkspaceCatalogoProdutosNovoRoute: typeof WorkspaceCatalogoProdutosNovoRoute
   WorkspaceConfiguracoesFretesCotacoesRoute: typeof WorkspaceConfiguracoesFretesCotacoesRoute
+  WorkspaceContratosIdEditorRoute: typeof WorkspaceContratosIdEditorRoute
   WorkspaceFinanceiroCaixaLancamentosRoute: typeof WorkspaceFinanceiroCaixaLancamentosRoute
   WorkspaceFinanceiroCaixaTurnosRoute: typeof WorkspaceFinanceiroCaixaTurnosRoute
   WorkspacePedidosEntregadoresIdRoute: typeof WorkspacePedidosEntregadoresIdRoute
@@ -4168,7 +4641,9 @@ interface WorkspaceRouteChildren {
 }
 
 const WorkspaceRouteChildren: WorkspaceRouteChildren = {
+  WorkspaceQualidadeRoute: WorkspaceQualidadeRoute,
   WorkspaceSimulacaoRoute: WorkspaceSimulacaoRoute,
+  WorkspaceTokensRoute: WorkspaceTokensRoute,
   WorkspaceIndexRoute: WorkspaceIndexRoute,
   WorkspaceAgendaRecursosRoute: WorkspaceAgendaRecursosRoute,
   WorkspaceCatalogoAtributosRoute: WorkspaceCatalogoAtributosRoute,
@@ -4184,6 +4659,7 @@ const WorkspaceRouteChildren: WorkspaceRouteChildren = {
   WorkspaceConfiguracoesIntegracoesRoute:
     WorkspaceConfiguracoesIntegracoesRoute,
   WorkspaceConfiguracoesParceirosRoute: WorkspaceConfiguracoesParceirosRoute,
+  WorkspaceContratosNovoRoute: WorkspaceContratosNovoRoute,
   WorkspaceEmpregosCandidatosRoute: WorkspaceEmpregosCandidatosRoute,
   WorkspaceEstoqueAlertasRoute: WorkspaceEstoqueAlertasRoute,
   WorkspaceEstoqueMovimentosRoute: WorkspaceEstoqueMovimentosRoute,
@@ -4193,6 +4669,7 @@ const WorkspaceRouteChildren: WorkspaceRouteChildren = {
   WorkspaceFinanceiroComprovantesRoute: WorkspaceFinanceiroComprovantesRoute,
   WorkspaceFinanceiroFuncionariosRoute: WorkspaceFinanceiroFuncionariosRoute,
   WorkspaceFinanceiroPagamentosRoute: WorkspaceFinanceiroPagamentosRoute,
+  WorkspaceFinanceiroRecebiveisRoute: WorkspaceFinanceiroRecebiveisRoute,
   WorkspaceImoveisManutencoesRoute: WorkspaceImoveisManutencoesRoute,
   WorkspaceLogisticaFaturasRoute: WorkspaceLogisticaFaturasRoute,
   WorkspaceLogisticaPudoRoute: WorkspaceLogisticaPudoRoute,
@@ -4205,18 +4682,25 @@ const WorkspaceRouteChildren: WorkspaceRouteChildren = {
   WorkspaceMarketingPatrocinadoresRoute: WorkspaceMarketingPatrocinadoresRoute,
   WorkspaceMarketingPromocoesRoute: WorkspaceMarketingPromocoesRoute,
   WorkspaceMarketingTelemetriaRoute: WorkspaceMarketingTelemetriaRoute,
+  WorkspaceMarketingVitrineRoute: WorkspaceMarketingVitrineRoute,
+  WorkspaceModeracaoKycRoute: WorkspaceModeracaoKycRoute,
   WorkspaceNoticiasNovoRoute: WorkspaceNoticiasNovoRoute,
   WorkspaceOrcamentosIdRoute: WorkspaceOrcamentosIdRoute,
   WorkspaceOrcamentosNovoRoute: WorkspaceOrcamentosNovoRoute,
   WorkspacePdvComandasRoute: WorkspacePdvComandasRoute,
+  WorkspacePdvCozinhaRoute: WorkspacePdvCozinhaRoute,
   WorkspacePedidosIdRoute: WorkspacePedidosIdRoute,
   WorkspacePedidosFrotaRoute: WorkspacePedidosFrotaRoute,
   WorkspacePedidosGestorRoute: WorkspacePedidosGestorRoute,
   WorkspacePedidosTrocasRoute: WorkspacePedidosTrocasRoute,
   WorkspaceTurismoCotacoesRoute: WorkspaceTurismoCotacoesRoute,
+  WorkspaceAdvocaciaIndexRoute: WorkspaceAdvocaciaIndexRoute,
   WorkspaceAgendaIndexRoute: WorkspaceAgendaIndexRoute,
+  WorkspaceAtendimentoIndexRoute: WorkspaceAtendimentoIndexRoute,
   WorkspaceClientesIndexRoute: WorkspaceClientesIndexRoute,
   WorkspaceConfiguracoesIndexRoute: WorkspaceConfiguracoesIndexRoute,
+  WorkspaceContadorIndexRoute: WorkspaceContadorIndexRoute,
+  WorkspaceContratosIndexRoute: WorkspaceContratosIndexRoute,
   WorkspaceEstoqueIndexRoute: WorkspaceEstoqueIndexRoute,
   WorkspaceEstudioIndexRoute: WorkspaceEstudioIndexRoute,
   WorkspaceEventosIndexRoute: WorkspaceEventosIndexRoute,
@@ -4236,6 +4720,7 @@ const WorkspaceRouteChildren: WorkspaceRouteChildren = {
   WorkspaceCatalogoProdutosNovoRoute: WorkspaceCatalogoProdutosNovoRoute,
   WorkspaceConfiguracoesFretesCotacoesRoute:
     WorkspaceConfiguracoesFretesCotacoesRoute,
+  WorkspaceContratosIdEditorRoute: WorkspaceContratosIdEditorRoute,
   WorkspaceFinanceiroCaixaLancamentosRoute:
     WorkspaceFinanceiroCaixaLancamentosRoute,
   WorkspaceFinanceiroCaixaTurnosRoute: WorkspaceFinanceiroCaixaTurnosRoute,
@@ -4261,9 +4746,11 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   WorkspaceRoute: WorkspaceRouteWithChildren,
   AssinarTokenRoute: AssinarTokenRoute,
+  AssinaturaTokenRoute: AssinaturaTokenRoute,
   ApiAuthCallbackRoute: ApiAuthCallbackRoute,
   ApiAuthConfirmRoute: ApiAuthConfirmRoute,
   ApiFeedXmlRoute: ApiFeedXmlRoute,
+  ApiWebhooksPixRoute: ApiWebhooksPixRoute,
   ApiWebhooksShipmentRoute: ApiWebhooksShipmentRoute,
   VerifyDocumentCodeRoute: VerifyDocumentCodeRoute,
   WorkspacePedidosIdReciboRoute: WorkspacePedidosIdReciboRoute,

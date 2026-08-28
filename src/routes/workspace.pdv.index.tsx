@@ -497,7 +497,7 @@ function PdvTerminal() {
           size="lg"
           onClick={() => setCheckoutOpen(true)}
           disabled={cart.length === 0}
-          className="w-full h-12 rounded-xl font-bold text-xs bg-primary text-primary-foreground gap-2 cursor-pointer shadow-xs"
+          className="w-full h-12 rounded-xl font-bold text-xs bg-primary text-primary-foreground gap-2 cursor-pointer"
         >
           <CreditCard className="size-4" />
           <span>Cobrar [F4]</span>
@@ -554,7 +554,7 @@ function PdvTerminal() {
                 <div
                   key={`${product.id}-${variant.id || "def"}`}
                   onClick={() => handleProductClick(product, variant)}
-                  className="p-3 rounded-2xl bg-card border border-border/70 hover:border-primary/50 hover:shadow-xs transition-all cursor-pointer flex flex-col justify-between group active:scale-[0.98]"
+                  className="p-3 rounded-2xl bg-card border border-border/70 hover:border-primary/50 transition-all cursor-pointer flex flex-col justify-between group active:scale-[0.98]"
                 >
                   <div className="space-y-1">
                     <h3 className="font-bold text-xs text-foreground line-clamp-2 leading-snug">
@@ -605,7 +605,7 @@ function PdvTerminal() {
             <SheetTrigger asChild>
               <Button
                 size="lg"
-                className="w-full h-14 rounded-2xl shadow-lg flex items-center justify-between px-6 bg-primary text-primary-foreground font-bold active:scale-[0.98]"
+                className="w-full h-14 rounded-2xl flex items-center justify-between px-6 bg-primary text-primary-foreground font-bold active:scale-[0.98]"
               >
                 <div className="flex items-center gap-2">
                   <ShoppingCart className="size-5" />
@@ -732,7 +732,7 @@ function PdvTerminal() {
 
       {/* ── Modal de Impressão de Cupom Térmico (58mm / 80mm) ── */}
       <Dialog open={receiptModalOpen} onOpenChange={setReceiptModalOpen}>
-        <DialogContent className="sm:max-w-md rounded-3xl">
+        <DialogContent className="sm:max-w-md sm:rounded-3xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold flex items-center gap-2">
               <CheckCircle2 className="size-5 text-emerald-500" />

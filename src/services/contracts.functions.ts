@@ -259,3 +259,79 @@ export const verifyDocumentPublic = createServerFn({ method: "GET" })
       sealedVersion: (contract.versions as any[])?.find((v) => v.is_sealed) || null,
     };
   });
+
+export const listContracts = createServerFn({ method: "GET" }).handler(async () => {
+  const supabase = getServerClient();
+  const identity = await getIdentity();
+  if (!identity?.id) throw new Error("Não autenticado");
+
+  const { data, error } = await supabase
+    .from("contracts")
+    .select(`
+      id, title, category, status, created_at, updated_at,
+      creator:creator_id (id, full_name),
+      deal:deal_id (id, status, proposed_price_cents)
+    `)
+    .eq("creator_id", identity.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("[contracts] listContracts error:", error);
+    throw new Error("Erro ao listar contratos.");
+  }
+
+  return data || [];
+});
+
+export const getContractById = createServerFn({ method: "GET" })
+  .validator(z.string().uuid())
+  .handler(async ({ data: contractId }) => {
+    const supabase = getServerClient();
+    const identity = await getIdentity();
+    if (!identity?.id) throw new Error("Não autenticado");
+
+    const { data: contract, error } = await supabase
+      .from("contracts")
+      .select(`
+        *,
+        creator:creator_id (id, full_name, avatar_url),
+        deal:deal_id (*),
+        versions:contract_versions (
+          *,
+          envelopes:signature_envelopes (*)
+        )
+      `)
+      .eq("id", contractId)
+      .eq("creator_id", identity.id)
+      .single();
+
+    if (error || !contract) throw new Error("Contrato não encontrado ou acesso negado.");
+
+    return contract;
+  });
+
+export const getEnvelopeByToken = createServerFn({ method: "GET" })
+  .validator(z.string().min(1))
+  .handler(async ({ data: token }) => {
+    const supabase = getServerClient();
+    const { data: envelope, error } = await supabase
+      .from("signature_envelopes")
+      .select(
+        `
+        *,
+        contract_version:contract_version_id (
+          id, version_number, title, content_markdown, hash_sha256, sealed_at,
+          contract:contract_id (id, title, category, verification_code)
+        )
+      `,
+      )
+      .eq("signing_token", token)
+      .maybeSingle();
+
+    if (error || !envelope) {
+      return null;
+    }
+
+    return envelope;
+  });
+

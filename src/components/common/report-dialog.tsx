@@ -85,7 +85,7 @@ export function ReportDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md rounded-2xl p-6">
+      <DialogContent className="sm:max-w-md sm:rounded-2xl sm:p-6 p-5">
         {!isSubmitted ? (
           <>
             <DialogHeader className="space-y-1">

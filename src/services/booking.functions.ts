@@ -566,20 +566,118 @@ export const listAppointments = createServerFn({ method: "GET" })
     }
   });
 
-export const getBookingService = createServerFn()
-  .validator((d: any) => d)
-  .handler(async () => {
-    return null;
+export const getBookingService = createServerFn({ method: "GET" })
+  .validator(z.object({ id: z.string().uuid() }))
+  .handler(async ({ data: { id } }) => {
+    try {
+      const db = getServerClient();
+      const { data, error } = await db
+        .from("booking_services")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error) throw error;
+      return { status: "success" as const, data };
+    } catch (e: unknown) {
+      console.error("[booking] getBookingService error:", e);
+      throw new Error("Serviço não encontrado.");
+    }
   });
-export const upsertBookingService = createServerFn()
-  .validator((d: any) => d)
-  .handler(async () => {
-    return {};
+
+export const upsertBookingService = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string().uuid().optional(),
+      title: z.string().min(2, "Título é obrigatório"),
+      description: z.string().optional().nullable(),
+      duration_minutes: z.number().int().min(5, "Duração mínima é 5 minutos"),
+      price_cents: z.number().int().min(0),
+      category: z.string().optional().nullable(),
+      gender_target: z.string().optional().nullable(),
+      status: z.enum(["active", "archived"]).default("active"),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    try {
+      const identity = await getServerIdentity();
+      assertStoreAccess(identity, ["owner", "admin", "manager"]);
+      const storeId = await resolveTenantStoreId();
+      if (!storeId) throw new Error("Loja não encontrada no contexto.");
+
+      const db = getServerClient();
+
+      if (input.id) {
+        // Update
+        const { data, error } = await db
+          .from("booking_services")
+          .update({
+            title: input.title,
+            description: input.description ?? null,
+            duration_minutes: input.duration_minutes,
+            price_cents: input.price_cents,
+            category: input.category ?? null,
+            gender_target: input.gender_target ?? null,
+            status: input.status,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", input.id)
+          .eq("store_id", storeId)
+          .select()
+          .single();
+
+        if (error) throw error;
+        return { status: "success" as const, data };
+      } else {
+        // Insert
+        const { data, error } = await db
+          .from("booking_services")
+          .insert({
+            store_id: storeId,
+            title: input.title,
+            description: input.description ?? null,
+            duration_minutes: input.duration_minutes,
+            price_cents: input.price_cents,
+            category: input.category ?? null,
+            gender_target: input.gender_target ?? null,
+            status: input.status,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        return { status: "success" as const, data };
+      }
+    } catch (e: unknown) {
+      console.error("[booking] upsertBookingService error:", e);
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao salvar serviço.",
+      );
+    }
   });
-export const deleteBookingService = createServerFn()
-  .validator((d: any) => d)
-  .handler(async () => {
-    return {};
+
+export const deleteBookingService = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string().uuid() }))
+  .handler(async ({ data: { id } }) => {
+    try {
+      const identity = await getServerIdentity();
+      assertStoreAccess(identity, ["owner", "admin", "manager"]);
+      const storeId = await resolveTenantStoreId();
+      if (!storeId) throw new Error("Loja não encontrada no contexto.");
+
+      const db = getServerClient();
+      const { error } = await db
+        .from("booking_services")
+        .update({ status: "archived", updated_at: new Date().toISOString() })
+        .eq("id", id)
+        .eq("store_id", storeId);
+
+      if (error) throw error;
+      return { status: "success" as const };
+    } catch (e: unknown) {
+      console.error("[booking] deleteBookingService error:", e);
+      throw new Error("Erro ao arquivar serviço.");
+    }
   });
 
 export const updateAppointmentStatus = createServerFn({ method: "POST" })

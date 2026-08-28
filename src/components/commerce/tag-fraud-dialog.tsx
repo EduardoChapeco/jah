@@ -70,7 +70,7 @@ export function TagFraudDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleResetAndClose}>
-      <DialogContent className="sm:max-w-[460px] rounded-3xl  bg-card p-6">
+      <DialogContent className="sm:max-w-[460px] sm:rounded-3xl bg-card sm:p-6">
         <DialogHeader className="space-y-2">
           <div className="size-11 rounded-2xl bg-destructive/10 text-destructive flex items-center justify-center mb-1">
             <ShieldAlert className="size-6" />

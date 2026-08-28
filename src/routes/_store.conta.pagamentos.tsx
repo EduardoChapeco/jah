@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -92,6 +92,7 @@ function translatePaymentMethod(method?: string) {
 function CustomerInstallmentsPage() {
   const { plans, orders, receivables } = Route.useLoaderData();
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [selectedInstallment, setSelectedInstallment] = useState<any>(null);
@@ -106,7 +107,7 @@ function CustomerInstallmentsPage() {
       setSelectedInstallment(null);
       setPaymentProofUrl("");
       setNotes("");
-      window.location.reload();
+      router.invalidate();
     },
     onError: (err: any) => {
       toast.error(err?.message || "Erro ao registrar quitação da parcela.");
@@ -421,7 +422,7 @@ function CustomerInstallmentsPage() {
       {/* Modal de Quitação de Parcela */}
       {selectedInstallment && (
         <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
-          <DialogContent className="max-w-md rounded-2xl p-6">
+          <DialogContent className="sm:max-w-md sm:rounded-2xl sm:p-6">
             <DialogHeader className="space-y-1">
               <DialogTitle className="text-base font-bold text-foreground">
                 Quitar {selectedInstallment.installment_number}ª Parcela

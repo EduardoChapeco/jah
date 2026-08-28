@@ -861,6 +861,7 @@ function SpecializedClassifiedEditor({
               folder="classifieds"
               aspect={4 / 3}
               enableCrop={true}
+              lockAspect={true}
               maxFiles={8}
             />
           </div>

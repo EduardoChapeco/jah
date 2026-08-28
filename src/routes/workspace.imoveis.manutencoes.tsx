@@ -193,7 +193,7 @@ function PropertyMaintenanceDashboard() {
 
       {/* Grid de Chamados */}
       {filteredRequests.length === 0 ? (
-        <div className="py-16 text-center rounded-3xl border-0 bg-card/60 space-y-2">
+        <div className="py-16 text-center rounded-2xl border border-border/60 bg-card space-y-2">
           <Wrench className="size-10 text-muted-foreground/40 mx-auto" />
           <h3 className="text-base font-bold text-foreground">Nenhum chamado de manutenção</h3>
           <p className="text-xs text-muted-foreground max-w-sm mx-auto">
@@ -205,7 +205,7 @@ function PropertyMaintenanceDashboard() {
           {filteredRequests.map((req) => (
             <div
               key={req.id}
-              className="p-5 rounded-3xl  bg-card  space-y-4 flex flex-col justify-between hover:border-primary/40 transition-colors"
+              className="p-5 rounded-2xl bg-card border border-border/60 space-y-4 flex flex-col justify-between hover:border-primary/40 transition-colors"
             >
               <div className="space-y-3">
                 <div className="flex items-start justify-between gap-2">
@@ -232,7 +232,7 @@ function PropertyMaintenanceDashboard() {
                   </Badge>
                 </div>
 
-                <p className="text-xs text-muted-foreground leading-relaxed bg-muted/30 p-2.5 rounded-xl">
+                <p className="text-xs text-muted-foreground leading-relaxed bg-muted/30 p-2.5 rounded-xl border border-border/40">
                   {req.description}
                 </p>
 
@@ -245,7 +245,7 @@ function PropertyMaintenanceDashboard() {
                         href={photo}
                         target="_blank"
                         rel="noreferrer"
-                        className="size-14 rounded-xl overflow-hidden  shrink-0 hover:opacity-80 transition-opacity"
+                        className="size-14 rounded-xl overflow-hidden shrink-0 hover:opacity-80 transition-opacity border border-border/40"
                       >
                         <img src={photo} alt="Foto da avaria" className="size-full object-cover" />
                       </a>
@@ -254,7 +254,7 @@ function PropertyMaintenanceDashboard() {
                 )}
 
                 {/* Status & Orçamento */}
-                <div className="flex items-center justify-between text-xs pt-1 ">
+                <div className="flex items-center justify-between text-xs pt-1">
                   <span className="text-muted-foreground font-medium">Categoria:</span>
                   <span className="font-bold capitalize text-foreground">{req.category}</span>
                 </div>
@@ -269,14 +269,14 @@ function PropertyMaintenanceDashboard() {
                 )}
 
                 {req.admin_notes && (
-                  <p className="text-[11px] text-muted-foreground italic bg-blue-500/10 p-2 rounded-lg border border-blue-500/20">
+                  <p className="text-[11px] text-muted-foreground italic bg-info/10 p-2 rounded-lg border border-info/20">
                     Notas do Gestor: {req.admin_notes}
                   </p>
                 )}
               </div>
 
               {/* Ações */}
-              <div className="pt-3  flex items-center justify-between gap-2">
+              <div className="pt-3 border-t border-border/40 flex items-center justify-between gap-2">
                 <Badge
                   variant={
                     req.status === "resolved"
@@ -316,7 +316,7 @@ function PropertyMaintenanceDashboard() {
 
       {/* Modal: Gerenciar Chamado */}
       <Dialog open={!!editModalReq} onOpenChange={(open) => !open && setEditModalReq(null)}>
-        <DialogContent className="max-w-md p-6 rounded-3xl bg-card ">
+        <DialogContent className="sm:max-w-md sm:p-6 sm:rounded-3xl bg-card">
           <DialogHeader>
             <DialogTitle className="text-lg font-black">{editModalReq?.title}</DialogTitle>
             <DialogDescription className="text-xs">

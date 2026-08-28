@@ -27,11 +27,13 @@ import {
   type ViewModeType,
   type FilterChipOption,
 } from "@/components/commerce/discovery-control-bar";
-import { getMarketplaceFeed } from "@/services/marketplace.functions";
+import { getModularSurfaceFeed } from "@/services/surface-cms.functions";
+import { ModularSurfaceFeed } from "@/components/commerce/modular-surface-feed";
 import { listActiveBanners } from "@/services/banner.functions";
 import { listHotpages } from "@/services/hotpage.functions";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
 import { formatMoney } from "@/lib/money";
+import { resolveNicheDepartments } from "@/lib/niche-helpers";
 
 const SearchSchema = z.object({
   q: z.string().optional(),
@@ -67,7 +69,7 @@ export const Route = createFileRoute("/_store/imoveis")({
     const [banners, hotpages, marketplaceFeed] = await Promise.all([
       listActiveBanners({ data: { placement: "imoveis" } }).catch(() => []),
       listHotpages({ data: { module: "imoveis" } }).catch(() => []),
-      getMarketplaceFeed({ data: { niche: "imoveis" } }).catch(() => null),
+      getModularSurfaceFeed({ data: { surfaceSlug: "imoveis" } }).catch(() => ({ sections: [], allProducts: [] })),
     ]);
 
     return {
@@ -150,6 +152,11 @@ function ImoveisVerticalPage() {
           </Link>
         </div>
       </div>
+
+      {/* ── 2.5 Seções Modulares do CMS ── */}
+      {marketplaceFeed?.sections && marketplaceFeed.sections.length > 0 && (
+        <ModularSurfaceFeed sections={marketplaceFeed.sections} />
+      )}
 
       {/* ── 3. Barra Canônica de Filtros ── */}
       <DiscoveryControlBar

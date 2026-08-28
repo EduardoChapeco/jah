@@ -155,10 +155,10 @@ function JobDetailPage() {
       </div>
 
       {/* ── 2. Hero Header da Vaga ── */}
-      <header className="rounded-3xl  bg-card p-6 sm:p-8 space-y-6 ">
+      <header className="rounded-2xl border border-border/60 bg-card p-6 sm:p-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-5">
           <div className="flex items-start gap-4">
-            <div className="size-16 sm:size-20 rounded-2xl bg-muted  flex items-center justify-center text-foreground font-black text-xl shrink-0 overflow-hidden">
+            <div className="size-16 sm:size-20 rounded-2xl bg-muted flex items-center justify-center text-foreground font-black text-xl shrink-0 overflow-hidden">
               {job.company_logo_url ? (
                 <img
                   src={job.company_logo_url}
@@ -217,7 +217,7 @@ function JobDetailPage() {
         </div>
 
         {/* Tags Rápidas de Contratação */}
-        <div className="flex flex-wrap items-center gap-2 pt-4 ">
+        <div className="flex flex-wrap items-center gap-2 pt-4">
           <Badge variant="secondary" className="rounded-xl px-3 py-1 text-xs font-bold gap-1.5">
             <Briefcase size={14} weight="bold" />
             {job.contract_type}
@@ -236,7 +236,7 @@ function JobDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <main className="lg:col-span-2 space-y-8">
           {/* Descrição das Atividades */}
-          <section className="rounded-3xl  bg-card p-6 sm:p-8 space-y-4 ">
+          <section className="rounded-2xl border border-border/60 bg-card p-6 sm:p-8 space-y-4">
             <h2 className="text-base font-bold text-foreground flex items-center gap-2">
               <Briefcase size={18} weight="bold" />
               <span>Sobre a Vaga e Atribuições</span>
@@ -248,7 +248,7 @@ function JobDetailPage() {
 
           {/* Requisitos & Qualificações */}
           {job.requirements && job.requirements.length > 0 && (
-            <section className="rounded-3xl  bg-card p-6 sm:p-8 space-y-4 ">
+            <section className="rounded-2xl border border-border/60 bg-card p-6 sm:p-8 space-y-4">
               <h2 className="text-base font-bold text-foreground flex items-center gap-2">
                 <CheckCircle size={18} weight="bold" />
                 <span>Requisitos & Conhecimentos</span>
@@ -268,7 +268,7 @@ function JobDetailPage() {
 
           {/* Benefícios & Vantagens */}
           {job.benefits && job.benefits.length > 0 && (
-            <section className="rounded-3xl  bg-card p-6 sm:p-8 space-y-4 ">
+            <section className="rounded-2xl border border-border/60 bg-card p-6 sm:p-8 space-y-4">
               <h2 className="text-base font-bold text-foreground flex items-center gap-2">
                 <Sparkle size={18} weight="bold" />
                 <span>Benefícios & Vantagens</span>
@@ -277,7 +277,7 @@ function JobDetailPage() {
                 {job.benefits.map((ben: string, idx: number) => (
                   <div
                     key={idx}
-                    className="p-3.5 rounded-2xl  bg-muted/30 flex items-center gap-3 text-xs font-semibold text-foreground"
+                    className="p-3.5 rounded-2xl bg-muted/30 flex items-center gap-3 text-xs font-semibold text-foreground border border-border/40"
                   >
                     <Sparkle size={16} weight="fill" className="text-foreground shrink-0" />
                     <span>{ben}</span>
@@ -290,7 +290,7 @@ function JobDetailPage() {
 
         {/* ── 4. Coluna Lateral de Ação / Candidatura ── */}
         <aside className="space-y-5">
-          <div className="sticky top-20 rounded-3xl  bg-card p-6 space-y-5 ">
+          <div className="sticky top-20 rounded-2xl border border-border/60 bg-card p-6 space-y-5">
             <div className="space-y-1">
               <h3 className="text-sm font-bold text-foreground">Candidate-se a esta vaga</h3>
               <p className="text-xs text-muted-foreground">

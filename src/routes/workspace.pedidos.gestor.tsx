@@ -25,9 +25,15 @@ import { Separator } from "@/components/ui/separator";
 export const Route = createFileRoute("/workspace/pedidos/gestor")({
   head: () => ({ meta: [{ title: "KDS - Gestor de Pedidos em Tempo Real" }] }),
   loader: async () => {
+    const { getUserSession } = await import("@/services/auth.functions");
+    const session = await getUserSession().catch(() => null);
+    const storeId = session?.store_id;
+
     const res = await listOrders();
     // Filter only orders that make sense for the kitchen/fulfillment display
-    return (res || []).filter((o: any) => !["draft", "cancelled", "refunded"].includes(o.status));
+    const initialOrders = (res || []).filter((o: any) => !["draft", "cancelled", "refunded"].includes(o.status));
+    
+    return { initialOrders, storeId };
   },
   component: KDSPage,
 });
@@ -53,38 +59,100 @@ function playOrderChime() {
 
 function KDSPage() {
   const router = useRouter();
-  const initialOrders = Route.useLoaderData();
+  const { initialOrders, storeId } = Route.useLoaderData();
   const [orders, setOrders] = useState<any[]>(initialOrders);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+  const [audioUnlocked, setAudioUnlocked] = useState(false);
+  const [audioCtx, setAudioCtx] = useState<AudioContext | null>(null);
+
+  useEffect(() => {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    setAudioCtx(ctx);
+    if (ctx.state === "running") setAudioUnlocked(true);
+    
+    const unlock = () => {
+      if (ctx.state === "suspended") {
+        ctx.resume().then(() => setAudioUnlocked(true));
+      }
+    };
+    
+    document.addEventListener("click", unlock, { once: true });
+    return () => document.removeEventListener("click", unlock);
+  }, []);
+
+  function playOrderChime() {
+    if (!audioCtx || audioCtx.state !== "running") return;
+    try {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+      osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15); // A5
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.45);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.45);
+    } catch (e) {
+      console.warn("Web Audio chime not supported:", e);
+    }
+  }
 
   // Supabase Realtime WebSockets Listener
   useEffect(() => {
+    if (!storeId) return;
     const supabase = getBrowserClient();
     const channel = supabase
       .channel("orders-kds-realtime")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "orders" },
+        { event: "*", schema: "public", table: "orders", filter: `store_id=eq.${storeId}` },
         async (payload) => {
           if (payload.eventType === "INSERT") {
             playOrderChime();
             toast.success(`🔔 Novo pedido #${(payload.new as any).id?.slice(0, 6)} recebido na cozinha!`);
+            const newOrder = payload.new;
+            if (!["draft", "cancelled", "refunded"].includes(newOrder.status)) {
+              setOrders((prev) => {
+                if (prev.some((o) => o.id === newOrder.id)) return prev;
+                return [...prev, newOrder];
+              });
+            }
+          } else if (payload.eventType === "UPDATE") {
+            const updatedOrder = payload.new;
+            setOrders((prev) => {
+              if (["draft", "cancelled", "refunded"].includes(updatedOrder.status)) {
+                return prev.filter((o) => o.id !== updatedOrder.id);
+              }
+              const exists = prev.some((o) => o.id === updatedOrder.id);
+              if (exists) {
+                return prev.map((o) => (o.id === updatedOrder.id ? { ...o, ...updatedOrder } : o));
+              } else {
+                return [...prev, updatedOrder];
+              }
+            });
           }
-          const updated = await listOrders().catch(() => []);
-          setOrders(
-            (updated || []).filter(
-              (o: any) => !["draft", "cancelled", "refunded"].includes(o.status),
-            ),
-          );
         },
       )
-      .subscribe();
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          // Catch-up sync: preenche gap de pedidos se o socket reconectar após queda
+          try {
+            const freshRes = await listOrders();
+            const freshActive = (freshRes || []).filter((o: any) => !["draft", "cancelled", "refunded"].includes(o.status));
+            setOrders(freshActive);
+          } catch (err) {
+            console.error("Erro ao sincronizar KDS:", err);
+          }
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [storeId, audioCtx]);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -202,10 +270,17 @@ function KDSPage() {
             </p>
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={toggleFullscreen} className="gap-2">
-          <Maximize className="size-4" />
-          {isFullscreen ? "Sair da Tela Cheia" : "Tela Cheia"}
-        </Button>
+        <div className="flex items-center gap-2">
+          {!audioUnlocked && (
+            <Badge variant="warning" className="cursor-pointer" onClick={() => document.body.click()}>
+              Clique para ativar os alertas sonoros
+            </Badge>
+          )}
+          <Button variant="outline" size="sm" onClick={toggleFullscreen} className="gap-2">
+            <Maximize className="size-4" />
+            {isFullscreen ? "Sair da Tela Cheia" : "Tela Cheia"}
+          </Button>
+        </div>
       </header>
 
       {/* Kanban Board */}

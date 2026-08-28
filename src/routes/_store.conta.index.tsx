@@ -6,19 +6,13 @@ import { listCustomerOrders } from "@/services/order.functions";
 import { getProfile, getUserSession } from "@/services/auth.functions";
 import { formatDate } from "@/lib/datetime";
 import { cn } from "@/lib/utils";
-
+import { ThemeSelector } from "@/components/settings/theme-selector";
 import { redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_store/conta/")({
   head: () => ({ meta: [{ title: "Minha Conta | Wider" }] }),
   loader: async () => {
     const session = await getUserSession().catch(() => null);
-    if (!session || !session.user) {
-      throw redirect({
-        to: "/entrar",
-        search: { returnUrl: "/conta" },
-      });
-    }
     const [ordersRes, profile] = await Promise.all([
       listCustomerOrders().catch(() => []),
       getProfile().catch(() => ({})),
@@ -53,6 +47,7 @@ const ACCOUNT_SECTIONS = [
   { to: "/conta/viagens", label: "Minhas Viagens", badge: null },
   { to: "/conta/enderecos", label: "Endereços de Entrega", badge: null },
   { to: "/conta/pagamentos", label: "Formas de Pagamento", badge: null },
+  { to: "/conta/tokens", label: "Meus Tokens & Fidelidade", badge: "Cashback" },
   { to: "/conta/creditos", label: "Carteira & Créditos", badge: null },
   { to: "/conta/gift-cards", label: "Vales-Presente", badge: null },
   { to: "/conta/negociacoes", label: "Negociações & Trocas", badge: null },
@@ -77,9 +72,9 @@ function AccountDashboardPage() {
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6 pb-6 px-4 sm:px-0">
       {/* ── 1. Header do Usuário (Padrão Threads / Apple HIG) ── */}
-      <div className=" bg-card rounded-3xl p-5 sm:p-6  flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="bg-card rounded-2xl border border-border/60 p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4 min-w-0">
-          <div className="size-16 rounded-3xl bg-muted  overflow-hidden shrink-0 flex items-center justify-center ">
+          <div className="size-16 rounded-2xl bg-muted overflow-hidden shrink-0 flex items-center justify-center border border-border/40">
             {userAvatar ? (
               <img src={userAvatar} alt={userName} className="size-full object-cover" />
             ) : (
@@ -104,7 +99,7 @@ function AccountDashboardPage() {
       </div>
 
       {/* ── 2. Espaços de Trabalho & Lojas ── */}
-      <div className=" bg-card rounded-3xl p-5  space-y-3">
+      <div className="bg-card rounded-2xl border border-border/60 p-5 space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-bold text-foreground tracking-tight">Meus Negócios & Espaços</h2>
           <Button asChild variant="ghost" size="sm" className="rounded-xl text-xs font-semibold h-8 text-primary">
@@ -117,10 +112,10 @@ function AccountDashboardPage() {
             {memberships.map((m) => (
               <div
                 key={m.store_id}
-                className="p-3.5 rounded-2xl  bg-muted/20 flex items-center justify-between gap-3"
+                className="p-3.5 rounded-2xl border border-border/40 bg-muted/20 flex items-center justify-between gap-3"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="size-9 rounded-xl bg-card  overflow-hidden shrink-0 flex items-center justify-center">
+                  <div className="size-9 rounded-xl bg-card border border-border/40 overflow-hidden shrink-0 flex items-center justify-center">
                     {m.logo_url ? (
                       <img src={m.logo_url} alt={m.name} className="size-full object-cover" />
                     ) : (
@@ -154,7 +149,7 @@ function AccountDashboardPage() {
             <Link
               key={item.to}
               to={item.to}
-              className="p-4 rounded-2xl  bg-card hover:border-foreground/30 hover:bg-muted/30 transition-all text-left block "
+              className="p-4 rounded-2xl border border-border/60 bg-card hover:border-foreground/30 hover:bg-muted/30 transition-all text-left block"
             >
               <span className="text-xs sm:text-sm font-bold text-foreground block truncate">{item.label}</span>
             </Link>
@@ -172,7 +167,7 @@ function AccountDashboardPage() {
         </div>
 
         {recentOrders.length === 0 ? (
-          <div className=" bg-card rounded-3xl p-8 text-center space-y-2">
+          <div className="bg-card rounded-2xl border border-border/60 p-8 text-center space-y-2">
             <p className="text-xs text-muted-foreground">Você ainda não realizou nenhum pedido na comunidade.</p>
             <div className="pt-1">
               <Button size="sm" asChild className="rounded-xl font-bold text-xs">
@@ -185,7 +180,7 @@ function AccountDashboardPage() {
             {recentOrders.map((order: any) => (
               <div
                 key={order.id}
-                className="flex items-center justify-between  bg-card rounded-2xl p-4 "
+                className="flex items-center justify-between bg-card rounded-2xl border border-border/60 p-4"
               >
                 <div>
                   <p className="text-xs font-bold text-foreground font-mono">#{order.public_token || order.id?.slice(0, 8)}</p>
@@ -203,6 +198,12 @@ function AccountDashboardPage() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* ── 5. Aparência & Tema ── */}
+      <div className="bg-card rounded-2xl border border-border/60 p-5 space-y-3">
+        <h2 className="text-sm font-bold text-foreground tracking-tight">Aparência & Tema</h2>
+        <ThemeSelector />
       </div>
     </div>
   );

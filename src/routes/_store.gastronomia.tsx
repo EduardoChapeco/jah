@@ -30,10 +30,12 @@ import {
   type FilterChipOption,
 } from "@/components/commerce/discovery-control-bar";
 import { GroceryProductCard } from "@/components/commerce/grocery-product-card";
-import { getMarketplaceFeed } from "@/services/marketplace.functions";
+import { getModularSurfaceFeed } from "@/services/surface-cms.functions";
+import { ModularSurfaceFeed } from "@/components/commerce/modular-surface-feed";
 import { listActiveBanners } from "@/services/banner.functions";
 import { listHotpages } from "@/services/hotpage.functions";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
+import { resolveNicheDepartments } from "@/lib/niche-helpers";
 
 const SearchSchema = z.object({
   q: z.string().optional(),
@@ -72,7 +74,7 @@ export const Route = createFileRoute("/_store/gastronomia")({
     const [banners, hotpages, marketplaceFeed] = await Promise.all([
       listActiveBanners({ data: { placement: "gastronomia" } }).catch(() => []),
       listHotpages({ data: { module: "gastronomia" } }).catch(() => []),
-      getMarketplaceFeed({ data: { niche: "gastronomia" } }).catch(() => null),
+      getModularSurfaceFeed({ data: { surfaceSlug: "gastronomia" } }).catch(() => ({ sections: [], allProducts: [] })),
     ]);
 
     return {
@@ -200,13 +202,7 @@ function GastronomiaVerticalPage() {
         search={search.q || ""}
         onSearchChange={(q) => navigate({ search: (prev) => ({ ...prev, q }) })}
         searchPlaceholder="Buscar pratos, pizzas, burgers, sobremesas..."
-        categories={GASTRONOMIA_DEPARTMENTS.map((dept) => {
-          const match = hotpages?.find((hp) => hp.slug === dept.id);
-          return {
-            ...dept,
-            icon_url: match?.custom_icon_url || match?.icon_url || dept.icon_url,
-          };
-        })}
+        categories={GASTRONOMIA_DEPARTMENTS}
         activeCategory={activeDepartment}
         onSelectCategory={handleDepartmentChange}
         viewMode={viewMode}
@@ -214,39 +210,39 @@ function GastronomiaVerticalPage() {
         resultsCount={filteredProducts.length}
       />
 
-      {/* ── 4. Restaurantes em Destaque ── */}
-      {restaurantStores.length > 0 && (
-        <section aria-label="Restaurantes em Destaque">
-          <HorizontalRail title="Restaurantes & Cardápios Próximos" hideHeader={true}>
-            {restaurantStores.map((store: any) => (
-              <StoreCard key={store.id} {...store} />
-            ))}
-          </HorizontalRail>
+      {/* ── 4. Renderização do Feed Modular ou Grade Filtrada ── */}
+      {viewMode === "feed" ? (
+        <div className="space-y-8">
+          {marketplaceFeed?.sections && marketplaceFeed.sections.length > 0 ? (
+            <ModularSurfaceFeed sections={marketplaceFeed.sections} />
+          ) : (
+            <div className="py-12 text-center text-xs text-muted-foreground">
+              Nenhuma seção ativa no momento.
+            </div>
+          )}
+        </div>
+      ) : (
+        <section aria-label="Pratos & Lanches em Destaque" className="w-full">
+          {filteredProducts.length === 0 ? (
+            <EmptyState
+              title="Nenhum prato encontrado"
+              description="Tente escolher outro tipo de culinária ou busque por restaurantes específicos."
+            />
+          ) : viewMode === "list" ? (
+            <div className="flex flex-col gap-3">
+              {filteredProducts.map((product: any) => (
+                <GroceryProductCard key={product.id} product={product} viewMode="list" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+              {filteredProducts.map((product: any) => (
+                <GroceryProductCard key={product.id} product={product} viewMode="grid" />
+              ))}
+            </div>
+          )}
         </section>
       )}
-
-      {/* ── 6. Vitrine de Cardápios & Pratos ── */}
-      <section aria-label="Pratos & Lanches em Destaque" className="w-full">
-
-        {filteredProducts.length === 0 ? (
-          <EmptyState
-            title="Nenhum prato encontrado"
-            description="Tente escolher outro tipo de culinária ou busque por restaurantes específicos."
-          />
-        ) : viewMode === "list" ? (
-          <div className="flex flex-col gap-3">
-            {filteredProducts.map((product: any) => (
-              <GroceryProductCard key={product.id} product={product} viewMode="list" />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-            {filteredProducts.map((product: any) => (
-              <GroceryProductCard key={product.id} product={product} viewMode="grid" />
-            ))}
-          </div>
-        )}
-      </section>
     </div>
   );
 }

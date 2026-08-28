@@ -42,13 +42,26 @@ export const saveStoreSettingsSchema = z.object({
   faviconUrl: z.string().optional(),
   hideNameWithLogo: z.boolean().optional(),
   custom_checkout_fields: z.array(z.any()).optional(),
+  delivery_zones: z.array(z.any()).optional(),
+  holiday_exceptions: z.array(z.any()).optional(),
+  emergency_pause_until: z.string().nullable().optional(),
 });
 
 export async function _saveStoreSettings(data: z.infer<typeof saveStoreSettingsSchema>) {
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin"]);
 
-  const { logoUrl, bannerUrl, faviconUrl, hideNameWithLogo, custom_checkout_fields, ...columns } = data;
+  const {
+    logoUrl,
+    bannerUrl,
+    faviconUrl,
+    hideNameWithLogo,
+    custom_checkout_fields,
+    delivery_zones,
+    holiday_exceptions,
+    emergency_pause_until,
+    ...columns
+  } = data;
   const db = getServerClient();
 
   // Get current settings to merge
@@ -63,7 +76,22 @@ export async function _saveStoreSettings(data: z.infer<typeof saveStoreSettingsS
     bannerUrl,
     faviconUrl,
     hideNameWithLogo,
-    custom_checkout_fields: custom_checkout_fields !== undefined ? custom_checkout_fields : currentStore?.settings?.custom_checkout_fields,
+    custom_checkout_fields:
+      custom_checkout_fields !== undefined
+        ? custom_checkout_fields
+        : currentStore?.settings?.custom_checkout_fields,
+    delivery_zones:
+      delivery_zones !== undefined
+        ? delivery_zones
+        : currentStore?.settings?.delivery_zones,
+    holiday_exceptions:
+      holiday_exceptions !== undefined
+        ? holiday_exceptions
+        : currentStore?.settings?.holiday_exceptions,
+    emergency_pause_until:
+      emergency_pause_until !== undefined
+        ? emergency_pause_until
+        : currentStore?.settings?.emergency_pause_until,
   };
 
   const updateData: Record<string, any> = { ...columns, settings };

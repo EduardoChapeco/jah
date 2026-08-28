@@ -269,9 +269,6 @@ const MODULES = [
 
 import { TenantSwitcher } from "@/components/admin/tenant-switcher";
 
-// ---------------------------------------------------------------------------
-import { ThemeToggle } from "@/components/ui/theme-toggle";
-
 // HeaderRightIsland Component
 // ---------------------------------------------------------------------------
 function HeaderRightIsland({ session }: { session: any }) {
@@ -307,8 +304,6 @@ function HeaderRightIsland({ session }: { session: any }) {
         )}
         <span className="h-3 w-px bg-border" />
         {timeStr && <span className="font-bold">{timeStr}</span>}
-        <span className="h-3 w-px bg-border" />
-        <ThemeToggle className="size-7 rounded-full text-muted-foreground hover:text-primary" />
         <span className="h-3 w-px bg-border" />
         <Button
           variant="ghost"
@@ -348,7 +343,7 @@ export function AdminShell({
       clearAppCache(router, queryClient);
 
       toast.success("Sessão encerrada.");
-      window.location.href = "/entrar";
+      window.location.href = "/";
     } catch (e: unknown) {
       toast.error(
         (e instanceof Error ? e.message : String(e)) || "Erro inesperado ao encerrar sessão.",

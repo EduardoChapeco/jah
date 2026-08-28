@@ -413,7 +413,7 @@ function AdminProductsPage() {
       />
 
       {/* Toolbar & Filtros */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3  bg-card rounded-2xl px-4 py-3 ">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-card border border-border rounded-2xl px-4 py-3">
         <Tabs
           defaultValue="active"
           value={statusFilter}

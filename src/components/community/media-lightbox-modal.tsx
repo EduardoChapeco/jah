@@ -130,7 +130,7 @@ export function MediaLightboxModal({
         <img
           src={currentMediaUrl}
           alt={`Mídia ${currentIndex + 1}`}
-          className="max-h-[75vh] max-w-full rounded-2xl object-contain shadow-2xl transition-all duration-300"
+          className="max-h-[75vh] max-w-full rounded-2xl object-contain transition-all duration-300"
         />
 
         {/* Next Button */}
@@ -154,12 +154,12 @@ export function MediaLightboxModal({
             onClick={() => toggleLikeMutation.mutate()}
             className={`h-10 px-3.5 rounded-xl gap-2 text-xs font-bold transition-all ${
               currentStat.user_liked
-                ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
+                ? "bg-destructive/20 text-destructive hover:bg-destructive/30"
                 : "bg-white/10 hover:bg-white/20 text-white"
             }`}
           >
             <Heart
-              className={`size-4 ${currentStat.user_liked ? "fill-current text-red-500" : ""}`}
+              className={`size-4 ${currentStat.user_liked ? "fill-current text-destructive" : ""}`}
             />
             <span>{currentStat.likes_count} curtidas nesta foto</span>
           </Button>

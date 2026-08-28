@@ -27,10 +27,12 @@ import {
   type FilterChipOption,
 } from "@/components/commerce/discovery-control-bar";
 import { GroceryProductCard } from "@/components/commerce/grocery-product-card";
-import { getMarketplaceFeed } from "@/services/marketplace.functions";
+import { getModularSurfaceFeed } from "@/services/surface-cms.functions";
+import { ModularSurfaceFeed } from "@/components/commerce/modular-surface-feed";
 import { listActiveBanners } from "@/services/banner.functions";
 import { listHotpages } from "@/services/hotpage.functions";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
+import { resolveNicheDepartments } from "@/lib/niche-helpers";
 
 const SearchSchema = z.object({
   q: z.string().optional(),
@@ -69,7 +71,7 @@ export const Route = createFileRoute("/_store/acougue")({
     const [banners, hotpages, marketplaceFeed] = await Promise.all([
       listActiveBanners({ data: { placement: "acougue" } }).catch(() => []),
       listHotpages({ data: { module: "acougue" } }).catch(() => []),
-      getMarketplaceFeed({ data: { niche: "acougue" } }).catch(() => null),
+      getModularSurfaceFeed({ data: { surfaceSlug: "acougue" } }).catch(() => ({ sections: [], allProducts: [] })),
     ]);
 
     return {
@@ -202,40 +204,41 @@ function AcougueVerticalPage() {
         resultsCount={filteredProducts.length}
       />
 
-      {/* ── 4. Boutiques de Carnes em Destaque ── */}
-      {meatStores.length > 0 && (
-        <section aria-label="Casas de Carnes em Destaque">
-          <HorizontalRail title="Casas de Carnes & Boutiques Locais" hideHeader={true}>
-            {meatStores.map((store: any) => (
-              <StoreCard key={store.id} {...store} />
-            ))}
-          </HorizontalRail>
+      {/* ── 4. Renderização do Feed Modular ou Grade Filtrada ── */}
+      {viewMode === "feed" ? (
+        <div className="space-y-8">
+          {marketplaceFeed?.sections && marketplaceFeed.sections.length > 0 ? (
+            <ModularSurfaceFeed sections={marketplaceFeed.sections} />
+          ) : (
+            <div className="py-12 text-center text-xs text-muted-foreground">
+              Nenhuma seção ativa no momento.
+            </div>
+          )}
+        </div>
+      ) : (
+        <section aria-label="Vitrine de Cortes & Produtos">
+          {filteredProducts.length === 0 ? (
+            <div className="py-12 text-center bg-card rounded-3xl p-6">
+              <EmptyState
+                title="Nenhum corte encontrado"
+                description="Tente selecionar outro departamento ou busque por tipos de cortes."
+              />
+            </div>
+          ) : viewMode === "list" ? (
+            <div className="flex flex-col gap-3">
+              {filteredProducts.map((product: any) => (
+                <GroceryProductCard key={product.id} product={product} viewMode="list" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+              {filteredProducts.map((product: any) => (
+                <GroceryProductCard key={product.id} product={product} viewMode="grid" />
+              ))}
+            </div>
+          )}
         </section>
       )}
-
-      {/* ── 5. Vitrine de Cortes & Produtos ── */}
-      <section aria-label="Vitrine de Cortes & Produtos">
-        {filteredProducts.length === 0 ? (
-          <div className="py-12 text-center bg-card rounded-3xl  p-6 ">
-            <EmptyState
-              title="Nenhum corte encontrado"
-              description="Tente selecionar outro departamento ou busque por tipos de cortes."
-            />
-          </div>
-        ) : viewMode === "list" ? (
-          <div className="flex flex-col gap-3">
-            {filteredProducts.map((product: any) => (
-              <GroceryProductCard key={product.id} product={product} viewMode="list" />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-            {filteredProducts.map((product: any) => (
-              <GroceryProductCard key={product.id} product={product} viewMode="grid" />
-            ))}
-          </div>
-        )}
-      </section>
     </div>
   );
 }

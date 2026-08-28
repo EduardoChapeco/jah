@@ -36,6 +36,7 @@ import {
 } from "@/components/commerce/discovery-control-bar";
 import { HorizontalRail } from "@/components/commerce/horizontal-rail";
 import { EmptyState } from "@/components/state/states";
+import { resolveNicheDepartments } from "@/lib/niche-helpers";
 
 const DIRECTORY_CATEGORIES: FilterChipOption[] = [
   { id: "todos", label: "Tudo", emoji: "🏢", icon: Sparkle },
@@ -142,18 +143,11 @@ function DirectoryPage() {
         </section>
       )}
 
-      {/* ── 3. Barra de Controle de Descoberta Padronizada ── */}
       <DiscoveryControlBar
         search={searchQuery}
         onSearchChange={setSearchQuery}
-        searchPlaceholder="Buscar clínica, oficina, advogado, encanador, pet shop..."
-        categories={DIRECTORY_CATEGORIES.map((chip) => {
-          const match = hotpages?.find((hp) => hp.slug === chip.id);
-          return {
-            ...chip,
-            icon_url: match?.custom_icon_url || match?.icon_url || chip.icon_url,
-          };
-        })}
+        searchPlaceholder="Buscar empresas, médicos, mecânicos, pet shops, lojas..."
+        categories={DIRECTORY_CATEGORIES}
         activeCategory={selectedCategory}
         onSelectCategory={setSelectedCategory}
         viewMode={viewMode}
@@ -225,7 +219,7 @@ function DirectoryPage() {
           </div>
 
           {filteredListings.length === 0 && !isLoading && (
-            <div className="py-16 text-center space-y-3 bg-muted/10 rounded-3xl border-0 p-8">
+            <div className="py-16 text-center space-y-3 bg-card rounded-2xl border border-border/60 p-8">
               <EmptyState title="Nenhuma empresa ou serviço encontrado nesta categoria." />
               <div className="pt-2">
                 <Button
@@ -249,7 +243,7 @@ function DirectoryPage() {
       {viewMode === "grid" && (
         <div>
           {filteredListings.length === 0 && !isLoading ? (
-            <div className="py-24 text-center space-y-3 bg-muted/10 rounded-3xl  p-8">
+            <div className="py-24 text-center space-y-3 bg-card rounded-2xl border border-border/60 p-8">
               <EmptyState title="Nenhuma empresa encontrada com estes filtros." />
             </div>
           ) : (
@@ -266,7 +260,7 @@ function DirectoryPage() {
       {viewMode === "list" && (
         <div className="space-y-3 w-full">
           {filteredListings.length === 0 && !isLoading ? (
-            <div className="py-24 text-center space-y-3 bg-muted/10 rounded-3xl  p-8">
+            <div className="py-24 text-center space-y-3 bg-card rounded-2xl border border-border/60 p-8">
               <EmptyState title="Nenhuma empresa encontrada com estes filtros." />
             </div>
           ) : (
@@ -301,7 +295,7 @@ function DirectoryBusinessCard({
   const whatsappNumber = (item.contact_whatsapp || item.contact_phone || "").replace(/\D/g, "");
 
   return (
-    <div className="group relative flex flex-col justify-between rounded-3xl  bg-card p-3.5 sm:p-4  hover:border-foreground/25 hover: transition-all duration-300">
+    <div className="group relative flex flex-col justify-between rounded-2xl border border-border/60 bg-card p-3.5 sm:p-4 hover:border-foreground/25 transition-all duration-300">
       <Link
         to="/diretorio/$id"
         params={{ id: item.id }}
@@ -462,7 +456,7 @@ function DirectoryListItem({ item }: { item: DirectoryListingDTO }) {
   const whatsappNumber = (item.contact_whatsapp || item.contact_phone || "").replace(/\D/g, "");
 
   return (
-    <div className="flex items-center justify-between p-3 sm:p-4 rounded-2xl  bg-card  hover:border-foreground/30 transition-all gap-3.5 group">
+    <div className="flex items-center justify-between p-3 sm:p-4 rounded-2xl border border-border/60 bg-card hover:border-foreground/30 transition-all gap-3.5 group">
       <Link
         to="/diretorio/$id"
         params={{ id: item.id }}

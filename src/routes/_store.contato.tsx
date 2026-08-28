@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { submitContactMessage } from "@/services/contact.functions";
 
 export const Route = createFileRoute("/_store/contato")({
   head: () => ({ meta: [{ title: "Fale Conosco & Suporte | Wider" }] }),
@@ -60,12 +61,19 @@ function ContatoPage() {
 
     setIsSubmitting(true);
     try {
-      // Simulação de envio com delay real de rede
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      const res = await submitContactMessage({
+        data: {
+          name,
+          email,
+          phone,
+          subject,
+          message,
+        },
+      });
       setIsSent(true);
-      toast.success("Mensagem enviada com sucesso! Nossa equipe entrará em contato em breve.");
-    } catch {
-      toast.error("Erro ao enviar mensagem. Tente novamente ou utilize nosso WhatsApp.");
+      toast.success(res.message);
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao enviar mensagem. Tente novamente ou utilize nosso WhatsApp.");
     } finally {
       setIsSubmitting(false);
     }
@@ -158,7 +166,7 @@ function ContatoPage() {
         {/* Sede / Localização */}
         <div className="p-5 rounded-2xl bg-card border border-border/70 flex flex-col justify-between space-y-4 shadow-xs">
           <div className="space-y-2">
-            <div className="size-10 rounded-xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center">
+            <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
               <MapPin className="size-5" />
             </div>
             <h3 className="font-bold text-sm text-foreground">Sede Regional</h3>

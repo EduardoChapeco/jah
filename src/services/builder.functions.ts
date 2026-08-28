@@ -93,6 +93,7 @@ async function hydrateBindings(
   let needsLatestProducts = false;
   let maxLatestLimit = 12;
   let needsReviews = false;
+  let maxReviewsLimit = 6;
   const hotspotSlugs = new Set<string>();
   let needsEvents = false;
   let maxEventsLimit = 6;
@@ -113,6 +114,9 @@ async function hydrateBindings(
       }
     } else if (bindingSource === "dynamic_reviews") {
       needsReviews = true;
+      if (bindings.limit && bindings.limit > maxReviewsLimit) {
+        maxReviewsLimit = bindings.limit;
+      }
     } else if (bindingSource === "upcoming_events") {
       needsEvents = true;
       if (bindings.limit && bindings.limit > maxEventsLimit) {
@@ -152,7 +156,7 @@ async function hydrateBindings(
     };
   };
 
-  // 2. Execute Batched Queries
+  // 2. Execute Batched Queries (Concurrent via Promise.all)
   const cache = {
     collections: {} as Record<string, any[]>,
     latest: [] as any[],
@@ -162,26 +166,62 @@ async function hydrateBindings(
     classifieds: [] as any[],
   };
 
-  // 2a. Collections
-  if (collectionSlugs.size > 0) {
-    const slugsArray = Array.from(collectionSlugs);
-    const { data: cols } = await db
-      .from("collections")
-      .select("id, slug")
-      .in("slug", slugsArray)
-      .eq("store_id", store_id)
-      .eq("status", "active");
+  await Promise.all([
+    // 2a. Collections
+    (async () => {
+      if (collectionSlugs.size === 0) return;
+      try {
+        const slugsArray = Array.from(collectionSlugs);
+        const { data: cols } = await db
+          .from("collections")
+          .select("id, slug")
+          .in("slug", slugsArray)
+          .eq("store_id", store_id)
+          .eq("status", "active");
 
-    if (cols && cols.length > 0) {
-      const colIds = cols.map((c) => c.id);
-      const { data: junctions } = await db
-        .from("product_collections")
-        .select("collection_id, product_id")
-        .in("collection_id", colIds);
+        if (cols && cols.length > 0) {
+          const colIds = cols.map((c) => c.id);
+          const { data: junctions } = await db
+            .from("product_collections")
+            .select("collection_id, product_id")
+            .in("collection_id", colIds);
 
-      if (junctions && junctions.length > 0) {
-        const pIds = Array.from(new Set(junctions.map((j) => j.product_id)));
-        const { data: prods } = await db
+          if (junctions && junctions.length > 0) {
+            const pIds = Array.from(new Set(junctions.map((j) => j.product_id)));
+            const { data: prods } = await db
+              .from("products")
+              .select(
+                "id, title, slug, price_cents, compare_at_cents, " +
+                  "media:product_media(url, alt, sort_order), " +
+                  "variants:product_variants(stock_on_hand)",
+              )
+              .eq("status", "published")
+              .eq("store_id", store_id)
+              .in("id", pIds)
+              .order("created_at", { ascending: false });
+
+            if (prods) {
+              const prodsById = new Map();
+              (prods as any[]).forEach((p: any) => prodsById.set(p.id, formatProduct(p)));
+              cols.forEach((c) => {
+                const cPids = junctions
+                  .filter((j) => j.collection_id === c.id)
+                  .map((j) => j.product_id);
+                cache.collections[c.slug] = cPids.map((pid) => prodsById.get(pid)).filter(Boolean);
+              });
+            }
+          }
+        }
+      } catch (err) {
+        console.error("[hydrateBindings] Collections error:", err);
+      }
+    })(),
+
+    // 2b. Latest Products
+    (async () => {
+      if (!needsLatestProducts) return;
+      try {
+        const { data: latest } = await db
           .from("products")
           .select(
             "id, title, slug, price_cents, compare_at_cents, " +
@@ -190,132 +230,128 @@ async function hydrateBindings(
           )
           .eq("status", "published")
           .eq("store_id", store_id)
-          .in("id", pIds)
-          .order("created_at", { ascending: false });
+          .order("created_at", { ascending: false })
+          .limit(maxLatestLimit);
+        if (latest) cache.latest = latest.map(formatProduct);
+      } catch (err) {
+        console.error("[hydrateBindings] Latest Products error:", err);
+      }
+    })(),
 
-        if (prods) {
-          const prodsById = new Map();
-          (prods as any[]).forEach((p: any) => prodsById.set(p.id, formatProduct(p)));
-          cols.forEach((c) => {
-            const cPids = junctions
-              .filter((j) => j.collection_id === c.id)
-              .map((j) => j.product_id);
-            cache.collections[c.slug] = cPids.map((pid) => prodsById.get(pid)).filter(Boolean);
+    // 2c. Reviews
+    (async () => {
+      if (!needsReviews) return;
+      try {
+        const { data: reviews } = await db
+          .from("reviews")
+          .select("id, rating, comment, reviewer_name, profiles(full_name, avatar_url)")
+          .eq("status", "approved")
+          .eq("store_id", store_id)
+          .order("created_at", { ascending: false })
+          .limit(maxReviewsLimit);
+        if (reviews) {
+          cache.reviews = reviews.map((r: any) => {
+            const profile = (r.profiles as any) || {};
+            const authorName = (r.reviewer_name as string | null) || profile.full_name || "Cliente";
+            return {
+              author: authorName,
+              role: "Cliente Verificado",
+              content: r.comment || "",
+              rating: r.rating,
+              avatar_url: profile.avatar_url || null,
+            };
           });
         }
+      } catch (err) {
+        console.error("[hydrateBindings] Reviews error:", err);
       }
-    }
-  }
+    })(),
 
-  // 2b. Latest Products
-  if (needsLatestProducts) {
-    const { data: latest } = await db
-      .from("products")
-      .select(
-        "id, title, slug, price_cents, compare_at_cents, " +
-          "media:product_media(url, alt, sort_order), " +
-          "variants:product_variants(stock_on_hand)",
-      )
-      .eq("status", "published")
-      .eq("store_id", store_id)
-      .order("created_at", { ascending: false })
-      .limit(maxLatestLimit);
-    if (latest) cache.latest = latest.map(formatProduct);
-  }
+    // 2d. Hotspots
+    (async () => {
+      if (hotspotSlugs.size === 0) return;
+      try {
+        const { data: hProds } = await db
+          .from("products")
+          .select("id, title, slug, price_cents, compare_at_cents")
+          .eq("store_id", store_id)
+          .eq("status", "published")
+          .in("slug", Array.from(hotspotSlugs));
+        if (hProds) {
+          hProds.forEach((p) => cache.hotspotsMap.set(p.slug, p));
+        }
+      } catch (err) {
+        console.error("[hydrateBindings] Hotspots error:", err);
+      }
+    })(),
 
-  // 2c. Reviews
-  if (needsReviews) {
-    const { data: reviews } = await db
-      .from("reviews")
-      .select("id, rating, comment, reviewer_name, profiles(full_name, avatar_url)")
-      .eq("status", "approved")
-      .eq("store_id", store_id)
-      .order("created_at", { ascending: false })
-      .limit(6);
-    if (reviews) {
-      cache.reviews = reviews.map((r: any) => {
-        const profile = (r.profiles as any) || {};
-        const authorName = (r.reviewer_name as string | null) || profile.full_name || "Cliente";
-        return {
-          author: authorName,
-          role: "Cliente Verificado",
-          content: r.comment || "",
-          rating: r.rating,
-          avatar_url: profile.avatar_url || null,
-        };
-      });
-    }
-  }
+    // 2e. Events
+    (async () => {
+      if (!needsEvents) return;
+      try {
+        const { data: events } = await db
+          .from("events")
+          .select(
+            "id, title, description, event_date, location, cover_image, ticket_lots(id, price_cents, capacity, sold_count)",
+          )
+          .eq("status", "published")
+          .eq("store_id", store_id)
+          .gte("event_date", new Date().toISOString())
+          .order("event_date", { ascending: true })
+          .limit(maxEventsLimit);
+        if (events) {
+          cache.events = events.map((e: any) => {
+            const cheapestLot = (e.ticket_lots || []).reduce((min: number | null, lot: any) => {
+              if (lot.capacity > lot.sold_count && (min === null || lot.price_cents < min)) {
+                return lot.price_cents;
+              }
+              return min;
+            }, null);
+            return {
+              id: e.id,
+              title: e.title,
+              description: e.description,
+              event_date: e.event_date,
+              location: e.location,
+              cover_image: e.cover_image,
+              price_cents: cheapestLot,
+            };
+          });
+        }
+      } catch (err) {
+        console.error("[hydrateBindings] Events error:", err);
+      }
+    })(),
 
-  // 2d. Hotspots
-  if (hotspotSlugs.size > 0) {
-    const { data: hProds } = await db
-      .from("products")
-      .select("id, title, slug, price_cents, compare_at_cents")
-      .eq("store_id", store_id)
-      .eq("status", "published")
-      .in("slug", Array.from(hotspotSlugs));
-    if (hProds) {
-      hProds.forEach((p) => cache.hotspotsMap.set(p.slug, p));
-    }
-  }
-
-  // 2e. Events
-  if (needsEvents) {
-    const { data: events } = await db
-      .from("events")
-      .select(
-        "id, title, description, event_date, location, cover_image, ticket_lots(id, price_cents, capacity, sold_count)",
-      )
-      .eq("status", "published")
-      .eq("store_id", store_id)
-      .gte("event_date", new Date().toISOString())
-      .order("event_date", { ascending: true })
-      .limit(maxEventsLimit);
-    if (events) {
-      cache.events = events.map((e: any) => {
-        const cheapestLot = (e.ticket_lots || []).reduce((min: number | null, lot: any) => {
-          if (lot.capacity > lot.sold_count && (min === null || lot.price_cents < min)) {
-            return lot.price_cents;
-          }
-          return min;
-        }, null);
-        return {
-          id: e.id,
-          title: e.title,
-          description: e.description,
-          event_date: e.event_date,
-          location: e.location,
-          cover_image: e.cover_image,
-          price_cents: cheapestLot,
-        };
-      });
-    }
-  }
-
-  // 2f. Classifieds
-  if (needsClassifieds) {
-    const { data: classifieds } = await db
-      .from("classifieds")
-      .select(
-        "id, title, content, category, price_cents, created_at, profiles(full_name, avatar_url)",
-      )
-      .eq("status", "active")
-      .order("created_at", { ascending: false })
-      .limit(maxClassifiedsLimit);
-    if (classifieds) {
-      cache.classifieds = classifieds.map((c: any) => ({
-        id: c.id,
-        title: c.title,
-        content: c.content,
-        category: c.category,
-        price_cents: c.price_cents,
-        created_at: c.created_at,
-        author: (c.profiles as any)?.full_name || "Membro da Comunidade",
-        avatar_url: (c.profiles as any)?.avatar_url || null,
-      }));
-    }
-  }
+    // 2f. Classifieds
+    (async () => {
+      if (!needsClassifieds) return;
+      try {
+        const { data: classifieds } = await db
+          .from("classifieds")
+          .select(
+            "id, title, content, category, price_cents, created_at, profiles(full_name, avatar_url)",
+          )
+          .eq("status", "active")
+          .order("created_at", { ascending: false })
+          .limit(maxClassifiedsLimit);
+        if (classifieds) {
+          cache.classifieds = classifieds.map((c: any) => ({
+            id: c.id,
+            title: c.title,
+            content: c.content,
+            category: c.category,
+            price_cents: c.price_cents,
+            created_at: c.created_at,
+            author: (c.profiles as any)?.full_name || "Membro da Comunidade",
+            avatar_url: (c.profiles as any)?.avatar_url || null,
+          }));
+        }
+      } catch (err) {
+        console.error("[hydrateBindings] Classifieds error:", err);
+      }
+    })(),
+  ]);
 
   // 3. Hydrate the nodes using cached data (O(N) operation without async DB calls)
   return nodes.map((node) => {
@@ -332,7 +368,8 @@ async function hydrateBindings(
       const limit = (bindings.limit as number) || 12;
       transient_data = { products: cache.latest.slice(0, limit) };
     } else if (bindingSource === "dynamic_reviews") {
-      transient_data = { reviews: cache.reviews };
+      const limit = (bindings.limit as number) || 6;
+      transient_data = { reviews: cache.reviews.slice(0, limit) };
     } else if (bindingSource === "upcoming_events") {
       const limit = (bindings.limit as number) || 6;
       transient_data = { events: cache.events.slice(0, limit) };

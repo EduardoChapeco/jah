@@ -40,7 +40,7 @@ As referências anexadas orientam: clareza da vitrine, cards limpos, produto com
 
 ARQUITETURA CANÔNICA
 
-- TypeScript strict. Stack suportada pelo Lovable, React, Tailwind e shadcn/ui; roteamento e data fetching centralizados.
+- TypeScript strict. React, TanStack Start, Tailwind CSS v4 e shadcn/ui; roteamento e data fetching centralizados.
 - Separar /components/ui, /components/commerce, /components/admin, /features, /routes, /lib, /services e /types. Nada de um App.tsx monolítico.
 - Domain services tipados; validação compartilhada por schema; DTOs distintos das entidades persistidas.
 - Dinheiro sempre integer cents + currency BRL; nunca float. Datas ISO UTC, exibição America/Sao_Paulo.
@@ -178,23 +178,11 @@ CRITÉRIOS DA FASE 0
 - Testes mínimos do registry de rotas e dos componentes críticos.
   Ao final, relate exatamente o que foi criado, o que ficou planejado e qualquer limitação real.
 
-This project was built with [Lovable](https://lovable.dev).
+## Desenvolvimento Local
 
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/9576f339-706d-4002-9e18-408f51b8b09d).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+Para rodar o projeto localmente:
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+npm install
 npm run dev
 ```

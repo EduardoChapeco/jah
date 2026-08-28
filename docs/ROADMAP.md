@@ -34,7 +34,7 @@ Este roadmap detalha as fases de construção da Wider Community Platform (Plata
 
 ### Migrações
 
-- Nenhuma migração de domínio de negócio nesta fase (não há tabelas de catálogo/pedido/cliente ainda). Caso o Lovable Cloud exija tabelas mínimas de infraestrutura (ex.: configuração de organização/loja), devem ser documentadas em `DOMAIN_MODEL.md` como fundação, não como funcionalidade.
+- Nenhuma migração de domínio de negócio nesta fase (não há tabelas de catálogo/pedido/cliente ainda). Caso haja tabelas mínimas de infraestrutura (ex.: configuração de organização/loja), devem ser documentadas em `DOMAIN_MODEL.md` como fundação, não como funcionalidade.
 
 ### Testes
 
@@ -55,7 +55,7 @@ Este roadmap detalha as fases de construção da Wider Community Platform (Plata
 ### Escopo
 
 - Modelagem de banco de dados: organizações, lojas, usuários, papéis (RBAC).
-- Autenticação real (Lovable Cloud/Supabase Auth) para admin e, se aplicável, clientes.
+- Autenticação real (Supabase Auth) para admin e, se aplicável, clientes.
 - Políticas de RLS para todas as tabelas novas, cobrindo isolamento por `organization_id`/`store_id`.
 - Catálogo: produtos, tipos de produto, variantes (tamanho/cor), mídia de produto, categorias, controle de estoque (sempre calculado/validado no servidor).
 - CRUD administrativo de catálogo no admin, consumindo apenas a camada de serviços/BFF.

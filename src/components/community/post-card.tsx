@@ -223,11 +223,11 @@ export function PostCard(props: PostCardProps) {
       >
         {/* TEMPLATE 1: NOTÍCIAS EDITORIAL (Imagem 1) */}
         {(item.post_type === "news" || item.reference_type === "news" || item.metadata?.is_news) ? (
-          <div className="mb-3 space-y-3 rounded-2xl bg-gradient-to-br from-indigo-950 via-slate-900 to-black text-white p-5 overflow-hidden border border-indigo-500/20 select-none">
+          <div className="mb-3 space-y-3 rounded-2xl bg-gradient-to-br from-indigo-950 via-slate-900 to-black text-white p-5 overflow-hidden border border-primary/20 select-none">
             {/* Header de Veículo & Áudio */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Badge className="bg-blue-600 text-white font-black text-[10px] tracking-wider uppercase px-2 py-0.5 rounded-md">
+                <Badge className="bg-info text-white font-black text-[10px] tracking-wider uppercase px-2 py-0.5 rounded-md">
                   {item.metadata?.source || "Wider News"}
                 </Badge>
                 <span className="text-[11px] text-white/70 font-mono">
@@ -276,7 +276,7 @@ export function PostCard(props: PostCardProps) {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                 <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-xs text-white">
                   <span className="font-bold flex items-center gap-1 bg-black/60 backdrop-blur-xs px-2.5 py-1 rounded-lg">
-                    <Sparkles className="size-3 text-yellow-400" />
+                    <Sparkles className="size-3 text-warning" />
                     <span>{item.metadata?.category || "Inovação & Cidades"}</span>
                   </span>
                   <span className="text-[11px] text-white/70 flex items-center gap-1">
@@ -301,7 +301,7 @@ export function PostCard(props: PostCardProps) {
           </div>
         ) : (item.post_type === "duo_badge" || item.post_type === "id_badges") ? (
           /* TEMPLATE: ID BADGES & CRACHÁS CONECTADOS (Imagem 3) */
-          <div className="mb-3 space-y-4 rounded-3xl bg-gradient-to-b from-blue-50/80 via-indigo-50/40 to-background dark:from-slate-900 dark:via-slate-950 dark:to-card p-5 sm:p-6 border border-blue-200/50 dark:border-blue-900/30 select-none">
+          <div className="mb-3 space-y-4 rounded-3xl bg-gradient-to-b from-blue-50/80 via-indigo-50/40 to-background dark:from-slate-900 dark:via-slate-950 dark:to-card p-5 sm:p-6 border border-info/50 dark:border-info/30 select-none">
             {/* Header de Impacto */}
             <div className="text-center space-y-1">
               <h3 className="font-editorial text-2xl sm:text-3xl font-black text-foreground tracking-tight">
@@ -324,7 +324,7 @@ export function PostCard(props: PostCardProps) {
               {/* Crachá 1 */}
               <div
                 onClick={() => setSelectedMediaLightboxIndex(0)}
-                className="w-full sm:w-1/2 bg-card rounded-2xl p-4 border border-border/80 shadow-md flex flex-col items-center text-center space-y-2 -rotate-1 hover:rotate-0 hover:scale-103 transition-all duration-300 cursor-pointer relative overflow-hidden"
+                className="w-full sm:w-1/2 bg-card rounded-2xl p-4 border border-border/80 flex flex-col items-center text-center space-y-2 -rotate-1 hover:rotate-0 hover:scale-103 transition-all duration-300 cursor-pointer relative overflow-hidden"
               >
                 <div className="size-16 rounded-xl overflow-hidden bg-muted border border-border/40 shadow-xs">
                   <img
@@ -348,7 +348,7 @@ export function PostCard(props: PostCardProps) {
               {/* Crachá 2 */}
               <div
                 onClick={() => setSelectedMediaLightboxIndex(1)}
-                className="w-full sm:w-1/2 bg-card rounded-2xl p-4 border border-border/80 shadow-md flex flex-col items-center text-center space-y-2 rotate-1 hover:rotate-0 hover:scale-103 transition-all duration-300 cursor-pointer relative overflow-hidden"
+                className="w-full sm:w-1/2 bg-card rounded-2xl p-4 border border-border/80 flex flex-col items-center text-center space-y-2 rotate-1 hover:rotate-0 hover:scale-103 transition-all duration-300 cursor-pointer relative overflow-hidden"
               >
                 <div className="size-16 rounded-xl overflow-hidden bg-muted border border-border/40 shadow-xs">
                   <img
@@ -372,7 +372,7 @@ export function PostCard(props: PostCardProps) {
 
             {/* Badges de Sincronia no Rodapé */}
             <div className="flex items-center justify-center gap-3 pt-2 border-t border-border/40 text-[11px] font-bold text-muted-foreground">
-              <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+              <span className="flex items-center gap-1 text-info dark:text-info">
                 <Calendar className="size-3.5" /> Agenda Sincronizada
               </span>
               <span>•</span>
@@ -441,12 +441,12 @@ export function PostCard(props: PostCardProps) {
 
               {/* Card 3: Voucher / Mensagem de Chegada */}
               <div className="flex flex-col items-center bg-card rounded-2xl p-3 border border-border text-center space-y-2">
-                <div className="w-full aspect-[4/5] rounded-xl bg-purple-50 dark:bg-purple-950/20 overflow-hidden flex flex-col items-center justify-center p-3 relative border border-purple-200/50 dark:border-purple-900/30">
+                <div className="w-full aspect-[4/5] rounded-xl bg-purple-50 dark:bg-purple-950/20 overflow-hidden flex flex-col items-center justify-center p-3 relative border border-primary/50 dark:border-primary/30">
                   <Badge className="bg-emerald-600 text-white text-[9px] font-black px-2 py-0.5 mb-2">
                     ✓ Welcome to {item.location_name || "Destination"}
                   </Badge>
                   <div className="my-auto text-center space-y-1">
-                    <span className="text-[11px] font-black text-purple-900 dark:text-purple-300">
+                    <span className="text-[11px] font-black text-primary dark:text-primary">
                       {item.metadata?.voucher_title || "Chegada Confirmada"}
                     </span>
                     <p className="text-[10px] text-muted-foreground">
@@ -484,12 +484,12 @@ export function PostCard(props: PostCardProps) {
               {item.media_urls[0] && (
                 <div
                   onClick={() => setSelectedMediaLightboxIndex(0)}
-                  className="absolute left-3 top-3 w-[55%] h-[85%] rounded-2xl overflow-hidden shadow-md -rotate-2 hover:rotate-0 hover:scale-105 hover:z-30 transition-all duration-300 cursor-pointer border-2 border-background"
+                  className="absolute left-3 top-3 w-[55%] h-[85%] rounded-2xl overflow-hidden -rotate-2 hover:rotate-0 hover:scale-105 hover:z-30 transition-all duration-300 cursor-pointer border-2 border-background"
                 >
                   <img src={item.media_urls[0]} alt="Foto 1" className="size-full object-cover" />
                   <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[10px] font-bold text-white bg-black/60 backdrop-blur-xs px-2 py-0.5 rounded-md">
                     <span className="flex items-center gap-1">
-                      <Heart className="size-2.5 fill-current text-red-500" /> Foto 1
+                      <Heart className="size-2.5 fill-current text-destructive" /> Foto 1
                     </span>
                     <span>Ver</span>
                   </div>
@@ -500,12 +500,12 @@ export function PostCard(props: PostCardProps) {
               {item.media_urls[1] && (
                 <div
                   onClick={() => setSelectedMediaLightboxIndex(1)}
-                  className="absolute right-3 top-3 w-[45%] h-[55%] rounded-2xl overflow-hidden shadow-md rotate-3 hover:rotate-0 hover:scale-105 hover:z-30 transition-all duration-300 cursor-pointer border-2 border-background"
+                  className="absolute right-3 top-3 w-[45%] h-[55%] rounded-2xl overflow-hidden rotate-3 hover:rotate-0 hover:scale-105 hover:z-30 transition-all duration-300 cursor-pointer border-2 border-background"
                 >
                   <img src={item.media_urls[1]} alt="Foto 2" className="size-full object-cover" />
                   <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[10px] font-bold text-white bg-black/60 backdrop-blur-xs px-2 py-0.5 rounded-md">
                     <span className="flex items-center gap-1">
-                      <Heart className="size-2.5 fill-current text-red-500" /> Foto 2
+                      <Heart className="size-2.5 fill-current text-destructive" /> Foto 2
                     </span>
                     <span>Ver</span>
                   </div>
@@ -516,12 +516,12 @@ export function PostCard(props: PostCardProps) {
               {item.media_urls[2] && (
                 <div
                   onClick={() => setSelectedMediaLightboxIndex(2)}
-                  className="absolute left-[30%] bottom-3 w-[45%] h-[55%] rounded-2xl overflow-hidden shadow-lg -rotate-1 z-20 hover:rotate-0 hover:scale-105 hover:z-30 transition-all duration-300 cursor-pointer border-2 border-background"
+                  className="absolute left-[30%] bottom-3 w-[45%] h-[55%] rounded-2xl overflow-hidden -rotate-1 z-20 hover:rotate-0 hover:scale-105 hover:z-30 transition-all duration-300 cursor-pointer border-2 border-background"
                 >
                   <img src={item.media_urls[2]} alt="Foto 3" className="size-full object-cover" />
                   <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[10px] font-bold text-white bg-black/60 backdrop-blur-xs px-2 py-0.5 rounded-md">
                     <span className="flex items-center gap-1">
-                      <Heart className="size-2.5 fill-current text-red-500" /> Foto 3
+                      <Heart className="size-2.5 fill-current text-destructive" /> Foto 3
                     </span>
                     <span>Ver</span>
                   </div>
@@ -532,7 +532,7 @@ export function PostCard(props: PostCardProps) {
               {item.media_urls.length > 3 && (
                 <div
                   onClick={() => setSelectedMediaLightboxIndex(3)}
-                  className="absolute right-4 bottom-4 z-30 px-3 py-1.5 rounded-xl bg-foreground text-background font-black text-xs shadow-lg cursor-pointer hover:scale-105 transition-transform"
+                  className="absolute right-4 bottom-4 z-30 px-3 py-1.5 rounded-xl bg-foreground text-background font-black text-xs cursor-pointer hover:scale-105 transition-transform"
                 >
                   +{item.media_urls.length - 3}
                 </div>
@@ -737,7 +737,7 @@ export function PostCard(props: PostCardProps) {
             disabled={toggleLike.isPending}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 ${
               item.user_liked
-                ? "text-red-500 bg-red-500/10"
+                ? "text-destructive bg-destructive/10"
                 : "hover:bg-muted hover:text-foreground"
             }`}
             aria-label="Curtir"

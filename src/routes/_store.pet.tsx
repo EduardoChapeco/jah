@@ -26,11 +26,13 @@ import {
   type ViewModeType,
   type FilterChipOption,
 } from "@/components/commerce/discovery-control-bar";
-import { GroceryProductCard } from "@/components/commerce/grocery-product-card";
-import { getMarketplaceFeed } from "@/services/marketplace.functions";
+import { getModularSurfaceFeed } from "@/services/surface-cms.functions";
+import { ModularSurfaceFeed } from "@/components/commerce/modular-surface-feed";
+import { OfferCard } from "@/components/commerce/offer-card";
 import { listActiveBanners } from "@/services/banner.functions";
 import { listHotpages } from "@/services/hotpage.functions";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
+import { resolveNicheDepartments } from "@/lib/niche-helpers";
 
 const SearchSchema = z.object({
   q: z.string().optional(),
@@ -69,7 +71,7 @@ export const Route = createFileRoute("/_store/pet")({
     const [banners, hotpages, marketplaceFeed] = await Promise.all([
       listActiveBanners({ data: { placement: "pet" } }).catch(() => []),
       listHotpages({ data: { module: "pet" } }).catch(() => []),
-      getMarketplaceFeed({ data: { niche: "pet" } }).catch(() => null),
+      getModularSurfaceFeed({ data: { surfaceSlug: "pet" } }).catch(() => ({ sections: [], allProducts: [] })),
     ]);
 
     return {
@@ -190,7 +192,7 @@ function PetVerticalPage() {
       <DiscoveryControlBar
         search={search.q || ""}
         onSearchChange={(q) => navigate({ search: (prev) => ({ ...prev, q }) })}
-        searchPlaceholder="Buscar ração, petiscos, brinquedos, remédios para pet..."
+        searchPlaceholder="Buscar rações, petiscos, farmácia vet, caminhas..."
         categories={PET_DEPARTMENTS}
         activeCategory={activeDepartment}
         onSelectCategory={handleDepartmentChange}
@@ -199,40 +201,41 @@ function PetVerticalPage() {
         resultsCount={filteredProducts.length}
       />
 
-      {/* ── 4. Pet Shops em Destaque ── */}
-      {petStores.length > 0 && (
-        <section aria-label="Pet Shops & Clínicas Veterinárias">
-          <HorizontalRail title="Pet Shops & Clínicas Veterinárias" hideHeader={true}>
-            {petStores.map((store: any) => (
-              <StoreCard key={store.id} {...store} />
-            ))}
-          </HorizontalRail>
+      {/* ── 4. Renderização do Feed Modular ou Grade Filtrada ── */}
+      {viewMode === "feed" ? (
+        <div className="space-y-8">
+          {marketplaceFeed?.sections && marketplaceFeed.sections.length > 0 ? (
+            <ModularSurfaceFeed sections={marketplaceFeed.sections} />
+          ) : (
+            <div className="py-12 text-center text-xs text-muted-foreground">
+              Nenhuma seção ativa no momento.
+            </div>
+          )}
+        </div>
+      ) : (
+        <section aria-label="Vitrine de Produtos Pet">
+          {filteredProducts.length === 0 ? (
+            <div className="py-12 text-center bg-card rounded-3xl p-6">
+              <EmptyState
+                title="Nenhum produto pet encontrado"
+                description="Tente selecionar outro departamento ou busque por marcas de ração e medicamentos."
+              />
+            </div>
+          ) : viewMode === "list" ? (
+            <div className="flex flex-col gap-3">
+              {filteredProducts.map((product: any) => (
+                <OfferCard key={product.id} {...product} />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+              {filteredProducts.map((product: any) => (
+                <OfferCard key={product.id} {...product} />
+              ))}
+            </div>
+          )}
         </section>
       )}
-
-      {/* ── 5. Vitrine de Produtos Pet ── */}
-      <section aria-label="Vitrine de Produtos Pet">
-        {filteredProducts.length === 0 ? (
-          <div className="py-12 text-center bg-card rounded-3xl  p-6 ">
-            <EmptyState
-              title="Nenhum produto pet encontrado"
-              description="Tente selecionar outro departamento ou busque por marcas de ração e medicamentos."
-            />
-          </div>
-        ) : viewMode === "list" ? (
-          <div className="flex flex-col gap-3">
-            {filteredProducts.map((product: any) => (
-              <GroceryProductCard key={product.id} product={product} viewMode="list" />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-            {filteredProducts.map((product: any) => (
-              <GroceryProductCard key={product.id} product={product} viewMode="grid" />
-            ))}
-          </div>
-        )}
-      </section>
     </div>
   );
 }

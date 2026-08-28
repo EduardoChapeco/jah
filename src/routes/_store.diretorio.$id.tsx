@@ -319,7 +319,7 @@ function CanonicalDirectoryDetailPage() {
               </Button>
             </DialogTrigger>
 
-            <DialogContent className="sm:max-w-md rounded-3xl p-6">
+            <DialogContent className="sm:max-w-md sm:rounded-3xl sm:p-6 p-5">
               <DialogHeader>
                 <DialogTitle className="text-base font-bold">Solicitar Atendimento / Orçamento</DialogTitle>
                 <DialogDescription className="text-xs">
@@ -443,7 +443,7 @@ function CanonicalDirectoryDetailPage() {
         {/* ── 4. SEÇÕES INSTITUCIONAIS DETALHADAS ── */}
         <div className="space-y-6 pt-4">
           {/* Sobre a Empresa */}
-          <section className="rounded-3xl  bg-card p-6 space-y-3 ">
+          <section className="rounded-2xl border border-border/60 bg-card p-6 space-y-3">
             <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
               <Compass size={18} weight="bold" className="text-primary" />
               <span>Sobre a Empresa & Atuação</span>
@@ -455,7 +455,7 @@ function CanonicalDirectoryDetailPage() {
 
           {/* Especialidades & Serviços */}
           {listing.specialties && listing.specialties.length > 0 && (
-            <section className="rounded-3xl  bg-card p-6 space-y-3 ">
+            <section className="rounded-2xl border border-border/60 bg-card p-6 space-y-3">
               <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <CheckCircle size={18} weight="bold" className="text-primary" />
                 <span>Especialidades & Serviços Prestados</span>
@@ -464,7 +464,7 @@ function CanonicalDirectoryDetailPage() {
                 {listing.specialties.map((spec: string, idx: number) => (
                   <div
                     key={idx}
-                    className="p-3 rounded-2xl  bg-muted/30 flex items-center gap-2.5 text-xs font-semibold text-foreground"
+                    className="p-3 rounded-2xl bg-muted/30 flex items-center gap-2.5 text-xs font-semibold text-foreground border border-border/40"
                   >
                     <CheckCircle size={15} weight="bold" className="text-emerald-500 shrink-0" />
                     <span>{spec}</span>
@@ -475,7 +475,7 @@ function CanonicalDirectoryDetailPage() {
           )}
 
           {/* Canais de Atendimento */}
-          <section className="rounded-3xl  bg-card p-6 space-y-3 ">
+          <section className="rounded-2xl border border-border/60 bg-card p-6 space-y-3">
             <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
               <Phone size={18} weight="bold" className="text-primary" />
               <span>Canais de Atendimento Oficial</span>

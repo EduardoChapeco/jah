@@ -87,7 +87,7 @@ export function ProductOptionsCustomizer({
                   <h4 className="text-sm font-bold text-foreground flex items-center gap-1.5">
                     <span>{group.displayName}</span>
                     {group.isRequired && (
-                      <span className="text-xs text-red-500 font-bold">*</span>
+                      <span className="text-xs text-destructive font-bold">*</span>
                     )}
                   </h4>
                   <p className="text-[11px] text-muted-foreground">

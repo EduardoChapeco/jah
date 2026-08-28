@@ -19,7 +19,7 @@ sec.split("\n").forEach((l) => {
 });
 
 console.log("==================================================");
-console.log(" Sincronizando Secrets com Cloudflare Pages (jah)");
+console.log(" Sincronizando Secrets com Cloudflare Pages (wider)");
 console.log("==================================================");
 
 const secretsToPush = [
@@ -34,14 +34,14 @@ const secretsToPush = [
 // Assegura que SUPABASE_URL e SUPABASE_ANON_KEY existam no payload
 vars["SUPABASE_URL"] = vars["VITE_SUPABASE_URL"] || "https://jfuebqmltksyznovhlwa.supabase.co";
 vars["SUPABASE_ANON_KEY"] = vars["VITE_SUPABASE_ANON_KEY"];
-vars["VITE_SITE_URL"] = "https://jah-d9m.pages.dev";
+vars["VITE_SITE_URL"] = "https://wider.pages.dev";
 
 for (const key of secretsToPush) {
   const val = vars[key];
   if (val) {
     console.log(`\n-> Injetando secret: ${key}...`);
     try {
-      execSync(`npx wrangler pages secret put ${key} --project-name jah`, {
+      execSync(`npx wrangler pages secret put ${key} --project-name wider`, {
         input: `${val}\n`,
         stdio: ["pipe", "inherit", "inherit"],
         shell: true,

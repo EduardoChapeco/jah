@@ -1318,22 +1318,23 @@ Renomeia módulos na sidebar conforme o nicho selecionado.
 
 ---
 
-# Resumo de GAPs — Rotas Projetadas
+# Resumo de GAPs — Rotas Projetadas & Status Canônico
 
-| #       | Rota                                  | Módulo                 | Prioridade |
-| ------- | ------------------------------------- | ---------------------- | ---------- |
-| GAP-001 | `/_store/conta/comissoes`             | Afiliados (cliente)    | Alta       |
-| GAP-002 | `/workspace/orcamentos`               | Orçamentos (lista)     | Alta       |
-| GAP-003 | `/workspace/orcamentos/$id`           | Orçamentos (detalhe)   | Alta       |
-| GAP-004 | `/workspace/pedidos/entregadores`     | Gestão de Entregadores | Alta       |
-| GAP-005 | `/workspace/pedidos/entregadores/$id` | Detalhe do Entregador  | Média      |
-| GAP-006 | `/workspace/financeiro/afiliados`     | Comissões de Parceiros | Alta       |
-| GAP-007 | `/workspace/configuracoes/equipe`     | Equipe e Permissões    | Alta       |
-| GAP-008 | `/workspace/configuracoes/parceiros`  | Config de Afiliados    | Alta       |
-| GAP-009 | `/workspace/configuracoes/nicho`      | Onboarding por Nicho   | Média      |
-| GAP-010 | `/workspace/crm`                      | CRM Pipeline           | Média      |
-| GAP-011 | `/admin-master/usuarios`              | Admin Usuários         | Média      |
-| GAP-012 | `/admin-master/moderacao`             | Admin Moderação        | Média      |
-| GAP-013 | `/_store/conta/orcamentos`            | Orçamentos (cliente)   | Média      |
-| GAP-014 | `/_store/conta/agendamentos`          | Agendamentos (cliente) | Média      |
-| GAP-015 | `/workspace/agenda/servicos/$id`      | Editor de Serviço      | Alta       |
+| #       | Rota                                  | Módulo                 | Status               | Implementação                                          |
+| ------- | ------------------------------------- | ---------------------- | -------------------- | ------------------------------------------------------ |
+| GAP-001 | `/_store/conta/creditos`              | Carteira / Resgates    | `✅ IMPLEMENTADO`    | `_store.conta.creditos.tsx`                            |
+| GAP-002 | `/workspace/orcamentos`               | Orçamentos (lista)     | `✅ IMPLEMENTADO`    | `workspace.orcamentos.index.tsx`                       |
+| GAP-003 | `/workspace/orcamentos/$id`           | Orçamentos (detalhe)   | `✅ IMPLEMENTADO`    | `workspace.orcamentos.$id.tsx`                         |
+| GAP-004 | `/workspace/pedidos/entregadores`     | Gestão de Entregadores | `✅ IMPLEMENTADO`    | `workspace.pedidos.entregadores.index.tsx`             |
+| GAP-005 | `/workspace/pedidos/entregadores/$id` | Detalhe do Entregador  | `✅ IMPLEMENTADO`    | `workspace.pedidos.entregadores.$id.tsx`               |
+| GAP-006 | `/workspace/financeiro/afiliados`     | Comissões de Parceiros | `✅ IMPLEMENTADO`    | `workspace.financeiro.afiliados.tsx`                   |
+| GAP-007 | `/workspace/configuracoes/parceiros`  | Equipe & Parceiros     | `✅ IMPLEMENTADO`    | `workspace.configuracoes.parceiros.tsx`                |
+| GAP-008 | `/workspace/configuracoes/parceiros`  | Config de Afiliados    | `✅ IMPLEMENTADO`    | `workspace.configuracoes.parceiros.tsx`                |
+| GAP-009 | `/_store/criar-negocio`               | Onboarding por Nicho   | `✅ IMPLEMENTADO`    | `_store.criar-negocio.tsx` (6 etapas)                  |
+| GAP-010 | `/workspace/clientes`                 | CRM Pipeline           | `✅ IMPLEMENTADO`    | `workspace.clientes.index.tsx`                         |
+| GAP-011 | `/admin-master/usuarios`              | Admin Usuários         | `✅ IMPLEMENTADO`    | `admin-master.usuarios.tsx`                            |
+| GAP-012 | `/admin-master/denuncias` & `kyc`     | Admin Moderação        | `✅ IMPLEMENTADO`    | `admin-master.denuncias.tsx` & `admin-master.kyc.tsx`  |
+| GAP-013 | `/_store/conta/negociacoes`           | Propostas & Reservas   | `✅ IMPLEMENTADO`    | `_store.conta.negociacoes.tsx`                         |
+| GAP-014 | `/_store/conta/agendamentos`          | Agendamentos (cliente) | `✅ IMPLEMENTADO`    | `_store.conta.agendamentos.tsx`                        |
+| GAP-015 | `/workspace/agenda/servicos` (Sheet)  | Editor de Serviço      | `✅ IMPLEMENTADO`    | `workspace.agenda.servicos.index.tsx` (Sheet integrado)|
+

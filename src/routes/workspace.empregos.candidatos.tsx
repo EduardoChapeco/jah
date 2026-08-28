@@ -264,7 +264,7 @@ function WorkspaceCandidatesPage() {
 
       {/* Cards de Candidatos */}
       {filteredApps.length === 0 ? (
-        <div className="py-16 text-center rounded-3xl border-0 bg-card/60 space-y-2">
+        <div className="py-16 text-center rounded-2xl border border-border/60 bg-card space-y-2">
           <Briefcase className="size-10 text-muted-foreground/40 mx-auto" />
           <h3 className="text-base font-bold text-foreground">Nenhuma candidatura encontrada</h3>
           <p className="text-xs text-muted-foreground max-w-sm mx-auto">
@@ -276,7 +276,7 @@ function WorkspaceCandidatesPage() {
           {filteredApps.map((app) => (
             <div
               key={app.id}
-              className="p-5 rounded-3xl  bg-card  space-y-4 flex flex-col justify-between hover:border-primary/40 transition-colors"
+              className="p-5 rounded-2xl bg-card border border-border/60 space-y-4 flex flex-col justify-between hover:border-primary/40 transition-colors"
             >
               <div className="space-y-3">
                 <div className="flex items-start justify-between gap-2">
@@ -343,8 +343,8 @@ function WorkspaceCandidatesPage() {
 
                 {/* Detalhes de Entrevista / Contratação */}
                 {app.interview_at && (
-                  <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs space-y-1">
-                    <div className="flex items-center gap-1.5 font-bold text-blue-600">
+                  <div className="p-2.5 rounded-xl bg-info/10 border border-info/20 text-xs space-y-1">
+                    <div className="flex items-center gap-1.5 font-bold text-info">
                       <Calendar className="size-3.5" />
                       <span>Entrevista: {new Date(app.interview_at).toLocaleString("pt-BR")}</span>
                     </div>
@@ -353,7 +353,7 @@ function WorkspaceCandidatesPage() {
                         href={app.interview_meeting_url}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-[11px] text-blue-700 underline font-semibold"
+                        className="inline-flex items-center gap-1 text-[11px] text-info underline font-semibold"
                       >
                         <Video className="size-3" />
                         <span>Abrir Sala de Vídeo</span>
@@ -434,7 +434,7 @@ function WorkspaceCandidatesPage() {
 
       {/* Modal: Agendar Entrevista */}
       <Dialog open={!!interviewModalApp} onOpenChange={(open) => !open && setInterviewModalApp(null)}>
-        <DialogContent className="max-w-md p-6 rounded-3xl bg-card ">
+        <DialogContent className="sm:max-w-md sm:p-6 sm:rounded-3xl bg-card">
           <DialogHeader>
             <DialogTitle className="text-lg font-black">
               Agendar Entrevista com {interviewModalApp?.candidate_name}
@@ -483,7 +483,7 @@ function WorkspaceCandidatesPage() {
 
       {/* Modal: Efetivar Contratação */}
       <Dialog open={!!hireModalApp} onOpenChange={(open) => !open && setHireModalApp(null)}>
-        <DialogContent className="max-w-md p-6 rounded-3xl bg-card ">
+        <DialogContent className="sm:max-w-md sm:p-6 sm:rounded-3xl bg-card">
           <DialogHeader>
             <DialogTitle className="text-lg font-black">
               Efetivar Contratação: {hireModalApp?.candidate_name}

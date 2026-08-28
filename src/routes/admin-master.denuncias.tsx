@@ -263,7 +263,7 @@ function AdminDenunciasPage() {
                   <Button
                     variant="destructive"
                     size="sm"
-                    className="text-xs bg-red-800 hover:bg-red-900"
+                    className="text-xs bg-destructive hover:bg-destructive"
                     onClick={() => handleOpenAction(r, "author_banned")}
                   >
                     <Ban className="size-3.5 mr-1" />

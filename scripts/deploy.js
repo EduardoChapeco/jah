@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 console.log("==========================================");
-console.log(" Deploy Full Pipeline: Jah Community      ");
+console.log(" Deploy Full Pipeline: Wider Community    ");
 console.log("==========================================");
 
 const envPath = path.resolve(__dirname, "../.env.secrets");
@@ -90,7 +90,7 @@ for (const key of keysToPush) {
     try {
       console.log(` -> Empacotando secret: ${key}`);
       runCommand(
-        `npx wrangler pages secret put ${key} --project-name jah`,
+        `npx wrangler pages secret put ${key} --project-name wider`,
         {},
         `${secrets[key]}\n`,
       );
@@ -106,7 +106,7 @@ const outputDir = fs.existsSync(path.resolve(__dirname, "../.output/public"))
   ? ".output/public"
   : "dist";
 console.log(`Diretório alvo: ${outputDir}`);
-runCommand(`npx wrangler pages deploy ${outputDir} --project-name jah`);
+runCommand(`npx wrangler pages deploy ${outputDir} --project-name wider`);
 
 console.log("\n==========================================");
 console.log("Deploy Finalizado com Sucesso!");

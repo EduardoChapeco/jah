@@ -17,12 +17,18 @@ import {
   ForkKnife,
   ShoppingBag,
   Heartbeat,
-  Coffee,
+  BeerBottle,
   Scissors,
   Buildings,
   Flame,
   User,
   BookmarkSimple,
+  Laptop,
+  Bone,
+  Hammer,
+  Armchair,
+  Broom,
+  Books,
 } from "@phosphor-icons/react";
 
 export interface ContextSidebarProps {
@@ -46,14 +52,23 @@ const PRIMARY_DESTINATIONS = [
   { to: "/mobilidade", label: "Mobilidade", icon: CarProfile, exact: true },
 ];
 
-// ── 2. Categorias Master & Nichos de Alto Consumo ──
+// ── 2. Categorias Master & Nichos de Alto Consumo (16 Verticais Canônicas) ──
 const CATEGORY_NICHES = [
   { to: "/gastronomia", label: "Gastronomia & Delivery", icon: ForkKnife },
-  { to: "/mercado?niche=mercado", label: "Mercado & Hortifruti", icon: ShoppingBag },
+  { to: "/mercado", label: "Mercado & Hortifrúti", icon: ShoppingBag },
   { to: "/farmacia", label: "Farmácia & Saúde", icon: Heartbeat },
+  { to: "/bebidas", label: "Bebidas & Adega", icon: BeerBottle },
+  { to: "/acougue", label: "Açougue & Carnes", icon: Flame },
   { to: "/moda", label: "Moda & Vestuário", icon: TShirt },
-  { to: "/mercado?niche=conveniencia", label: "Conveniência & Bebidas", icon: Coffee },
+  { to: "/eletronicos", label: "Eletrônicos & Tech", icon: Laptop },
+  { to: "/pet", label: "Pet Shop & Veterinária", icon: Bone },
+  { to: "/servicos", label: "Serviços Especializados", icon: Briefcase },
   { to: "/imoveis", label: "Imóveis & Aluguel", icon: Buildings },
+  { to: "/construcao", label: "Construção & Casa", icon: Hammer },
+  { to: "/casa", label: "Móveis & Decoração", icon: Armchair },
+  { to: "/beleza", label: "Beleza & Estética", icon: Scissors },
+  { to: "/limpeza", label: "Limpeza & Higiene", icon: Broom },
+  { to: "/livros", label: "Livros & Papelaria", icon: Books },
   { to: "/ofertas", label: "Ofertas Relâmpago", icon: Flame },
 ];
 

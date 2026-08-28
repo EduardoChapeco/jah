@@ -3,6 +3,8 @@
  * RULE (AGENTS.md): store ISO UTC; display in America/Sao_Paulo.
  */
 
+import { normalizeWorkingHours, type WeeklySchedule, type Weekday, WEEKDAYS_ORDER } from "./business-hours";
+
 const TZ = "America/Sao_Paulo";
 
 const dateFmt = new Intl.DateTimeFormat("pt-BR", {
@@ -56,83 +58,184 @@ export function formatRelativeTime(iso: string | Date): string {
   return formatDateTime(date);
 }
 
+export type OpenStatusResult = {
+  status: "open" | "closed" | "paused" | "unknown";
+  text: string;
+  nextEvent?: string;
+  isOpenNow: boolean;
+};
+
+/**
+ * Avalia o status de funcionamento em tempo real (Google Meu Negócio / iFood / Avec standard)
+ * Suporta múltiplos turnos/intervalos por dia, viradas de madrugada (overnight), pausas e feriados.
+ */
 export function getOpenStatus(
-  extendedHours: any[] | null | undefined,
+  rawHours: any,
   holidayExceptions?: any[] | null | undefined,
-) {
+  emergencyPauseUntil?: string | null | undefined,
+): OpenStatusResult {
   try {
-    if (!extendedHours || extendedHours.length === 0) {
-      return { status: "unknown", text: "Horários não configurados" };
+    if (!rawHours) {
+      return { status: "unknown", text: "Horários não informados", isOpenNow: false };
     }
 
-    const days = [
-      "Domingo",
-      "Segunda-feira",
-      "Terça-feira",
-      "Quarta-feira",
-      "Quinta-feira",
-      "Sexta-feira",
-      "Sábado",
-    ];
     const now = new Date();
-    // Translate to Brazil São Paulo timezone
     const spTime = new Date(now.toLocaleString("en-US", { timeZone: TZ }));
+    const currentHour = spTime.getHours();
+    const currentMinute = spTime.getMinutes();
+    const currentTimeMinutes = currentHour * 60 + currentMinute;
+    const currentIsoDate = spTime.toISOString().split("T")[0]; // YYYY-MM-DD
 
-    // Check holiday exceptions first
-    if (holidayExceptions && holidayExceptions.length > 0) {
-      const todayIso = spTime.toISOString().split("T")[0]; // YYYY-MM-DD
-      const exception = holidayExceptions.find((e) => e.date === todayIso);
-      if (exception) {
-        if (!exception.open) {
-          return { status: "closed", text: exception.label || "Fechado (Feriado)" };
-        }
-        const [openH, openM] = exception.openTime.split(":").map(Number);
-        const [closeH, closeM] = exception.closeTime.split(":").map(Number);
-        const openVal = openH * 60 + openM;
-        const closeVal = closeH * 60 + closeM;
-        const currentTimeVal = spTime.getHours() * 60 + spTime.getMinutes();
-
-        if (currentTimeVal >= openVal && currentTimeVal <= closeVal) {
-          return {
-            status: "open",
-            text: `Aberto até às ${exception.closeTime} (${exception.label || "Feriado"})`,
-          };
-        }
-        if (currentTimeVal < openVal) {
-          return {
-            status: "closed",
-            text: `Abre hoje às ${exception.openTime} (${exception.label || "Feriado"})`,
-          };
-        }
-        return { status: "closed", text: `Fechado (${exception.label || "Feriado"})` };
+    // 1. Pausa de emergência ativa
+    if (emergencyPauseUntil) {
+      const pauseDate = new Date(emergencyPauseUntil);
+      if (pauseDate.getTime() > now.getTime()) {
+        const pauseTimeStr = pauseDate.toLocaleTimeString("pt-BR", {
+          timeZone: TZ,
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        return {
+          status: "paused",
+          text: `Pausa temporária de pedidos até ${pauseTimeStr}`,
+          isOpenNow: false,
+        };
       }
     }
 
-    const currentDayName = days[spTime.getDay()];
-    const currentHour = spTime.getHours();
-    const currentMinute = spTime.getMinutes();
-    const currentTimeVal = currentHour * 60 + currentMinute;
+    // 2. Exceção de Feriado no dia de hoje
+    if (holidayExceptions && holidayExceptions.length > 0) {
+      const exception = holidayExceptions.find((e) => e.date === currentIsoDate);
+      if (exception) {
+        if (!exception.open || !exception.intervals || exception.intervals.length === 0) {
+          return {
+            status: "closed",
+            text: `Fechado hoje (${exception.label || "Feriado"})`,
+            isOpenNow: false,
+          };
+        }
 
-    const todayHour = extendedHours.find((h) => h.day === currentDayName);
-    if (!todayHour || !todayHour.open) {
-      return { status: "closed", text: "Fechado hoje" };
+        // Verifica intervalos da exceção
+        for (const inv of exception.intervals) {
+          const [openH, openM] = (inv.from || "08:00").split(":").map(Number);
+          const [closeH, closeM] = (inv.to || "18:00").split(":").map(Number);
+          const openMins = openH * 60 + openM;
+          const closeMins = closeH * 60 + closeM;
+
+          if (currentTimeMinutes >= openMins && currentTimeMinutes <= closeMins) {
+            return {
+              status: "open",
+              text: `Aberto até às ${inv.to} (${exception.label || "Feriado"})`,
+              isOpenNow: true,
+            };
+          }
+        }
+      }
     }
 
-    const [openH, openM] = todayHour.openTime.split(":").map(Number);
-    const [closeH, closeM] = todayHour.closeTime.split(":").map(Number);
-    const openVal = openH * 60 + openM;
-    const closeVal = closeH * 60 + closeM;
+    // 3. Resolução da Grade Semanal Completa
+    const schedule: WeeklySchedule = normalizeWorkingHours(rawHours);
+    const dayKeys: Weekday[] = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+    const currentDayIndex = spTime.getDay(); // 0 = Domingo, 1 = Segunda, etc.
+    const currentDayKey = dayKeys[currentDayIndex];
+    const todaySchedule = schedule[currentDayKey];
 
-    if (currentTimeVal >= openVal && currentTimeVal <= closeVal) {
-      return { status: "open", text: `Aberto até às ${todayHour.closeTime}` };
+    // Verifica se ontem à noite abriu um turno que ultrapassa a meia-noite (overnight)
+    const yesterdayIndex = (currentDayIndex + 6) % 7;
+    const yesterdayKey = dayKeys[yesterdayIndex];
+    const yesterdaySchedule = schedule[yesterdayKey];
+
+    if (yesterdaySchedule?.open && yesterdaySchedule.intervals) {
+      for (const inv of yesterdaySchedule.intervals) {
+        const [openH, openM] = inv.from.split(":").map(Number);
+        const [closeH, closeM] = inv.to.split(":").map(Number);
+        const openMins = openH * 60 + openM;
+        const closeMins = closeH * 60 + closeM;
+
+        // Se fechamento for menor que abertura, passou da meia-noite
+        if (closeMins < openMins && currentTimeMinutes < closeMins) {
+          return {
+            status: "open",
+            text: `Aberto agora • Fecha às ${inv.to} (Madrugada)`,
+            isOpenNow: true,
+          };
+        }
+      }
     }
 
-    if (currentTimeVal < openVal) {
-      return { status: "closed", text: `Abre hoje às ${todayHour.openTime}` };
+    // Verifica os turnos de hoje
+    if (todaySchedule?.open && todaySchedule.intervals && todaySchedule.intervals.length > 0) {
+      // 3.1 Está dentro de algum turno hoje?
+      for (const inv of todaySchedule.intervals) {
+        const [openH, openM] = inv.from.split(":").map(Number);
+        const [closeH, closeM] = inv.to.split(":").map(Number);
+        const openMins = openH * 60 + openM;
+        const closeMins = closeH * 60 + closeM;
+
+        if (closeMins > openMins) {
+          if (currentTimeMinutes >= openMins && currentTimeMinutes <= closeMins) {
+            const shiftLabel = inv.label ? ` (${inv.label})` : "";
+            return {
+              status: "open",
+              text: `Aberto agora • Fecha às ${inv.to}${shiftLabel}`,
+              isOpenNow: true,
+            };
+          }
+        } else {
+          // Turno passa da meia-noite
+          if (currentTimeMinutes >= openMins) {
+            return {
+              status: "open",
+              text: `Aberto agora • Fecha às ${inv.to} (Madrugada)`,
+              isOpenNow: true,
+            };
+          }
+        }
+      }
+
+      // 3.2 Não está aberto agora, mas ainda abrirá hoje em um turno posterior?
+      const upcomingShift = todaySchedule.intervals.find((inv) => {
+        const [openH, openM] = inv.from.split(":").map(Number);
+        return openH * 60 + openM > currentTimeMinutes;
+      });
+
+      if (upcomingShift) {
+        const shiftLabel = upcomingShift.label ? ` para ${upcomingShift.label}` : "";
+        return {
+          status: "closed",
+          text: `Fechado • Abre hoje às ${upcomingShift.from}${shiftLabel}`,
+          isOpenNow: false,
+        };
+      }
     }
 
-    return { status: "closed", text: "Fechado" };
-  } catch {
-    return { status: "unknown", text: "Erro ao verificar horários" };
+    // 3.3 Fechado hoje ou turnos de hoje encerrados. Procura o próximo dia em que abrirá
+    for (let offset = 1; offset <= 7; offset++) {
+      const nextDayIndex = (currentDayIndex + offset) % 7;
+      const nextDayKey = dayKeys[nextDayIndex];
+      const nextDaySchedule = schedule[nextDayKey];
+
+      if (nextDaySchedule?.open && nextDaySchedule.intervals && nextDaySchedule.intervals.length > 0) {
+        const firstInterval = nextDaySchedule.intervals[0];
+        const nextDayName = WEEKDAYS_ORDER.find((w) => w.key === nextDayKey)?.label || "em breve";
+        const dayLabel = offset === 1 ? "amanhã" : `na ${nextDayName.toLowerCase()}`;
+        return {
+          status: "closed",
+          text: `Fechado • Abre ${dayLabel} às ${firstInterval.from}`,
+          isOpenNow: false,
+        };
+      }
+    }
+
+    return { status: "closed", text: "Fechado temporariamente", isOpenNow: false };
+  } catch (e) {
+    return { status: "unknown", text: "Horários sob consulta", isOpenNow: false };
   }
 }
+
+export function formatTimeOnly(iso: string | Date): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
+}
+

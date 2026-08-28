@@ -32,6 +32,7 @@ import {
   type FilterChipOption,
 } from "@/components/commerce/discovery-control-bar";
 import { formatDate } from "@/lib/datetime";
+import { resolveNicheDepartments } from "@/lib/niche-helpers";
 
 const EVENT_CATEGORIES: FilterChipOption[] = [
   { id: "todos", label: "Todas Categorias", emoji: "🎟️", icon: Sparkle },
@@ -351,18 +352,11 @@ function AgendaPage() {
         </div>
       </section>
 
-      {/* ── 4. BARRA DE CONTROLE CANÔNICA DE DESCOBERTA (Busca + Categorias + Modos) ── */}
       <DiscoveryControlBar
         search={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder="Buscar show, festival, teatro, local, artista..."
-        categories={EVENT_CATEGORIES.map((cat) => {
-          const match = hotpages?.find((hp) => hp.slug === cat.id);
-          return {
-            ...cat,
-            icon_url: match?.custom_icon_url || match?.icon_url || cat.icon_url,
-          };
-        })}
+        categories={EVENT_CATEGORIES}
         activeCategory={selectedCategory}
         onSelectCategory={setSelectedCategory}
         viewMode={viewMode}

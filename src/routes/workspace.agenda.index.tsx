@@ -189,13 +189,13 @@ function AdminAppointmentsPage() {
         );
       case "checked_in":
         return (
-          <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-[10px] font-bold">
+          <Badge variant="outline" className="bg-info/10 text-info border-info/20 text-[10px] font-bold">
             Na Recepção
           </Badge>
         );
       case "in_service":
         return (
-          <Badge variant="outline" className="bg-purple-500/10 text-purple-600 border-purple-500/20 text-[10px] font-bold">
+          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-[10px] font-bold">
             Em Atendimento
           </Badge>
         );

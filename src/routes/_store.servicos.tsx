@@ -32,12 +32,16 @@ import { PageSkeleton } from "@/components/state/loading";
 import { HorizontalRail } from "@/components/commerce/horizontal-rail";
 import { StoreCard } from "@/components/commerce/store-card";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
+import { HotpagesRail } from "@/components/commerce/hotpages-rail";
 import { RequestQuoteModal } from "@/components/commerce/request-quote-modal";
 import { ServicePackagesRail } from "@/components/commerce/service-packages-rail";
 import { DiscoveryControlBar } from "@/components/commerce/discovery-control-bar";
-import { getMarketplaceFeed } from "@/services/marketplace.functions";
+import { getModularSurfaceFeed } from "@/services/surface-cms.functions";
+import { ModularSurfaceFeed } from "@/components/commerce/modular-surface-feed";
 import { listActiveBanners } from "@/services/banner.functions";
+import { listHotpages } from "@/services/hotpage.functions";
 import { listPublicStorePackages } from "@/services/service-packages.functions";
+import { resolveNicheDepartments } from "@/lib/niche-helpers";
 
 const SearchSchema = z.object({
   q: z.string().optional(),
@@ -155,14 +159,16 @@ export const Route = createFileRoute("/_store/servicos")({
   validateSearch: (search: Record<string, unknown>): ServicosSearch => SearchSchema.parse(search),
   loaderDeps: ({ search }) => search,
   loader: async () => {
-    const [banners, marketplaceFeed, packages] = await Promise.all([
+    const [banners, hotpages, marketplaceFeed, packages] = await Promise.all([
       listActiveBanners({ data: { placement: "servicos" } }).catch(() => []),
-      getMarketplaceFeed({ data: { niche: "servicos" } }).catch(() => null),
+      listHotpages({ data: { module: "servicos" } }).catch(() => []),
+      getModularSurfaceFeed({ data: { surfaceSlug: "servicos" } }).catch(() => ({ sections: [], allProducts: [] })),
       listPublicStorePackages().catch(() => []),
     ]);
 
     return {
       banners,
+      hotpages,
       marketplaceFeed,
       packages,
     };
@@ -172,7 +178,7 @@ export const Route = createFileRoute("/_store/servicos")({
 });
 
 function ServicosVerticalPage() {
-  const { banners, marketplaceFeed, packages } = Route.useLoaderData();
+  const { banners, hotpages, marketplaceFeed, packages } = Route.useLoaderData();
   const search = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
 
@@ -270,7 +276,19 @@ function ServicosVerticalPage() {
         </section>
       )}
 
-      {/* ── 3. Discovery Control Bar (Busca + Categorias) ── */}
+      {/* ── 3. Hotpages / Destaques de Serviços ── */}
+      {hotpages && hotpages.length > 0 && (
+        <section aria-label="Coleções de Serviços">
+          <HotpagesRail hotpages={hotpages} />
+        </section>
+      )}
+
+      {/* ── 3.5 Seções Modulares do CMS (Destaques, Lojas, Grids) ── */}
+      {marketplaceFeed?.sections && marketplaceFeed.sections.length > 0 && (
+        <ModularSurfaceFeed sections={marketplaceFeed.sections} />
+      )}
+
+      {/* ── 4. Discovery Control Bar (Busca + Categorias) ── */}
       <DiscoveryControlBar
         search={searchTerm}
         onSearchChange={setSearchTerm}

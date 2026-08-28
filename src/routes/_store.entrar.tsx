@@ -3,21 +3,22 @@ import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import {
   ArrowRight,
+  ArrowLeft,
   Shield,
   ShieldAlert,
   ShieldCheck,
   Eye,
   EyeOff,
-  X,
   UserPlus,
   LogIn,
-  ChevronLeft,
   Lock,
   Mail,
   User,
   Sparkles,
   FileCheck,
-  ArrowLeft,
+  Check,
+  Download,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +34,7 @@ import {
 import {
   signInWithPassword,
   signUpWithPassword,
+  signInWithOAuth,
   getUserSession,
   resetPasswordForEmail,
 } from "@/services/auth.functions";
@@ -40,7 +42,7 @@ import { getPublicBrandSettings } from "@/services/master.functions";
 
 export const Route = createFileRoute("/_store/entrar")({
   head: () => ({
-    meta: [{ title: "Acessar — Wider Community Platform" }],
+    meta: [{ title: "Acessar Conta — Wider" }],
   }),
   validateSearch: (search: Record<string, unknown>): { returnUrl?: string; error?: string } => {
     return {
@@ -56,72 +58,74 @@ export const Route = createFileRoute("/_store/entrar")({
       return { brand: null };
     }
   },
-  beforeLoad: async ({ search }) => {
-    const session = await getUserSession();
-    if (session) {
-      if (search.returnUrl) {
-        throw redirect({ to: search.returnUrl as any });
-      }
-      throw redirect({ to: "/" });
-    }
-  },
-  component: FullscreenLoginPage,
+  component: StepByStepAuthPage,
 });
 
-type AuthMode = "idle" | "login-identifier" | "login-password" | "register-quick";
+type AuthView = "login-step1" | "login-step2" | "register-step1" | "register-step2" | "register-step3" | "forgot-password";
 
 const DEFAULT_BG_DESKTOP = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1920&q=85";
 const DEFAULT_BG_TABLET = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1024&q=85";
 const DEFAULT_BG_MOBILE = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1080&q=85";
 
-function FullscreenLoginPage() {
+function StepByStepAuthPage() {
   const { brand } = Route.useLoaderData() as any;
   const navigate = useNavigate();
   const router = useRouter();
   const search = Route.useSearch();
   const returnUrl = search.returnUrl ?? "/";
 
-  const [mode, setMode] = useState<AuthMode>("idle");
+  // Estado da etapa ativa
+  const [view, setView] = useState<AuthView>("login-step1");
+
+  // Dados do formulário
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isOAuthLoading, setIsOAuthLoading] = useState(false);
 
-  // Modais de Recuperação e Termos
-  const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
+  // Esqueci a Senha
   const [forgotEmail, setForgotEmail] = useState("");
   const [isSendingReset, setIsSendingReset] = useState(false);
+  const [forgotSentSuccess, setForgotSentSuccess] = useState(false);
 
-  // Sheet de Termos Legais com Scroll Obrigatório
+  // Sheet de Termos Legais
   const [isTermsSheetOpen, setIsTermsSheetOpen] = useState(false);
   const [hasScrolledTermsToBottom, setHasScrolledTermsToBottom] = useState(false);
   const [termsScrollProgress, setTermsScrollProgress] = useState(0);
   const termsScrollRef = useRef<HTMLDivElement>(null);
 
+  // PWA Prompt
+  const [showPwaBanner, setShowPwaBanner] = useState(true);
+
+  // Input refs para auto-focus fluido
   const identifierInputRef = useRef<HTMLInputElement>(null);
   const passwordInputRef = useRef<HTMLInputElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (mode === "login-identifier" || mode === "register-quick") {
+    if (view === "login-step1" || view === "register-step1") {
       setTimeout(() => identifierInputRef.current?.focus(), 150);
-    } else if (mode === "login-password") {
+    } else if (view === "login-step2" || view === "register-step3") {
       setTimeout(() => passwordInputRef.current?.focus(), 150);
+    } else if (view === "register-step2") {
+      setTimeout(() => nameInputRef.current?.focus(), 150);
     }
-  }, [mode]);
+  }, [view]);
 
-  // Handler para avançar do Identificador para a Senha
-  const handleNextFromIdentifier = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  // Avançar da Etapa 1 para a Etapa 2 de Login
+  const handleProceedLoginStep1 = (e: React.FormEvent) => {
+    e.preventDefault();
     const cleanId = identifier.trim();
     if (!cleanId) {
-      toast.error("Digite seu e-mail, telefone, CPF ou @usuário.");
+      toast.error("Digite seu e-mail, telefone ou @usuário.");
       return;
     }
-    setMode("login-password");
+    setView("login-step2");
   };
 
-  // Handler de Login Efetivo
+  // Login Efetivo na Etapa 2
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!password) {
@@ -139,7 +143,7 @@ function FullscreenLoginPage() {
       });
 
       if (res.status === "success") {
-        toast.success("Autenticação realizada com sucesso!");
+        toast.success("Bem-vindo(a) de volta!");
         router.invalidate();
         navigate({ to: returnUrl as any });
       } else if (res.status === "rate_limited") {
@@ -152,20 +156,115 @@ function FullscreenLoginPage() {
     }
   };
 
-  // Handler de Início de Cadastro (Abre o Sheet de Termos e Finalização)
-  const handleStartRegister = (e: React.FormEvent) => {
+  // Fluxo de Cadastro: Avançar Etapa 1 -> Etapa 2
+  const handleProceedRegisterStep1 = (e: React.FormEvent) => {
     e.preventDefault();
     if (!identifier.trim()) {
-      toast.error("Informe seu e-mail, telefone ou @usuário.");
+      toast.error("Digite seu e-mail para começar.");
       return;
     }
+    setView("register-step2");
+  };
+
+  // Fluxo de Cadastro: Avançar Etapa 2 -> Etapa 3
+  const handleProceedRegisterStep2 = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!fullName.trim()) {
+      toast.error("Informe como deseja ser chamado(a).");
+      return;
+    }
+    setView("register-step3");
+  };
+
+  // Fluxo de Cadastro: Concluir Cadastro
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (password.length < 6) {
       toast.error("A senha deve ter no mínimo 6 caracteres.");
       return;
     }
-    setHasScrolledTermsToBottom(false);
-    setTermsScrollProgress(0);
-    setIsTermsSheetOpen(true);
+
+    setIsLoading(true);
+    try {
+      const cleanEmail = identifier.includes("@")
+        ? identifier.trim().toLowerCase()
+        : `${identifier.replace(/\D/g, "") || "usuario"}@wider.local`;
+
+      const result = await signUpWithPassword({
+        data: {
+          email: cleanEmail,
+          password,
+          fullName: fullName.trim() || identifier.split("@")[0] || "Membro Wider",
+          redirectTo: returnUrl,
+          isConsentLgpd: true,
+        },
+      });
+
+      if (!result.sessionActive) {
+        toast.success("Conta criada! Verifique seu e-mail para ativar seu acesso.", {
+          duration: 7000,
+        });
+        setView("login-step1");
+        return;
+      }
+
+      toast.success("Conta criada com sucesso! Bem-vindo(a) ao Wider.");
+      await getUserSession();
+      window.location.href = returnUrl || "/";
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao concluir cadastro.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Login Social via Google OAuth
+  const handleGoogleAuth = async () => {
+    setIsOAuthLoading(true);
+    try {
+      const result = await signInWithOAuth({
+        data: {
+          provider: "google",
+          redirectTo: returnUrl,
+        },
+      });
+
+      if (result.status === "success" && result.url) {
+        window.location.href = result.url;
+      } else {
+        toast.error((result as any)?.message || "Não foi possível conectar com o Google no momento.");
+      }
+    } catch (e: any) {
+      toast.error(e?.message || "Erro ao conectar com Google.");
+    } finally {
+      setIsOAuthLoading(false);
+    }
+  };
+
+  // Enviar Recuperação de Senha
+  const handleSendResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const targetEmail = (forgotEmail || identifier).trim();
+    if (!targetEmail) {
+      toast.error("Informe seu e-mail cadastrado.");
+      return;
+    }
+
+    setIsSendingReset(true);
+    try {
+      await resetPasswordForEmail({
+        data: {
+          email: targetEmail,
+          redirectTo: `${typeof window !== "undefined" ? window.location.origin : ""}/redefinir-senha`,
+        },
+      });
+      setForgotSentSuccess(true);
+      toast.success("Instruções de redefinição enviadas para seu e-mail!");
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao solicitar recuperação.");
+    } finally {
+      setIsSendingReset(false);
+    }
   };
 
   // Monitora o scroll dos Termos até o final (100%)
@@ -180,344 +279,559 @@ function FullscreenLoginPage() {
     }
   };
 
-  // Conclui o Cadastro com Consentimento LGPD após Leitura
-  const handleCompleteRegistration = async () => {
-    if (!hasScrolledTermsToBottom) {
-      toast.error("Role o documento de termos até o final para habilitar o aceite.");
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const cleanEmail = identifier.includes("@")
-        ? identifier.trim().toLowerCase()
-        : `${identifier.replace(/\D/g, "") || "usuario"}@wider.local`;
-
-      const result = await signUpWithPassword({
-        data: {
-          email: cleanEmail,
-          password,
-          fullName: fullName.trim() || identifier.split("@")[0] || "Membro da Comunidade",
-          redirectTo: returnUrl,
-          isConsentLgpd: true,
-        },
-      });
-
-      if (!result.sessionActive) {
-        toast.success("Conta criada! Verifique seu e-mail para ativar seu acesso.", {
-          duration: 7000,
-        });
-        setIsTermsSheetOpen(false);
-        setMode("idle");
-        return;
-      }
-
-      toast.success("Conta criada e termos aceitos com sucesso!");
-      setIsTermsSheetOpen(false);
-      await getUserSession();
-      window.location.href = returnUrl || "/";
-    } catch (err: any) {
-      toast.error(err?.message || "Erro ao concluir cadastro.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Recuperação de Senha
-  const handleSendResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!forgotEmail.trim()) {
-      toast.error("Informe seu e-mail cadastrado.");
-      return;
-    }
-
-    setIsSendingReset(true);
-    try {
-      await resetPasswordForEmail({
-        data: {
-          email: forgotEmail.trim(),
-          redirectTo: `${typeof window !== "undefined" ? window.location.origin : ""}/redefinir-senha`,
-        },
-      });
-      toast.success("Link de recuperação enviado para seu e-mail.");
-      setIsForgotModalOpen(false);
-      setForgotEmail("");
-    } catch (err: any) {
-      toast.error(err?.message || "Erro ao solicitar recuperação de senha.");
-    } finally {
-      setIsSendingReset(false);
-    }
-  };
-
   const desktopBg = brand?.login_bg_desktop_url || brand?.login_split_image_url || DEFAULT_BG_DESKTOP;
   const tabletBg = brand?.login_bg_tablet_url || desktopBg || DEFAULT_BG_TABLET;
   const mobileBg = brand?.login_bg_mobile_url || tabletBg || DEFAULT_BG_MOBILE;
 
+  const isRegisterMode = view.startsWith("register");
+  const isForgotMode = view === "forgot-password";
+
   return (
     <main
       role="main"
-      aria-label="Tela de Autenticação e Acesso"
-      className="h-screen w-screen overflow-hidden relative select-none flex flex-col justify-between p-5 sm:p-8 md:p-10 bg-black text-white"
+      aria-label="Autenticação Wider"
+      className="min-h-screen w-full relative select-none flex flex-col justify-between p-4 sm:p-6 md:p-8 bg-background text-foreground overflow-x-hidden"
     >
-      {/* ── 1. Background Imersivo com 3 Breakpoints Responsivos (Zero Scroll) ── */}
-      <picture className="absolute inset-0 size-full pointer-events-none z-0">
+      {/* ── 1. Background com Mídia Responsiva (Upload Suportado no Master) ── */}
+      <picture className="fixed inset-0 size-full pointer-events-none z-0">
         <source media="(min-width: 1024px)" srcSet={desktopBg} />
         <source media="(min-width: 768px)" srcSet={tabletBg} />
         <img
           src={mobileBg}
           alt=""
-          className="size-full object-cover transition-transform duration-1000 scale-100"
+          className="size-full object-cover transition-transform duration-1000 scale-100 opacity-90 dark:opacity-80"
         />
       </picture>
 
-      {/* Overlay Cinematográfico para Alto Contraste */}
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-[0.5px] z-1 pointer-events-none" />
+      {/* Overlay com Blur Suave e Alto Contraste Editorial */}
+      <div className="fixed inset-0 bg-black/45 backdrop-blur-[2px] z-1 pointer-events-none" />
 
-      {/* ── 2. Top Bar Minimalista ── */}
-      <header className="relative z-10 flex items-center justify-between w-full">
+      {/* ── 2. Top Header Minimalista ── */}
+      <header className="relative z-10 flex items-center justify-between w-full max-w-5xl mx-auto">
         <Link
           to="/"
-          className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-2xl bg-black/50 backdrop-blur-xl border border-white/15 text-white shadow-lg hover:border-white/30 transition-colors"
+          className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-2xl bg-black/50 backdrop-blur-xl border border-white/15 text-white hover:border-white/30 transition-colors"
         >
           <span className="bg-primary text-primary-foreground font-black text-xs px-2 py-0.5 rounded-lg tracking-wider uppercase">
             {brand?.platform_name || "WIDER"}
           </span>
           <span className="text-xs font-semibold tracking-tight text-white/90 hidden sm:inline">
-            Community Commerce
+            Community Platform
           </span>
         </Link>
 
         <Link
           to="/"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black/40 backdrop-blur-xl border border-white/15 text-xs font-medium text-white/80 hover:text-white hover:border-white/30 transition-all"
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-black/40 backdrop-blur-xl border border-white/15 text-xs font-semibold text-white/90 hover:text-white hover:border-white/30 transition-all"
         >
           <ArrowLeft className="size-3.5" />
-          <span>Voltar à Vitrine</span>
+          <span>Voltar ao Início</span>
         </Link>
       </header>
 
-      {/* ── 3. Linha Minimalista de Autenticação no Canto Inferior Direito ── */}
-      <div className="relative z-10 w-full flex justify-end items-end">
-        {/* FASE 0: Pílula Inicial [ Entrar ] [ Cadastrar-se ] */}
-        {mode === "idle" && (
-          <div className="inline-flex items-center gap-2 p-1.5 rounded-2xl bg-black/70 backdrop-blur-2xl border border-white/20 shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <Button
-              onClick={() => setMode("login-identifier")}
-              className="h-10 px-5 rounded-xl bg-white text-black font-bold text-xs hover:bg-white/90 shadow-md gap-1.5 cursor-pointer"
-            >
-              <LogIn className="size-3.5" />
-              <span>Entrar</span>
-            </Button>
-
-            <Button
-              variant="ghost"
-              onClick={() => setMode("register-quick")}
-              className="h-10 px-4 rounded-xl text-white/90 hover:text-white hover:bg-white/10 text-xs font-medium gap-1.5 cursor-pointer"
-            >
-              <UserPlus className="size-3.5" />
-              <span>Cadastrar-se</span>
-            </Button>
+      {/* ── 3. Card Centralizado: Experiência em Etapas (Step-by-Step) ── */}
+      <div className="relative z-10 w-full max-w-md mx-auto my-auto py-6">
+        <div className="bg-card/95 dark:bg-card/90 backdrop-blur-2xl border border-border/60 rounded-3xl p-6 sm:p-8 text-foreground animate-in fade-in zoom-in-95 duration-300">
+          
+          {/* Logo / Glifo Superior */}
+          <div className="flex justify-center mb-4">
+            {brand?.logo_url ? (
+              <img src={brand.logo_url} alt="Logo" className="h-10 w-auto object-contain" />
+            ) : (
+              <div className="size-11 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center font-black text-xl">
+                W
+              </div>
+            )}
           </div>
-        )}
 
-        {/* FASE 1: Entrar - Linha de Identificador */}
-        {mode === "login-identifier" && (
-          <form
-            onSubmit={handleNextFromIdentifier}
-            className="w-full sm:w-auto max-w-md inline-flex items-center gap-1.5 p-1.5 rounded-2xl bg-black/80 backdrop-blur-2xl border border-white/25 shadow-2xl animate-in fade-in zoom-in-95 duration-200"
-          >
-            {/* Botão de Fechar */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                setMode("idle");
-                setIdentifier("");
-              }}
-              className="size-9 rounded-xl text-white/70 hover:text-white hover:bg-white/10 shrink-0"
-              title="Cancelar"
-            >
-              <X className="size-4" />
-            </Button>
+          {/* Título & Subtítulo Dinâmicos */}
+          <div className="text-center space-y-1 mb-6">
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-foreground">
+              {isForgotMode
+                ? "Recuperar Acesso"
+                : isRegisterMode
+                ? "Crie sua conta"
+                : "Bem-vindo de volta"}
+            </h1>
+            <p className="text-xs text-muted-foreground">
+              {isForgotMode
+                ? "Digite seu e-mail para receber as instruções de recuperação"
+                : isRegisterMode
+                ? "Faça parte do ecossistema comercial da sua cidade"
+                : "Entre com suas credenciais para continuar"}
+            </p>
 
-            {/* Input com Botão -> Embutido */}
-            <div className="relative flex-1 min-w-[200px] sm:min-w-[260px]">
-              <Input
-                ref={identifierInputRef}
-                value={identifier}
-                onChange={(e) => setIdentifier(e.target.value)}
-                placeholder="E-mail, telefone, CPF ou @"
-                className="h-10 pl-3.5 pr-10 text-xs bg-white/10 text-white placeholder:text-white/40 border-white/15 rounded-xl focus-visible:ring-1 focus-visible:ring-white/40"
-              />
-              <button
+            {/* Indicador Minimalista de Progresso em Etapas */}
+            {!isForgotMode && (
+              <div className="flex items-center justify-center gap-1.5 pt-3">
+                {isRegisterMode ? (
+                  <>
+                    <div className={`h-1.5 rounded-full transition-all duration-300 ${view === "register-step1" ? "w-6 bg-primary" : "w-2 bg-muted"}`} />
+                    <div className={`h-1.5 rounded-full transition-all duration-300 ${view === "register-step2" ? "w-6 bg-primary" : "w-2 bg-muted"}`} />
+                    <div className={`h-1.5 rounded-full transition-all duration-300 ${view === "register-step3" ? "w-6 bg-primary" : "w-2 bg-muted"}`} />
+                  </>
+                ) : (
+                  <>
+                    <div className={`h-1.5 rounded-full transition-all duration-300 ${view === "login-step1" ? "w-6 bg-primary" : "w-2 bg-muted"}`} />
+                    <div className={`h-1.5 rounded-full transition-all duration-300 ${view === "login-step2" ? "w-6 bg-primary" : "w-2 bg-muted"}`} />
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* ── FLUXO DE LOGIN: ETAPA 1 (E-MAIL / IDENTIFICADOR) ── */}
+          {view === "login-step1" && (
+            <form onSubmit={handleProceedLoginStep1} className="space-y-4 animate-in fade-in duration-200">
+              <div className="space-y-1.5 text-left">
+                <label className="text-xs font-bold text-foreground">Qual é seu e-mail?</label>
+                <p className="text-[11px] text-muted-foreground">Digite o e-mail, telefone ou @ da sua conta</p>
+                <div className="relative mt-1">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                  <Input
+                    ref={identifierInputRef}
+                    type="text"
+                    required
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
+                    placeholder="seu@email.com"
+                    className="pl-10 h-11 rounded-xl text-xs bg-muted/30 border-border/70 focus:border-primary"
+                  />
+                </div>
+              </div>
+
+              <Button
                 type="submit"
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 size-7 rounded-lg bg-white text-black flex items-center justify-center hover:bg-white/90 transition-all active:scale-95 cursor-pointer shadow-xs"
-                title="Avançar"
+                className="w-full h-11 rounded-xl font-bold text-xs gap-2 cursor-pointer bg-foreground text-background hover:bg-foreground/90"
               >
-                <ArrowRight className="size-3.5 font-black" />
-              </button>
-            </div>
+                <span>Prosseguir</span>
+                <ArrowRight className="size-3.5" />
+              </Button>
 
-            {/* Botão Escudo: Esqueci a Senha */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                setForgotEmail(identifier.includes("@") ? identifier : "");
-                setIsForgotModalOpen(true);
-              }}
-              className="size-9 rounded-xl text-amber-400 hover:text-amber-300 hover:bg-amber-400/10 shrink-0"
-              title="Esqueci a senha"
-            >
-              <ShieldAlert className="size-4" />
-            </Button>
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-border/60" />
+                </div>
+                <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-wider">
+                  <span className="bg-card px-2 text-muted-foreground">Ou continue com</span>
+                </div>
+              </div>
 
-            {/* Botão Pequeno: Alternar para Cadastrar */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => setMode("register-quick")}
-              className="h-9 px-2.5 rounded-xl text-[11px] font-medium text-white/80 hover:text-white hover:bg-white/10 shrink-0 hidden sm:inline-flex"
-            >
-              Cadastrar
-            </Button>
-          </form>
-        )}
+              {/* Botão Google OAuth */}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleGoogleAuth}
+                disabled={isOAuthLoading}
+                className="w-full h-11 rounded-xl font-semibold text-xs gap-2.5 cursor-pointer border-border/70 hover:bg-muted/50 bg-background/50"
+              >
+                <svg className="size-4" viewBox="0 0 24 24">
+                  <path
+                    fill="#4285F4"
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                  />
+                </svg>
+                <span>{isOAuthLoading ? "Conectando..." : "Continuar com Google"}</span>
+              </Button>
 
-        {/* FASE 2: Entrar - Linha de Senha */}
-        {mode === "login-password" && (
-          <form
-            onSubmit={handleLoginSubmit}
-            className="w-full sm:w-auto max-w-md inline-flex items-center gap-1.5 p-1.5 rounded-2xl bg-black/80 backdrop-blur-2xl border border-white/25 shadow-2xl animate-in fade-in zoom-in-95 duration-200"
-          >
-            {/* Botão Voltar ao Identificador */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => setMode("login-identifier")}
-              className="size-9 rounded-xl text-white/70 hover:text-white hover:bg-white/10 shrink-0"
-              title="Voltar"
-            >
-              <ChevronLeft className="size-4" />
-            </Button>
-
-            {/* Input de Senha com Botão -> Embutido */}
-            <div className="relative flex-1 min-w-[200px] sm:min-w-[260px]">
-              <Input
-                ref={passwordInputRef}
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={`Senha para ${identifier}`}
-                className="h-10 pl-3.5 pr-16 text-xs bg-white/10 text-white placeholder:text-white/40 border-white/15 rounded-xl focus-visible:ring-1 focus-visible:ring-white/40"
-              />
-
-              <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              <div className="pt-3 text-center">
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="size-6 text-white/50 hover:text-white flex items-center justify-center cursor-pointer"
-                  title={showPassword ? "Ocultar" : "Mostrar"}
+                  onClick={() => setView("register-step1")}
+                  className="text-xs text-muted-foreground hover:text-foreground font-medium transition-colors cursor-pointer"
                 >
-                  {showPassword ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="size-7 rounded-lg bg-white text-black flex items-center justify-center hover:bg-white/90 transition-all active:scale-95 cursor-pointer shadow-xs disabled:opacity-50"
-                  title="Entrar"
-                >
-                  <ArrowRight className="size-3.5 font-black" />
+                  Não tem uma conta? <strong className="text-primary font-bold">Cadastrar-se</strong>
                 </button>
               </div>
-            </div>
+            </form>
+          )}
 
-            {/* Botão Escudo: Esqueci a Senha */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                setForgotEmail(identifier.includes("@") ? identifier : "");
-                setIsForgotModalOpen(true);
-              }}
-              className="size-9 rounded-xl text-amber-400 hover:text-amber-300 hover:bg-amber-400/10 shrink-0"
-              title="Esqueci a senha"
-            >
-              <ShieldAlert className="size-4" />
-            </Button>
-          </form>
-        )}
+          {/* ── FLUXO DE LOGIN: ETAPA 2 (DIGITE SUA SENHA) ── */}
+          {view === "login-step2" && (
+            <form onSubmit={handleLoginSubmit} className="space-y-4 animate-in fade-in duration-200">
+              {/* Badge de E-mail Escolhido com Ação de Voltar */}
+              <div className="flex items-center justify-between p-2.5 rounded-xl bg-muted/40 border border-border/50 text-xs">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="size-6 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-[10px] shrink-0">
+                    <Check className="size-3" />
+                  </div>
+                  <span className="font-semibold text-foreground truncate">{identifier}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setView("login-step1")}
+                  className="text-[11px] text-primary hover:underline font-bold shrink-0 ml-2 cursor-pointer"
+                >
+                  Alterar
+                </button>
+              </div>
 
-        {/* FASE 3: Cadastrar-se Rápido (Inline) */}
-        {mode === "register-quick" && (
-          <form
-            onSubmit={handleStartRegister}
-            className="w-full sm:w-auto max-w-lg inline-flex flex-wrap sm:flex-nowrap items-center gap-1.5 p-1.5 rounded-2xl bg-black/80 backdrop-blur-2xl border border-white/25 shadow-2xl animate-in fade-in zoom-in-95 duration-200"
-          >
-            {/* Botão Cancelar */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                setMode("idle");
-                setIdentifier("");
-                setPassword("");
-              }}
-              className="size-9 rounded-xl text-white/70 hover:text-white hover:bg-white/10 shrink-0"
-              title="Cancelar"
-            >
-              <X className="size-4" />
-            </Button>
+              <div className="space-y-1.5 text-left">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-foreground">Digite sua senha</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForgotEmail(identifier);
+                      setView("forgot-password");
+                    }}
+                    className="text-[11px] text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                  >
+                    Esqueceu a senha?
+                  </button>
+                </div>
+                <p className="text-[11px] text-muted-foreground">Insira a senha de acesso à sua conta</p>
+                <div className="relative mt-1">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                  <Input
+                    ref={passwordInputRef}
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Sua senha secreta"
+                    className="pl-10 pr-10 h-11 rounded-xl text-xs bg-muted/30 border-border/70 focus:border-primary"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  </button>
+                </div>
+              </div>
 
-            {/* Input 1: E-mail / Telefone / @ */}
-            <Input
-              ref={identifierInputRef}
-              value={identifier}
-              onChange={(e) => setIdentifier(e.target.value)}
-              placeholder="E-mail ou @usuário"
-              className="h-10 text-xs bg-white/10 text-white placeholder:text-white/40 border-white/15 rounded-xl min-w-[140px] flex-1"
-            />
+              <div className="flex items-center gap-2 pt-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setView("login-step1")}
+                  className="h-11 px-4 rounded-xl text-xs font-semibold gap-1.5 cursor-pointer shrink-0"
+                >
+                  <ArrowLeft className="size-3.5" />
+                  <span>Voltar</span>
+                </Button>
 
-            {/* Input 2: Senha com Botão -> Embutido */}
-            <div className="relative min-w-[150px] flex-1">
-              <Input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Criar Senha (min 6)"
-                className="h-10 pl-3 pr-10 text-xs bg-white/10 text-white placeholder:text-white/40 border-white/15 rounded-xl"
-              />
-              <button
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="flex-1 h-11 rounded-xl font-bold text-xs gap-2 cursor-pointer bg-foreground text-background hover:bg-foreground/90"
+                >
+                  <span>{isLoading ? "Entrando..." : "Entrar na Conta"}</span>
+                  <ArrowRight className="size-3.5" />
+                </Button>
+              </div>
+            </form>
+          )}
+
+          {/* ── FLUXO DE CADASTRO: ETAPA 1 (E-MAIL) ── */}
+          {view === "register-step1" && (
+            <form onSubmit={handleProceedRegisterStep1} className="space-y-4 animate-in fade-in duration-200">
+              <div className="space-y-1.5 text-left">
+                <label className="text-xs font-bold text-foreground">Qual é o seu melhor e-mail?</label>
+                <p className="text-[11px] text-muted-foreground">Usaremos para confirmação de pedidos e segurança</p>
+                <div className="relative mt-1">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                  <Input
+                    ref={identifierInputRef}
+                    type="email"
+                    required
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
+                    placeholder="seuemail@exemplo.com"
+                    className="pl-10 h-11 rounded-xl text-xs bg-muted/30 border-border/70 focus:border-primary"
+                  />
+                </div>
+              </div>
+
+              <Button
                 type="submit"
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 size-7 rounded-lg bg-emerald-500 text-white flex items-center justify-center hover:bg-emerald-400 transition-all active:scale-95 cursor-pointer shadow-xs"
-                title="Prosseguir para Termos"
+                className="w-full h-11 rounded-xl font-bold text-xs gap-2 cursor-pointer bg-foreground text-background hover:bg-foreground/90"
               >
-                <ArrowRight className="size-3.5 font-black" />
-              </button>
-            </div>
+                <span>Prosseguir</span>
+                <ArrowRight className="size-3.5" />
+              </Button>
 
-            {/* Botão Pequeno para Alternar para Login */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => setMode("login-identifier")}
-              className="h-9 px-2.5 rounded-xl text-[11px] font-medium text-white/80 hover:text-white hover:bg-white/10 shrink-0"
-            >
-              Já tenho conta
-            </Button>
-          </form>
-        )}
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-border/60" />
+                </div>
+                <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-wider">
+                  <span className="bg-card px-2 text-muted-foreground">Ou crie com</span>
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleGoogleAuth}
+                disabled={isOAuthLoading}
+                className="w-full h-11 rounded-xl font-semibold text-xs gap-2.5 cursor-pointer border-border/70 hover:bg-muted/50 bg-background/50"
+              >
+                <svg className="size-4" viewBox="0 0 24 24">
+                  <path
+                    fill="#4285F4"
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                  />
+                </svg>
+                <span>Cadastrar com Google</span>
+              </Button>
+
+              <div className="pt-3 text-center">
+                <button
+                  type="button"
+                  onClick={() => setView("login-step1")}
+                  className="text-xs text-muted-foreground hover:text-foreground font-medium transition-colors cursor-pointer"
+                >
+                  Já tem conta? <strong className="text-primary font-bold">Fazer Login</strong>
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* ── FLUXO DE CADASTRO: ETAPA 2 (NOME COMPLETO) ── */}
+          {view === "register-step2" && (
+            <form onSubmit={handleProceedRegisterStep2} className="space-y-4 animate-in fade-in duration-200">
+              <div className="space-y-1.5 text-left">
+                <label className="text-xs font-bold text-foreground">Como devemos te chamar?</label>
+                <p className="text-[11px] text-muted-foreground">Informe seu nome ou nome da sua empresa</p>
+                <div className="relative mt-1">
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                  <Input
+                    ref={nameInputRef}
+                    type="text"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Seu nome completo"
+                    className="pl-10 h-11 rounded-xl text-xs bg-muted/30 border-border/70 focus:border-primary"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setView("register-step1")}
+                  className="h-11 px-4 rounded-xl text-xs font-semibold gap-1.5 cursor-pointer shrink-0"
+                >
+                  <ArrowLeft className="size-3.5" />
+                  <span>Voltar</span>
+                </Button>
+
+                <Button
+                  type="submit"
+                  className="flex-1 h-11 rounded-xl font-bold text-xs gap-2 cursor-pointer bg-foreground text-background hover:bg-foreground/90"
+                >
+                  <span>Continuar</span>
+                  <ArrowRight className="size-3.5" />
+                </Button>
+              </div>
+            </form>
+          )}
+
+          {/* ── FLUXO DE CADASTRO: ETAPA 3 (SENHA + TERMOS) ── */}
+          {view === "register-step3" && (
+            <form onSubmit={handleRegisterSubmit} className="space-y-4 animate-in fade-in duration-200">
+              <div className="space-y-1.5 text-left">
+                <label className="text-xs font-bold text-foreground">Crie uma senha de acesso</label>
+                <p className="text-[11px] text-muted-foreground">Mínimo de 6 caracteres</p>
+                <div className="relative mt-1">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                  <Input
+                    ref={passwordInputRef}
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Crie sua senha segura"
+                    className="pl-10 pr-10 h-11 rounded-xl text-xs bg-muted/30 border-border/70 focus:border-primary"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Box de Aceite dos Termos */}
+              <div className="p-3 rounded-2xl bg-muted/30 border border-border/60 text-left text-xs space-y-1.5">
+                <div className="flex items-start gap-2">
+                  <ShieldCheck className="size-4 text-primary shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="text-[11px] text-muted-foreground leading-snug">
+                      Ao criar sua conta, você concorda com nossos{" "}
+                      <button
+                        type="button"
+                        onClick={() => setIsTermsSheetOpen(true)}
+                        className="text-primary font-bold underline hover:opacity-80 inline"
+                      >
+                        Termos de Uso e Política LGPD
+                      </button>.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setView("register-step2")}
+                  className="h-11 px-4 rounded-xl text-xs font-semibold gap-1.5 cursor-pointer shrink-0"
+                >
+                  <ArrowLeft className="size-3.5" />
+                  <span>Voltar</span>
+                </Button>
+
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="flex-1 h-11 rounded-xl font-bold text-xs gap-2 cursor-pointer bg-foreground text-background hover:bg-foreground/90"
+                >
+                  <span>{isLoading ? "Criando Conta..." : "Finalizar Cadastro"}</span>
+                  <ArrowRight className="size-3.5" />
+                </Button>
+              </div>
+            </form>
+          )}
+
+          {/* ── FLUXO DE RECUPERAÇÃO DE SENHA ── */}
+          {view === "forgot-password" && (
+            <div className="space-y-4 animate-in fade-in duration-200">
+              {forgotSentSuccess ? (
+                <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-center space-y-2">
+                  <div className="size-10 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">
+                    <Check className="size-5" />
+                  </div>
+                  <h3 className="text-sm font-bold text-foreground">E-mail Enviado!</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Verifique sua caixa de entrada para redefinir sua senha de acesso.
+                  </p>
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setForgotSentSuccess(false);
+                      setView("login-step1");
+                    }}
+                    className="w-full h-10 rounded-xl text-xs font-bold mt-2"
+                  >
+                    Voltar para o Login
+                  </Button>
+                </div>
+              ) : (
+                <form onSubmit={handleSendResetPassword} className="space-y-4">
+                  <div className="space-y-1.5 text-left">
+                    <label className="text-xs font-bold text-foreground">E-mail cadastrado</label>
+                    <div className="relative mt-1">
+                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                      <Input
+                        type="email"
+                        required
+                        value={forgotEmail}
+                        onChange={(e) => setForgotEmail(e.target.value)}
+                        placeholder="seu@email.com"
+                        className="pl-10 h-11 rounded-xl text-xs bg-muted/30 border-border/70 focus:border-primary"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-1">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setView("login-step1")}
+                      className="h-11 px-4 rounded-xl text-xs font-semibold gap-1.5 cursor-pointer shrink-0"
+                    >
+                      <ArrowLeft className="size-3.5" />
+                      <span>Voltar</span>
+                    </Button>
+
+                    <Button
+                      type="submit"
+                      disabled={isSendingReset}
+                      className="flex-1 h-11 rounded-xl font-bold text-xs gap-2 cursor-pointer bg-foreground text-background hover:bg-foreground/90"
+                    >
+                      <span>{isSendingReset ? "Enviando..." : "Enviar Instruções"}</span>
+                      <ArrowRight className="size-3.5" />
+                    </Button>
+                  </div>
+                </form>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* ── 4. SheetPage de Termos Legais com Scroll Auditado 100% (Melhor que Meta/Apple) ── */}
+      {/* ── 4. Card Flutuante PWA / App no Canto Inferior Direito (como no Print 3) ── */}
+      {showPwaBanner && (
+        <aside
+          aria-label="Sugestão de Instalação do App"
+          className="fixed bottom-4 right-4 z-40 max-w-xs w-full bg-card/95 backdrop-blur-xl border border-border/60 rounded-2xl p-3.5 animate-in slide-in-from-bottom-4 duration-300 hidden sm:block"
+        >
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-center gap-2.5">
+              <div className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                <Download className="size-4" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="text-xs font-bold text-foreground">Instalar Wider App</h4>
+                <p className="text-[10px] text-muted-foreground truncate">Rápido, offline e notificações</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowPwaBanner(false)}
+              className="text-muted-foreground hover:text-foreground size-5 flex items-center justify-center rounded-lg hover:bg-muted/50 transition-colors"
+              title="Fechar"
+            >
+              <X className="size-3" />
+            </button>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => {
+              toast.info("PWA pronto para instalação pelo navegador.");
+              setShowPwaBanner(false);
+            }}
+            className="w-full h-8 rounded-xl text-xs font-bold mt-2.5 bg-foreground text-background hover:bg-foreground/90"
+          >
+            Instalar Agora
+          </Button>
+        </aside>
+      )}
+
+      {/* ── 5. Sheet de Termos de Uso & LGPD com Leitura Completa ── */}
       <Sheet open={isTermsSheetOpen} onOpenChange={setIsTermsSheetOpen}>
         <SheetContent side="right" className="w-full sm:max-w-xl flex flex-col justify-between overflow-hidden p-0">
           <div className="p-6 pb-3 border-b border-border/40 space-y-2">
@@ -538,7 +852,7 @@ function FullscreenLoginPage() {
             {/* Barra de Progresso de Leitura */}
             <div className="space-y-1 pt-1">
               <div className="flex items-center justify-between text-[11px] font-mono">
-                <span className="text-muted-foreground">Progresso de leitura obrigatória:</span>
+                <span className="text-muted-foreground">Progresso de leitura:</span>
                 <span className={hasScrolledTermsToBottom ? "text-emerald-500 font-bold" : "text-primary font-bold"}>
                   {hasScrolledTermsToBottom ? "100% (Concluído)" : `${termsScrollProgress}%`}
                 </span>
@@ -552,7 +866,7 @@ function FullscreenLoginPage() {
             </div>
           </div>
 
-          {/* Container dos Termos com Scroll Listener */}
+          {/* Container com Scroll dos Termos */}
           <div
             ref={termsScrollRef}
             onScroll={handleTermsScroll}
@@ -571,127 +885,39 @@ function FullscreenLoginPage() {
             <div className="space-y-2">
               <h4 className="font-bold text-foreground text-sm">1. Finalidade do Cadastro</h4>
               <p>
-                Ao criar sua conta na Wider Community Platform, você obtém uma identidade única e soberana para participar do comércio local, negociar classificados, adquirir ingressos culturais, interagir em murais comunitários e realizar pedidos no balcão e delivery.
+                Ao criar sua conta na Wider Community Platform, você obtém uma identidade única e soberana para participar do comércio local, negociar classificados, adquirir ingressos culturais, interagir em murais comunitários e realizar pedidos.
               </p>
             </div>
 
             <div className="space-y-2">
-              <h4 className="font-bold text-foreground text-sm">2. Tratamento e Proteção de Dados (LGPD - Lei 13.709/2018)</h4>
+              <h4 className="font-bold text-foreground text-sm">2. Tratamento e Proteção de Dados (LGPD)</h4>
               <p>
-                Seus dados (nome, e-mail, telefone, histórico de compras e preferências) são utilizados exclusivamente para o cumprimento de contratos comerciais, emissão de comprovantes fiscais e comunicações de segurança.
+                Seus dados (nome, e-mail, telefone, histórico de compras) são utilizados exclusivamente para o cumprimento de contratos comerciais e segurança da plataforma.
               </p>
             </div>
 
             <div className="space-y-2">
               <h4 className="font-bold text-foreground text-sm">3. Direitos do Titular</h4>
               <p>
-                A qualquer momento, através da aba "Minha Conta", você pode exportar seu histórico de atividades, gerenciar seus consentimentos ou solicitar a exclusão irrevogável de seus dados.
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <h4 className="font-bold text-foreground text-sm">4. Transações Financeiras e Anti-Fraude</h4>
-              <p>
-                Pagamentos via PIX e Cartão são processados em conformidade com as normas do Banco Central do Brasil. Não retemos números completos de cartões de crédito.
+                A qualquer momento, através da aba "Minha Conta", você pode exportar seu histórico de atividades ou gerenciar suas preferências de privacidade.
               </p>
             </div>
 
             <div className="p-4 rounded-xl bg-muted/40 border border-border/40 text-center space-y-1">
               <p className="font-bold text-foreground">Fim do Documento</p>
               <p className="text-[11px] text-muted-foreground">
-                Ao clicar no botão abaixo, você declara estar de pleno acordo com todas as diretrizes.
+                Ao prosseguir, você confirma que leu e concorda com as diretrizes.
               </p>
             </div>
           </div>
 
-          {/* Rodapé com Botão Habilitado Apenas Após 100% de Leitura */}
-          <div className="p-6 pt-3 border-t border-border/40 space-y-3 bg-card">
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground">Seu Nome Completo (Opcional)</label>
-              <Input
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Ex: Maria Silva"
-                className="text-xs"
-              />
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-1">
-              <span className="text-[11px] text-muted-foreground text-center sm:text-left">
-                {!hasScrolledTermsToBottom ? "⚠️ Role até o fim do texto para aceitar" : "✅ Termos lidos na íntegra"}
-              </span>
-
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsTermsSheetOpen(false)}
-                  className="text-xs flex-1 sm:flex-none"
-                >
-                  Cancelar
-                </Button>
-
-                <Button
-                  type="button"
-                  size="sm"
-                  disabled={!hasScrolledTermsToBottom || isLoading}
-                  onClick={handleCompleteRegistration}
-                  className="text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white flex-1 sm:flex-none cursor-pointer"
-                >
-                  {isLoading ? "Criando Conta..." : "Concordo e Criar Conta"}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
-
-      {/* ── 5. SheetPage: Esqueci a Senha / Recuperar Acesso ── */}
-      <Sheet open={isForgotModalOpen} onOpenChange={setIsForgotModalOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-md flex flex-col justify-between overflow-y-auto">
-          <div>
-            <SheetHeader className="pb-4">
-              <div className="size-10 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center mb-2">
-                <Shield className="size-5" />
-              </div>
-              <SheetTitle>Recuperar Senha</SheetTitle>
-              <SheetDescription>
-                Informe seu e-mail cadastrado para receber as instruções de redefinição de acesso.
-              </SheetDescription>
-            </SheetHeader>
-
-            <form id="forgot-password-form" onSubmit={handleSendResetPassword} className="space-y-4 py-2">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground">E-mail Cadastrado</label>
-                <Input
-                  type="email"
-                  value={forgotEmail}
-                  onChange={(e) => setForgotEmail(e.target.value)}
-                  placeholder="seuemail@exemplo.com"
-                  className="text-xs"
-                  required
-                />
-              </div>
-            </form>
-          </div>
-
-          <SheetFooter className="pt-4 border-t border-border/40">
+          <SheetFooter className="p-6 pt-3 border-t border-border/40">
             <Button
               type="button"
-              variant="outline"
-              onClick={() => setIsForgotModalOpen(false)}
-              className="text-xs"
+              onClick={() => setIsTermsSheetOpen(false)}
+              className="w-full text-xs font-bold"
             >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              form="forgot-password-form"
-              disabled={isSendingReset}
-              className="text-xs font-bold"
-            >
-              {isSendingReset ? "Enviando..." : "Enviar Instruções"}
+              Fechar e Continuar
             </Button>
           </SheetFooter>
         </SheetContent>

@@ -61,7 +61,7 @@ export const getOrderByToken = createServerFn({ method: "GET" })
     const { data } = await db
       .from("orders")
       .select(
-        "id, public_token, status, total_cents, subtotal_cents, shipping_cents, discount_cents, customer_snapshot, shipping_method, shipping_address, notes, custom_fields, created_at, stores(id, name, settings), payments(method, status, provider_name), order_items(id, product_title, variant_sku, qty, unit_price_cents, total_cents)",
+        "id, public_token, status, total_cents, subtotal_cents, shipping_cents, discount_cents, customer_snapshot, shipping_method, shipping_address, notes, custom_fields, created_at, stores(id, name, settings), payments(method, status, provider_name), order_items(id, product_title, variant_sku, qty, unit_price_cents, total_cents, item_type, item_id, selected_options)",
       )
       .eq("public_token", token)
       .single();
@@ -167,10 +167,20 @@ export const processCheckout = createServerFn({ method: "POST" })
         p_affiliate_id: affiliateId || null,
       });
 
-      if (error)
-        throw new Error(
-          "Erro ao processar pedido: " + (error instanceof Error ? error.message : String(error)),
-        );
+      if (error) {
+        const errMsg = error instanceof Error ? error.message : String(error);
+        
+        // Translating PostgreSQL constraint errors into user-friendly messages
+        if (errMsg.includes("stock_on_hand") || errMsg.includes("stock_reserved") || errMsg.includes("estoque insuficiente")) {
+          throw new Error("Desculpe, um ou mais itens do seu carrinho esgotaram. Por favor, revise as quantidades.");
+        }
+        
+        if (errMsg.includes("Carrinho no encontrado")) {
+          throw new Error("Carrinho expirado ou jǭ processado. Inicie um novo checkout.");
+        }
+
+        throw new Error("Erro ao processar pedido: " + errMsg);
+      }
 
       const result = data as {
         status: string;

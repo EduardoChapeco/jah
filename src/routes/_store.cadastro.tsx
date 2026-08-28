@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useRouter, redirect } from "@tanstack/react-router";
 import { ChevronRight, Eye, EyeOff, ShieldCheck, Sparkles, ArrowRight } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";

@@ -10,6 +10,7 @@ Este documento normaliza o briefing completo do projeto Wider Community Platform
 - `SECURITY.md` — modelo de autenticação, autorização, RLS, segredos, superfícies de ataque.
 - `API_CONTRACTS.md` — contratos de funções de servidor/BFF.
 - `COMPONENT_CATALOG.md` — catálogo de componentes reutilizáveis.
+- `TOKEN_ECONOMY_MANIFESTO.md` — Manifesto Canônico da Economia de Tokens, Máquina do Tempo, Bounties Virais e Prova de Solvência.
 
 **Dossiês de Domínio (Arquitetura Nova):**
 

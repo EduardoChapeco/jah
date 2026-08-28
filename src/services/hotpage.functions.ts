@@ -120,6 +120,7 @@ export const listHotpages = createServerFn({ method: "GET" })
       .from("hotpages")
       .select("*")
       .eq("is_active", true)
+      .or("template_type.is.null,template_type.neq.category_hub")
       .order("sort_order", { ascending: true })
       .order("created_at", { ascending: false });
 
@@ -255,16 +256,16 @@ export const createHotpage = createServerFn({ method: "POST" })
     z.object({
       slug: z.string().min(2),
       title: z.string().min(2),
-      badge_label: z.string().optional(),
-      description: z.string().optional(),
-      cover_image_url: z.string().url().optional(),
-      icon_name: z.string().optional(),
-      icon_url: z.string().optional(),
-      custom_icon_url: z.string().optional(),
-      target_route: z.string().optional(),
+      badge_label: z.string().nullable().optional(),
+      description: z.string().nullable().optional(),
+      cover_image_url: z.string().nullable().optional(),
+      icon_name: z.string().nullable().optional(),
+      icon_url: z.string().nullable().optional(),
+      custom_icon_url: z.string().nullable().optional(),
+      target_route: z.string().nullable().optional(),
       bg_media_type: z.enum(["none", "image", "video", "gif"]).default("none"),
-      bg_media_url: z.string().optional(),
-      bg_color: z.string().optional(),
+      bg_media_url: z.string().nullable().optional(),
+      bg_color: z.string().nullable().optional(),
       bg_overlay_opacity: z.number().min(0).max(100).default(30),
       bg_texture: z.enum(["none", "noise", "dots", "grid", "mesh", "glass"]).default("none"),
       filter_rules: z.record(z.any()).optional(),
@@ -277,12 +278,14 @@ export const createHotpage = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data }) => {
+    await requireAdmin();
     const supabase = getServerClient();
     const { data: created, error } = await supabase
       .from("hotpages")
       .insert({
         slug: data.slug,
         title: data.title,
+        template_type: "editorial_card",
         badge_label: data.badge_label || null,
         description: data.description || null,
         cover_image_url: data.cover_image_url || null,
@@ -340,6 +343,7 @@ export const updateHotpage = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data: { id, ...patch } }) => {
+    await requireAdmin();
     const supabase = getServerClient();
     const { data: updated, error } = await supabase
       .from("hotpages")
@@ -355,6 +359,7 @@ export const updateHotpage = createServerFn({ method: "POST" })
 export const deleteHotpage = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: { id } }) => {
+    await requireAdmin();
     const supabase = getServerClient();
     const { error } = await supabase.from("hotpages").delete().eq("id", id);
     if (error) throw new Error(error.message);
@@ -390,6 +395,7 @@ export const saveHotpage = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data }) => {
+    await requireAdmin();
     if (data.id) {
       return updateHotpage({ data: { id: data.id, ...data } });
     } else {

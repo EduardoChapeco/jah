@@ -228,7 +228,7 @@ function FrotaEntregasPage() {
                   <span>Novo Despacho</span>
                 </Button>
               </DialogTrigger>
-              <DialogContent className="rounded-2xl  bg-card max-w-md">
+              <DialogContent className="sm:rounded-2xl bg-card sm:max-w-md">
                 <DialogHeader>
                   <DialogTitle className="text-base font-semibold text-foreground">
                     Despachar Pedido para Entrega
@@ -419,7 +419,7 @@ function FrotaEntregasPage() {
                   <span>Adicionar Tabela de Tarifa</span>
                 </Button>
               </DialogTrigger>
-              <DialogContent className="rounded-2xl  bg-card max-w-md">
+              <DialogContent className="sm:rounded-2xl bg-card sm:max-w-md">
                 <DialogHeader>
                   <DialogTitle className="text-base font-semibold text-foreground">
                     Nova Tabela de Tarifa de Mobilidade / Frete

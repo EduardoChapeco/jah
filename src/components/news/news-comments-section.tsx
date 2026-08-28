@@ -104,7 +104,7 @@ export function NewsCommentsSection({ articleId }: NewsCommentsSectionProps) {
             onClick={handleToggleLike}
             disabled={isLiking}
             className={`rounded-xl font-bold gap-2 text-xs transition-all ${
-              isLiked ? "bg-red-500 hover:bg-red-600 text-white border-transparent" : ""
+              isLiked ? "bg-destructive hover:bg-destructive text-white border-transparent" : ""
             }`}
           >
             <Heart className={`size-4 ${isLiked ? "fill-white" : ""}`} />

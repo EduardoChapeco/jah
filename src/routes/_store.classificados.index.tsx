@@ -41,6 +41,7 @@ import { listActiveBanners } from "@/services/banner.functions";
 import { listHotpages } from "@/services/hotpage.functions";
 import { getPublicClassifieds } from "@/services/classifieds.functions";
 import { CANONICAL_CITIES } from "@/lib/constants/cities";
+import { resolveNicheDepartments } from "@/lib/niche-helpers";
 
 function isVideoUrl(url?: string | null): boolean {
   if (!url) return false;
@@ -187,34 +188,29 @@ function ClassifiedsMasterPage() {
       )}
 
       {/* 2. Hotpages */}
-      <section aria-label="Destaques de Classificados">
-        <HotpagesRail
-          hotpages={CLASSIFIEDS_HOTPAGES as any}
-          activeSlug={selectedCategory}
-          onSelect={(slug) => {
-            if (slug === "real_estate_temporada") {
-              setSelectedCategory("real_estate");
-              setSelectedDealType("temporada");
-            } else {
-              setSelectedCategory(slug);
-              setSelectedDealType("todos");
-            }
-          }}
-        />
-      </section>
+      {(hotpages?.length > 0 || CLASSIFIEDS_HOTPAGES.length > 0) && (
+        <section aria-label="Destaques de Classificados">
+          <HotpagesRail
+            hotpages={(hotpages && hotpages.length > 0 ? hotpages : CLASSIFIEDS_HOTPAGES) as any}
+            activeSlug={selectedCategory}
+            onSelect={(slug) => {
+              if (slug === "real_estate_temporada") {
+                setSelectedCategory("real_estate");
+                setSelectedDealType("temporada");
+              } else {
+                setSelectedCategory(slug);
+                setSelectedDealType("todos");
+              }
+            }}
+          />
+        </section>
+      )}
 
-      {/* 3. Filtros Principais & Barra de Busca Canônica */}
       <DiscoveryControlBar
         search={search}
         onSearchChange={setSearch}
         searchPlaceholder="Buscar casa, apê, carro, chalé, desapego..."
-        categories={CLASSIFIED_CHIPS.map((chip) => {
-          const match = (hotpages || []).find((hp) => hp.slug === chip.id);
-          return {
-            ...chip,
-            icon_url: match?.custom_icon_url || match?.icon_url || chip.icon_url,
-          };
-        })}
+        categories={CLASSIFIED_CHIPS}
         activeCategory={selectedCategory}
         onSelectCategory={(id) => {
           setSelectedCategory(id);
@@ -286,7 +282,7 @@ function ClassifiedsMasterPage() {
 
       {/* 4. Lista / Grade / Feed de Anúncios */}
       {filtered.length === 0 ? (
-        <div className="py-20 text-center space-y-3 bg-muted/10 rounded-3xl  p-8">
+        <div className="py-20 text-center space-y-3 bg-card rounded-2xl border border-border/60 p-8">
           <House size={40} className="text-muted-foreground/40 mx-auto" />
           <h2 className="text-sm font-bold text-foreground">
             Nenhum anúncio encontrado com estes filtros
@@ -308,7 +304,7 @@ function ClassifiedsMasterPage() {
                 key={item.id}
                 to="/classificados/$id"
                 params={{ id: item.id }}
-                className="group flex flex-col sm:flex-row items-stretch justify-between rounded-3xl  bg-card hover:border-foreground/30 transition-all  overflow-hidden p-0 cursor-pointer w-full"
+                className="group flex flex-col sm:flex-row items-stretch justify-between rounded-2xl border border-border/60 bg-card hover:border-foreground/30 transition-all overflow-hidden p-0 cursor-pointer w-full"
               >
                 {/* Lado Esquerdo: Foto 100% FULL BLEED */}
                 <div className="relative w-full sm:w-56 md:w-64 h-44 sm:h-auto min-h-[140px] overflow-hidden bg-muted shrink-0">
@@ -390,6 +386,7 @@ function ClassifiedsMasterPage() {
               <HorizontalRail
                 key={catKey}
                 title={catTitle}
+                hideHeader={true}
                 badge={`${catItems.length} ${catItems.length === 1 ? "anúncio" : "anúncios"}`}
                 actionLabel="Ver todos"
                 onAction={() => {
@@ -405,7 +402,7 @@ function ClassifiedsMasterPage() {
                   return (
                     <div
                       key={item.id}
-                      className="min-w-[290px] sm:min-w-[320px] max-w-[340px] rounded-3xl  bg-card overflow-hidden  hover:border-foreground/30 transition-all flex flex-col justify-between shrink-0 group"
+                      className="min-w-[290px] sm:min-w-[320px] max-w-[340px] rounded-2xl border border-border/60 bg-card overflow-hidden hover:border-foreground/30 transition-all flex flex-col justify-between shrink-0 group"
                     >
                       <Link
                         to="/classificados/$id"
@@ -423,7 +420,7 @@ function ClassifiedsMasterPage() {
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                           <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
                             {item.deal_type && (
-                              <Badge className="bg-background/90 text-foreground backdrop-blur-md text-[10px] font-bold px-2 py-0.5 rounded-lg   uppercase font-mono">
+                              <Badge className="bg-background/90 text-foreground backdrop-blur-md text-[10px] font-bold px-2 py-0.5 rounded-lg uppercase font-mono">
                                 {isTemporada ? "Temporada" : isAluguel ? "Aluguel" : "Venda"}
                               </Badge>
                             )}
@@ -457,11 +454,11 @@ function ClassifiedsMasterPage() {
                       </Link>
 
                       {/* Botão de Ação Rápida */}
-                      <div className="p-4 pt-3 mt-2  flex items-center justify-between gap-2">
+                      <div className="p-4 pt-3 mt-2 flex items-center justify-between gap-2">
                         <Button
                           asChild
                           size="sm"
-                          className="w-full h-9 rounded-xl font-bold text-xs bg-foreground text-background hover:bg-foreground/90 transition-all "
+                          className="w-full h-9 rounded-xl font-bold text-xs bg-foreground text-background hover:bg-foreground/90 transition-all"
                         >
                           <Link to="/classificados/$id" params={{ id: item.id }}>
                             <span>Ver Detalhes</span>
@@ -477,7 +474,7 @@ function ClassifiedsMasterPage() {
           })}
 
           {/* Gôndola Geral de Classificados no Final */}
-          <div className="space-y-4 pt-6 ">
+          <div className="space-y-4 pt-6">
             <div className="flex items-center justify-between">
               <h2 className="text-base font-bold text-foreground flex items-center gap-2">
                 <Tag size={18} weight="bold" className="text-primary" />
@@ -499,7 +496,7 @@ function ClassifiedsMasterPage() {
                     key={item.id}
                     to="/classificados/$id"
                     params={{ id: item.id }}
-                    className="group rounded-2xl  bg-card overflow-hidden  hover:border-foreground/30 transition-all flex flex-col justify-between cursor-pointer"
+                    className="group rounded-2xl border border-border/60 bg-card overflow-hidden hover:border-foreground/30 transition-all flex flex-col justify-between cursor-pointer"
                   >
                     <div>
                       <div className="relative aspect-4/3 w-full overflow-hidden bg-muted">
@@ -534,7 +531,7 @@ function ClassifiedsMasterPage() {
                       </div>
                     </div>
 
-                    <div className="px-3 pb-2.5 text-[10px] text-muted-foreground font-mono flex items-center justify-between  pt-1.5 mt-1">
+                    <div className="px-3 pb-2.5 text-[10px] text-muted-foreground font-mono flex items-center justify-between pt-1.5 mt-1">
                       <span className="flex items-center gap-1 truncate">
                         <MapPin size={10} weight="bold" className="shrink-0 text-foreground" />
                         <span className="truncate">{item.location_name || item.location_text || "Chapecó"}</span>
@@ -559,7 +556,7 @@ function ClassifiedsMasterPage() {
                 key={item.id}
                 to="/classificados/$id"
                 params={{ id: item.id }}
-                className="group rounded-2xl  bg-card overflow-hidden  hover:border-foreground/30 transition-all flex flex-col justify-between cursor-pointer"
+                className="group rounded-2xl border border-border/60 bg-card overflow-hidden hover:border-foreground/30 transition-all flex flex-col justify-between cursor-pointer"
               >
                 <div>
                   {/* Imagem Squircle Compacta */}

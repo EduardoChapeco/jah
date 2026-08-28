@@ -1,37 +1,55 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, Fragment } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { toast } from "sonner";
 import {
   ArrowLeft,
-  CheckCircle2,
+  ArrowRight,
   Plus,
   ImagePlus,
+  X,
+  Loader2,
   Trash2,
   Eye,
   ShoppingBag,
+  CreditCard,
   Sparkles,
+  Percent,
   TrendingUp,
   Package,
-  Layers,
-  Tag,
-  DollarSign,
-  Boxes,
+  CheckCircle2,
+  Settings,
+  LayoutList,
+  Box,
+  ChevronDown,
+  ChevronUp,
   SlidersHorizontal,
   Truck,
   ShieldCheck,
   Globe,
-  Clock,
-  Loader2,
-  Box,
+  Tag,
+  DollarSign,
+  Boxes,
 } from "lucide-react";
 
+import { ProductEditorLayout } from "@/components/admin/product-editor/product-editor-layout";
+import { VariantOptionsBuilder } from "@/components/admin/product-editor/variant-options-builder";
+import { VariantMatrixGrid, type RawVariant } from "@/components/admin/catalog/variant-matrix-grid";
+import { ProductModifiersCard } from "@/components/admin/catalog/product-modifiers-card";
 import { PageHeader } from "@/components/commerce/page-header";
+import { PriceDisplay } from "@/components/commerce/price-display";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CurrencyField } from "@/components/ui/currency-field";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ImageUpload } from "@/components/ui/image-upload";
 import {
   Select,
   SelectContent,
@@ -39,17 +57,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
-import { MediaUploader } from "@/components/ui/media-uploader";
-import { VariantMatrixGrid, type RawVariant } from "@/components/admin/catalog/variant-matrix-grid";
-import { VariantOptionsBuilder } from "@/components/admin/product-editor/variant-options-builder";
+
 import {
   getProductById,
   updateProduct,
+  upsertProductVariant,
+  batchUpsertVariantMatrix,
+  deleteProductMedia,
+  addProductMediaLink,
+  updateProductMediaMetadata,
+  reorderProductMedia,
   listCategories,
+  createCategory,
   listProductTypes,
   listOptionGroups,
 } from "@/services/admin-catalog.functions";
@@ -58,7 +90,7 @@ import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/catalogo/produtos/$id")({
-  head: () => ({ meta: [{ title: "Editar Produto | Workspace Wider" }] }),
+  head: () => ({ meta: [{ title: "Editor Avançado de Produto | Workspace Wider" }] }),
   loader: async ({ params }) => {
     try {
       const [product, catsRes, typesRes, groupsRes, storeRes] = await Promise.all([
@@ -116,40 +148,282 @@ function EditProductPage() {
     );
   }
 
-  const [activeTab, setActiveTab] = useState("basico");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Mídias
-  const initialMediaUrls = useMemo(() => {
-    return (product.product_media || []).map((m: any) => m.url);
-  }, [product.product_media]);
-  const [images, setImages] = useState<string[]>(initialMediaUrls);
-  const [activePreviewImage, setActivePreviewImage] = useState(0);
+  // Estado para Live Preview na barra lateral
+  const [liveTitle, setLiveTitle] = useState(product.title);
+  const [liveDescription, setLiveDescription] = useState(product.description || "");
+  const [liveBrand, setLiveBrand] = useState(product.brand || "");
+  const [livePriceCents, setLivePriceCents] = useState(product.price_cents || 0);
+  const [liveCompareCents, setLiveCompareCents] = useState(product.compare_at_cents || null);
+  const [liveCostCents, setLiveCostCents] = useState(product.cost_cents || null);
+  const [liveStatus, setLiveStatus] = useState(product.status || "draft");
 
   // Grupos de Opções / Adicionais selecionados
+  const [optionGroups, setOptionGroups] = useState<any[]>(optionGroupsList || []);
   const initialSelectedGroups = useMemo(() => {
     return (product.product_option_groups || []).map((g: any) => g.option_group_id || g.option_groups?.id).filter(Boolean);
   }, [product.product_option_groups]);
   const [selectedOptionGroupIds, setSelectedOptionGroupIds] = useState<string[]>(initialSelectedGroups);
 
-  // Variações e Matriz Cartesiana
-  const initialVariants = useMemo(() => {
-    return (product.product_variants || []).map((v: any) => ({
-      id: v.id,
-      sku: v.sku,
-      attributes: v.attributes || {},
-      stock: v.stock ?? 10,
-      price_override_cents: v.price_override_cents ?? null,
-      image_url: v.image_url ?? null,
-      allow_backorder: v.allow_backorder ?? false,
-      backorder_lead_time_days: v.backorder_lead_time_days ?? 0,
-    }));
-  }, [product.product_variants]);
-  const [variantsMatrix, setVariantsMatrix] = useState<RawVariant[]>(initialVariants);
-  const [showOptionsBuilder, setShowOptionsBuilder] = useState(false);
+  // Foto de capa principal
+  const coverImage = product.product_media?.[0]?.url;
 
-  // Form State
+  // Cálculo da Margem de Lucro e Lucro Bruto
+  const profitMarginPercent = useMemo(() => {
+    if (!livePriceCents || !liveCostCents || livePriceCents <= 0) return null;
+    const profit = livePriceCents - liveCostCents;
+    return Math.round((profit / livePriceCents) * 100);
+  }, [livePriceCents, liveCostCents]);
+
+  const grossProfitCents = useMemo(() => {
+    if (!livePriceCents || !liveCostCents) return 0;
+    return Math.max(0, livePriceCents - liveCostCents);
+  }, [livePriceCents, liveCostCents]);
+
+  // Atualiza a sincronização de grupos de opções no produto
+  const handleSelectedGroupsChange = async (newSelectedIds: string[]) => {
+    setSelectedOptionGroupIds(newSelectedIds);
+    try {
+      await updateProduct({
+        data: {
+          id: product.id,
+          option_group_ids: newSelectedIds,
+        },
+      });
+      toast.success("Vínculo de adicionais atualizado no produto!");
+    } catch {
+      toast.error("Erro ao salvar adicionais vinculados.");
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="Catálogo / Editor Avançado"
+        title={liveTitle || "Editar Produto"}
+        actions={
+          <div className="flex items-center gap-2">
+            <Button variant="outline" asChild size="sm">
+              <Link to="/workspace/catalogo/produtos">
+                <ArrowLeft className="mr-1.5 size-4" />
+                Voltar ao Catálogo
+              </Link>
+            </Button>
+            <Button variant="outline" asChild size="sm">
+              <Link to={`/produto/${product.slug}` as never} target="_blank">
+                <Eye className="mr-1.5 size-4" />
+                Ver na Vitrine
+              </Link>
+            </Button>
+          </div>
+        }
+      />
+
+      <ProductEditorLayout
+        preview={
+          <div className="space-y-4">
+            {/* Mockup Fiel de Celular (The Truthful Preview) */}
+            <div className="w-full max-w-[340px] rounded-[2.5rem] border-[4px] border-border bg-background overflow-hidden relative h-[680px] flex flex-col">
+              {/* Notch */}
+              <div className="absolute top-0 inset-x-0 h-5 bg-border rounded-b-xl w-32 z-10 mx-auto" />
+
+              <div className="flex-1 overflow-y-auto no-scrollbar pt-8 pb-12 flex flex-col">
+                <div className="relative aspect-[4/5] bg-muted/30 overflow-hidden w-full flex items-center justify-center">
+                  {coverImage ? (
+                    <img src={coverImage} alt={liveTitle} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                      <Package className="size-10 stroke-1" />
+                      <span className="text-xs">Sem foto de capa</span>
+                    </div>
+                  )}
+                  {/* Floating Status Badge */}
+                  <div className="absolute top-4 left-4 z-10">
+                    <Badge
+                      variant={liveStatus === "published" ? "default" : "secondary"}
+                      className="bg-background text-foreground text-[10px]"
+                    >
+                      {liveStatus === "published"
+                        ? "Publicado"
+                        : liveStatus === "archived"
+                          ? "Arquivado"
+                          : "Rascunho"}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="p-5 flex-1 flex flex-col space-y-3">
+                  {liveBrand && (
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                      {liveBrand}
+                    </span>
+                  )}
+                  <h3 className="text-lg font-black text-foreground uppercase tracking-tight leading-tight">
+                    {liveTitle || "Título do produto..."}
+                  </h3>
+
+                  <div>
+                    <PriceDisplay
+                      amountCents={livePriceCents}
+                      compareAtCents={liveCompareCents ?? undefined}
+                      size="lg"
+                    />
+                  </div>
+
+                  {/* Adicionais no Preview */}
+                  {selectedOptionGroupIds.length > 0 && (
+                    <div className="pt-2 border-t space-y-1.5">
+                      <span className="text-[10px] font-bold uppercase text-muted-foreground">
+                        Adicionais & Modificadores
+                      </span>
+                      <div className="space-y-1">
+                        {optionGroups
+                          .filter((g) => selectedOptionGroupIds.includes(g.id))
+                          .map((grp) => (
+                            <div key={grp.id} className="p-2 rounded-lg bg-muted/30 text-[10px] border border-border/40">
+                              <span className="font-semibold text-foreground">{grp.display_name}</span>
+                              <div className="flex flex-wrap gap-1 mt-0.5">
+                                {(grp.values || []).slice(0, 3).map((v: any) => (
+                                  <span key={v.id || v.label} className="text-muted-foreground bg-background px-1 rounded">
+                                    {v.label} {v.price_modifier_cents > 0 && `(+${formatMoney(v.price_modifier_cents)})`}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {liveDescription && (
+                    <div className="text-xs text-muted-foreground line-clamp-3 font-mono leading-relaxed pt-2 border-t">
+                      {liveDescription}
+                    </div>
+                  )}
+
+                  <div className="mt-auto pt-3">
+                    <Button className="w-full h-11 text-sm font-bold rounded-xl shadow bg-primary text-primary-foreground">
+                      Comprar Agora
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {profitMarginPercent !== null && (
+              <div className="text-center">
+                <Badge
+                  variant="outline"
+                  className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 px-3 py-1 text-xs gap-1.5 font-mono"
+                >
+                  <TrendingUp className="size-3.5" /> Margem Estimada: {profitMarginPercent}%
+                </Badge>
+              </div>
+            )}
+          </div>
+        }
+        sections={[
+          { id: "geral", label: "Informações Básicas", icon: <Box className="size-4" /> },
+          { id: "midias", label: "Galeria de Fotos", icon: <ImagePlus className="size-4" /> },
+          { id: "variantes", label: "Estoque & Matriz 2D", icon: <LayoutList className="size-4" /> },
+          { id: "opcoes", label: "Adicionais & Opções", icon: <SlidersHorizontal className="size-4" /> },
+        ]}
+      >
+        {/* ── SEÇÃO 1: INFORMAÇÕES BÁSICAS & COMERCIAIS ── */}
+        <div id="geral" className="scroll-mt-32">
+          <GeneralForm
+            product={product}
+            categories={categories}
+            productTypes={productTypes}
+            onTitleChange={setLiveTitle}
+            onDescriptionChange={setLiveDescription}
+            onBrandChange={setLiveBrand}
+            onPriceChange={setLivePriceCents}
+            onCompareChange={setLiveCompareCents}
+            onCostChange={setLiveCostCents}
+            onStatusChange={setLiveStatus}
+          />
+        </div>
+
+        {/* ── SEÇÃO 2: GALERIA DE MÍDIAS & FOTOS ── */}
+        <div id="midias" className="scroll-mt-32 pt-12 border-t">
+          <div className="mb-6">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <ImagePlus className="size-5 text-primary" /> Galeria de Fotos
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Arraste para reordenar, gerencie fotos e vídeos e vincule imagens a variações específicas.
+            </p>
+          </div>
+          <MediaManager product={product} />
+        </div>
+
+        {/* ── SEÇÃO 3: ESTOQUE & MATRIZ DE VARIAÇÕES 2D ── */}
+        <div id="variantes" className="scroll-mt-32 pt-12 border-t">
+          <div className="mb-6">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <LayoutList className="size-5 text-primary" /> Estoque & Matriz de Variações (Grade 2D)
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Gerencie o saldo em estoque granular, variações de tamanho, cor, SKUs, preços sobrepostos e fotos específicas.
+            </p>
+          </div>
+          <VariantsManager product={product} />
+        </div>
+
+        {/* ── SEÇÃO 4: ADICIONAIS & MODIFICADORES ── */}
+        <div id="opcoes" className="scroll-mt-32 pt-12 border-t">
+          <div className="mb-6">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <SlidersHorizontal className="size-5 text-primary" /> Adicionais & Modificadores
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Grupos de complementos que o cliente escolhe ao adicionar ao carrinho (ex: ponto da carne, extras, bebidas).
+            </p>
+          </div>
+          <ProductModifiersCard
+            groups={optionGroups}
+            selectedGroupIds={selectedOptionGroupIds}
+            onSelectedGroupsChange={handleSelectedGroupsChange}
+            onGroupsListChange={setOptionGroups}
+          />
+        </div>
+      </ProductEditorLayout>
+    </div>
+  );
+}
+
+function GeneralForm({
+  product,
+  categories,
+  productTypes,
+  onTitleChange,
+  onDescriptionChange,
+  onBrandChange,
+  onPriceChange,
+  onCompareChange,
+  onCostChange,
+  onStatusChange,
+}: {
+  product: any;
+  categories: any[];
+  productTypes: any[];
+  onTitleChange: (v: string) => void;
+  onDescriptionChange: (v: string) => void;
+  onBrandChange: (v: string) => void;
+  onPriceChange: (v: number) => void;
+  onCompareChange: (v: number | null) => void;
+  onCostChange: (v: number | null) => void;
+  onStatusChange: (v: string) => void;
+}) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const initialCategoryId = product.product_categories?.[0]?.category_id || "";
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategoryId);
+
+  // Category Modal State
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -159,108 +433,626 @@ function EditProductPage() {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      title: product.title || "",
-      slug: product.slug || "",
-      short_description: product.short_description || "",
+      title: product.title,
       description: product.description || "",
-      price_cents: product.price_cents || 0,
-      compare_at_cents: product.compare_at_cents || 0,
-      cost_cents: product.cost_cents || 0,
-      category_id: initialCategoryId,
-      type_id: product.type_id || "",
       brand: product.brand || "",
-      sku: product.product_variants?.[0]?.sku || "",
-      stock: product.product_variants?.[0]?.stock ?? 10,
-      selling_unit: (product as any).selling_unit || "un",
-      show_stock_publicly: product.show_stock_publicly ?? false,
+      price_cents: product.price_cents || 0,
+      compare_at_cents: product.compare_at_cents || undefined,
+      cost_cents: product.cost_cents || undefined,
+      status: product.status,
+      short_description: product.short_description || "",
+      manufacturer: product.manufacturer || "",
+      ean: product.ean || "",
+      meta_title: product.meta_title || "",
+      meta_description: product.meta_description || "",
       is_physical: product.is_physical !== false,
-      weight_kg: product.weight_kg ?? 0.5,
-      width_cm: product.width_cm ?? 15,
-      height_cm: product.height_cm ?? 10,
-      length_cm: product.length_cm ?? 20,
-      preparation_time_days: product.preparation_time_days ?? 0,
-      status: (product.status as "published" | "draft" | "archived") || "published",
+      weight_kg: product.weight_kg || "",
+      width_cm: product.width_cm || "",
+      height_cm: product.height_cm || "",
+      length_cm: product.length_cm || "",
+      preparation_time_days: product.preparation_time_days || 0,
+      preparation_time_minutes: (product as any).preparation_time_minutes || "",
+      type_id: product.type_id || "none",
+      show_stock_publicly: product.show_stock_publicly ?? false,
+      attributes: product.attributes || {},
     },
   });
 
-  const formValues = watch();
+  const watchTitle = watch("title");
+  const watchDescription = watch("description");
+  const watchBrand = watch("brand");
+  const watchPrice = watch("price_cents");
+  const watchCompare = watch("compare_at_cents");
+  const watchCost = watch("cost_cents");
+  const watchStatus = watch("status");
+  const watchTypeId = watch("type_id");
+  const selectedProductType = useMemo(() => {
+    return productTypes.find((t) => t.id === watchTypeId);
+  }, [watchTypeId, productTypes]);
 
-  // Cálculo de Margem e Lucro
-  const grossProfitCents = Math.max(0, (formValues.price_cents || 0) - (formValues.cost_cents || 0));
-  const marginPercent =
-    formValues.price_cents > 0
-      ? Math.round((grossProfitCents / formValues.price_cents) * 100)
-      : 0;
+  // Re-emite atualizações para a prévia lateral
+  useEffect(() => {
+    onTitleChange(watchTitle);
+  }, [watchTitle, onTitleChange]);
 
-  const onSubmit = async (data: any) => {
-    if (!data.title.trim()) {
-      toast.error("O nome do produto é obrigatório.");
-      return;
+  useEffect(() => {
+    onDescriptionChange(watchDescription);
+  }, [watchDescription, onDescriptionChange]);
+
+  useEffect(() => {
+    onBrandChange(watchBrand);
+  }, [watchBrand, onBrandChange]);
+
+  useEffect(() => {
+    const val = typeof watchPrice === "number" ? watchPrice : parseInt(String(watchPrice || "").replace(/\D/g, ""), 10);
+    onPriceChange(isNaN(val) ? 0 : val);
+  }, [watchPrice, onPriceChange]);
+
+  useEffect(() => {
+    if (watchCompare === undefined || watchCompare === null || watchCompare === ("" as any)) {
+      return onCompareChange(null);
     }
+    const val = typeof watchCompare === "number" ? watchCompare : parseInt(String(watchCompare).replace(/\D/g, ""), 10);
+    onCompareChange(isNaN(val) ? null : val);
+  }, [watchCompare, onCompareChange]);
 
-    if (data.price_cents <= 0) {
-      toast.error("Informe um preço de venda válido maior que zero.");
-      return;
+  useEffect(() => {
+    if (watchCost === undefined || watchCost === null || watchCost === ("" as any)) {
+      return onCostChange(null);
     }
+    const val = typeof watchCost === "number" ? watchCost : parseInt(String(watchCost).replace(/\D/g, ""), 10);
+    onCostChange(isNaN(val) ? null : val);
+  }, [watchCost, onCostChange]);
 
+  useEffect(() => {
+    onStatusChange(watchStatus);
+  }, [watchStatus, onStatusChange]);
+
+  const onSubmit = async (values: any) => {
     setIsSubmitting(true);
     try {
-      const categoryIds = data.category_id ? [data.category_id] : [];
+      const price_cents = typeof values.price_cents === "number"
+        ? values.price_cents
+        : parseInt(String(values.price_cents || "").replace(/\D/g, ""), 10) || 0;
+      const compare_at_cents = values.compare_at_cents !== undefined && values.compare_at_cents !== null && values.compare_at_cents !== ""
+        ? (typeof values.compare_at_cents === "number"
+            ? values.compare_at_cents
+            : parseInt(String(values.compare_at_cents).replace(/\D/g, ""), 10) || null)
+        : null;
+      const cost_cents = values.cost_cents !== undefined && values.cost_cents !== null && values.cost_cents !== ""
+        ? (typeof values.cost_cents === "number"
+            ? values.cost_cents
+            : parseInt(String(values.cost_cents).replace(/\D/g, ""), 10) || null)
+        : null;
 
-      const variantsPayload =
-        variantsMatrix.length > 0
-          ? variantsMatrix.map((v, idx) => ({
-              id: v.id,
-              sku: String(v.sku || `${data.slug || "prod"}-var-${idx + 1}`),
-              attributes: (v.attributes || {}) as Record<string, unknown>,
-              stock: Number(v.stock ?? 10),
-              price_cents: Number(data.price_cents),
-              price_override_cents:
-                v.price_override_cents != null && Number(v.price_override_cents) > 0
-                  ? Number(v.price_override_cents)
-                  : null,
-              image_url: v.image_url || null,
-            }))
-          : [
-              {
-                sku: String(data.sku || `${data.slug || "prod"}-default`),
-                attributes: {},
-                stock: Number(data.stock || 10),
-                price_override_cents: null,
-                image_url: images[0] || null,
-              },
-            ];
-
-      await updateProduct({
+      const res = await updateProduct({
         data: {
           id: product.id,
-          title: data.title.trim(),
-          slug: data.slug.trim(),
-          description: data.description || null,
-          short_description: data.short_description || null,
-          status: data.status,
-          brand: data.brand || null,
-          price_cents: data.price_cents,
-          compare_at_cents: data.compare_at_cents > 0 ? data.compare_at_cents : null,
-          cost_cents: data.cost_cents > 0 ? data.cost_cents : null,
-          type_id: data.type_id || null,
-          is_physical: data.is_physical,
-          weight_kg: data.weight_kg ? Number(data.weight_kg) : null,
-          width_cm: data.width_cm ? Number(data.width_cm) : null,
-          height_cm: data.height_cm ? Number(data.height_cm) : null,
-          length_cm: data.length_cm ? Number(data.length_cm) : null,
-          preparation_time_days: data.preparation_time_days ? Number(data.preparation_time_days) : null,
-          show_stock_publicly: data.show_stock_publicly ?? false,
-          category_ids: categoryIds,
-          option_group_ids: selectedOptionGroupIds,
-          variants: variantsPayload,
+          title: values.title,
+          description: values.description || null,
+          brand: values.brand,
+          status: values.status,
+          price_cents,
+          compare_at_cents,
+          cost_cents,
+          short_description: values.short_description || null,
+          manufacturer: values.manufacturer || null,
+          ean: values.ean || null,
+          meta_title: values.meta_title || null,
+          meta_description: values.meta_description || null,
+          is_physical: values.is_physical,
+          weight_kg: values.weight_kg ? parseFloat(values.weight_kg) : null,
+          width_cm: values.width_cm ? parseFloat(values.width_cm) : null,
+          height_cm: values.height_cm ? parseFloat(values.height_cm) : null,
+          length_cm: values.length_cm ? parseFloat(values.length_cm) : null,
+          preparation_time_days: values.preparation_time_days
+            ? parseInt(values.preparation_time_days, 10)
+            : 0,
+          preparation_time_minutes: values.preparation_time_minutes
+            ? parseInt(values.preparation_time_minutes, 10)
+            : null,
+          show_stock_publicly: values.show_stock_publicly ?? false,
+          category_ids: selectedCategory && selectedCategory !== "none" ? [selectedCategory] : [],
+          type_id: values.type_id !== "none" ? values.type_id : null,
+          attributes: values.attributes,
         },
       });
 
-      toast.success("Produto atualizado com sucesso!");
+      if (res) {
+        toast.success("Produto atualizado com sucesso!");
+      } else {
+        toast.error("Erro ao atualizar produto");
+      }
+    } catch (e: any) {
+      toast.error(e?.message || "Erro inesperado ao salvar alterações");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCreateCategory = async () => {
+    if (!newCategoryName.trim()) return;
+    setIsCreatingCategory(true);
+    try {
+      const slug = newCategoryName
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)+/g, "");
+      const res = await createCategory({
+        data: {
+          name: newCategoryName,
+          slug,
+          status: "active",
+        },
+      });
+      if (res) {
+        toast.success("Categoria criada com sucesso!");
+        categories.push(res);
+        setSelectedCategory(res.id);
+        setIsCategoryModalOpen(false);
+        setNewCategoryName("");
+      } else {
+        toast.error("Erro ao criar categoria");
+      }
+    } catch {
+      toast.error("Erro inesperado");
+    } finally {
+      setIsCreatingCategory(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
+      <div>
+        <div className="mb-4">
+          <h3 className="text-lg font-bold text-foreground">Informações Comerciais Principais</h3>
+          <p className="text-sm text-muted-foreground">
+            Defina o título, marca e descrição detalhada do produto.
+          </p>
+        </div>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label>Título do Produto *</Label>
+            <Input {...register("title", { required: "Obrigatório" })} />
+            {errors.title && <span className="text-xs text-destructive">Título obrigatório</span>}
+          </div>
+          <div className="space-y-2">
+            <Label>Descrição Completa (Texto Detalhado)</Label>
+            <Textarea
+              {...register("description")}
+              rows={5}
+              placeholder="Descreva os materiais, conforto, modo de preparo ou especificações..."
+            />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Marca / Fabricante</Label>
+              <Input {...register("brand")} placeholder="Ex: Wider, Nike, Tramontina..." />
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <Label>Categoria Principal</Label>
+                <Sheet open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
+                  <SheetTrigger asChild>
+                    <button
+                      type="button"
+                      className="text-xs text-primary hover:underline font-medium"
+                    >
+                      + Nova Categoria
+                    </button>
+                  </SheetTrigger>
+                  <SheetContent side="right">
+                    <SheetHeader>
+                      <SheetTitle>Criar Nova Categoria</SheetTitle>
+                      <SheetDescription>
+                        Crie uma nova categoria para agrupar produtos na vitrine.
+                      </SheetDescription>
+                    </SheetHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label>Nome da Categoria</Label>
+                        <Input
+                          value={newCategoryName}
+                          onChange={(e) => setNewCategoryName(e.target.value)}
+                          placeholder="Ex: Lançamentos"
+                          autoFocus
+                        />
+                      </div>
+                    </div>
+                    <SheetFooter>
+                      <Button variant="outline" onClick={() => setIsCategoryModalOpen(false)}>
+                        Cancelar
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={handleCreateCategory}
+                        disabled={isCreatingCategory || !newCategoryName.trim()}
+                      >
+                        {isCreatingCategory ? "Criando..." : "Criar Categoria"}
+                      </Button>
+                    </SheetFooter>
+                  </SheetContent>
+                </Sheet>
+              </div>
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sem Categoria</SelectItem>
+                  {categories.map((c: any) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="pt-6 border-t">
+        <div className="mb-4">
+          <h3 className="text-lg font-bold text-foreground">Precificação & Lucratividade</h3>
+          <p className="text-sm text-muted-foreground">
+            Valores em Reais (R$). Cálculos de margem de lucro acontecem em tempo real.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Label>Preço de Venda (R$) *</Label>
+            <Controller
+              name="price_cents"
+              control={control}
+              rules={{ required: true }}
+              render={({ field }) => (
+                <CurrencyField
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="0,00"
+                  className="h-10"
+                />
+              )}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Preço Comparativo De (R$)</Label>
+            <Controller
+              name="compare_at_cents"
+              control={control}
+              render={({ field }) => (
+                <CurrencyField
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="0,00"
+                  className="h-10"
+                />
+              )}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Custo por Item (R$)</Label>
+            <Controller
+              name="cost_cents"
+              control={control}
+              render={({ field }) => (
+                <CurrencyField
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="0,00"
+                  className="h-10"
+                />
+              )}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="pt-6 border-t">
+        <div className="mb-4">
+          <h3 className="text-lg font-bold text-foreground">Publicação & Status</h3>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>Status de Visibilidade</Label>
+            <Select defaultValue={product.status} onValueChange={(val) => setValue("status", val)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="draft">Rascunho (Oculto)</SelectItem>
+                <SelectItem value="published">Publicado (Visível na Vitrine)</SelectItem>
+                <SelectItem value="archived">Arquivado (Inativo)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Visibilidade de Estoque</Label>
+            <Controller
+              control={control}
+              name="show_stock_publicly"
+              render={({ field }) => (
+                <div className="flex items-center justify-between gap-3 h-10 px-3 rounded-md border border-input bg-background">
+                  <span className="text-sm text-muted-foreground">
+                    Exibir disponibilidade na vitrine
+                  </span>
+                  <Switch
+                    id="edit_show_stock_publicly"
+                    checked={field.value ?? false}
+                    onCheckedChange={field.onChange}
+                  />
+                </div>
+              )}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="pt-6 border-t">
+        <div className="mb-4">
+          <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+            <LayoutList className="size-5 text-primary" />
+            Ficha Técnica Dinâmica (Tipo de Produto)
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Defina um tipo de produto para renderizar campos específicos (ex: Material, Voltagem, Indicação) de acordo com o seu nicho.
+          </p>
+        </div>
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <Label>Tipo de Produto</Label>
+            <Select value={watchTypeId} onValueChange={(val) => setValue("type_id", val)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Produto Genérico" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Produto Genérico</SelectItem>
+                {productTypes.map((t: any) => (
+                  <SelectItem key={t.id} value={t.id}>
+                    {t.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {selectedProductType &&
+            selectedProductType.field_schema &&
+            selectedProductType.field_schema.length > 0 && (
+              <div className="pt-4 border-t space-y-4">
+                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                  Campos de {selectedProductType.name}
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {selectedProductType.field_schema.map((field: any, idx: number) => {
+                    const fieldKey = `attributes.${field.name}`;
+                    return (
+                      <div key={idx} className="space-y-2">
+                        <Label className="flex items-center gap-1">
+                          {field.name}
+                          {field.required && <span className="text-destructive">*</span>}
+                        </Label>
+
+                        {field.kind === "text" && (
+                          <Input
+                            {...register(fieldKey as any, { required: field.required })}
+                            placeholder="Ex: Algodão, Madeira..."
+                          />
+                        )}
+
+                        {field.kind === "number" && (
+                          <Input
+                            type="number"
+                            step="any"
+                            {...register(fieldKey as any, { required: field.required })}
+                            placeholder="0"
+                          />
+                        )}
+
+                        {field.kind === "boolean" && (
+                          <div className="flex items-center h-10 space-x-2">
+                            <Checkbox
+                              id={fieldKey}
+                              checked={watch(fieldKey as any) === true}
+                              onCheckedChange={(checked: boolean) =>
+                                setValue(fieldKey as any, checked === true)
+                              }
+                            />
+                            <label
+                              htmlFor={fieldKey}
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                              Sim, possui {field.name.toLowerCase()}
+                            </label>
+                          </div>
+                        )}
+
+                        {(field.kind === "select_single" || field.kind === "option_group") && (
+                          <Select
+                            value={watch(fieldKey as any) || ""}
+                            onValueChange={(val) => setValue(fieldKey as any, val)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {field.options?.map((opt: string, i: number) => (
+                                <SelectItem key={i} value={opt}>
+                                  {opt}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+        </div>
+      </div>
+
+      <div className="pt-6 border-t">
+        <div className="mb-4">
+          <h3 className="text-lg font-bold text-foreground">Logística Avançada & Dimensões</h3>
+          <p className="text-sm text-muted-foreground">
+            Necessário para cálculo de frete, entregas e prazos.
+          </p>
+        </div>
+        <div className="space-y-4">
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="is_physical"
+              {...register("is_physical")}
+              className="size-4 rounded border-gray-300 text-primary focus:ring-primary"
+            />
+            <Label htmlFor="is_physical" className="text-sm font-semibold">
+              Este é um produto físico que requer frete / entrega
+            </Label>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <Label>Peso (kg)</Label>
+              <Input
+                {...register("weight_kg")}
+                type="number"
+                step="0.001"
+                placeholder="Ex: 0.500"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Largura (cm)</Label>
+              <Input {...register("width_cm")} type="number" step="0.01" placeholder="Ex: 20" />
+            </div>
+            <div className="space-y-2">
+              <Label>Altura (cm)</Label>
+              <Input {...register("height_cm")} type="number" step="0.01" placeholder="Ex: 15" />
+            </div>
+            <div className="space-y-2">
+              <Label>Comprimento (cm)</Label>
+              <Input {...register("length_cm")} type="number" step="0.01" placeholder="Ex: 30" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>Prazo de Preparação (dias)</Label>
+              <Input {...register("preparation_time_days")} type="number" placeholder="Ex: 0" />
+            </div>
+            <div className="space-y-2">
+              <Label>Preparo Imediato / Lanches (minutos)</Label>
+              <Input {...register("preparation_time_minutes")} type="number" placeholder="Ex: 25" />
+            </div>
+            <div className="space-y-2">
+              <Label>Origem de Envio</Label>
+              <Select
+                defaultValue={(product.attributes as any)?.origin || "national"}
+                onValueChange={async (val) => {
+                  const currentAttr = (product.attributes as any) || {};
+                  const newAttr = { ...currentAttr, origin: val };
+                  await updateProduct({ data: { id: product.id, attributes: newAttr } });
+                  toast.success("Origem atualizada com sucesso!");
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a origem..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="national">Nacional (Brasil)</SelectItem>
+                  <SelectItem value="international">Internacional (Importação)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="pt-6 border-t">
+        <div className="mb-4">
+          <h3 className="text-lg font-bold text-foreground">Identificadores & SEO</h3>
+          <p className="text-sm text-muted-foreground">
+            Otimização para busca no Google e conformidade fiscal/EAN.
+          </p>
+        </div>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Fabricante / Marca do Fornecedor</Label>
+              <Input {...register("manufacturer")} placeholder="Ex: Nike S.A." />
+            </div>
+            <div className="space-y-2">
+              <Label>Código EAN / GTIN</Label>
+              <Input {...register("ean")} placeholder="Ex: 7891234567890" maxLength={14} />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Resumo Curto (Short Description)</Label>
+            <Textarea
+              {...register("short_description")}
+              placeholder="Visualização rápida do produto..."
+              className="min-h-16"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Meta Title (SEO)</Label>
+            <Input {...register("meta_title")} />
+          </div>
+          <div className="space-y-2">
+            <Label>Meta Description (SEO)</Label>
+            <Textarea {...register("meta_description")} className="min-h-16" />
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-end pt-4">
+        <Button type="submit" disabled={isSubmitting} size="lg" className="font-bold gap-2">
+          {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
+          {isSubmitting ? "Salvando..." : "Salvar Informações do Produto"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+function VariantsManager({ product }: { product: any }) {
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [variants, setVariants] = useState<RawVariant[]>(() => {
+    return (product.product_variants || []).map((v: any) => ({
+      id: v.id,
+      sku: v.sku,
+      ean: v.ean,
+      attributes: v.attributes || {},
+      stock: v.stock_on_hand ?? v.stock ?? 0,
+      price_override_cents: v.price_override_cents,
+      cost_cents: v.cost_cents,
+      weight_kg: v.weight_kg,
+      image_url: v.image_url,
+      status: v.status || "active",
+      allow_backorder: v.allow_backorder,
+      backorder_lead_time_days: v.backorder_lead_time_days,
+      requires_payment_for_backorder: v.requires_payment_for_backorder,
+    }));
+  });
+
+  const handleSaveMatrix = async () => {
+    setIsSubmitting(true);
+    try {
+      await batchUpsertVariantMatrix({
+        data: {
+          product_id: product.id,
+          matrix: variants,
+        },
+      });
+      toast.success("Matriz de variações salva com sucesso!");
       router.invalidate();
-    } catch (err: any) {
-      toast.error(err?.message || "Erro ao salvar as alterações do produto.");
+    } catch (e: unknown) {
+      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao salvar matriz");
     } finally {
       setIsSubmitting(false);
     }
@@ -268,638 +1060,318 @@ function EditProductPage() {
 
   return (
     <div className="space-y-6">
-      {/* ── Top Header Limpo ── */}
-      <PageHeader
-        eyebrow="Catálogo"
-        title="Editar Produto"
-        actions={
-          <div className="flex items-center gap-2">
-            <Button variant="outline" asChild size="sm" className="rounded-xl text-xs font-bold">
-              <Link to="/workspace/catalogo/produtos">
-                <ArrowLeft className="mr-1.5 size-3.5" />
-                Voltar
-              </Link>
-            </Button>
-            <Button variant="outline" asChild size="sm" className="rounded-xl text-xs font-bold">
-              <Link to={`/produto/${product.slug}` as never} target="_blank">
-                <Eye className="mr-1.5 size-3.5" />
-                Ver na Vitrine
-              </Link>
-            </Button>
-            <Button
-              onClick={handleSubmit(onSubmit)}
-              disabled={isSubmitting}
-              size="sm"
-              className="rounded-xl text-xs font-bold bg-primary text-primary-foreground gap-1.5 shadow-sm"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="size-3.5 animate-spin" />
-                  <span>Salvando...</span>
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="size-3.5" />
-                  <span>Salvar Alterações</span>
-                </>
-              )}
-            </Button>
+      <Accordion type="single" collapsible className="w-full">
+        <AccordionItem value="builder" className="bg-card rounded-2xl px-5 border border-border/80">
+          <AccordionTrigger className="hover:no-underline text-sm font-bold">
+            <div className="flex items-center gap-2">
+              <Sparkles className="size-4 text-primary" />
+              <span>Gerador em Lote de Opções (Tamanhos, Cores, Voltagens)</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="pt-4 pb-6">
+            <div className="mb-4 p-3 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 rounded-xl text-xs">
+              <strong>Dica de Uso:</strong> Use o gerador para criar combinações em lote (ex: Tamanhos P, M, G combinados com Cores Preto, Branco).
+            </div>
+            <VariantOptionsBuilder product={product} />
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+
+      <div className="pt-6 border-t">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div>
+            <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+              <LayoutList className="size-4.5 text-primary" />
+              Matriz de Variações e Saldo de Estoque
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Ajuste atributos, estoque, preços específicos e SKUs diretamente na tabela 2D.
+            </p>
           </div>
-        }
-      />
-
-      {/* ── Grid Principal: Formulário por Abas (5/12) + Preview Real da Vitrine (7/12) ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* COLUNA ESQUERDA: FORMULÁRIO ERGONÔMICO (5 COLUNAS) */}
-        <div className="lg:col-span-5 space-y-4">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-4 bg-muted/60 p-1 rounded-2xl h-10 mb-4">
-              <TabsTrigger value="basico" className="rounded-xl text-xs font-bold">
-                Básico
-              </TabsTrigger>
-              <TabsTrigger value="preco" className="rounded-xl text-xs font-bold">
-                Preço
-              </TabsTrigger>
-              <TabsTrigger value="midias" className="rounded-xl text-xs font-bold">
-                Fotos
-              </TabsTrigger>
-              <TabsTrigger value="opcoes" className="rounded-xl text-xs font-bold">
-                Opções
-              </TabsTrigger>
-            </TabsList>
-
-            {/* ── ABA 1: INFORMAÇÕES BÁSICAS ── */}
-            <TabsContent value="basico" className="space-y-4 m-0">
-              <div className="bg-card rounded-2xl p-5 space-y-4 border border-border/60">
-                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
-                  <Tag className="size-4 text-primary" />
-                  <span>Identificação do Produto</span>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-medium text-foreground">Nome do Produto *</Label>
-                  <Input
-                    {...register("title")}
-                    placeholder="Ex: Coca-Cola Lata 350ml"
-                    className="h-10 rounded-xl text-xs bg-background"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-foreground">Categoria</Label>
-                    <Select
-                      value={formValues.category_id}
-                      onValueChange={(val) => setValue("category_id", val)}
-                    >
-                      <SelectTrigger className="h-10 rounded-xl text-xs bg-background">
-                        <SelectValue placeholder="Selecione categoria" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((cat: any) => (
-                          <SelectItem key={cat.id} value={cat.id}>
-                            {cat.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-foreground">Marca / Fabricante</Label>
-                    <Input
-                      {...register("brand")}
-                      placeholder="Ex: Coca-Cola, Nike, Autoral"
-                      className="h-10 rounded-xl text-xs bg-background"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-foreground">Slug URL</Label>
-                    <Input
-                      {...register("slug")}
-                      placeholder="coca-cola-lata-350ml"
-                      className="h-10 rounded-xl text-xs bg-background font-mono"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-foreground">Unidade de Venda</Label>
-                    <Select
-                      value={formValues.selling_unit}
-                      onValueChange={(val) => setValue("selling_unit", val)}
-                    >
-                      <SelectTrigger className="h-10 rounded-xl text-xs bg-background font-mono">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="un">Unidade (un)</SelectItem>
-                        <SelectItem value="kg">Quilo (kg)</SelectItem>
-                        <SelectItem value="g">Grama (g)</SelectItem>
-                        <SelectItem value="l">Litro (l)</SelectItem>
-                        <SelectItem value="ml">Mililitro (ml)</SelectItem>
-                        <SelectItem value="cx">Caixa (cx)</SelectItem>
-                        <SelectItem value="fd">Fardo (fd)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-medium text-foreground">Resumo Curto</Label>
-                  <Input
-                    {...register("short_description")}
-                    placeholder="Ex: Bebida gaseificada refrescante original"
-                    className="h-10 rounded-xl text-xs bg-background"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-medium text-foreground">Descrição Completa</Label>
-                  <Textarea
-                    {...register("description")}
-                    rows={4}
-                    placeholder="Descreva as características, ingredientes, modo de conservação ou especificações..."
-                    className="rounded-xl text-xs bg-background"
-                  />
-                </div>
-              </div>
-
-              {/* Logística e Frete */}
-              <div className="bg-card rounded-2xl p-5 space-y-4 border border-border/60">
-                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
-                  <Truck className="size-4 text-primary" />
-                  <span>Logística & Frete</span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-muted-foreground">Peso (kg)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      {...register("weight_kg", { valueAsNumber: true })}
-                      placeholder="0.35"
-                      className="h-10 rounded-xl text-xs bg-background font-mono"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-muted-foreground">Tempo de Preparo (dias)</Label>
-                    <Input
-                      type="number"
-                      {...register("preparation_time_days", { valueAsNumber: true })}
-                      placeholder="0"
-                      className="h-10 rounded-xl text-xs bg-background font-mono"
-                    />
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-
-            {/* ── ABA 2: PREÇO & ESTOQUE ── */}
-            <TabsContent value="preco" className="space-y-4 m-0">
-              <div className="bg-card rounded-2xl p-5 space-y-4 border border-border/60">
-                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
-                  <DollarSign className="size-4 text-primary" />
-                  <span>Precificação & Margens</span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-foreground">Preço de Venda (R$) *</Label>
-                    <Controller
-                      control={control}
-                      name="price_cents"
-                      render={({ field }) => (
-                        <CurrencyField
-                          value={field.value}
-                          onChange={field.onChange}
-                          className="h-10 rounded-xl text-xs bg-background font-mono font-bold"
-                        />
-                      )}
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-muted-foreground">Preço De (Comparativo)</Label>
-                    <Controller
-                      control={control}
-                      name="compare_at_cents"
-                      render={({ field }) => (
-                        <CurrencyField
-                          value={field.value}
-                          onChange={field.onChange}
-                          className="h-10 rounded-xl text-xs bg-background font-mono"
-                        />
-                      )}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-muted-foreground">Preço de Custo (R$)</Label>
-                    <Controller
-                      control={control}
-                      name="cost_cents"
-                      render={({ field }) => (
-                        <CurrencyField
-                          value={field.value}
-                          onChange={field.onChange}
-                          className="h-10 rounded-xl text-xs bg-background font-mono"
-                        />
-                      )}
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-foreground">Status do Produto</Label>
-                    <Select
-                      value={formValues.status}
-                      onValueChange={(val: any) => setValue("status", val)}
-                    >
-                      <SelectTrigger className="h-10 rounded-xl text-xs bg-background">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="published">Publicado (Visível)</SelectItem>
-                        <SelectItem value="draft">Rascunho (Oculto)</SelectItem>
-                        <SelectItem value="archived">Arquivado</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-foreground">Estoque em Mãos</Label>
-                    <Input
-                      type="number"
-                      {...register("stock", { valueAsNumber: true })}
-                      placeholder="10"
-                      className="h-10 rounded-xl text-xs bg-background font-mono"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-foreground">Código SKU</Label>
-                    <Input
-                      {...register("sku")}
-                      placeholder="Ex: BEB-COCA-350"
-                      className="h-10 rounded-xl text-xs bg-background font-mono"
-                    />
-                  </div>
-                </div>
-
-                {/* Toggle de Visibilidade de Estoque */}
-                <Controller
-                  control={control}
-                  name="show_stock_publicly"
-                  render={({ field }) => (
-                    <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/20 border border-border/50">
-                      <div className="space-y-0.5">
-                        <p className="text-xs font-medium text-foreground">Exibir disponibilidade na vitrine</p>
-                        <p className="text-[11px] text-muted-foreground leading-tight">
-                          Quando ativo, clientes veem o indicador de estoque ou esgotado.
-                        </p>
-                      </div>
-                      <Switch
-                        id="edit_show_stock_publicly"
-                        checked={field.value ?? false}
-                        onCheckedChange={field.onChange}
-                      />
-                    </div>
-                  )}
-                />
-              </div>
-
-              {/* Card de Variações & Grade ERP Combinatória */}
-              <div className="bg-card rounded-2xl p-5 space-y-4 border border-border/60">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
-                    <Box className="size-4 text-primary" />
-                    <span>Grade de Variações (Tamanho, Cor, Voltagem, etc.)</span>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowOptionsBuilder(!showOptionsBuilder)}
-                    className="h-8 rounded-xl text-xs font-bold gap-1.5"
-                  >
-                    <Plus className="size-3.5" />
-                    <span>{showOptionsBuilder ? "Ocultar Construtor" : "Gerenciar Opções & Atributos"}</span>
-                  </Button>
-                </div>
-
-                {showOptionsBuilder && (
-                  <div className="p-4 rounded-xl bg-muted/20 border border-border/50">
-                    <VariantOptionsBuilder
-                      product={product}
-                      onClose={() => {
-                        setShowOptionsBuilder(false);
-                        router.invalidate();
-                      }}
-                    />
-                  </div>
-                )}
-
-                {variantsMatrix.length > 0 ? (
-                  <div className="space-y-2">
-                    <p className="text-xs text-muted-foreground">
-                      {variantsMatrix.length} variação(ões) configurada(s). Edite estoque individual, SKU e preços de sobreposição diretamente na grade:
-                    </p>
-                    <VariantMatrixGrid
-                      variants={variantsMatrix}
-                      onChange={setVariantsMatrix}
-                      basePriceCents={formValues.price_cents || 0}
-                    />
-                  </div>
-                ) : (
-                  <div className="p-6 text-center rounded-xl border border-dashed border-border/70 space-y-2">
-                    <p className="text-xs text-muted-foreground">
-                      Este produto atualmente é simples (sem variações cadastradas).
-                    </p>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowOptionsBuilder(true)}
-                      className="rounded-xl text-xs font-bold"
-                    >
-                      <Plus className="size-3.5 mr-1" /> Adicionar Opções (Cor, Tamanho, etc.)
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-
-            {/* ── ABA 3: FOTOS & MÍDIAS ── */}
-            <TabsContent value="midias" className="space-y-4 m-0">
-              <div className="bg-card rounded-2xl p-5 space-y-3 border border-border/60">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
-                    <ImagePlus className="size-4 text-primary" />
-                    <span>Galeria de Imagens</span>
-                  </div>
-                  <span className="text-[11px] font-mono text-muted-foreground">
-                    {images.length} foto(s)
-                  </span>
-                </div>
-
-                <MediaUploader
-                  value={images}
-                  onChange={setImages}
-                  bucket="cms-media"
-                  folder="products"
-                  aspect={1}
-                  enableCrop={true}
-                  maxFiles={8}
-                />
-              </div>
-            </TabsContent>
-
-            {/* ── ABA 4: ADICIONAIS & MODIFICADORES ── */}
-            <TabsContent value="opcoes" className="space-y-4 m-0">
-              <div className="bg-card rounded-2xl p-5 space-y-3 border border-border/60">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
-                    <SlidersHorizontal className="size-4 text-primary" />
-                    <span>Adicionais & Modificadores</span>
-                  </div>
-                  <Link
-                    to="/workspace/catalogo/atributos"
-                    className="text-[11px] text-primary hover:underline font-medium"
-                    target="_blank"
-                  >
-                    Gerenciar grupos
-                  </Link>
-                </div>
-                <p className="text-[11px] text-muted-foreground">
-                  Selecione quais grupos de complementos estarão ativos neste item:
-                </p>
-
-                {optionGroupsList && optionGroupsList.length > 0 ? (
-                  <div className="grid grid-cols-1 gap-2 pt-1">
-                    {optionGroupsList.map((grp: any) => {
-                      const isChecked = selectedOptionGroupIds.includes(grp.id);
-                      return (
-                        <label
-                          key={grp.id}
-                          className={cn(
-                            "flex items-center gap-2.5 p-3 rounded-xl border cursor-pointer transition-colors text-xs select-none",
-                            isChecked
-                              ? "border-primary bg-primary/5 text-foreground font-semibold"
-                              : "border-border/80 bg-background text-muted-foreground hover:border-foreground/30",
-                          )}
-                        >
-                          <input
-                            type="checkbox"
-                            className="rounded border-border text-primary focus:ring-primary size-4"
-                            checked={isChecked}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedOptionGroupIds((prev) => [...prev, grp.id]);
-                              } else {
-                                setSelectedOptionGroupIds((prev) => prev.filter((id) => id !== grp.id));
-                              }
-                            }}
-                          />
-                          <div className="min-w-0 flex-1">
-                            <p className="font-bold truncate">{grp.display_name || grp.internal_name}</p>
-                            <p className="text-[10px] text-muted-foreground">
-                              {grp.values?.length || 0} opção(ões) • {grp.is_required ? "Obrigatório" : "Opcional"}
-                            </p>
-                          </div>
-                        </label>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="py-6 text-center border-dashed rounded-xl p-4">
-                    <p className="text-xs text-muted-foreground">
-                      Nenhum grupo de adicionais cadastrado na loja.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
+          <Button onClick={handleSaveMatrix} disabled={isSubmitting} size="sm" className="font-bold gap-2">
+            {isSubmitting ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Settings className="size-4" />
+            )}
+            Salvar Matriz
+          </Button>
         </div>
-
-        {/* COLUNA DIREITA: PREVIEW REAL DA VITRINE (7 COLUNAS STICKY) */}
-        <div className="lg:col-span-7 lg:sticky lg:top-24">
-          <div className="bg-card rounded-3xl overflow-hidden border border-border/80 shadow-sm">
-            {/* Header do Mockup */}
-            <div className="bg-muted/40 px-5 py-3 border-b flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Eye className="size-4 text-primary" />
-                <span className="text-xs font-bold text-foreground">
-                  Preview Real da Vitrine (Página do Produto)
-                </span>
-              </div>
-              <Badge variant="secondary" className="text-[10px] font-mono">
-                Live Preview
-              </Badge>
-            </div>
-
-            {/* Corpo do Mockup Fiel ao E-commerce */}
-            <div className="p-6 space-y-6">
-              {/* Galeria de Fotos */}
-              <div className="space-y-3">
-                <div className="aspect-[4/3] rounded-2xl bg-muted/40 overflow-hidden relative border flex items-center justify-center">
-                  {images.length > 0 && images[activePreviewImage] ? (
-                    <img
-                      src={images[activePreviewImage]}
-                      alt={formValues.title}
-                      className="size-full object-contain p-2"
-                    />
-                  ) : (
-                    <div className="flex flex-col items-center gap-2 text-muted-foreground/60">
-                      <Package className="size-12 stroke-[1.2]" />
-                      <span className="text-xs">Sem foto de capa</span>
-                    </div>
-                  )}
-                  {formValues.status !== "published" && (
-                    <Badge variant="secondary" className="absolute top-3 left-3 text-[10px] font-bold">
-                      Rascunho (Oculto)
-                    </Badge>
-                  )}
-                </div>
-
-                {images.length > 1 && (
-                  <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-                    {images.map((img, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => setActivePreviewImage(idx)}
-                        className={`size-14 rounded-xl border-2 overflow-hidden shrink-0 transition-all ${
-                          activePreviewImage === idx
-                            ? "border-primary ring-2 ring-primary/20 scale-105"
-                            : "border-border/60 opacity-70 hover:opacity-100"
-                        }`}
-                      >
-                        <img src={img} alt="" className="size-full object-cover" />
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Informações Comerciais */}
-              <div className="space-y-4">
-                <div className="space-y-1">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
-                    {formValues.brand || store?.name || "Loja Parceira"}
-                  </span>
-                  <h2 className="text-xl font-black text-foreground leading-tight">
-                    {formValues.title || "Nome do Produto em Destaque"}
-                  </h2>
-                  {formValues.short_description && (
-                    <p className="text-xs text-muted-foreground">
-                      {formValues.short_description}
-                    </p>
-                  )}
-                </div>
-
-                {/* Bloco de Preços */}
-                <div className="p-4 rounded-2xl bg-muted/30 border border-border/40 space-y-1">
-                  {formValues.compare_at_cents > formValues.price_cents && (
-                    <span className="text-xs text-muted-foreground line-through block font-mono">
-                      {formatMoney(formValues.compare_at_cents)}
-                    </span>
-                  )}
-                  <div className="text-2xl font-black text-foreground font-mono">
-                    {formatMoney(formValues.price_cents || 0)}
-                    <span className="text-xs text-muted-foreground font-normal ml-1">
-                      /{formValues.selling_unit}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground">
-                    Em até 12x de {formatMoney(Math.round((formValues.price_cents || 0) / 12))} sem juros
-                  </p>
-                </div>
-
-                {/* Selo de Estoque */}
-                <div className="flex items-center gap-2 text-xs">
-                  {formValues.stock > 0 ? (
-                    <>
-                      <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="text-muted-foreground font-medium">
-                        Disponível em estoque ({formValues.stock} unidades)
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="size-2 rounded-full bg-destructive" />
-                      <span className="text-destructive font-medium">Esgotado no momento</span>
-                    </>
-                  )}
-                </div>
-
-                {/* Botões de Ação da Vitrine */}
-                <div className="space-y-2 pt-2">
-                  <Button className="w-full h-11 rounded-xl font-bold bg-primary text-primary-foreground gap-2">
-                    <ShoppingBag className="size-4" />
-                    <span>Adicionar ao Carrinho</span>
-                  </Button>
-                  <Button variant="outline" className="w-full h-11 rounded-xl font-bold">
-                    Comprar Agora
-                  </Button>
-                </div>
-
-                {/* Benefícios & Frete */}
-                <div className="pt-3 border-t space-y-2 text-xs text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <Truck className="size-4 text-primary" />
-                    <span>Entrega rápida em Chapecó e região</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="size-4 text-primary" />
-                    <span>Garantia de autenticidade e compra protegida</span>
-                  </div>
-                </div>
-
-                {/* Bloco de Análise Financeira (Margem / Lucro) */}
-                <div className="p-4 rounded-2xl bg-muted/20 border border-border/50 flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase">
-                      Lucro Bruto Estimado
-                    </span>
-                    <div className="text-sm font-black font-mono text-emerald-600">
-                      {formatMoney(grossProfitCents)}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase">
-                      Margem de Contribuição
-                    </span>
-                    <div className="text-sm font-black font-mono text-foreground">
-                      {marginPercent}%
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Descrição na Prévia */}
-              {formValues.description && (
-                <div className="pt-4 border-t space-y-2">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">
-                    Sobre o Produto
-                  </h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                    {formValues.description}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
+        <div>
+          <VariantMatrixGrid
+            variants={variants}
+            onChange={setVariants}
+            basePriceCents={product.price_cents || 0}
+          />
         </div>
       </div>
+    </div>
+  );
+}
+
+function MediaManager({ product }: { product: any }) {
+  const router = useRouter();
+  const [isAdding, setIsAdding] = useState(false);
+  const [editingMedia, setEditingMedia] = useState<any | null>(null);
+  const [isSavingMetadata, setIsSavingMetadata] = useState(false);
+
+  const handleAddImage = async (url: string) => {
+    if (!url) return;
+    setIsAdding(true);
+    try {
+      const res = await addProductMediaLink({ data: { product_id: product.id, url } });
+      if (res) {
+        toast.success("Imagem vinculada e salva na galeria!");
+        router.invalidate();
+      } else {
+        toast.error("Erro ao salvar imagem.");
+      }
+    } catch {
+      toast.error("Erro inesperado ao salvar imagem.");
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  const handleDelete = async (mediaId: string, mediaUrl: string) => {
+    try {
+      await deleteProductMedia({ data: { id: mediaId, url: mediaUrl } });
+      toast.success("Mídia removida.");
+      router.invalidate();
+    } catch {
+      toast.error("Erro ao deletar mídia");
+    }
+  };
+
+  const handleMove = async (index: number, direction: "left" | "right") => {
+    const list = [...(product.product_media || [])];
+    if (direction === "left" && index === 0) return;
+    if (direction === "right" && index === list.length - 1) return;
+
+    const targetIdx = direction === "left" ? index - 1 : index + 1;
+    const temp = list[index];
+    list[index] = list[targetIdx];
+    list[targetIdx] = temp;
+
+    const mediaOrders = list.map((item, idx) => ({
+      id: item.id,
+      sort_order: idx,
+    }));
+
+    try {
+      await reorderProductMedia({ data: { mediaOrders } });
+      toast.success("Ordenação de fotos atualizada!");
+      router.invalidate();
+    } catch {
+      toast.error("Erro ao reordenar mídias.");
+    }
+  };
+
+  const handleSaveMetadata = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingMedia) return;
+
+    setIsSavingMetadata(true);
+    const formData = new FormData(e.currentTarget);
+    const alt = formData.get("alt") as string;
+    const media_type = formData.get("media_type") as "image" | "video";
+    const variant_id = (formData.get("variant_id") as string) || null;
+
+    try {
+      await updateProductMediaMetadata({
+        data: {
+          id: editingMedia.id,
+          alt: alt || null,
+          media_type,
+          variant_id: variant_id === "none" ? null : variant_id,
+        },
+      });
+
+      toast.success("Metadados atualizados com sucesso!");
+      setEditingMedia(null);
+      router.invalidate();
+    } catch {
+      toast.error("Erro ao atualizar metadados.");
+    } finally {
+      setIsSavingMetadata(false);
+    }
+  };
+
+  return (
+    <div>
+      <div className="mb-4">
+        <h3 className="text-base font-bold text-foreground">Galeria de Fotos do Produto</h3>
+        <p className="text-xs text-muted-foreground">
+          Fotos em alta qualidade aumentam a conversão de vendas. Limite de 5MB por arquivo.
+        </p>
+      </div>
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <Label className="text-xs font-semibold">Fazer Upload de Nova Imagem</Label>
+          <div className="max-w-md">
+            <ImageUpload onChange={handleAddImage} bucket="product-media" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-4 border-t">
+          {product.product_media
+            ?.sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+            .map((m: any, idx: number) => {
+              const matchedVariant = product.product_variants?.find(
+                (v: any) => v.id === m.variant_id,
+              );
+              const variantText = matchedVariant ? `Variação: ${matchedVariant.sku}` : "Uso Geral";
+
+              return (
+                <div
+                  key={m.id || idx}
+                  className="relative group border border-border/80 overflow-hidden bg-card rounded-2xl flex flex-col justify-between"
+                >
+                  <div className="relative aspect-[4/3] bg-muted/40 overflow-hidden flex items-center justify-center">
+                    {m.media_type === "video" ? (
+                      <video
+                        src={m.url}
+                        className="size-full object-cover"
+                        controls={false}
+                        muted
+                      />
+                    ) : (
+                      <img src={m.url} alt={m.alt || ""} className="size-full object-cover" />
+                    )}
+                    {idx === 0 && (
+                      <Badge className="absolute top-2 left-2 text-[10px] font-bold" variant="default">
+                        Capa
+                      </Badge>
+                    )}
+                    {m.media_type === "video" && (
+                      <Badge className="absolute top-2 right-12 text-[10px] bg-destructive text-white border-none">
+                        Vídeo
+                      </Badge>
+                    )}
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="icon"
+                        className="size-8 rounded-lg"
+                        onClick={() => setEditingMedia(m)}
+                      >
+                        <Settings className="size-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="size-8 rounded-lg"
+                        onClick={() => handleDelete(m.id, m.url)}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="p-3 space-y-1 bg-background/50">
+                    <p className="text-[11px] font-semibold text-primary truncate">{variantText}</p>
+                    <p className="text-[10px] text-muted-foreground truncate italic">
+                      {m.alt ? `"${m.alt}"` : "Sem legenda"}
+                    </p>
+                    <div className="flex items-center justify-between pt-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="size-7 rounded-lg"
+                        disabled={idx === 0}
+                        onClick={() => handleMove(idx, "left")}
+                      >
+                        <ArrowLeft className="size-3.5" />
+                      </Button>
+                      <span className="text-[10px] text-muted-foreground font-mono">
+                        Pos: {idx + 1}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="size-7 rounded-lg"
+                        disabled={idx === (product.product_media?.length || 0) - 1}
+                        onClick={() => handleMove(idx, "right")}
+                      >
+                        <ArrowRight className="size-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+        </div>
+      </div>
+
+      <Sheet open={!!editingMedia} onOpenChange={(open) => !open && setEditingMedia(null)}>
+        {editingMedia && (
+          <SheetContent side="right">
+            <SheetHeader>
+              <SheetTitle>Editar Detalhes da Mídia</SheetTitle>
+              <SheetDescription>
+                Adicione legendas de acessibilidade ou vincule esta imagem a uma variante específica.
+              </SheetDescription>
+            </SheetHeader>
+            <form onSubmit={handleSaveMetadata} className="space-y-4 pt-4">
+              <div className="space-y-2">
+                <Label>Legenda / Texto Alternativo (Acessibilidade)</Label>
+                <Input
+                  name="alt"
+                  defaultValue={editingMedia.alt || ""}
+                  placeholder="Ex: Tênis vermelho de couro sob luz natural"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Tipo de Mídia</Label>
+                <Select name="media_type" defaultValue={editingMedia.media_type || "image"}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="image">Imagem</SelectItem>
+                    <SelectItem value="video">Vídeo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Vincular à Variante Específica</Label>
+                <Select name="variant_id" defaultValue={editingMedia.variant_id || "none"}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Uso Geral (Vitrine Principal)</SelectItem>
+                    {product.product_variants?.map((v: any) => {
+                      const attrsText = Object.entries(v.attributes || {})
+                        .map(([k, val]) => `${k}: ${val}`)
+                        .join(", ");
+                      return (
+                        <SelectItem key={v.id} value={v.id}>
+                          {v.sku} {attrsText ? `(${attrsText})` : ""}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <SheetFooter className="pt-4">
+                <Button type="button" variant="outline" onClick={() => setEditingMedia(null)}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={isSavingMetadata}>
+                  {isSavingMetadata ? "Salvando..." : "Salvar Alterações"}
+                </Button>
+              </SheetFooter>
+            </form>
+          </SheetContent>
+        )}
+      </Sheet>
     </div>
   );
 }

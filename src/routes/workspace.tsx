@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Store, AlertTriangle, ArrowLeft, RefreshCw, LogIn } from "lucide-react";
 
 export const Route = createFileRoute("/workspace")({
-  loader: async ({ location }) => {
+  loader: async () => {
     let session: any = null;
     try {
       session = await getUserSession();
@@ -14,11 +14,8 @@ export const Route = createFileRoute("/workspace")({
       session = null;
     }
 
-    if (!session || !session.user) {
-      throw redirect({
-        to: "/entrar",
-        search: { returnUrl: location.pathname + (location.searchStr || "") },
-      });
+    if (!session?.user) {
+      throw redirect({ to: "/entrar", search: { returnUrl: "/workspace" } });
     }
 
     return { session };

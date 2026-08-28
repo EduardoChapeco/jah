@@ -122,7 +122,7 @@ export function ProductModifiersModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg rounded-2xl p-6 max-h-[90vh] flex flex-col justify-between">
+      <DialogContent className="sm:max-w-lg sm:rounded-2xl sm:p-6 p-5 max-h-[90vh] flex flex-col justify-between">
         <DialogHeader className="space-y-1">
           <div className="flex items-center gap-2">
             <div className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center">

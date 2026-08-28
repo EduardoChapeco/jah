@@ -140,7 +140,7 @@ export function SlimActionBanner({
             {onCtaClick ? (
               <Button
                 onClick={onCtaClick}
-                className="h-11 px-6 rounded-xl font-bold text-xs bg-white text-zinc-950 hover:bg-white/90 shadow-md cursor-pointer transition-all active:scale-95"
+                className="h-11 px-6 rounded-xl font-bold text-xs bg-white text-zinc-950 hover:bg-white/90 cursor-pointer transition-all active:scale-95"
               >
                 <Sparkle className="size-4 mr-1.5 text-primary" />
                 <span>{effectiveCtaLabel}</span>
@@ -148,7 +148,7 @@ export function SlimActionBanner({
             ) : effectiveTargetUrl.startsWith("http") ? (
               <Button
                 asChild
-                className="h-11 px-6 rounded-xl font-bold text-xs bg-white text-zinc-950 hover:bg-white/90 shadow-md cursor-pointer transition-all active:scale-95"
+                className="h-11 px-6 rounded-xl font-bold text-xs bg-white text-zinc-950 hover:bg-white/90 cursor-pointer transition-all active:scale-95"
               >
                 <a href={effectiveTargetUrl} target="_blank" rel="noopener noreferrer">
                   <span>{effectiveCtaLabel}</span>
@@ -158,7 +158,7 @@ export function SlimActionBanner({
             ) : (
               <Button
                 asChild
-                className="h-11 px-6 rounded-xl font-bold text-xs bg-white text-zinc-950 hover:bg-white/90 shadow-md cursor-pointer transition-all active:scale-95"
+                className="h-11 px-6 rounded-xl font-bold text-xs bg-white text-zinc-950 hover:bg-white/90 cursor-pointer transition-all active:scale-95"
               >
                 <Link to={effectiveTargetUrl as any || "/mercado"}>
                   <span>{effectiveCtaLabel}</span>

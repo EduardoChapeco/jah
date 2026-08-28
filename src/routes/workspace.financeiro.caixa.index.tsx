@@ -306,15 +306,14 @@ function CashRegisterPage() {
   }, [cartItems]);
 
   const discountCents = useMemo(() => {
-    const val = parseFloat(discountCentsInput.replace(",", "."));
-    return isNaN(val) ? 0 : Math.round(val * 100);
+    return parseCurrencyInputToCents(discountCentsInput);
   }, [discountCentsInput]);
 
   const cartTotalCents = Math.max(0, cartSubtotalCents - discountCents);
 
   const amountPaidCents = useMemo(() => {
-    const val = parseFloat(amountPaidInput.replace(",", "."));
-    return isNaN(val) ? cartTotalCents : Math.round(val * 100);
+    if (!amountPaidInput) return cartTotalCents;
+    return parseCurrencyInputToCents(amountPaidInput);
   }, [amountPaidInput, cartTotalCents]);
 
   const changeCents = paymentMethod === "cash" ? Math.max(0, amountPaidCents - cartTotalCents) : 0;

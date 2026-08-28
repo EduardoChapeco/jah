@@ -266,7 +266,7 @@ function WorkspacePatrocinadoresPage() {
 
       {/* Modal de Criação / Edição */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-lg p-0 overflow-hidden rounded-3xl  bg-background ">
+        <DialogContent className="sm:max-w-lg p-0 overflow-hidden sm:rounded-3xl bg-background">
           <DialogHeader className="p-6 pb-4  bg-muted/20">
             <DialogTitle className="flex items-center gap-2 text-lg font-black tracking-tight">
               <Megaphone className="size-5 text-primary" />

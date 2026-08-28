@@ -58,7 +58,7 @@ export function AdminContextualBar({ userRole }: AdminContextualBarProps) {
       <button
         onClick={() => setIsMinimized(false)}
         aria-label="Expandir Barra de Governança"
-        className="fixed bottom-4 right-4 z-50 size-10 rounded-2xl bg-primary text-primary-foreground shadow-2xl flex items-center justify-center border border-border/40 hover:scale-105 transition-all cursor-pointer"
+        className="fixed bottom-4 right-4 z-50 size-10 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center border border-border/40 hover:scale-105 transition-all cursor-pointer"
         title="Admin Master Ativo - Clique para expandir"
       >
         <Shield className="size-4" />
@@ -69,7 +69,7 @@ export function AdminContextualBar({ userRole }: AdminContextualBarProps) {
   return (
     <aside
       aria-label="Barra de Governança Contextual Master"
-      className="fixed bottom-4 right-4 sm:left-auto sm:right-6 z-50 max-w-md w-auto bg-card/95 backdrop-blur-2xl border border-border/80 shadow-2xl rounded-2xl p-2 px-3 flex items-center justify-between gap-2.5 text-xs animate-in slide-in-from-bottom-3 duration-300"
+      className="fixed bottom-4 right-4 sm:left-auto sm:right-6 z-50 max-w-md w-auto bg-card/95 backdrop-blur-2xl border border-border/60 rounded-2xl p-2 px-3 flex items-center justify-between gap-2.5 text-xs animate-in slide-in-from-bottom-3 duration-300"
     >
       <div className="flex items-center gap-2">
         <div className="size-6 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-bold text-[10px]">
@@ -91,7 +91,19 @@ export function AdminContextualBar({ userRole }: AdminContextualBarProps) {
           variant="outline"
           className="h-7 px-2 rounded-xl text-[11px] font-bold gap-1 cursor-pointer bg-background/80 hover:bg-muted/70 border-border/60"
         >
-          <Link to="/admin-master/banners">
+          <Link to="/admin-master/vitrines" search={{ surface: activeNiche.id }}>
+            <Sliders className="size-3 text-primary" />
+            <span className="hidden sm:inline">Vitrines CMS</span>
+          </Link>
+        </Button>
+
+        <Button
+          asChild
+          size="sm"
+          variant="outline"
+          className="h-7 px-2 rounded-xl text-[11px] font-bold gap-1 cursor-pointer bg-background/80 hover:bg-muted/70 border-border/60"
+        >
+          <Link to="/admin-master/banners" search={{ placement: activeNiche.id }}>
             <ImageIcon className="size-3 text-primary" />
             <span className="hidden sm:inline">Banners</span>
           </Link>
@@ -103,7 +115,7 @@ export function AdminContextualBar({ userRole }: AdminContextualBarProps) {
           variant="outline"
           className="h-7 px-2 rounded-xl text-[11px] font-bold gap-1 cursor-pointer bg-background/80 hover:bg-muted/70 border-border/60"
         >
-          <Link to="/admin-master/botoes">
+          <Link to="/admin-master/botoes" search={{ module: activeNiche.id }}>
             <Sparkles className="size-3 text-amber-500" />
             <span className="hidden sm:inline">Botões</span>
           </Link>

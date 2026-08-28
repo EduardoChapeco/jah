@@ -44,9 +44,9 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
   className,
   label,
   accept = "all",
-  aspect = folder === "classifieds" ? 4 / 3 : 1,
+  aspect,
   cropShape = "rect",
-  lockAspect = true,
+  lockAspect = false,
   enableCrop = true,
   acceptedTypes = accept === "image"
     ? ["image/jpeg", "image/png", "image/webp", "image/gif"]
@@ -57,6 +57,22 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Compute smart aspect based on bucket/folder if not explicitly provided
+  const computedAspect =
+    aspect !== undefined
+      ? aspect
+      : bucket === "banners" || folder === "destaques" || folder === "banners"
+        ? 21 / 9
+        : folder === "hotpages" || folder === "cards"
+          ? 16 / 9
+          : folder === "icons" || folder === "avatars" || folder === "avatar" || folder === "perfil" || folder === "produtos" || folder === "products"
+            ? 1
+            : folder === "botoes" || folder === "chips"
+              ? 16 / 9
+              : folder === "classifieds"
+                ? 4 / 3
+                : 21 / 9;
 
   // Crop dialog state
   const [cropModalOpen, setCropModalOpen] = useState(false);
@@ -91,7 +107,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
     onUploadComplete?.(newList);
   };
 
-    const handleFiles = async (files: File[]) => {
+  const handleFiles = async (files: File[]) => {
     if (!files.length) return;
 
     if (mediaList.length + files.length > maxFiles) {
@@ -160,236 +176,254 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
 
         const res = await uploadMediaUniversal({
           data: {
-            fileName: file.name,
-            fileType: file.type || (isVideo ? "video/mp4" : "image/jpeg"),
             base64Data,
-            bucket,
-            folder,
+            fileName: cleanName,
+            fileType: file.type || "image/jpeg",
+            bucket: bucket,
+            folder: folder,
           },
         });
 
         if (res?.url) {
           updatedMedia.push({
-            id: res.id || cleanName,
+            id: `media-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
             url: res.url,
-            path: res.path || filePath,
+            path: filePath,
             type: isVideo ? "video" : "image",
           });
           successCount++;
-        } else {
-          throw new Error("Servidor não retornou a URL pública da mídia.");
         }
       } catch (err: any) {
-        console.error(`[MediaUploader] Falha ao enviar ${file.name}:`, err);
-        toast.error(`Não foi possível enviar ${file.name}: ${err?.message || "Erro no upload"}`);
-        failCount++;
+        console.error("Erro no upload do arquivo:", file.name, err);
+        // Fallback para upload direto via client browser caso Server Function falhe
+        try {
+          const supabase = getBrowserClient();
+          const { error: directErr } = await supabase.storage
+            .from(bucket)
+            .upload(filePath, file, { upsert: true });
+
+          if (!directErr) {
+            const { data: publicData } = supabase.storage.from(bucket).getPublicUrl(filePath);
+            if (publicData?.publicUrl) {
+              updatedMedia.push({
+                id: `media-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+                url: publicData.publicUrl,
+                path: filePath,
+                type: isVideo ? "video" : "image",
+              });
+              successCount++;
+            }
+          } else {
+            failCount++;
+          }
+        } catch {
+          failCount++;
+        }
       }
     }
 
-    notifyChange(updatedMedia);
     setUploading(false);
     onUploadingStateChange?.(false);
     setUploadProgress(null);
 
-    if (successCount > 0) {
-      toast.success(`${successCount} mídia(s) enviada(s) com sucesso!`);
-    }
-
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
+    }
+
+    if (successCount > 0) {
+      notifyChange(updatedMedia);
+      toast.success(`${successCount} mídia(s) enviada(s) com sucesso!`);
+    }
+    if (failCount > 0) {
+      toast.error(`Falha ao enviar ${failCount} arquivo(s).`);
     }
   };
 
   const handleCropComplete = async (croppedBase64: string) => {
     setUploading(true);
     onUploadingStateChange?.(true);
-    setUploadProgress("Enviando imagem recortada...");
+    setUploadProgress("Salvando imagem recortada...");
 
     try {
-      const fileName = currentCropFile?.name || `crop_${Date.now()}.png`;
+      const cleanName = `${Date.now()}_cropped_${Math.random().toString(36).substring(2, 8)}.png`;
+      const filePath = `${folder}/${cleanName}`;
+
       const res = await uploadMediaUniversal({
         data: {
-          fileName: fileName.replace(/\.[^/.]+$/, "") + ".png",
-          fileType: "image/png",
           base64Data: croppedBase64,
-          bucket,
-          folder,
+          fileName: cleanName,
+          fileType: "image/png",
+          bucket: bucket,
+          folder: folder,
         },
       });
 
       if (res?.url) {
         let updatedMedia: MediaData[];
-        if (editingMediaIndex !== null && mediaList[editingMediaIndex]) {
-          // Substitui a imagem editada
-          updatedMedia = mediaList.map((m, i) =>
-            i === editingMediaIndex
-              ? { ...m, url: res.url, path: res.path || m.path }
-              : m,
-          );
-          toast.success("Imagem recortada atualizada com sucesso!");
+        if (editingMediaIndex !== null && editingMediaIndex >= 0 && editingMediaIndex < mediaList.length) {
+          // Editando item existente
+          updatedMedia = [...mediaList];
+          updatedMedia[editingMediaIndex] = {
+            ...updatedMedia[editingMediaIndex],
+            url: res.url,
+            path: filePath,
+          };
         } else {
-          // Adiciona nova imagem recortada
-          updatedMedia = [
-            ...mediaList,
-            {
-              id: res.id || `crop-${Date.now()}`,
-              url: res.url,
-              path: res.path || `${folder}/crop_${Date.now()}.png`,
-              type: "image",
-            },
-          ];
-          toast.success("Imagem enviada com sucesso!");
+          // Novo item (substitui se maxFiles === 1, ou adiciona se maxFiles > 1)
+          if (maxFiles === 1) {
+            updatedMedia = [
+              {
+                id: `media-${Date.now()}`,
+                url: res.url,
+                path: filePath,
+                type: "image",
+              },
+            ];
+          } else {
+            updatedMedia = [
+              ...mediaList,
+              {
+                id: `media-${Date.now()}`,
+                url: res.url,
+                path: filePath,
+                type: "image",
+              },
+            ];
+          }
         }
+
         notifyChange(updatedMedia);
-      } else {
-        throw new Error("Não foi possível obter a URL da imagem.");
+        toast.success("Imagem recortada e salva com sucesso!");
       }
     } catch (err: any) {
-      console.error("[MediaUploader] Erro ao salvar corte:", err);
-      toast.error(`Falha no upload da imagem recortada: ${err?.message || "Erro desconhecido"}`);
+      console.error("Erro ao salvar recorte:", err);
+      toast.error("Erro ao salvar recorte da imagem.");
     } finally {
       setUploading(false);
       onUploadingStateChange?.(false);
       setUploadProgress(null);
-      setCurrentCropFile(null);
+      setCropModalOpen(false);
       setCurrentImageSrc(null);
+      setCurrentCropFile(null);
       setEditingMediaIndex(null);
     }
   };
 
-  const handleOpenRecrop = (idx: number, media: MediaData, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setEditingMediaIndex(idx);
-    setCurrentImageSrc(media.url);
-    setCurrentCropFile(null);
-    setCropModalOpen(true);
+  const removeMedia = (index: number) => {
+    const updated = mediaList.filter((_, idx) => idx !== index);
+    notifyChange(updated);
   };
 
-  const handleRemove = async (idx: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const itemToRemove = mediaList[idx];
-    if (!itemToRemove) return;
-
-    const updated = mediaList.filter((_, i) => i !== idx);
-    notifyChange(updated);
-
-    // Tenta remover do storage em background
-    try {
-      const supabase = getBrowserClient();
-      if (itemToRemove.path && !itemToRemove.path.startsWith("http")) {
-        await supabase.storage.from(bucket).remove([itemToRemove.path]);
-      }
-    } catch (err) {
-      console.warn("[MediaUploader] Aviso ao remover do storage:", err);
+  const handleOpenRecrop = (index: number) => {
+    const item = mediaList[index];
+    if (item && item.type === "image") {
+      setEditingMediaIndex(index);
+      setCurrentImageSrc(item.url);
+      setCropModalOpen(true);
     }
   };
 
   return (
     <div className={cn("space-y-3", className)}>
-      {/* Grid de Mídias Existentes */}
+      {label && <label className="text-xs font-semibold text-foreground">{label}</label>}
+
+      {/* Grid de previews existentes */}
       {mediaList.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
-          {mediaList.map((media, idx) => (
+          {mediaList.map((item, idx) => (
             <div
-              key={media.id || idx}
-              className="relative aspect-square rounded-xl overflow-hidden  bg-muted/40 group "
+              key={item.id || idx}
+              className="group relative aspect-video rounded-xl overflow-hidden border border-border bg-card shadow-xs transition-all hover:border-primary/50"
             >
-              {media.type === "image" ? (
-                <img
-                  src={media.url}
-                  alt={`Mídia ${idx + 1}`}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
+              {item.type === "video" ? (
+                <div className="relative w-full h-full bg-black flex items-center justify-center">
+                  <video src={item.url} className="w-full h-full object-cover" controls={false} />
+                  <div className="absolute inset-0 bg-black/30 flex items-center justify-center pointer-events-none">
+                    <Film className="size-6 text-white/80" />
+                  </div>
+                </div>
               ) : (
-                <div className="w-full h-full relative bg-black flex items-center justify-center">
-                  <video
-                    src={media.url}
-                    className="w-full h-full object-cover opacity-80"
-                    muted
-                    playsInline
-                  />
-                  <Film className="absolute size-6 text-white/90 drop-shadow" />
-                </div>
+                <img src={item.url} alt="Mídia" className="w-full h-full object-cover" />
               )}
 
-              {/* Badge de Capa para o primeiro item */}
-              {idx === 0 && (
-                <div className="absolute bottom-1.5 left-1.5 bg-black/70 backdrop-blur-sm text-[9px] font-bold uppercase tracking-wider text-white px-2 py-0.5 rounded-md">
-                  Capa
-                </div>
-              )}
-
-              {/* Ações de Hover (Recortar + Remover) */}
-              <div className="absolute top-1.5 right-1.5 flex items-center gap-1">
-                {media.type === "image" && enableCrop && (
+              {/* Botões de Ação sobre o Card */}
+              <div className="absolute top-1.5 right-1.5 flex items-center gap-1 opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                {item.type === "image" && enableCrop && (
                   <button
                     type="button"
-                    onClick={(e) => handleOpenRecrop(idx, media, e)}
-                    className="bg-black/60 hover:bg-black/90 text-white p-1 rounded-lg opacity-80 group-hover:opacity-100 transition-all cursor-pointer"
-                    title="Recortar / Ajustar proporção"
+                    onClick={() => handleOpenRecrop(idx)}
+                    title="Ajustar e Recortar"
+                    className="p-1 rounded-lg bg-black/70 text-white hover:bg-primary hover:text-white transition-colors cursor-pointer"
                   >
                     <Crop className="size-3.5" />
                   </button>
                 )}
                 <button
                   type="button"
-                  onClick={(e) => handleRemove(idx, e)}
-                  className="bg-black/60 hover:bg-destructive text-white p-1 rounded-lg opacity-80 group-hover:opacity-100 transition-all cursor-pointer"
-                  title="Remover mídia"
+                  onClick={() => removeMedia(idx)}
+                  title="Remover"
+                  className="p-1 rounded-lg bg-black/70 text-white hover:bg-destructive hover:text-white transition-colors cursor-pointer"
                 >
                   <X className="size-3.5" />
                 </button>
               </div>
+
+              {idx === 0 && (
+                <span className="absolute bottom-1.5 left-1.5 text-[9px] font-bold bg-primary text-primary-foreground px-1.5 py-0.5 rounded-md shadow-xs">
+                  Capa
+                </span>
+              )}
             </div>
           ))}
         </div>
       )}
 
-      {/* Dropzone de Upload */}
+      {/* Área de Dropzone se não atingiu o limite */}
       {mediaList.length < maxFiles && (
-        <div>
-          <button
-            type="button"
-            disabled={uploading}
-            onClick={() => fileInputRef.current?.click()}
-            className={cn(
-              "w-full border-2 border-dashed border-border hover:border-primary/50 bg-card hover:bg-muted/30 rounded-xl p-4 sm:p-6 transition-all flex flex-col items-center justify-center gap-2 text-center group cursor-pointer",
-              uploading && "opacity-60 cursor-not-allowed border-primary/30",
-            )}
-          >
-            {uploading ? (
-              <>
-                <Loader2 className="size-6 text-primary animate-spin" />
-                <p className="text-xs font-semibold text-foreground">
-                  {uploadProgress || "Processando mídias..."}
-                </p>
-                <p className="text-[10px] text-muted-foreground">
-                  Aguarde o envio para salvar o anúncio
-                </p>
-              </>
-            ) : (
-              <>
-                <div className="size-10 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:scale-105 transition-transform">
-                  <UploadCloud className="size-5" />
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-foreground">
-                    {label || "Clique ou arraste fotos e vídeos aqui"}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">
-                    {accept === "image" ? "JPG, PNG, WEBP ou GIF" : "JPG, PNG, WEBP ou MP4"} até {maxFiles} {maxFiles === 1 ? "arquivo" : "arquivos"} ({mediaList.length}/{maxFiles}{" "}
-                    adicionados)
-                  </p>
-                </div>
-              </>
-            )}
-          </button>
+        <div
+          onClick={() => fileInputRef.current?.click()}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+              handleFiles(Array.from(e.dataTransfer.files));
+            }
+          }}
+          className={cn(
+            "relative flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-2xl cursor-pointer transition-all",
+            "border-border/80 hover:border-primary/70 bg-card hover:bg-muted/30",
+            uploading && "pointer-events-none opacity-60",
+          )}
+        >
+          {uploading ? (
+            <div className="flex flex-col items-center gap-2 text-primary">
+              <Loader2 className="size-6 animate-spin" />
+              <span className="text-xs font-semibold text-foreground">
+                {uploadProgress || "Processando upload..."}
+              </span>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center text-center gap-1.5">
+              <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
+                <UploadCloud className="size-5" />
+              </div>
+              <p className="text-xs font-semibold text-foreground">
+                Clique ou arraste fotos e vídeos aqui
+              </p>
+              <p className="text-[11px] text-muted-foreground">
+                JPG, PNG, WEBP ou MP4 até {maxFiles} arquivo{maxFiles > 1 ? "s" : ""} ({mediaList.length}/{maxFiles} adicionados)
+              </p>
+            </div>
+          )}
 
           <input
             ref={fileInputRef}
             type="file"
-            multiple
+            multiple={maxFiles > 1}
             accept={acceptedTypes.join(",")}
             className="hidden"
             onChange={(e) => {
@@ -404,7 +438,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
         open={cropModalOpen}
         onOpenChange={setCropModalOpen}
         imageSrc={currentImageSrc}
-        aspect={aspect}
+        aspect={computedAspect}
         cropShape={cropShape}
         lockAspect={lockAspect}
         onCropCompleteAction={handleCropComplete}

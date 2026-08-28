@@ -61,11 +61,11 @@ export const Route = createFileRoute("/workspace/marketing/telemetria")({
 
 // ─── Status Config ────────────────────────────────────────────────────────────
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  initiated: { label: "Iniciado", color: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
+  initiated: { label: "Iniciado", color: "bg-muted text-muted-foreground border-border" },
   opened: { label: "Aberto", color: "bg-amber-500/10 text-amber-600 border-amber-500/20" },
   responded: { label: "Respondido", color: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" },
   converted: { label: "Convertido", color: "bg-primary/10 text-primary border-primary/20" },
-  lost: { label: "Perdido", color: "bg-red-500/10 text-red-600 border-red-500/20" },
+  lost: { label: "Perdido", color: "bg-destructive/10 text-destructive border-destructive/20" },
 };
 
 const ENTITY_LABELS: Record<string, string> = {
@@ -199,7 +199,7 @@ function WorkspaceTelemetriaPage() {
               { label: "Total de Leads", value: wa.total_leads, sub: "Últimos 30 dias", icon: <WhatsappLogo size={18} weight="bold" className="text-emerald-500" /> },
               { label: "Respondidos", value: wa.responded_leads, sub: "Confirmaram interesse", icon: <ChatCircle size={18} weight="bold" className="text-amber-500" /> },
               { label: "Convertidos", value: wa.converted_leads, sub: "Fecharam negócio", icon: <CheckCircle size={18} weight="bold" className="text-primary" /> },
-              { label: "Taxa de Conversão", value: `${(wa.conversion_rate ?? 0).toFixed(1)}%`, sub: "De leads → fechados", icon: <TrendUp size={18} weight="bold" className="text-blue-500" /> },
+              { label: "Taxa de Conversão", value: `${(wa.conversion_rate ?? 0).toFixed(1)}%`, sub: "De leads → fechados", icon: <TrendUp size={18} weight="bold" className="text-info" /> },
             ].map((card) => (
               <div key={card.label} className="p-5 rounded-3xl  bg-card space-y-2 ">
                 <div className="flex items-center justify-between text-muted-foreground">
@@ -333,8 +333,8 @@ function WorkspaceTelemetriaPage() {
             {[
               { label: "Impressões Totais", value: totalImpressions, sub: "Exibições renderizadas em tela", icon: <Eye size={18} weight="bold" className="text-primary" /> },
               { label: "Leitores Únicos", value: totalUniqueViews, sub: "Contas e sessões únicas validadas", icon: <TrendUp size={18} weight="bold" className="text-emerald-500" /> },
-              { label: "Cliques nos Anúncios", value: totalClicks, sub: "Interações diretas para o anunciante", icon: <CursorClick size={18} weight="bold" className="text-blue-500" /> },
-              { label: "CTR Médio", value: `${avgCtr}%`, sub: "Taxa de conversão por impressão", icon: <Percent size={18} weight="bold" className="text-purple-500" /> },
+              { label: "Cliques nos Anúncios", value: totalClicks, sub: "Interações diretas para o anunciante", icon: <CursorClick size={18} weight="bold" className="text-info" /> },
+              { label: "CTR Médio", value: `${avgCtr}%`, sub: "Taxa de conversão por impressão", icon: <Percent size={18} weight="bold" className="text-primary" /> },
             ].map((card) => (
               <div key={card.label} className="p-5 rounded-3xl  bg-card space-y-2 ">
                 <div className="flex items-center justify-between text-muted-foreground">

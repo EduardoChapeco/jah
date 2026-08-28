@@ -20,17 +20,19 @@ import { EmptyState } from "@/components/state/states";
 import { PageSkeleton } from "@/components/state/loading";
 import { HorizontalRail } from "@/components/commerce/horizontal-rail";
 import { StoreCard } from "@/components/commerce/store-card";
+import { OfferCard } from "@/components/commerce/offer-card";
 import { HotpagesRail } from "@/components/commerce/hotpages-rail";
 import {
   DiscoveryControlBar,
   type ViewModeType,
   type FilterChipOption,
 } from "@/components/commerce/discovery-control-bar";
-import { GroceryProductCard } from "@/components/commerce/grocery-product-card";
-import { getMarketplaceFeed } from "@/services/marketplace.functions";
+import { getModularSurfaceFeed } from "@/services/surface-cms.functions";
+import { ModularSurfaceFeed } from "@/components/commerce/modular-surface-feed";
 import { listActiveBanners } from "@/services/banner.functions";
 import { listHotpages } from "@/services/hotpage.functions";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
+import { resolveNicheDepartments } from "@/lib/niche-helpers";
 
 const SearchSchema = z.object({
   q: z.string().optional(),
@@ -69,7 +71,7 @@ export const Route = createFileRoute("/_store/moda")({
     const [banners, hotpages, marketplaceFeed] = await Promise.all([
       listActiveBanners({ data: { placement: "moda" } }).catch(() => []),
       listHotpages({ data: { module: "moda" } }).catch(() => []),
-      getMarketplaceFeed({ data: { niche: "moda" } }).catch(() => null),
+      getModularSurfaceFeed({ data: { surfaceSlug: "moda" } }).catch(() => ({ sections: [], allProducts: [] })),
     ]);
 
     return {
@@ -193,7 +195,7 @@ function ModaVerticalPage() {
       <DiscoveryControlBar
         search={search.q || ""}
         onSearchChange={(q) => navigate({ search: (prev) => ({ ...prev, q }) })}
-        searchPlaceholder="Buscar vestidos, camisetas, calçados, bolsas, jaquetas..."
+        searchPlaceholder="Buscar vestidos, calçados, bolsas, fitness, camisas..."
         categories={MODA_DEPARTMENTS}
         activeCategory={activeDepartment}
         onSelectCategory={handleDepartmentChange}
@@ -202,40 +204,41 @@ function ModaVerticalPage() {
         resultsCount={filteredProducts.length}
       />
 
-      {/* ── 4. Lojas em Destaque ── */}
-      {fashionStores.length > 0 && (
-        <section aria-label="Boutiques & Lojas Locais">
-          <HorizontalRail title="Boutiques & Lojas Locais" hideHeader={true}>
-            {fashionStores.map((store: any) => (
-              <StoreCard key={store.id} {...store} />
-            ))}
-          </HorizontalRail>
+      {/* ── 4. Renderização do Feed Modular ou Grade Filtrada ── */}
+      {viewMode === "feed" ? (
+        <div className="space-y-8">
+          {marketplaceFeed?.sections && marketplaceFeed.sections.length > 0 ? (
+            <ModularSurfaceFeed sections={marketplaceFeed.sections} />
+          ) : (
+            <div className="py-12 text-center text-xs text-muted-foreground">
+              Nenhuma seção ativa no momento.
+            </div>
+          )}
+        </div>
+      ) : (
+        <section aria-label="Vitrine de Roupas & Calçados">
+          {filteredProducts.length === 0 ? (
+            <div className="py-12 text-center bg-card rounded-3xl p-6">
+              <EmptyState
+                title="Nenhuma peça de roupa encontrada"
+                description="Tente selecionar outro departamento ou busque por marcas e tamanhos."
+              />
+            </div>
+          ) : viewMode === "list" ? (
+            <div className="flex flex-col gap-3">
+              {filteredProducts.map((product: any) => (
+                <OfferCard key={product.id} {...product} />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+              {filteredProducts.map((product: any) => (
+                <OfferCard key={product.id} {...product} />
+              ))}
+            </div>
+          )}
         </section>
       )}
-
-      {/* ── 5. Vitrine de Roupas & Calçados ── */}
-      <section aria-label="Vitrine de Roupas & Calçados">
-        {filteredProducts.length === 0 ? (
-          <div className="py-12 text-center bg-card rounded-3xl  p-6 ">
-            <EmptyState
-              title="Nenhuma peça de roupa encontrada"
-              description="Tente selecionar outro departamento ou busque por marcas e tamanhos."
-            />
-          </div>
-        ) : viewMode === "list" ? (
-          <div className="flex flex-col gap-3">
-            {filteredProducts.map((product: any) => (
-              <GroceryProductCard key={product.id} product={product} viewMode="list" />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-            {filteredProducts.map((product: any) => (
-              <GroceryProductCard key={product.id} product={product} viewMode="grid" />
-            ))}
-          </div>
-        )}
-      </section>
     </div>
   );
 }

@@ -38,7 +38,7 @@ export async function _listOrders(store_id: string) {
     .select(
       `
         id, public_token, status, total_cents, customer_snapshot, created_at, shipping_method,
-        order_items ( id, product_title, variant_sku, qty, unit_price_cents, total_cents, metadata )
+        order_items ( id, product_title, variant_sku, qty, unit_price_cents, total_cents, metadata, item_type, item_id, selected_options )
       `,
     )
     .eq("store_id", store_id)
@@ -58,7 +58,7 @@ export async function _getOrderById(orderId: string, store_id: string) {
       id, public_token, status, total_cents, subtotal_cents, shipping_cents, discount_cents,
       customer_snapshot, created_at, shipping_method, shipping_address,
       shipped_at, delivered_at,
-      order_items ( id, product_title, variant_sku, qty, unit_price_cents, total_cents, metadata, selected_options ),
+      order_items ( id, product_title, variant_sku, qty, unit_price_cents, total_cents, metadata, item_type, item_id, selected_options ),
       shipments ( id, tracking_code, carrier_name, tracking_url, status, shipped_at, delivered_at )
     `,
     )
@@ -217,7 +217,7 @@ export const listCustomerOrders = createServerFn({ method: "GET" }).handler(asyn
       .select(
         `
         id, public_token, status, total_cents, created_at,
-        order_items ( id, product_title, variant_sku, qty, unit_price_cents, total_cents )
+        order_items ( id, product_title, variant_sku, qty, unit_price_cents, total_cents, item_type, item_id, selected_options )
       `,
       )
       .eq("customer_id", user.id)
@@ -262,7 +262,7 @@ export const getCustomerOrder = createServerFn({ method: "GET" })
           `
           id, public_token, status, total_cents, subtotal_cents, shipping_cents, discount_cents,
           customer_snapshot, shipping_method, shipping_address, created_at,
-          order_items ( id, product_title, variant_sku, qty, unit_price_cents, total_cents ),
+          order_items ( id, product_title, variant_sku, qty, unit_price_cents, total_cents, item_type, item_id, selected_options ),
           payments ( id, method, status, amount_cents, receipt_url, receipt_status )
         `,
         )
@@ -619,7 +619,7 @@ export const getOrderForReceipt = createServerFn({ method: "GET" })
           `
           id, public_token, status, total_cents, subtotal_cents, shipping_cents, discount_cents,
           customer_snapshot, created_at, shipping_method,
-          order_items ( id, product_title, variant_sku, qty, unit_price_cents, total_cents )
+          order_items ( id, product_title, variant_sku, qty, unit_price_cents, total_cents, item_type, item_id, selected_options )
         `,
         )
         .eq("id", id)
@@ -701,3 +701,69 @@ export const respondToDispatch = createServerFn({ method: "POST" })
 
     return { success: true };
   });
+
+export const closePdvComanda = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      orderId: z.string().uuid(),
+      paymentMethod: z.enum(["cash", "pix", "card", "token"]),
+    }),
+  )
+  .handler(async ({ data: { orderId, paymentMethod } }) => {
+    try {
+      const identity = await getServerIdentity();
+      assertStoreAccess(identity, ["owner", "admin", "manager", "seller"]);
+
+      const db = getServerClient();
+
+      // 1. Fetch order
+      const { data: order, error: orderError } = await db
+        .from("orders")
+        .select("id, total_cents, table_identifier, store_id")
+        .eq("id", orderId)
+        .eq("store_id", identity.store_id)
+        .single();
+
+      if (orderError || !order) throw new Error("Comanda não encontrada.");
+
+      // 2. Update order status to 'paid'
+      const { error: updateError } = await db
+        .from("orders")
+        .update({
+          status: "paid",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", orderId);
+
+      if (updateError) throw updateError;
+
+      // 3. If paid in cash, automatically inject entry into active cash register if open
+      if (paymentMethod === "cash") {
+        const { data: activeRegister } = await db
+          .from("cash_registers")
+          .select("id")
+          .eq("store_id", identity.store_id)
+          .eq("status", "open")
+          .maybeSingle();
+
+        if (activeRegister) {
+          await db.from("cash_register_entries").insert({
+            cash_register_id: activeRegister.id,
+            order_id: orderId,
+            amount_cents: order.total_cents,
+            entry_type: "cash",
+            notes: `Pagamento de Comanda #${order.table_identifier || orderId.slice(0, 8)}`,
+            created_by: identity.id,
+          });
+        }
+      }
+
+      return { success: true };
+    } catch (e: unknown) {
+      console.error("[order.functions] closePdvComanda error:", e);
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao liquidar comanda.",
+      );
+    }
+  });
+

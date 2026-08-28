@@ -87,7 +87,7 @@ function EventDetailPage() {
       {/* Hero Section */}
       <div className="space-y-6">
         {event.cover_image && (
-          <div className="w-full aspect-video md:aspect-[21/9] overflow-hidden  rounded-3xl bg-muted ">
+          <div className="w-full aspect-video md:aspect-[21/9] overflow-hidden rounded-2xl border border-border/60 bg-muted">
             <img src={event.cover_image} alt={event.title} className="w-full h-full object-cover" />
           </div>
         )}
@@ -131,7 +131,7 @@ function EventDetailPage() {
             {event.title}
           </h1>
           {event.description && (
-            <p className="text-base text-foreground/80 max-w-3xl leading-relaxed whitespace-pre-wrap pt-2">
+            <p className="text-base text-foreground/80 max-w-3xl leading-relaxed whitespace-pre-line pt-2">
               {event.description}
             </p>
           )}
@@ -139,7 +139,7 @@ function EventDetailPage() {
       </div>
 
       {/* Tickets Section */}
-      <div className=" pt-10">
+      <div className="pt-10">
         <div className="flex items-center gap-3 mb-6">
           <Ticket size={24} weight="bold" className="text-foreground" />
           <h2 className="text-2xl font-bold text-foreground tracking-tight">
@@ -148,7 +148,7 @@ function EventDetailPage() {
         </div>
 
         {activeLots.length === 0 ? (
-          <div className="bg-card p-8 text-center border-0 rounded-2xl">
+          <div className="bg-card p-8 text-center rounded-2xl border border-border/60">
             <p className="text-sm font-medium text-muted-foreground">
               Nenhum lote de ingressos disponível no momento.
             </p>
@@ -162,10 +162,10 @@ function EventDetailPage() {
               return (
                 <div
                   key={lot.id}
-                  className={`p-6 border rounded-2xl transition-all ${
+                  className={`p-6 rounded-2xl border transition-all ${
                     isSoldOut
-                      ? "border-border bg-muted/30 opacity-70"
-                      : "border-border bg-card hover:border-primary/50 "
+                      ? "border-border/60 bg-muted/30 opacity-70"
+                      : "border-border/60 bg-card hover:border-primary/50"
                   }`}
                 >
                   <div className="flex justify-between items-start mb-4">

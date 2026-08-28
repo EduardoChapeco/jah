@@ -73,13 +73,13 @@ export default function AgencyQuotesPage() {
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* ── 1. Top Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-3xl  bg-card ">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-card border border-border/60">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary">
               Módulo Agências & Turismo
             </span>
-            <Badge variant="outline" className="text-xs bg-blue-500/10 text-blue-600 border-blue-500/20">
+            <Badge variant="outline" className="text-xs bg-info/10 text-info border-info/20">
               ✈️ Gestão de Leads CVC
             </Badge>
           </div>
@@ -111,7 +111,7 @@ export default function AgencyQuotesPage() {
               onClick={() => setSelectedStatus(f.id)}
               className={`h-9 px-3.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 selectedStatus === f.id
-                  ? "bg-foreground text-background "
+                  ? "bg-foreground text-background"
                   : "bg-muted/60 text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -124,13 +124,13 @@ export default function AgencyQuotesPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar por cliente, destino ou origem..."
-          className="h-10 max-w-xs rounded-xl text-xs bg-card border-border "
+          className="h-10 max-w-xs rounded-xl text-xs bg-card border-border/60"
         />
       </div>
 
       {/* ── 3. Lista de Cotações Recebidas ── */}
       {quotesList.length === 0 ? (
-        <div className="py-20 text-center space-y-3 bg-muted/10 rounded-3xl border-0 p-8">
+        <div className="py-20 text-center space-y-3 bg-card rounded-2xl border border-border/60 p-8">
           <AirplaneTilt size={40} className="mx-auto text-muted-foreground" />
           <h3 className="text-sm font-bold text-foreground">Nenhuma cotação encontrada</h3>
           <p className="text-xs text-muted-foreground max-w-sm mx-auto">
@@ -159,7 +159,7 @@ export default function AgencyQuotesPage() {
             return (
               <Card
                 key={q.id}
-                className="p-5 rounded-3xl border-border bg-card  space-y-4 hover:border-primary/40 transition-all flex flex-col justify-between"
+                className="p-5 rounded-2xl border border-border/60 bg-card space-y-4 hover:border-primary/40 transition-all flex flex-col justify-between shadow-none"
               >
                 <div className="space-y-3">
                   {/* Top Header do Card de Cotação */}
@@ -173,7 +173,7 @@ export default function AgencyQuotesPage() {
                   </div>
 
                   {/* Rota da Viagem: Origem -> Destino */}
-                  <div className="p-3 rounded-2xl bg-muted/40  space-y-1">
+                  <div className="p-3 rounded-xl bg-muted/40 border border-border/40 space-y-1">
                     <div className="flex items-center justify-between text-xs font-bold text-foreground">
                       <span className="flex items-center gap-1.5">
                         <MapPin size={14} className="text-muted-foreground" />
@@ -186,7 +186,7 @@ export default function AgencyQuotesPage() {
                     </div>
 
                     {(q.departure_date || q.return_date) && (
-                      <div className="flex items-center gap-2 text-[11px] text-muted-foreground pt-1  font-mono">
+                      <div className="flex items-center gap-2 text-[11px] text-muted-foreground pt-1 font-mono">
                         <CalendarDots size={12} />
                         <span>
                           {q.departure_date ? formatDate(q.departure_date) : "Data a definir"} até{" "}
@@ -230,7 +230,7 @@ export default function AgencyQuotesPage() {
                     )}
 
                     {q.special_notes && (
-                      <p className="text-[11px] italic bg-muted/20 p-2 rounded-xl  text-muted-foreground line-clamp-2 mt-2">
+                      <p className="text-[11px] italic bg-muted/20 p-2.5 rounded-xl border border-border/40 text-muted-foreground line-clamp-2 mt-2">
                         "{q.special_notes}"
                       </p>
                     )}
@@ -238,7 +238,7 @@ export default function AgencyQuotesPage() {
                 </div>
 
                 {/* Ações Rápidas do Consultor de Viagem */}
-                <div className="pt-3  flex items-center justify-between gap-2">
+                <div className="pt-3 border-t border-border/40 flex items-center justify-between gap-2">
                   <div className="min-w-0">
                     <span className="text-xs font-bold text-foreground block truncate">
                       {q.contact_name}
@@ -251,7 +251,7 @@ export default function AgencyQuotesPage() {
                   <Button
                     asChild
                     size="sm"
-                    className="rounded-xl font-bold text-xs h-9 px-4 bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 "
+                    className="rounded-xl font-bold text-xs h-9 px-4 bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5"
                   >
                     <a
                       href={`https://wa.me/55${cleanWhatsapp}?text=${waMessage}`}

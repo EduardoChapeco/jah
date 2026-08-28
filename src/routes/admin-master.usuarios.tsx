@@ -189,7 +189,7 @@ function AdminUsuariosPage() {
                         {u.role}
                       </Badge>
                       {u.is_verified && (
-                        <Badge className="bg-blue-600 text-white text-[10px]">
+                        <Badge className="bg-info text-white text-[10px]">
                           ✓ Verificado
                         </Badge>
                       )}

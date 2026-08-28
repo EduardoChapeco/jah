@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import {
   Car,
@@ -23,8 +23,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { listCouriers, type CourierSummaryDTO } from "@/services/fleet.functions";
+import { listCouriers, updateCourier, type CourierSummaryDTO } from "@/services/fleet.functions";
 import { formatMoney } from "@/lib/money";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/workspace/pedidos/entregadores/")({
   head: () => ({ meta: [{ title: "Entregadores — Wider Workspace" }] }),
@@ -65,6 +66,7 @@ function StatusBadge({ status }: { status: string }) {
 
 function CouriersListPage() {
   const { initialData } = Route.useLoaderData();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | undefined>();
 
@@ -74,6 +76,28 @@ function CouriersListPage() {
       listCouriers({ data: { status: statusFilter as any, search: search || undefined } }),
     initialData: statusFilter === undefined && !search ? initialData : undefined,
     staleTime: 60_000,
+  });
+
+  const toggleStatusMutation = useMutation({
+    mutationFn: async ({ courierId, newStatus }: { courierId: string; newStatus: "available" | "suspended" | "offline" }) => {
+      return updateCourier({
+        data: {
+          courier_id: courierId,
+          data: { status: newStatus },
+        },
+      });
+    },
+    onSuccess: (_, variables) => {
+      toast.success(
+        variables.newStatus === "suspended"
+          ? "Entregador suspenso temporariamente."
+          : "Status do entregador atualizado.",
+      );
+      queryClient.invalidateQueries({ queryKey: ["couriers"] });
+    },
+    onError: (err: any) => {
+      toast.error(err?.message || "Erro ao atualizar entregador.");
+    },
   });
 
   return (
@@ -136,7 +160,7 @@ function CouriersListPage() {
       )}
 
       {!isLoading && couriers && couriers.length > 0 && (
-        <div className=" rounded-lg overflow-hidden bg-background">
+        <div className=" rounded-lg overflow-hidden bg-card border">
           <table className="w-full text-sm text-left">
             <thead className="bg-muted/30  text-xs text-muted-foreground uppercase tracking-wider">
               <tr>
@@ -150,6 +174,8 @@ function CouriersListPage() {
             <tbody className="divide-y divide-border">
               {couriers.map((courier) => {
                 const VehicleIcon = VEHICLE_ICONS[courier.vehicle_type] ?? Bike;
+                const isSuspended = courier.status === "suspended";
+
                 return (
                   <tr key={courier.id} className="hover:bg-muted/20 transition-colors group">
                     <td className="px-4 py-3">
@@ -173,7 +199,7 @@ function CouriersListPage() {
                     <td className="px-4 py-3">
                       <StatusBadge status={courier.status} />
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 text-right font-mono">
                       {courier.default_fee_cents > 0
                         ? formatMoney(courier.default_fee_cents)
                         : "---"}
@@ -184,12 +210,12 @@ function CouriersListPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="size-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="size-8 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"
                           >
                             <MoreVertical className="size-4 text-muted-foreground" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-40">
+                        <DropdownMenuContent align="end" className="w-44 rounded-xl">
                           <DropdownMenuItem asChild>
                             <Link
                               to="/workspace/pedidos/entregadores/$id"
@@ -198,8 +224,23 @@ function CouriersListPage() {
                               Ver Detalhes
                             </Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem>Gerar Fatura</DropdownMenuItem>
-                          <DropdownMenuItem className="text-danger">Suspender</DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link to="/workspace/pedidos/frota">
+                              Gerenciar Despachos
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className={isSuspended ? "text-success font-medium" : "text-danger"}
+                            onClick={() =>
+                              toggleStatusMutation.mutate({
+                                courierId: courier.id,
+                                newStatus: isSuspended ? "available" : "suspended",
+                              })
+                            }
+                            disabled={toggleStatusMutation.isPending}
+                          >
+                            {isSuspended ? "Reativar Entregador" : "Suspender"}
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </td>
@@ -213,3 +254,4 @@ function CouriersListPage() {
     </div>
   );
 }
+

@@ -103,13 +103,13 @@ function MuralPage() {
 
       {/* 3. Filtros do Feed Social — Segmented Tabs estilo Apple / Threads */}
       <div className="sticky top-0 z-30 -mx-3 sm:mx-0 px-3 sm:px-0 py-2.5 bg-background/95 backdrop-blur-md border-b sm:border-none border-border/40 flex items-center justify-between gap-3">
-        <div className="flex-1 max-w-lg flex items-center gap-1 p-1 bg-muted/60 rounded-2xl border border-border/40 shadow-2xs">
+        <div className="flex-1 max-w-lg flex items-center gap-1 p-1 bg-muted/60 rounded-2xl border border-border/40">
           <button
             onClick={() => setActiveFeedTab("for_you")}
             className={cn(
               "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
               activeFeedTab === "for_you"
-                ? "bg-card text-foreground shadow-xs border border-border/50"
+                ? "bg-card text-foreground border border-border/50"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
             )}
           >
@@ -122,7 +122,7 @@ function MuralPage() {
             className={cn(
               "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
               activeFeedTab === "following"
-                ? "bg-card text-foreground shadow-xs border border-border/50"
+                ? "bg-card text-foreground border border-border/50"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
             )}
           >
@@ -135,7 +135,7 @@ function MuralPage() {
             className={cn(
               "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
               activeFeedTab === "moments"
-                ? "bg-card text-foreground shadow-xs border border-border/50"
+                ? "bg-card text-foreground border border-border/50"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
             )}
           >
@@ -148,7 +148,7 @@ function MuralPage() {
             className={cn(
               "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
               activeFeedTab === "classifieds"
-                ? "bg-card text-foreground shadow-xs border border-border/50"
+                ? "bg-card text-foreground border border-border/50"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
             )}
           >
@@ -161,7 +161,7 @@ function MuralPage() {
         <Button
           size="sm"
           variant="outline"
-          className="h-10 px-3.5 rounded-2xl text-xs font-bold gap-1.5 shrink-0 cursor-pointer border-border/60 bg-card hover:bg-muted shadow-2xs"
+          className="h-10 px-3.5 rounded-2xl text-xs font-bold gap-1.5 shrink-0 cursor-pointer border-border/60 bg-card hover:bg-muted"
           onClick={() => setIsMomentsPickerOpen(true)}
           title="Definir seu status / humor atual no mapa e feed"
         >

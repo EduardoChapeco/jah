@@ -3,7 +3,7 @@ param (
 )
 
 Write-Host "=========================================="
-Write-Host " Deploy Full Pipeline: Jah Community      "
+Write-Host " Deploy Full Pipeline: Wider Community    "
 Write-Host "=========================================="
 
 if (-Not (Test-Path $EnvFilePath)) {
@@ -59,7 +59,7 @@ foreach ($key in $secretKeysToPush) {
     if ($secrets.ContainsKey($key)) {
         Write-Host " -> Empacotando secret: $key"
         try {
-            $secrets[$key] | npx wrangler pages secret put $key --project-name jah 2>$null
+            $secrets[$key] | npx wrangler pages secret put $key --project-name wider 2>$null
         } catch {
             Write-Host " Erro ao colocar o secret $key" -ForegroundColor Red
         }
@@ -73,7 +73,7 @@ if (Test-Path ".output\public") {
     $outputDir = ".output\public"
 }
 Write-Host "Diretório alvo: $outputDir"
-npx wrangler pages deploy $outputDir --project-name jah
+npx wrangler pages deploy $outputDir --project-name wider
 
 Write-Host "=========================================="
 Write-Host "Deploy Finalizado com Sucesso!" -ForegroundColor Green

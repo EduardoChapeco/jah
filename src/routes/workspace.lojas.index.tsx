@@ -161,7 +161,7 @@ export default function WorkspaceLojasPage() {
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Catálogo Integrado
             </span>
-            <div className="size-8 rounded-xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center">
+            <div className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
               <Package className="size-4" />
             </div>
           </div>

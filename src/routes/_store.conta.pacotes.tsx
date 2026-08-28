@@ -300,7 +300,7 @@ function CustomerPassesPage() {
 
       {/* ── Modal de Agendamento por Crédito ── */}
       <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
-        <DialogContent className="max-w-md rounded-3xl p-6">
+        <DialogContent className="sm:max-w-md sm:rounded-3xl sm:p-6">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold flex items-center gap-2">
               <Ticket className="size-5 text-primary" />

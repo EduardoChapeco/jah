@@ -743,14 +743,7 @@ export function CheckoutPage() {
                     )}
                   </div>
                 </div>
-              ) : (
-                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-muted/20 ">
-                  <span className="text-xs text-muted-foreground">Já possui conta no Wider?</span>
-                  <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-bold h-8">
-                    <Link to="/entrar">Fazer Login</Link>
-                  </Button>
-                </div>
-              )}
+              ) : null}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5 sm:col-span-2">
@@ -1267,7 +1260,7 @@ export function CheckoutPage() {
                   )}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="size-9 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0 font-bold">
+                    <div className="size-9 rounded-xl bg-info/10 text-info flex items-center justify-center shrink-0 font-bold">
                       <CreditCard size={18} />
                     </div>
                     <div>

@@ -87,7 +87,7 @@ export function PostCommentsDrawer({
 
       {/* Drawer Container */}
       <div
-        className="relative w-full max-w-lg mx-auto bg-background rounded-t-3xl border-t border-border shadow-2xl flex flex-col h-[75vh] max-h-[600px] overflow-hidden animate-in slide-in-from-bottom duration-300"
+        className="relative w-full max-w-lg mx-auto bg-background sm:rounded-t-3xl rounded-t-2xl border-t border-border flex flex-col h-[75vh] max-h-[600px] overflow-hidden animate-in slide-in-from-bottom duration-300"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Drag Handle & Header */}

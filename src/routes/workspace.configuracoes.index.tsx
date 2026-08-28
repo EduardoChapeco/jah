@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import {
   Store,
@@ -40,6 +40,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CitySelect } from "@/components/ui/city-select";
+import { ThemeSelector } from "@/components/settings/theme-selector";
+import { BusinessHoursEditor } from "@/components/commerce/business-hours-editor";
+import { NeighborhoodsManager } from "@/components/commerce/neighborhoods-manager";
 import { CHAPECO_NEIGHBORHOODS, type NeighborhoodPreset } from "@/lib/constants/cities";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -81,6 +84,7 @@ const DAYS_MAP = [
 
 export default function WorkspaceConfiguracoesPage() {
   const { store, workingHours: initialHours, policies: initialPolicies } = Route.useLoaderData();
+  const router = useRouter();
 
   // Estados da Loja
   const [name, setName] = useState(store?.name || "");
@@ -104,9 +108,24 @@ export default function WorkspaceConfiguracoesPage() {
   const [returnPolicy, setReturnPolicy] = useState(initialPolicies?.return_policy || "");
   const [terms, setTerms] = useState(initialPolicies?.terms || "");
 
+  // Bairros & Taxas de Entrega
+  const [neighborhoods, setNeighborhoods] = useState<any[]>(
+    store?.settings?.delivery_zones && store.settings.delivery_zones.length > 0
+      ? store.settings.delivery_zones
+      : CHAPECO_NEIGHBORHOODS,
+  );
+
   // Perguntas Customizadas de Checkout
   const [customFields, setCustomFields] = useState<any[]>(
     store?.settings?.custom_checkout_fields || [],
+  );
+
+  // Feriados & Pausa de Emergência
+  const [holidayExceptions, setHolidayExceptions] = useState<any[]>(
+    store?.settings?.holiday_exceptions || [],
+  );
+  const [emergencyPauseUntil, setEmergencyPauseUntil] = useState<string | null>(
+    store?.settings?.emergency_pause_until || null,
   );
 
   const [isSaving, setIsSaving] = useState(false);
@@ -162,7 +181,7 @@ export default function WorkspaceConfiguracoesPage() {
 
     setIsSaving(true);
     try {
-      // 1. Salva Dados da Loja e Perguntas de Checkout
+      // 1. Salva Dados da Loja, Bairros e Perguntas de Checkout
       await saveStoreSettings({
         data: {
           name: name.trim(),
@@ -178,6 +197,9 @@ export default function WorkspaceConfiguracoesPage() {
           state: state.trim().toUpperCase() || undefined,
           zip_code: zipCode.trim() || undefined,
           custom_checkout_fields: customFields,
+          delivery_zones: neighborhoods,
+          holiday_exceptions: holidayExceptions,
+          emergency_pause_until: emergencyPauseUntil,
         },
       });
 
@@ -196,6 +218,7 @@ export default function WorkspaceConfiguracoesPage() {
       }
 
       toast.success("Configurações da loja salvas com sucesso!");
+      router.invalidate();
     } catch (err: any) {
       toast.error(err.message || "Erro ao salvar configurações.");
     } finally {
@@ -247,12 +270,15 @@ export default function WorkspaceConfiguracoesPage() {
 
       {/* ── 2. Abas de Governança ── */}
       <Tabs defaultValue="geral" className="w-full space-y-6">
-        <TabsList className="grid grid-cols-2 sm:grid-cols-5 bg-muted/60 p-1 rounded-2xl">
+        <TabsList className="grid grid-cols-2 sm:grid-cols-6 bg-muted/60 p-1 rounded-2xl">
           <TabsTrigger value="geral" className="rounded-xl text-xs font-semibold">
             Marca & Vitrine
           </TabsTrigger>
           <TabsTrigger value="contato" className="rounded-xl text-xs font-semibold">
             Contato & Endereço
+          </TabsTrigger>
+          <TabsTrigger value="entrega" className="rounded-xl text-xs font-semibold">
+            Entrega & Bairros
           </TabsTrigger>
           <TabsTrigger value="horarios" className="rounded-xl text-xs font-semibold">
             Horários de Atendimento
@@ -345,6 +371,17 @@ export default function WorkspaceConfiguracoesPage() {
               />
             </div>
           </Card>
+
+          {/* Tema do Workspace */}
+          <Card className="p-6 rounded-3xl border-border bg-card space-y-4">
+            <div>
+              <h2 className="text-base font-bold text-foreground">Aparência do Painel & Tema</h2>
+              <p className="text-xs text-muted-foreground">
+                Escolha a preferência visual para a navegação do seu painel e vitrines.
+              </p>
+            </div>
+            <ThemeSelector />
+          </Card>
         </TabsContent>
 
         {/* ABA 2: Contato & Endereço */}
@@ -417,87 +454,39 @@ export default function WorkspaceConfiguracoesPage() {
           </Card>
         </TabsContent>
 
+        {/* ABA: Entrega & Bairros */}
+        <TabsContent value="entrega" className="space-y-6">
+          <Card className="p-6 rounded-3xl border-border bg-card space-y-5">
+            <NeighborhoodsManager
+              cityName={city || "Chapecó"}
+              value={neighborhoods}
+              onChange={setNeighborhoods}
+            />
+          </Card>
+        </TabsContent>
+
         {/* ABA 3: Horários de Atendimento */}
         <TabsContent value="horarios" className="space-y-6">
-          <Card className="p-6 rounded-3xl border-border bg-card space-y-4 ">
-            <div className=" pb-4">
+          <Card className="p-6 rounded-3xl border-border bg-card space-y-5">
+            <div className="pb-2">
               <h2 className="text-base font-bold text-foreground">Grade de Horários de Funcionamento</h2>
               <p className="text-xs text-muted-foreground">
-                Define os momentos em que a loja aceita pedidos imediatos para entrega ou retirada no balcão.
+                Define os momentos em que a loja aceita pedidos imediatos para entrega, agendamentos ou retirada no balcão.
               </p>
             </div>
 
-            <div className="space-y-3 pt-2">
-              {DAYS_MAP.map((day) => {
-                const daySchedule = hours[day.key] || { open: true, intervals: [{ from: "09:00", to: "18:00" }] };
-                const isOpen = daySchedule.open;
-                const interval = daySchedule.intervals?.[0] || { from: "09:00", to: "18:00" };
-
-                return (
-                  <div
-                    key={day.key}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-2xl  bg-muted/20 gap-3"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Switch
-                        checked={isOpen}
-                        onCheckedChange={(checked) => {
-                          setHours((prev: any) => ({
-                            ...prev,
-                            [day.key]: {
-                              ...daySchedule,
-                              open: checked,
-                            },
-                          }));
-                        }}
-                      />
-                      <span className="font-semibold text-xs text-foreground w-28">
-                        {day.label}
-                      </span>
-                    </div>
-
-                    {isOpen ? (
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] text-muted-foreground">Das</span>
-                        <Input
-                          type="time"
-                          value={interval.from}
-                          onChange={(e) => {
-                            setHours((prev: any) => ({
-                              ...prev,
-                              [day.key]: {
-                                open: true,
-                                intervals: [{ from: e.target.value, to: interval.to }],
-                              },
-                            }));
-                          }}
-                          className="w-24 rounded-xl text-xs h-8"
-                        />
-                        <span className="text-[11px] text-muted-foreground">às</span>
-                        <Input
-                          type="time"
-                          value={interval.to}
-                          onChange={(e) => {
-                            setHours((prev: any) => ({
-                              ...prev,
-                              [day.key]: {
-                                open: true,
-                                intervals: [{ from: interval.from, to: e.target.value }],
-                              },
-                            }));
-                          }}
-                          className="w-24 rounded-xl text-xs h-8"
-                        />
-                      </div>
-                    ) : (
-                      <Badge variant="secondary" className="text-[11px] text-muted-foreground">
-                        Fechado o dia todo
-                      </Badge>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+            <BusinessHoursEditor
+              value={hours}
+              onChange={(newHours) => setHours(newHours)}
+              holidayExceptions={holidayExceptions}
+              onHolidayExceptionsChange={setHolidayExceptions}
+              emergencyPauseUntil={emergencyPauseUntil}
+              onEmergencyPauseChange={setEmergencyPauseUntil}
+              showPresets={true}
+              showStatusPreview={true}
+              showHolidays={true}
+              showEmergencyPause={true}
+            />
           </Card>
         </TabsContent>
 

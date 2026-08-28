@@ -113,10 +113,10 @@ export function HotpagesRail({
             </>
           );
 
-          const baseClass = `group relative flex flex-col justify-end aspect-16/10 sm:aspect-4/3 w-[240px] sm:w-[280px] shrink-0 rounded-2xl sm:rounded-3xl border bg-card overflow-hidden transition-all duration-300 cursor-pointer ${
+          const baseClass = `group relative flex flex-col justify-end aspect-16/9 w-[260px] sm:w-[320px] shrink-0 rounded-2xl sm:rounded-3xl border border-border/40 bg-card overflow-hidden transition-all duration-300 cursor-pointer ${
             isActive
               ? "border-foreground ring-2 ring-foreground/20 font-bold"
-              : "border-border/80 hover:border-foreground/30"
+              : "border-border/40 hover:border-foreground/30"
           }`;
 
           if (onSelect) {

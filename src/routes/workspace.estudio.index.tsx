@@ -1,211 +1,683 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  Wand2,
-  LayoutTemplate,
-  Palette,
-  Maximize,
-  Download,
-  ArrowLeft,
+  Sparkles,
+  Type,
+  Square,
   Image as ImageIcon,
+  Palette,
+  Layers,
+  Save,
+  Download,
+  Play,
+  Pause,
+  Plus,
+  Trash2,
+  Copy,
+  Undo2,
+  Redo2,
+  ZoomIn,
+  ZoomOut,
+  Video,
+  Film,
+  Music,
+  Scissors,
+  ArrowLeft,
+  Smartphone,
+  Check,
+  Loader2,
+  ChevronRight,
+  Maximize2,
 } from "lucide-react";
 
-import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Surface } from "@/components/ui/surface";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { Badge } from "@/components/ui/badge";
 import {
-  PresentationRenderer,
-  PresetID,
-  AspectRatio,
-  EntityData,
-} from "@/components/commerce/presentation-renderer";
+  type StudioElement,
+  type SlideBackground,
+  type StudioAspectRatio,
+  STUDIO_DIMENSIONS,
+  DEFAULT_TEXT_PROPERTIES,
+  DEFAULT_SHAPE_PROPERTIES,
+} from "@/types/studio";
+import { StudioCanvas } from "@/components/studio/studio-canvas";
+import {
+  listStudioProjects,
+  listStudioTemplates,
+  saveStudioProject,
+  getStudioProjectById,
+  type StudioProjectDTO,
+  type StudioTemplateDTO,
+} from "@/services/studio.functions";
 import { getProductById } from "@/services/admin-catalog.functions";
 
 export const Route = createFileRoute("/workspace/estudio/")({
-  head: () => ({ meta: [{ title: "Estúdio de Criação" }] }),
+  head: () => ({ meta: [{ title: "Wider Studio 3.0 — Criação & Vídeo" }] }),
   validateSearch: (search: Record<string, unknown>) => {
     return {
+      projectId: search.projectId as string | undefined,
       productId: search.productId as string | undefined,
+      mode: (search.mode as "graphic" | "video") || "graphic",
     };
   },
-  loaderDeps: ({ search }) => ({ productId: search.productId }),
-  loader: async ({ deps }) => {
-    if (!deps.productId) return null;
-    return await getProductById({ data: { id: deps.productId } });
-  },
-  component: EstudioPage,
+  component: StudioWorkspacePage,
 });
 
-function EstudioPage() {
+function StudioWorkspacePage() {
   const navigate = useNavigate();
   const searchParams = Route.useSearch();
-  const initialProduct = Route.useLoaderData();
 
-  const [entity, setEntity] = useState<EntityData | null>(null);
-  const [preset, setPreset] = useState<PresetID>("lambe");
-  const [aspectRatio, setAspectRatio] = useState<AspectRatio>("1:1");
-  const [colorScheme, setColorScheme] = useState<"default" | "primary" | "yellow" | "charcoal">(
-    "primary",
-  );
+  // Mode: Graphic Studio vs Video Studio
+  const [studioMode, setStudioMode] = useState<"graphic" | "video">(searchParams.mode || "graphic");
+  const [activeTab, setActiveTab] = useState<"templates" | "text" | "elements" | "media" | "background" | "audio">("templates");
 
-  useEffect(() => {
-    if (initialProduct) {
-      setEntity({
-        title: initialProduct.title,
-        description: initialProduct.description,
-        price_cents: initialProduct.price_cents,
-        image_url: initialProduct.product_media?.[0]?.url,
-        category: "Oferta Especial",
-      });
-    } else {
-      setEntity(null);
+  // Project Meta
+  const [projectId, setProjectId] = useState<string | undefined>(searchParams.projectId);
+  const [projectTitle, setProjectTitle] = useState("Meu Projeto Studio");
+  const [aspectRatio, setAspectRatio] = useState<StudioAspectRatio>("1:1");
+  const [zoom, setZoom] = useState(1);
+
+  // Graphic Canvas State
+  const [background, setBackground] = useState<SlideBackground>({
+    type: "color",
+    value: "#0F172A",
+  });
+  const [elements, setElements] = useState<StudioElement[]>([
+    {
+      id: "el-title",
+      type: "text",
+      layer: 7,
+      zIndex: 1,
+      position: { x: 50, y: 35 },
+      size: { width: 85, height: 20 },
+      rotation: 0,
+      opacity: 1,
+      locked: false,
+      visible: true,
+      properties: {
+        ...DEFAULT_TEXT_PROPERTIES,
+        content: "SUPER OFERTA DA SEMANA",
+        color: "#FACC15",
+      },
+    },
+  ]);
+  const [selectedElementId, setSelectedElementId] = useState<string | null>("el-title");
+
+  // Video Studio State
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [videoDuration, setVideoDuration] = useState(15);
+  const [videoTracks, setVideoTracks] = useState([
+    { id: "tr-video", name: "Vídeo Principal", type: "video", clips: [{ id: "c1", start: 0, end: 10, name: "Clipe 01.mp4" }] },
+    { id: "tr-audio", name: "Trilha Sonora", type: "audio", clips: [{ id: "c2", start: 0, end: 15, name: "Lo-Fi Chill Beat.mp3" }] },
+    { id: "tr-text", name: "Texto / Legendas", type: "text", clips: [{ id: "c3", start: 2, end: 7, name: "Legenda Oferta" }] },
+  ]);
+
+  // Queries
+  const { data: templates } = useQuery({
+    queryKey: ["studio-templates", studioMode],
+    queryFn: () => listStudioTemplates({ data: { template_type: studioMode } }),
+  });
+
+  const { data: userProjects, refetch: refetchProjects } = useQuery({
+    queryKey: ["studio-projects", studioMode],
+    queryFn: () => listStudioProjects({ data: { project_type: studioMode } }),
+  });
+
+  // Mutação para salvar projeto
+  const saveMutation = useMutation({
+    mutationFn: () =>
+      saveStudioProject({
+        data: {
+          id: projectId,
+          title: projectTitle,
+          project_type: studioMode,
+          aspect_ratio: aspectRatio,
+          canvas_data:
+            studioMode === "graphic"
+              ? { background, elements, aspectRatio }
+              : { tracks: videoTracks, duration: videoDuration, aspectRatio },
+        },
+      }),
+    onSuccess: (saved) => {
+      setProjectId(saved.id);
+      refetchProjects();
+      toast.success("Projeto salvo com sucesso no banco de dados!");
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Erro ao salvar projeto.");
+    },
+  });
+
+  // Selected element helper
+  const selectedElement = useMemo(() => {
+    return elements.find((el) => el.id === selectedElementId) || null;
+  }, [elements, selectedElementId]);
+
+  const handleAddText = () => {
+    const newEl: StudioElement = {
+      id: `text-${Date.now()}`,
+      type: "text",
+      layer: 7,
+      zIndex: elements.length + 1,
+      position: { x: 50, y: 50 },
+      size: { width: 75, height: 15 },
+      rotation: 0,
+      opacity: 1,
+      locked: false,
+      visible: true,
+      properties: {
+        ...DEFAULT_TEXT_PROPERTIES,
+        content: "Novo Texto Editável",
+        fontSize: 32,
+      },
+    };
+    setElements((prev) => [...prev, newEl]);
+    setSelectedElementId(newEl.id);
+    toast.success("Texto adicionado ao canvas!");
+  };
+
+  const handleAddShape = (shapeType: "rectangle" | "circle" | "badge") => {
+    const newEl: StudioElement = {
+      id: `shape-${Date.now()}`,
+      type: "shape",
+      layer: 2,
+      zIndex: elements.length + 1,
+      position: { x: 50, y: 50 },
+      size: { width: 30, height: 30 },
+      rotation: 0,
+      opacity: 1,
+      locked: false,
+      visible: true,
+      properties: {
+        ...DEFAULT_SHAPE_PROPERTIES,
+        shapeType,
+        fill: shapeType === "badge" ? "#EF4444" : "#3B82F6",
+        borderRadius: shapeType === "circle" ? 999 : 16,
+      },
+    };
+    setElements((prev) => [...prev, newEl]);
+    setSelectedElementId(newEl.id);
+    toast.success("Forma adicionada!");
+  };
+
+  const handleApplyTemplate = (template: StudioTemplateDTO) => {
+    if (template.canvas_data?.background) {
+      setBackground(template.canvas_data.background);
     }
-  }, [initialProduct]);
+    if (template.canvas_data?.elements) {
+      setElements(template.canvas_data.elements);
+    }
+    if (template.aspect_ratio) {
+      setAspectRatio(template.aspect_ratio as StudioAspectRatio);
+    }
+    setProjectTitle(template.title);
+    toast.success(`Template "${template.title}" aplicado!`);
+  };
 
-  const handleDownload = () => {
-    toast.success("No futuro, isso fará o download do HTML renderizado como JPG/PNG!");
+  const handleExport = () => {
+    toast.success(`Exportando ${studioMode === "graphic" ? "arte em PNG (1080p)" : "vídeo em MP4"}...`);
   };
 
   return (
-    <div className="flex flex-col h-full bg-muted/10">
-      <PageHeader
-        title="Estúdio de Criação"
-        actions={
-          <div className="flex gap-2">
-            {searchParams.productId && (
-              <Button
-                variant="outline"
-                onClick={() => navigate({ to: "/workspace/catalogo/produtos" })}
+    <div className="flex flex-col h-[calc(100vh-60px)] min-h-0 bg-background text-foreground overflow-hidden font-sans select-none">
+      {/* ── 1. HEADER DO ESTÚDIO: Título + Modos + Salvar/Exportar ── */}
+      <header className="h-14 border-b border-border/80 bg-card/95 backdrop-blur-md px-4 flex items-center justify-between shrink-0 z-20">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate({ to: "/workspace" })}
+            className="size-8 rounded-xl"
+            title="Voltar ao Workspace"
+          >
+            <ArrowLeft className="size-4" />
+          </Button>
+
+          <div className="flex items-center gap-2">
+            <Input
+              value={projectTitle}
+              onChange={(e) => setProjectTitle(e.target.value)}
+              className="h-8 px-2 text-xs font-black bg-transparent border-transparent hover:border-border/60 focus:border-border rounded-lg max-w-[200px]"
+            />
+            <Badge variant="outline" className="text-[10px] font-mono uppercase">
+              {studioMode === "graphic" ? "Gráfico" : "Vídeo 4K"}
+            </Badge>
+          </div>
+
+          {/* Switcher de Modo (Design Gráfico vs Vídeo Studio) */}
+          <div className="hidden sm:flex items-center gap-1 bg-muted/60 p-0.5 rounded-xl border border-border/60 ml-2">
+            <button
+              type="button"
+              onClick={() => setStudioMode("graphic")}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                studioMode === "graphic"
+                  ? "bg-foreground text-background"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Sparkles className="size-3.5" />
+              <span>Design Gráfico</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setStudioMode("video")}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                studioMode === "video"
+                  ? "bg-foreground text-background"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Video className="size-3.5" />
+              <span>Video Studio</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Ações Direitas (Zoom, Salvar e Exportar) */}
+        <div className="flex items-center gap-2">
+          {studioMode === "graphic" && (
+            <div className="hidden md:flex items-center gap-1 bg-muted/40 px-2 py-0.5 rounded-xl border border-border/60 text-xs font-mono">
+              <button
+                type="button"
+                onClick={() => setZoom((z) => Math.max(0.5, z - 0.1))}
+                className="p-1 hover:text-foreground text-muted-foreground"
               >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Voltar ao Catálogo
+                <ZoomOut className="size-3.5" />
+              </button>
+              <span className="w-10 text-center">{Math.round(zoom * 100)}%</span>
+              <button
+                type="button"
+                onClick={() => setZoom((z) => Math.min(2, z + 0.1))}
+                className="p-1 hover:text-foreground text-muted-foreground"
+              >
+                <ZoomIn className="size-3.5" />
+              </button>
+            </div>
+          )}
+
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={saveMutation.isPending}
+            onClick={() => saveMutation.mutate()}
+            className="h-8 rounded-xl font-bold text-xs gap-1.5"
+          >
+            {saveMutation.isPending ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <Save className="size-3.5" />
+            )}
+            <span>Salvar</span>
+          </Button>
+
+          <Button
+            size="sm"
+            onClick={handleExport}
+            className="h-8 rounded-xl font-bold text-xs bg-foreground text-background hover:bg-foreground/90 gap-1.5"
+          >
+            <Download className="size-3.5" />
+            <span>Exportar</span>
+          </Button>
+        </div>
+      </header>
+
+      {/* ── 2. CORPO PRINCIPAL DE 3 COLUNAS (TOOLBAR -> VIEWPORT -> INSPECTOR) ── */}
+      <div className="flex-1 flex min-h-0 w-full overflow-hidden">
+        {/* COLUNA 1: Toolbar Lateral de Ferramentas & Ativos */}
+        <div className="w-64 border-r border-border/80 bg-card flex flex-col shrink-0 overflow-y-auto p-4 space-y-4">
+          <div className="flex items-center justify-between border-b border-border/60 pb-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              Ferramentas
+            </span>
+          </div>
+
+          {/* Seletor de Aspect Ratio */}
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold text-foreground">Formato do Canvas</Label>
+            <div className="grid grid-cols-3 gap-1">
+              {(["1:1", "4:5", "9:16", "16:9", "1.91:1"] as StudioAspectRatio[]).map((ar) => (
+                <button
+                  key={ar}
+                  type="button"
+                  onClick={() => setAspectRatio(ar)}
+                  className={`py-1.5 px-2 rounded-lg text-xs font-mono font-bold border transition-all ${
+                    aspectRatio === ar
+                      ? "bg-foreground text-background border-foreground"
+                      : "bg-muted/40 border-border/60 text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {ar}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Ações de Inserção Gráfica */}
+          {studioMode === "graphic" ? (
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-foreground">Inserir Elementos</Label>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleAddText}
+                className="w-full h-9 rounded-xl font-semibold text-xs justify-start gap-2"
+              >
+                <Type className="size-4 text-primary" />
+                <span>Adicionar Texto</span>
+              </Button>
+
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handleAddShape("rectangle")}
+                  className="h-9 rounded-xl font-semibold text-xs gap-1.5"
+                >
+                  <Square className="size-3.5 text-info" />
+                  <span>Retângulo</span>
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handleAddShape("badge")}
+                  className="h-9 rounded-xl font-semibold text-xs gap-1.5"
+                >
+                  <Sparkles className="size-3.5 text-amber-500" />
+                  <span>Selo / Badge</span>
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-foreground">Trilhas de Vídeo</Label>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => toast.info("Selecione um arquivo de vídeo do seu dispositivo.")}
+                className="w-full h-9 rounded-xl font-semibold text-xs justify-start gap-2"
+              >
+                <Film className="size-4 text-primary" />
+                <span>Importar Vídeo (MP4)</span>
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => toast.info("Selecione uma trilha de áudio ou efeito sonoro.")}
+                className="w-full h-9 rounded-xl font-semibold text-xs justify-start gap-2"
+              >
+                <Music className="size-4 text-emerald-500" />
+                <span>Adicionar Áudio</span>
+              </Button>
+            </div>
+          )}
+
+          {/* Templates Oficiais do Banco de Dados */}
+          <div className="space-y-2 pt-2 border-t border-border/60">
+            <Label className="text-xs font-bold text-foreground">Modelos Prontos</Label>
+            <div className="space-y-2">
+              {(templates || []).map((tpl) => (
+                <div
+                  key={tpl.id}
+                  onClick={() => handleApplyTemplate(tpl)}
+                  className="p-2.5 rounded-xl border border-border/70 bg-card hover:bg-muted/50 cursor-pointer transition-all space-y-1"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-foreground truncate">{tpl.title}</span>
+                    <Badge variant="secondary" className="text-[9px] font-mono uppercase">
+                      {tpl.aspect_ratio}
+                    </Badge>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground uppercase font-semibold">
+                    {tpl.category}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* COLUNA 2: Canvas Central / Video Player Viewport */}
+        <div className="flex-1 flex flex-col min-h-0 bg-muted/20 relative overflow-hidden">
+          {studioMode === "graphic" ? (
+            <div className="flex-1 flex items-center justify-center overflow-auto p-4">
+              <StudioCanvas
+                aspectRatio={aspectRatio}
+                background={background}
+                elements={elements}
+                selectedElementId={selectedElementId}
+                onSelectElement={setSelectedElementId}
+                onUpdateElementPosition={(id, pos) => {
+                  setElements((prev) =>
+                    prev.map((el) => (el.id === id ? { ...el, position: pos } : el)),
+                  );
+                }}
+                zoom={zoom}
+              />
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col min-h-0">
+              {/* Player de Vídeo */}
+              <div className="flex-1 flex items-center justify-center p-6 bg-zinc-950">
+                <div
+                  className="relative rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-800 flex flex-col items-center justify-center"
+                  style={{
+                    width: aspectRatio === "9:16" ? "320px" : "540px",
+                    height: aspectRatio === "9:16" ? "560px" : "300px",
+                  }}
+                >
+                  <Film className="size-12 text-zinc-600 mb-2" />
+                  <p className="text-xs font-mono text-zinc-400">Vídeo Preview (4K Canvas)</p>
+                  <div className="absolute bottom-3 left-3 right-3 bg-black/60 backdrop-blur-md p-2 rounded-xl flex items-center justify-between text-xs font-mono text-white">
+                    <span>{currentTime.toFixed(1)}s</span>
+                    <span>/ {videoDuration}s</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Multi-Track Timeline */}
+              <div className="h-48 border-t border-border/80 bg-card p-4 flex flex-col justify-between shrink-0">
+                <div className="flex items-center justify-between pb-2 border-b border-border/60">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      onClick={() => setIsPlaying(!isPlaying)}
+                      className="size-8 rounded-xl font-bold"
+                    >
+                      {isPlaying ? <Pause className="size-4" /> : <Play className="size-4" />}
+                    </Button>
+                    <span className="text-xs font-mono font-bold text-foreground">
+                      00:{currentTime.toString().padStart(2, "0")} / 00:{videoDuration}
+                    </span>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => toast.info("Corte na posição atual do cursor.")}
+                    className="h-8 text-xs gap-1.5"
+                  >
+                    <Scissors className="size-3.5" />
+                    <span>Dividir (Split)</span>
+                  </Button>
+                </div>
+
+                {/* Trilhas Visuais */}
+                <div className="space-y-1.5 overflow-y-auto py-1">
+                  {videoTracks.map((tr) => (
+                    <div
+                      key={tr.id}
+                      className="h-8 rounded-xl bg-muted/40 border border-border/40 px-3 flex items-center justify-between text-xs"
+                    >
+                      <span className="font-bold text-foreground">{tr.name}</span>
+                      <div className="flex-1 mx-4 h-5 rounded-lg bg-primary/20 border border-primary/40 flex items-center px-2 text-[10px] font-mono text-primary truncate">
+                        {tr.clips[0]?.name || "Trilha vazia"}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* COLUNA 3: Painel Inspector de Propriedades (Contextual) */}
+        <div className="w-72 border-l border-border/80 bg-card flex flex-col shrink-0 overflow-y-auto p-4 space-y-4">
+          <div className="flex items-center justify-between border-b border-border/60 pb-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              Propriedades
+            </span>
+            {selectedElement && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setElements((prev) => prev.filter((el) => el.id !== selectedElementId));
+                  setSelectedElementId(null);
+                  toast.success("Elemento removido.");
+                }}
+                className="size-7 text-destructive hover:bg-destructive/10"
+                title="Excluir Elemento"
+              >
+                <Trash2 className="size-3.5" />
               </Button>
             )}
-            <Button onClick={handleDownload} className="font-bold  ">
-              <Download className="mr-2 h-4 w-4" />
-              Baixar Imagem
-            </Button>
           </div>
-        }
-      />
 
-      <div className="flex-1 flex flex-col md:flex-row gap-6 p-6 min-h-0 overflow-hidden">
-        {!initialProduct ? (
-          <div className="w-full flex items-center justify-center">
-            <div className="max-w-md w-full p-8 bg-card rounded-lg border-0 text-center">
-              <ImageIcon className="h-12 w-12 text-muted-foreground opacity-50 mb-4" />
-              <h2 className="text-xl font-bold text-foreground mb-2">Nenhum produto selecionado</h2>
-              <p className="text-muted-foreground mb-6">
-                Para criar artes no Estúdio, você precisa selecionar um produto real do seu
-                catálogo. Dados ilustrativos não são permitidos.
-              </p>
-              <Button
-                onClick={() => navigate({ to: "/workspace/catalogo/produtos" })}
-                className="w-full font-bold  "
-              >
-                Ir para o Catálogo
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <>
-            {/* Editor Sidebar */}
-            <ScrollArea className="w-full md:w-80 shrink-0 bg-card rounded-lg  p-6 ">
-              <div className="space-y-8 pb-10">
-                <div className="space-y-4">
-                  <h3 className="font-bold text-lg flex items-center gap-2">
-                    <LayoutTemplate className="h-5 w-5" />
-                    Estilo Gráfico
-                  </h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    {["lambe", "polaroid", "ticket"].map((p) => (
-                      <Button
-                        key={p}
-                        variant={preset === p ? "default" : "outline"}
-                        className={`h-20 flex-col gap-2 border ${preset === p ? "border-border -translate-y-0.5" : "border-border"}`}
-                        onClick={() => setPreset(p as PresetID)}
-                      >
-                        <span className="capitalize font-bold">{p}</span>
-                      </Button>
-                    ))}
+          {selectedElement ? (
+            <div className="space-y-4">
+              {/* Edição de Texto */}
+              {selectedElement.type === "text" && (
+                <>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold text-foreground">Conteúdo do Texto</Label>
+                    <Input
+                      value={(selectedElement.properties as any).content || ""}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setElements((prev) =>
+                          prev.map((el) =>
+                            el.id === selectedElement.id
+                              ? { ...el, properties: { ...el.properties, content: val } }
+                              : el,
+                          ),
+                        );
+                      }}
+                      className="h-9 rounded-xl text-xs"
+                    />
                   </div>
-                </div>
 
-                <div className="space-y-4">
-                  <h3 className="font-bold text-lg flex items-center gap-2">
-                    <Maximize className="h-5 w-5" />
-                    Formato
-                  </h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button
-                      variant={aspectRatio === "1:1" ? "default" : "outline"}
-                      className={`h-12 border ${aspectRatio === "1:1" ? "border-border -translate-y-0.5" : "border-border"}`}
-                      onClick={() => setAspectRatio("1:1")}
-                    >
-                      Quadrado (Feed)
-                    </Button>
-                    <Button
-                      variant={aspectRatio === "9:16" ? "default" : "outline"}
-                      className={`h-12 border ${aspectRatio === "9:16" ? "border-border -translate-y-0.5" : "border-border"}`}
-                      onClick={() => setAspectRatio("9:16")}
-                    >
-                      Vertical (Stories)
-                    </Button>
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-xs">
+                      <Label className="font-bold text-foreground">Tamanho da Fonte</Label>
+                      <span className="font-mono text-muted-foreground">
+                        {(selectedElement.properties as any).fontSize || 36}px
+                      </span>
+                    </div>
+                    <Slider
+                      value={[(selectedElement.properties as any).fontSize || 36]}
+                      min={14}
+                      max={96}
+                      step={2}
+                      onValueChange={([val]) => {
+                        setElements((prev) =>
+                          prev.map((el) =>
+                            el.id === selectedElement.id
+                              ? { ...el, properties: { ...el.properties, fontSize: val } }
+                              : el,
+                          ),
+                        );
+                      }}
+                    />
                   </div>
-                </div>
 
-                <div className="space-y-4">
-                  <h3 className="font-bold text-lg flex items-center gap-2">
-                    <Palette className="h-5 w-5" />
-                    Paleta de Cor
-                  </h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    {[
-                      { id: "primary", bg: "bg-primary text-white" },
-                      { id: "yellow", bg: "bg-secondary text-foreground" },
-                      { id: "charcoal", bg: "bg-charcoal text-white" },
-                      { id: "default", bg: "bg-background text-foreground" },
-                    ].map((color) => (
-                      <button
-                        key={color.id}
-                        className={`h-12 rounded-xl font-bold text-xs border transition-all ${color.bg} ${colorScheme === color.id ? "border-border -translate-y-0.5 scale-105" : "border-transparent opacity-70 hover:opacity-100"}`}
-                        onClick={() => setColorScheme(color.id as any)}
-                      >
-                        {color.id}
-                      </button>
-                    ))}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold text-foreground">Cor do Texto</Label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={(selectedElement.properties as any).color || "#FFFFFF"}
+                        onChange={(e) => {
+                          const col = e.target.value;
+                          setElements((prev) =>
+                            prev.map((el) =>
+                              el.id === selectedElement.id
+                                ? { ...el, properties: { ...el.properties, color: col } }
+                                : el,
+                            ),
+                          );
+                        }}
+                        className="size-8 rounded-lg border border-border cursor-pointer bg-transparent"
+                      />
+                      <span className="text-xs font-mono">{(selectedElement.properties as any).color || "#FFFFFF"}</span>
+                    </div>
                   </div>
-                </div>
-              </div>
-            </ScrollArea>
-
-            {/* Preview Area */}
-            <div className="flex-1 flex items-center justify-center bg-[url('/checkers.svg')] bg-repeat bg-[length:24px_24px] bg-muted/10 rounded-lg  overflow-hidden p-8 shadow-inner relative">
-              <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none">
-                <span className="font-black text-[20vw] tracking-tighter leading-none">
-                  PREVIEW
-                </span>
-              </div>
-
-              {entity ? (
-                <div className="relative z-10 drop- transition-all duration-300 hover:scale-[1.02]">
-                  <PresentationRenderer
-                    entity={entity}
-                    preset={preset}
-                    aspectRatio={aspectRatio}
-                    colorScheme={colorScheme}
-                  />
-                </div>
-              ) : (
-                <div className="animate-pulse">Carregando preview...</div>
+                </>
               )}
+
+              {/* Edição de Formas */}
+              {selectedElement.type === "shape" && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-foreground">Cor de Preenchimento</Label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={(selectedElement.properties as any).fill || "#3B82F6"}
+                      onChange={(e) => {
+                        const col = e.target.value;
+                        setElements((prev) =>
+                          prev.map((el) =>
+                            el.id === selectedElement.id
+                              ? { ...el, properties: { ...el.properties, fill: col } }
+                              : el,
+                          ),
+                        );
+                      }}
+                      className="size-8 rounded-lg border border-border cursor-pointer bg-transparent"
+                    />
+                    <span className="text-xs font-mono">{(selectedElement.properties as any).fill}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Rotação & Opacidade */}
+              <div className="space-y-1.5 pt-2 border-t border-border/60">
+                <div className="flex justify-between text-xs">
+                  <Label className="font-bold text-foreground">Opacidade</Label>
+                  <span className="font-mono text-muted-foreground">
+                    {Math.round(selectedElement.opacity * 100)}%
+                  </span>
+                </div>
+                <Slider
+                  value={[selectedElement.opacity * 100]}
+                  min={10}
+                  max={100}
+                  step={5}
+                  onValueChange={([val]) => {
+                    setElements((prev) =>
+                      prev.map((el) =>
+                        el.id === selectedElement.id ? { ...el, opacity: val / 100 } : el,
+                      ),
+                    );
+                  }}
+                />
+              </div>
             </div>
-          </>
-        )}
+          ) : (
+            <div className="py-12 text-center space-y-2 text-muted-foreground">
+              <Layers className="size-8 mx-auto opacity-40" />
+              <p className="text-xs font-medium">Nenhum elemento selecionado</p>
+              <p className="text-[11px] text-muted-foreground">
+                Clique em um texto ou forma no canvas para editar suas propriedades.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

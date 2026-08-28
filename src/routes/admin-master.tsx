@@ -18,6 +18,13 @@ import {
   Menu,
   X,
   Truck,
+  Eye,
+  Coins,
+  Sliders,
+  Globe,
+  Cpu,
+  FlaskConical,
+  Layout,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -25,55 +32,59 @@ import { useState } from "react";
 export const Route = createFileRoute("/admin-master")({
   beforeLoad: async () => {
     try {
-      const [profile, session] = await Promise.all([
-        getProfile().catch(() => null),
-        getUserSession().catch(() => null),
-      ]);
-
-      if (!profile && !session) {
-        throw redirect({ to: "/entrar" });
+      const session = await getUserSession();
+      const role = session?.role || session?.user?.user_metadata?.role;
+      if (role !== "platform_admin" && role !== "master") {
+        throw redirect({ to: "/entrar", search: { returnUrl: "/admin-master" } });
       }
-
-      const userEmail = (session?.email || session?.user?.email || profile?.email || "").toLowerCase();
-      const MASTER_EMAILS = [
-        "excelenciatour.smo@gmail.com",
-        "eusoueduoficial@gmail.com",
-        "admin@wider.com.br",
-      ];
-
-      const isPlatformAdmin =
-        profile?.role === "platform_admin" ||
-        session?.role === "platform_admin" ||
-        (session as any)?.user?.role === "platform_admin" ||
-        session?.user?.user_metadata?.role === "platform_admin" ||
-        MASTER_EMAILS.includes(userEmail);
-
-      if (!isPlatformAdmin) {
-        throw redirect({ to: "/workspace" });
-      }
-    } catch (e) {
-      if (isRedirect(e)) {
-        throw e;
-      }
-      throw redirect({ to: "/entrar" });
+    } catch (e: any) {
+      if (e?.isRedirect || e?.$$typeof) throw e;
+      throw redirect({ to: "/entrar", search: { returnUrl: "/admin-master" } });
     }
   },
   component: AdminMasterLayout,
 });
 
-const NAV_ITEMS = [
-  { to: "/admin-master", label: "Dashboard Global", icon: LayoutDashboard },
-  { to: "/admin-master/banners", label: "Banners & Vitrines", icon: ImageIcon },
-  { to: "/admin-master/marca", label: "Identidade & Marca", icon: Palette },
-  { to: "/admin-master/logistica", label: "Logística & MotoLink", icon: Truck },
-  { to: "/admin-master/botoes", label: "Botões & Hotpages", icon: Sparkles },
-  { to: "/admin-master/lojas", label: "Lojas & Empresas", icon: Store },
-  { to: "/admin-master/usuarios", label: "Usuários & Perfis", icon: Users },
-  { to: "/admin-master/kyc", label: "Verificação KYC", icon: UserCheck },
-  { to: "/admin-master/denuncias", label: "Denúncias & Moderação", icon: AlertTriangle },
-  { to: "/admin-master/faturas", label: "Faturas & Planos", icon: DollarSign },
-  { to: "/admin-master/termos", label: "Termos & LGPD", icon: Scale },
-  { to: "/admin-master/integracoes", label: "API & Conectores", icon: Plug },
+const NAV_SECTIONS = [
+  {
+    title: "Governança & Motor",
+    items: [
+      { to: "/admin-master", label: "Dashboard Global", icon: LayoutDashboard, exact: true },
+      { to: "/admin-master/algoritmo", label: "Motor Algorítmico", icon: Sliders },
+      { to: "/admin-master/curadoria", label: "Curadoria & Auditoria", icon: Eye },
+      { to: "/admin-master/hubs", label: "Hubs & Cidades", icon: Globe },
+    ],
+  },
+  {
+    title: "Vitrines & Marketing",
+    items: [
+      { to: "/admin-master/vitrines", label: "Vitrines & Seções (CMS)", icon: Layout },
+      { to: "/admin-master/banners", label: "Banners & Vitrines", icon: ImageIcon },
+      { to: "/admin-master/botoes", label: "Hotpages & Capas 16:9", icon: Sparkles },
+      { to: "/admin-master/marca", label: "Identidade & Marca", icon: Palette },
+      { to: "/admin-master/tokens", label: "Economia de Tokens", icon: Coins },
+    ],
+  },
+  {
+    title: "Operação & Ecossistema",
+    items: [
+      { to: "/admin-master/lojas", label: "Lojas & Empresas", icon: Store },
+      { to: "/admin-master/usuarios", label: "Usuários & Perfis", icon: Users },
+      { to: "/admin-master/logistica", label: "Logística & MotoLink", icon: Truck },
+      { to: "/admin-master/mining", label: "Mineração & Scrapers", icon: Cpu },
+      { to: "/admin-master/simlabs", label: "SimLabs & Cenários", icon: FlaskConical },
+    ],
+  },
+  {
+    title: "Segurança & Compliance",
+    items: [
+      { to: "/admin-master/kyc", label: "Verificação KYC", icon: UserCheck },
+      { to: "/admin-master/denuncias", label: "Denúncias & Moderação", icon: AlertTriangle },
+      { to: "/admin-master/faturas", label: "Faturas & Planos", icon: DollarSign },
+      { to: "/admin-master/termos", label: "Termos & LGPD", icon: Scale },
+      { to: "/admin-master/integracoes", label: "API & Conectores", icon: Plug },
+    ],
+  },
 ];
 
 function AdminMasterLayout() {
@@ -100,20 +111,30 @@ function AdminMasterLayout() {
         </div>
 
         {/* Navigation with Independent Internal Scroll */}
-        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto min-h-0">
-          {NAV_ITEMS.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 [&.active]:bg-primary [&.active]:text-primary-foreground transition-colors cursor-pointer"
-              >
-                <Icon className="size-4 shrink-0" />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
+        <nav className="flex-1 p-3 space-y-4 overflow-y-auto min-h-0">
+          {NAV_SECTIONS.map((section) => (
+            <div key={section.title} className="space-y-1">
+              <span className="px-3 text-[10px] font-mono font-bold tracking-wider uppercase text-muted-foreground/70 block">
+                {section.title}
+              </span>
+              <div className="space-y-0.5 pt-0.5">
+                {section.items.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      activeOptions={{ exact: (item as any).exact }}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 [&.active]:bg-primary [&.active]:text-primary-foreground transition-colors cursor-pointer"
+                    >
+                      <Icon className="size-4 shrink-0" />
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
         {/* Footer Quick Links */}
@@ -141,8 +162,8 @@ function AdminMasterLayout() {
           >
             <Link to="/" target="_blank" rel="noopener noreferrer">
               <span className="flex items-center gap-2">
-                <ExternalLink className="size-3.5" />
-                <span>Ver Vitrine Pública</span>
+                <ExternalLink className="size-3.5 text-muted-foreground" />
+                <span>Abrir Vitrine Pública</span>
               </span>
             </Link>
           </Button>
@@ -151,12 +172,12 @@ function AdminMasterLayout() {
 
       {/* Mobile Drawer */}
       {isMobileOpen && (
-        <div className="fixed inset-0 z-50 flex md:hidden">
+        <div className="fixed inset-0 z-50 md:hidden flex">
           <div
             className="fixed inset-0 bg-black/60 backdrop-blur-xs"
             onClick={() => setIsMobileOpen(false)}
           />
-          <aside className="relative w-72 max-w-[80vw] bg-background border-r border-border h-full flex flex-col z-10 shadow-2xl">
+          <aside className="relative w-72 max-w-[80vw] bg-background border-r border-border h-full flex flex-col z-10">
             <div className="h-14 px-4 border-b border-border/40 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2 text-primary font-bold text-sm">
                 <Shield className="size-5" />
@@ -171,21 +192,31 @@ function AdminMasterLayout() {
                 <X className="size-4" />
               </Button>
             </div>
-            <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto min-h-0">
-              {NAV_ITEMS.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.to}
-                    to={item.to}
-                    onClick={() => setIsMobileOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 [&.active]:bg-primary [&.active]:text-primary-foreground transition-colors cursor-pointer"
-                  >
-                    <Icon className="size-4 shrink-0" />
-                    <span>{item.label}</span>
-                  </Link>
-                );
-              })}
+            <nav className="flex-1 p-3 space-y-4 overflow-y-auto min-h-0">
+              {NAV_SECTIONS.map((section) => (
+                <div key={section.title} className="space-y-1">
+                  <span className="px-3 text-[10px] font-mono font-bold tracking-wider uppercase text-muted-foreground/70 block">
+                    {section.title}
+                  </span>
+                  <div className="space-y-0.5 pt-0.5">
+                    {section.items.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <Link
+                          key={item.to}
+                          to={item.to}
+                          activeOptions={{ exact: (item as any).exact }}
+                          onClick={() => setIsMobileOpen(false)}
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 [&.active]:bg-primary [&.active]:text-primary-foreground transition-colors cursor-pointer"
+                        >
+                          <Icon className="size-4 shrink-0" />
+                          <span>{item.label}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </nav>
           </aside>
         </div>

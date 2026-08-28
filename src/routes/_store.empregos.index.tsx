@@ -34,6 +34,7 @@ import { listActiveBanners } from "@/services/banner.functions";
 import { listHotpages } from "@/services/hotpage.functions";
 import { listPublicJobs, type JobItemDTO } from "@/services/jobs.functions";
 import { EmptyState } from "@/components/state/states";
+import { resolveNicheDepartments } from "@/lib/niche-helpers";
 
 const JOB_CATEGORY_CHIPS: FilterChipOption[] = [
   { id: "todos", label: "Todas as Vagas", emoji: "💼", icon: Sparkle },
@@ -141,18 +142,11 @@ function JobsMasterPage() {
         </section>
       )}
 
-      {/* ── 3. Barra de Controle Canônica Padronizada ── */}
       <DiscoveryControlBar
         search={search}
         onSearchChange={setSearch}
-        searchPlaceholder="Buscar cargo, empresa, área, tecnologia..."
-        categories={JOB_CATEGORY_CHIPS.map((chip) => {
-          const match = hotpages?.find((hp) => hp.slug === chip.id);
-          return {
-            ...chip,
-            icon_url: match?.custom_icon_url || match?.icon_url || chip.icon_url,
-          };
-        })}
+        searchPlaceholder="Buscar cargo, empresa, tecnologia ou tipo de vaga..."
+        categories={JOB_CATEGORY_CHIPS}
         activeCategory={selectedCategory}
         onSelectCategory={setSelectedCategory}
         viewMode={viewMode}
@@ -224,7 +218,7 @@ function JobsMasterPage() {
           </div>
 
           {jobsList.length === 0 && !isLoading && (
-            <div className="py-16 text-center space-y-3 bg-muted/10 rounded-3xl border-0 p-8">
+            <div className="py-16 text-center space-y-3 bg-card rounded-2xl border border-border/60 p-8">
               <EmptyState title="Nenhuma vaga encontrada com os filtros selecionados." />
               <div className="pt-2">
                 <Button
@@ -248,7 +242,7 @@ function JobsMasterPage() {
       {viewMode === "grid" && (
         <div>
           {jobsList.length === 0 && !isLoading ? (
-            <div className="py-24 text-center space-y-3 bg-muted/10 rounded-3xl  p-8">
+            <div className="py-24 text-center space-y-3 bg-card rounded-2xl border border-border/60 p-8">
               <EmptyState title="Nenhuma vaga disponível no momento com estes critérios." />
             </div>
           ) : (
@@ -265,7 +259,7 @@ function JobsMasterPage() {
       {viewMode === "list" && (
         <div className="space-y-3 w-full">
           {jobsList.length === 0 && !isLoading ? (
-            <div className="py-24 text-center space-y-3 bg-muted/10 rounded-3xl  p-8">
+            <div className="py-24 text-center space-y-3 bg-card rounded-2xl border border-border/60 p-8">
               <EmptyState title="Nenhuma vaga encontrada no momento." />
             </div>
           ) : (
@@ -288,7 +282,7 @@ function JobPostCard({ job }: { job: JobItemDTO }) {
   const whatsappNumber = (job.contact_whatsapp || "").replace(/\D/g, "");
 
   return (
-    <div className="group relative flex flex-col justify-between rounded-3xl  bg-card overflow-hidden  hover:border-foreground/25 hover: transition-all duration-300">
+    <div className="group relative flex flex-col justify-between rounded-2xl border border-border/60 bg-card overflow-hidden hover:border-foreground/25 transition-all duration-300">
       <Link
         to="/empregos/$id"
         params={{ id: job.id }}
@@ -427,7 +421,7 @@ function JobListItem({ job }: { job: JobItemDTO }) {
   const whatsappNumber = (job.contact_whatsapp || "").replace(/\D/g, "");
 
   return (
-    <div className="flex items-center justify-between p-3 sm:p-4 rounded-2xl  bg-card  hover:border-foreground/30 transition-all gap-3.5 group">
+    <div className="flex items-center justify-between p-3 sm:p-4 rounded-2xl border border-border/60 bg-card hover:border-foreground/30 transition-all gap-3.5 group">
       <Link
         to="/empregos/$id"
         params={{ id: job.id }}

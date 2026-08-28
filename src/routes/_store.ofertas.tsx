@@ -13,11 +13,14 @@ import { Button } from "@/components/ui/button";
 import { PageSkeleton } from "@/components/state/loading";
 import { OfferCard } from "@/components/commerce/offer-card";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
+import { HotpagesRail } from "@/components/commerce/hotpages-rail";
 import {
   getGlobalDealsPage,
   type GlobalDealNicheSection,
 } from "@/services/marketplace.functions";
 import { listActiveBanners } from "@/services/banner.functions";
+import { listHotpages } from "@/services/hotpage.functions";
+import { resolveNicheDepartments } from "@/lib/niche-helpers";
 
 const SearchSchema = z.object({
   nicho: z.string().optional(),
@@ -59,21 +62,22 @@ export const Route = createFileRoute("/_store/ofertas")({
     SearchSchema.parse(search),
   loaderDeps: ({ search }) => search,
   loader: async ({ deps: { nicho } }) => {
-    const [dealsPage, banners] = await Promise.all([
+    const [dealsPage, banners, hotpages] = await Promise.all([
       getGlobalDealsPage({
         data:
           nicho && nicho !== "todos" ? { nicheFilter: nicho, limit: 10 } : { limit: 8 },
       }).catch(() => ({ sections: [], totalDeals: 0, maxDiscount: 0, hasRealData: false })),
       listActiveBanners({ data: { placement: "ofertas" } }).catch(() => []),
+      listHotpages({ data: { module: "ofertas" } }).catch(() => []),
     ]);
-    return { dealsPage, banners };
+    return { dealsPage, banners, hotpages };
   },
   component: OfertasPage,
   pendingComponent: PageSkeleton,
 });
 
 function OfertasPage() {
-  const { dealsPage, banners } = Route.useLoaderData();
+  const { dealsPage, banners, hotpages } = Route.useLoaderData();
   const search = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
 
@@ -147,7 +151,13 @@ function OfertasPage() {
         </section>
       )}
 
-      {/* ── 2. Chips de Filtro por Nicho ── */}
+      {/* ── 2. Hotpages / Destaques de Ofertas ── */}
+      {hotpages && hotpages.length > 0 && (
+        <section aria-label="Coleções de Ofertas">
+          <HotpagesRail hotpages={hotpages} />
+        </section>
+      )}
+
       <nav
         aria-label="Filtrar ofertas por categoria"
         className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1 -mx-1 px-1"
@@ -164,7 +174,7 @@ function OfertasPage() {
                 : "bg-card text-muted-foreground border-border hover:border-foreground/30 hover:text-foreground"
             }`}
           >
-            <span>{chip.emoji}</span>
+            {chip.emoji ? <span>{chip.emoji}</span> : null}
             <span>{chip.label}</span>
           </button>
         ))}

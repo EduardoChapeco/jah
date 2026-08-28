@@ -163,7 +163,7 @@ function WorkspaceNovaMateriaPage() {
 
       <div className="space-y-6">
         {/* ── 1. Metadados e Manchete ── */}
-        <div className="p-5 rounded-3xl  bg-card space-y-4 ">
+        <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-4">
           <span className="text-xs font-black uppercase tracking-wider text-primary">
             1. Estrutura Editorial
           </span>
@@ -175,7 +175,7 @@ function WorkspaceNovaMateriaPage() {
                 placeholder="Ex: POLÍTICA LOCAL"
                 value={kicker}
                 onChange={(e) => setKicker(e.target.value)}
-                className="rounded-xl h-10 uppercase text-xs"
+                className="rounded-xl h-10 uppercase text-xs border-border/60"
               />
             </div>
 
@@ -184,7 +184,7 @@ function WorkspaceNovaMateriaPage() {
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full h-10 px-3 rounded-xl  bg-background text-xs font-semibold"
+                className="w-full h-10 px-3 rounded-xl border border-border/60 bg-background text-xs font-semibold"
               >
                 <option value="cidade">Cidade & Região</option>
                 <option value="politica">Política</option>
@@ -203,7 +203,7 @@ function WorkspaceNovaMateriaPage() {
               placeholder="Ex: Feira de Inovação de Chapecó reúne mais de 10 mil participantes"
               value={title}
               onChange={(e) => handleTitleChange(e.target.value)}
-              className="rounded-xl h-11 text-sm font-bold"
+              className="rounded-xl h-11 text-sm font-bold border-border/60"
             />
           </div>
 
@@ -213,7 +213,7 @@ function WorkspaceNovaMateriaPage() {
               placeholder="feira-de-inovacao-chapeco"
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
-              className="rounded-xl h-10 font-mono text-xs"
+              className="rounded-xl h-10 font-mono text-xs border-border/60"
             />
           </div>
 
@@ -226,13 +226,13 @@ function WorkspaceNovaMateriaPage() {
               value={subtitle}
               onChange={(e) => setSubtitle(e.target.value)}
               rows={2}
-              className="w-full p-3 rounded-xl  bg-background text-xs leading-relaxed resize-none"
+              className="w-full p-3 rounded-xl border border-border/60 bg-background text-xs leading-relaxed resize-none"
             />
           </div>
         </div>
 
         {/* ── 2. Mídia de Capa ── */}
-        <div className="p-5 rounded-3xl  bg-card space-y-4 ">
+        <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-4">
           <span className="text-xs font-black uppercase tracking-wider text-primary">
             2. Capa da Notícia
           </span>
@@ -244,7 +244,7 @@ function WorkspaceNovaMateriaPage() {
                 placeholder="https://images.unsplash.com/..."
                 value={coverMediaUrl}
                 onChange={(e) => setCoverMediaUrl(e.target.value)}
-                className="rounded-xl h-10 font-mono text-xs"
+                className="rounded-xl h-10 font-mono text-xs border-border/60"
               />
             </div>
 
@@ -253,7 +253,7 @@ function WorkspaceNovaMateriaPage() {
               <select
                 value={coverMediaType}
                 onChange={(e) => setCoverMediaType(e.target.value as any)}
-                className="w-full h-10 px-3 rounded-xl  bg-background text-xs font-semibold"
+                className="w-full h-10 px-3 rounded-xl border border-border/60 bg-background text-xs font-semibold"
               >
                 <option value="image">Imagem</option>
                 <option value="video">Vídeo</option>
@@ -264,7 +264,7 @@ function WorkspaceNovaMateriaPage() {
         </div>
 
         {/* ── 3. Redação em Blocos / Seções ── */}
-        <div className="p-5 rounded-3xl  bg-card space-y-4 ">
+        <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-xs font-black uppercase tracking-wider text-primary">
               3. Conteúdo da Matéria (Blocos)
@@ -308,7 +308,7 @@ function WorkspaceNovaMateriaPage() {
             {sections.map((sec, idx) => (
               <div
                 key={idx}
-                className="p-4 rounded-2xl  bg-muted/20 space-y-2 relative group"
+                className="p-4 rounded-2xl border border-border/60 bg-muted/20 space-y-2 relative group"
               >
                 <div className="flex items-center justify-between text-[11px] font-bold text-muted-foreground">
                   <span className="capitalize">
@@ -330,7 +330,7 @@ function WorkspaceNovaMateriaPage() {
                     placeholder="Subtítulo da seção..."
                     value={String(sec.content)}
                     onChange={(e) => updateSectionContent(idx, e.target.value)}
-                    className="rounded-xl h-10 font-bold text-sm bg-background"
+                    className="rounded-xl h-10 font-bold text-sm bg-background border-border/60"
                   />
                 ) : sec.type === "quote" ? (
                   <div className="space-y-2">
@@ -339,13 +339,13 @@ function WorkspaceNovaMateriaPage() {
                       value={String(sec.content)}
                       onChange={(e) => updateSectionContent(idx, e.target.value, sec.caption)}
                       rows={2}
-                      className="w-full p-3 rounded-xl  bg-background text-xs font-serif italic"
+                      className="w-full p-3 rounded-xl border border-border/60 bg-background text-xs font-serif italic"
                     />
                     <Input
                       placeholder="Nome do autor da fala / cargo"
                       value={sec.caption || ""}
                       onChange={(e) => updateSectionContent(idx, String(sec.content), e.target.value)}
-                      className="rounded-xl h-8 text-xs bg-background"
+                      className="rounded-xl h-8 text-xs bg-background border-border/60"
                     />
                   </div>
                 ) : (
@@ -354,7 +354,7 @@ function WorkspaceNovaMateriaPage() {
                     value={String(sec.content)}
                     onChange={(e) => updateSectionContent(idx, e.target.value)}
                     rows={4}
-                    className="w-full p-3 rounded-xl  bg-background text-xs leading-relaxed resize-y"
+                    className="w-full p-3 rounded-xl border border-border/60 bg-background text-xs leading-relaxed resize-y"
                   />
                 )}
               </div>

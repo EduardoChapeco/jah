@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowLeft, Receipt, Check, CreditCard, Banknote, QrCode } from "lucide-react";
-import { listOrders, updateOrderStatus } from "@/services/order.functions";
+import { listOrders, closePdvComanda } from "@/services/order.functions";
 
 import { formatMoney } from "@/lib/money";
 import { formatDateTime } from "@/lib/datetime";
@@ -51,22 +51,19 @@ function PdvComandasPage() {
     initialData: initialComandas,
   });
 
-  // Idealmente teriamos uma mutation especifica 'closeComanda' no backend
-  // para lidar com a injeção no caixa caso seja 'cash'.
-  // Por simplicidade, vamos usar updateOrderStatus para marcar como paid.
-  // Em produção, isso deve chamar uma service function que faça ambas as coisas atomicamente.
   const payMutation = useMutation({
-    mutationFn: async ({ orderId, method }: { orderId: string; method: string }) => {
-      // In a real scenario, call a closeComanda({ orderId, method }) here to ensure cash register gets updated.
-      return await updateOrderStatus({ data: { orderId, status: "paid" } });
+    mutationFn: async ({ orderId, method }: { orderId: string; method: "cash" | "pix" | "card" }) => {
+      return await closePdvComanda({ data: { orderId, paymentMethod: method } });
     },
     onSuccess: () => {
-      toast.success("Comanda fechada com sucesso!");
+      toast.success("Comanda liquidada e registrada com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["pdv-comandas"] });
+      queryClient.invalidateQueries({ queryKey: ["active-cash-register"] });
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
       setCheckoutModalOpen(false);
     },
     onError: (error: any) => {
-      toast.error(error.message || "Erro ao fechar comanda.");
+      toast.error(error?.message || "Erro ao fechar comanda.");
     },
   });
 

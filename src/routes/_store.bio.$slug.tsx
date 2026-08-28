@@ -96,7 +96,7 @@ function BiolinkPage() {
       <div className="w-full max-w-md flex flex-col items-center gap-6">
         {/* ── 1. Top Avatar & Bio ── */}
         <div className="flex flex-col items-center gap-3 w-full text-center">
-          <div className="size-24 rounded-full bg-muted/40 border-2 border-white/20 overflow-hidden flex items-center justify-center shadow-lg">
+          <div className="size-24 rounded-full bg-muted/40 border-2 border-white/20 overflow-hidden flex items-center justify-center">
             {bio.avatar_url ? (
               <img src={bio.avatar_url} alt={bio.title} className="size-full object-cover" />
             ) : (
@@ -148,7 +148,7 @@ function BiolinkPage() {
                 rel="noopener noreferrer"
                 className="size-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all hover:scale-110"
               >
-                <Youtube className="size-4 text-red-400" />
+                <Youtube className="size-4 text-destructive" />
               </a>
             )}
             {socials.linkedin && (
@@ -158,7 +158,7 @@ function BiolinkPage() {
                 rel="noopener noreferrer"
                 className="size-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all hover:scale-110"
               >
-                <Linkedin className="size-4 text-blue-400" />
+                <Linkedin className="size-4 text-info" />
               </a>
             )}
             {socials.twitter && (
@@ -208,7 +208,7 @@ function BiolinkPage() {
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-sm flex items-center gap-2">
-                      <QrCode className="size-4 text-teal-400" />
+                      <QrCode className="size-4 text-primary" />
                       <span>{block.label}</span>
                     </span>
                     <Badge variant="outline" className="text-[10px] font-mono">

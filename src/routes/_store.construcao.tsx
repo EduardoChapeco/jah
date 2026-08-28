@@ -28,11 +28,13 @@ import {
   type ViewModeType,
   type FilterChipOption,
 } from "@/components/commerce/discovery-control-bar";
-import { GroceryProductCard } from "@/components/commerce/grocery-product-card";
-import { getMarketplaceFeed } from "@/services/marketplace.functions";
+import { getModularSurfaceFeed } from "@/services/surface-cms.functions";
+import { ModularSurfaceFeed } from "@/components/commerce/modular-surface-feed";
+import { OfferCard } from "@/components/commerce/offer-card";
 import { listActiveBanners } from "@/services/banner.functions";
 import { listHotpages } from "@/services/hotpage.functions";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
+import { resolveNicheDepartments } from "@/lib/niche-helpers";
 
 const SearchSchema = z.object({
   q: z.string().optional(),
@@ -71,7 +73,7 @@ export const Route = createFileRoute("/_store/construcao")({
     const [banners, hotpages, marketplaceFeed] = await Promise.all([
       listActiveBanners({ data: { placement: "construcao" } }).catch(() => []),
       listHotpages({ data: { module: "construcao" } }).catch(() => []),
-      getMarketplaceFeed({ data: { niche: "construcao" } }).catch(() => null),
+      getModularSurfaceFeed({ data: { surfaceSlug: "construcao" } }).catch(() => ({ sections: [], allProducts: [] })),
     ]);
 
     return {
@@ -194,7 +196,7 @@ function ConstrucaoVerticalPage() {
       <DiscoveryControlBar
         search={search.q || ""}
         onSearchChange={(q) => navigate({ search: (prev) => ({ ...prev, q }) })}
-        searchPlaceholder="Buscar cimento, tintas, pisos, ferramentas, fios..."
+        searchPlaceholder="Buscar tintas, ferramentas, elétrica, hidráulica..."
         categories={CONSTRUCAO_DEPARTMENTS}
         activeCategory={activeDepartment}
         onSelectCategory={handleDepartmentChange}
@@ -203,40 +205,41 @@ function ConstrucaoVerticalPage() {
         resultsCount={filteredProducts.length}
       />
 
-      {/* ── 4. Lojas em Destaque ── */}
-      {constructionStores.length > 0 && (
-        <section aria-label="Lojas de Materiais de Construção & Tintas">
-          <HorizontalRail title="Lojas de Materiais de Construção & Tintas" hideHeader={true}>
-            {constructionStores.map((store: any) => (
-              <StoreCard key={store.id} {...store} />
-            ))}
-          </HorizontalRail>
+      {/* ── 4. Renderização do Feed Modular ou Grade Filtrada ── */}
+      {viewMode === "feed" ? (
+        <div className="space-y-8">
+          {marketplaceFeed?.sections && marketplaceFeed.sections.length > 0 ? (
+            <ModularSurfaceFeed sections={marketplaceFeed.sections} />
+          ) : (
+            <div className="py-12 text-center text-xs text-muted-foreground">
+              Nenhuma seção ativa no momento.
+            </div>
+          )}
+        </div>
+      ) : (
+        <section aria-label="Vitrine de Materiais & Ferramentas">
+          {filteredProducts.length === 0 ? (
+            <div className="py-12 text-center bg-card rounded-3xl p-6">
+              <EmptyState
+                title="Nenhum material encontrado"
+                description="Tente selecionar outro departamento ou busque por ferramentas e marcas."
+              />
+            </div>
+          ) : viewMode === "list" ? (
+            <div className="flex flex-col gap-3">
+              {filteredProducts.map((product: any) => (
+                <OfferCard key={product.id} {...product} />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+              {filteredProducts.map((product: any) => (
+                <OfferCard key={product.id} {...product} />
+              ))}
+            </div>
+          )}
         </section>
       )}
-
-      {/* ── 5. Vitrine de Materiais & Ferramentas ── */}
-      <section aria-label="Vitrine de Materiais & Ferramentas">
-        {filteredProducts.length === 0 ? (
-          <div className="py-12 text-center bg-card rounded-3xl  p-6 ">
-            <EmptyState
-              title="Nenhum material encontrado"
-              description="Tente selecionar outro departamento ou busque por ferramentas e marcas."
-            />
-          </div>
-        ) : viewMode === "list" ? (
-          <div className="flex flex-col gap-3">
-            {filteredProducts.map((product: any) => (
-              <GroceryProductCard key={product.id} product={product} viewMode="list" />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-            {filteredProducts.map((product: any) => (
-              <GroceryProductCard key={product.id} product={product} viewMode="grid" />
-            ))}
-          </div>
-        )}
-      </section>
     </div>
   );
 }

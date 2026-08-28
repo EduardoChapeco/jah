@@ -47,11 +47,14 @@ import {
   listAvailableAttributes,
 } from "@/services/catalog.functions";
 import { getMarketplaceFeed } from "@/services/marketplace.functions";
+import { getModularSurfaceFeed } from "@/services/surface-cms.functions";
+import { ModularSurfaceFeed } from "@/components/commerce/modular-surface-feed";
 import { listActiveBanners } from "@/services/banner.functions";
 import { listHotpages } from "@/services/hotpage.functions";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
 import type { ProductCardDTO } from "@/types/catalog";
 import { formatMoney } from "@/lib/money";
+import { resolveNicheDepartments } from "@/lib/niche-helpers";
 
 // ─── Search Schema & View Modes ───────────────────────────────────────────────
 const SearchSchema = z.object({
@@ -122,7 +125,7 @@ export const Route = createFileRoute("/_store/mercado")({
       }).catch(() => ({ status: "ok" as const, data: [] as ProductCardDTO[] })),
       listPublishedCategories().catch(() => []),
       listAvailableAttributes().catch(() => []),
-      getMarketplaceFeed({ data: { niche: search.niche || "mercado" } }).catch(() => ({ sections: [], allProducts: [] })),
+      getModularSurfaceFeed({ data: { surfaceSlug: search.niche || "mercado" } }).catch(() => ({ sections: [], allProducts: [] })),
       listActiveBanners({ data: { placement: "mercado" } }).catch(() => []),
       listHotpages({ data: { module: "mercado" } }).catch(() => []),
     ]);
@@ -254,7 +257,7 @@ function SupermarketMasterPage() {
             onClick={() => setSelectedStore("todos")}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all shrink-0 cursor-pointer ${
               selectedStore === "todos"
-                ? "bg-foreground text-background shadow-2xs"
+                ? "bg-foreground text-background"
                 : "bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted"
             }`}
           >
@@ -268,7 +271,7 @@ function SupermarketMasterPage() {
               onClick={() => setSelectedStore(store)}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all shrink-0 cursor-pointer ${
                 selectedStore === store
-                  ? "bg-foreground text-background shadow-2xs"
+                  ? "bg-foreground text-background"
                   : "bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted"
               }`}
             >
@@ -290,13 +293,7 @@ function SupermarketMasterPage() {
         search={localSearch}
         onSearchChange={handleSearchSubmit}
         searchPlaceholder="Buscar carnes, hortifrúti, arroz, laticínios, limpeza..."
-        categories={SUPERMARKET_DEPARTMENTS.map((dept) => {
-          const match = hotpages?.find((hp) => hp.slug === dept.id);
-          return {
-            ...dept,
-            icon_url: match?.custom_icon_url || match?.icon_url || dept.icon_url,
-          };
-        })}
+        categories={SUPERMARKET_DEPARTMENTS}
         activeCategory={search.niche || "todos"}
         onSelectCategory={handleSelectDepartment}
         viewMode={currentView}
@@ -316,7 +313,7 @@ function SupermarketMasterPage() {
               onClick={() => setSelectedDietary(f.id)}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all shrink-0 cursor-pointer ${
                 isSelected
-                  ? "bg-foreground text-background shadow-2xs"
+                  ? "bg-foreground text-background"
                   : "bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted"
               }`}
             >
@@ -331,32 +328,9 @@ function SupermarketMasterPage() {
       {/* MODE 1: FEED DE CORREDORES VIRTUAIS & ENCARTE DIGITAL */}
       {currentView === "feed" && (
         <div className="space-y-10">
-          {/* Encarte de Ofertas da Semana Unificado */}
-          {feed.allProducts && feed.allProducts.filter((p: any) => p.has_flash_offer).length > 0 && (
-            <HorizontalRail
-              title="Tabloide de Ofertas da Semana"
-              hideHeader={true}
-            >
-              {feed.allProducts
-                .filter((p: any) => p.has_flash_offer)
-                .map((product: any) => (
-                  <OfferCard key={product.id} {...product} />
-                ))}
-            </HorizontalRail>
-          )}
-
-          {/* Supermercados e Mercearias Parceiras */}
-          {(feed?.sections?.find((s: any) => s.type === "store_rail")?.items?.length ?? 0) > 0 && (
-            <HorizontalRail
-              title="Supermercados, Mercearias & Empórios Locais"
-              hideHeader={true}
-            >
-              {(feed?.sections?.find((s: any) => s.type === "store_rail")?.items || []).map(
-                (store: any) => (
-                  <StoreCard key={store.id} {...store} />
-                ),
-              )}
-            </HorizontalRail>
+          {/* Seções Modulares do CMS (Ofertas, Lojas, Grids, Bento) */}
+          {feed.sections && feed.sections.length > 0 && (
+            <ModularSurfaceFeed sections={feed.sections} />
           )}
 
           {/* Gôndola de Produtos Multi-Supermercados */}

@@ -101,7 +101,7 @@ export function CreatorAnalyticsCard({
         <div className="p-3.5 rounded-2xl bg-muted/30 border border-border/40 space-y-1">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-[11px] font-semibold">Comunidade Ativa</span>
-            <Users className="size-3.5 text-blue-500" />
+            <Users className="size-3.5 text-info" />
           </div>
           <p className="text-xl font-extrabold text-foreground tracking-tight">
             {followersCount.toLocaleString("pt-BR")}

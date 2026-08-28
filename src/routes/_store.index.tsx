@@ -36,6 +36,10 @@ import { NewsCard } from "@/components/news/news-card";
 import { ServicePackagesRail } from "@/components/commerce/service-packages-rail";
 import { listPublicStorePackages } from "@/services/service-packages.functions";
 
+import { getModularSurfaceFeed } from "@/services/surface-cms.functions";
+import { ModularSurfaceFeed } from "@/components/commerce/modular-surface-feed";
+import { listPublicCategoryHubs } from "@/services/admin-hubs.functions";
+
 // ── Categorias Master Estilo iFood / Super App do Dia a Dia ──
 interface MasterCategoryItem {
   to: string;
@@ -84,49 +88,43 @@ export const Route = createFileRoute("/_store/")({
     ],
   }),
   loader: async () => {
-    const [banners, hotpages, marketFeed, stories, newsArticles, packages] = await Promise.all([
+    const [banners, hotpages, categoryHubs, modularFeed, stories, newsArticles, packages] = await Promise.all([
       listActiveBanners({ data: { placement: "home" } }).catch(() => []),
       listHotpages({ data: { module: "home" } }).catch(() => []),
-      getMarketplaceFeed().catch(() => ({ sections: [], allProducts: [] })),
+      listPublicCategoryHubs({ data: { module: "home" } }).catch(() => []),
+      getModularSurfaceFeed({ data: { surfaceSlug: "home" } }).catch(() => ({ sections: [], allProducts: [] })),
       getFeedStories().catch(() => []),
       listPublicArticles({ data: { limit: 6 } }).catch(() => []),
       listPublicStorePackages().catch(() => []),
     ]);
-    return { banners, hotpages, marketFeed, stories, newsArticles, packages };
+    return { banners, hotpages, categoryHubs, modularFeed, stories, newsArticles, packages };
   },
   component: CommercialHomePage,
 });
 
 function CommercialHomePage() {
-  const { banners, hotpages, marketFeed, stories, newsArticles, packages } = Route.useLoaderData();
-
-  // Real flash deals rail
-  const flashOffersSection = marketFeed.sections?.find((s: any) => s.type === "flash_deal_rail");
-  const flashProducts = flashOffersSection?.items || [];
-
-  // Real stores rail
-  const storeSection = marketFeed.sections?.find((s: any) => s.type === "store_rail");
-  const stores = storeSection?.items || [];
-
-  // Real catalog highlights rail
-  const trendingSection = marketFeed.sections?.find((s: any) => s.type === "product_rail");
-  const catalogProducts = trendingSection?.items || [];
+  const { banners, hotpages, categoryHubs, modularFeed, stories, newsArticles, packages } = Route.useLoaderData();
 
   const hasAnyCommercialData =
     banners.length > 0 ||
     hotpages.length > 0 ||
-    flashProducts.length > 0 ||
-    stores.length > 0 ||
-    catalogProducts.length > 0;
+    (modularFeed.sections && modularFeed.sections.length > 0);
 
-  // Build master categories merging with database custom icons if configured
-  const categoriesList = DEFAULT_MASTER_CATEGORIES.map((cat) => {
-    const match = hotpages.find((hp: HotpageDTO) => hp.slug === cat.slug);
-    return {
-      ...cat,
-      icon_url: match?.custom_icon_url || match?.icon_url || undefined,
-    };
-  });
+  // Build master categories strictly from the database (CMS truth)
+  // Fallback to DEFAULT_MASTER_CATEGORIES only if the database has not been seeded/configured yet
+  const categoriesList = categoryHubs && categoryHubs.length > 0
+    ? categoryHubs.map((ch: HotpageDTO) => {
+        const defaultMatch = DEFAULT_MASTER_CATEGORIES.find(c => c.slug === ch.slug);
+        return {
+          to: ch.target_route || `/${ch.slug}`,
+          slug: ch.slug,
+          label: ch.title,
+          badge: ch.badge_label || undefined,
+          icon_url: ch.custom_icon_url || ch.icon_url || undefined,
+          icon: defaultMatch?.icon || Storefront,
+        };
+      })
+    : DEFAULT_MASTER_CATEGORIES;
 
   return (
     <div className="w-full space-y-6 pb-20">
@@ -156,109 +154,15 @@ function CommercialHomePage() {
         </section>
       )}
 
-      {/* ── 5. Ofertas Relâmpago com Card Líder Limpo ── */}
-      {flashProducts.length > 0 && (
-        <section aria-label="Ofertas Relâmpago">
-          <HorizontalRail
-            title="Ofertas Relâmpago"
-            hideHeader={true}
-            leadCard={
-              <HitsLeadCard
-                actionTo="/ofertas"
-                gradient="from-red-600 via-orange-600 to-amber-600"
-                ariaLabel="Ofertas Relâmpago"
-              />
-            }
-          >
-            {flashProducts.map((product: any) => (
-              <OfferCard
-                key={product.id}
-                id={product.id}
-                title={product.title}
-                slug={product.slug}
-                store_name={product.store_name}
-                price_cents={product.price_cents}
-                original_price_cents={product.original_price_cents}
-                discount_percent={product.discount_percent}
-                mechanic_label={product.mechanic_label}
-                ends_at={product.ends_at}
-                has_flash_offer={product.has_flash_offer}
-                cover_image={product.cover_image || "/banner-placeholder.png"}
-                selling_unit={product.selling_unit || "un"}
-                in_stock={product.in_stock}
-              />
-            ))}
-          </HorizontalRail>
-        </section>
-      )}
-
-      {/* ── 6. Lojas & Negócios Locais ── */}
-      {stores.length > 0 && (
-        <section aria-label="Comércios Locais em Destaque">
-          <HorizontalRail
-            title="Lojas & Negócios Locais"
-            hideHeader={true}
-          >
-            {stores.map((store: any) => (
-              <StoreCard
-                key={store.id}
-                id={store.id}
-                name={store.name}
-                slug={store.slug}
-                avatar_url={store.avatar_url}
-                banner_url={store.banner_url}
-                category={store.category}
-                rating={store.rating}
-                review_count={store.review_count}
-                distance_km={store.distance_km}
-                is_open={store.is_open}
-                delivery_time_min={store.delivery_time_min}
-              />
-            ))}
-          </HorizontalRail>
-        </section>
+      {/* ── 5. Seções Dinâmicas & Modulares do CMS (Ofertas, Lojas, Grids, Bento) ── */}
+      {modularFeed.sections && modularFeed.sections.length > 0 && (
+        <ModularSurfaceFeed sections={modularFeed.sections} />
       )}
 
       {/* ── 6.5. Pacotes de Aulas, Treinos & Serviços com Desconto ── */}
       {packages && packages.length > 0 && (
         <section aria-label="Pacotes & Aulas em Destaque">
           <ServicePackagesRail packages={packages} />
-        </section>
-      )}
-
-      {/* ── 7. Produtos em Destaque ── */}
-      {catalogProducts.length > 0 && (
-        <section aria-label="Produtos em Destaque">
-          <HorizontalRail
-            title="Destaques do Catálogo"
-            hideHeader={true}
-            leadCard={
-              <HitsLeadCard
-                actionTo="/mercado"
-                gradient="from-indigo-600 via-purple-600 to-pink-600"
-                ariaLabel="Produtos em Destaque"
-              />
-            }
-          >
-            {catalogProducts.map((prod: any) => (
-              <OfferCard
-                key={prod.id}
-                id={prod.id}
-                title={prod.title}
-                slug={prod.slug}
-                store_name={prod.store_name}
-                price_cents={prod.price_cents}
-                original_price_cents={prod.original_price_cents}
-                discount_percent={prod.discount_percent}
-                mechanic_label={prod.mechanic_label}
-                ends_at={prod.ends_at}
-                has_flash_offer={prod.has_flash_offer}
-                cover_image={prod.cover_image || "/banner-placeholder.png"}
-                selling_unit={prod.selling_unit || "un"}
-                in_stock={prod.in_stock}
-              />
-            ))}
-          </HorizontalRail>
         </section>
       )}
 
@@ -282,7 +186,7 @@ function CommercialHomePage() {
 
       {/* ── 9. Estado Inicial / Onboarding Honesto (Sem mocks) ── */}
       {!hasAnyCommercialData && newsArticles.length === 0 && (
-        <section className="py-12 px-6 rounded-3xl border-0 bg-card/60 text-center space-y-4 max-w-xl mx-auto">
+        <section className="py-12 px-6 rounded-2xl border border-border/60 bg-card text-center space-y-4 max-w-xl mx-auto">
           <div className="size-16 rounded-2xl bg-muted text-foreground flex items-center justify-center mx-auto">
             <Storefront size={32} weight="bold" />
           </div>

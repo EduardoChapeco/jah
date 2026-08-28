@@ -218,7 +218,7 @@ function WorkspacePudoLogisticsPage() {
       </div>
 
       {/* Balcão de Retirada Rápida com Validação de Token */}
-      <div className="p-6 rounded-3xl border border-primary/20 bg-primary/5 space-y-4">
+      <div className="p-6 rounded-2xl border border-border/60 bg-card space-y-4">
         <div className="flex items-center gap-2 text-primary font-black text-sm uppercase tracking-wider">
           <KeyRound className="size-4" />
           <span>Balcão de Entrega ao Cliente</span>
@@ -366,7 +366,7 @@ function WorkspacePudoLogisticsPage() {
                 </div>
 
                 {pkg.damage_notes && (
-                  <p className="text-xs text-red-600 bg-red-500/10 p-2.5 rounded-xl border border-red-500/20 font-medium">
+                  <p className="text-xs text-destructive bg-destructive/10 p-2.5 rounded-xl border border-destructive/20 font-medium">
                     Avaria relatada: {pkg.damage_notes}
                   </p>
                 )}
@@ -400,7 +400,7 @@ function WorkspacePudoLogisticsPage() {
 
       {/* Modal: Receber Novo Pacote */}
       <Dialog open={isCheckInModalOpen} onOpenChange={setIsCheckInModalOpen}>
-        <DialogContent className="max-w-md p-6 rounded-3xl bg-card ">
+        <DialogContent className="sm:max-w-md sm:p-6 sm:rounded-3xl bg-card">
           <DialogHeader>
             <DialogTitle className="text-lg font-black">Registrar Entrada de Pacote</DialogTitle>
             <DialogDescription className="text-xs">
@@ -472,7 +472,7 @@ function WorkspacePudoLogisticsPage() {
 
       {/* Modal: Relatar Avaria & Devolução Reversa */}
       <Dialog open={!!damageModalPkg} onOpenChange={(open) => !open && setDamageModalPkg(null)}>
-        <DialogContent className="max-w-md p-6 rounded-3xl bg-card ">
+        <DialogContent className="sm:max-w-md sm:p-6 sm:rounded-3xl bg-card">
           <DialogHeader>
             <DialogTitle className="text-lg font-black text-destructive">
               Solicitar Logística Reversa & Avaria

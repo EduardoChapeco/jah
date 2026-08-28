@@ -11,6 +11,7 @@ import {
   Calendar,
   MessageCircle,
   MapPin,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -34,11 +35,19 @@ import {
   saveIntegrationCredential,
   deleteIntegrationCredential,
 } from "@/services/integrations.functions";
+import {
+  saveSecretKey,
+  listConfiguredSecrets,
+} from "@/services/secret-vault.functions";
 
 export const Route = createFileRoute("/workspace/configuracoes/integracoes")({
   head: () => ({ meta: [{ title: "Integrações & APIs" }] }),
   loader: async () => {
-    return await listIntegrationSettings();
+    const [integrations, secrets] = await Promise.all([
+      listIntegrationSettings().catch(() => []),
+      listConfiguredSecrets().catch(() => []),
+    ]);
+    return { integrations, secrets };
   },
   component: IntegrationsPage,
 });
@@ -71,7 +80,7 @@ function IntegrationCard({
   };
 
   return (
-    <Card className="bg-surface-paper  rounded-xl ">
+    <Card className="bg-card rounded-2xl border border-border/60 shadow-none">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -100,7 +109,7 @@ function IntegrationCard({
 
       {isActive && (
         <form onSubmit={handleSave}>
-          <CardContent className="space-y-4 pt-4 ">
+          <CardContent className="space-y-4 pt-4">
             {existingSetting?.is_active && (
               <div className="bg-success/10 text-success-foreground p-3 rounded-xl text-sm mb-4 flex items-center gap-2">
                 <CheckCircle className="size-4" />
@@ -117,17 +126,19 @@ function IntegrationCard({
                   required={!existingSetting?.is_active} // Required only if not already saved
                   value={formData[field.key] || ""}
                   onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
+                  className="rounded-xl border-border/60"
                 />
               </div>
             ))}
           </CardContent>
-          <CardFooter className="flex justify-between  pt-4 pb-4">
+          <CardFooter className="flex justify-between pt-4 pb-4 border-t border-border/40">
             {existingSetting ? (
               <Button
                 type="button"
                 variant="destructive"
                 size="sm"
                 onClick={() => onDelete(provider)}
+                className="rounded-xl"
               >
                 <Trash2 className="size-4 mr-2" />
                 Remover
@@ -135,7 +146,7 @@ function IntegrationCard({
             ) : (
               <div />
             )}
-            <Button type="submit" size="sm" disabled={isSaving}>
+            <Button type="submit" size="sm" disabled={isSaving} className="rounded-xl font-bold">
               <Save className="size-4 mr-2" />
               {isSaving ? "Salvando..." : "Salvar Configuração"}
             </Button>
@@ -146,9 +157,102 @@ function IntegrationCard({
   );
 }
 
+function SecretVaultCard({ provider, title, description, icon: Icon, existingSecret, onSave }: any) {
+  const [isActive, setIsActive] = useState(!!existingSecret);
+  const [secretKey, setSecretKey] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    try {
+      await onSave(provider, secretKey);
+      setSecretKey("");
+      setIsActive(true);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <Card className="bg-card rounded-2xl border border-dashed border-primary/40 shadow-none">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-primary/10 rounded-xl text-primary">
+              <Icon className="size-5" />
+            </div>
+            <div>
+              <CardTitle className="text-lg flex items-center gap-2">
+                {title}
+                {existingSecret ? (
+                  <Badge variant="default" className="text-[10px] bg-primary">Ativo</Badge>
+                ) : (
+                  <Badge variant="outline" className="text-[10px] text-muted-foreground">Requer Configuração</Badge>
+                )}
+              </CardTitle>
+              <CardDescription>{description}</CardDescription>
+            </div>
+          </div>
+          <Switch checked={isActive} onCheckedChange={(checked) => setIsActive(checked)} />
+        </div>
+      </CardHeader>
+
+      {isActive && (
+        <form onSubmit={handleSave}>
+          <CardContent className="space-y-4 pt-4">
+            {existingSecret && (
+              <div className="bg-primary/10 text-primary-foreground p-3 rounded-xl text-sm mb-4 flex items-center gap-2">
+                <CheckCircle className="size-4" />
+                <span className="text-primary font-medium">Chave configurada: {existingSecret.masked_suffix}</span>
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor={`${provider}-key`}>Chave da API (API Key)</Label>
+              <Input
+                id={`${provider}-key`}
+                type="password"
+                placeholder="sk-..."
+                required
+                value={secretKey}
+                onChange={(e) => setSecretKey(e.target.value)}
+              />
+              <p className="text-[10px] text-muted-foreground">Esta chave será encriptada e guardada no cofre seguro. Nenhuma API Key vaza para o navegador.</p>
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-end pt-4 pb-4">
+            <Button type="submit" size="sm" disabled={isSaving}>
+              <Save className="size-4 mr-2" />
+              {isSaving ? "Salvando..." : "Salvar no Cofre (BYOK)"}
+            </Button>
+          </CardFooter>
+        </form>
+      )}
+    </Card>
+  );
+}
+
 function IntegrationsPage() {
-  const settings = Route.useLoaderData();
+  const { integrations: settings, secrets } = Route.useLoaderData();
   const router = useRouter();
+
+  const handleSaveSecret = async (provider: string, secretKey: string) => {
+    try {
+      await saveSecretKey({
+        data: {
+          provider: provider as any,
+          label: `Chave ${provider} Pessoal`,
+          secretKey,
+          scope: "personal",
+          dailyBudgetCents: 5000,
+        },
+      });
+      toast.success("Chave salva com segurança no Cofre!");
+      router.invalidate();
+    } catch (e: any) {
+      toast.error(e?.message || "Erro ao salvar no cofre.");
+    }
+  };
 
   const handleSave = async (
     provider: string,
@@ -181,6 +285,24 @@ function IntegrationsPage() {
       </p>
 
       <div className="grid lg:grid-cols-2 gap-6">
+        <SecretVaultCard
+          provider="gemini"
+          title="Google Gemini AI"
+          description="Modelos de IA generativa do Google (Pro, Flash). Usado para geração de descrições e curadoria de conteúdo."
+          icon={Sparkles}
+          existingSecret={secrets.find((s: any) => s.provider === "gemini" && s.is_active)}
+          onSave={handleSaveSecret}
+        />
+
+        <SecretVaultCard
+          provider="openai"
+          title="OpenAI (ChatGPT)"
+          description="Modelos GPT-4o e GPT-4o-mini. Alternativa de IA generativa (Traga sua Própria Chave)."
+          icon={Sparkles}
+          existingSecret={secrets.find((s: any) => s.provider === "openai" && s.is_active)}
+          onSave={handleSaveSecret}
+        />
+
         <IntegrationCard
           provider="whatsapp_cloud_api"
           title="WhatsApp Cloud API (Oficial)"
@@ -317,4 +439,3 @@ function IntegrationsPage() {
     </div>
   );
 }
-

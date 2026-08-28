@@ -51,9 +51,7 @@ export function AdvancedVariantEditor({
         <SheetHeader>
           <SheetTitle>Edição Avançada da Variação</SheetTitle>
           <SheetDescription>
-            Aqui você pode ajustar as dimensões, adicionar código de barras e sobrescrever o preço.
-            Os campos de envio só serão utilizados se o modo de entrega escolhido pelos clientes
-            exigir cálculo volumétrico.
+            Ajuste dimensões, código de barras e regras de precificação volumétrica da variação.
           </SheetDescription>
         </SheetHeader>
 

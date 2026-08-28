@@ -34,12 +34,8 @@ export const Route = createFileRoute("/workspace/")({
       session = null;
     }
 
-    if (!session || !session.user) {
-      throw redirect({ to: "/entrar", search: { returnUrl: "/workspace" } });
-    }
-
-    const memberships = session.memberships || [];
-    const activeStoreId = session.store_id || memberships[0]?.store_id || null;
+    const memberships = session?.memberships || [];
+    const activeStoreId = session?.store_id || memberships[0]?.store_id || null;
     const activeStore = memberships.find((m: any) => m.store_id === activeStoreId) || memberships[0] || null;
 
     const dashboardMetrics = await getDashboardData().catch(() => ({
@@ -171,7 +167,7 @@ export default function WorkspaceDashboardPage() {
           className="p-4 rounded-2xl bg-card  hover:border-primary/50 transition-all  group flex flex-col justify-between"
         >
           <div className="flex items-center justify-between">
-            <div className="size-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center">
+            <div className="size-10 rounded-xl bg-info/10 text-info flex items-center justify-center">
               <Calendar className="size-5" />
             </div>
             <ArrowUpRight className="size-4 text-muted-foreground group-hover:text-foreground transition-colors" />
@@ -189,7 +185,7 @@ export default function WorkspaceDashboardPage() {
           className="p-4 rounded-2xl bg-card  hover:border-primary/50 transition-all  group flex flex-col justify-between"
         >
           <div className="flex items-center justify-between">
-            <div className="size-10 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center">
+            <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
               <Users className="size-5" />
             </div>
             <ArrowUpRight className="size-4 text-muted-foreground group-hover:text-foreground transition-colors" />

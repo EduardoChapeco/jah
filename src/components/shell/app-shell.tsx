@@ -6,6 +6,7 @@ import { ContextSidebar } from "./context-sidebar";
 import { MobileNav } from "./mobile-nav";
 import { CartSheet } from "@/components/commerce/cart-sheet";
 import { InterestPickerModal } from "@/components/onboarding/interest-picker-modal";
+import { GeolocationPermissionSheet } from "@/components/location/geolocation-permission-sheet";
 
 export interface AppShellProps {
   children: ReactNode;
@@ -94,6 +95,9 @@ export function AppShell({ children, session, brandSettings }: AppShellProps) {
 
       {/* Onboarding de Interesses da Comunidade */}
       <InterestPickerModal />
+
+      {/* Solicitação Canônica de Localização (GPS Geolocation Sheet) */}
+      <GeolocationPermissionSheet />
     </div>
   );
 }

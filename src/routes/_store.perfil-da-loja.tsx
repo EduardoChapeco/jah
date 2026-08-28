@@ -35,9 +35,22 @@ import { listPublicJobs } from "@/services/jobs.functions";
 import { getPublicExperienceDocumentBySlug } from "@/services/builder.functions";
 import { addToCart } from "@/services/cart.functions";
 import { ExperienceRenderer } from "@/components/commerce/experience-renderer";
-import { getOpenStatus } from "@/lib/datetime";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  normalizeWorkingHours,
+  formatWeeklyScheduleSummary,
+  WEEKDAYS_ORDER,
+  type WeeklySchedule,
+} from "@/lib/business-hours";
+import { getOpenStatus, formatDate } from "@/lib/datetime";
 import { formatMoney } from "@/lib/money";
-import { formatDate } from "@/lib/datetime";
 import { trackAndOpenWhatsApp } from "@/lib/whatsapp";
 import { useCartContext } from "@/lib/cart-context";
 import { toast } from "sonner";
@@ -152,10 +165,11 @@ function StorePerfil() {
     settings.bannerUrl ||
     "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=85";
   const logoUrl = store.logo_url || settings.logoUrl || settings.logo_url;
-  const extendedHours = settings.business_hours_extended || [];
+  const rawHours = settings.working_hours || settings.business_hours_extended || store.business_hours || null;
   const holidayExceptions = settings.holiday_exceptions || [];
-  const openStatus =
-    extendedHours.length > 0 ? getOpenStatus(extendedHours, holidayExceptions) : null;
+  const openStatus = rawHours ? getOpenStatus(rawHours, holidayExceptions) : null;
+  const weeklySchedule = normalizeWorkingHours(rawHours);
+  const scheduleSummary = rawHours ? formatWeeklyScheduleSummary(weeklySchedule) : "Horários sob consulta";
 
   // Semântica por Nicho
   const segment = (store.type || settings.segment || "loja").toLowerCase();
@@ -220,8 +234,8 @@ function StorePerfil() {
         </div>
       </div>
 
-      {/* ── 2. CORPO INSTITUCIONAL PADRONIZADO (MAX 5XL) ── */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-6 pt-2">
+      {/* ── 2. CORPO INSTITUCIONAL PADRONIZADO (MAX 6XL CANÔNICO) ── */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6 pt-2">
         {/* Identidade Visual & Cabeçalho */}
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-12 sm:-mt-16 relative z-10">
@@ -255,7 +269,8 @@ function StorePerfil() {
                 </Button>
               )}
 
-              {store.address && (
+              {/* Botão Como Chegar (Apenas se endereço for público e físico) */}
+              {store.address && settings.is_address_public !== false && settings.business_model !== "home_office" && settings.business_model !== "digital_only" && (
                 <Button
                   asChild
                   variant="outline"
@@ -276,9 +291,20 @@ function StorePerfil() {
 
           {/* Nome, Avaliações e Status de Atendimento */}
           <div className="space-y-2">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-foreground tracking-tight leading-tight">
-              {store.name}
-            </h1>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-foreground tracking-tight leading-tight">
+                {store.name}
+              </h1>
+              {settings.business_model && (
+                <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider bg-muted/30">
+                  {settings.business_model === "physical_and_delivery" && "Loja Física"}
+                  {settings.business_model === "delivery_only" && "Apenas Delivery"}
+                  {settings.business_model === "home_office" && "Home Office"}
+                  {settings.business_model === "service_at_client" && "Em Domicílio"}
+                  {settings.business_model === "digital_only" && "100% Digital"}
+                </Badge>
+              )}
+            </div>
 
             <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
               <div className="flex items-center text-amber-500 font-bold font-mono">
@@ -288,10 +314,66 @@ function StorePerfil() {
               <span>•</span>
               <span>Avaliações Verificadas</span>
               <span>•</span>
-              <span className="text-emerald-600 font-bold flex items-center gap-1.5">
-                <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>{openStatus ? openStatus.text : "Atendimento Ativo"}</span>
-              </span>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1.5 font-bold cursor-pointer hover:underline text-left text-xs"
+                  >
+                    <span
+                      className={cn(
+                        "size-2 rounded-full",
+                        openStatus?.isOpenNow ? "bg-emerald-500 animate-pulse" : "bg-muted-foreground"
+                      )}
+                    />
+                    <span
+                      className={
+                        openStatus?.isOpenNow
+                          ? "text-emerald-600 dark:text-emerald-400"
+                          : "text-muted-foreground"
+                      }
+                    >
+                      {openStatus ? openStatus.text : "Horários sob consulta"}
+                    </span>
+                    <ChevronRight className="size-3 text-muted-foreground" />
+                  </button>
+                </DialogTrigger>
+
+                <DialogContent className="sm:max-w-md sm:rounded-3xl sm:p-6 p-5">
+                  <DialogHeader className="pb-2">
+                    <DialogTitle className="text-base font-bold flex items-center gap-2">
+                      <Clock className="size-4 text-primary" />
+                      <span>Horários de Funcionamento</span>
+                    </DialogTitle>
+                    <DialogDescription className="text-xs text-muted-foreground">
+                      Grade semanal de atendimento e pedidos de {store.name}.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className="space-y-2 py-2">
+                    {WEEKDAYS_ORDER.map(({ key, label }) => {
+                      const day = weeklySchedule[key];
+                      const isOpen = day?.open && day.intervals && day.intervals.length > 0;
+                      return (
+                        <div
+                          key={key}
+                          className={cn(
+                            "flex items-center justify-between p-2.5 rounded-xl text-xs",
+                            isOpen ? "bg-muted/30" : "bg-muted/10 opacity-60"
+                          )}
+                        >
+                          <span className="font-semibold text-foreground">{label}</span>
+                          <span className="font-mono text-muted-foreground">
+                            {isOpen
+                              ? day.intervals.map((inv) => `${inv.from} às ${inv.to}`).join(" • ")
+                              : "Fechado"}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
 
             <div className="flex flex-wrap items-center gap-y-2 gap-x-6 text-xs text-muted-foreground pt-2">
@@ -306,7 +388,7 @@ function StorePerfil() {
 
               <span className="flex items-center gap-1.5 font-medium text-foreground">
                 <Clock className="size-4 text-primary shrink-0" />
-                <span>08:00 - 18:00 (Segunda a Sábado)</span>
+                <span>{scheduleSummary}</span>
               </span>
             </div>
           </div>
@@ -342,7 +424,7 @@ function StorePerfil() {
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <Building2 className="size-4 text-blue-500" />
+              <Building2 className="size-4 text-info" />
               <span>Sobre & Informações</span>
             </button>
 
@@ -508,12 +590,25 @@ function StorePerfil() {
               {/* Informações de Localização & Contato */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-6 rounded-3xl bg-card space-y-4">
-                  <h3 className="text-sm font-bold text-foreground">Localização & Endereço</h3>
+                  <h3 className="text-sm font-bold text-foreground">Localização & Atendimento</h3>
                   <div className="space-y-2 text-xs text-muted-foreground">
-                    <p className="font-medium text-foreground">{store.address || "Endereço não informado"}</p>
-                    <p>{store.city} — {store.state || "SC"}</p>
+                    {settings.is_address_public === false || settings.business_model === "home_office" || settings.business_model === "digital_only" ? (
+                      <div>
+                        <p className="font-medium text-foreground">
+                          {settings.neighborhood ? `${settings.neighborhood}, ` : ""}{store.city} — {store.state || "SC"}
+                        </p>
+                        <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium pt-1">
+                          🔒 Endereço protegido por privacidade. Atendimento remoto / delivery em um raio de até {settings.service_radius_km || 15} km.
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="font-medium text-foreground">{store.address || "Endereço não informado"}</p>
+                        <p>{store.city} — {store.state || "SC"}</p>
+                      </div>
+                    )}
                   </div>
-                  {store.address && (
+                  {store.address && settings.is_address_public !== false && settings.business_model !== "home_office" && settings.business_model !== "digital_only" && (
                     <Button asChild size="sm" variant="outline" className="w-full rounded-2xl text-xs font-semibold gap-1.5">
                       <a
                         href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address + (store.city ? " " + store.city : ""))}`}

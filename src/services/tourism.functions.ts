@@ -559,43 +559,34 @@ export const requestTravelQuote = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<{ success: boolean; id: string }> => {
     const supabase = getServerClient();
 
-    const record = {
-      origin_city: data.origin_city,
-      origin_iata: data.origin_iata || null,
-      destination_city: data.destination_city,
-      destination_iata: data.destination_iata || null,
-      departure_date: data.departure_date || null,
-      return_date: data.return_date || null,
-      rooms_count: data.rooms_count,
-      adults_count: data.adults_count,
-      children_count: data.children_count,
-      children_ages: data.children_ages,
-      trip_type: data.trip_type,
-      flexible_dates: data.flexible_dates,
-      contact_name: data.contact_name,
-      contact_whatsapp: data.contact_whatsapp,
-      contact_email: data.contact_email || null,
-      budget_tier: data.budget_tier,
-      special_notes: data.special_notes || null,
-      status: "new",
-      created_at: new Date().toISOString(),
-    };
-
     const { data: inserted, error } = await supabase
-      .from("tourism_inquiries")
+      .from("travel_quotes")
       .insert({
-        customer_name: data.contact_name,
-        customer_whatsapp: data.contact_whatsapp,
-        customer_email: data.contact_email || null,
-        message: `Cotação de Viagem (${data.trip_type}): ${data.origin_city} -> ${data.destination_city} (${data.adults_count} adultos, ${data.children_count} crianças, ${data.rooms_count} quartos)`,
-        metadata: record,
+        origin_city: data.origin_city,
+        origin_iata: data.origin_iata || null,
+        destination_city: data.destination_city,
+        destination_iata: data.destination_iata || null,
+        departure_date: data.departure_date || null,
+        return_date: data.return_date || null,
+        rooms_count: data.rooms_count,
+        adults_count: data.adults_count,
+        children_count: data.children_count,
+        children_ages: data.children_ages,
+        trip_type: data.trip_type,
+        flexible_dates: data.flexible_dates,
+        contact_name: data.contact_name,
+        contact_whatsapp: data.contact_whatsapp,
+        contact_email: data.contact_email || null,
+        budget_tier: data.budget_tier,
+        special_notes: data.special_notes || null,
+        status: "new",
       })
       .select("id")
       .single();
 
     if (error) {
-      console.error("[tourism.functions] Erro ao gravar cotação:", error);
-      return { success: true, id: "local-quote-" + Date.now() };
+      console.error("[tourism.functions] Erro ao gravar cotação na tabela travel_quotes:", error);
+      return { success: false, id: "" };
     }
 
     return { success: true, id: inserted.id };
@@ -610,41 +601,41 @@ export const listAgencyTravelQuotes = createServerFn({ method: "GET" })
   )
   .handler(async ({ data }): Promise<TravelQuoteRequestDTO[]> => {
     const supabase = getServerClient();
-    const { data: rows, error } = await supabase
-      .from("tourism_inquiries")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(data.limit);
+    
+    let query = supabase.from("travel_quotes").select("*").order("created_at", { ascending: false }).limit(data.limit);
+    
+    if (data.status !== "all") {
+      query = query.eq("status", data.status);
+    }
+    
+    const { data: rows, error } = await query;
 
     if (error || !rows) {
       return [];
     }
 
-    return rows.map((r: any) => {
-      const meta = r.metadata || {};
-      return {
-        id: r.id,
-        origin_city: meta.origin_city || "Chapecó",
-        origin_iata: meta.origin_iata || "XAP",
-        destination_city: meta.destination_city || "Natal",
-        destination_iata: meta.destination_iata || "NAT",
-        departure_date: meta.departure_date || null,
-        return_date: meta.return_date || null,
-        rooms_count: meta.rooms_count || 1,
-        adults_count: meta.adults_count || 2,
-        children_count: meta.children_count || 0,
-        children_ages: meta.children_ages || [],
-        trip_type: meta.trip_type || "air_package",
-        flexible_dates: meta.flexible_dates || false,
-        contact_name: r.customer_name || meta.contact_name || "Cliente",
-        contact_whatsapp: r.customer_whatsapp || meta.contact_whatsapp || "",
-        contact_email: r.customer_email || meta.contact_email || null,
-        budget_tier: meta.budget_tier || "standard",
-        special_notes: r.message || meta.special_notes || null,
-        status: meta.status || "new",
-        agency_notes: meta.agency_notes || null,
-        quote_amount_cents: meta.quote_amount_cents || null,
-        created_at: r.created_at,
-      };
-    });
+    return rows.map((r: any) => ({
+      id: r.id,
+      origin_city: r.origin_city,
+      origin_iata: r.origin_iata,
+      destination_city: r.destination_city,
+      destination_iata: r.destination_iata,
+      departure_date: r.departure_date,
+      return_date: r.return_date,
+      rooms_count: r.rooms_count,
+      adults_count: r.adults_count,
+      children_count: r.children_count,
+      children_ages: r.children_ages,
+      trip_type: r.trip_type,
+      flexible_dates: r.flexible_dates,
+      contact_name: r.contact_name,
+      contact_whatsapp: r.contact_whatsapp,
+      contact_email: r.contact_email,
+      budget_tier: r.budget_tier,
+      special_notes: r.special_notes,
+      status: r.status,
+      agency_notes: r.agency_notes,
+      quote_amount_cents: r.quote_amount_cents,
+      created_at: r.created_at,
+    }));
   });

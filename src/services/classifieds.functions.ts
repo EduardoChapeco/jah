@@ -99,7 +99,7 @@ export const getPublicClassifiedById = createServerFn({ method: "GET" })
       }
 
       const isOwner = !!(identity?.id && classifiedData.author_profile_id === identity.id);
-      const isAdmin = !!(identity?.role === "admin" || identity?.role === "master");
+      const isAdmin = !!(identity?.role === "admin" || identity?.role === "master" || identity?.role === "platform_admin" || identity?.role === "owner");
       const canManage = isOwner || isAdmin;
 
       const viewerContext: "owner" | "admin" | "visitor" | "anonymous" = isOwner

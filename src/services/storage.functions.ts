@@ -389,3 +389,70 @@ export const uploadMediaUniversal = createServerFn({ method: "POST" })
     }
   });
 
+/**
+ * Upload de Assets de Marca da Plataforma (Logo, Favicon, Backgrounds de Login)
+ * Requer role de Administrador Master da Plataforma.
+ */
+export const uploadBrandAsset = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      fileName: z.string().min(1),
+      fileType: z.string().min(1),
+      base64Data: z.string().min(1),
+      category: z.enum(["logo", "favicon", "login_desktop", "login_tablet", "login_mobile"]),
+    }),
+  )
+  .handler(async ({ data: { fileName, fileType, base64Data, category } }) => {
+    try {
+      const { requirePlatformAdmin } = await import("@/lib/server-access");
+      await requirePlatformAdmin();
+
+      const supabase = getServerClient();
+      const ext = fileName.split(".").pop() || "png";
+      const uniqueName = `brand/${category}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${ext}`;
+      const bucket = "cms-media";
+
+      const base64Content = base64Data.includes(",") ? base64Data.split(",")[1] : base64Data;
+      const buffer = Buffer.from(base64Content, "base64");
+
+      let { error: uploadError } = await supabase.storage
+        .from(bucket)
+        .upload(uniqueName, buffer, {
+          contentType: fileType,
+          upsert: true,
+        });
+
+      if (
+        uploadError &&
+        (uploadError.message.includes("Bucket not found") ||
+          uploadError.message.includes("The related resource does not exist"))
+      ) {
+        await supabase.storage.createBucket(bucket, {
+          public: true,
+          fileSizeLimit: 25 * 1024 * 1024,
+        });
+        const retry = await supabase.storage
+          .from(bucket)
+          .upload(uniqueName, buffer, {
+            contentType: fileType,
+            upsert: true,
+          });
+        uploadError = retry.error;
+      }
+
+      if (uploadError) {
+        throw new Error(`Erro ao persistir asset de marca no storage: ${uploadError.message}`);
+      }
+
+      const { data: publicUrlData } = supabase.storage.from(bucket).getPublicUrl(uniqueName);
+
+      return {
+        url: publicUrlData.publicUrl,
+        path: uniqueName,
+      };
+    } catch (e: any) {
+      console.error("[storage] uploadBrandAsset error:", e);
+      throw new Error(e.message || "Erro no upload do asset de marca.");
+    }
+  });
+

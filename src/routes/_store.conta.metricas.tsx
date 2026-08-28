@@ -39,7 +39,7 @@ export const Route = createFileRoute("/_store/conta/metricas")({
       const analytics = await getMemberAnalyticsInsights({ data: {} });
       return { analytics };
     } catch {
-      throw redirect({ to: "/entrar" });
+      return { analytics: null };
     }
   },
   component: MemberMetricsPage,
@@ -140,7 +140,7 @@ function MemberMetricsPage() {
         <div className="p-4 rounded-3xl bg-card border border-border/70 space-y-1.5 shadow-2xs">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-xs font-bold">Alcance Total</span>
-            <div className="size-7 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
+            <div className="size-7 rounded-xl bg-info/10 text-info flex items-center justify-center">
               <Eye className="size-3.5" />
             </div>
           </div>
@@ -189,14 +189,14 @@ function MemberMetricsPage() {
         <div className="p-4 rounded-3xl bg-card border border-border/70 space-y-1.5 shadow-2xs">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-xs font-bold">Seguidores</span>
-            <div className="size-7 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center">
+            <div className="size-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
               <Users className="size-3.5" />
             </div>
           </div>
           <p className="text-2xl font-black text-foreground tracking-tight">
             {overview.followersCount.toLocaleString("pt-BR")}
           </p>
-          <div className="flex items-center gap-1 text-[11px] font-semibold text-purple-600">
+          <div className="flex items-center gap-1 text-[11px] font-semibold text-primary">
             <span>+{overview.followersGained30d} novos nos últimos 30d</span>
           </div>
         </div>
@@ -299,13 +299,13 @@ function MemberMetricsPage() {
             <div className="space-y-1">
               <div className="flex items-center justify-between text-xs">
                 <span className="flex items-center gap-1.5 text-muted-foreground">
-                  <ImageIcon className="size-3.5 text-blue-500" /> Fotos Individuais
+                  <ImageIcon className="size-3.5 text-info" /> Fotos Individuais
                 </span>
                 <span className="font-bold">{formatDistribution.photo}</span>
               </div>
               <div className="h-2 rounded-full bg-muted overflow-hidden">
                 <div
-                  className="h-full bg-blue-500 rounded-full transition-all"
+                  className="h-full bg-info rounded-full transition-all"
                   style={{
                     width: `${totalContentCount > 0 ? (formatDistribution.photo / totalContentCount) * 100 : 0}%`,
                   }}
@@ -317,13 +317,13 @@ function MemberMetricsPage() {
             <div className="space-y-1">
               <div className="flex items-center justify-between text-xs">
                 <span className="flex items-center gap-1.5 text-muted-foreground">
-                  <Layers className="size-3.5 text-purple-500" /> Carrosséis & Galerias
+                  <Layers className="size-3.5 text-primary" /> Carrosséis & Galerias
                 </span>
                 <span className="font-bold">{formatDistribution.gallery}</span>
               </div>
               <div className="h-2 rounded-full bg-muted overflow-hidden">
                 <div
-                  className="h-full bg-purple-500 rounded-full transition-all"
+                  className="h-full bg-primary rounded-full transition-all"
                   style={{
                     width: `${totalContentCount > 0 ? (formatDistribution.gallery / totalContentCount) * 100 : 0}%`,
                   }}
@@ -479,7 +479,7 @@ function MemberMetricsPage() {
                     <span className="flex items-center gap-1 text-rose-500 font-bold text-xs">
                       <Heart className="size-3.5 fill-rose-500/20" /> {post.likes_count}
                     </span>
-                    <span className="flex items-center gap-1 text-blue-500 font-bold text-xs">
+                    <span className="flex items-center gap-1 text-info font-bold text-xs">
                       <MessageCircle className="size-3.5" /> {post.comments_count}
                     </span>
                   </div>

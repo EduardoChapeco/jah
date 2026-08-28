@@ -89,7 +89,7 @@ export function PostOrderAuditModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[420px] rounded-3xl  bg-card p-6">
+      <DialogContent className="sm:max-w-[420px] sm:rounded-3xl bg-card sm:p-6 p-5">
         <DialogHeader className="space-y-2">
           <div className="size-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-1">
             <ShieldCheck className="size-5" />

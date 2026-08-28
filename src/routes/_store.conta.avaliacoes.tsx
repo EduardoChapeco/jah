@@ -1,6 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
-import { getSSRClient } from "@/lib/server-access";
 import { EmptyState } from "@/components/state/states";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

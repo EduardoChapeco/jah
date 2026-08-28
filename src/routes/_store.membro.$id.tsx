@@ -688,7 +688,7 @@ export function MemberPublicProfileView({
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 text-foreground/80 font-semibold hover:underline"
               >
-                <Instagram className="size-3.5 text-pink-500" />
+                <Instagram className="size-3.5 text-primary" />
                 <span>@{profile.instagram.replace(/^@/, "")}</span>
               </a>
             )}
@@ -1924,7 +1924,7 @@ function AvailabilityEditModal({
             <div className="p-4 rounded-2xl bg-muted/30 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <UserPlus className="size-4 text-blue-500" />
+                  <UserPlus className="size-4 text-info" />
                   <div>
                     <h4 className="text-sm font-bold text-foreground">Contratar talentos (#Hiring)</h4>
                     
@@ -2216,7 +2216,7 @@ function ExperienceEditModal({
                 required
               />
               {companySuggestions.length > 0 && (
-                <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-card rounded-2xl shadow-xl border border-border p-2 space-y-1 max-h-48 overflow-y-auto">
+                <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-card rounded-2xl border border-border/80 p-2 space-y-1 max-h-48 overflow-y-auto">
                   <p className="text-[10px] font-bold text-muted-foreground px-2 py-0.5">
                     Lojas do Ecossistema Wider:
                   </p>

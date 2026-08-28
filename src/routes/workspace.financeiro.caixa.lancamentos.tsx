@@ -230,8 +230,8 @@ function CaixaLancamentosPage() {
       </div>
 
       {/* Lançamentos Table */}
-      <div className=" bg-card rounded-xl overflow-hidden">
-        <div className="p-4 ">
+      <div className="bg-card rounded-2xl border border-border/60 overflow-hidden">
+        <div className="p-4 border-b border-border/40">
           <h3 className="font-semibold text-foreground">Extrato do Turno</h3>
         </div>
         <div className="overflow-x-auto">

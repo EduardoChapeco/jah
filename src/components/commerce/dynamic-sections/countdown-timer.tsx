@@ -83,7 +83,7 @@ export function CountdownTimer({ content }: CountdownTimerProps) {
 function TimeBox({ value, label }: { value: number; label: string }) {
   return (
     <div className="flex flex-col items-center">
-      <div className="bg-background text-foreground rounded-xl w-14 h-14 flex items-center justify-center text-2xl font-black shadow-inner">
+      <div className="bg-background text-foreground rounded-xl w-14 h-14 flex items-center justify-center text-2xl font-black">
         {value.toString().padStart(2, "0")}
       </div>
       <span className="text-[10px] mt-1.5 uppercase font-medium tracking-wider opacity-80">

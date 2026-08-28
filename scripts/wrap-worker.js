@@ -34,7 +34,7 @@ const fallbackEnv = {
   VITE_SUPABASE_ANON_KEY: secrets.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmdWVicW1sdGtzeXpub3ZobHdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzOTQxOTcsImV4cCI6MjEwMTk3MDE5N30.14RG8TsXNmyauTp1L-VA2UJNC6jrU9tYj8Vk4RXH0Hc",
   SUPABASE_ANON_KEY: secrets.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmdWVicW1sdGtzeXpub3ZobHdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzOTQxOTcsImV4cCI6MjEwMTk3MDE5N30.14RG8TsXNmyauTp1L-VA2UJNC6jrU9tYj8Vk4RXH0Hc",
   SUPABASE_SERVICE_ROLE_KEY: secrets.SUPABASE_SERVICE_ROLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmdWVicW1sdGtzeXpub3ZobHdhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NjM5NDE5NywiZXhwIjoyMTAxOTcwMTk3fQ.fQA4JVYOoEAuTltYvqNBeYArVKK6N9Zfz7fZiNXMoQs",
-  VITE_SITE_URL: "https://jah-d9m.pages.dev",
+  VITE_SITE_URL: "https://wider.pages.dev",
 };
 
 const injection = `async fetch(cfReq, env, context) {
@@ -57,3 +57,27 @@ if (content.includes("async fetch(cfReq, env, context) {")) {
 } else {
   console.warn("Could not find fetch entrypoint in worker.");
 }
+
+// 2. Ensure Cloudflare Pages _routes.json uses wildcard exclude for /assets/* to prevent stylesheet interception
+const routesJsonPath = path.join(process.cwd(), "dist/_routes.json");
+const cleanRoutesJson = {
+  version: 1,
+  include: ["/*"],
+  exclude: [
+    "/assets/*",
+    "/favicon.ico",
+    "/manifest.json",
+    "/robots.txt",
+    "/sw.js",
+    "/icons/*"
+  ]
+};
+fs.writeFileSync(routesJsonPath, JSON.stringify(cleanRoutesJson, null, 2));
+console.log("Successfully generated optimized dist/_routes.json for Cloudflare Pages.");
+
+// 3. Clean .wrangler to prevent deployment config redirect mismatch
+const wranglerDir = path.join(process.cwd(), ".wrangler");
+if (fs.existsSync(wranglerDir)) {
+  fs.rmSync(wranglerDir, { recursive: true, force: true });
+}
+

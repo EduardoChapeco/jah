@@ -58,8 +58,8 @@ const HOTPAGE_THEMES: Record<
 > = {
   turbo: {
     bgGradient: "bg-linear-to-b from-pink-600 via-rose-600 to-fuchsia-700",
-    accentColor: "text-pink-600",
-    badgeBg: "bg-white text-pink-600",
+    accentColor: "text-primary",
+    badgeBg: "bg-white text-primary",
     icon: Lightning,
     defaultBadge: "⚡ #turbo",
     heroPills: ["⚡ apenas + R$ 3,99", "⏱️ em até 20 min", "💰 ou R$ 5 de volta"],
@@ -69,7 +69,7 @@ const HOTPAGE_THEMES: Record<
   hits: {
     bgGradient: "bg-linear-to-b from-amber-500 via-orange-500 to-red-600",
     accentColor: "text-amber-600",
-    badgeBg: "bg-white text-orange-600",
+    badgeBg: "bg-white text-warning",
     icon: Flame,
     defaultBadge: "🍔 hits",
     heroPills: ["🔥 os mais amados", "🛵 entrega grátis", "⭐ nota 4.8+"],
@@ -78,7 +78,7 @@ const HOTPAGE_THEMES: Record<
   },
   ofertas: {
     bgGradient: "bg-linear-to-b from-red-600 via-rose-600 to-amber-600",
-    accentColor: "text-red-600",
+    accentColor: "text-destructive",
     badgeBg: "bg-amber-400 text-black",
     icon: Flame,
     defaultBadge: "🏷️ Oferta Relâmpago",
@@ -118,8 +118,122 @@ const HOTPAGE_THEMES: Record<
   },
 };
 
-// Categorias Rápidas estilo iFood (Sub-abas com ícones arredondados)
-const QUICK_NICHE_CHIPS = [
+const MODULE_CHIPS_MAP: Record<string, Array<{ id: string; label: string; icon: any }>> = {
+  turismo: [
+    { id: "todos", label: "Todos os Roteiros", icon: Sparkle },
+    { id: "passeios", label: "Passeios & Catamarã", icon: Sparkle },
+    { id: "pousadas", label: "Cabanas & Pousadas", icon: House },
+    { id: "gastronomia", label: "Vinícolas & Sabores", icon: ForkKnife },
+    { id: "aventura", label: "Trilhas & Aventura", icon: Lightning },
+  ],
+  empregos: [
+    { id: "todos", label: "Todas as Vagas", icon: Sparkle },
+    { id: "clt", label: "Comércio & CLT", icon: Briefcase },
+    { id: "tech", label: "Tech & TI", icon: Lightning },
+    { id: "vendas", label: "Vendas & Comercial", icon: Flame },
+    { id: "estagio", label: "Estágios & Trainee", icon: Briefcase },
+  ],
+  bebidas: [
+    { id: "todos", label: "Todas as Bebidas", icon: Sparkle },
+    { id: "cervejas", label: "Cervejas & Chopp", icon: Flame },
+    { id: "vinhos", label: "Vinhos & Adegas", icon: Coffee },
+    { id: "destilados", label: "Destilados & Gin", icon: Lightning },
+    { id: "gelo", label: "Gelo & Carvão", icon: Truck },
+  ],
+  acougue: [
+    { id: "todos", label: "Todos os Cortes", icon: Sparkle },
+    { id: "nobres", label: "Cortes Nobres Angus", icon: Flame },
+    { id: "churrasco", label: "Kits Churrasco", icon: Flame },
+    { id: "diaadia", label: "Carnes do Dia a Dia", icon: ShoppingBag },
+    { id: "linguicas", label: "Linguiças Coloniais", icon: Tag },
+  ],
+  moda: [
+    { id: "todos", label: "Todas as Peças", icon: Sparkle },
+    { id: "feminino", label: "Moda Feminina", icon: Tag },
+    { id: "masculino", label: "Moda Masculina", icon: Tag },
+    { id: "calcados", label: "Calçados & Tênis", icon: Lightning },
+    { id: "acessorios", label: "Bolsas & Acessórios", icon: Sparkle },
+  ],
+  eletronicos: [
+    { id: "todos", label: "Toda a Linha Tech", icon: Sparkle },
+    { id: "smartphones", label: "Smartphones & 5G", icon: Lightning },
+    { id: "informatica", label: "Notebooks & PC", icon: Lightning },
+    { id: "audio", label: "Fones & Caixas de Som", icon: Sparkle },
+    { id: "tvs", label: "Smart TVs 4K", icon: Lightning },
+  ],
+  pet: [
+    { id: "todos", label: "Tudo para Pets", icon: Sparkle },
+    { id: "caes", label: "Cães & Rações", icon: Tag },
+    { id: "gatos", label: "Gatos & Areias", icon: Tag },
+    { id: "veterinaria", label: "Farmácia Pet", icon: Heartbeat },
+    { id: "higiene", label: "Banho & Tosa", icon: Sparkle },
+  ],
+  servicos: [
+    { id: "todos", label: "Todos os Serviços", icon: Sparkle },
+    { id: "obras", label: "Obras & Reformas", icon: Briefcase },
+    { id: "manutencao", label: "Manutenção & Reparos", icon: Lightning },
+    { id: "limpeza", label: "Diaristas & Faxinas", icon: Sparkle },
+    { id: "profissionais", label: "Consultoria & Jurídico", icon: Briefcase },
+  ],
+  imoveis: [
+    { id: "todos", label: "Todos os Imóveis", icon: Sparkle },
+    { id: "aluguel", label: "Aluguel Fácil", icon: House },
+    { id: "venda", label: "Venda & Lançamentos", icon: House },
+    { id: "terrenos", label: "Terrenos & Lotes", icon: Tag },
+    { id: "comercial", label: "Salas & Galpões", icon: Briefcase },
+  ],
+  construcao: [
+    { id: "todos", label: "Todos os Materiais", icon: Sparkle },
+    { id: "tintas", label: "Tintas & Acabamento", icon: Sparkle },
+    { id: "ferramentas", label: "Ferramentas Pro", icon: Lightning },
+    { id: "eletrica", label: "Elétrica & Fios", icon: Lightning },
+    { id: "hidraulica", label: "Hidráulica & Tubos", icon: Truck },
+  ],
+  casa: [
+    { id: "todos", label: "Tudo para Casa", icon: Sparkle },
+    { id: "moveis", label: "Móveis & Estofados", icon: House },
+    { id: "decoracao", label: "Decoração & Quadros", icon: Sparkle },
+    { id: "iluminacao", label: "Lustres & Luzes", icon: Lightning },
+    { id: "utilidades", label: "Cama, Mesa & Banho", icon: Tag },
+  ],
+  beleza: [
+    { id: "todos", label: "Todos os Cuidados", icon: Sparkle },
+    { id: "barbearia", label: "Barbearias Premium", icon: Sparkle },
+    { id: "salao", label: "Salões de Beleza", icon: Sparkle },
+    { id: "unhas", label: "Unhas & Manicure", icon: Heartbeat },
+    { id: "estetica", label: "Estética & Massagem", icon: Heartbeat },
+  ],
+  limpeza: [
+    { id: "todos", label: "Toda a Linha", icon: Sparkle },
+    { id: "pesada", label: "Limpeza Pesada", icon: Lightning },
+    { id: "lavanderia", label: "Lavanderia & Roupas", icon: Sparkle },
+    { id: "cozinha", label: "Cozinha & Desengordurantes", icon: Tag },
+    { id: "descartaveis", label: "Descartáveis & Papéis", icon: Truck },
+  ],
+  livros: [
+    { id: "todos", label: "Todo o Catálogo", icon: Sparkle },
+    { id: "bestsellers", label: "Best-sellers & Livros", icon: Tag },
+    { id: "papelaria", label: "Papelaria Criativa", icon: Sparkle },
+    { id: "presentes", label: "Presentes & Canecas", icon: Sparkle },
+    { id: "jogos", label: "Jogos & Board Games", icon: Lightning },
+  ],
+  mobilidade: [
+    { id: "todos", label: "Todos os Serviços", icon: Sparkle },
+    { id: "corridas", label: "Corridas Rápidas", icon: Lightning },
+    { id: "entregas", label: "MotoLink Flash", icon: Truck },
+    { id: "fretes", label: "Fretes & Vans", icon: Truck },
+    { id: "executivo", label: "Transporte VIP", icon: Sparkle },
+  ],
+  ofertas: [
+    { id: "todos", label: "Todas as Ofertas", icon: Sparkle },
+    { id: "50off", label: "Até 50% OFF", icon: Flame },
+    { id: "fretegratis", label: "Frete Grátis", icon: Truck },
+    { id: "combos", label: "Combos & Pague Menos", icon: Tag },
+    { id: "queima", label: "Últimas Unidades", icon: Lightning },
+  ],
+};
+
+const DEFAULT_QUICK_CHIPS = [
   { id: "todos", label: "Explorar", icon: Sparkle },
   { id: "restaurantes", label: "Restaurantes", icon: ForkKnife },
   { id: "mercados", label: "Mercados", icon: ShoppingBag },
@@ -142,11 +256,15 @@ export const Route = createFileRoute("/_store/destaques/$slug")({
     ],
   }),
   loader: async ({ params }) => {
-    const [hotpageRes, productsRes, feedRes, classifiedsRes] = await Promise.all([
-      getHotpageBySlug({ data: { slug: params.slug } }).catch(() => null),
+    const hotpageRes = await getHotpageBySlug({ data: { slug: params.slug } }).catch(() => null);
+    const targetNiche = hotpageRes?.module && hotpageRes.module !== "home" && hotpageRes.module !== "ofertas"
+      ? hotpageRes.module
+      : params.slug === "ofertas" ? undefined : params.slug;
+
+    const [productsRes, feedRes, classifiedsRes] = await Promise.all([
       listPublishedProducts({
         data: {
-          niche: params.slug === "ofertas" ? undefined : params.slug,
+          niche: targetNiche,
           limit: 60,
         },
       }).catch(() => ({ status: "ok" as const, data: [] })),
@@ -177,6 +295,9 @@ function DedicatedHotpageView() {
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [addingId, setAddingId] = useState<string | null>(null);
 
+  const activeModule = hotpage?.module || slug;
+  const activeChips = MODULE_CHIPS_MAP[activeModule] || DEFAULT_QUICK_CHIPS;
+
   const theme = HOTPAGE_THEMES[slug] || {
     bgGradient: "bg-linear-to-b from-neutral-900 via-neutral-800 to-neutral-900",
     accentColor: "text-primary",
@@ -191,13 +312,14 @@ function DedicatedHotpageView() {
   const title = hotpage?.title || slug.charAt(0).toUpperCase() + slug.slice(1);
   const badgeLabel = hotpage?.badge_label || theme.defaultBadge;
   const description = hotpage?.description || theme.tagLine;
+  const customIcon = hotpage?.custom_icon_url || hotpage?.icon_url;
 
   const { data: productsData, isLoading } = useQuery({
-    queryKey: ["hotpage-products", slug, search],
+    queryKey: ["hotpage-products", slug, activeModule, search],
     queryFn: () =>
       listPublishedProducts({
         data: {
-          niche: slug === "ofertas" ? undefined : slug,
+          niche: activeModule === "ofertas" || activeModule === "home" ? undefined : activeModule,
           limit: 60,
         },
       }),
@@ -268,15 +390,18 @@ function DedicatedHotpageView() {
 
   return (
     <div className="w-full space-y-0 pb-20 -mt-4 sm:-mt-6 -mx-4 sm:-mx-6 lg:-mx-8">
-      {/* ── 1. HERO IMERSIVO FULL NO TOPO (PADRÃO IFOOD TURBO / HITS) ── */}
-      <section className={`relative w-full ${theme.bgGradient} text-white pt-6 sm:pt-8 pb-16 sm:pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden`}>
-        {/* Cover Background Opcional */}
+      {/* ── 1. HERO IMERSIVO FULL NO TOPO COM CAPA CONTEXTUAL ── */}
+      <section className={`relative w-full ${hotpage?.cover_image_url ? "bg-black" : theme.bgGradient} text-white pt-6 sm:pt-8 pb-16 sm:pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden`}>
+        {/* Cover Background Fotográfico em Alta Resolução */}
         {hotpage?.cover_image_url && (
-          <img
-            src={hotpage.cover_image_url}
-            alt=""
-            className="absolute inset-0 size-full object-cover mix-blend-overlay opacity-30 pointer-events-none"
-          />
+          <div className="absolute inset-0 size-full overflow-hidden pointer-events-none">
+            <img
+              src={hotpage.cover_image_url}
+              alt={title}
+              className="size-full object-cover scale-102 filter brightness-90"
+            />
+            <div className="absolute inset-0 bg-linear-to-t from-background via-black/75 to-black/50" />
+          </div>
         )}
 
         {/* Barra de Navegação Transtranslúcida no Topo do Hero */}
@@ -285,7 +410,7 @@ function DedicatedHotpageView() {
             size="icon"
             variant="ghost"
             onClick={() => window.history.back()}
-            className="size-9 rounded-full bg-black/20 hover:bg-black/40 text-white backdrop-blur-md border border-white/10"
+            className="size-9 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-md border border-white/15"
             title="Voltar"
           >
             <CaretLeft size={20} weight="bold" />
@@ -296,7 +421,7 @@ function DedicatedHotpageView() {
               size="icon"
               variant="ghost"
               onClick={handleShare}
-              className="size-9 rounded-full bg-black/20 hover:bg-black/40 text-white backdrop-blur-md border border-white/10"
+              className="size-9 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-md border border-white/15"
               title="Compartilhar"
             >
               <ShareNetwork size={18} weight="bold" />
@@ -307,7 +432,19 @@ function DedicatedHotpageView() {
         {/* Conteúdo Central do Hero */}
         <div className="relative z-10 max-w-7xl mx-auto space-y-3 sm:space-y-4">
           <div className="flex items-center gap-2">
-            <span className={`px-3 py-1 rounded-full text-xs font-mono font-black uppercase tracking-wider  backdrop-blur-md ${theme.badgeBg}`}>
+            {customIcon && (
+              <div className="size-8 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 p-1 flex items-center justify-center shrink-0">
+                <img
+                  src={customIcon}
+                  alt="Ícone"
+                  className="size-full object-contain"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
+              </div>
+            )}
+            <span className={`px-3 py-1 rounded-full text-xs font-mono font-black uppercase tracking-wider backdrop-blur-md ${theme.badgeBg}`}>
               {badgeLabel}
             </span>
           </div>
@@ -320,12 +457,12 @@ function DedicatedHotpageView() {
             {description}
           </p>
 
-          {/* Stat Pills Flutuantes (ex: ⚡ apenas + R$ 3,99 | ⏱️ em até 20 min | 💰 ou R$ 5 de volta) */}
+          {/* Stat Pills Flutuantes */}
           <div className="flex flex-wrap items-center gap-2 pt-2">
             {theme.heroPills.map((pill, idx) => (
               <span
                 key={idx}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/25 text-white backdrop-blur-md text-[11px] sm:text-xs font-bold border border-white/15 "
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/35 text-white backdrop-blur-md text-[11px] sm:text-xs font-bold border border-white/15 drop-shadow-xs"
               >
                 {pill}
               </span>
@@ -335,11 +472,11 @@ function DedicatedHotpageView() {
       </section>
 
       {/* ── 2. CORPO SOBREPOSTO COM CANTOS ARREDONDADOS (FOLHA / CARD FLUTUANTE) ── */}
-      <div className="relative z-20 -mt-8 rounded-t-[32px] bg-background   px-4 sm:px-6 lg:px-8 pt-6 pb-12 space-y-6 max-w-7xl mx-auto">
+      <div className="relative z-20 -mt-8 rounded-t-[32px] bg-background px-4 sm:px-6 lg:px-8 pt-6 pb-12 space-y-6 max-w-7xl mx-auto">
         
-        {/* ── 2.1. Sub-abas de Navegação por Nicho (Padrão iFood) ── */}
+        {/* ── 2.1. Sub-abas de Navegação por Nicho (Dinâmicas por Módulo) ── */}
         <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1">
-          {QUICK_NICHE_CHIPS.map((chip) => {
+          {activeChips.map((chip) => {
             const Icon = chip.icon;
             const isSelected = selectedSubCategory === chip.id;
             return (
@@ -349,7 +486,7 @@ function DedicatedHotpageView() {
                 onClick={() => setSelectedSubCategory(chip.id)}
                 className={`flex items-center gap-2 h-9 px-4 rounded-full text-xs font-bold shrink-0 transition-all cursor-pointer ${
                   isSelected
-                    ? "bg-foreground text-background "
+                    ? "bg-foreground text-background"
                     : "bg-muted/70 text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
               >
@@ -492,7 +629,7 @@ function DedicatedHotpageView() {
                       />
                       {discountPercent && (
                         <div className="absolute top-1 left-1">
-                          <span className="bg-red-600 text-white font-mono font-black text-[9px] px-1.5 py-0.5 rounded-md ">
+                          <span className="bg-destructive text-white font-mono font-black text-[9px] px-1.5 py-0.5 rounded-md ">
                             -{discountPercent}%
                           </span>
                         </div>

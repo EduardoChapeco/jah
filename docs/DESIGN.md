@@ -137,3 +137,19 @@ Inspirada nos aplicativos de alta retenção (*iFood, Instagram, Threads, WhatsA
 - **Ações Primárias no Terço Inferior**: Botões de "Adicionar à Sacola", "Confirmar Pedido", "Finalizar Atendimento" e abas de navegação principal residem fixos no terço inferior da tela, ao alcance natural do polegar.
 - **Snap-Scroll Horizontal**: Trilhos de banners e categorias usam `scroll-snap-type: x mandatory` com desaceleração nativa de toque (`-webkit-overflow-scrolling: touch`) e sem barras de rolagem visíveis.
 
+---
+
+## 8. O Framework das 7 Camadas de Completude & Ergonomia dos 3 Toques
+
+> **Regra Vinculante de Engenharia:** Toda e qualquer funcionalidade ou página na Wider deve atender rigorosamente às 7 Camadas de Completude antes de ser considerada concluída.
+
+### 8.1 As 7 Camadas Canônicas
+1. **Camada 1 (Persistência & RLS):** Tabela, colunas, chaves estrangeiras, índices e RLS deny-by-default via migration aplicada.
+2. **Camada 2 (BFF & Contratos Atômicos):** Server Functions (`createServerFn`) com validação Zod e checagem de autoridade por sessão.
+3. **Camada 3 (UI de Ação Reativa):** Componente interativo (Modal/Sheet/Form) com estados de loading esqueleto, feedback real e validação.
+4. **Camada 4 (Superfície de Governança):** Painel operacional no Workspace ou Admin Master para consulta, auditoria e reversão.
+5. **Camada 5 (Higiene Visual Anti-AI Smell):** Silêncio visual absoluto — proibição total de caixas conversacionais ("Bem-vindo ao..."), ausência de spam de ícones decorativos e sem títulos prolixos óbvios.
+6. **Camada 6 (Ergonomia Cognitiva dos 3 Toques):** Qualquer objetivo central do usuário (Comprar, Agendar, Encontrar um local) DEVE ser concluído em no máximo **3 toques do polegar** (baseado nos estudos de usabilidade da Nielsen Norman Group e Google Search UX).
+7. **Camada 7 (Fluidez & Zero Layout Shift):** Touch targets mínimos de 44px, tipografia com `clamp()`, ausência de FOUC e prevenção estrita de "efeito sanfona" através de containers unificados (`max-w-6xl` ou `max-w-7xl`).
+
+

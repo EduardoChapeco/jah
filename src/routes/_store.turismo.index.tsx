@@ -32,6 +32,7 @@ import { listHotpages } from "@/services/hotpage.functions";
 import { listPublicTourism } from "@/services/tourism.functions";
 import { HorizontalRail } from "@/components/commerce/horizontal-rail";
 import { TravelQuoteModal } from "@/components/tourism/travel-quote-modal";
+import { resolveNicheDepartments } from "@/lib/niche-helpers";
 
 export const Route = createFileRoute("/_store/turismo/")({
   head: () => ({
@@ -143,13 +144,7 @@ function TourismMasterPage() {
         search={search}
         onSearchChange={setSearch}
         searchPlaceholder="Buscar destinos, pousadas, vinícolas, roteiros..."
-        categories={CATEGORY_CHIPS.map((chip) => {
-          const match = hotpages?.find((hp) => hp.slug === chip.id);
-          return {
-            ...chip,
-            icon_url: match?.custom_icon_url || match?.icon_url || chip.icon_url,
-          };
-        })}
+        categories={CATEGORY_CHIPS}
         activeCategory={selectedCategory}
         onSelectCategory={(id) => setSelectedCategory(id)}
         viewMode={viewMode}
@@ -163,7 +158,7 @@ function TourismMasterPage() {
           {tourismList.map((item) => (
             <div
               key={item.id}
-              className="rounded-3xl  bg-card overflow-hidden  hover:border-foreground/30 transition-all flex flex-col justify-between group"
+              className="rounded-2xl border border-border/60 bg-card overflow-hidden hover:border-foreground/30 transition-all flex flex-col justify-between group"
             >
               {/* Mídia Full Bleed 100% de ponta a ponta */}
               <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted">
@@ -258,6 +253,7 @@ function TourismMasterPage() {
             <HorizontalRail
               key={categoryKey}
               title={categoryName}
+              hideHeader={true}
               badge={`${catItems.length} ${catItems.length === 1 ? "roteiro" : "roteiros"}`}
               actionLabel="Ver todos"
               onAction={() => {
@@ -268,7 +264,7 @@ function TourismMasterPage() {
               {catItems.map((item) => (
                 <div
                   key={item.id}
-                  className="min-w-[280px] sm:min-w-[320px] max-w-[340px] rounded-3xl  bg-card overflow-hidden  hover:border-foreground/30 transition-all flex flex-col justify-between shrink-0 group"
+                  className="min-w-[280px] sm:min-w-[320px] max-w-[340px] rounded-2xl border border-border/60 bg-card overflow-hidden hover:border-foreground/30 transition-all flex flex-col justify-between shrink-0 group"
                 >
                   <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted">
                     {item.cover_image && (

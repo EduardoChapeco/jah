@@ -98,7 +98,7 @@ function ReceiptsPage() {
       {receipts.length === 0 ? (
         <EmptyState title="Nenhum comprovante pendente" />
       ) : (
-        <div className=" bg-card rounded-xl overflow-hidden">
+        <div className="bg-card rounded-2xl border border-border/60 overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>

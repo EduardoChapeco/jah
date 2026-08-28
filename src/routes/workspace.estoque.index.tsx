@@ -223,7 +223,7 @@ function AdminStockPage() {
       </div>
 
       {/* Toolbar & Filtros por Status */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3  bg-card rounded-2xl px-4 py-3 ">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-card rounded-2xl border border-border/60 px-4 py-3">
         <Tabs
           defaultValue="all"
           value={statusTab}
@@ -250,7 +250,7 @@ function AdminStockPage() {
           <Input
             type="search"
             placeholder="Buscar por SKU ou Nome do Produto..."
-            className="pl-8 text-xs w-full rounded-xl h-8 bg-background"
+            className="pl-8 text-xs w-full rounded-xl h-8 bg-background border-border/60"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -261,7 +261,7 @@ function AdminStockPage() {
       {stock.length === 0 ? (
         <EmptyState title="Sem variações cadastradas" />
       ) : (
-        <div className=" bg-surface-paper  rounded-xl overflow-hidden mb-6">
+        <div className="bg-card rounded-2xl border border-border/60 overflow-hidden mb-6">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/40">

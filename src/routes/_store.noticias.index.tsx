@@ -25,6 +25,7 @@ import { HorizontalRail } from "@/components/commerce/horizontal-rail";
 import { HitsLeadCard } from "@/components/commerce/hits-lead-card";
 import { NewsCard } from "@/components/news/news-card";
 import { NewsSponsorBanner } from "@/components/news/news-sponsor-banner";
+import { resolveNicheDepartments } from "@/lib/niche-helpers";
 
 export const Route = createFileRoute("/_store/noticias/")({
   head: () => ({
@@ -134,14 +135,11 @@ export function NoticiasFeedPage() {
         </form>
       </div>
 
-      {/* ── 3. Categorias & Editorias Chips (PADRÃO UNIVERSAL HOME: h-14, rounded-2xl, ÍCONE/PNG PERSONALIZADO) ── */}
       <section aria-label="Editorias de Notícias" className="space-y-2">
         <div className="flex items-center gap-3 overflow-x-auto scrollbar-none pb-2 pt-1 w-full px-0.5 focus:outline-none">
           {CATEGORIES.map((cat) => {
             const isSelected = selectedCategory === cat.id;
-            const Icon = cat.icon;
-            const hotpageMatch = hotpages?.find((hp: any) => hp.slug === cat.id);
-            const iconUrl = hotpageMatch?.custom_icon_url || hotpageMatch?.icon_url;
+            const Icon = cat.icon || Sparkle;
 
             return (
               <button
@@ -154,19 +152,8 @@ export function NoticiasFeedPage() {
                     : "bg-card text-foreground border-border hover:bg-muted/70 hover:border-foreground/20"
                 }`}
               >
-                {/* Ícone / Imagem PNG / Emoji */}
                 <div className="relative size-8 sm:size-9 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                  {iconUrl ? (
-                    <img
-                      src={iconUrl}
-                      alt={cat.label}
-                      className="size-7 sm:size-8 object-contain"
-                      loading="lazy"
-                      onError={(e) => {
-                        (e.currentTarget as HTMLElement).style.display = "none";
-                      }}
-                    />
-                  ) : cat.emoji ? (
+                  {cat.emoji ? (
                     <span className="text-xl sm:text-2xl leading-none">{cat.emoji}</span>
                   ) : (
                     <Icon

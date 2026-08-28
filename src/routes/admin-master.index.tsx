@@ -70,7 +70,7 @@ function AdminMasterDashboard() {
       label: "Usuários Cadastrados",
       value: metrics.totalUsers,
       icon: Users,
-      color: "text-blue-600 bg-blue-500/10",
+      color: "text-info bg-info/10",
     },
     {
       label: "Denúncias Pendentes",
@@ -82,7 +82,7 @@ function AdminMasterDashboard() {
       label: "KYC Pendente",
       value: metrics.pendingKyc,
       icon: UserCheck,
-      color: "text-purple-600 bg-purple-500/10",
+      color: "text-primary bg-primary/10",
     },
   ];
 

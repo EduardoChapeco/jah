@@ -24,13 +24,15 @@ import {
   type ViewModeType,
   type FilterChipOption,
 } from "@/components/commerce/discovery-control-bar";
-import { GroceryProductCard } from "@/components/commerce/grocery-product-card";
-import { getMarketplaceFeed } from "@/services/marketplace.functions";
+import { getModularSurfaceFeed } from "@/services/surface-cms.functions";
+import { ModularSurfaceFeed } from "@/components/commerce/modular-surface-feed";
+import { OfferCard } from "@/components/commerce/offer-card";
 import { listActiveBanners } from "@/services/banner.functions";
 import { listHotpages } from "@/services/hotpage.functions";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
 import { ServicePackagesRail } from "@/components/commerce/service-packages-rail";
 import { listPublicStorePackages } from "@/services/service-packages.functions";
+import { resolveNicheDepartments } from "@/lib/niche-helpers";
 
 const SearchSchema = z.object({
   q: z.string().optional(),
@@ -69,7 +71,7 @@ export const Route = createFileRoute("/_store/beleza")({
     const [banners, hotpages, marketplaceFeed, packages] = await Promise.all([
       listActiveBanners({ data: { placement: "beleza" } }).catch(() => []),
       listHotpages({ data: { module: "beleza" } }).catch(() => []),
-      getMarketplaceFeed({ data: { niche: "beleza" } }).catch(() => null),
+      getModularSurfaceFeed({ data: { surfaceSlug: "beleza" } }).catch(() => ({ sections: [], allProducts: [] })),
       listPublicStorePackages().catch(() => []),
     ]);
 
@@ -224,40 +226,41 @@ function BelezaVerticalPage() {
         resultsCount={filteredProducts.length}
       />
 
-      {/* ── 5. Lojas em Destaque ── */}
-      {beautyStores.length > 0 && (
-        <section aria-label="Perfumarias & Lojas de Beleza">
-          <HorizontalRail title="Perfumarias & Lojas de Beleza" hideHeader={true}>
-            {beautyStores.map((store: any) => (
-              <StoreCard key={store.id} {...store} />
-            ))}
-          </HorizontalRail>
+      {/* ── 5. Renderização do Feed Modular ou Grade Filtrada ── */}
+      {viewMode === "feed" ? (
+        <div className="space-y-8">
+          {marketplaceFeed?.sections && marketplaceFeed.sections.length > 0 ? (
+            <ModularSurfaceFeed sections={marketplaceFeed.sections} />
+          ) : (
+            <div className="py-12 text-center text-xs text-muted-foreground">
+              Nenhuma seção ativa no momento.
+            </div>
+          )}
+        </div>
+      ) : (
+        <section aria-label="Vitrine de Produtos">
+          {filteredProducts.length === 0 ? (
+            <div className="py-12 text-center bg-card rounded-3xl p-6">
+              <EmptyState
+                title="Nenhum cosmético ou perfume encontrado"
+                description="Tente selecionar outro departamento ou busque por marcas específicas."
+              />
+            </div>
+          ) : viewMode === "list" ? (
+            <div className="flex flex-col gap-3">
+              {filteredProducts.map((product: any) => (
+                <OfferCard key={product.id} {...product} />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+              {filteredProducts.map((product: any) => (
+                <OfferCard key={product.id} {...product} />
+              ))}
+            </div>
+          )}
         </section>
       )}
-
-      {/* ── 6. Vitrine de Produtos ── */}
-      <section aria-label="Vitrine de Produtos">
-        {filteredProducts.length === 0 ? (
-          <div className="py-12 text-center bg-card rounded-3xl  p-6 ">
-            <EmptyState
-              title="Nenhum cosmético ou perfume encontrado"
-              description="Tente selecionar outro departamento ou busque por marcas específicas."
-            />
-          </div>
-        ) : viewMode === "list" ? (
-          <div className="flex flex-col gap-3">
-            {filteredProducts.map((product: any) => (
-              <GroceryProductCard key={product.id} product={product} viewMode="list" />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-            {filteredProducts.map((product: any) => (
-              <GroceryProductCard key={product.id} product={product} viewMode="grid" />
-            ))}
-          </div>
-        )}
-      </section>
     </div>
   );
 }

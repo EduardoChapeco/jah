@@ -55,7 +55,7 @@ function Page() {
           </p>
           <div className="mt-6">
             <Button asChild variant="outline" className="w-full">
-              <Link to="/entrar">Voltar para o login</Link>
+              <Link to="/">Voltar ao Início</Link>
             </Button>
           </div>
         </div>
@@ -81,7 +81,7 @@ function Page() {
 
           <div className="text-center pt-4">
             <Button asChild variant="link" className="text-muted-foreground">
-              <Link to="/entrar">Voltar para o login</Link>
+              <Link to="/">Voltar ao Início</Link>
             </Button>
           </div>
         </form>

@@ -1,5 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
+import { z } from "zod";
 import {
   Image as ImageIcon,
   Plus,
@@ -32,9 +33,15 @@ import {
 } from "@/services/banner.functions";
 import { toast } from "sonner";
 import { MediaUploader } from "@/components/ui/media-uploader";
+import { DestinationPicker } from "@/components/ui/destination-picker";
 import { cn } from "@/lib/utils";
 
+const SearchSchema = z.object({
+  placement: z.string().optional(),
+});
+
 export const Route = createFileRoute("/admin-master/banners")({
+  validateSearch: (search: Record<string, unknown>) => SearchSchema.parse(search),
   head: () => ({ meta: [{ title: "Banners & Vitrines | Admin Master" }] }),
   loader: async () => {
     const banners = await listActiveBanners({ data: { placement: "all" } }).catch(() => []);
@@ -73,8 +80,12 @@ export const PLACEMENT_OPTIONS: { id: BannerPlacement; label: string }[] = [
 
 function AdminMasterBannersPage() {
   const { banners: initialBanners } = Route.useLoaderData();
+  const search = Route.useSearch();
+  const router = useRouter();
   const [banners, setBanners] = useState<BannerDTO[]>(initialBanners || []);
-  const [selectedPlacementTab, setSelectedPlacementTab] = useState<BannerPlacement>("all");
+  const [selectedPlacementTab, setSelectedPlacementTab] = useState<BannerPlacement>(
+    (search.placement as BannerPlacement) || "all"
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -103,6 +114,7 @@ function AdminMasterBannersPage() {
   const refreshBanners = async () => {
     const updated = await listActiveBanners({ data: { placement: "all" } }).catch(() => []);
     setBanners(updated);
+    router.invalidate();
   };
 
   const handleOpenCreate = (preselectedPlacement?: BannerPlacement) => {
@@ -263,7 +275,7 @@ function AdminMasterBannersPage() {
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Gerencie os banners visuais segmentados por vitrine e nicho de mercado.
+            Banners promocionais panorâmicos 21:9 e 16:9 por nicho
           </p>
         </div>
 
@@ -390,7 +402,7 @@ function AdminMasterBannersPage() {
                 {/* Delete Button */}
                 <button
                   onClick={() => handleDelete(banner.id)}
-                  className="absolute top-2 right-2 z-10 size-6 rounded-md bg-black/60 hover:bg-red-600 text-white flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+                  className="absolute top-2 right-2 z-10 size-6 rounded-md bg-black/60 hover:bg-destructive text-white flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
                   title="Remover banner"
                 >
                   <Trash2 className="size-3" />
@@ -482,6 +494,8 @@ function AdminMasterBannersPage() {
               }}
               bucket="banners"
               folder="destaques"
+              aspect={21 / 9}
+              lockAspect={true}
               maxFiles={1}
             />
           </div>
@@ -496,33 +510,15 @@ function AdminMasterBannersPage() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-xs font-semibold">Tipo de Destino</Label>
-              <Select value={targetType} onValueChange={(v: any) => setTargetType(v)}>
-                <SelectTrigger className="h-9 rounded-xl bg-card text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="hotpage" className="text-xs">Hotpage / Botão</SelectItem>
-                  <SelectItem value="category" className="text-xs">Categoria</SelectItem>
-                  <SelectItem value="product" className="text-xs">Produto</SelectItem>
-                  <SelectItem value="store" className="text-xs">Loja</SelectItem>
-                  <SelectItem value="external_url" className="text-xs">Link Externo</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs font-semibold">URL de Destino</Label>
-              <Input
-                value={targetUrl}
-                onChange={(e) => setTargetUrl(e.target.value)}
-                placeholder="/mercado ou https://"
-                className="h-9 rounded-xl bg-card text-xs"
-              />
-            </div>
-          </div>
+          {/* Seletor Canônico de Destino / Link Helper */}
+          <DestinationPicker
+            value={targetUrl}
+            onChange={setTargetUrl}
+            targetType={targetType}
+            onTargetTypeChange={setTargetType}
+            label="Página de Destino / Link do Banner"
+            helperText="Selecione a página do sistema ou digite um link customizado."
+          />
 
           {/* Overlay Text Settings */}
           <div className="rounded-xl border border-border/60 bg-muted/20 p-3.5 space-y-3">

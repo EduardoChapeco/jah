@@ -200,7 +200,7 @@ function CustomersPage() {
       return {
         id: "new",
         label: "Novo Cliente",
-        badgeClass: "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30",
+        badgeClass: "bg-info/15 text-info dark:text-info border-info/30",
         message: `Olá ${c.name}! Esperamos que tenha gostado da sua primeira compra conosco. Estamos à disposição para qualquer dúvida!`,
       };
     }
@@ -236,8 +236,8 @@ function CustomersPage() {
         eyebrow="CRM"
         title="Clientes & Leads"
         actions={
-          <Button size="sm">
-            <Plus className="mr-1.5 size-4" aria-hidden />
+          <Button size="sm" onClick={() => setIsOpen(true)} className="rounded-xl font-bold text-xs gap-1.5">
+            <Plus className="size-4" aria-hidden />
             Cadastrar Cliente
           </Button>
         }

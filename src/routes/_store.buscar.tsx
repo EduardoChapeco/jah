@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { z } from "zod";
 import {
   ShoppingBag,
@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Sparkles,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 import {
   federatedSearch,
@@ -29,6 +30,7 @@ import {
   type ViewModeType,
   type FilterChipOption,
 } from "@/components/commerce/discovery-control-bar";
+import { MapLibreCanvas, type MapMarkerItem } from "@/components/mobility/maplibre-canvas";
 
 const SearchSchema = z.object({
   q: z.string().optional(),
@@ -263,6 +265,20 @@ function SearchPage() {
     activeType === "todos" || activeType === "classified" ? (result?.classifieds ?? []) : [];
   const filteredStores = activeType === "todos" || activeType === "store" ? (result?.stores ?? []) : [];
 
+  const [selectedStoreMarker, setSelectedStoreMarker] = useState<any | null>(null);
+
+  // Marcadores do Mapa
+  const mapMarkers: MapMarkerItem[] = useMemo(() => {
+    return filteredStores.map((s, idx) => ({
+      id: s.id,
+      title: s.name,
+      lat: -27.1004 + ((idx % 3) * 0.004 - 0.004),
+      lng: -52.6152 + ((idx % 4) * 0.005 - 0.006),
+      category: "store",
+      image_url: s.logo_url,
+    }));
+  }, [filteredStores]);
+
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6 pb-6">
       {/* ── 1. Barra de Busca Canônica Padronizada ── */}
@@ -279,7 +295,7 @@ function SearchPage() {
         onSelectCategory={setActiveType}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
-        allowedViewModes={["grid", "list"]}
+        allowedViewModes={["grid", "list", "feed"]}
         resultsCount={total}
       />
 
@@ -330,9 +346,9 @@ function SearchPage() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               {[
                 { to: "/mercado", label: "Mercado & Feira", icon: ShoppingBag, color: "text-emerald-600 bg-emerald-500/10" },
-                { to: "/gastronomia", label: "Gastronomia", icon: Store, color: "text-orange-600 bg-orange-500/10" },
+                { to: "/gastronomia", label: "Gastronomia", icon: Store, color: "text-warning bg-warning/10" },
                 { to: "/classificados", label: "Classificados", icon: Tag, color: "text-amber-600 bg-amber-500/10" },
-                { to: "/agenda", label: "Eventos & Festas", icon: Calendar, color: "text-purple-600 bg-purple-500/10" },
+                { to: "/agenda", label: "Eventos & Festas", icon: Calendar, color: "text-primary bg-primary/10" },
               ].map((cat) => {
                 const Icon = cat.icon;
                 return (
@@ -384,7 +400,50 @@ function SearchPage() {
         </div>
       )}
 
-      {hasResults && (
+      {/* Visualização de Radar no Mapa quando viewMode === "feed" */}
+      {hasResults && viewMode === "feed" && (
+        <div className="space-y-4">
+          <div className="h-[460px] w-full rounded-3xl overflow-hidden border border-border/60 relative">
+            <MapLibreCanvas
+              markers={mapMarkers}
+              selectedMarkerId={selectedStoreMarker?.id}
+              onMarkerClick={(m) => {
+                const found = filteredStores.find((s) => s.id === m.id);
+                setSelectedStoreMarker(found || null);
+              }}
+              className="size-full"
+            />
+
+            {/* Bottom Card Flutuante de Estabelecimento Selecionado */}
+            {selectedStoreMarker && (
+              <div className="absolute bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-80 p-3.5 rounded-2xl border border-border/60 bg-card/95 backdrop-blur-md flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-2">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="size-10 rounded-xl overflow-hidden bg-muted shrink-0 flex items-center justify-center">
+                    {selectedStoreMarker.logo_url ? (
+                      <img src={selectedStoreMarker.logo_url} alt={selectedStoreMarker.name} className="size-full object-cover" />
+                    ) : (
+                      <Store className="size-5 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs font-bold text-foreground truncate block">{selectedStoreMarker.name}</span>
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">• Aberto agora</span>
+                  </div>
+                </div>
+
+                <Button size="sm" asChild className="text-xs h-8 font-semibold shrink-0">
+                  <Link to="/bio/$slug" params={{ slug: selectedStoreMarker.slug }}>
+                    Ver Loja
+                  </Link>
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Visualização Padrão em Grade/Lista quando viewMode !== "feed" */}
+      {hasResults && viewMode !== "feed" && (
         <div className="space-y-6 pt-2">
           {/* Seção de Lojas */}
           <ResultSection

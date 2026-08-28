@@ -30,10 +30,12 @@ import {
   type FilterChipOption,
 } from "@/components/commerce/discovery-control-bar";
 import { GroceryProductCard } from "@/components/commerce/grocery-product-card";
-import { getMarketplaceFeed } from "@/services/marketplace.functions";
+import { getModularSurfaceFeed } from "@/services/surface-cms.functions";
+import { ModularSurfaceFeed } from "@/components/commerce/modular-surface-feed";
 import { listActiveBanners } from "@/services/banner.functions";
 import { listHotpages } from "@/services/hotpage.functions";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
+import { resolveNicheDepartments } from "@/lib/niche-helpers";
 
 const SearchSchema = z.object({
   q: z.string().optional(),
@@ -73,7 +75,7 @@ export const Route = createFileRoute("/_store/farmacia")({
     const [banners, hotpages, marketplaceFeed] = await Promise.all([
       listActiveBanners({ data: { placement: "farmacia" } }).catch(() => []),
       listHotpages({ data: { module: "farmacia" } }).catch(() => []),
-      getMarketplaceFeed({ data: { niche: "farmacia" } }).catch(() => null),
+      getModularSurfaceFeed({ data: { surfaceSlug: "farmacia" } }).catch(() => ({ sections: [], allProducts: [] })),
     ]);
 
     return {
@@ -208,40 +210,41 @@ function FarmaciaVerticalPage() {
         resultsCount={filteredProducts.length}
       />
 
-      {/* ── 4. Drogarias Parceiras ── */}
-      {pharmacyStores.length > 0 && (
-        <section aria-label="Farmácias & Drogarias Próximas">
-          <HorizontalRail title="Farmácias & Drogarias Próximas" hideHeader={true}>
-            {pharmacyStores.map((store: any) => (
-              <StoreCard key={store.id} {...store} />
-            ))}
-          </HorizontalRail>
+      {/* ── 4. Renderização do Feed Modular ou Grade Filtrada ── */}
+      {viewMode === "feed" ? (
+        <div className="space-y-8">
+          {marketplaceFeed?.sections && marketplaceFeed.sections.length > 0 ? (
+            <ModularSurfaceFeed sections={marketplaceFeed.sections} />
+          ) : (
+            <div className="py-12 text-center text-xs text-muted-foreground">
+              Nenhuma seção ativa no momento.
+            </div>
+          )}
+        </div>
+      ) : (
+        <section aria-label="Produtos de Saúde & Cuidados">
+          {filteredProducts.length === 0 ? (
+            <div className="py-12 text-center bg-card rounded-3xl p-6">
+              <EmptyState
+                title="Nenhum produto farmacêutico encontrado"
+                description="Tente selecionar outro departamento ou busque por itens específicos."
+              />
+            </div>
+          ) : viewMode === "list" ? (
+            <div className="flex flex-col gap-3">
+              {filteredProducts.map((product: any) => (
+                <GroceryProductCard key={product.id} product={product} viewMode="list" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+              {filteredProducts.map((product: any) => (
+                <GroceryProductCard key={product.id} product={product} viewMode="grid" />
+              ))}
+            </div>
+          )}
         </section>
       )}
-
-      {/* ── 5. Vitrine de Produtos de Farmácia ── */}
-      <section aria-label="Produtos de Saúde & Cuidados">
-        {filteredProducts.length === 0 ? (
-          <div className="py-12 text-center bg-card rounded-3xl  p-6 ">
-            <EmptyState
-              title="Nenhum produto farmacêutico encontrado"
-              description="Tente selecionar outro departamento ou busque por itens específicos."
-            />
-          </div>
-        ) : viewMode === "list" ? (
-          <div className="flex flex-col gap-3">
-            {filteredProducts.map((product: any) => (
-              <GroceryProductCard key={product.id} product={product} viewMode="list" />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-            {filteredProducts.map((product: any) => (
-              <GroceryProductCard key={product.id} product={product} viewMode="grid" />
-            ))}
-          </div>
-        )}
-      </section>
     </div>
   );
 }
