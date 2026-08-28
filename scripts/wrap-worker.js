@@ -75,9 +75,4 @@ const cleanRoutesJson = {
 fs.writeFileSync(routesJsonPath, JSON.stringify(cleanRoutesJson, null, 2));
 console.log("Successfully generated optimized dist/_routes.json for Cloudflare Pages.");
 
-// 3. Clean .wrangler to prevent deployment config redirect mismatch
-const wranglerDir = path.join(process.cwd(), ".wrangler");
-if (fs.existsSync(wranglerDir)) {
-  fs.rmSync(wranglerDir, { recursive: true, force: true });
-}
 
