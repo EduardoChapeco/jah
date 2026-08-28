@@ -5,7 +5,7 @@ import { Surface } from "@/components/ui/surface";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Newspaper } from "lucide-react";
-import { formatDate } from "../../../lib/datetime";
+import { formatDate } from "@/lib/datetime";
 
 export function CommunityFeed({ content, resolvedClassifieds, isEditing }: any) {
   const items = resolvedClassifieds || [];

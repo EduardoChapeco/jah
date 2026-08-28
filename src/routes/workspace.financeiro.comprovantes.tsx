@@ -32,7 +32,7 @@ import {
 } from "@/services/payment.functions";
 import { formatMoney } from "@/lib/money";
 import { EmptyState } from "@/components/state/states";
-import { formatDate } from "../lib/datetime";
+import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/workspace/financeiro/comprovantes")({
   head: () => ({ meta: [{ title: "Comprovantes" }] }),

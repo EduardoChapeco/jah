@@ -6,7 +6,7 @@ import { EmptyState } from "@/components/state/states";
 import { MessagesSquare, Send, User, Store, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { formatDate } from "../lib/datetime";
+import { formatDate } from "@/lib/datetime";
 import { Badge } from "@/components/ui/badge";
 import {
   getTicketThread,

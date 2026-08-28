@@ -42,7 +42,7 @@ import { getCustomerOrderPayments } from "@/services/payment.functions";
 import { listUserReceivables, registerInstallmentPayment } from "@/services/receivables.functions";
 import { formatMoney } from "@/lib/money";
 import { Surface } from "@/components/ui/surface";
-import { formatDate } from "../lib/datetime";
+import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/_store/conta/pagamentos")({
   head: () => ({ meta: [{ title: "Central de Pagamentos & Parcelas" }] }),

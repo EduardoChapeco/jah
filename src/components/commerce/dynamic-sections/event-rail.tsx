@@ -4,7 +4,7 @@ import { formatMoney } from "@/lib/money";
 import { Surface } from "@/components/ui/surface";
 import { Button } from "@/components/ui/button";
 import { Calendar, MapPin } from "lucide-react";
-import { formatDate } from "../../../lib/datetime";
+import { formatDate } from "@/lib/datetime";
 
 export function EventRail({ content, resolvedEvents, isEditing }: any) {
   const events = resolvedEvents || [];

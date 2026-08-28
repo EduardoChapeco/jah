@@ -334,3 +334,46 @@ export const listMyAttributedOrders = createServerFn({ method: "GET" }).handler(
     throw new Error("Erro ao buscar pedidos atribuídos.");
   }
 });
+
+export async function _payAffiliateCommission(sellerId: string): Promise<{ paidCount: number; totalPaidCents: number }> {
+  const db = getServerClient();
+  const identity = await getServerIdentity();
+  assertStoreAccess(identity, ["owner", "admin", "manager", "finance"]);
+
+  const { data: pending, error: fetchErr } = await db
+    .from("commissions")
+    .select("id, amount_cents")
+    .eq("store_id", identity.store_id)
+    .eq("seller_id", sellerId)
+    .eq("status", "pending");
+
+  if (fetchErr) throw fetchErr;
+  if (!pending || pending.length === 0) {
+    return { paidCount: 0, totalPaidCents: 0 };
+  }
+
+  const ids = pending.map((p: any) => p.id);
+  const totalPaidCents = pending.reduce((sum: number, p: any) => sum + p.amount_cents, 0);
+
+  const { error: updateErr } = await db
+    .from("commissions")
+    .update({ status: "paid" })
+    .in("id", ids);
+
+  if (updateErr) throw updateErr;
+
+  return { paidCount: ids.length, totalPaidCents };
+}
+
+export const payAffiliateCommission = createServerFn({ method: "POST" })
+  .validator(z.object({ sellerId: z.string().uuid() }))
+  .handler(async ({ data: { sellerId } }) => {
+    try {
+      return await _payAffiliateCommission(sellerId);
+    } catch (e: unknown) {
+      if (e instanceof SupabaseUnconfiguredError) throw e;
+      console.error("[affiliates] payAffiliateCommission:", e instanceof Error ? e.message : String(e));
+      throw new Error("Erro ao realizar repasse de comissão.");
+    }
+  });
+

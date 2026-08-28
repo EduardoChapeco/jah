@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState, ErrorState } from "@/components/state/states";
 import { listCustomerOrders } from "@/services/order.functions";
-import { formatDate } from "../lib/datetime";
+import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/_store/conta/pedidos/")({
   head: () => ({ meta: [{ title: "Meus Pedidos" }] }),

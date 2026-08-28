@@ -56,7 +56,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Surface } from "@/components/ui/surface";
-import { formatDate } from "../lib/datetime";
+import { formatDistanceToNow } from "@/lib/datetime";
 
 const getColorHex = (name: string): string => {
   const colors: Record<string, string> = {

@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Star } from "lucide-react";
 
 import { listCustomerReviews } from "@/services/cms.functions";
-import { formatDate } from "../lib/datetime";
+import { formatDate } from "@/lib/datetime";
 
 // ---------------------------------------------------------------------------
 // Route

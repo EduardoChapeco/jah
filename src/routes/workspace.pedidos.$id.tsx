@@ -42,7 +42,7 @@ import { getDeliveryProofsByOrderId, type DeliveryProof } from "@/services/dispa
 import { PickingWizard } from "@/components/admin/orders/picking-wizard";
 import { RmaRequestWizard } from "@/components/admin/orders/rma-request-wizard";
 import { OrderEditWizard } from "@/components/admin/orders/order-edit-wizard";
-import { formatDate } from "../lib/datetime";
+import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/workspace/pedidos/$id")({
   head: () => ({ meta: [{ title: "Detalhes do Pedido" }] }),

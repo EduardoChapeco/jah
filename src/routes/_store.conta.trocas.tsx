@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/state/states";
 import { listCustomerRmas } from "@/services/rma.functions";
 import { RefreshCw, Package, Truck, FileText } from "lucide-react";
-import { formatDate } from "../lib/datetime";
+import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/_store/conta/trocas")({
   head: () => ({ meta: [{ title: "Trocas e Devoluções" }] }),

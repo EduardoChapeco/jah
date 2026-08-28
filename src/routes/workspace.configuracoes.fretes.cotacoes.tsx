@@ -22,7 +22,7 @@ import {
 } from "@/services/order.functions";
 import { formatMoney } from "@/lib/money";
 import { toast } from "sonner";
-import { formatDate } from "../lib/datetime";
+import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/workspace/configuracoes/fretes/cotacoes")({
   head: () => ({ meta: [{ title: "Cotações de Frete" }] }),

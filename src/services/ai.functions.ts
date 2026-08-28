@@ -51,6 +51,10 @@ export const generateText = createServerFn({ method: "POST" })
         generatedText = await invokeGemini(rawKey, input.prompt, input.systemPrompt, input.temperature, input.maxTokens);
       } else if (input.provider === "openai") {
         generatedText = await invokeOpenAI(rawKey, input.prompt, input.systemPrompt, input.temperature, input.maxTokens);
+      } else if (input.provider === "anthropic") {
+        generatedText = await invokeAnthropic(rawKey, input.prompt, input.systemPrompt, input.temperature, input.maxTokens);
+      } else if (input.provider === "openrouter") {
+        generatedText = await invokeOpenRouter(rawKey, input.prompt, input.systemPrompt, input.temperature, input.maxTokens);
       } else {
         throw new Error(`Provedor ${input.provider} ainda não implementado no roteador.`);
       }
@@ -147,3 +151,85 @@ async function invokeOpenAI(
   const data = await res.json();
   return data?.choices?.[0]?.message?.content || "";
 }
+
+async function invokeAnthropic(
+  apiKey: string,
+  prompt: string,
+  systemPrompt?: string,
+  temperature?: number,
+  maxTokens?: number
+) {
+  const url = "https://api.anthropic.com/v1/messages";
+
+  const payload: any = {
+    model: "claude-3-5-sonnet-20241022",
+    max_tokens: maxTokens || 1024,
+    temperature: temperature || 0.7,
+    messages: [{ role: "user", content: prompt }],
+  };
+
+  if (systemPrompt) {
+    payload.system = systemPrompt;
+  }
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `HTTP ${res.status}`);
+  }
+
+  const data = await res.json();
+  return data?.content?.[0]?.text || "";
+}
+
+async function invokeOpenRouter(
+  apiKey: string,
+  prompt: string,
+  systemPrompt?: string,
+  temperature?: number,
+  maxTokens?: number
+) {
+  const url = "https://openrouter.ai/api/v1/chat/completions";
+
+  const messages = [];
+  if (systemPrompt) {
+    messages.push({ role: "system", content: systemPrompt });
+  }
+  messages.push({ role: "user", content: prompt });
+
+  const payload = {
+    model: "meta-llama/llama-3.3-70b-instruct",
+    messages,
+    temperature: temperature || 0.7,
+    max_tokens: maxTokens || 1024,
+  };
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+      "HTTP-Referer": "https://wider.pages.dev",
+      "X-Title": "Wider AI Assistant",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `HTTP ${res.status}`);
+  }
+
+  const data = await res.json();
+  return data?.choices?.[0]?.message?.content || "";
+}
+

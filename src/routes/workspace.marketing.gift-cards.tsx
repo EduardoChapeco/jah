@@ -25,7 +25,7 @@ import {
 import { EmptyState } from "@/components/state/states";
 import { listGiftCards, createGiftCard, cancelGiftCard } from "@/services/giftcard.functions";
 import { formatMoney } from "@/lib/money";
-import { formatDate } from "../lib/datetime";
+import { formatDate } from "@/lib/datetime";
 import { Search, Plus, Gift, CheckCircle, XCircle } from "lucide-react";
 
 export const Route = createFileRoute("/workspace/marketing/gift-cards")({

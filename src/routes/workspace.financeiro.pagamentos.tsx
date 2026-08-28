@@ -17,7 +17,7 @@ import { approvePayment } from "@/services/payment.functions";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "@tanstack/react-router";
-import { formatDate } from "../lib/datetime";
+import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/workspace/financeiro/pagamentos")({
   head: () => ({ meta: [{ title: "Pagamentos" }] }),

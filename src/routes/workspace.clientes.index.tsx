@@ -68,7 +68,7 @@ import {
 } from "@/services/crm.functions";
 import { listTeamMembers } from "@/services/admin-team.functions";
 import { formatMoney } from "@/lib/money";
-import { formatDate } from "../lib/datetime";
+import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/workspace/clientes/")({
   head: () => ({ meta: [{ title: "Clientes & Leads" }] }),

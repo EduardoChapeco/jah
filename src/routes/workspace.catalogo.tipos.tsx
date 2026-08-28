@@ -42,7 +42,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { formatDate } from "../lib/datetime";
+import { formatDate } from "@/lib/datetime";
 
 import {
   listProductTypes,

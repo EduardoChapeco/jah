@@ -26,7 +26,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { formatDate } from "../lib/datetime";
+import { formatDate } from "@/lib/datetime";
 import {
   Sheet,
   SheetContent,

@@ -2,7 +2,7 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { getCustomerCredits, requestRedemption } from "@/services/credits.functions";
 import { formatMoney } from "@/lib/money";
 import { useState } from "react";
-import { formatDate } from "../lib/datetime";
+import { formatDate } from "@/lib/datetime";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

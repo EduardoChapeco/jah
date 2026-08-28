@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { toast } from "sonner";
 import {
   Users,
   Search,
@@ -19,7 +20,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getAffiliatePerformance, getCommissionSummary } from "@/services/affiliates.functions";
+import {
+  getAffiliatePerformance,
+  getCommissionSummary,
+  payAffiliateCommission,
+} from "@/services/affiliates.functions";
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/financeiro/afiliados")({
@@ -36,7 +41,22 @@ export const Route = createFileRoute("/workspace/financeiro/afiliados")({
 
 function AfiliadosFinanceiroPage() {
   const { initialPerformance, initialSummary } = Route.useLoaderData();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
+
+  const payoutMutation = useMutation({
+    mutationFn: payAffiliateCommission,
+    onSuccess: (data) => {
+      toast.success(
+        `Repasse concluído! ${data.paidCount} comissões liquidadas (${formatMoney(data.totalPaidCents)}).`,
+      );
+      queryClient.invalidateQueries({ queryKey: ["affiliates-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["affiliates-performance"] });
+    },
+    onError: (err: any) => {
+      toast.error(err?.message || "Erro ao processar repasse.");
+    },
+  });
 
   const { data: summary, isLoading: isSummaryLoading } = useQuery({
     queryKey: ["affiliates-summary"],
@@ -200,9 +220,15 @@ function AfiliadosFinanceiroPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48">
-                        <DropdownMenuItem>Ver Histórico</DropdownMenuItem>
-                        <DropdownMenuItem disabled={p.pendingCommissionCents === 0}>
-                          <Banknote className="size-4 mr-2" />
+                        <DropdownMenuItem
+                          disabled={p.pendingCommissionCents === 0 || payoutMutation.isPending}
+                          onClick={() => payoutMutation.mutate({ data: { sellerId: p.sellerId } })}
+                        >
+                          {payoutMutation.isPending ? (
+                            <Loader2 className="size-4 mr-2 animate-spin" />
+                          ) : (
+                            <Banknote className="size-4 mr-2" />
+                          )}
                           Gerar Fatura (Payout)
                         </DropdownMenuItem>
                       </DropdownMenuContent>
