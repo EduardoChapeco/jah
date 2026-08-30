@@ -416,54 +416,101 @@ export default function WorkspaceConfiguracoesPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               {[
                 {
                   id: "gastronomy",
                   title: "Gastronomia & Delivery",
-                  desc: "Restaurantes, pizzarias, hamburguerias, marmitarias e cafés. Inclui KDS de cozinha, comandas e taxa de entrega.",
+                  desc: "Restaurantes, pizzarias, hamburguerias e cafés. Inclui KDS, comandas e taxa de entrega.",
                 },
                 {
                   id: "ecommerce",
-                  title: "Varejo & Comércio",
-                  desc: "Lojas de roupas, calçados, pet shop, mercado e eletrônicos. Inclui variações de grade, estoque e fretes.",
+                  title: "Varejo & Moda",
+                  desc: "Roupas, calçados e comércio geral. Inclui variações de grade, estoque e fretes.",
                 },
                 {
                   id: "services",
                   title: "Serviços, Saúde & Beleza",
-                  desc: "Salões, barbearias, clínicas, consultorias e estética. Inclui agenda de profissionais, salas e passes.",
+                  desc: "Salões, barbearias, clínicas e estética. Inclui agenda de profissionais, salas e passes.",
+                },
+                {
+                  id: "jobs",
+                  title: "Empregos & Recrutamento",
+                  desc: "Agências de RH, consultorias e empresas. Inclui vagas, candidaturas e banco de talentos.",
+                },
+                {
+                  id: "events",
+                  title: "Eventos & Ingressos",
+                  desc: "Casas de show, baladas, festivais e teatro. Inclui lotes de ingressos, check-in e flyers.",
+                },
+                {
+                  id: "automotive",
+                  title: "Automóveis & Veículos",
+                  desc: "Lojas de carros, motos e garagens. Inclui estoque de veículos, propostas e financiamento.",
+                },
+                {
+                  id: "pet",
+                  title: "Pet Shop & Veterinária",
+                  desc: "Banho & tosa, clínicas e agropecuária. Inclui agenda de procedimentos, rações e vacinas.",
+                },
+                {
+                  id: "supermarket",
+                  title: "Supermercado & Hortifrúti",
+                  desc: "Mercados, empórios e açougues. Inclui itens por KG/unidade, validades e separação de pedidos.",
+                },
+                {
+                  id: "pharmacy",
+                  title: "Farmácia & Cosméticos",
+                  desc: "Drogarias, farmácias e suplementos. Inclui balcão de medicamentos e tele-entrega express.",
+                },
+                {
+                  id: "news",
+                  title: "Jornalismo & Notícias",
+                  desc: "Portais de notícias, jornais e revistas. Inclui redação de matérias e banners de anunciantes.",
                 },
                 {
                   id: "rental_events",
-                  title: "Locação & Eventos",
-                  desc: "Aluguel de som, luz, tendas, palcos e estruturas. Inclui inventário de bens, datas de locação e contratos.",
+                  title: "Locação & Estruturas",
+                  desc: "Aluguel de som, luz, tendas e palcos. Inclui inventário de bens, agenda de locação e contratos.",
                 },
                 {
                   id: "tech_repair",
                   title: "Assistência & Mecânica",
-                  desc: "Conserto de celular, oficinas e informática. Inclui Ordens de Serviço (OS), peças de reposição e mão de obra.",
+                  desc: "Conserto de celular, oficinas e informática. Inclui Ordens de Serviço (OS) e peças.",
                 },
                 {
                   id: "legal",
                   title: "Advocacia & Jurídico",
-                  desc: "Escritórios de advocacia e consultoria jurídica. Inclui controle de processos, prazos e audiências.",
+                  desc: "Escritórios de advocacia. Inclui controle de processos, prazos, audiências e honorários.",
                 },
                 {
                   id: "real_estate",
                   title: "Imobiliária & Imóveis",
-                  desc: "Corretores e imobiliárias. Inclui catálogo de imóveis, vistorias e chamados de manutenção.",
+                  desc: "Corretores e imobiliárias. Inclui catálogo de imóveis, vistorias e contratos de aluguel.",
                 },
                 {
                   id: "tourism",
                   title: "Turismo & Viagens",
-                  desc: "Agências de viagem, pousadas e guias turísticos. Inclui cotações de pacotes, passeios e ingressos.",
+                  desc: "Agências de viagem, pousadas e guias. Inclui cotações de pacotes, passeios e reservas.",
+                },
+                {
+                  id: "education",
+                  title: "Cursos & Educação",
+                  desc: "Escolas, cursos e workshops. Inclui grade de aulas, matrículas e turmas de alunos.",
+                },
+                {
+                  id: "wholesale",
+                  title: "Atacado & B2B",
+                  desc: "Indústrias e distribuidoras. Inclui tabelas de preço PJ, orçamentos em lote e faturamento.",
                 },
               ].map((n) => {
                 const isSelected =
                   segment.toLowerCase().includes(n.id) ||
-                  (n.id === "gastronomy" && segment.toLowerCase().includes("pizza")) ||
-                  (n.id === "gastronomy" && segment.toLowerCase().includes("restauran")) ||
-                  (n.id === "ecommerce" && segment.toLowerCase().includes("moda"));
+                  (n.id === "gastronomy" && (segment.toLowerCase().includes("pizza") || segment.toLowerCase().includes("restauran"))) ||
+                  (n.id === "ecommerce" && (segment.toLowerCase().includes("moda") || segment.toLowerCase().includes("varejo"))) ||
+                  (n.id === "jobs" && (segment.toLowerCase().includes("vaga") || segment.toLowerCase().includes("rh"))) ||
+                  (n.id === "events" && (segment.toLowerCase().includes("show") || segment.toLowerCase().includes("ingresso"))) ||
+                  (n.id === "automotive" && (segment.toLowerCase().includes("carro") || segment.toLowerCase().includes("veicul")));
 
                 return (
                   <button

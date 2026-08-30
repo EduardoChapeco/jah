@@ -48,6 +48,13 @@ import {
   Car,
   Smartphone,
   Layers,
+  HeartPulse,
+  GraduationCap,
+  Dog,
+  CarFront,
+  PenTool,
+  Layers2,
+  FileSpreadsheet,
 } from "lucide-react";
 
 export type NavItem = {
@@ -74,6 +81,7 @@ const GROUP_OVERVIEW: NavGroup = {
   ],
 };
 
+// 1. Gastronomia
 const GROUP_GASTRO_CATALOG: NavGroup = {
   id: "gastro-catalog",
   label: "Cardápio & Itens",
@@ -99,6 +107,7 @@ const GROUP_GASTRO_ORDERS: NavGroup = {
   ],
 };
 
+// 2. Varejo & Moda
 const GROUP_RETAIL_CATALOG: NavGroup = {
   id: "retail-catalog",
   label: "Catálogo & Estoque",
@@ -128,6 +137,7 @@ const GROUP_RETAIL_SALES: NavGroup = {
   ],
 };
 
+// 3. Serviços & Beleza
 const GROUP_SERVICES_AGENDA: NavGroup = {
   id: "services-agenda",
   label: "Agenda & Atendimentos",
@@ -151,6 +161,7 @@ const GROUP_SERVICES_CATALOG: NavGroup = {
   ],
 };
 
+// 4. Locação & Estruturas
 const GROUP_RENTAL_EVENTS: NavGroup = {
   id: "rental-events",
   label: "Locação & Inventário",
@@ -164,6 +175,7 @@ const GROUP_RENTAL_EVENTS: NavGroup = {
   ],
 };
 
+// 5. Assistência Técnica
 const GROUP_TECH_REPAIR: NavGroup = {
   id: "tech-repair",
   label: "Assistência & Vendas",
@@ -178,6 +190,7 @@ const GROUP_TECH_REPAIR: NavGroup = {
   ],
 };
 
+// 6. Advocacia & Jurídico
 const GROUP_LEGAL: NavGroup = {
   id: "legal",
   label: "Processos & Jurídico",
@@ -190,6 +203,7 @@ const GROUP_LEGAL: NavGroup = {
   ],
 };
 
+// 7. Imóveis
 const GROUP_REAL_ESTATE: NavGroup = {
   id: "real-estate",
   label: "Imóveis & Vistorias",
@@ -202,6 +216,7 @@ const GROUP_REAL_ESTATE: NavGroup = {
   ],
 };
 
+// 8. Turismo
 const GROUP_TURISMO: NavGroup = {
   id: "tourism",
   label: "Turismo & Reservas",
@@ -214,6 +229,127 @@ const GROUP_TURISMO: NavGroup = {
   ],
 };
 
+// 9. Empregos & Recrutamento
+const GROUP_JOBS: NavGroup = {
+  id: "jobs",
+  label: "Vagas & Recrutamento",
+  icon: Briefcase,
+  items: [
+    { path: "/workspace/empregos/candidatos", label: "Vagas & Candidaturas", icon: Briefcase },
+    { path: "/workspace/clientes", label: "Banco de Talentos", icon: Users },
+    { path: "/workspace/marketing/vitrine", label: "Página de Carreiras", icon: Eye },
+  ],
+};
+
+// 10. Eventos, Shows & Ingressos
+const GROUP_EVENTS_TICKETS: NavGroup = {
+  id: "events-tickets",
+  label: "Eventos & Ingressos",
+  icon: Ticket,
+  items: [
+    { path: "/workspace/eventos", label: "Meus Eventos & Lotes", icon: Ticket },
+    { path: "/workspace/marketing/banners", label: "Flyers & Divulgação", icon: ImageIcon },
+    { path: "/workspace/clientes", label: "Participantes / Compradores", icon: Users },
+    { path: "/workspace/financeiro/pagamentos", label: "Balanço de Ingressos", icon: DollarSign },
+  ],
+};
+
+// 11. Automóveis & Veículos
+const GROUP_VEHICLES: NavGroup = {
+  id: "vehicles",
+  label: "Estoque de Veículos",
+  icon: CarFront,
+  items: [
+    { path: "/workspace/catalogo/produtos", label: "Estoque de Veículos", icon: CarFront },
+    { path: "/workspace/orcamentos", label: "Propostas & Financiamento", icon: FileText },
+    { path: "/workspace/clientes", label: "Leads & Interessados", icon: Users },
+  ],
+};
+
+// 12. Pet Shop & Veterinária
+const GROUP_PET: NavGroup = {
+  id: "pet",
+  label: "Pet Shop & Clínica",
+  icon: Dog,
+  items: [
+    { path: "/workspace/agenda", label: "Grade de Banho, Tosa e Consultas", icon: Calendar },
+    { path: "/workspace/agenda/servicos", label: "Procedimentos & Vacinas", icon: HeartPulse },
+    { path: "/workspace/catalogo/produtos", label: "Rações, Farmácia & Acessórios", icon: Package },
+    { path: "/workspace/pdv", label: "Frente de Caixa (PDV)", icon: Store },
+    { path: "/workspace/clientes", label: "Tutores & Pets", icon: Users },
+  ],
+};
+
+// 13. Supermercado, Açougue & Hortifrúti
+const GROUP_SUPERMARKET: NavGroup = {
+  id: "supermarket",
+  label: "Gôndolas & Hortifrúti",
+  icon: ShoppingCart,
+  items: [
+    { path: "/workspace/catalogo/produtos", label: "Produtos (KG e Unidade)", icon: Package },
+    { path: "/workspace/catalogo/categorias", label: "Sessões do Mercado", icon: Tags },
+    { path: "/workspace/estoque/alertas", label: "Validades & Reposição", icon: AlertTriangle },
+    { path: "/workspace/pedidos/gestor", label: "Separação de Pedidos", icon: ClipboardList },
+    { path: "/workspace/pedidos/frota", label: "Entregas Locais", icon: Truck },
+    { path: "/workspace/pdv", label: "Frente de Caixa (PDV)", icon: Store },
+  ],
+};
+
+// 14. Farmácia & Saúde
+const GROUP_PHARMACY: NavGroup = {
+  id: "pharmacy",
+  label: "Farmácia & Cosméticos",
+  icon: HeartPulse,
+  items: [
+    { path: "/workspace/catalogo/produtos", label: "Medicamentos & OTC", icon: Package },
+    { path: "/workspace/pedidos/gestor", label: "Receituários & Balcão", icon: ClipboardList },
+    { path: "/workspace/pedidos/frota", label: "Tele-Entrega Express", icon: Truck },
+    { path: "/workspace/pdv", label: "Frente de Caixa (PDV)", icon: Store },
+    { path: "/workspace/clientes", label: "Pacientes / Clientes", icon: Users },
+  ],
+};
+
+// 15. Notícias & Redação de Jornal
+const GROUP_NEWS: NavGroup = {
+  id: "news",
+  label: "Redação & Notícias",
+  icon: Newspaper,
+  items: [
+    { path: "/workspace/noticias", label: "Todas as Matérias", icon: Newspaper },
+    { path: "/workspace/noticias/novo", label: "Nova Reportagem", icon: PenTool },
+    { path: "/workspace/marketing/banners", label: "Banners Publicitários", icon: ImageIcon },
+    { path: "/workspace/marketing/vitrine", label: "Capa do Portal", icon: Eye },
+  ],
+};
+
+// 16. Educação & Cursos
+const GROUP_EDUCATION: NavGroup = {
+  id: "education",
+  label: "Cursos & Turmas",
+  icon: GraduationCap,
+  items: [
+    { path: "/workspace/agenda", label: "Grade de Aulas & Workshops", icon: Calendar },
+    { path: "/workspace/agenda/servicos", label: "Catálogo de Cursos", icon: GraduationCap },
+    { path: "/workspace/clientes", label: "Alunos & Matrículas", icon: Users },
+    { path: "/workspace/orcamentos", label: "Contratos & Propostas", icon: FileText },
+  ],
+};
+
+// 17. Indústria, Atacado & B2B
+const GROUP_WHOLESALE: NavGroup = {
+  id: "wholesale",
+  label: "Atacado & B2B",
+  icon: Layers2,
+  items: [
+    { path: "/workspace/catalogo/produtos", label: "Grade de Produtos & Caixas", icon: Package },
+    { path: "/workspace/catalogo/tabelas", label: "Tabelas de Preço PJ", icon: FileSpreadsheet },
+    { path: "/workspace/orcamentos", label: "Orçamentos em Lote", icon: FileText },
+    { path: "/workspace/pedidos", label: "Faturamento & Pedidos", icon: ShoppingBag },
+    { path: "/workspace/clientes", label: "Clientes PJ / Distribuidores", icon: Users },
+  ],
+};
+
+// Grupos Universais
 const GROUP_MARKETING_VITRINE: NavGroup = {
   id: "marketing",
   label: "Vitrine & Divulgação",
@@ -269,6 +405,15 @@ export function resolveWorkspaceNavigation(
       GROUP_LEGAL,
       GROUP_REAL_ESTATE,
       GROUP_TURISMO,
+      GROUP_JOBS,
+      GROUP_EVENTS_TICKETS,
+      GROUP_VEHICLES,
+      GROUP_PET,
+      GROUP_SUPERMARKET,
+      GROUP_PHARMACY,
+      GROUP_NEWS,
+      GROUP_EDUCATION,
+      GROUP_WHOLESALE,
       GROUP_MARKETING_VITRINE,
       GROUP_FINANCE_CLEAN,
       GROUP_SETTINGS,
@@ -280,10 +425,175 @@ export function resolveWorkspaceNavigation(
     storeData?.type ||
     storeData?.category ||
     storeData?.settings?.segment ||
+    storeData?.settings?.type ||
+    storeData?.settings?.niche ||
     ""
   ).toLowerCase();
 
-  // 1. GASTRONOMIA & ALIMENTAÇÃO
+  // 1. EMPREGOS & RECRUTAMENTO
+  if (
+    segment.includes("job") ||
+    segment.includes("emprego") ||
+    segment.includes("vaga") ||
+    segment.includes("rh") ||
+    segment.includes("recrut") ||
+    segment.includes("talento") ||
+    segment.includes("estagio")
+  ) {
+    return [
+      GROUP_OVERVIEW,
+      GROUP_JOBS,
+      GROUP_MARKETING_VITRINE,
+      GROUP_FINANCE_CLEAN,
+      GROUP_SETTINGS,
+    ];
+  }
+
+  // 2. EVENTOS, SHOWS & INGRESSOS
+  if (
+    segment.includes("event") ||
+    segment.includes("show") ||
+    segment.includes("festa") ||
+    segment.includes("ingresso") ||
+    segment.includes("produtor") ||
+    segment.includes("balada") ||
+    segment.includes("teatro") ||
+    segment.includes("congresso")
+  ) {
+    return [
+      GROUP_OVERVIEW,
+      GROUP_EVENTS_TICKETS,
+      GROUP_MARKETING_VITRINE,
+      GROUP_FINANCE_CLEAN,
+      GROUP_SETTINGS,
+    ];
+  }
+
+  // 3. VEÍCULOS & CONCESSIONÁRIA
+  if (
+    segment.includes("veicul") ||
+    segment.includes("carro") ||
+    segment.includes("moto") ||
+    segment.includes("automot") ||
+    segment.includes("concessionar") ||
+    segment.includes("garagem")
+  ) {
+    return [
+      GROUP_OVERVIEW,
+      GROUP_VEHICLES,
+      GROUP_MARKETING_VITRINE,
+      GROUP_FINANCE_CLEAN,
+      GROUP_SETTINGS,
+    ];
+  }
+
+  // 4. PET SHOP & VETERINÁRIA
+  if (
+    segment.includes("pet") ||
+    segment.includes("veterin") ||
+    segment.includes("banho") ||
+    segment.includes("tosa") ||
+    segment.includes("agro") ||
+    segment.includes("racao")
+  ) {
+    return [
+      GROUP_OVERVIEW,
+      GROUP_PET,
+      GROUP_MARKETING_VITRINE,
+      GROUP_FINANCE_CLEAN,
+      GROUP_SETTINGS,
+    ];
+  }
+
+  // 5. SUPERMERCADO, AÇOUGUE & HORTIFRÚTI
+  if (
+    segment.includes("mercado") ||
+    segment.includes("supermercado") ||
+    segment.includes("hortifruti") ||
+    segment.includes("acougue") ||
+    segment.includes("mercearia") ||
+    segment.includes("emporio")
+  ) {
+    return [
+      GROUP_OVERVIEW,
+      GROUP_SUPERMARKET,
+      GROUP_MARKETING_VITRINE,
+      GROUP_FINANCE_CLEAN,
+      GROUP_SETTINGS,
+    ];
+  }
+
+  // 6. FARMÁCIA & COSMÉTICOS
+  if (
+    segment.includes("farma") ||
+    segment.includes("drogari") ||
+    segment.includes("medicament") ||
+    segment.includes("suplement")
+  ) {
+    return [
+      GROUP_OVERVIEW,
+      GROUP_PHARMACY,
+      GROUP_MARKETING_VITRINE,
+      GROUP_FINANCE_CLEAN,
+      GROUP_SETTINGS,
+    ];
+  }
+
+  // 7. JORNALISMO & NOTÍCIAS
+  if (
+    segment.includes("notici") ||
+    segment.includes("jornal") ||
+    segment.includes("redac") ||
+    segment.includes("midia") ||
+    segment.includes("portal") ||
+    segment.includes("revista")
+  ) {
+    return [
+      GROUP_OVERVIEW,
+      GROUP_NEWS,
+      GROUP_MARKETING_VITRINE,
+      GROUP_FINANCE_CLEAN,
+      GROUP_SETTINGS,
+    ];
+  }
+
+  // 8. EDUCAÇÃO & CURSOS
+  if (
+    segment.includes("curso") ||
+    segment.includes("educac") ||
+    segment.includes("escola") ||
+    segment.includes("aula") ||
+    segment.includes("workshop") ||
+    segment.includes("treinamento") ||
+    segment.includes("idioma")
+  ) {
+    return [
+      GROUP_OVERVIEW,
+      GROUP_EDUCATION,
+      GROUP_MARKETING_VITRINE,
+      GROUP_FINANCE_CLEAN,
+      GROUP_SETTINGS,
+    ];
+  }
+
+  // 9. ATACADO, INDÚSTRIA & B2B
+  if (
+    segment.includes("atacado") ||
+    segment.includes("distribuidora") ||
+    segment.includes("industria") ||
+    segment.includes("b2b") ||
+    segment.includes("fabrica")
+  ) {
+    return [
+      GROUP_OVERVIEW,
+      GROUP_WHOLESALE,
+      GROUP_MARKETING_VITRINE,
+      GROUP_FINANCE_CLEAN,
+      GROUP_SETTINGS,
+    ];
+  }
+
+  // 10. GASTRONOMIA & ALIMENTAÇÃO
   if (
     segment.includes("gastro") ||
     segment.includes("restauran") ||
@@ -308,7 +618,7 @@ export function resolveWorkspaceNavigation(
     ];
   }
 
-  // 2. SERVIÇOS, SAÚDE & BELEZA
+  // 11. SERVIÇOS, SAÚDE & BELEZA
   if (
     segment.includes("servi") ||
     segment.includes("belez") ||
@@ -333,16 +643,14 @@ export function resolveWorkspaceNavigation(
     ];
   }
 
-  // 3. LOCAÇÃO, EVENTOS & ESTRUTURA
+  // 12. LOCAÇÃO, EQUIPAMENTOS & ESTRUTURA
   if (
     segment.includes("locac") ||
     segment.includes("alug") ||
-    segment.includes("evento") ||
     segment.includes("equipamento") ||
     segment.includes("blaster") ||
     segment.includes("som") ||
     segment.includes("ilumin") ||
-    segment.includes("festa") ||
     segment.includes("tenda")
   ) {
     return [
@@ -354,7 +662,7 @@ export function resolveWorkspaceNavigation(
     ];
   }
 
-  // 4. ASSISTÊNCIA TÉCNICA, CELULAR & MECÂNICA
+  // 13. ASSISTÊNCIA TÉCNICA, CELULAR & MECÂNICA
   if (
     segment.includes("celul") ||
     segment.includes("assist") ||
@@ -374,7 +682,7 @@ export function resolveWorkspaceNavigation(
     ];
   }
 
-  // 5. ADVOCACIA & JURÍDICO
+  // 14. ADVOCACIA & JURÍDICO
   if (segment.includes("advoc") || segment.includes("jurid") || segment.includes("direito")) {
     return [
       GROUP_OVERVIEW,
@@ -385,7 +693,7 @@ export function resolveWorkspaceNavigation(
     ];
   }
 
-  // 6. IMOBILIÁRIA & IMÓVEIS
+  // 15. IMOBILIÁRIA & IMÓVEIS
   if (segment.includes("imove") || segment.includes("imobili") || segment.includes("corret")) {
     return [
       GROUP_OVERVIEW,
@@ -396,7 +704,7 @@ export function resolveWorkspaceNavigation(
     ];
   }
 
-  // 7. TURISMO & VIAGENS
+  // 16. TURISMO & VIAGENS
   if (
     segment.includes("turis") ||
     segment.includes("hotel") ||
@@ -413,7 +721,7 @@ export function resolveWorkspaceNavigation(
     ];
   }
 
-  // 8. PADRÃO: VAREJO & COMÉRCIO GERAL (Moda, Pet Shop, Mercado, etc.)
+  // 17. PADRÃO: VAREJO & COMÉRCIO GERAL (Moda, Calçados, Presentes, etc.)
   return [
     GROUP_OVERVIEW,
     GROUP_RETAIL_CATALOG,
