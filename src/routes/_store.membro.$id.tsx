@@ -412,7 +412,7 @@ export function MemberPublicProfileView({
         </div>
       </div>
 
-      {/* ── Bloco 1: Header do Perfil (Faixa Panorâmica Alinhada 1:1 com Avatar + Capa 2098px + Card de Stats) ── */}
+      {/* ── Bloco 1: Header do Perfil (Faixa Panorâmica Alinhada 1:1 com Avatar + Capa 1090px + Card de Stats) ── */}
       {/* ── Mobile Top Bar Minimalista (Instagram-Grade) ── */}
       <div className="sm:hidden -mx-4 -mt-4 px-4 py-3 bg-background/90 backdrop-blur-md sticky top-0 z-40 border-b border-border/40 flex items-center justify-between">
         <Button
@@ -489,7 +489,7 @@ export function MemberPublicProfileView({
       </div>
 
       <div className="rounded-3xl bg-card border border-border/40 p-4 sm:p-6 space-y-6 shadow-xs">
-        {/* Faixa Superior Panorâmica: Foto + Capa Panorâmica 2098px com Card de Stats no Término */}
+        {/* Faixa Superior Panorâmica: Foto + Capa Panorâmica 1090px com Card de Stats no Término */}
         <div className="flex items-center gap-3 sm:gap-4 overflow-hidden">
           {/* Foto de Perfil em Squircle 1:1 (Altura Fixa h-28 sm:h-36) */}
           <div className="flex-shrink-0">
@@ -501,16 +501,16 @@ export function MemberPublicProfileView({
             </Avatar>
           </div>
 
-          {/* Container da Capa Panorâmica (min-w-[2098px]) com Scroll Horizontal Fluido */}
+          {/* Container da Capa Panorâmica (min-w-[1090px]) com Scroll Horizontal Fluido */}
           <div className="flex-1 h-28 sm:h-36 rounded-3xl bg-muted/30 overflow-x-auto overflow-y-hidden scrollbar-none flex items-center gap-3 pr-3 border border-border/40">
             {(profile.cover_url || profile.coverUrl || profile.banner_url) ? (
               <img
                 src={profile.cover_url || profile.coverUrl || profile.banner_url}
                 alt="Capa do perfil"
-                className="h-full min-w-[2098px] object-cover flex-shrink-0 select-none rounded-2xl"
+                className="h-full min-w-[1090px] object-cover flex-shrink-0 select-none rounded-2xl"
               />
             ) : (
-              <div className="h-full min-w-[2098px] bg-gradient-to-r from-primary/10 via-muted/40 to-primary/15 flex items-center justify-center rounded-2xl">
+              <div className="h-full min-w-[1090px] bg-gradient-to-r from-primary/10 via-muted/40 to-primary/15 flex items-center justify-center rounded-2xl">
                 <Sparkles className="size-8 text-primary/30" />
               </div>
             )}

@@ -415,17 +415,17 @@ function ProfilePage() {
             <div className="space-y-6">
               <h2 className="text-sm font-bold text-foreground">Fotos do Perfil</h2>
 
-              {/* Capa Panorâmica 2098px */}
+              {/* Capa Panorâmica 1090px */}
               <div className="space-y-2">
-                <Label className="text-xs font-bold text-muted-foreground">Foto de Capa Panorâmica (2098px)</Label>
+                <Label className="text-xs font-bold text-muted-foreground">Foto de Capa Panorâmica (1090px)</Label>
                 <div className="w-full h-28 sm:h-36 rounded-3xl bg-muted/30 overflow-x-auto overflow-y-hidden scrollbar-none flex items-center gap-3 pr-3 border border-border/40 relative group">
                   {formData.coverUrl ? (
-                    <img src={formData.coverUrl} alt="Capa" className="h-full min-w-[2098px] object-cover flex-shrink-0 select-none rounded-2xl" />
+                    <img src={formData.coverUrl} alt="Capa" className="h-full min-w-[1090px] object-cover flex-shrink-0 select-none rounded-2xl" />
                   ) : (
-                    <div className="h-full min-w-[2098px] bg-gradient-to-r from-primary/10 via-muted/40 to-primary/15 flex items-center justify-center rounded-2xl">
+                    <div className="h-full min-w-[1090px] bg-gradient-to-r from-primary/10 via-muted/40 to-primary/15 flex items-center justify-center rounded-2xl">
                       <span className="text-xs text-muted-foreground flex items-center gap-1.5">
                         <ImageIcon className="size-4 opacity-50" />
-                        Nenhuma capa adicionada (Formato Panorâmico: 2098px de largura)
+                        Nenhuma capa adicionada (Formato Panorâmico: 1090px de largura)
                       </span>
                     </div>
                   )}
@@ -518,6 +518,9 @@ function ProfilePage() {
                       className="h-10 rounded-xl text-xs pl-7 font-mono font-semibold"
                     />
                   </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    Permitida 1 alteração a cada 30 dias. Seu @ anterior fica protegido por 30 dias caso queira restaurar.
+                  </p>
                 </div>
               </div>
 
@@ -921,10 +924,10 @@ function ProfilePage() {
             if (!v) setCropperOpen(false);
           }}
           imageSrc={cropperSrc}
-          aspect={cropperType === "avatar" ? 1 : 2098 / 144}
+          aspect={cropperType === "avatar" ? 1 : 1090 / 144}
           cropShape={cropperType === "avatar" ? "round" : "rect"}
           lockAspect={true}
-          title={cropperType === "avatar" ? "Recortar Foto de Perfil" : "Recortar Capa Panorâmica (2098px)"}
+          title={cropperType === "avatar" ? "Recortar Foto de Perfil" : "Recortar Capa Panorâmica (1090px)"}
           onCropComplete={handleCropComplete}
         />
       )}

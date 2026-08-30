@@ -1026,6 +1026,28 @@ export const getPublicMemberProfile = createServerFn({ method: "GET" })
         const resByUsername = await query.ilike("username", decodedId).maybeSingle();
         rawProfile = resByUsername.data;
 
+        // Busca 1.1: por histórico de handles antigos (redirecionamento inteligente)
+        if (!rawProfile) {
+          const { data: historyMatch } = await db
+            .from("handle_history")
+            .select("profile_id")
+            .ilike("old_handle", decodedId)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (historyMatch?.profile_id) {
+            const resFromHistory = await db
+              .from("profiles")
+              .select(
+                "id, full_name, username, avatar_url, cover_url, bio, occupation, city, state, phone, instagram, website, role, is_verified, profile_type, badges, resume_data, biolinks, featured_banner_url, featured_banner_link, created_at",
+              )
+              .eq("id", historyMatch.profile_id)
+              .maybeSingle();
+            rawProfile = resFromHistory.data;
+          }
+        }
+
         // Busca 2: por full_name aproximado
         if (!rawProfile) {
           const resByName = await db
@@ -1053,7 +1075,8 @@ export const getPublicMemberProfile = createServerFn({ method: "GET" })
       }
     } catch (err) {
       console.error("[social.functions] Erro ao buscar perfil:", err);
-      throw new Error("Erro ao consultar perfil.");
+      // Retorna null amigável em vez de quebrar
+      rawProfile = null;
     }
 
     if (!rawProfile) {
