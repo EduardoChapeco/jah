@@ -156,11 +156,14 @@ export function PublishMomentModal({
               Foto Real do Momento <span className="text-destructive">*</span>
             </Label>
             <MediaUploader
-              value={mediaUrl}
+              value={mediaUrl ? [mediaUrl] : []}
               onChange={(urls) => setMediaUrl(urls[0] || "")}
               maxFiles={1}
               bucket="cms-media"
               folder="moments"
+              aspect={4 / 3}
+              enableCrop={true}
+              lockAspect={true}
               accept="image"
               label="Tirar foto ou enviar imagem instantânea"
             />
