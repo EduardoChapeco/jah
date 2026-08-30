@@ -394,10 +394,10 @@ function JobDetailPage() {
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
                         <LinkSimple size={14} weight="bold" />
-                        <span>Link do Currículo / LinkedIn (Opcional)</span>
+                        <span>Link do Currículo / Portfólio (Opcional)</span>
                       </label>
                       <Input
-                        placeholder="https://linkedin.com/in/seuperfil ou Google Drive"
+                        placeholder="https://... (link para PDF, drive ou portfólio)"
                         value={resumeUrl}
                         onChange={(e) => setResumeUrl(e.target.value)}
                         className="rounded-xl h-10 text-xs bg-background"

@@ -397,14 +397,14 @@ function ProfilePage() {
                 className="h-10 px-4 rounded-xl text-xs font-bold gap-1.5 data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]: text-muted-foreground hover:text-foreground cursor-pointer"
               >
                 <Briefcase className="size-3.5" />
-                <span>Perfil Profissional (LinkedIn)</span>
+                <span>Perfil Profissional & Currículo</span>
               </TabsTrigger>
               <TabsTrigger
                 value="biolinks"
                 className="h-10 px-4 rounded-xl text-xs font-bold gap-1.5 data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]: text-muted-foreground hover:text-foreground cursor-pointer"
               >
                 <LinkIcon className="size-3.5" />
-                <span>Biolinks & Botões Rápidos</span>
+                <span>Botões de Ação & Links</span>
               </TabsTrigger>
             </TabsList>
           </div>
