@@ -78,9 +78,39 @@ export const Route = createFileRoute("/_store/criar-negocio")({
       segment: (search.segment as string) || undefined,
     };
   },
-  loader: async () => {
+  beforeLoad: async ({ location }) => {
+    let session: any = null;
+    try {
+      session = await getUserSession();
+    } catch {
+      session = null;
+    }
+
+    if (!session?.user) {
+      throw redirect({
+        to: "/entrar",
+        search: { returnUrl: location.pathname + location.searchStr },
+      });
+    }
+    return { session };
+  },
+  loader: async ({ location }) => {
+    let session: any = null;
+    try {
+      session = await getUserSession();
+    } catch {
+      session = null;
+    }
+
+    if (!session?.user) {
+      throw redirect({
+        to: "/entrar",
+        search: { returnUrl: location.pathname + location.searchStr },
+      });
+    }
+
     const logisticsInfo = await getPublicLogisticsPresentation().catch(() => null);
-    return { logisticsInfo };
+    return { logisticsInfo, session };
   },
   component: CriarNegocioPage,
 });
