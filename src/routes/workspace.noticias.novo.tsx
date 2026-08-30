@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/commerce/page-header";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { createArticle, type NewsSectionDTO } from "@/services/news.functions";
 import { processUrlWithAI } from "@/services/mining.functions";
 import { toast } from "sonner";
@@ -377,29 +378,15 @@ function WorkspaceNovaMateriaPage() {
             2. Imagem de Capa
           </span>
 
-          <div className="space-y-1.5">
-            <Label className="text-xs font-bold">URL da Imagem de Capa</Label>
-            <Input
-              type="url"
-              placeholder="https://exemplo.com/imagem.jpg"
+          <div className="space-y-1.5 max-w-xl">
+            <ImageUpload
               value={coverMediaUrl}
-              onChange={(e) => setCoverMediaUrl(e.target.value)}
-              className="rounded-xl h-10 text-xs border-border/60"
+              onChange={(url) => setCoverMediaUrl(url)}
+              aspectPreset="widescreen"
+              bucket="cms-media"
+              helperText="Upload ou recorte de imagem em formato panorâmico (16:10 / 16:9)"
             />
           </div>
-
-          {coverMediaUrl && (
-            <div className="rounded-xl overflow-hidden border border-border/60 max-h-56 bg-muted">
-              <img
-                src={coverMediaUrl}
-                alt="Preview"
-                className="w-full h-56 object-cover"
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                }}
-              />
-            </div>
-          )}
         </div>
 
         {/* ── 3. Corpo da Matéria (Blocos) ── */}

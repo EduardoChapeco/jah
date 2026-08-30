@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { ImageUpload } from "@/components/ui/image-upload";
 import {
   Dialog,
   DialogContent,
@@ -314,24 +315,28 @@ function WorkspacePatrocinadoresPage() {
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">URL do Logotipo</Label>
-              <Input
-                placeholder="https://..."
-                value={logoUrl}
-                onChange={(e) => setLogoUrl(e.target.value)}
-                className="rounded-xl h-10 font-mono text-xs"
-              />
-            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold">Logotipo do Parceiro</Label>
+                <ImageUpload
+                  value={logoUrl}
+                  onChange={(url) => setLogoUrl(url)}
+                  aspectPreset="square"
+                  bucket="cms-media"
+                  helperText="Formato 1:1 quadrado"
+                />
+              </div>
 
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">URL do Banner In-Article (Opcional)</Label>
-              <Input
-                placeholder="https://images.unsplash.com/..."
-                value={bannerUrl}
-                onChange={(e) => setBannerUrl(e.target.value)}
-                className="rounded-xl h-10 font-mono text-xs"
-              />
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold">Banner In-Article (Opcional)</Label>
+                <ImageUpload
+                  value={bannerUrl}
+                  onChange={(url) => setBannerUrl(url)}
+                  aspectPreset="widescreen"
+                  bucket="cms-media"
+                  helperText="Formato 16:10 panorâmico"
+                />
+              </div>
             </div>
 
             <div className="space-y-1.5">

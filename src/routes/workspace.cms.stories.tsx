@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EmptyState } from "@/components/state/states";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { listAdminStories, upsertStory, deleteStory } from "@/services/cms.functions";
 import { createStory } from "@/services/stories.functions";
 import { listStoreCollabs, respondToStoryCollab, type StoryCollabDTO } from "@/services/creators.functions";
@@ -377,14 +378,13 @@ function CmsStoriesPage() {
 
             <div className="space-y-3.5 py-2">
               <div className="space-y-1.5">
-                <Label htmlFor="media_url">URL da Mídia (Imagem ou Vídeo MP4)</Label>
-                <Input
-                  id="media_url"
-                  placeholder="https://exemplo.com/story.mp4"
+                <Label className="text-xs font-bold">Mídia do Story (Vertical 9:16)</Label>
+                <ImageUpload
                   value={formData.media_url}
-                  onChange={(e) => setFormData({ ...formData, media_url: e.target.value })}
-                  required
-                  className="rounded-xl"
+                  onChange={(url) => setFormData({ ...formData, media_url: url })}
+                  aspect={9 / 16}
+                  bucket="cms-media"
+                  helperText="Upload ou recorte de foto vertical 9:16"
                 />
               </div>
 

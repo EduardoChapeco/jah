@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ImageCropperDialog } from "@/components/ui/image-cropper-dialog";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { CitySelect } from "@/components/ui/city-select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -825,19 +826,20 @@ function ProfilePage() {
               )}
 
               {/* Mini-Banner em Destaque */}
-              <div className="space-y-3 pt-3 ">
+              <div className="space-y-3 pt-3">
                 <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5">
                   <Sparkles className="size-3.5 text-primary" />
                   <span>Mini-Banner de Destaque / Evento</span>
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
                   <div className="space-y-1">
-                    <Label className="text-[11px] font-bold text-muted-foreground">URL da Imagem do Banner</Label>
-                    <Input
+                    <Label className="text-[11px] font-bold text-muted-foreground">Imagem do Banner</Label>
+                    <ImageUpload
                       value={formData.featuredBannerUrl}
-                      onChange={(e) => set("featuredBannerUrl", e.target.value)}
-                      placeholder="https://..."
-                      className="h-9 rounded-xl text-xs"
+                      onChange={(url) => set("featuredBannerUrl", url)}
+                      aspectPreset="widescreen"
+                      bucket="cms-media"
+                      helperText="Formato 16:10 panorâmico"
                     />
                   </div>
                   <div className="space-y-1">
@@ -846,7 +848,7 @@ function ProfilePage() {
                       value={formData.featuredBannerLink}
                       onChange={(e) => set("featuredBannerLink", e.target.value)}
                       placeholder="https://..."
-                      className="h-9 rounded-xl text-xs"
+                      className="h-10 rounded-xl text-xs"
                     />
                   </div>
                 </div>

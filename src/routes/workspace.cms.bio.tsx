@@ -37,6 +37,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/state/states";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { getLinkInBio, upsertLinkInBio } from "@/services/cms.functions";
 
 export const Route = createFileRoute("/workspace/cms/bio")({
@@ -484,32 +485,19 @@ function CmsBioPage() {
             {/* ── TAB 2: Identidade do Perfil ── */}
             <TabsContent value="profile" className="space-y-4 pt-4">
               <div className="p-6 rounded-3xl bg-card border border-border/70 space-y-5">
-                <div className="flex items-start gap-5">
-                  <div className="shrink-0 flex flex-col items-center gap-2">
-                    <div className="size-20 rounded-full bg-muted border-2 border-border overflow-hidden flex items-center justify-center">
-                      {formData.avatar_url ? (
-                        <img
-                          src={formData.avatar_url}
-                          alt="Avatar"
-                          className="size-full object-cover"
-                        />
-                      ) : (
-                        <User2 className="size-8 text-muted-foreground opacity-50" />
-                      )}
-                    </div>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-5">
+                  <div className="shrink-0">
+                    <Label className="text-xs font-bold block mb-2">Foto de Perfil / Logo</Label>
+                    <ImageUpload
+                      value={formData.avatar_url}
+                      onChange={(url) => setFormData({ ...formData, avatar_url: url })}
+                      variant="avatar"
+                      aspectPreset="square"
+                      bucket="cms-media"
+                    />
                   </div>
 
                   <div className="flex-1 space-y-3">
-                    <div>
-                      <Label htmlFor="avatar_url" className="text-xs font-bold">URL da Foto de Perfil / Logo</Label>
-                      <Input
-                        id="avatar_url"
-                        value={formData.avatar_url}
-                        onChange={(e) => setFormData({ ...formData, avatar_url: e.target.value })}
-                        placeholder="https://..."
-                        className="h-9 text-xs rounded-xl mt-1"
-                      />
-                    </div>
                     <div>
                       <Label htmlFor="title" className="text-xs font-bold">Nome do Perfil / Título Principal</Label>
                       <Input
@@ -517,7 +505,7 @@ function CmsBioPage() {
                         value={formData.title}
                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                         placeholder="Ex: @wider.oficial ou Restaurante Sabor & Arte"
-                        className="h-9 text-xs rounded-xl mt-1 font-bold"
+                        className="h-10 text-xs rounded-xl mt-1 font-bold"
                       />
                     </div>
                   </div>
