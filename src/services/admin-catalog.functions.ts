@@ -570,6 +570,7 @@ export async function _updateCategory(input: {
   slug?: string;
   parent_id?: string | null;
   status?: "active" | "inactive" | "archived";
+  cover_url?: string | null;
 }) {
   const db = getServerClient();
   const { id, ...updates } = input;
@@ -594,6 +595,7 @@ export const updateCategory = createServerFn({ method: "POST" })
         .optional(),
       parent_id: z.string().uuid().optional().nullable(),
       status: z.enum(["active", "inactive", "archived"]).optional(),
+      cover_url: z.string().url().optional().nullable(),
     }),
   )
   .handler(async ({ data: input }) => {

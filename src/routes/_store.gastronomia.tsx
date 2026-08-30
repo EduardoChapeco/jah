@@ -36,6 +36,9 @@ import { ModularSurfaceFeed } from "@/components/commerce/modular-surface-feed";
 import { listActiveBanners } from "@/services/banner.functions";
 import { listHotpages } from "@/services/hotpage.functions";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
+import { listPublishedProducts } from "@/services/catalog.functions";
+
+import type { ProductCardDTO } from "@/types/catalog";
 import { resolveNicheDepartments } from "@/lib/niche-helpers";
 
 const SearchSchema = z.object({
@@ -71,17 +74,22 @@ export const Route = createFileRoute("/_store/gastronomia")({
   validateSearch: (search: Record<string, unknown>): GastronomiaSearch =>
     SearchSchema.parse(search),
   loaderDeps: ({ search }) => search,
-  loader: async () => {
-    const [banners, hotpages, marketplaceFeed] = await Promise.all([
+  loader: async ({ deps: search }) => {
+    const [banners, hotpages, marketplaceFeed, productsRes] = await Promise.all([
       listActiveBanners({ data: { placement: "gastronomia" } }).catch(() => []),
       listHotpages({ data: { module: "gastronomia" } }).catch(() => []),
       getModularSurfaceFeed({ data: { surfaceSlug: "gastronomia" } }).catch(() => ({ sections: [], allProducts: [] })),
+      // Fallback robusto: produtos do catálogo filtrados por niche real
+      listPublishedProducts({
+        data: { niche: "gastronomia", limit: 40, sort: search.sort ?? "newest" },
+      }).catch(() => ({ status: "empty" as const, data: [] as ProductCardDTO[] })),
     ]);
 
     return {
       banners,
       hotpages,
       marketplaceFeed,
+      catalogProducts: productsRes.status === "ok" ? (productsRes as any).data ?? [] : (productsRes as any).data ?? [],
     };
   },
   component: GastronomiaVerticalPage,
@@ -89,7 +97,7 @@ export const Route = createFileRoute("/_store/gastronomia")({
 });
 
 function GastronomiaVerticalPage() {
-  const { banners, hotpages, marketplaceFeed } = Route.useLoaderData();
+  const { banners, hotpages, marketplaceFeed, catalogProducts } = Route.useLoaderData();
   const search = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
 
@@ -116,70 +124,35 @@ function GastronomiaVerticalPage() {
     });
   };
 
-  // Filtragem de pratos e produtos gastronômicos
-  const filteredProducts = useMemo(() => {
-    const allProducts = marketplaceFeed?.allProducts || [];
-    return allProducts.filter((p: any) => {
-      const titleLower = p.title.toLowerCase();
-      const descLower = (p.description || "").toLowerCase();
+  // Combina produtos do Surface CMS + catálogo direto (sem heurística de título)
+  const allProducts: ProductCardDTO[] = useMemo(() => {
+    const surfaceProducts = (marketplaceFeed?.allProducts || []) as ProductCardDTO[];
+    const catalogArr = (catalogProducts || []) as ProductCardDTO[];
+    // Prioriza Surface CMS; usa catálogo direto como fallback
+    const base = surfaceProducts.length > 0 ? surfaceProducts : catalogArr;
+
+    if (activeDepartment === "todos") return base;
+
+    // Filtragem por departamento usando tags e atributos do banco (não título)
+    return base.filter((p: any) => {
       const tags = (p.tags || []).map((t: string) => t.toLowerCase());
-
-      const isFoodItem =
-        titleLower.includes("burger") ||
-        titleLower.includes("hambúrguer") ||
-        titleLower.includes("pizza") ||
-        titleLower.includes("sushi") ||
-        titleLower.includes("marmita") ||
-        titleLower.includes("prato") ||
-        titleLower.includes("porção") ||
-        titleLower.includes("batata") ||
-        titleLower.includes("lanche") ||
-        titleLower.includes("pastel") ||
-        titleLower.includes("sobremesa") ||
-        titleLower.includes("torta") ||
-        titleLower.includes("bolo") ||
-        titleLower.includes("café") ||
-        tags.some((t: string) =>
-          ["restaurante", "gastronomia", "comida", "delivery", "lanche", "pizza", "burger"].includes(t),
-        );
-
-      if (activeDepartment === "todos") return isFoodItem || allProducts.length <= 10;
-      if (activeDepartment === "burgers")
-        return titleLower.includes("burger") || titleLower.includes("hambúrguer") || titleLower.includes("artesanal");
-      if (activeDepartment === "pizzas")
-        return titleLower.includes("pizza") || titleLower.includes("calzone") || titleLower.includes("massa");
-      if (activeDepartment === "oriental")
-        return titleLower.includes("sushi") || titleLower.includes("temaki") || titleLower.includes("sashimi") || titleLower.includes("yakisoba");
-      if (activeDepartment === "marmitas")
-        return titleLower.includes("marmita") || titleLower.includes("executivo") || titleLower.includes("prato feito");
-      if (activeDepartment === "churrasco")
-        return titleLower.includes("picanha") || titleLower.includes("grelhado") || titleLower.includes("costela");
-      if (activeDepartment === "doces")
-        return titleLower.includes("doce") || titleLower.includes("torta") || titleLower.includes("café") || titleLower.includes("sobremesa");
+      const categoria = (p.attributes?.categoria || p.attributes?.tipo || "").toLowerCase();
+      if (activeDepartment === "burgers") return tags.some((t: string) => ["burger","hamburguer","lanche","sanduiche"].includes(t)) || categoria.includes("burger");
+      if (activeDepartment === "pizzas") return tags.some((t: string) => ["pizza","massa","calzone"].includes(t)) || categoria.includes("pizza");
+      if (activeDepartment === "oriental") return tags.some((t: string) => ["sushi","temaki","oriental","japones"].includes(t)) || categoria.includes("oriental");
+      if (activeDepartment === "marmitas") return tags.some((t: string) => ["marmita","executivo","almoco"].includes(t)) || categoria.includes("marmita");
+      if (activeDepartment === "churrasco") return tags.some((t: string) => ["churrasco","grelhado","carne","picanha"].includes(t)) || categoria.includes("churrasco");
+      if (activeDepartment === "doces") return tags.some((t: string) => ["cafe","doce","sobremesa","torta","bolo"].includes(t)) || categoria.includes("sobremesa");
       return true;
     });
-  }, [marketplaceFeed, activeDepartment]);
+  }, [marketplaceFeed, catalogProducts, activeDepartment]);
 
-  // Restaurantes parceiros
+  const filteredProducts = allProducts;
+
+  // Restaurantes: vem do Surface CMS store_rail
   const restaurantStores = useMemo(() => {
     const storeSection = marketplaceFeed?.sections?.find((s: any) => s.type === "store_rail");
-    const stores = storeSection?.items || [];
-    return stores.filter((s: any) => {
-      const type = (s.type || "").toLowerCase();
-      const name = (s.name || "").toLowerCase();
-      return (
-        type.includes("restaurante") ||
-        type.includes("lanchonete") ||
-        type.includes("pizzaria") ||
-        type.includes("hamburgueria") ||
-        type.includes("gastronomia") ||
-        name.includes("restaurante") ||
-        name.includes("burger") ||
-        name.includes("pizza") ||
-        name.includes("bistrô") ||
-        name.includes("café")
-      );
-    });
+    return storeSection?.items || [];
   }, [marketplaceFeed]);
 
   return (
@@ -219,28 +192,36 @@ function GastronomiaVerticalPage() {
         <div className="space-y-8">
           {marketplaceFeed?.sections && marketplaceFeed.sections.length > 0 ? (
             <ModularSurfaceFeed sections={marketplaceFeed.sections} />
+          ) : allProducts.length > 0 ? (
+            <section aria-label="Pratos & Lanches da Gastronomia" className="w-full">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+                {allProducts.map((product: any) => (
+                  <GroceryProductCard key={product.id} product={product} viewMode="grid" />
+                ))}
+              </div>
+            </section>
           ) : (
             <div className="py-12 text-center text-xs text-muted-foreground">
-              Nenhuma seção ativa no momento.
+              Nenhum restaurante ou prato disponível no momento.
             </div>
           )}
         </div>
       ) : (
         <section aria-label="Pratos & Lanches em Destaque" className="w-full">
-          {filteredProducts.length === 0 ? (
+          {allProducts.length === 0 ? (
             <EmptyState
               title="Nenhum prato encontrado"
               description="Tente escolher outro tipo de culinária ou busque por restaurantes específicos."
             />
           ) : viewMode === "list" ? (
             <div className="flex flex-col gap-3">
-              {filteredProducts.map((product: any) => (
+              {allProducts.map((product: any) => (
                 <GroceryProductCard key={product.id} product={product} viewMode="list" />
               ))}
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-              {filteredProducts.map((product: any) => (
+              {allProducts.map((product: any) => (
                 <GroceryProductCard key={product.id} product={product} viewMode="grid" />
               ))}
             </div>

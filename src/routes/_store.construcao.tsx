@@ -34,6 +34,8 @@ import { OfferCard } from "@/components/commerce/offer-card";
 import { listActiveBanners } from "@/services/banner.functions";
 import { listHotpages } from "@/services/hotpage.functions";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
+import { listPublishedProducts } from "@/services/catalog.functions";
+import type { ProductCardDTO } from "@/types/catalog";
 import { resolveNicheDepartments } from "@/lib/niche-helpers";
 
 const SearchSchema = z.object({
@@ -70,16 +72,17 @@ export const Route = createFileRoute("/_store/construcao")({
     SearchSchema.parse(search),
   loaderDeps: ({ search }) => search,
   loader: async () => {
-    const [banners, hotpages, marketplaceFeed] = await Promise.all([
+    const [banners, hotpages, marketplaceFeed, productsRes] = await Promise.all([
       listActiveBanners({ data: { placement: "construcao" } }).catch(() => []),
       listHotpages({ data: { module: "construcao" } }).catch(() => []),
       getModularSurfaceFeed({ data: { surfaceSlug: "construcao" } }).catch(() => ({ sections: [], allProducts: [] })),
+      listPublishedProducts({ data: { niche: "construcao", limit: 40 } }).catch(() => ({ status: "empty" as const, data: [] as ProductCardDTO[] })),
     ]);
-
     return {
       banners,
       hotpages,
       marketplaceFeed,
+      catalogProducts: (productsRes as any).data ?? [],
     };
   },
   component: ConstrucaoVerticalPage,

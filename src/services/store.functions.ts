@@ -20,7 +20,7 @@ export async function _getStoreSettings() {
   const { data: store } = await db
     .from("stores")
     .select(
-      "id, name, slug, email, phone, cnpj, address, city, state, zip_code, description, settings, logo_url",
+      "id, name, slug, email, phone, cnpj, address, city, state, zip_code, description, settings, logo_url, segment, type",
     )
     .eq("id", targetStoreId)
     .maybeSingle();

@@ -217,7 +217,7 @@ export const getModularSurfaceFeed = createServerFn({ method: "GET" })
     // Futuro ideal: delegar essa agregação para uma RPC (Stored Procedure) no banco.
     let storesQuery = supabase
       .from("stores")
-      .select("id, name, slug, type, description, settings")
+      .select("id, name, slug, type, description, settings, logo_url")
       .order("created_at", { ascending: false })
       .limit(storeId ? 1 : 100);
 
@@ -254,7 +254,7 @@ export const getModularSurfaceFeed = createServerFn({ method: "GET" })
       id: s.id,
       name: s.name,
       slug: s.slug || `loja-${s.id.slice(0, 6)}`,
-      avatar_url: s.settings?.logoUrl || undefined,
+      avatar_url: s.logo_url || s.settings?.logoUrl || s.settings?.logo_url || undefined,
       banner_url: s.settings?.bannerUrl || undefined,
       category: s.type || "Comércio Local",
       rating: 4.9,

@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { formatMoney } from "@/lib/money";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -64,11 +64,18 @@ function AccountDashboardPage() {
   const session = loaderData.session || null;
   const recentOrders = orders.slice(0, 3);
   const memberships = (session?.memberships as any[]) || [];
+  const navigate = useNavigate();
 
   const userName = profile?.fullName || session?.user?.user_metadata?.full_name || "Membro Wider";
   const userEmail = profile?.email || session?.user?.email || "";
   const userHandle = profile?.username || session?.user?.user_metadata?.username || userEmail.split("@")[0] || "membro";
   const userAvatar = profile?.avatarUrl || session?.user?.user_metadata?.avatar_url || "";
+
+  // Seta o cookie de tenant ativo e navega para o workspace da loja correta
+  const handleOpenWorkspace = (storeId: string) => {
+    window.document.cookie = `wider_active_tenant=${storeId}; path=/; max-age=31536000; SameSite=Lax`;
+    navigate({ to: "/workspace" });
+  };
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6 pb-6 px-4 sm:px-0">
@@ -129,10 +136,12 @@ function AccountDashboardPage() {
                   </div>
                 </div>
 
-                <Button asChild size="sm" className="rounded-xl text-xs font-bold h-9 bg-foreground text-background hover:bg-foreground/90 shrink-0">
-                  <Link to="/workspace">
-                    Abrir Painel
-                  </Link>
+                <Button
+                  size="sm"
+                  onClick={() => handleOpenWorkspace(m.store_id)}
+                  className="rounded-xl text-xs font-bold h-9 bg-foreground text-background hover:bg-foreground/90 shrink-0 cursor-pointer"
+                >
+                  Abrir Painel
                 </Button>
               </div>
             ))}

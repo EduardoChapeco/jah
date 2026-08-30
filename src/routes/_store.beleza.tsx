@@ -32,6 +32,8 @@ import { listHotpages } from "@/services/hotpage.functions";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
 import { ServicePackagesRail } from "@/components/commerce/service-packages-rail";
 import { listPublicStorePackages } from "@/services/service-packages.functions";
+import { listPublishedProducts } from "@/services/catalog.functions";
+import type { ProductCardDTO } from "@/types/catalog";
 import { resolveNicheDepartments } from "@/lib/niche-helpers";
 
 const SearchSchema = z.object({
@@ -68,18 +70,19 @@ export const Route = createFileRoute("/_store/beleza")({
   validateSearch: (search: Record<string, unknown>): BelezaSearch => SearchSchema.parse(search),
   loaderDeps: ({ search }) => search,
   loader: async () => {
-    const [banners, hotpages, marketplaceFeed, packages] = await Promise.all([
+    const [banners, hotpages, marketplaceFeed, packages, productsRes] = await Promise.all([
       listActiveBanners({ data: { placement: "beleza" } }).catch(() => []),
       listHotpages({ data: { module: "beleza" } }).catch(() => []),
       getModularSurfaceFeed({ data: { surfaceSlug: "beleza" } }).catch(() => ({ sections: [], allProducts: [] })),
       listPublicStorePackages().catch(() => []),
+      listPublishedProducts({ data: { niche: "beleza", limit: 40 } }).catch(() => ({ status: "empty" as const, data: [] as ProductCardDTO[] })),
     ]);
-
     return {
       banners,
       hotpages,
       marketplaceFeed,
       packages,
+      catalogProducts: (productsRes as any).data ?? [],
     };
   },
   component: BelezaVerticalPage,

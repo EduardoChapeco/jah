@@ -5,13 +5,14 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ImageCropperDialog } from "@/components/ui/image-cropper-dialog";
 
-export type AspectRatioPreset = "square" | "classified" | "widescreen" | "banner" | "header" | "free";
+export type AspectRatioPreset = "square" | "classified" | "widescreen" | "banner" | "cover" | "header" | "free";
 
 const PRESET_ASPECT_RATIOS: Record<AspectRatioPreset, number | undefined> = {
   square: 1, // 1:1 (Produtos, Logos, Avatars)
   classified: 4 / 3, // 4:3 (Classificados, Carros, Imóveis)
   widescreen: 16 / 10, // 16:10 ou 16:9 (Turismo, Notícias, Capas)
-  banner: 21 / 9, // 21:9 (Top Banners Hero)
+  cover: 3 / 1, // 3:1 (Capa de Perfil de Membro — IDÊNTICO ao aspect-[3/1] da tela)
+  banner: 21 / 9, // 21:9 (Top Banners Hero de Loja)
   header: 4 / 1, // 4:1 (Banners Panorâmicos de Topo)
   free: undefined, // Livre
 };
@@ -156,8 +157,10 @@ export function ImageUpload({
         return "4:3 (Classificados)";
       case "widescreen":
         return "16:10 (Panorâmico)";
+      case "cover":
+        return "3:1 (Capa de Perfil)";
       case "banner":
-        return "21:9 (Capa Panorâmica)";
+        return "21:9 (Banner de Loja)";
       case "header":
         return "4:1 (Cabeçalho)";
       default:
@@ -240,12 +243,20 @@ export function ImageUpload({
     );
   }
 
-  // ── 2. VARIANTE BANNER PANORÂMICO HERO (LARGURA TOTAL DA COLUNA) ──
-  if (variant === "banner" || aspectPreset === "banner" || aspectPreset === "header") {
+  // ── 2. VARIANTE BANNER / COVER / HEADER PANORÂMICO (LARGURA TOTAL DA COLUNA) ──
+  // O aspect ratio do preview CSS DEVE ser idêntico ao aspect ratio do cropper.
+  if (variant === "banner" || aspectPreset === "banner" || aspectPreset === "cover" || aspectPreset === "header") {
+    // Monta o aspect CSS como string para o style inline — garante pixel-perfect com o cropper
+    const previewAspect = effectiveAspect ? `${effectiveAspect}` : "21/9";
+    const previewStyle: React.CSSProperties = { aspectRatio: previewAspect, maxHeight: "14rem" };
+
     return (
       <div className={cn("w-full flex flex-col gap-2 select-none", className)}>
         {value ? (
-          <div className="relative w-full aspect-[21/9] sm:aspect-[16/5] max-h-56 rounded-2xl overflow-hidden border border-border/80 bg-muted/30 group shadow-xs">
+          <div
+            className="relative w-full rounded-2xl overflow-hidden border border-border/80 bg-muted/30 group shadow-xs"
+            style={previewStyle}
+          >
             <img src={value} alt="Capa" className="size-full object-cover" />
             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
               <Button
@@ -270,7 +281,7 @@ export function ImageUpload({
                   type="button"
                 >
                   <X className="size-3.5" />
-                  <span>Remover Capa</span>
+                  <span>Remover</span>
                 </Button>
               )}
             </div>
@@ -280,7 +291,8 @@ export function ImageUpload({
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={isUploading}
-            className="w-full aspect-[21/9] sm:aspect-[16/5] max-h-48 rounded-2xl border-2 border-dashed border-border/80 bg-muted/40 hover:bg-muted/70 hover:border-foreground/30 transition-all flex flex-col items-center justify-center p-4 text-muted-foreground group cursor-pointer gap-2"
+            className="w-full rounded-2xl border-2 border-dashed border-border/80 bg-muted/40 hover:bg-muted/70 hover:border-foreground/30 transition-all flex flex-col items-center justify-center p-4 text-muted-foreground group cursor-pointer gap-2"
+            style={previewStyle}
           >
             {isUploading ? (
               <div className="flex flex-col items-center gap-2">
@@ -294,10 +306,10 @@ export function ImageUpload({
                 </div>
                 <div className="text-center">
                   <p className="text-xs font-bold text-foreground">
-                    Carregar Banner / Capa Panorâmica
+                    Carregar Capa / Banner
                   </p>
                   <p className="text-[11px] text-muted-foreground mt-0.5">
-                    Recomendado: 1920x820 ou 1600x500 (Proporção {getPresetLabel()})
+                    Proporção {getPresetLabel()} — o recorte reflete exatamente o que será exibido.
                   </p>
                 </div>
               </>
@@ -318,7 +330,7 @@ export function ImageUpload({
           imageSrc={currentImageSrc}
           aspect={effectiveAspect}
           cropShape="rect"
-          lockAspect={false}
+          lockAspect={true}
           onCropCompleteAction={handleCropComplete}
         />
       </div>

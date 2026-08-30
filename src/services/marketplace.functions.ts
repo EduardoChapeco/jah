@@ -256,7 +256,7 @@ export const getMarketplaceFeed = createServerFn({ method: "GET" })
     // 1. Busca lojas ativas reais no Supabase, filtradas pelo nicho se aplicável
     let storesQuery = supabase
       .from("stores")
-      .select("id, name, slug, type, description, settings")
+      .select("id, name, slug, type, description, settings, logo_url")
       .limit(30);
 
     const { data: storesData, error: storeErr } = await storesQuery;
@@ -268,7 +268,7 @@ export const getMarketplaceFeed = createServerFn({ method: "GET" })
       id: s.id,
       name: s.name,
       slug: s.slug || `loja-${s.id.slice(0, 6)}`,
-      avatar_url: s.settings?.logoUrl || undefined,
+      avatar_url: s.logo_url || s.settings?.logoUrl || s.settings?.logo_url || undefined,
       banner_url: s.settings?.bannerUrl || undefined,
       category: s.type || "Comércio Local",
       rating: 4.9,
@@ -504,14 +504,14 @@ export const getGlobalDealsPage = createServerFn({ method: "GET" })
     // 2. Busca lojas ativas
     const { data: storesData } = await supabase
       .from("stores")
-      .select("id, name, slug, type, description, settings")
+      .select("id, name, slug, type, description, settings, logo_url")
       .limit(50);
 
     const allDbStores: StoreCardDTO[] = (storesData || []).map((s: any) => ({
       id: s.id,
       name: s.name,
       slug: s.slug || `loja-${s.id.slice(0, 6)}`,
-      avatar_url: s.settings?.logoUrl || undefined,
+      avatar_url: s.logo_url || s.settings?.logoUrl || s.settings?.logo_url || undefined,
       banner_url: s.settings?.bannerUrl || undefined,
       category: s.type || "Comércio Local",
       rating: 4.9,

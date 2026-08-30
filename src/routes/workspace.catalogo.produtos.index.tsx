@@ -53,6 +53,7 @@ import {
 } from "@/services/admin-catalog.functions";
 import { getStoreSettings } from "@/services/store.functions";
 import { getNicheSemantics } from "@/lib/niche-semantics";
+import { getNicheCatalogContext } from "@/lib/catalog-niche-context";
 import { formatMoney } from "@/lib/money";
 import type { AdminProductRow } from "@/types/catalog";
 
@@ -202,6 +203,9 @@ function EditableStockCell({
 function AdminProductsPage() {
   const { products: initialProducts, store } = Route.useLoaderData();
   const semantics = getNicheSemantics(store);
+  const nicheCtx = getNicheCatalogContext(
+    (store as any)?.segment || (store as any)?.type || store?.settings?.segment
+  );
 
   const [products, setProducts] = useState<AdminProductRow[]>(initialProducts);
   const [searchQuery, setSearchQuery] = useState("");
@@ -277,7 +281,7 @@ function AdminProductsPage() {
           id: productId,
           variants: [
             {
-              stock_on_hand: stock,
+              stock: stock,
             },
           ],
         },
@@ -297,8 +301,8 @@ function AdminProductsPage() {
 
   // Action: Toggle Status
   const handleToggleStatus = async (productId: string, newStatus: string) => {
-    const res = await toggleProductStatus({ data: { productId, newStatus } });
-    if (res?.status === "success") {
+    const res = await toggleProductStatus({ data: { productId, status: newStatus as "published" | "draft" | "archived" } });
+    if (res?.id) {
       setProducts((prev) =>
         prev.map((p) => (p.id === productId ? { ...p, status: newStatus as any } : p)),
       );
@@ -309,20 +313,24 @@ function AdminProductsPage() {
   };
 
   // Action: Bulk Status Update
-  const handleBulkAction = async (newStatus: "published" | "draft" | "archived") => {
+  const handleBulkAction = async (newStatus: "published" | "draft" | "archived" | "delete") => {
     if (selectedIds.length === 0) return;
     setIsProcessing(true);
-    const res = await bulkUpdateProductStatus({ data: { productIds: selectedIds, newStatus } });
+    const res = await bulkUpdateProductStatus({ data: { productIds: selectedIds, action: newStatus } });
     setIsProcessing(false);
 
-    if (res.status === "success") {
+    if (res && res.count >= 0) {
       toast.success(`Ação concluída em ${selectedIds.length} item(ns).`);
-      setProducts((prev) =>
-        prev.map((p) => (selectedIds.includes(p.id) ? { ...p, status: newStatus } : p)),
-      );
+      if (newStatus === "delete") {
+        setProducts((prev) => prev.filter((p) => !selectedIds.includes(p.id)));
+      } else {
+        setProducts((prev) =>
+          prev.map((p) => (selectedIds.includes(p.id) ? { ...p, status: newStatus } : p)),
+        );
+      }
       setSelectedIds([]);
     } else {
-      toast.error((res as any).message || "Erro ao executar ação em lote.");
+      toast.error("Erro ao executar ação em lote.");
     }
   };
 

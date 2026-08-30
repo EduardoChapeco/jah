@@ -590,12 +590,21 @@ export const provisionBusiness = createServerFn({ method: "POST" })
       }
     }
 
-    // 0.1 Garantir existência de profile no banco
-    await db.from("profiles").upsert({
-      id: userId,
-      full_name: data.name,
-      role: "owner",
-    });
+    // 0.1 Garantir existência de profile no banco sem sobrescrever o nome pessoal do usuário com o nome da loja
+    const { data: existingProfile } = await db
+      .from("profiles")
+      .select("id, full_name")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (!existingProfile) {
+      await db.from("profiles").insert({
+        id: userId,
+        role: "owner",
+      });
+    } else {
+      await db.from("profiles").update({ role: "owner" }).eq("id", userId);
+    }
 
     // 1. Criar Organização
     const orgSlug = generateSlug(data.name) + "-" + Math.floor(1000 + Math.random() * 9000);
@@ -649,6 +658,7 @@ export const provisionBusiness = createServerFn({ method: "POST" })
       phone: data.phone || null,
       email: data.email || null,
       settings,
+      created_by: userId,
     };
 
     const { data: store, error: storeError } = await db

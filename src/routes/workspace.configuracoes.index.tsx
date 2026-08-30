@@ -47,6 +47,7 @@ import { CHAPECO_NEIGHBORHOODS, type NeighborhoodPreset } from "@/lib/constants/
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/configuracoes/")({
   head: () => ({ meta: [{ title: "Configurações da Loja & Perfil Comercial | Workspace Wider" }] }),
@@ -178,9 +179,9 @@ export default function WorkspaceConfiguracoesPage() {
               bucket: "cms-media",
             },
           });
-          if (res?.publicUrl) {
-            if (type === "logo") setLogoUrl(res.publicUrl);
-            else setBannerUrl(res.publicUrl);
+          if (res?.url) {
+            if (type === "logo") setLogoUrl(res.url);
+            else setBannerUrl(res.url);
             toast.success("Imagem enviada com sucesso!");
           }
         } catch {

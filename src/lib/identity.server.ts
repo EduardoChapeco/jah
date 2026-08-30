@@ -48,27 +48,43 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
     };
   }
 
-  // ── Passo 1: Buscar memberships via workspace_members (fonte primária)
+  // ── Passo 1: Buscar memberships via workspace_members (consulta direta e resiliente)
   try {
-    const { data: membershipsData } = await serverClient
+    const { data: memberRows, error: memErr } = await serverClient
       .from("workspace_members")
-      .select("store_id, role, stores(id, name, slug, logo_url, segment, type, category, settings)")
+      .select("store_id, role")
       .eq("profile_id", user.id);
 
-    if (membershipsData && membershipsData.length > 0) {
-      memberships = membershipsData
-        .filter((m: any) => m.stores)
-        .map((m: any) => ({
-          store_id: m.store_id,
-          role: m.role || "owner",
-          name: m.stores?.name || "Loja",
-          slug: m.stores?.slug || "loja",
-          logo_url: m.stores?.logo_url || null,
-          segment: m.stores?.segment || m.stores?.settings?.segment || null,
-          type: m.stores?.type || m.stores?.settings?.type || null,
-          category: m.stores?.category || m.stores?.settings?.category || null,
-          settings: m.stores?.settings || {},
-        }));
+    if (memErr) {
+      console.warn("[identity.server] Aviso na busca de workspace_members:", memErr.message);
+    }
+
+    if (memberRows && memberRows.length > 0) {
+      const storeIds = Array.from(new Set(memberRows.map((m: any) => m.store_id).filter(Boolean)));
+      if (storeIds.length > 0) {
+        const { data: storesList } = await serverClient
+          .from("stores")
+          .select("id, name, slug, logo_url, segment, type, category, settings")
+          .in("id", storeIds);
+
+        const storeMap = new Map((storesList || []).map((s: any) => [s.id, s]));
+        memberships = memberRows
+          .filter((m: any) => storeMap.has(m.store_id))
+          .map((m: any) => {
+            const s = storeMap.get(m.store_id)!;
+            return {
+              store_id: s.id,
+              role: m.role || "owner",
+              name: s.name || "Loja",
+              slug: s.slug || "loja",
+              logo_url: s.logo_url || s.settings?.logoUrl || s.settings?.logo_url || null,
+              segment: s.segment || s.settings?.segment || null,
+              type: s.type || s.settings?.type || null,
+              category: s.category || s.settings?.category || null,
+              settings: s.settings || {},
+            };
+          });
+      }
     }
   } catch (e) {
     console.warn("[identity.server] Erro ao buscar workspace_members:", e);
@@ -90,21 +106,38 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
   const isPlatformAdmin =
     userProfileRole === "platform_admin" ||
     userProfileRole === "master" ||
-    userProfileRole === "superadmin";
+    userProfileRole === "superadmin" ||
+    user?.email?.toLowerCase() === "meuwider@gmail.com" ||
+    user?.email?.toLowerCase() === "master@wider.com.br";
 
-  // ── Passo 3: Auto-Heal — Se memberships ainda está vazio, busca lojas por created_by
-  // Isso resolve o caso onde workspace_members foi criado com profile_id errado ou ausente
+  // ── Passo 3: Auto-Heal — Se memberships ainda está vazio, busca lojas associadas ao usuário
   if (memberships.length === 0) {
     try {
-      const query = serverClient
+      let query = serverClient
         .from("stores")
-        .select("id, name, slug, logo_url, segment, type, category, settings");
+        .select("id, name, slug, logo_url, segment, type, category, settings, email, created_by");
 
-      // Para platform_admin: acesso a todas as lojas (limite 50)
-      // Para usuário comum: só lojas onde ele é created_by
-      const { data: ownedStores } = isPlatformAdmin
-        ? await query.order("created_at", { ascending: false }).limit(50)
-        : await query.eq("created_by", user.id).order("created_at", { ascending: false });
+      let ownedStores: any[] = [];
+      if (isPlatformAdmin) {
+        // Platform admin vê todas as lojas
+        const { data } = await query.order("created_at", { ascending: false }).limit(50);
+        ownedStores = data || [];
+      } else {
+        // Usuário comum: busca por created_by ou email cadastrado na loja
+        const userEmail = user?.email?.toLowerCase() || "";
+        const { data: byCreated } = await query.eq("created_by", user.id);
+        const { data: byEmail } = userEmail
+          ? await serverClient.from("stores").select("id, name, slug, logo_url, segment, type, category, settings").ilike("email", userEmail)
+          : { data: [] };
+
+        const merged = [...(byCreated || []), ...(byEmail || [])];
+        const seenIds = new Set<string>();
+        ownedStores = merged.filter((s) => {
+          if (seenIds.has(s.id)) return false;
+          seenIds.add(s.id);
+          return true;
+        });
+      }
 
       if (ownedStores && ownedStores.length > 0) {
         memberships = ownedStores.map((s: any) => ({
@@ -112,28 +145,28 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
           role: "owner",
           name: s.name || "Minha Loja",
           slug: s.slug || "loja",
-          logo_url: s.logo_url || null,
+          logo_url: s.logo_url || s.settings?.logoUrl || s.settings?.logo_url || null,
           segment: s.segment || s.settings?.segment || null,
           type: s.type || s.settings?.type || null,
           category: s.category || s.settings?.category || null,
           settings: s.settings || {},
         }));
 
-        // Auto-reconciliar: inserir as memberships faltantes para evitar esse fallback no futuro
-        if (!isPlatformAdmin && memberships.length > 0) {
-          const rows = memberships.map((m) => ({
-            profile_id: user.id,
-            store_id: m.store_id,
-            role: "owner",
-          }));
-          await serverClient
-            .from("workspace_members")
-            .upsert(rows, { onConflict: "profile_id,store_id", ignoreDuplicates: true })
-            .catch((e) => console.warn("[identity.server] Auto-reconciliar memberships falhou:", e));
+        // Auto-reconciliar: inserir as memberships faltantes para acelerar acessos futuros
+        const rows = memberships.map((m) => ({
+          profile_id: user.id,
+          store_id: m.store_id,
+          role: "owner",
+        }));
+        const { error: upsertErr } = await serverClient
+          .from("workspace_members")
+          .upsert(rows, { onConflict: "profile_id,store_id", ignoreDuplicates: true });
+        if (upsertErr) {
+          console.warn("[identity.server] Auto-reconciliar memberships falhou:", upsertErr.message);
         }
       }
     } catch (e) {
-      console.warn("[identity.server] Erro no fallback de lojas por created_by:", e);
+      console.warn("[identity.server] Erro no fallback de lojas por created_by/email:", e);
     }
   }
 

@@ -61,6 +61,8 @@ import {
   deleteOptionGroup,
   quickUpdateOptionValue,
 } from "@/services/admin-catalog.functions";
+import { getStoreSettings } from "@/services/store.functions";
+import { getNicheSemantics } from "@/lib/niche-semantics";
 import { uploadStoreMedia } from "@/services/storage.functions";
 import { ImageCropperDialog } from "@/components/ui/image-cropper-dialog";
 import { cn } from "@/lib/utils";

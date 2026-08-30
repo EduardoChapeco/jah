@@ -96,8 +96,14 @@ export function ImageCropperDialog({
 
         {imageSrc ? (
           <div className="p-4 sm:p-5 space-y-4">
-            {/* Viewport do Cropper */}
-            <div className="relative w-full h-[320px] sm:h-[380px] overflow-hidden rounded-2xl bg-black select-none border border-border/40">
+            {/* Viewport do Cropper — o aspect CSS é IDENTICAL ao aspect do corte para prev pixel-perfect */}
+            <div
+              className="relative w-full overflow-hidden rounded-2xl bg-black select-none border border-border/40"
+              style={{
+                aspectRatio: effectiveAspect,
+                maxHeight: effectiveAspect > 2.5 ? "180px" : effectiveAspect > 1.5 ? "300px" : "380px",
+              }}
+            >
               <Cropper
                 image={imageSrc}
                 crop={crop}

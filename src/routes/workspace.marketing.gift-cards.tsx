@@ -12,6 +12,9 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { CurrencyField } from "@/components/ui/currency-field";
 import { SheetPage } from "@/components/ui/sheet-page";
 import { EmptyState } from "@/components/state/states";
 import { listGiftCards, createGiftCard, cancelGiftCard } from "@/services/giftcard.functions";

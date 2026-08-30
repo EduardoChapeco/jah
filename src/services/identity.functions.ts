@@ -113,6 +113,7 @@ export const createBusinessProfile = createServerFn({ method: "POST" })
         name,
         type,
         settings_snapshot: {},
+        created_by: identity.id,
       })
       .select("id")
       .single();

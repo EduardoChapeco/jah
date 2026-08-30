@@ -418,13 +418,13 @@ function ProfilePage() {
               {/* Capa */}
               <div className="space-y-2">
                 <Label className="text-xs font-bold text-muted-foreground">Foto de Capa (3:1)</Label>
-                <div className="h-36 sm:h-44 w-full rounded-2xl  bg-muted/40 relative overflow-hidden flex items-center justify-center group">
+                <div className="w-full aspect-[3/1] max-h-52 rounded-2xl bg-muted/40 relative overflow-hidden flex items-center justify-center group border border-border/60">
                   {formData.coverUrl ? (
-                    <img src={formData.coverUrl} alt="Capa" className="size-full object-cover" />
+                    <img src={formData.coverUrl} alt="Capa" className="size-full object-cover select-none" />
                   ) : (
                     <span className="text-xs text-muted-foreground flex items-center gap-1.5">
                       <ImageIcon className="size-4 opacity-50" />
-                      Nenhuma capa adicionada
+                      Nenhuma capa adicionada (Recomendado: 1200x400 ou 3:1)
                     </span>
                   )}
 
@@ -887,10 +887,10 @@ function ProfilePage() {
             if (!v) setCropperOpen(false);
           }}
           imageSrc={cropperSrc}
-          aspectRatio={cropperType === "avatar" ? 1 : 3}
+          aspect={cropperType === "avatar" ? 1 : 3}
           cropShape={cropperType === "avatar" ? "round" : "rect"}
           lockAspect={true}
-          title={cropperType === "avatar" ? "Recortar Foto de Perfil (1:1)" : "Recortar Capa (3:1)"}
+          title={cropperType === "avatar" ? "Recortar Foto de Perfil (1:1)" : "Recortar Capa (3:1 — idêntico ao perfil)"}
           onCropComplete={handleCropComplete}
         />
       )}

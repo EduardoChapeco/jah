@@ -57,6 +57,7 @@ import {
 } from "@/components/ui/sheet";
 import { Surface } from "@/components/ui/surface";
 import { formatDate, formatRelativeTime } from "@/lib/datetime";
+import { cn } from "@/lib/utils";
 
 const getColorHex = (name: string): string => {
   const colors: Record<string, string> = {

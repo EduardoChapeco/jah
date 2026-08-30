@@ -488,55 +488,53 @@ export function MemberPublicProfileView({
         </div>
       </div>
 
-      <div className="rounded-3xl bg-card border border-border/40 p-4 sm:p-6 space-y-6 shadow-xs">
-        {/* Faixa Superior Panorâmica: Foto + Capa Panorâmica 2098px com Card de Stats no Término */}
-        <div className="flex items-center gap-3 sm:gap-4 overflow-hidden">
-          {/* Foto de Perfil em Squircle 1:1 (Altura Fixa h-28 sm:h-36) */}
-          <div className="flex-shrink-0">
-            <Avatar className="size-28 sm:size-36 rounded-3xl ring-2 ring-border/60 bg-muted flex-shrink-0 shadow-xs">
+      <div className="rounded-3xl bg-card border border-border/40 overflow-hidden shadow-xs">
+        {/* ── 1. Capa Panorâmica com Proporção Canônica 3:1 (Idêntica ao Recorte) ── */}
+        <div className="relative w-full aspect-[3/1] max-h-52 sm:max-h-64 overflow-hidden bg-muted/40 border-b border-border/30">
+          {(profile.cover_url || profile.coverUrl || profile.banner_url) ? (
+            <img
+              src={profile.cover_url || profile.coverUrl || profile.banner_url}
+              alt={`Capa de ${profile.full_name}`}
+              className="size-full object-cover select-none"
+            />
+          ) : (
+            <div className="size-full bg-gradient-to-r from-primary/10 via-muted/40 to-primary/15 flex items-center justify-center">
+              <Sparkles className="size-8 text-primary/30" />
+            </div>
+          )}
+        </div>
+
+        {/* ── 2. Corpo do Header: Avatar Sobreposto + Stats + Ações ── */}
+        <div className="p-4 sm:p-6 pt-0 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-12 sm:-mt-16">
+            {/* Foto de Perfil em Squircle 1:1 com Ring Protetor */}
+            <Avatar className="size-24 sm:size-32 rounded-3xl ring-4 ring-card bg-muted flex-shrink-0 shadow-md">
               <AvatarImage src={profile.avatar_url || ""} alt={profile.full_name} className="object-cover" />
               <AvatarFallback className="text-2xl sm:text-3xl font-extrabold bg-muted text-foreground rounded-3xl">
                 {profile.full_name?.slice(0, 2)?.toUpperCase() || "WD"}
               </AvatarFallback>
             </Avatar>
-          </div>
 
-          {/* Container da Capa Panorâmica (min-w-[2098px]) com Scroll Horizontal Fluido */}
-          <div className="flex-1 h-28 sm:h-36 rounded-3xl bg-muted/30 overflow-x-auto overflow-y-hidden scrollbar-none flex items-center gap-3 pr-3 border border-border/40">
-            {(profile.cover_url || profile.coverUrl || profile.banner_url) ? (
-              <img
-                src={profile.cover_url || profile.coverUrl || profile.banner_url}
-                alt="Capa do perfil"
-                className="h-full min-w-[2098px] object-cover flex-shrink-0 select-none rounded-2xl"
-              />
-            ) : (
-              <div className="h-full min-w-[2098px] bg-gradient-to-r from-primary/10 via-muted/40 to-primary/15 flex items-center justify-center rounded-2xl">
-                <Sparkles className="size-8 text-primary/30" />
-              </div>
-            )}
-
-            {/* Card de Stats ao Final da Capa Panorâmica (Sem sobreposição e com dados 100% reais) */}
-            <div className="h-full min-w-[240px] flex-shrink-0 bg-background/90 backdrop-blur-md rounded-2xl border border-border/60 p-4 flex flex-col justify-center gap-2 shadow-xs">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                Estatísticas Reais
-              </div>
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <div>
-                  <p className="text-base font-extrabold text-foreground">{followersCount}</p>
+            {/* Estatísticas Reais em Pílula Alinhada */}
+            <div className="flex items-center gap-3 self-start sm:self-end">
+              <div className="flex items-center gap-4 px-4 py-2 rounded-2xl bg-muted/30 border border-border/50 shadow-2xs">
+                <div className="text-center">
+                  <p className="text-sm sm:text-base font-extrabold text-foreground">{followersCount}</p>
                   <p className="text-[10px] text-muted-foreground font-medium">Seguidores</p>
                 </div>
-                <div>
-                  <p className="text-base font-extrabold text-foreground">{stats.followingCount || 0}</p>
+                <div className="w-px h-6 bg-border/60" />
+                <div className="text-center">
+                  <p className="text-sm sm:text-base font-extrabold text-foreground">{stats.followingCount || 0}</p>
                   <p className="text-[10px] text-muted-foreground font-medium">Seguindo</p>
                 </div>
-                <div>
-                  <p className="text-base font-extrabold text-foreground">{stats.totalLikes || stats.postsCount || 0}</p>
+                <div className="w-px h-6 bg-border/60" />
+                <div className="text-center">
+                  <p className="text-sm sm:text-base font-extrabold text-foreground">{stats.totalLikes || stats.postsCount || 0}</p>
                   <p className="text-[10px] text-muted-foreground font-medium">Curtidas</p>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
         {/* Linha de Identidade e Ações Minimalistas (Estilo Instagram / Threads) */}
         <div className="pt-2 border-t border-border/30 space-y-3">
@@ -764,6 +762,7 @@ export function MemberPublicProfileView({
           )}
         </div>
       </div>
+    </div>
 
       {/* ── Bloco 2: Perfil Profissional Estilo LinkedIn (Quando modo === "profissional") ── */}
       {activeMode === "profissional" && (

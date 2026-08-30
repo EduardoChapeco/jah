@@ -410,13 +410,13 @@ export const createStoreJob = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const supabase = getServerClient();
     const { getServerIdentity } = await import("@/lib/server-access");
-    const { store_id, user_id } = await getServerIdentity();
+    const identity = await getServerIdentity();
 
     const { data: created, error } = await supabase
       .from("jobs")
       .insert({
-        store_id: store_id || null,
-        author_profile_id: user_id || null,
+        store_id: identity.store_id || null,
+        author_profile_id: identity.id || null,
         title: data.title.trim(),
         company_name: data.company_name.trim(),
         company_logo_url: data.company_logo_url || null,

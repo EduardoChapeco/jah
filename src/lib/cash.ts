@@ -40,6 +40,12 @@ export interface ActiveCashRegister {
   expenseCents: number;
   recentEntries: CashRegisterEntry[];
   methodTotals: Record<CashEntryMethod, number>;
+  cashBalanceCents?: number;
+  pixBalanceCents?: number;
+  debitBalanceCents?: number;
+  creditBalanceCents?: number;
+  sangriaTotalCents?: number;
+  suprimentoTotalCents?: number;
 }
 
 export interface CashRegisterHistoryItem extends ActiveCashRegister {
@@ -98,5 +104,11 @@ export function summarizeCashEntries(
     incomeCents,
     expenseCents,
     methodTotals,
+    cashBalanceCents: methodTotals.cash,
+    pixBalanceCents: methodTotals.pix,
+    debitBalanceCents: methodTotals.debit,
+    creditBalanceCents: methodTotals.credit,
+    sangriaTotalCents: expenseCents,
+    suprimentoTotalCents: incomeCents,
   };
 }

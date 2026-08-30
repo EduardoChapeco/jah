@@ -32,6 +32,8 @@ import { ModularSurfaceFeed } from "@/components/commerce/modular-surface-feed";
 import { listActiveBanners } from "@/services/banner.functions";
 import { listHotpages } from "@/services/hotpage.functions";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
+import { listPublishedProducts } from "@/services/catalog.functions";
+import type { ProductCardDTO } from "@/types/catalog";
 import { resolveNicheDepartments } from "@/lib/niche-helpers";
 
 const SearchSchema = z.object({
@@ -68,16 +70,17 @@ export const Route = createFileRoute("/_store/moda")({
     SearchSchema.parse(search),
   loaderDeps: ({ search }) => search,
   loader: async () => {
-    const [banners, hotpages, marketplaceFeed] = await Promise.all([
+    const [banners, hotpages, marketplaceFeed, productsRes] = await Promise.all([
       listActiveBanners({ data: { placement: "moda" } }).catch(() => []),
       listHotpages({ data: { module: "moda" } }).catch(() => []),
       getModularSurfaceFeed({ data: { surfaceSlug: "moda" } }).catch(() => ({ sections: [], allProducts: [] })),
+      listPublishedProducts({ data: { niche: "moda", limit: 40 } }).catch(() => ({ status: "empty" as const, data: [] as ProductCardDTO[] })),
     ]);
-
     return {
       banners,
       hotpages,
       marketplaceFeed,
+      catalogProducts: (productsRes as any).data ?? [],
     };
   },
   component: ModaVerticalPage,
@@ -85,7 +88,7 @@ export const Route = createFileRoute("/_store/moda")({
 });
 
 function ModaVerticalPage() {
-  const { banners, hotpages, marketplaceFeed } = Route.useLoaderData();
+  const { banners, hotpages, marketplaceFeed, catalogProducts } = Route.useLoaderData();
   const search = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
 
@@ -112,67 +115,29 @@ function ModaVerticalPage() {
     });
   };
 
-  // Filtragem de produtos de moda
-  const filteredProducts = useMemo(() => {
-    const allProducts = marketplaceFeed?.allProducts || [];
-    return allProducts.filter((p: any) => {
-      const titleLower = p.title.toLowerCase();
-      const descLower = (p.description || "").toLowerCase();
+  // Combina Surface CMS + catálogo real (sem heurística de título)
+  const allProducts: ProductCardDTO[] = useMemo(() => {
+    const surfaceProducts = (marketplaceFeed?.allProducts || []) as ProductCardDTO[];
+    const catalogArr = (catalogProducts || []) as ProductCardDTO[];
+    const base = surfaceProducts.length > 0 ? surfaceProducts : catalogArr;
+    if (activeDepartment === "todos") return base;
+    return base.filter((p: any) => {
       const tags = (p.tags || []).map((t: string) => t.toLowerCase());
-
-      const isFashionItem =
-        titleLower.includes("camiseta") ||
-        titleLower.includes("vestido") ||
-        titleLower.includes("calça") ||
-        titleLower.includes("tênis") ||
-        titleLower.includes("sapato") ||
-        titleLower.includes("bolsa") ||
-        titleLower.includes("moletom") ||
-        titleLower.includes("jaqueta") ||
-        titleLower.includes("óculos") ||
-        titleLower.includes("bermuda") ||
-        titleLower.includes("short") ||
-        titleLower.includes("biquíni") ||
-        titleLower.includes("relógio") ||
-        tags.some((t: string) =>
-          ["moda", "roupas", "calçados", "acessórios", "estilo", "boutique"].includes(t),
-        );
-
-      if (activeDepartment === "todos") return isFashionItem || allProducts.length <= 10;
-      if (activeDepartment === "feminina")
-        return titleLower.includes("vestido") || titleLower.includes("feminina") || titleLower.includes("blusa") || titleLower.includes("saia");
-      if (activeDepartment === "masculina")
-        return titleLower.includes("camiseta") || titleLower.includes("masculina") || titleLower.includes("bermuda") || titleLower.includes("polo");
-      if (activeDepartment === "calcados")
-        return titleLower.includes("tênis") || titleLower.includes("sapato") || titleLower.includes("sandália") || titleLower.includes("bota");
-      if (activeDepartment === "acessorios")
-        return titleLower.includes("bolsa") || titleLower.includes("cinto") || titleLower.includes("óculos") || titleLower.includes("relógio");
-      if (activeDepartment === "fitness")
-        return titleLower.includes("legging") || titleLower.includes("top") || titleLower.includes("biquíni") || titleLower.includes("treino");
-      if (activeDepartment === "infantil")
-        return titleLower.includes("infantil") || titleLower.includes("kids") || titleLower.includes("bebê");
+      const cat = (p.attributes?.categoria || p.attributes?.tipo || "").toLowerCase();
+      if (activeDepartment === "feminina") return tags.some((t: string) => ["feminino","feminina","vestido","saia"].includes(t)) || cat.includes("feminina");
+      if (activeDepartment === "masculina") return tags.some((t: string) => ["masculino","masculina","camiseta","bermuda"].includes(t)) || cat.includes("masculina");
+      if (activeDepartment === "calcados") return tags.some((t: string) => ["tenis","sapato","sandalia","calcado","bota"].includes(t)) || cat.includes("calcados");
+      if (activeDepartment === "acessorios") return tags.some((t: string) => ["bolsa","cinto","oculos","relogio","acessorio"].includes(t)) || cat.includes("acessorios");
+      if (activeDepartment === "fitness") return tags.some((t: string) => ["fitness","legging","treino","praia","biquini"].includes(t)) || cat.includes("fitness");
+      if (activeDepartment === "infantil") return tags.some((t: string) => ["infantil","kids","bebe","crianca"].includes(t)) || cat.includes("infantil");
       return true;
     });
-  }, [marketplaceFeed, activeDepartment]);
+  }, [marketplaceFeed, catalogProducts, activeDepartment]);
 
-  // Lojas de moda
+  // Lojas de moda: apenas do Surface CMS store_rail
   const fashionStores = useMemo(() => {
     const storeSection = marketplaceFeed?.sections?.find((s: any) => s.type === "store_rail");
-    const stores = storeSection?.items || [];
-    return stores.filter((s: any) => {
-      const type = (s.type || "").toLowerCase();
-      const name = (s.name || "").toLowerCase();
-      return (
-        type.includes("moda") ||
-        type.includes("roupa") ||
-        type.includes("calçado") ||
-        type.includes("boutique") ||
-        name.includes("moda") ||
-        name.includes("boutique") ||
-        name.includes("store") ||
-        name.includes("calçados")
-      );
-    });
+    return storeSection?.items || [];
   }, [marketplaceFeed]);
 
   return (
@@ -201,23 +166,31 @@ function ModaVerticalPage() {
         onSelectCategory={handleDepartmentChange}
         viewMode={viewMode}
         onViewModeChange={handleViewModeChange}
-        resultsCount={filteredProducts.length}
+        resultsCount={allProducts.length}
       />
 
-      {/* ── 4. Renderização do Feed Modular ou Grade Filtrada ── */}
+      {/* ── 4. Renderização ── */}
       {viewMode === "feed" ? (
         <div className="space-y-8">
           {marketplaceFeed?.sections && marketplaceFeed.sections.length > 0 ? (
             <ModularSurfaceFeed sections={marketplaceFeed.sections} />
+          ) : allProducts.length > 0 ? (
+            <section aria-label="Vitrine de Moda" className="w-full">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
+                {allProducts.map((product: any) => (
+                  <OfferCard key={product.id} {...product} />
+                ))}
+              </div>
+            </section>
           ) : (
             <div className="py-12 text-center text-xs text-muted-foreground">
-              Nenhuma seção ativa no momento.
+              Nenhum produto de moda disponível no momento.
             </div>
           )}
         </div>
       ) : (
         <section aria-label="Vitrine de Roupas & Calçados">
-          {filteredProducts.length === 0 ? (
+          {allProducts.length === 0 ? (
             <div className="py-12 text-center bg-card rounded-3xl p-6">
               <EmptyState
                 title="Nenhuma peça de roupa encontrada"
@@ -226,13 +199,13 @@ function ModaVerticalPage() {
             </div>
           ) : viewMode === "list" ? (
             <div className="flex flex-col gap-3">
-              {filteredProducts.map((product: any) => (
+              {allProducts.map((product: any) => (
                 <OfferCard key={product.id} {...product} />
               ))}
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-              {filteredProducts.map((product: any) => (
+              {allProducts.map((product: any) => (
                 <OfferCard key={product.id} {...product} />
               ))}
             </div>

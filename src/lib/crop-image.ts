@@ -26,6 +26,9 @@ export default async function getCroppedImg(
   rotation = 0,
   flip = { horizontal: false, vertical: false },
   outputFormat: "image/png" | "image/webp" | "image/jpeg" = "image/png",
+  // Largura mínima de saída em px — garante capas nítidas mesmo quando a foto original é pequena.
+  // Use 0 para desabilitar normalização (ex: avatares).
+  minOutputWidth = 0,
 ): Promise<string> {
   const image = await createImage(imageSrc);
   const canvas = document.createElement("canvas");
@@ -63,14 +66,24 @@ export default async function getCroppedImg(
     return "";
   }
 
+  // Calcula dimensões de saída: se minOutputWidth > 0 e o crop é menor,
+  // escala para cima preservando proporção. Se o crop já é maior, usa as dimensões reais.
+  let outWidth = pixelCrop.width;
+  let outHeight = pixelCrop.height;
+  if (minOutputWidth > 0 && outWidth < minOutputWidth) {
+    const scale = minOutputWidth / outWidth;
+    outWidth = Math.round(minOutputWidth);
+    outHeight = Math.round(pixelCrop.height * scale);
+  }
+
   // Set the size of the cropped canvas
-  croppedCanvas.width = pixelCrop.width;
-  croppedCanvas.height = pixelCrop.height;
+  croppedCanvas.width = outWidth;
+  croppedCanvas.height = outHeight;
 
   // Clear rect on cropped canvas for transparent pixels
-  croppedCtx.clearRect(0, 0, pixelCrop.width, pixelCrop.height);
+  croppedCtx.clearRect(0, 0, outWidth, outHeight);
 
-  // Draw the cropped image onto the new canvas
+  // Draw the cropped image onto the new canvas (with optional scaling)
   croppedCtx.drawImage(
     canvas,
     pixelCrop.x,
@@ -79,8 +92,8 @@ export default async function getCroppedImg(
     pixelCrop.height,
     0,
     0,
-    pixelCrop.width,
-    pixelCrop.height,
+    outWidth,
+    outHeight,
   );
 
   // Return Base64 as PNG to preserve full alpha channel transparency
