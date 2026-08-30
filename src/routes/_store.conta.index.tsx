@@ -99,9 +99,9 @@ function AccountDashboardPage() {
         </div>
       </div>
 
-      {/* ── 2. Espaços de Trabalho & Lojas ── */}
-      <div className="bg-card rounded-2xl border border-border/60 p-5 space-y-3">
-        <div className="flex items-center justify-between">
+      {/* ── 2. Meus Negócios — Acesso Direto ao Workspace por Loja ── */}
+      <div className="bg-card rounded-2xl border border-border/60 overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border/40">
           <h2 className="text-sm font-bold text-foreground tracking-tight">Meus Negócios & Espaços</h2>
           <Button asChild variant="ghost" size="sm" className="rounded-xl text-xs font-semibold h-8 text-primary">
             <Link to="/criar-negocio">Cadastrar Nova Loja</Link>
@@ -109,38 +109,46 @@ function AccountDashboardPage() {
         </div>
 
         {memberships.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          <div className="divide-y divide-border/40">
             {memberships.map((m) => (
               <div
                 key={m.store_id}
-                className="p-3.5 rounded-2xl border border-border/40 bg-muted/20 flex items-center justify-between gap-3"
+                className="px-5 py-4 flex items-center justify-between gap-3 hover:bg-muted/20 transition-colors"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="size-9 rounded-xl bg-card border border-border/40 overflow-hidden shrink-0 flex items-center justify-center">
+                  <div className="size-10 rounded-xl bg-card border border-border/40 overflow-hidden shrink-0 flex items-center justify-center">
                     {m.logo_url ? (
                       <img src={m.logo_url} alt={m.name} className="size-full object-cover" />
                     ) : (
-                      <span className="text-xs font-black text-primary">{m.name ? m.name.slice(0, 2).toUpperCase() : "LJ"}</span>
+                      <span className="text-sm font-black text-primary">{m.name ? m.name.slice(0, 2).toUpperCase() : "LJ"}</span>
                     )}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-bold text-foreground truncate">{m.name || "Loja"}</p>
-                    <p className="text-[11px] text-muted-foreground font-mono capitalize">{m.role || "proprietário"}</p>
+                    <p className="text-sm font-bold text-foreground truncate">{m.name || "Loja"}</p>
+                    <p className="text-[11px] text-muted-foreground capitalize">{m.role === "owner" ? "Proprietário" : m.role || "Proprietário"}</p>
                   </div>
                 </div>
 
-                <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-semibold h-8">
-                  <Link to="/workspace">Acessar</Link>
+                <Button asChild size="sm" className="rounded-xl text-xs font-bold h-9 bg-foreground text-background hover:bg-foreground/90 shrink-0">
+                  <Link to="/workspace">
+                    Abrir Painel
+                  </Link>
                 </Button>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-xs text-muted-foreground pt-1">
-            Você ainda não possui lojas cadastradas. Cadastre seu comércio ou serviço para começar a vender.
-          </p>
+          <div className="px-5 py-8 text-center space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Você não possui um negócio cadastrado na plataforma.
+            </p>
+            <Button asChild size="sm" className="rounded-xl text-xs font-bold">
+              <Link to="/criar-negocio">Cadastrar Meu Negócio</Link>
+            </Button>
+          </div>
         )}
       </div>
+
 
       {/* ── 3. Atalhos da Conta (Grade Limpa Padrão Threads) ── */}
       <div className="space-y-3">

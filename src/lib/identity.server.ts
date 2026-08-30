@@ -48,6 +48,7 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
     };
   }
 
+  // ── Passo 1: Buscar memberships via workspace_members (fonte primária)
   try {
     const { data: membershipsData } = await serverClient
       .from("workspace_members")
@@ -73,8 +74,7 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
     console.warn("[identity.server] Erro ao buscar workspace_members:", e);
   }
 
-  // 1. Busca perfil do usuário EXCLUSIVAMENTE no banco de dados
-  // NUNCA confiar em user.user_metadata.role (pode ser injetado via client-side updateUser)
+  // ── Passo 2: Verificar role do perfil (fonte segura — banco, não JWT metadata)
   let userProfileRole = "customer";
   try {
     const { data: p } = await serverClient
@@ -85,7 +85,6 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
     userProfileRole = p?.role || "customer";
   } catch (err) {
     console.error("[identity.server] Falha ao verificar role no banco:", err);
-    userProfileRole = "customer";
   }
 
   const isPlatformAdmin =
@@ -93,7 +92,52 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
     userProfileRole === "master" ||
     userProfileRole === "superadmin";
 
-  // 2. Resolve active tenant/store context a partir do cookie ou request
+  // ── Passo 3: Auto-Heal — Se memberships ainda está vazio, busca lojas por created_by
+  // Isso resolve o caso onde workspace_members foi criado com profile_id errado ou ausente
+  if (memberships.length === 0) {
+    try {
+      const query = serverClient
+        .from("stores")
+        .select("id, name, slug, logo_url, segment, type, category, settings");
+
+      // Para platform_admin: acesso a todas as lojas (limite 50)
+      // Para usuário comum: só lojas onde ele é created_by
+      const { data: ownedStores } = isPlatformAdmin
+        ? await query.order("created_at", { ascending: false }).limit(50)
+        : await query.eq("created_by", user.id).order("created_at", { ascending: false });
+
+      if (ownedStores && ownedStores.length > 0) {
+        memberships = ownedStores.map((s: any) => ({
+          store_id: s.id,
+          role: "owner",
+          name: s.name || "Minha Loja",
+          slug: s.slug || "loja",
+          logo_url: s.logo_url || null,
+          segment: s.segment || s.settings?.segment || null,
+          type: s.type || s.settings?.type || null,
+          category: s.category || s.settings?.category || null,
+          settings: s.settings || {},
+        }));
+
+        // Auto-reconciliar: inserir as memberships faltantes para evitar esse fallback no futuro
+        if (!isPlatformAdmin && memberships.length > 0) {
+          const rows = memberships.map((m) => ({
+            profile_id: user.id,
+            store_id: m.store_id,
+            role: "owner",
+          }));
+          await serverClient
+            .from("workspace_members")
+            .upsert(rows, { onConflict: "profile_id,store_id", ignoreDuplicates: true })
+            .catch((e) => console.warn("[identity.server] Auto-reconciliar memberships falhou:", e));
+        }
+      }
+    } catch (e) {
+      console.warn("[identity.server] Erro no fallback de lojas por created_by:", e);
+    }
+  }
+
+  // ── Passo 4: Resolver loja ativa pelo cookie de tenant
   let activeStoreId: string | null = null;
   try {
     const { resolveTenantStoreId } = await import("@/lib/tenant.server");
@@ -102,16 +146,18 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
     activeStoreId = null;
   }
 
-  // Verifica se o activeStoreId solicitado existe na lista de lojas do usuário
+  // Valida se o activeStoreId do cookie pertence aos memberships do usuário
   const matchedMembership = activeStoreId
     ? memberships.find((m) => m.store_id === activeStoreId)
     : null;
 
   if (matchedMembership) {
+    // Cookie aponta para loja válida do usuário — manter
     activeStoreId = matchedMembership.store_id;
   } else if (isPlatformAdmin && activeStoreId) {
-    // Se for platform_admin, respeita o store_id do cookie ativamente
+    // Platform admin pode operar qualquer loja via cookie — manter
   } else {
+    // Fallback: primeira loja da lista de memberships
     activeStoreId = memberships[0]?.store_id || null;
   }
 

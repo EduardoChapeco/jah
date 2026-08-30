@@ -59,23 +59,25 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
   const activeStoreId = session?.store_id;
   const totalItemCount = globalCarts.reduce((acc, c) => acc + c.itemCount, 0);
 
-  // Identity extraction
-  const user = session?.user || session;
+  // ── Identity extraction: SEMPRE identidade pessoal do usuário, NUNCA nome da loja
+  // session.user é o objeto auth do Supabase; session pode ser o objeto legado
+  const userMeta = session?.user?.user_metadata || {};
   const userName =
-    user?.user_metadata?.full_name ||
-    user?.name ||
-    user?.email?.split("@")[0] ||
+    userMeta?.full_name ||
+    session?.user?.email?.split("@")[0] ||
+    session?.email?.split("@")[0] ||
     "Membro Wider";
   const userHandle =
-    user?.user_metadata?.username ||
-    user?.email?.split("@")[0] ||
+    userMeta?.username ||
+    session?.user?.email?.split("@")[0] ||
+    session?.email?.split("@")[0] ||
     "membro";
-  const userAvatar = user?.user_metadata?.avatar_url || user?.avatar_url || "";
+  const userAvatar = userMeta?.avatar_url || "";
   const userInitial = userName.charAt(0).toUpperCase();
   const isPlatformAdmin =
-    user?.role === "platform_admin" ||
     session?.role === "platform_admin" ||
-    user?.user_metadata?.role === "platform_admin";
+    session?.user?.role === "platform_admin" ||
+    userMeta?.role === "platform_admin";
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -177,7 +179,7 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
               align="end"
               className="w-72 rounded-3xl p-2 bg-card space-y-1"
             >
-              {/* Header do Perfil Pessoal */}
+              {/* Header — Identidade Pessoal do Usuário (jamais mostrar nome da loja aqui) */}
               <DropdownMenuLabel className="font-normal p-2.5 pb-2">
                 <div className="flex items-center gap-3">
                   <div className="size-10 rounded-2xl overflow-hidden bg-muted shrink-0 flex items-center justify-center">
@@ -190,6 +192,11 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-bold text-foreground truncate leading-tight">{userName}</p>
                     <p className="text-xs text-muted-foreground truncate font-mono">@{userHandle}</p>
+                    {memberships.length > 0 && (
+                      <span className="text-[10px] text-muted-foreground/70 font-medium">
+                        {memberships.length} {memberships.length === 1 ? "negócio" : "negócios"} ativos
+                      </span>
+                    )}
                   </div>
                 </div>
               </DropdownMenuLabel>

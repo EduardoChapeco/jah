@@ -409,7 +409,7 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {memberships.map((m) => {
-                    const isCurrent = m.store_id === activeStore?.store_id;
+                    const isCurrent = m.store_id === activeStoreId;
                     return (
                       <DropdownMenuItem
                         key={m.store_id}
@@ -445,20 +445,41 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            ) : (
-              <div className="flex items-center gap-2.5 p-2 rounded-2xl  bg-card">
+            ) : memberships.length === 1 ? (
+              <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-card">
                 <div className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20">
-                  <Store className="size-4" />
+                  {memberships[0]?.logo_url ? (
+                    <img src={memberships[0].logo_url} alt={memberships[0].name} className="size-full object-cover rounded-xl" />
+                  ) : (
+                    <Store className="size-4" />
+                  )}
                 </div>
                 <div className="min-w-0">
                   <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary block">
                     Workspace
                   </span>
                   <h2 className="text-xs font-bold text-foreground truncate leading-tight">
-                    {activeStore?.name || "Wider Matriz"}
+                    {memberships[0]?.name || activeStore?.name || "Minha Loja"}
                   </h2>
                 </div>
               </div>
+            ) : (
+              <Link
+                to="/criar-negocio"
+                className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-primary/5 border border-primary/20 hover:bg-primary/10 transition-colors"
+              >
+                <div className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <Plus className="size-4" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground block">
+                    Workspace
+                  </span>
+                  <h2 className="text-xs font-bold text-primary truncate leading-tight">
+                    Criar Meu Negócio
+                  </h2>
+                </div>
+              </Link>
             )}
           </div>
 
@@ -498,18 +519,17 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
             );
           })()}
 
-          {/* Retorno ao Perfil Pessoal */}
-          <button
-            type="button"
-            onClick={() => requestSwitchToPersonal("/conta")}
-            className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground rounded-xl hover:bg-muted/60 transition-colors cursor-pointer"
+          {/* Retorno ao Perfil Pessoal — link direto, sem modal */}
+          <Link
+            to="/conta"
+            className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground rounded-xl hover:bg-muted/60 transition-colors"
           >
             <div className="flex items-center gap-2">
               <UserCircle className="size-4 text-muted-foreground" />
               <span>Voltar ao Super App</span>
             </div>
-            <ArrowRightLeft className="size-3 text-muted-foreground/70" />
-          </button>
+            <ArrowUpRight className="size-3 text-muted-foreground/70" />
+          </Link>
         </div>
       </aside>
 
@@ -540,9 +560,11 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
               <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground hidden sm:inline-block">
                 Workspace
               </span>
-              <Badge variant="outline" className="text-xs font-semibold bg-primary/10 text-primary border-primary/20">
-                ● {activeStore?.name || "Wider Matriz"}
-              </Badge>
+              {(activeStore?.name || memberships[0]?.name) && (
+                <Badge variant="outline" className="text-xs font-semibold bg-primary/10 text-primary border-primary/20">
+                  ● {activeStore?.name || memberships[0]?.name}
+                </Badge>
+              )}
             </div>
           </div>
 
@@ -649,16 +671,15 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
 
                 <DropdownMenuSeparator className="bg-border" />
 
-                {/* Alternância Protegida para Perfil Pessoal */}
-                <DropdownMenuItem
-                  onClick={() => requestSwitchToPersonal("/conta")}
-                  className="rounded-xl cursor-pointer text-xs font-semibold text-foreground flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-2">
-                    <UserCircle className="size-3.5 text-primary" />
-                    <span>Alternar para Perfil Pessoal</span>
-                  </div>
-                  <ArrowRightLeft className="size-3 text-muted-foreground" />
+                {/* Retorno direto ao perfil pessoal — sem modal */}
+                <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-semibold text-foreground flex items-center justify-between">
+                  <Link to="/conta">
+                    <div className="flex items-center gap-2">
+                      <UserCircle className="size-3.5 text-primary" />
+                      <span>Minha Conta Pessoal</span>
+                    </div>
+                    <ArrowUpRight className="size-3 text-muted-foreground" />
+                  </Link>
                 </DropdownMenuItem>
 
                 {(() => {
