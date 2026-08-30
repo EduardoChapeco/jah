@@ -535,9 +535,20 @@ function ProfilePage() {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-muted-foreground">Biografia</Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-bold text-muted-foreground">Biografia</Label>
+                  <span
+                    className={cn(
+                      "text-[10px] font-mono",
+                      formData.bio.length > 280 ? "text-amber-500 font-bold" : "text-muted-foreground"
+                    )}
+                  >
+                    {formData.bio.length}/280
+                  </span>
+                </div>
                 <Textarea
                   value={formData.bio}
+                  maxLength={320}
                   onChange={(e) => set("bio", e.target.value)}
                   placeholder="Conte um pouco sobre você..."
                   className="rounded-xl text-xs min-h-[90px] resize-none"

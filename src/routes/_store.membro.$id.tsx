@@ -204,6 +204,7 @@ export function MemberPublicProfileView({
   const [showAllCertifications, setShowAllCertifications] = useState(false);
   const [showAllProjects, setShowAllProjects] = useState(false);
   const [showAllVolunteering, setShowAllVolunteering] = useState(false);
+  const [isBioExpanded, setIsBioExpanded] = useState(false);
 
   if (!profile) {
     return (
@@ -651,11 +652,27 @@ export function MemberPublicProfileView({
             </div>
           </div>
 
-          {/* Bio / Descrição Formatada */}
+          {/* Bio / Descrição Formatada com Limite & Expansão */}
           {(profile.bio || profile.headline) && (
-            <p className="text-xs sm:text-sm text-foreground/90 font-medium leading-relaxed whitespace-pre-line max-w-2xl">
-              {profile.bio || profile.headline}
-            </p>
+            <div className="space-y-1 max-w-xl">
+              <p
+                className={cn(
+                  "text-xs sm:text-sm text-foreground/90 font-medium leading-relaxed whitespace-pre-line",
+                  !isBioExpanded && "line-clamp-3"
+                )}
+              >
+                {profile.bio || profile.headline}
+              </p>
+              {(profile.bio || profile.headline).length > 160 && (
+                <button
+                  type="button"
+                  onClick={() => setIsBioExpanded(!isBioExpanded)}
+                  className="text-[11px] font-bold text-primary hover:underline cursor-pointer inline-flex items-center gap-0.5"
+                >
+                  {isBioExpanded ? "Ver menos" : "...mais"}
+                </button>
+              )}
+            </div>
           )}
 
           {/* Links e Localização Minimalistas */}
@@ -692,26 +709,26 @@ export function MemberPublicProfileView({
             )}
           </div>
 
-          {/* Botões de Ação Personalizados / Links na Bio */}
+          {/* Botões de Ação Personalizados / Links na Bio Compactos */}
           {Array.isArray(profile.biolinks) && profile.biolinks.length > 0 && (
-            <div className="space-y-2 pt-1">
-              {/* Botões com Capa / Mini-Banners de Ação */}
+            <div className="space-y-2 pt-1 max-w-xl">
+              {/* Botões com Capa / Mini-Banners de Ação Slim */}
               {profile.biolinks.some((b: any) => !!b.imageUrl) && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {profile.biolinks.filter((b: any) => !!b.imageUrl).map((link: any, idx: number) => (
                     <a
                       key={idx}
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="relative h-14 sm:h-16 rounded-2xl overflow-hidden border border-border/50 group flex items-center justify-between px-4 text-white shadow-2xs hover:scale-[1.01] transition-transform select-none"
+                      className="relative h-11 sm:h-12 rounded-xl overflow-hidden border border-border/50 group flex items-center justify-between px-3 text-white shadow-2xs hover:scale-[1.01] transition-transform select-none"
                     >
                       <img src={link.imageUrl} alt="" className="absolute inset-0 size-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/40 backdrop-blur-[1px]" />
-                      <span className="relative z-10 text-xs sm:text-sm font-extrabold tracking-tight drop-shadow-sm truncate pr-2">
+                      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/55 to-black/40 backdrop-blur-[0.5px]" />
+                      <span className="relative z-10 text-xs font-bold tracking-tight drop-shadow-sm truncate pr-2">
                         {link.label || link.title || "Acessar Link"}
                       </span>
-                      <ExternalLink className="relative z-10 size-4 text-white/80 shrink-0" />
+                      <ExternalLink className="relative z-10 size-3.5 text-white/80 shrink-0" />
                     </a>
                   ))}
                 </div>
@@ -719,14 +736,14 @@ export function MemberPublicProfileView({
 
               {/* Botões Pílula Clean (sem imagem de fundo) */}
               {profile.biolinks.some((b: any) => !b.imageUrl) && (
-                <div className="flex flex-wrap gap-2 pt-0.5">
+                <div className="flex flex-wrap gap-1.5 pt-0.5">
                   {profile.biolinks.filter((b: any) => !b.imageUrl).map((link: any, idx: number) => (
                     <a
                       key={idx}
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-muted/50 hover:bg-muted text-foreground border border-border/50 flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
+                      className="px-3 py-1.5 rounded-xl text-xs font-bold bg-muted/40 hover:bg-muted text-foreground border border-border/40 flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
                     >
                       <span>{link.label || link.title || link.url}</span>
                       <ExternalLink className="size-3 text-muted-foreground" />
@@ -737,20 +754,26 @@ export function MemberPublicProfileView({
             </div>
           )}
 
-          {/* Mini-Banner de Destaque / Evento */}
+          {/* Mini-Banner de Destaque Slim & Contido */}
           {profile.featured_banner_url && (
-            <div className="pt-2">
+            <div className="pt-2 max-w-xl">
               <a
                 href={profile.featured_banner_link || "#"}
                 target={profile.featured_banner_link ? "_blank" : undefined}
                 rel="noopener noreferrer"
-                className="block w-full aspect-[21/9] sm:aspect-[16/6] rounded-2xl overflow-hidden border border-border/50 shadow-xs relative group"
+                className="block w-full h-20 sm:h-24 rounded-2xl overflow-hidden border border-border/50 shadow-xs relative group select-none"
               >
                 <img
                   src={profile.featured_banner_url}
                   alt="Destaque"
-                  className="size-full object-cover group-hover:scale-102 transition-transform duration-300"
+                  className="size-full object-cover group-hover:scale-103 transition-transform duration-300"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2.5">
+                  <span className="text-[11px] font-bold text-white flex items-center gap-1 drop-shadow-sm">
+                    <span>Ver Destaque</span>
+                    <ExternalLink className="size-3" />
+                  </span>
+                </div>
               </a>
             </div>
           )}
