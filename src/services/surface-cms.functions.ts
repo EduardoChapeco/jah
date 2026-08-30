@@ -107,19 +107,48 @@ export const listSurfaceSections = createServerFn({ method: "GET" })
   )
   .handler(async ({ data: { surfaceSlug, storeId } }) => {
     const supabase = getServerClient();
+    let targetSurfaceSlug = surfaceSlug;
+    let targetStoreId = storeId;
+
+    if (surfaceSlug === "store_private") {
+      const { getServerIdentity } = await import("@/lib/server-access");
+      const identity = await getServerIdentity().catch(() => ({ store_id: null }));
+      if (!identity?.store_id) {
+        return { surface: null, sections: [] };
+      }
+      targetStoreId = identity.store_id;
+      targetSurfaceSlug = `vitrine-${identity.store_id}`;
+    }
 
     // 1. Busca a superfície
     let surfaceQuery = supabase
       .from("marketplace_surfaces")
       .select("id, slug, title")
-      .eq("slug", surfaceSlug);
+      .eq("slug", targetSurfaceSlug);
 
-    if (storeId) {
-      surfaceQuery = surfaceQuery.eq("store_id", storeId);
+    if (targetStoreId) {
+      surfaceQuery = surfaceQuery.eq("store_id", targetStoreId);
     }
 
-    const { data: surface, error: surfErr } = await surfaceQuery.maybeSingle();
-    if (surfErr || !surface) {
+    let { data: surface } = await surfaceQuery.maybeSingle();
+
+    // Auto-cria a superfície privada da loja se ainda não existir
+    if (!surface && targetStoreId && targetSurfaceSlug.startsWith("vitrine-")) {
+      const { data: newSurf } = await supabase
+        .from("marketplace_surfaces")
+        .insert({
+          store_id: targetStoreId,
+          slug: targetSurfaceSlug,
+          title: "Vitrine da Loja",
+          type: "store",
+        })
+        .select("id, slug, title")
+        .maybeSingle();
+
+      surface = newSurf;
+    }
+
+    if (!surface) {
       return { surface: null, sections: [] };
     }
 
@@ -132,7 +161,7 @@ export const listSurfaceSections = createServerFn({ method: "GET" })
 
     if (secErr) {
       console.error("[surface-cms] Error listing sections:", secErr.message);
-      return { surface, sections: [] };
+      return { surface: surface as MarketplaceSurfaceDTO, sections: [] };
     }
 
     return {
@@ -493,6 +522,41 @@ export const upsertSurfaceSection = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: payload }) => {
     const supabase = getServerClient();
+    let realSurfaceId = payload.surface_id;
+
+    if (realSurfaceId === "store_private") {
+      const { getServerIdentity } = await import("@/lib/server-access");
+      const identity = await getServerIdentity().catch(() => ({ store_id: null }));
+      if (!identity?.store_id) {
+        throw new Error("Loja ativa não identificada. Selecione um espaço de trabalho.");
+      }
+      const targetSlug = `vitrine-${identity.store_id}`;
+      let { data: existingSurf } = await supabase
+        .from("marketplace_surfaces")
+        .select("id")
+        .eq("store_id", identity.store_id)
+        .eq("slug", targetSlug)
+        .maybeSingle();
+
+      if (!existingSurf) {
+        const { data: newSurf, error: createSurfErr } = await supabase
+          .from("marketplace_surfaces")
+          .insert({
+            store_id: identity.store_id,
+            slug: targetSlug,
+            title: "Vitrine da Loja",
+            type: "store",
+          })
+          .select("id")
+          .single();
+
+        if (createSurfErr) {
+          throw new Error("Falha ao inicializar vitrine da loja: " + createSurfErr.message);
+        }
+        existingSurf = newSurf;
+      }
+      realSurfaceId = existingSurf.id;
+    }
 
     if (payload.id) {
       const { data, error } = await supabase
@@ -520,7 +584,7 @@ export const upsertSurfaceSection = createServerFn({ method: "POST" })
       const { data, error } = await supabase
         .from("marketplace_sections")
         .insert({
-          surface_id: payload.surface_id,
+          surface_id: realSurfaceId,
           type: payload.type,
           title: payload.title,
           subtitle: payload.subtitle,

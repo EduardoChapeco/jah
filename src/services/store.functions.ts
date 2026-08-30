@@ -6,23 +6,26 @@ import { getServerIdentity, assertStoreAccess } from "@/lib/server-access";
 // --- DADOS DA LOJA ---
 
 export async function _getStoreSettings() {
-  const identity = await getServerIdentity();
-  assertStoreAccess(identity, ["owner", "admin", "manager", "finance"]);
+  const identity = await getServerIdentity().catch(() => null);
+  const targetStoreId =
+    identity?.store_id ||
+    identity?.memberships?.[0]?.store_id ||
+    null;
+
+  if (!targetStoreId) {
+    return null;
+  }
 
   const db = getServerClient();
-  const { data: store, error } = await db
+  const { data: store } = await db
     .from("stores")
     .select(
       "id, name, slug, email, phone, cnpj, address, city, state, zip_code, description, settings",
     )
-    .eq("id", identity.store_id)
-    .single();
+    .eq("id", targetStoreId)
+    .maybeSingle();
 
-  if (error || !store) {
-    throw new Error("Loja não encontrada ou erro ao carregar configurações");
-  }
-
-  return store;
+  return store || null;
 }
 
 export const getStoreSettings = createServerFn({ method: "GET" }).handler(_getStoreSettings);

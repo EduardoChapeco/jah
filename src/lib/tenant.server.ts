@@ -10,7 +10,15 @@ import { getAnonServerClient } from "@/lib/supabase";
  */
 export async function resolveTenantStoreId(): Promise<string | null> {
   // 1. Cookie de sessão de tenant (definido por setTenantContext ou após createBusinessProfile)
-  const activeTenantCookie = getCookie("wider_active_tenant");
+  let activeTenantCookie = getCookie("wider_active_tenant");
+  if (!activeTenantCookie) {
+    const rawCookie = getRequestHeader("cookie") || "";
+    const match = rawCookie.match(/wider_active_tenant=([^;]+)/);
+    if (match && match[1]) {
+      activeTenantCookie = decodeURIComponent(match[1].trim());
+    }
+  }
+
   if (activeTenantCookie) {
     return activeTenantCookie;
   }
