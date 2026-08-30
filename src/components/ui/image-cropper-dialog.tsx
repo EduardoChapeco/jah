@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import getCroppedImg from "@/lib/crop-image";
-import { Crop, ZoomIn, ZoomOut, Check, Maximize2 } from "lucide-react";
+import { Crop, ZoomIn, ZoomOut, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface ImageCropperDialogProps {
@@ -27,13 +27,6 @@ export interface ImageCropperDialogProps {
   onCropComplete?: (croppedBlob: Blob) => void | Promise<void>;
 }
 
-const ASPECT_PRESETS = [
-  { label: "Capa Perfil (16:6)", value: 16 / 6 },
-  { label: "Widescreen (16:9)", value: 16 / 9 },
-  { label: "Banner (3:1)", value: 3 },
-  { label: "Livre", value: undefined },
-];
-
 export function ImageCropperDialog({
   open,
   onOpenChange,
@@ -46,8 +39,7 @@ export function ImageCropperDialog({
   onCropCompleteAction,
   onCropComplete: onCropCompleteProp,
 }: ImageCropperDialogProps) {
-  const defaultAspect = cropShape === "round" ? 1 : (initialAspect ?? aspectRatio ?? 16 / 6);
-  const [selectedAspect, setSelectedAspect] = useState<number | undefined>(defaultAspect);
+  const effectiveAspect = cropShape === "round" ? 1 : (initialAspect ?? aspectRatio ?? 2098 / 144);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
@@ -57,9 +49,8 @@ export function ImageCropperDialog({
     if (open) {
       setCrop({ x: 0, y: 0 });
       setZoom(1);
-      setSelectedAspect(cropShape === "round" ? 1 : (initialAspect ?? aspectRatio ?? 16 / 6));
     }
-  }, [open, initialAspect, aspectRatio, cropShape]);
+  }, [open]);
 
   const onCropComplete = useCallback((_croppedArea: any, croppedAreaPixels: any) => {
     setCroppedAreaPixels(croppedAreaPixels);
@@ -75,7 +66,7 @@ export function ImageCropperDialog({
         0,
         { horizontal: false, vertical: false },
         "image/png",
-        cropShape === "round" ? 400 : 1200,
+        cropShape === "round" ? 400 : 2098,
       );
 
       if (onCropCompleteProp) {
@@ -108,45 +99,13 @@ export function ImageCropperDialog({
 
         {imageSrc ? (
           <div className="p-4 sm:p-5 space-y-3.5">
-            {/* Seletor de Proporções apenas se o aspect ratio não for estritamente travado pelo layout */}
-            {!isRound && !lockAspect && (
-              <div className="flex items-center justify-between gap-2 overflow-x-auto pb-0.5">
-                <span className="text-[11px] font-semibold text-muted-foreground whitespace-nowrap">
-                  Proporção:
-                </span>
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  {ASPECT_PRESETS.map((preset) => {
-                    const isSelected =
-                      preset.value === undefined
-                        ? selectedAspect === undefined
-                        : selectedAspect !== undefined && Math.abs(selectedAspect - preset.value) < 0.05;
-                    return (
-                      <button
-                        key={preset.label}
-                        type="button"
-                        onClick={() => setSelectedAspect(preset.value)}
-                        className={cn(
-                          "px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer border",
-                          isSelected
-                            ? "bg-foreground text-background border-foreground shadow-2xs"
-                            : "bg-muted/40 text-muted-foreground border-border/60 hover:text-foreground hover:bg-muted"
-                        )}
-                      >
-                        {preset.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Viewport Amplo do Cropper */}
+            {/* Viewport Amplo do Cropper com a Máscara Exata */}
             <div className="relative w-full h-[320px] sm:h-[380px] overflow-hidden rounded-2xl bg-[#09090b] select-none border border-border/40">
               <Cropper
                 image={imageSrc}
                 crop={crop}
                 zoom={zoom}
-                aspect={selectedAspect}
+                aspect={effectiveAspect}
                 cropShape={cropShape}
                 showGrid={true}
                 onCropChange={setCrop}

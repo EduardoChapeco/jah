@@ -415,17 +415,19 @@ function ProfilePage() {
             <div className="space-y-6">
               <h2 className="text-sm font-bold text-foreground">Fotos do Perfil</h2>
 
-              {/* Capa */}
+              {/* Capa Panorâmica 2098px */}
               <div className="space-y-2">
-                <Label className="text-xs font-bold text-muted-foreground">Foto de Capa</Label>
-                <div className="w-full aspect-[16/6] rounded-2xl bg-muted/40 relative overflow-hidden flex items-center justify-center group border border-border/60 shadow-2xs">
+                <Label className="text-xs font-bold text-muted-foreground">Foto de Capa Panorâmica (2098px)</Label>
+                <div className="w-full h-28 sm:h-36 rounded-3xl bg-muted/30 overflow-x-auto overflow-y-hidden scrollbar-none flex items-center gap-3 pr-3 border border-border/40 relative group">
                   {formData.coverUrl ? (
-                    <img src={formData.coverUrl} alt="Capa" className="size-full object-cover select-none" />
+                    <img src={formData.coverUrl} alt="Capa" className="h-full min-w-[2098px] object-cover flex-shrink-0 select-none rounded-2xl" />
                   ) : (
-                    <span className="text-xs text-muted-foreground flex items-center gap-1.5">
-                      <ImageIcon className="size-4 opacity-50" />
-                      Nenhuma capa adicionada (Recomendado: imagem panorâmica de alta resolução)
-                    </span>
+                    <div className="h-full min-w-[2098px] bg-gradient-to-r from-primary/10 via-muted/40 to-primary/15 flex items-center justify-center rounded-2xl">
+                      <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                        <ImageIcon className="size-4 opacity-50" />
+                        Nenhuma capa adicionada (Formato Panorâmico: 2098px de largura)
+                      </span>
+                    </div>
                   )}
 
                   <input
@@ -440,7 +442,7 @@ function ProfilePage() {
                     type="button"
                     size="sm"
                     variant="secondary"
-                    className="absolute bottom-3 right-3 rounded-xl text-xs font-bold gap-1.5 bg-background/90 backdrop-blur-sm   hover:bg-background"
+                    className="sticky right-3 z-10 shrink-0 rounded-xl text-xs font-bold gap-1.5 bg-background/90 backdrop-blur-sm shadow-sm hover:bg-background"
                     onClick={() => coverInputRef.current?.click()}
                     disabled={isUploadingMedia}
                   >
@@ -887,10 +889,10 @@ function ProfilePage() {
             if (!v) setCropperOpen(false);
           }}
           imageSrc={cropperSrc}
-          aspect={cropperType === "avatar" ? 1 : 16 / 6}
+          aspect={cropperType === "avatar" ? 1 : 2098 / 144}
           cropShape={cropperType === "avatar" ? "round" : "rect"}
-          lockAspect={cropperType === "avatar"}
-          title={cropperType === "avatar" ? "Recortar Foto de Perfil" : "Recortar Foto de Capa"}
+          lockAspect={true}
+          title={cropperType === "avatar" ? "Recortar Foto de Perfil" : "Recortar Capa Panorâmica (2098px)"}
           onCropComplete={handleCropComplete}
         />
       )}
