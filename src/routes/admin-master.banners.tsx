@@ -269,14 +269,11 @@ function AdminMasterBannersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border/40">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">Banners & Vitrines</h1>
+            <h1 className="text-xl font-bold tracking-tight text-foreground">Banners & Vitrines</h1>
             <Badge variant="secondary" className="text-xs font-normal">
-              {banners.length} {banners.length === 1 ? "ativo" : "ativos"}
+              {banners.length}
             </Badge>
           </div>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Banners promocionais panorâmicos 21:9 e 16:9 por nicho
-          </p>
         </div>
 
         <Button

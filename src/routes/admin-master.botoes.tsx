@@ -342,15 +342,12 @@ function AdminMasterHotpagesPage() {
       {/* ── Header Principal com Botão de Sincronização Canônica ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/80 pb-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <span>Gestão de Vitrines, Módulos & Botões</span>
+          <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            <span>Hotpages & Destaques</span>
             <Badge variant="outline" className="text-xs">
-              {filteredItems.length} ativos
+              {filteredItems.length}
             </Badge>
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Controle absoluto sobre os Cards Herói do Topo (16:9 Limpos), Botões de Supercategorias e Hotpages Editoriais
-          </p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -359,24 +356,24 @@ function AdminMasterHotpagesPage() {
             disabled={isSubmitting}
             size="sm"
             variant="outline"
-            className="rounded-xl font-bold text-xs gap-1.5 shrink-0 border-border/80 bg-card hover:bg-muted"
+            className="rounded-xl font-semibold text-xs gap-1.5 shrink-0 border-border/80 bg-card hover:bg-muted"
           >
             <Sparkles className="size-3.5 text-primary" />
-            <span>Restaurar / Sincronizar Padrões</span>
+            <span>Restaurar Padrões</span>
           </Button>
 
           <Button
             onClick={handleOpenCreate}
             size="sm"
-            className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground shrink-0"
+            className="rounded-xl font-semibold text-xs gap-1.5 bg-primary text-primary-foreground shrink-0"
           >
             <Plus className="size-3.5" />
             <span>
               {activeMainTab === "hero_module"
-                ? "Novo Card de Módulo"
+                ? "Novo Card"
                 : activeMainTab === "category_hub"
-                ? "Novo Botão de Categoria"
-                : "Nova Hotpage Editorial"}
+                ? "Novo Botão"
+                : "Nova Hotpage"}
             </span>
           </Button>
         </div>

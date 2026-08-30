@@ -259,21 +259,17 @@ function AdminMasterVitrinesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
-            <Layout className="size-6 text-primary" />
-            <span>Vitrines & Seções Modulares (CMS)</span>
+          <h1 className="text-xl font-bold tracking-tight text-foreground">
+            Vitrines & Seções
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-            Controle total das seções, trilhos, fontes de dados e randomização de cada marketplace público.
-          </p>
         </div>
 
         <Button
           onClick={handleOpenNewDialog}
           size="sm"
-          className="h-9 px-4 rounded-xl gap-2 font-bold cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
+          className="h-9 px-4 rounded-xl gap-1.5 font-semibold cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
         >
           <Plus className="size-4" />
           <span>Nova Seção</span>

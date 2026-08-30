@@ -59,26 +59,22 @@ function WorkspaceSessionsPage() {
   };
 
   return (
-    <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-6 text-foreground">
+    <div className="p-4 sm:p-6 max-w-4xl mx-auto space-y-6 text-foreground">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-4">
         <div>
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-1.5">
             <Link
               to="/workspace/configuracoes"
               className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               <ArrowLeft className="size-3.5" />
-              Voltar para Configurações
+              Configurações
             </Link>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground flex items-center gap-2.5">
-            <Shield className="size-7 text-primary" />
-            Sessões & Segurança Operacional
+          <h1 className="text-xl font-bold tracking-tight text-foreground">
+            Sessões Ativas
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-            Auditoria de logins de operadores, dispositivos conectados e telemetria de segurança da loja.
-          </p>
         </div>
 
         <Button
@@ -93,41 +89,10 @@ function WorkspaceSessionsPage() {
         </Button>
       </div>
 
-      {/* Cards de Status */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-5 rounded-2xl bg-card border border-border/70 space-y-1.5">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Isolamento Multi-Tenant</span>
-            <Lock className="size-4 text-green-500" />
-          </div>
-          <p className="text-lg font-black text-foreground">100% Blindado</p>
-          <p className="text-[11px] text-muted-foreground">RLS ativo por store_id com Zero-Trust server-side.</p>
-        </div>
-
-        <div className="p-5 rounded-2xl bg-card border border-border/70 space-y-1.5">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Aparelhos Ativos</span>
-            <Smartphone className="size-4 text-primary" />
-          </div>
-          <p className="text-lg font-black text-foreground">{devices.length} Conectado(s)</p>
-          <p className="text-[11px] text-muted-foreground">Dispositivos autenticados na sessão atual.</p>
-        </div>
-
-        <div className="p-5 rounded-2xl bg-card border border-border/70 space-y-1.5">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Histórico de Acesso</span>
-            <Activity className="size-4 text-amber-500" />
-          </div>
-          <p className="text-lg font-black text-foreground">{logs.length} Registros</p>
-          <p className="text-[11px] text-muted-foreground">Telemetria de IP, geolocalização e risk score.</p>
-        </div>
-      </div>
-
       {/* Lista de Eventos Recentes */}
-      <section className="space-y-4">
-        <h2 className="text-base font-bold text-foreground flex items-center gap-2">
-          <Clock className="size-4.5 text-primary" />
-          Últimas Atividades de Autenticação
+      <section className="space-y-3">
+        <h2 className="text-sm font-bold text-foreground">
+          Atividades Recentes
         </h2>
 
         {logs.length === 0 ? (

@@ -105,26 +105,22 @@ function SecurityAndDevicesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground py-8 px-4 sm:px-6 max-w-5xl mx-auto space-y-8">
+    <div className="min-h-screen bg-background text-foreground py-6 px-4 sm:px-6 max-w-4xl mx-auto space-y-6">
       {/* Header com Navegação */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-4">
         <div>
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-1.5">
             <Link
               to="/conta"
               className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               <ArrowLeft className="size-3.5" />
-              Voltar para Minha Conta
+              Minha Conta
             </Link>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground flex items-center gap-2.5">
-            <Shield className="size-7 text-primary" />
-            Segurança & Atividade de Login
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+            Dispositivos & Segurança
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-            Monitore dispositivos conectados, histórico de acessos por IP e mantenha sua conta protegida.
-          </p>
         </div>
 
         <Button
@@ -135,58 +131,16 @@ function SecurityAndDevicesPage() {
           className="self-start sm:self-auto gap-2 rounded-xl text-xs"
         >
           <RefreshCw className={`size-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
-          Atualizar Dados
+          Atualizar
         </Button>
       </div>
 
-      {/* Card de Visão Geral de Postura de Segurança */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-5 rounded-2xl bg-card border border-border/70 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Status da Conta</span>
-            <ShieldCheck className="size-5 text-green-500" />
-          </div>
-          <p className="text-lg font-black text-foreground">100% Protegida</p>
-          <p className="text-[11px] text-muted-foreground">
-            Isolamento criptográfico e RLS deny-by-default ativos no servidor.
-          </p>
-        </div>
-
-        <div className="p-5 rounded-2xl bg-card border border-border/70 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Dispositivos</span>
-            <Smartphone className="size-5 text-primary" />
-          </div>
-          <p className="text-lg font-black text-foreground">{devices.length} Registrado(s)</p>
-          <p className="text-[11px] text-muted-foreground">
-            Apenas aparelhos verificados têm acesso contínuo.
-          </p>
-        </div>
-
-        <div className="p-5 rounded-2xl bg-card border border-border/70 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Logs de Acesso</span>
-            <Activity className="size-5 text-amber-500" />
-          </div>
-          <p className="text-lg font-black text-foreground">{logs.length} Eventos</p>
-          <p className="text-[11px] text-muted-foreground">
-            Auditoria forense completa com IP, cidade e score de risco.
-          </p>
-        </div>
-      </div>
-
       {/* ── 1. Seção de Dispositivos Conectados ── */}
-      <section className="space-y-4">
+      <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-              <Laptop className="size-5 text-primary" />
-              Dispositivos Conhecidos
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              Aparelhos que já acessaram sua conta pessoal. Desconecte qualquer item desconhecido imediatamente.
-            </p>
-          </div>
+          <h2 className="text-sm font-bold text-foreground">
+            Dispositivos Conectados ({devices.length})
+          </h2>
         </div>
 
         {devices.length === 0 ? (
@@ -275,15 +229,11 @@ function SecurityAndDevicesPage() {
       </section>
 
       {/* ── 2. Linha do Tempo / Histórico de Logins ── */}
-      <section className="space-y-4">
-        <div>
-          <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-            <Radio className="size-5 text-amber-500" />
-            Histórico Forense de Acessos
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-bold text-foreground">
+            Histórico de Acessos
           </h2>
-          <p className="text-xs text-muted-foreground">
-            Registro em tempo real de todas as tentativas de autenticação com dados de IP, dispositivo e score de risco.
-          </p>
         </div>
 
         {logs.length === 0 ? (

@@ -301,18 +301,10 @@ function AdminMiningHubPage() {
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
 
         {/* ── Header ─────────────────────────────────────────────────────── */}
-        <div className="mb-6">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 text-white shadow-lg shadow-violet-500/25">
-              <Database className="h-6 w-6" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">Mining Hub & Content Factory</h1>
-              <p className="text-xs text-muted-foreground">
-                Pipeline de extração autônoma · Curadoria IA · Publicação transacional
-              </p>
-            </div>
-          </div>
+        <div className="mb-6 border-b border-border/40 pb-4">
+          <h1 className="text-xl font-bold tracking-tight text-foreground">
+            Extração & Curadoria de Conteúdo
+          </h1>
         </div>
 
         {/* ── KPIs ───────────────────────────────────────────────────────── */}

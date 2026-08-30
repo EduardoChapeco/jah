@@ -79,22 +79,13 @@ function AdminSecurityOverviewPage() {
   });
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8 text-foreground">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6 text-foreground">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-500/30 text-[10px] uppercase font-bold tracking-wider">
-              Shield Level 5 — CISO Master
-            </Badge>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground flex items-center gap-2.5">
-            <Shield className="size-7 text-primary" />
-            Centro de Segurança Global & Forense
+          <h1 className="text-xl font-bold tracking-tight text-foreground">
+            Segurança Global
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-            Monitoramento de ameaças em tempo real, detecção de VPS/proxies, rate limiting e RLS deny-by-default ativo em 221 tabelas.
-          </p>
         </div>
 
         <Button
@@ -105,48 +96,30 @@ function AdminSecurityOverviewPage() {
           className="self-start sm:self-auto gap-2 rounded-xl text-xs"
         >
           <RefreshCw className={`size-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
-          Atualizar Telemetria
+          Atualizar
         </Button>
       </div>
 
       {/* Estatísticas de Risco */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-5 rounded-2xl bg-card border border-border/70 space-y-1.5">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Tabelas com RLS</span>
-            <Lock className="size-4 text-green-500" />
-          </div>
-          <p className="text-2xl font-black text-foreground">221 / 221</p>
-          <p className="text-[11px] text-green-600 font-semibold flex items-center gap-1">
-            <CheckCircle2 className="size-3" /> 100% Blindado Deny-by-Default
-          </p>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <div className="p-4 rounded-2xl bg-card border border-border/70 space-y-1">
+          <span className="text-xs font-semibold text-muted-foreground">Tabelas com RLS</span>
+          <p className="text-xl font-bold text-foreground">221 / 221</p>
         </div>
 
-        <div className="p-5 rounded-2xl bg-card border border-border/70 space-y-1.5">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Logins com Sucesso</span>
-            <CheckCircle2 className="size-4 text-primary" />
-          </div>
-          <p className="text-2xl font-black text-foreground">{stats.totalSuccess}</p>
-          <p className="text-[11px] text-muted-foreground">Autenticações válidas registradas</p>
+        <div className="p-4 rounded-2xl bg-card border border-border/70 space-y-1">
+          <span className="text-xs font-semibold text-muted-foreground">Logins Válidos</span>
+          <p className="text-xl font-bold text-foreground">{stats.totalSuccess}</p>
         </div>
 
-        <div className="p-5 rounded-2xl bg-card border border-border/70 space-y-1.5">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Tentativas Falhas</span>
-            <XCircle className="size-4 text-red-500" />
-          </div>
-          <p className="text-2xl font-black text-red-600 dark:text-red-400">{stats.totalFailed}</p>
-          <p className="text-[11px] text-muted-foreground">Bloqueadas pelo servidor / senha errada</p>
+        <div className="p-4 rounded-2xl bg-card border border-border/70 space-y-1">
+          <span className="text-xs font-semibold text-muted-foreground">Tentativas Falhas</span>
+          <p className="text-xl font-bold text-red-600 dark:text-red-400">{stats.totalFailed}</p>
         </div>
 
-        <div className="p-5 rounded-2xl bg-card border border-border/70 space-y-1.5">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Eventos de Alto Risco</span>
-            <ShieldAlert className="size-4 text-amber-500" />
-          </div>
-          <p className="text-2xl font-black text-amber-600 dark:text-amber-400">{stats.highRiskCount}</p>
-          <p className="text-[11px] text-muted-foreground">Score &ge; 40% (Datacenter / VPN)</p>
+        <div className="p-4 rounded-2xl bg-card border border-border/70 space-y-1">
+          <span className="text-xs font-semibold text-muted-foreground">Eventos de Risco</span>
+          <p className="text-xl font-bold text-amber-600 dark:text-amber-400">{stats.highRiskCount}</p>
         </div>
       </div>
 

@@ -70,17 +70,14 @@ function KycVerificationPage() {
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
         {/* Header */}
         <div className="mb-6">
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground mb-1">
             <Link to="/conta" className="hover:text-foreground">Minha Conta</Link>
             <span>/</span>
-            <span className="text-primary">Verificação de Identidade</span>
+            <span className="text-foreground">Verificação</span>
           </div>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            Selo de Verificação Oficial
+          <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+            Verificação de Perfil
           </h1>
-          <p className="text-sm text-muted-foreground">
-            Valide sua identidade profissional ou jurídica para desbloquear módulos avançados e obter destaque com selo verificado.
-          </p>
         </div>
 
         {/* Status Banner */}

@@ -178,21 +178,17 @@ function WorkspaceStoreVitrineCMSPage() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto p-4 sm:p-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
-            <Layout className="size-6 text-primary" />
-            <span>Personalização da Vitrine da Loja (CMS)</span>
+          <h1 className="text-xl font-bold tracking-tight text-foreground">
+            Vitrine da Loja
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-            Organize os trilhos, carrosséis e grades de produtos exibidos na página pública do seu estabelecimento.
-          </p>
         </div>
 
         <Button
           onClick={handleOpenNew}
           size="sm"
-          className="h-9 px-4 rounded-xl gap-2 font-bold cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
+          className="h-9 px-4 rounded-xl gap-1.5 font-semibold cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
         >
           <Plus className="size-4" />
           <span>Nova Seção</span>

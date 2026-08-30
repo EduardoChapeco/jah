@@ -83,80 +83,71 @@ export default function WorkspaceDashboardPage() {
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* ── 1. Top Header com Identificação do Negócio ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-3xl  bg-card ">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-5 rounded-2xl bg-card border border-border/60">
         <div className="space-y-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary">
-              Espaço Ativo
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-muted-foreground">
+              {activeStore?.name || "Meu Espaço"}
             </span>
-            <Badge variant="outline" className="text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
-              ● {activeStore?.name || "Espaço Sem Nome"}
-            </Badge>
           </div>
           <h1 className="text-xl font-bold tracking-tight text-foreground">
-            Painel de Operações
+            Visão Geral
           </h1>
         </div>
 
         {/* Quick Top Actions */}
         <div className="flex flex-wrap items-center gap-2">
-          <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-bold gap-1.5 ">
+          <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-semibold">
             <Link to="/workspace/lojas">
-              <Store className="size-3.5" />
-              <span>Trocar Espaço</span>
+              Trocar Loja
             </Link>
           </Button>
 
-          <Button asChild size="sm" className="rounded-xl text-xs font-bold gap-1.5 bg-primary text-primary-foreground ">
+          <Button asChild size="sm" className="rounded-xl text-xs font-semibold bg-primary text-primary-foreground">
             <Link to="/workspace/pdv">
-              <ShoppingBag className="size-3.5" />
-              <span>Frente de Caixa (PDV)</span>
+              Frente de Caixa
             </Link>
           </Button>
         </div>
       </div>
 
       {/* ── 2. Destaque de Faturamento Mensal Real ── */}
-      <div className="p-6 rounded-3xl bg-linear-to-br from-primary via-primary/95 to-primary/90 text-primary-foreground  flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="p-6 rounded-2xl bg-foreground text-background flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-1">
-          <span className="text-xs font-bold uppercase tracking-wider opacity-80">
+          <span className="text-xs font-semibold uppercase tracking-wider opacity-70">
             Faturamento do Mês
           </span>
-          <div className="text-3xl sm:text-4xl font-black font-mono tracking-tight">
+          <div className="text-3xl sm:text-4xl font-bold font-mono tracking-tight">
             {formatMoney(dashboardMetrics?.salesMonthCents || 0)}
           </div>
           <div className="flex items-center gap-2 pt-1 text-xs opacity-90">
-            {dashboardMetrics?.growthPercentage != null ? (
-              <span className={`inline-flex items-center gap-1 font-bold ${
-                dashboardMetrics.growthPercentage >= 0 ? "text-emerald-300" : "text-rose-300"
+            {dashboardMetrics?.growthPercentage != null && (
+              <span className={`inline-flex items-center gap-1 font-semibold ${
+                dashboardMetrics.growthPercentage >= 0 ? "text-emerald-400" : "text-rose-400"
               }`}>
                 {dashboardMetrics.growthPercentage >= 0 ? (
                   <TrendingUp className="size-3.5" />
                 ) : (
                   <TrendingDown className="size-3.5" />
                 )}
-                {dashboardMetrics.growthPercentage >= 0 ? `+${dashboardMetrics.growthPercentage}%` : `${dashboardMetrics.growthPercentage}%`} em relação ao mês anterior
-              </span>
-            ) : (
-              <span className="text-xs opacity-80">
-                Faturamento consolidado em tempo real
+                {dashboardMetrics.growthPercentage >= 0 ? `+${dashboardMetrics.growthPercentage}%` : `${dashboardMetrics.growthPercentage}%`} vs mês anterior
               </span>
             )}
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <Link
             to="/workspace/financeiro/caixa"
-            className="px-4 py-2.5 rounded-xl bg-white text-black text-xs font-bold hover:bg-white/90 transition-all "
+            className="px-4 py-2 rounded-xl bg-background text-foreground text-xs font-semibold hover:opacity-90 transition-opacity"
           >
-            Ver Fluxo de Caixa
+            Fluxo de Caixa
           </Link>
           <Link
             to="/workspace/agenda"
-            className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition-all"
+            className="px-4 py-2 rounded-xl bg-background/10 hover:bg-background/20 text-background text-xs font-semibold border border-background/20 transition-colors"
           >
-            Abrir Agenda
+            Agenda
           </Link>
         </div>
       </div>
@@ -251,12 +242,9 @@ export default function WorkspaceDashboardPage() {
           </div>
 
           {recentActivities.length === 0 ? (
-            <div className="py-8 text-center space-y-2 border-0 rounded-2xl bg-muted/20">
-              <Clock className="size-8 text-muted-foreground/40 mx-auto" />
-              <p className="text-xs font-bold text-foreground">Nenhuma atividade recente nesta loja</p>
-              <p className="text-[11px] text-muted-foreground max-w-xs mx-auto">
-                Assim que novas vendas, pedidos ou agendamentos forem realizados, eles aparecerão aqui em tempo real.
-              </p>
+            <div className="py-8 text-center space-y-1 rounded-2xl bg-muted/20">
+              <Clock className="size-6 text-muted-foreground/40 mx-auto mb-1" />
+              <p className="text-xs font-semibold text-muted-foreground">Nenhuma atividade recente</p>
             </div>
           ) : (
             <div className="space-y-2.5">
