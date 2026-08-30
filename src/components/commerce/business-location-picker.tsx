@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import * as maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import { getCanonicalMapStyle, setupMapResizeObserver } from "@/lib/map-styles";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -120,14 +121,18 @@ export function BusinessLocationPicker({
     const initialLat = value.latitude || -27.1004;
     const initialLng = value.longitude || -52.6152;
 
+    let cleanupResize: (() => void) | undefined;
+
     try {
       map.current = new maplibregl.Map({
         container: mapContainer.current,
-        style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
+        style: getCanonicalMapStyle(),
         center: [initialLng, initialLat],
         zoom: value.latitude ? 16 : 13,
         attributionControl: false,
       });
+
+      cleanupResize = setupMapResizeObserver(map.current, mapContainer.current);
 
       map.current.addControl(
         new maplibregl.AttributionControl({ compact: true }),
@@ -168,6 +173,7 @@ export function BusinessLocationPicker({
     }
 
     return () => {
+      cleanupResize?.();
       map.current?.remove();
       map.current = null;
     };

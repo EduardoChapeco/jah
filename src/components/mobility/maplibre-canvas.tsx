@@ -3,6 +3,8 @@ import { Loader2, MapPinOff } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getPublicMapConfig } from "@/services/integrations.functions";
 
+import { getCanonicalMapStyle, setupMapResizeObserver } from "@/lib/map-styles";
+
 export interface MapPoint {
   lat: number;
   lng: number;
@@ -68,6 +70,7 @@ export function MapLibreCanvas({
     if (mapConfig && !mapConfig.isActive) return;
 
     let isMounted = true;
+    let cleanupResize: (() => void) | undefined;
 
     async function initMap() {
       try {
@@ -79,9 +82,7 @@ export function MapLibreCanvas({
         // Detect dark mode from html class
         const isDark = document.documentElement.classList.contains("dark");
 
-        let mapStyle = isDark
-          ? "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
-          : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
+        let mapStyle: any = getCanonicalMapStyle(isDark);
 
         if (mapConfig?.customTileUrl) {
           mapStyle = mapConfig.customTileUrl;
@@ -96,6 +97,8 @@ export function MapLibreCanvas({
           zoom: zoom,
           attributionControl: false,
         });
+
+        cleanupResize = setupMapResizeObserver(map, mapContainer.current);
 
         map.addControl(
           new maplibregl.NavigationControl({ showCompass: false }),
@@ -126,6 +129,7 @@ export function MapLibreCanvas({
 
     return () => {
       isMounted = false;
+      cleanupResize?.();
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;

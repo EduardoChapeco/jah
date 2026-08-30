@@ -4,6 +4,7 @@ import { Button } from "./button";
 import { MapPin, Search, Loader2 } from "lucide-react";
 import * as maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import { getCanonicalMapStyle, setupMapResizeObserver } from "@/lib/map-styles";
 
 export interface AddressData {
   text: string;
@@ -30,13 +31,17 @@ export const AddressField: React.FC<AddressFieldProps> = ({ value, onChange }) =
     const initialLat = value?.lat || -23.5505; // São Paulo default
     const initialLng = value?.lng || -46.6333;
 
+    let cleanupResize: (() => void) | undefined;
+
     map.current = new maplibregl.Map({
       container: mapContainer.current,
-      style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json", // Estilo aberto
+      style: getCanonicalMapStyle(),
       center: [initialLng, initialLat],
       zoom: value?.lat ? 15 : 4,
       attributionControl: false,
     });
+
+    cleanupResize = setupMapResizeObserver(map.current, mapContainer.current);
 
     map.current.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-right");
     map.current.addControl(new maplibregl.NavigationControl(), "top-right");
@@ -65,6 +70,7 @@ export const AddressField: React.FC<AddressFieldProps> = ({ value, onChange }) =
     });
 
     return () => {
+      cleanupResize?.();
       map.current?.remove();
       map.current = null;
     };
