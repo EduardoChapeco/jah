@@ -4,21 +4,25 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { listCustomerOrders } from "@/services/order.functions";
 import { getProfile, getUserSession } from "@/services/auth.functions";
+import { getMyStoresList } from "@/services/store.functions";
 import { formatDate } from "@/lib/datetime";
 import { cn } from "@/lib/utils";
 import { ThemeSelector } from "@/components/settings/theme-selector";
 import { redirect } from "@tanstack/react-router";
+import { Shield, Store, LayoutDashboard, ArrowUpRight, Plus, Eye, Edit3, ArrowRight } from "lucide-react";
 
 export const Route = createFileRoute("/_store/conta/")({
   head: () => ({ meta: [{ title: "Minha Conta | Wider" }] }),
   loader: async () => {
     const session = await getUserSession().catch(() => null);
-    const [ordersRes, profile] = await Promise.all([
+    const [ordersRes, profile, storesRes] = await Promise.all([
       listCustomerOrders().catch(() => []),
       getProfile().catch(() => ({})),
+      getMyStoresList().catch(() => []),
     ]);
     const orders = ordersRes || [];
-    return { orders, profile, session };
+    const stores = storesRes || [];
+    return { orders, profile, session, stores };
   },
   component: AccountDashboardPage,
 });
@@ -62,14 +66,17 @@ function AccountDashboardPage() {
   const orders = loaderData.orders || [];
   const profile = loaderData.profile || null;
   const session = loaderData.session || null;
+  const stores = (loaderData.stores as any[]) || [];
   const recentOrders = orders.slice(0, 3);
-  const memberships = (session?.memberships as any[]) || [];
   const navigate = useNavigate();
 
-  const userName = profile?.fullName || session?.user?.user_metadata?.full_name || "Membro Wider";
-  const userEmail = profile?.email || session?.user?.email || "";
-  const userHandle = profile?.username || session?.user?.user_metadata?.username || userEmail.split("@")[0] || "membro";
-  const userAvatar = profile?.avatarUrl || session?.user?.user_metadata?.avatar_url || "";
+  const userRole = profile?.role || session?.role || session?.user?.user_metadata?.role || "customer";
+  const isMasterAdmin = userRole === "platform_admin" || userRole === "master" || userRole === "admin";
+
+  const userName = profile?.fullName || session?.fullName || session?.user?.user_metadata?.full_name || "Membro Wider";
+  const userEmail = profile?.email || session?.email || session?.user?.email || "";
+  const userHandle = profile?.username || session?.username || session?.user?.user_metadata?.username || userEmail.split("@")[0] || "membro";
+  const userAvatar = profile?.avatarUrl || session?.avatarUrl || session?.user?.user_metadata?.avatar_url || "";
 
   // Seta o cookie de tenant ativo e navega para o workspace da loja correta
   const handleOpenWorkspace = (storeId: string) => {
@@ -91,12 +98,27 @@ function AccountDashboardPage() {
           </div>
 
           <div className="min-w-0 space-y-0.5">
-            <h1 className="text-lg sm:text-xl font-bold text-foreground truncate tracking-tight">{userName}</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-lg sm:text-xl font-bold text-foreground truncate tracking-tight">{userName}</h1>
+              {isMasterAdmin && (
+                <Badge className="bg-primary/10 text-primary border-primary/20 text-[10px] font-mono">
+                  MASTER ADMIN
+                </Badge>
+              )}
+            </div>
             <p className="text-xs text-muted-foreground font-mono truncate">@{userHandle} • {userEmail}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+          {isMasterAdmin && (
+            <Button asChild size="sm" variant="default" className="rounded-xl text-xs h-9 font-bold bg-primary text-primary-foreground gap-1.5 shadow-xs">
+              <Link to="/admin-master">
+                <Shield className="size-3.5" />
+                <span>Painel Admin Master</span>
+              </Link>
+            </Button>
+          )}
           <Button asChild variant="outline" size="sm" className="rounded-xl text-xs h-9 font-semibold flex-1 sm:flex-initial">
             <Link to="/conta/perfil">Editar Perfil</Link>
           </Button>
@@ -109,39 +131,61 @@ function AccountDashboardPage() {
       {/* ── 2. Meus Negócios — Acesso Direto ao Workspace por Loja ── */}
       <div className="bg-card rounded-2xl border border-border/60 overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border/40">
-          <h2 className="text-sm font-bold text-foreground tracking-tight">Meus Negócios & Espaços</h2>
-          <Button asChild variant="ghost" size="sm" className="rounded-xl text-xs font-semibold h-8 text-primary">
-            <Link to="/criar-negocio">Cadastrar Nova Loja</Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Store className="size-4 text-primary" />
+            <h2 className="text-sm font-bold text-foreground tracking-tight">Meus Negócios & Espaços</h2>
+            {stores.length > 0 && (
+              <Badge variant="secondary" className="text-[10px] font-mono">
+                {stores.length}
+              </Badge>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-bold h-8 gap-1">
+              <Link to="/workspace">
+                <LayoutDashboard className="size-3" />
+                <span>Entrar no Workspace</span>
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="rounded-xl text-xs font-semibold h-8 text-primary">
+              <Link to="/criar-negocio">
+                <Plus className="size-3" />
+                <span>Cadastrar Nova Loja</span>
+              </Link>
+            </Button>
+          </div>
         </div>
 
-        {memberships.length > 0 ? (
+        {stores.length > 0 ? (
           <div className="divide-y divide-border/40">
-            {memberships.map((m) => (
+            {stores.map((st) => (
               <div
-                key={m.store_id}
+                key={st.id}
                 className="px-5 py-4 flex items-center justify-between gap-3 hover:bg-muted/20 transition-colors"
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="size-10 rounded-xl bg-card border border-border/40 overflow-hidden shrink-0 flex items-center justify-center">
-                    {m.logo_url ? (
-                      <img src={m.logo_url} alt={m.name} className="size-full object-cover" />
+                    {st.logo_url ? (
+                      <img src={st.logo_url} alt={st.name} className="size-full object-cover" />
                     ) : (
-                      <span className="text-sm font-black text-primary">{m.name ? m.name.slice(0, 2).toUpperCase() : "LJ"}</span>
+                      <span className="text-sm font-black text-primary">{st.name ? st.name.slice(0, 2).toUpperCase() : "LJ"}</span>
                     )}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-bold text-foreground truncate">{m.name || "Loja"}</p>
-                    <p className="text-[11px] text-muted-foreground capitalize">{m.role === "owner" ? "Proprietário" : m.role || "Proprietário"}</p>
+                    <p className="text-sm font-bold text-foreground truncate">{st.name || "Loja"}</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {st.city ? `${st.city}, ${st.state || ""}` : "Loja Ativa"} • {st.product_count ?? 0} produtos
+                    </p>
                   </div>
                 </div>
 
                 <Button
                   size="sm"
-                  onClick={() => handleOpenWorkspace(m.store_id)}
-                  className="rounded-xl text-xs font-bold h-9 bg-foreground text-background hover:bg-foreground/90 shrink-0 cursor-pointer"
+                  onClick={() => handleOpenWorkspace(st.id)}
+                  className="rounded-xl text-xs font-bold h-9 bg-foreground text-background hover:bg-foreground/90 shrink-0 cursor-pointer gap-1.5"
                 >
-                  Abrir Painel
+                  <span>Abrir Painel</span>
+                  <ArrowRight className="size-3" />
                 </Button>
               </div>
             ))}
@@ -149,15 +193,19 @@ function AccountDashboardPage() {
         ) : (
           <div className="px-5 py-8 text-center space-y-3">
             <p className="text-xs text-muted-foreground">
-              Você não possui um negócio cadastrado na plataforma.
+              Você ainda não possui lojas vinculadas diretamente.
             </p>
-            <Button asChild size="sm" className="rounded-xl text-xs font-bold">
-              <Link to="/criar-negocio">Cadastrar Meu Negócio</Link>
-            </Button>
+            <div className="flex items-center justify-center gap-2">
+              <Button asChild size="sm" className="rounded-xl text-xs font-bold bg-primary text-primary-foreground">
+                <Link to="/workspace">Acessar Workspace Geral</Link>
+              </Button>
+              <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-bold">
+                <Link to="/criar-negocio">Cadastrar Meu Negócio</Link>
+              </Button>
+            </div>
           </div>
         )}
       </div>
-
 
       {/* ── 3. Atalhos da Conta (Grade Limpa Padrão Threads) ── */}
       <div className="space-y-3">

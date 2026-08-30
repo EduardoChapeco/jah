@@ -649,6 +649,47 @@ export const getProfile = createServerFn({ method: "GET" }).handler(async () => 
       console.warn(`[auth] getProfile error for ${effectiveUserId}:`, err);
     }
 
+    let memberships: any[] = [];
+    try {
+      const adminDb = getServerClient();
+      const { data: memberRows } = await adminDb
+        .from("store_members")
+        .select("store_id, role, stores(id, name, slug, logo_url, status)")
+        .eq("profile_id", effectiveUserId);
+
+      if (memberRows && memberRows.length > 0) {
+        memberships = memberRows.map((m: any) => ({
+          store_id: m.store_id,
+          role: m.role || "owner",
+          name: m.stores?.name || "Loja",
+          slug: m.stores?.slug || "",
+          logo_url: m.stores?.logo_url || null,
+          status: m.stores?.status || "active",
+        }));
+      }
+
+      // Se não encontrou em store_members, busca lojas onde owner_id = effectiveUserId
+      if (memberships.length === 0) {
+        const { data: ownedStores } = await adminDb
+          .from("stores")
+          .select("id, name, slug, logo_url, status")
+          .eq("owner_id", effectiveUserId);
+
+        if (ownedStores && ownedStores.length > 0) {
+          memberships = ownedStores.map((st: any) => ({
+            store_id: st.id,
+            role: "owner",
+            name: st.name,
+            slug: st.slug,
+            logo_url: st.logo_url,
+            status: st.status,
+          }));
+        }
+      }
+    } catch (e) {
+      console.warn("[auth] Erro ao carregar memberships no getUserSession:", e);
+    }
+
     const email = user?.email || profile?.email || "master@wider.com.br";
     const fullName = profile?.full_name || user?.user_metadata?.full_name || "Eduardo Antônio Ramos";
 
@@ -658,6 +699,7 @@ export const getProfile = createServerFn({ method: "GET" }).handler(async () => 
       fullName,
       phone: profile?.phone || user?.user_metadata?.phone || "",
       role: profile?.role || identity?.role || "platform_admin",
+      memberships,
       // Enriched profile fields
       username: profile?.username || "admin",
       avatarUrl: profile?.avatar_url ?? null,

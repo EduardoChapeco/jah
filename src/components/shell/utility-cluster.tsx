@@ -76,8 +76,12 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
   const userInitial = userName.charAt(0).toUpperCase();
   const isPlatformAdmin =
     session?.role === "platform_admin" ||
+    session?.role === "master" ||
+    session?.role === "admin" ||
     session?.user?.role === "platform_admin" ||
-    userMeta?.role === "platform_admin";
+    userMeta?.role === "platform_admin" ||
+    userMeta?.role === "master" ||
+    userMeta?.role === "admin";
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -235,6 +239,18 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
               {/* ── Acesso Direto ao Workspace / Gestão da Loja ── */}
               <DropdownMenuSeparator className="my-1" />
               <div className="p-1 space-y-1">
+                {isPlatformAdmin && (
+                  <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-bold bg-primary/10 text-primary hover:bg-primary/20 px-3 py-2 flex items-center justify-between border border-primary/20">
+                    <Link to="/admin-master">
+                      <div className="flex items-center gap-2">
+                        <Shield className="size-3.5" />
+                        <span>Painel Admin Master</span>
+                      </div>
+                      <ArrowUpRight className="size-3.5" />
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+
                 <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-bold bg-foreground text-background hover:bg-foreground/90 px-3 py-2 flex items-center justify-between">
                   <Link to="/workspace">
                     <div className="flex items-center gap-2">
