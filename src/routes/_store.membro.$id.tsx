@@ -568,11 +568,21 @@ export function MemberPublicProfileView({
               {isOwner ? (
                 <>
                   <Button
+                    asChild
+                    size="sm"
+                    variant="outline"
+                    className="h-9 px-3.5 rounded-xl font-semibold text-xs gap-1.5 cursor-pointer"
+                  >
+                    <Link to="/conta/metricas">
+                      <Activity className="size-3.5 text-primary" />
+                      <span>Painel de Insights</span>
+                    </Link>
+                  </Button>
+                  <Button
                     size="sm"
                     className="h-9 px-4 rounded-xl font-bold text-xs bg-primary text-primary-foreground gap-1.5 shadow-xs cursor-pointer"
                     onClick={() => setEditingSection("availability")}
                   >
-                    <Sparkles className="size-3.5" />
                     <span>Disponibilidade</span>
                   </Button>
                   <Button
@@ -582,7 +592,6 @@ export function MemberPublicProfileView({
                     className="h-9 px-4 rounded-xl font-semibold text-xs gap-1.5 cursor-pointer"
                   >
                     <Link to="/conta/perfil">
-                      <Edit3 className="size-3.5" />
                       <span>Editar Perfil</span>
                     </Link>
                   </Button>
@@ -682,21 +691,66 @@ export function MemberPublicProfileView({
             )}
           </div>
 
-          {/* Biolinks Adicionais do Perfil em Pílulas Minimalistas */}
+          {/* Botões de Ação Personalizados / Links na Bio */}
           {Array.isArray(profile.biolinks) && profile.biolinks.length > 0 && (
-            <div className="flex flex-wrap gap-2 pt-1">
-              {profile.biolinks.map((link: any, idx: number) => (
-                <a
-                  key={idx}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3 py-1 rounded-full text-xs font-semibold bg-muted/60 hover:bg-muted text-foreground border border-border/40 flex items-center gap-1.5 transition-colors shadow-2xs"
-                >
-                  <ExternalLink className="size-3 text-muted-foreground" />
-                  <span>{link.title || link.url}</span>
-                </a>
-              ))}
+            <div className="space-y-2 pt-1">
+              {/* Botões com Capa / Mini-Banners de Ação */}
+              {profile.biolinks.some((b: any) => !!b.imageUrl) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {profile.biolinks.filter((b: any) => !!b.imageUrl).map((link: any, idx: number) => (
+                    <a
+                      key={idx}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="relative h-14 sm:h-16 rounded-2xl overflow-hidden border border-border/50 group flex items-center justify-between px-4 text-white shadow-2xs hover:scale-[1.01] transition-transform select-none"
+                    >
+                      <img src={link.imageUrl} alt="" className="absolute inset-0 size-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/40 backdrop-blur-[1px]" />
+                      <span className="relative z-10 text-xs sm:text-sm font-extrabold tracking-tight drop-shadow-sm truncate pr-2">
+                        {link.label || link.title || "Acessar Link"}
+                      </span>
+                      <ExternalLink className="relative z-10 size-4 text-white/80 shrink-0" />
+                    </a>
+                  ))}
+                </div>
+              )}
+
+              {/* Botões Pílula Clean (sem imagem de fundo) */}
+              {profile.biolinks.some((b: any) => !b.imageUrl) && (
+                <div className="flex flex-wrap gap-2 pt-0.5">
+                  {profile.biolinks.filter((b: any) => !b.imageUrl).map((link: any, idx: number) => (
+                    <a
+                      key={idx}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-muted/50 hover:bg-muted text-foreground border border-border/50 flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
+                    >
+                      <span>{link.label || link.title || link.url}</span>
+                      <ExternalLink className="size-3 text-muted-foreground" />
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Mini-Banner de Destaque / Evento */}
+          {profile.featured_banner_url && (
+            <div className="pt-2">
+              <a
+                href={profile.featured_banner_link || "#"}
+                target={profile.featured_banner_link ? "_blank" : undefined}
+                rel="noopener noreferrer"
+                className="block w-full aspect-[21/9] sm:aspect-[16/6] rounded-2xl overflow-hidden border border-border/50 shadow-xs relative group"
+              >
+                <img
+                  src={profile.featured_banner_url}
+                  alt="Destaque"
+                  className="size-full object-cover group-hover:scale-102 transition-transform duration-300"
+                />
+              </a>
             </div>
           )}
 
@@ -1339,14 +1393,7 @@ export function MemberPublicProfileView({
         </div>
       )}
 
-      {/* ── Painel Privado de Métricas do Criador (Apenas Titular da Conta) ── */}
-      {isOwner && activeMode === "social" && (
-        <CreatorAnalyticsCard
-          stats={stats}
-          followersCount={followersCount}
-          postsCount={posts.length}
-        />
-      )}
+
 
       {/* ── Bloco 3: Perfil Social & Gestão de Atividades Estilo Instagram ── */}
       {activeMode === "social" && (

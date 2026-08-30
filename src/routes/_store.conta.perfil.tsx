@@ -774,65 +774,97 @@ function ProfilePage() {
           {/* ── ABA 3: Biolinks & Mini-Banners ── */}
           <TabsContent value="biolinks" className="space-y-6">
             <div className="space-y-6">
-              <div className="flex items-center justify-between pb-3 ">
+              <div className="flex items-center justify-between pb-2 border-b border-border/40">
                 <div>
                   <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
                     <LinkIcon className="size-4 text-primary" />
-                    <span>Biolinks & Botões de Ação Rápida</span>
+                    <span>Botões de Ação & Links na Bio</span>
                   </h2>
                   <p className="text-xs text-muted-foreground">
-                    Botões minimalistas estilo Linktree exibidos logo abaixo da sua biografia.
+                    Crie botões personalizados para o seu perfil (com ou sem imagem de fundo).
                   </p>
                 </div>
 
-                <Button type="button" size="sm" variant="outline" onClick={addBiolink} className="rounded-xl text-xs font-bold gap-1">
+                <Button type="button" size="sm" variant="outline" onClick={addBiolink} className="rounded-xl text-xs font-bold gap-1 cursor-pointer">
                   <Plus className="size-3.5" />
-                  <span>Novo Link</span>
+                  <span>Novo Botão de Ação</span>
                 </Button>
               </div>
 
               {biolinks.length === 0 ? (
-                <div className="border-0 p-8 text-center rounded-2xl bg-muted/10 space-y-2">
+                <div className="border-0 p-8 text-center rounded-2xl bg-muted/20 space-y-2">
                   <p className="text-xs text-muted-foreground">
-                    Você ainda não adicionou botões de biolink. Clique em "Novo Link" acima para criar.
+                    Você ainda não adicionou botões de ação. Clique em "Novo Botão de Ação" acima para criar.
                   </p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {biolinks.map((link, idx) => (
-                    <div key={link.id || idx} className="p-3.5 rounded-2xl  bg-muted/20 flex flex-col sm:flex-row items-center gap-3">
-                      <Input
-                        value={link.label}
-                        onChange={(e) => updateBiolink(idx, "label", e.target.value)}
-                        placeholder="Título do Botão"
-                        className="h-9 rounded-xl text-xs font-bold flex-1"
-                      />
-                      <Input
-                        value={link.url}
-                        onChange={(e) => updateBiolink(idx, "url", e.target.value)}
-                        placeholder="https://..."
-                        className="h-9 rounded-xl text-xs flex-1 font-mono"
-                      />
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => removeBiolink(idx)}
-                        className="size-8 text-destructive hover:bg-destructive/10 rounded-xl shrink-0"
-                      >
-                        <Trash2 className="size-3.5" />
-                      </Button>
+                    <div key={link.id || idx} className="p-4 rounded-2xl border border-border/60 bg-muted/20 space-y-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-bold text-foreground">Botão #{idx + 1}</span>
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => removeBiolink(idx)}
+                          className="size-7 text-destructive hover:bg-destructive/10 rounded-lg"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </Button>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-[11px] font-semibold text-muted-foreground">Título do Botão</Label>
+                          <Input
+                            value={link.label || (link as any).title || ""}
+                            onChange={(e) => updateBiolink(idx, "label", e.target.value)}
+                            placeholder="Ex: Falar no WhatsApp, Cardápio, Catálogo"
+                            className="h-9 rounded-xl text-xs font-bold"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[11px] font-semibold text-muted-foreground">Link de Destino (URL)</Label>
+                          <Input
+                            value={link.url}
+                            onChange={(e) => updateBiolink(idx, "url", e.target.value)}
+                            placeholder="https://wa.me/... ou https://..."
+                            className="h-9 rounded-xl text-xs font-mono"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Capa / Background Opcional do Botão */}
+                      <div className="pt-1">
+                        <Label className="text-[11px] font-semibold text-muted-foreground block pb-1">
+                          Capa de Fundo do Botão (Opcional - transforma em Mini-Banner de Ação)
+                        </Label>
+                        <div className="flex items-center gap-3">
+                          <Input
+                            value={link.imageUrl || ""}
+                            onChange={(e) => updateBiolink(idx, "imageUrl", e.target.value)}
+                            placeholder="URL da imagem ou cole o link da foto..."
+                            className="h-8 rounded-xl text-xs flex-1"
+                          />
+                          {link.imageUrl && (
+                            <div className="size-8 rounded-lg overflow-hidden border border-border shrink-0 bg-muted">
+                              <img src={link.imageUrl} alt="Preview" className="size-full object-cover" />
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
               )}
 
               {/* Mini-Banner em Destaque */}
-              <div className="space-y-3 pt-3">
-                <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                  <Sparkles className="size-3.5 text-primary" />
-                  <span>Mini-Banner de Destaque / Evento</span>
-                </h3>
+              <div className="space-y-3 pt-4 border-t border-border/40">
+                <div>
+                  <h3 className="text-xs font-bold text-foreground">Mini-Banner de Destaque / Evento</h3>
+                  <p className="text-[11px] text-muted-foreground">Banner panorâmico exibido em destaque abaixo da bio.</p>
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
                   <div className="space-y-1">
                     <Label className="text-[11px] font-bold text-muted-foreground">Imagem do Banner</Label>
@@ -841,7 +873,7 @@ function ProfilePage() {
                       onChange={(url) => set("featuredBannerUrl", url)}
                       aspectPreset="widescreen"
                       bucket="cms-media"
-                      helperText="Formato 16:10 panorâmico"
+                      helperText="Formato 16:9 ou panorâmico"
                     />
                   </div>
                   <div className="space-y-1">

@@ -756,9 +756,12 @@ const UpdateProfileSchema = z.object({
   biolinks: z.array(z.object({
     id: z.string(),
     label: z.string(),
+    title: z.string().optional(),
     url: z.string(),
     icon: z.string().optional(),
     isHighlight: z.boolean().optional(),
+    imageUrl: z.string().optional().or(z.literal("")),
+    style: z.string().optional(),
   })).optional(),
   resumeData: z.object({
     headline: z.string().optional(),
