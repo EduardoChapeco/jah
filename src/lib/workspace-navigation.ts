@@ -435,6 +435,8 @@ export function resolveWorkspaceNavigation(
     ""
   ).toLowerCase();
 
+  let rawGroups: NavGroup[] = [];
+
   // 1. EMPREGOS & RECRUTAMENTO
   if (
     segment.includes("job") ||
@@ -445,7 +447,7 @@ export function resolveWorkspaceNavigation(
     segment.includes("talento") ||
     segment.includes("estagio")
   ) {
-    return [
+    rawGroups = [
       GROUP_OVERVIEW,
       GROUP_JOBS,
       GROUP_MARKETING_VITRINE,
@@ -455,7 +457,7 @@ export function resolveWorkspaceNavigation(
   }
 
   // 2. EVENTOS, SHOWS & INGRESSOS
-  if (
+  else if (
     segment.includes("event") ||
     segment.includes("show") ||
     segment.includes("festa") ||
@@ -465,7 +467,7 @@ export function resolveWorkspaceNavigation(
     segment.includes("teatro") ||
     segment.includes("congresso")
   ) {
-    return [
+    rawGroups = [
       GROUP_OVERVIEW,
       GROUP_EVENTS_TICKETS,
       GROUP_MARKETING_VITRINE,
@@ -475,7 +477,7 @@ export function resolveWorkspaceNavigation(
   }
 
   // 3. VEÍCULOS & CONCESSIONÁRIA
-  if (
+  else if (
     segment.includes("veicul") ||
     segment.includes("carro") ||
     segment.includes("moto") ||
@@ -483,7 +485,7 @@ export function resolveWorkspaceNavigation(
     segment.includes("concessionar") ||
     segment.includes("garagem")
   ) {
-    return [
+    rawGroups = [
       GROUP_OVERVIEW,
       GROUP_VEHICLES,
       GROUP_MARKETING_VITRINE,
@@ -493,7 +495,7 @@ export function resolveWorkspaceNavigation(
   }
 
   // 4. PET SHOP & VETERINÁRIA
-  if (
+  else if (
     segment.includes("pet") ||
     segment.includes("veterin") ||
     segment.includes("banho") ||
@@ -501,7 +503,7 @@ export function resolveWorkspaceNavigation(
     segment.includes("agro") ||
     segment.includes("racao")
   ) {
-    return [
+    rawGroups = [
       GROUP_OVERVIEW,
       GROUP_PET,
       GROUP_MARKETING_VITRINE,
@@ -511,7 +513,7 @@ export function resolveWorkspaceNavigation(
   }
 
   // 5. SUPERMERCADO, AÇOUGUE & HORTIFRÚTI
-  if (
+  else if (
     segment.includes("mercado") ||
     segment.includes("supermercado") ||
     segment.includes("hortifruti") ||
@@ -519,7 +521,7 @@ export function resolveWorkspaceNavigation(
     segment.includes("mercearia") ||
     segment.includes("emporio")
   ) {
-    return [
+    rawGroups = [
       GROUP_OVERVIEW,
       GROUP_SUPERMARKET,
       GROUP_MARKETING_VITRINE,
@@ -529,13 +531,13 @@ export function resolveWorkspaceNavigation(
   }
 
   // 6. FARMÁCIA & COSMÉTICOS
-  if (
+  else if (
     segment.includes("farma") ||
     segment.includes("drogari") ||
     segment.includes("medicament") ||
     segment.includes("suplement")
   ) {
-    return [
+    rawGroups = [
       GROUP_OVERVIEW,
       GROUP_PHARMACY,
       GROUP_MARKETING_VITRINE,
@@ -545,7 +547,7 @@ export function resolveWorkspaceNavigation(
   }
 
   // 7. JORNALISMO & NOTÍCIAS
-  if (
+  else if (
     segment.includes("notici") ||
     segment.includes("jornal") ||
     segment.includes("redac") ||
@@ -553,7 +555,7 @@ export function resolveWorkspaceNavigation(
     segment.includes("portal") ||
     segment.includes("revista")
   ) {
-    return [
+    rawGroups = [
       GROUP_OVERVIEW,
       GROUP_NEWS,
       GROUP_MARKETING_VITRINE,
@@ -563,7 +565,7 @@ export function resolveWorkspaceNavigation(
   }
 
   // 8. EDUCAÇÃO & CURSOS
-  if (
+  else if (
     segment.includes("curso") ||
     segment.includes("educac") ||
     segment.includes("escola") ||
@@ -572,7 +574,7 @@ export function resolveWorkspaceNavigation(
     segment.includes("treinamento") ||
     segment.includes("idioma")
   ) {
-    return [
+    rawGroups = [
       GROUP_OVERVIEW,
       GROUP_EDUCATION,
       GROUP_MARKETING_VITRINE,
@@ -582,14 +584,14 @@ export function resolveWorkspaceNavigation(
   }
 
   // 9. ATACADO, INDÚSTRIA & B2B
-  if (
+  else if (
     segment.includes("atacado") ||
     segment.includes("distribuidora") ||
     segment.includes("industria") ||
     segment.includes("b2b") ||
     segment.includes("fabrica")
   ) {
-    return [
+    rawGroups = [
       GROUP_OVERVIEW,
       GROUP_WHOLESALE,
       GROUP_MARKETING_VITRINE,
@@ -599,7 +601,7 @@ export function resolveWorkspaceNavigation(
   }
 
   // 10. GASTRONOMIA & ALIMENTAÇÃO
-  if (
+  else if (
     segment.includes("gastro") ||
     segment.includes("restauran") ||
     segment.includes("lanchon") ||
@@ -613,7 +615,7 @@ export function resolveWorkspaceNavigation(
     segment.includes("comida") ||
     segment.includes("aliment")
   ) {
-    return [
+    rawGroups = [
       GROUP_OVERVIEW,
       GROUP_GASTRO_CATALOG,
       GROUP_GASTRO_ORDERS,
@@ -624,7 +626,7 @@ export function resolveWorkspaceNavigation(
   }
 
   // 11. SERVIÇOS, SAÚDE & BELEZA
-  if (
+  else if (
     segment.includes("servi") ||
     segment.includes("belez") ||
     segment.includes("barbea") ||
@@ -638,7 +640,7 @@ export function resolveWorkspaceNavigation(
     segment.includes("person") ||
     segment.includes("academia")
   ) {
-    return [
+    rawGroups = [
       GROUP_OVERVIEW,
       GROUP_SERVICES_AGENDA,
       GROUP_SERVICES_CATALOG,
@@ -649,7 +651,7 @@ export function resolveWorkspaceNavigation(
   }
 
   // 12. LOCAÇÃO, EQUIPAMENTOS & ESTRUTURA
-  if (
+  else if (
     segment.includes("locac") ||
     segment.includes("alug") ||
     segment.includes("equipamento") ||
@@ -658,7 +660,7 @@ export function resolveWorkspaceNavigation(
     segment.includes("ilumin") ||
     segment.includes("tenda")
   ) {
-    return [
+    rawGroups = [
       GROUP_OVERVIEW,
       GROUP_RENTAL_EVENTS,
       GROUP_MARKETING_VITRINE,
@@ -668,7 +670,7 @@ export function resolveWorkspaceNavigation(
   }
 
   // 13. ASSISTÊNCIA TÉCNICA, CELULAR & MECÂNICA
-  if (
+  else if (
     segment.includes("celul") ||
     segment.includes("assist") ||
     segment.includes("repar") ||
@@ -678,7 +680,7 @@ export function resolveWorkspaceNavigation(
     segment.includes("auto") ||
     segment.includes("eletron")
   ) {
-    return [
+    rawGroups = [
       GROUP_OVERVIEW,
       GROUP_TECH_REPAIR,
       GROUP_MARKETING_VITRINE,
@@ -688,8 +690,8 @@ export function resolveWorkspaceNavigation(
   }
 
   // 14. ADVOCACIA & JURÍDICO
-  if (segment.includes("advoc") || segment.includes("jurid") || segment.includes("direito")) {
-    return [
+  else if (segment.includes("advoc") || segment.includes("jurid") || segment.includes("direito")) {
+    rawGroups = [
       GROUP_OVERVIEW,
       GROUP_LEGAL,
       GROUP_MARKETING_VITRINE,
@@ -699,8 +701,8 @@ export function resolveWorkspaceNavigation(
   }
 
   // 15. IMOBILIÁRIA & IMÓVEIS
-  if (segment.includes("imove") || segment.includes("imobili") || segment.includes("corret")) {
-    return [
+  else if (segment.includes("imove") || segment.includes("imobili") || segment.includes("corret")) {
+    rawGroups = [
       GROUP_OVERVIEW,
       GROUP_REAL_ESTATE,
       GROUP_MARKETING_VITRINE,
@@ -710,29 +712,111 @@ export function resolveWorkspaceNavigation(
   }
 
   // 16. TURISMO & VIAGENS
-  if (
+  else if (
     segment.includes("turis") ||
     segment.includes("hotel") ||
     segment.includes("pousad") ||
     segment.includes("viage") ||
     segment.includes("guia")
   ) {
-    return [
+    rawGroups = [
       GROUP_OVERVIEW,
       GROUP_TURISMO,
       GROUP_MARKETING_VITRINE,
       GROUP_FINANCE_CLEAN,
       GROUP_SETTINGS,
     ];
+  } else {
+    // 17. PADRÃO: VAREJO & COMÉRCIO GERAL (Moda, Calçados, Presentes, etc.)
+    rawGroups = [
+      GROUP_OVERVIEW,
+      GROUP_RETAIL_CATALOG,
+      GROUP_RETAIL_SALES,
+      GROUP_MARKETING_VITRINE,
+      GROUP_FINANCE_CLEAN,
+      GROUP_SETTINGS,
+    ];
   }
 
-  // 17. PADRÃO: VAREJO & COMÉRCIO GERAL (Moda, Calçados, Presentes, etc.)
-  return [
-    GROUP_OVERVIEW,
-    GROUP_RETAIL_CATALOG,
-    GROUP_RETAIL_SALES,
-    GROUP_MARKETING_VITRINE,
-    GROUP_FINANCE_CLEAN,
-    GROUP_SETTINGS,
-  ];
+  // ── ENRIQUECIMENTO E FILTRAGEM MODULAR DINÂMICA ─────────────────────────────
+  const enabledModules: string[] | undefined =
+    storeData?.settings?.enabled_modules ||
+    storeData?.enabled_modules;
+
+  if (enabledModules && Array.isArray(enabledModules) && enabledModules.length > 0) {
+    const finalGroups: NavGroup[] = [];
+
+    for (const group of rawGroups) {
+      // Sempre preserva Overview, Financeiro e Configurações
+      if (group.id === "overview" || group.id === "finance" || group.id === "settings") {
+        finalGroups.push(group);
+        continue;
+      }
+
+      // Grupo de Marketing / Vitrine: filtra ou adiciona itens específicos
+      if (group.id === "marketing") {
+        const filteredItems = group.items.filter((item) => {
+          if (item.path.includes("/workspace/estudio") && !enabledModules.includes("studio")) return false;
+          if (item.path.includes("/workspace/cms/bio") && !enabledModules.includes("biolink")) return false;
+          if (item.path.includes("/workspace/cms/paginas") && !enabledModules.includes("pages")) return false;
+          return true;
+        });
+
+        // Adiciona Classificados caso habilitado
+        if (enabledModules.includes("classifieds")) {
+          const hasClassifieds = filteredItems.some((i) => i.path.includes("classificados"));
+          if (!hasClassifieds) {
+            filteredItems.push({
+              path: "/conta/classificados",
+              label: "Classificados Locais",
+              icon: Megaphone,
+            });
+          }
+        }
+
+        finalGroups.push({ ...group, items: filteredItems });
+        continue;
+      }
+
+      // Demais grupos operacionais: filtra itens como PDV, Frota e Estoque se desabilitados
+      const filteredItems = group.items.filter((item) => {
+        if (item.path === "/workspace/pdv" && !enabledModules.includes("pos")) return false;
+        if (item.path.includes("/workspace/pedidos/frota") && !enabledModules.includes("delivery")) return false;
+        if (item.path.includes("/workspace/estoque") && !enabledModules.includes("stock")) return false;
+        if (item.path === "/workspace/pedidos/gestor" && !enabledModules.includes("orders")) return false;
+        return true;
+      });
+
+      if (filteredItems.length > 0) {
+        finalGroups.push({ ...group, items: filteredItems });
+      }
+    }
+
+    // Inclusão de grupos complementares ativados pelo usuário
+    if (enabledModules.includes("jobs") && !finalGroups.some((g) => g.id === "jobs")) {
+      finalGroups.splice(finalGroups.length - 2, 0, GROUP_JOBS);
+    }
+    if (enabledModules.includes("events") && !finalGroups.some((g) => g.id === "events-tickets")) {
+      finalGroups.splice(finalGroups.length - 2, 0, GROUP_EVENTS_TICKETS);
+    }
+    if (enabledModules.includes("news") && !finalGroups.some((g) => g.id === "news")) {
+      finalGroups.splice(finalGroups.length - 2, 0, GROUP_NEWS);
+    }
+    if (enabledModules.includes("vehicles") && !finalGroups.some((g) => g.id === "vehicles")) {
+      finalGroups.splice(finalGroups.length - 2, 0, GROUP_VEHICLES);
+    }
+    if (enabledModules.includes("real_estate") && !finalGroups.some((g) => g.id === "real-estate")) {
+      finalGroups.splice(finalGroups.length - 2, 0, GROUP_REAL_ESTATE);
+    }
+    if (enabledModules.includes("tourism") && !finalGroups.some((g) => g.id === "turismo")) {
+      finalGroups.splice(finalGroups.length - 2, 0, GROUP_TURISMO);
+    }
+    if (enabledModules.includes("education") && !finalGroups.some((g) => g.id === "education")) {
+      finalGroups.splice(finalGroups.length - 2, 0, GROUP_EDUCATION);
+    }
+
+    return finalGroups;
+  }
+
+  return rawGroups;
 }

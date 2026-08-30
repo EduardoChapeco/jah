@@ -179,20 +179,27 @@ const PRESETS = [
 ];
 
 export const Route = createFileRoute("/workspace/catalogo/atributos")({
-  head: () => ({ meta: [{ title: "Adicionais e Grupos de Opções | Workspace Wider" }] }),
+  head: () => ({ meta: [{ title: "Adicionais & Grades | Workspace Wider" }] }),
   loader: async () => {
     try {
-      const res = await listOptionGroups();
-      return res || [];
+      const [groupsRes, storeRes] = await Promise.all([
+        listOptionGroups().catch(() => []),
+        getStoreSettings().catch(() => null),
+      ]);
+      return {
+        groups: groupsRes || [],
+        store: storeRes || null,
+      };
     } catch {
-      return [];
+      return { groups: [], store: null };
     }
   },
   component: OptionGroupsPage,
 });
 
 function OptionGroupsPage() {
-  const groups = Route.useLoaderData();
+  const { groups, store } = Route.useLoaderData();
+  const semantics = getNicheSemantics(store);
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -315,45 +322,41 @@ function OptionGroupsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Adicionais e Grupos de Opções"
-        description="Complementos, bordas, adicionais e variações para turbinar seus produtos."
-        breadcrumbs={[
-          { label: "Workspace", href: "/workspace" },
-          { label: "Catálogo", href: "/workspace/catalogo/produtos" },
-          { label: "Adicionais e Opções" },
-        ]}
-      >
-        <Button
-          size="sm"
-          className="rounded-xl font-bold text-xs gap-1.5 bg-foreground text-background hover:bg-foreground/90 h-9"
-          onClick={() => {
-            form.reset({
-              internal_name: "",
-              display_name: "",
-              description: "",
-              selection_type: "multiple",
-              min_selections: 0,
-              max_selections: 1,
-              is_required: false,
-              values: [
-                {
-                  label: "",
-                  description: "",
-                  image_url: null,
-                  price_modifier_cents: 0,
-                  max_quantity_per_item: 1,
-                  is_default: false,
-                  is_active: true,
-                },
-              ],
-            });
-            setOpen(true);
-          }}
-        >
-          <Plus className="size-4" />
-          <span>Novo Grupo</span>
-        </Button>
-      </PageHeader>
+        eyebrow="Catálogo"
+        title={semantics.modifiersLabel}
+        actions={
+          <Button
+            size="sm"
+            className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground "
+            onClick={() => {
+              form.reset({
+                internal_name: "",
+                display_name: "",
+                description: "",
+                selection_type: "multiple",
+                min_selections: 0,
+                max_selections: 1,
+                is_required: false,
+                values: [
+                  {
+                    label: "",
+                    description: "",
+                    image_url: null,
+                    price_modifier_cents: 0,
+                    max_quantity_per_item: 1,
+                    is_default: false,
+                    is_active: true,
+                  },
+                ],
+              });
+              setOpen(true);
+            }}
+          >
+            <Plus className="size-4" />
+            <span>{semantics.newModifierAction}</span>
+          </Button>
+        }
+      />
 
       {/* Barra de Busca */}
       <div className="flex items-center justify-between gap-4">

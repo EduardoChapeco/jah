@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getUserSession } from "@/services/auth.functions";
 import { getDashboardData, type DashboardMetrics } from "@/services/dashboard.functions";
+import { getNicheSemantics } from "@/lib/niche-semantics";
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/")({
@@ -76,6 +77,7 @@ export const Route = createFileRoute("/workspace/")({
 
 export default function WorkspaceDashboardPage() {
   const { activeStore, dashboardMetrics } = Route.useLoaderData() as any;
+  const semantics = getNicheSemantics(activeStore);
 
   const criticalStockCount = dashboardMetrics?.criticalStockCount || 0;
   const recentActivities = dashboardMetrics?.recentActivities || [];
@@ -89,6 +91,9 @@ export default function WorkspaceDashboardPage() {
             <span className="text-xs font-semibold text-muted-foreground">
               {activeStore?.name || "Meu Espaço"}
             </span>
+            <Badge variant="outline" className="text-[10px] bg-muted/40">
+              {semantics.name}
+            </Badge>
           </div>
           <h1 className="text-xl font-bold tracking-tight text-foreground">
             Visão Geral
@@ -144,10 +149,10 @@ export default function WorkspaceDashboardPage() {
             Fluxo de Caixa
           </Link>
           <Link
-            to="/workspace/agenda"
+            to="/workspace/catalogo/produtos"
             className="px-4 py-2 rounded-xl bg-background/10 hover:bg-background/20 text-background text-xs font-semibold border border-background/20 transition-colors"
           >
-            Agenda
+            {semantics.catalogTitle}
           </Link>
         </div>
       </div>
@@ -155,19 +160,19 @@ export default function WorkspaceDashboardPage() {
       {/* ── 3. Grid Tático de 4 Métricas Reais ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         <Link
-          to="/workspace/agenda"
+          to="/workspace/pedidos"
           className="p-4 rounded-2xl bg-card  hover:border-primary/50 transition-all  group flex flex-col justify-between"
         >
           <div className="flex items-center justify-between">
             <div className="size-10 rounded-xl bg-info/10 text-info flex items-center justify-center">
-              <Calendar className="size-5" />
+              <ShoppingBag className="size-5" />
             </div>
             <ArrowUpRight className="size-4 text-muted-foreground group-hover:text-foreground transition-colors" />
           </div>
           <div className="mt-3">
-            <p className="text-xs font-bold text-muted-foreground">Agenda</p>
+            <p className="text-xs font-bold text-muted-foreground">{semantics.ordersLabel}</p>
             <p className="text-sm font-black text-foreground mt-0.5">
-              {dashboardMetrics?.ordersTodayCount || 0} compromisso(s) hoje
+              {dashboardMetrics?.ordersTodayCount || 0} registro(s) hoje
             </p>
           </div>
         </Link>
@@ -183,7 +188,7 @@ export default function WorkspaceDashboardPage() {
             <ArrowUpRight className="size-4 text-muted-foreground group-hover:text-foreground transition-colors" />
           </div>
           <div className="mt-3">
-            <p className="text-xs font-bold text-muted-foreground">Clientes</p>
+            <p className="text-xs font-bold text-muted-foreground">{semantics.customerLabel}</p>
             <p className="text-sm font-black text-foreground mt-0.5">
               {dashboardMetrics?.newCustomers30d ?? 0} novos no mês
             </p>
@@ -219,7 +224,7 @@ export default function WorkspaceDashboardPage() {
             <ArrowUpRight className="size-4 text-muted-foreground group-hover:text-foreground transition-colors" />
           </div>
           <div className="mt-3">
-            <p className="text-xs font-bold text-muted-foreground">Catálogo & Estoque</p>
+            <p className="text-xs font-bold text-muted-foreground">{semantics.catalogTitle}</p>
             <p className="text-sm font-black text-foreground mt-0.5">
               {criticalStockCount === 0 ? "Estoque Regular" : `${criticalStockCount} item(ns) com baixo estoque`}
             </p>

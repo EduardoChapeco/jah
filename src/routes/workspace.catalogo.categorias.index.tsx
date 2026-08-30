@@ -34,22 +34,31 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { listCategories, updateCategory } from "@/services/admin-catalog.functions";
+import { getStoreSettings } from "@/services/store.functions";
+import { getNicheSemantics } from "@/lib/niche-semantics";
 
 export const Route = createFileRoute("/workspace/catalogo/categorias/")({
-  head: () => ({ meta: [{ title: "Categorias" }] }),
+  head: () => ({ meta: [{ title: "Categorias & Sessões | Workspace Wider" }] }),
   loader: async () => {
     try {
-      const res = await listCategories();
-      return res || [];
+      const [catsRes, storeRes] = await Promise.all([
+        listCategories().catch(() => []),
+        getStoreSettings().catch(() => null),
+      ]);
+      return {
+        categories: catsRes || [],
+        store: storeRes || null,
+      };
     } catch {
-      return [];
+      return { categories: [], store: null };
     }
   },
   component: AdminCategoriesPage,
 });
 
 function AdminCategoriesPage() {
-  const categories = Route.useLoaderData();
+  const { categories, store } = Route.useLoaderData();
+  const semantics = getNicheSemantics(store);
   const router = useRouter();
   const [statusFilter, setStatusFilter] = useState<"active" | "archived">("active");
   const [searchQuery, setSearchQuery] = useState("");
@@ -92,12 +101,12 @@ function AdminCategoriesPage() {
     <div className="space-y-6">
       <PageHeader
         eyebrow="Catálogo"
-        title="Categorias"
+        title={semantics.categoriesLabel}
         actions={
           <Button asChild size="sm" className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground ">
             <Link to="/workspace/catalogo/categorias/novo">
               <Plus className="size-3.5" aria-hidden />
-              <span>Nova Categoria</span>
+              <span>{semantics.newCategoryAction}</span>
             </Link>
           </Button>
         }

@@ -52,12 +52,12 @@ import {
   updateProduct,
 } from "@/services/admin-catalog.functions";
 import { getStoreSettings } from "@/services/store.functions";
-import { getNicheCatalogContext } from "@/lib/catalog-niche-context";
+import { getNicheSemantics } from "@/lib/niche-semantics";
 import { formatMoney } from "@/lib/money";
 import type { AdminProductRow } from "@/types/catalog";
 
 export const Route = createFileRoute("/workspace/catalogo/produtos/")({
-  head: () => ({ meta: [{ title: "Gerenciador de Catálogo | Wider" }] }),
+  head: () => ({ meta: [{ title: "Catálogo & Itens | Workspace Wider" }] }),
   loader: async () => {
     const [products, store] = await Promise.all([
       listAdminProducts().catch(() => []),
@@ -164,17 +164,25 @@ function EditableStockCell({
 
   if (editing) {
     return (
-      <Input
-        type="number"
-        step="1"
-        autoFocus
-        className="h-7 w-16 px-2 text-xs"
-        value={val}
-        onChange={(e) => setVal(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && save()}
-        onBlur={save}
-        disabled={isSaving}
-      />
+      <div className="flex items-center gap-1 w-20">
+        <Input
+          type="number"
+          min={0}
+          autoFocus
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") save();
+            if (e.key === "Escape") {
+              setVal(String(initialStock ?? 0));
+              setEditing(false);
+            }
+          }}
+          onBlur={save}
+          disabled={isSaving}
+          className="h-7 text-xs font-mono font-bold"
+        />
+      </div>
     );
   }
 
@@ -193,9 +201,7 @@ function EditableStockCell({
 
 function AdminProductsPage() {
   const { products: initialProducts, store } = Route.useLoaderData();
-  const nicheCtx = getNicheCatalogContext(
-    store?.segment || store?.type || store?.settings?.segment || (store as any)?.category
-  );
+  const semantics = getNicheSemantics(store);
 
   const [products, setProducts] = useState<AdminProductRow[]>(initialProducts);
   const [searchQuery, setSearchQuery] = useState("");
@@ -393,7 +399,7 @@ function AdminProductsPage() {
     <div className="space-y-6">
       <PageHeader
         eyebrow="Catálogo"
-        title={nicheCtx.entityNamePlural}
+        title={semantics.catalogTitle}
         actions={
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={handleExportJSON} className="rounded-xl font-bold text-xs gap-1.5 ">
@@ -403,7 +409,7 @@ function AdminProductsPage() {
             <Button asChild size="sm" className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground ">
               <Link to="/workspace/catalogo/produtos/novo">
                 <Plus className="size-3.5" aria-hidden />
-                Novo {nicheCtx.entityName}
+                {semantics.newItemAction}
               </Link>
             </Button>
           </div>
@@ -437,7 +443,7 @@ function AdminProductsPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" aria-hidden />
           <Input
             type="search"
-            placeholder={`Buscar por nome ou ${nicheCtx.skuLabel.toLowerCase()}...`}
+            placeholder={semantics.searchItemPlaceholder}
             className="pl-8 text-xs w-full rounded-xl h-8 bg-background"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -452,7 +458,7 @@ function AdminProductsPage() {
             <Badge variant="default" className="font-bold">
               {selectedIds.length}
             </Badge>
-            <span>produto(s) selecionado(s)</span>
+            <span>{semantics.itemSingular.toLowerCase()}(s) selecionado(s)</span>
           </div>
           <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <Button
@@ -508,8 +514,8 @@ function AdminProductsPage() {
           <div className="space-y-1">
             <h3 className="text-base font-bold text-foreground">
               {statusFilter === "active"
-                ? "Nenhum produto cadastrado"
-                : "Nenhum produto com este filtro"}
+                ? semantics.emptyCatalogText
+                : `Nenhum ${semantics.itemSingular.toLowerCase()} com este filtro`}
             </h3>
             <p className="text-xs text-muted-foreground max-w-sm mx-auto">
               Cadastre seus itens para exibi-los automaticamente nos canais de venda e vitrines.
@@ -519,7 +525,7 @@ function AdminProductsPage() {
             <Button asChild size="sm" className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground ">
               <Link to="/workspace/catalogo/produtos/novo">
                 <Plus className="size-4" />
-                <span>Cadastrar Primeiro Produto</span>
+                <span>{semantics.newItemAction}</span>
               </Link>
             </Button>
           )}

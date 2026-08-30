@@ -100,6 +100,19 @@ export default function WorkspaceConfiguracoesPage() {
   const [segment, setSegment] = useState(
     store?.settings?.segment || store?.settings?.type || store?.settings?.niche || "gastronomy"
   );
+  const [enabledModules, setEnabledModules] = useState<string[]>(
+    store?.settings?.enabled_modules || [
+      "catalog",
+      "orders",
+      "pos",
+      "delivery",
+      "stock",
+      "studio",
+      "biolink",
+      "pages",
+      "classifieds",
+    ]
+  );
   const [city, setCity] = useState(store?.city || "");
   const [state, setState] = useState(store?.state || "");
   const [zipCode, setZipCode] = useState(store?.zip_code || "");
@@ -136,22 +149,27 @@ export default function WorkspaceConfiguracoesPage() {
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
 
+  const handleToggleModule = (moduleId: string) => {
+    setEnabledModules((prev) =>
+      prev.includes(moduleId) ? prev.filter((m) => m !== moduleId) : [...prev, moduleId]
+    );
+  };
+
   const handleFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
-    target: "logo" | "banner",
+    type: "logo" | "banner",
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const setUploading = target === "logo" ? setIsUploadingLogo : setIsUploadingBanner;
-    const setUrl = target === "logo" ? setLogoUrl : setBannerUrl;
-
+    const setUploading = type === "logo" ? setIsUploadingLogo : setIsUploadingBanner;
     setUploading(true);
+
     try {
       const reader = new FileReader();
       reader.onload = async () => {
+        const base64Data = reader.result as string;
         try {
-          const base64Data = reader.result as string;
           const res = await uploadStoreMedia({
             data: {
               fileName: file.name,
@@ -160,12 +178,13 @@ export default function WorkspaceConfiguracoesPage() {
               bucket: "cms-media",
             },
           });
-          if (res?.url) {
-            setUrl(res.url);
-            toast.success(`${target === "logo" ? "Logotipo" : "Banner"} carregado com sucesso.`);
+          if (res?.publicUrl) {
+            if (type === "logo") setLogoUrl(res.publicUrl);
+            else setBannerUrl(res.publicUrl);
+            toast.success("Imagem enviada com sucesso!");
           }
-        } catch (err: any) {
-          toast.error(err.message || "Erro ao fazer upload da imagem.");
+        } catch {
+          toast.error("Erro ao enviar imagem.");
         } finally {
           setUploading(false);
         }
@@ -185,11 +204,12 @@ export default function WorkspaceConfiguracoesPage() {
 
     setIsSaving(true);
     try {
-      // 1. Salva Dados da Loja, Nicho, Bairros e Perguntas de Checkout
+      // 1. Salva Dados da Loja, Nicho, Módulos, Bairros e Perguntas de Checkout
       await saveStoreSettings({
         data: {
           name: name.trim(),
           segment,
+          enabled_modules: enabledModules,
           description: description.trim() || undefined,
           logoUrl: logoUrl.trim() || undefined,
           bannerUrl: bannerUrl.trim() || undefined,
@@ -534,6 +554,176 @@ export default function WorkspaceConfiguracoesPage() {
                       {n.desc}
                     </p>
                   </button>
+                );
+              })}
+            </div>
+          </Card>
+
+          {/* ── Gerenciador de Módulos Habilitados ── */}
+          <Card className="p-6 rounded-3xl border-border bg-card space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2">
+              <div>
+                <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+                  <ListChecks className="size-4 text-primary" />
+                  Módulos & Ferramentas Habilitadas
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  Ative somente os recursos que sua operação utiliza para manter o menu do Workspace limpo e focado.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setEnabledModules([
+                      "catalog",
+                      "orders",
+                      "pos",
+                      "delivery",
+                      "stock",
+                      "studio",
+                      "biolink",
+                      "pages",
+                      "classifieds",
+                    ])
+                  }
+                  className="text-xs h-7 rounded-xl"
+                >
+                  Padrão Delivery & Loja
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {[
+                {
+                  id: "catalog",
+                  title: "Catálogo / Cardápio Digital",
+                  desc: "Cadastro de produtos, pratos, adicionais, categorias e fotos.",
+                  icon: "🍽️",
+                },
+                {
+                  id: "orders",
+                  title: "Gestor de Pedidos & KDS",
+                  desc: "Recepção de pedidos em tempo real, telas de cozinha e despacho.",
+                  icon: "📋",
+                },
+                {
+                  id: "delivery",
+                  title: "Frota & Entregadores",
+                  desc: "Gestão de motoboys, despacho automático e taxas por bairro.",
+                  icon: "🛵",
+                },
+                {
+                  id: "pos",
+                  title: "Frente de Caixa (PDV)",
+                  desc: "Ponto de venda rápido para balcão, comandas e mesas.",
+                  icon: "🏪",
+                },
+                {
+                  id: "stock",
+                  title: "Controle de Estoque",
+                  desc: "Movimentações, baixa automática e alerta de insumos mínimos.",
+                  icon: "📦",
+                },
+                {
+                  id: "studio",
+                  title: "Estúdio Visual Studio 3.0",
+                  desc: "Criador de posts, encartes promocionais e banners para redes.",
+                  icon: "🎨",
+                },
+                {
+                  id: "biolink",
+                  title: "Link da Bio (Biolink)",
+                  desc: "Página móvel com botões rápidos de WhatsApp, PIX e redes.",
+                  icon: "🔗",
+                },
+                {
+                  id: "pages",
+                  title: "Páginas do Site (CMS)",
+                  desc: "Páginas institucionais como Sobre Nós, Políticas e Dúvidas.",
+                  icon: "📄",
+                },
+                {
+                  id: "classifieds",
+                  title: "Classificados Locais",
+                  desc: "Anúncios rápidos de desapegos e oportunidades na região.",
+                  icon: "📢",
+                },
+                {
+                  id: "news",
+                  title: "Notícias & Redação",
+                  desc: "Publicação de matérias jornalísticas e conteúdos editoriais.",
+                  icon: "📰",
+                },
+                {
+                  id: "events",
+                  title: "Eventos & Ingressos",
+                  desc: "Venda de ingressos com lotes, setores e validação QR Code.",
+                  icon: "🎟️",
+                },
+                {
+                  id: "jobs",
+                  title: "Empregos & Recrutamento",
+                  desc: "Abertura de vagas e recebimento de currículos de candidatos.",
+                  icon: "💼",
+                },
+                {
+                  id: "vehicles",
+                  title: "Veículos & Concessionária",
+                  desc: "Estoque de seminovos, propostas de financiamento e placas.",
+                  icon: "🚗",
+                },
+                {
+                  id: "real_estate",
+                  title: "Imóveis & Imobiliária",
+                  desc: "Catálogo de imóveis para venda/locação e vistorias.",
+                  icon: "🏠",
+                },
+                {
+                  id: "tourism",
+                  title: "Turismo & Passeios",
+                  desc: "Pacotes de viagem, pousadas e reservas de passeios locais.",
+                  icon: "✈️",
+                },
+                {
+                  id: "education",
+                  title: "Cursos & Workshops",
+                  desc: "Gestão de turmas, materiais didáticos e matrículas.",
+                  icon: "🎓",
+                },
+              ].map((mod) => {
+                const isEnabled = enabledModules.includes(mod.id);
+                return (
+                  <div
+                    key={mod.id}
+                    onClick={() => handleToggleModule(mod.id)}
+                    className={cn(
+                      "flex items-start justify-between p-3.5 rounded-2xl border transition-all cursor-pointer select-none",
+                      isEnabled
+                        ? "border-primary/40 bg-primary/5 dark:bg-primary/10"
+                        : "border-border/60 bg-muted/20 hover:bg-muted/40 opacity-70"
+                    )}
+                  >
+                    <div className="space-y-1 pr-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base leading-none">{mod.icon}</span>
+                        <span className="text-xs font-bold text-foreground">
+                          {mod.title}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground leading-snug">
+                        {mod.desc}
+                      </p>
+                    </div>
+                    <Switch
+                      checked={isEnabled}
+                      onCheckedChange={() => handleToggleModule(mod.id)}
+                      className="shrink-0 mt-0.5"
+                    />
+                  </div>
                 );
               })}
             </div>
