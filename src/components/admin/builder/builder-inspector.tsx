@@ -496,6 +496,7 @@ export function BuilderInspector({
                         }}
                       >
                         <option value="">Nenhum (conteúdo estático)</option>
+                        <option value="marketing_banners">Banners Ativos de Marketing</option>
                         <option value="dynamic_products">Últimos Produtos Ativos</option>
                         <option value="product_collection">Produtos por Coleção</option>
                         <option value="dynamic_reviews">Avaliações Aprovadas</option>

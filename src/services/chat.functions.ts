@@ -313,7 +313,7 @@ export const getCustomer360Context = createServerFn({ method: "GET" })
     const db = getServerClient();
 
     const [profileRes, ordersRes, ticketsRes] = await Promise.all([
-      db.from("profiles").select("id, full_name, email, phone, avatar_url, created_at").eq("id", data.customerId).single(),
+      db.from("profiles").select("id, full_name, phone, avatar_url, created_at").eq("id", data.customerId).single(),
       db.from("orders").select("id, total_amount_cents, status, created_at, payment_method").eq("store_id", data.storeId).eq("customer_id", data.customerId).order("created_at", { ascending: false }).limit(10),
       db.from("store_support_tickets").select("*").eq("store_id", data.storeId).eq("customer_id", data.customerId).order("created_at", { ascending: false }),
     ]);

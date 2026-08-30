@@ -12,10 +12,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Lock, AlertCircle } from "lucide-react";
 
+import { validateManagerOverride } from "@/services/cash.functions";
+import { toast } from "sonner";
+
 interface ManagerOverrideDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  actionType?: "discount" | "void" | "refund" | "price_override";
   title?: string;
   description?: string;
 }
@@ -24,6 +28,7 @@ export function ManagerOverrideDialog({
   isOpen,
   onClose,
   onSuccess,
+  actionType = "discount",
   title = "Autorização Gerencial",
   description = "Esta ação requer a senha de um gerente para prosseguir.",
 }: ManagerOverrideDialogProps) {
@@ -31,7 +36,6 @@ export function ManagerOverrideDialog({
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Idealmente, chamaríamos uma Server Function real: await validateManagerPin({ pin })
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!pin) return;
@@ -40,17 +44,23 @@ export function ManagerOverrideDialog({
     setError(null);
 
     try {
-      // Simulação temporária até o backend estar totalmente integrado
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      if (pin === "1234") {
+      const res = await validateManagerOverride({
+        data: {
+          pin,
+          actionType,
+        },
+      });
+
+      if (res?.authorized) {
+        toast.success(`Autorizado por: ${res.managerName}`);
         onSuccess();
         setPin("");
         onClose();
       } else {
-        setError("PIN incorreto. Tente novamente.");
+        setError("PIN não autorizado.");
       }
-    } catch (err) {
-      setError("Ocorreu um erro ao validar o PIN.");
+    } catch (err: any) {
+      setError(err?.message || "PIN incorreto ou sem permissão gerencial.");
     } finally {
       setIsLoading(false);
     }

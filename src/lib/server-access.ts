@@ -30,19 +30,19 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
 }
 
 /** Exige um dos papéis informados. Lança se não autorizado. Servidor apenas. */
-export async function requireRole(allowedRoles: Role[]): Promise<{ id: string; role: Role }> {
+export async function requireRole(allowedRoles: Role[]): Promise<{ id: string; role: Role; store_id: string }> {
   const mod = await import("@/lib/auth-guards.server");
   return mod.requireRole(allowedRoles);
 }
 
 /** Exige acesso administrativo/gerencial. Servidor apenas. */
-export async function requireAdmin(): Promise<{ id: string; role: Role }> {
+export async function requireAdmin(): Promise<{ id: string; role: Role; store_id: string }> {
   const mod = await import("@/lib/auth-guards.server");
   return mod.requireAdmin();
 }
 
 /** Exige acesso administrativo global (master). Servidor apenas. */
-export async function requirePlatformAdmin(): Promise<{ id: string; role: Role }> {
+export async function requirePlatformAdmin(): Promise<{ id: string; role: Role; store_id: string }> {
   const mod = await import("@/lib/auth-guards.server");
   return mod.requirePlatformAdmin();
 }

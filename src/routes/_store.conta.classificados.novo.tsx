@@ -574,7 +574,7 @@ function SpecializedClassifiedEditor({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="both">📦 Entrega Expressa JAH & Retirada em Mãos (Recomendado)</SelectItem>
+                  <SelectItem value="both">📦 Entrega Expressa Wider & Retirada em Mãos (Recomendado)</SelectItem>
                   <SelectItem value="pickup">🏠 Somente Retirada no Local</SelectItem>
                   <SelectItem value="local_delivery">🛵 Somente Entrega Local (Motoboy / Frota)</SelectItem>
                   <SelectItem value="shipping">🚚 Envio Nacional (Correios / Transportadora)</SelectItem>
@@ -1045,7 +1045,7 @@ function SpecializedClassifiedEditor({
                 </p>
               </div>
 
-              {/* Simulador de Frete & Logística JAH Express na Prévia */}
+              {/* Simulador de Frete & Logística Wider Express na Prévia */}
               {(deliveryMode === "both" || deliveryMode === "local_delivery" || deliveryMode === "shipping") && (
                 <div className="border border-primary/30 rounded-2xl p-4 bg-primary/5 space-y-2.5">
                   <div className="flex items-center justify-between">
@@ -1054,7 +1054,7 @@ function SpecializedClassifiedEditor({
                       <span>Simulação de Frete & Entrega (Comprador)</span>
                     </div>
                     <Badge variant="default" className="text-[9px] font-mono bg-primary text-primary-foreground">
-                      JAH Express
+                      Wider Express
                     </Badge>
                   </div>
 

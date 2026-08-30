@@ -52,7 +52,7 @@ export const Route = createFileRoute("/_store/empregos/$id")({
     meta: [
       {
         title: loaderData?.job
-          ? `${loaderData.job.title} na ${loaderData.job.company_name} — Vagas JAH`
+          ? `${loaderData.job.title} na ${loaderData.job.company_name} — Vagas Wider`
           : "Vaga de Emprego — Wider",
       },
       {

@@ -163,7 +163,7 @@ export function ProductModifiersCard({
                       variant={grp.is_required ? "default" : "secondary"}
                       className={cn(
                         "text-[9px] px-1.5 py-0 h-4 font-semibold uppercase tracking-wider",
-                        grp.is_required ? "bg-amber-600 text-white hover:bg-amber-600" : "text-muted-foreground",
+                        grp.is_required ? "bg-warning text-warning-foreground hover:bg-warning/90" : "text-muted-foreground",
                       )}
                     >
                       {grp.is_required ? "Obrigatório" : "Opcional"}

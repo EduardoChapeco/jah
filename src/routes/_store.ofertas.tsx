@@ -54,7 +54,7 @@ export const Route = createFileRoute("/_store/ofertas")({
       { property: "og:title", content: "Ofertas & Promoções — Wider" },
       {
         property: "og:description",
-        content: "As melhores promoções de todos os segmentos da plataforma JAH em um só lugar.",
+        content: "As melhores promoções de todos os segmentos da plataforma Wider em um só lugar.",
       },
     ],
   }),

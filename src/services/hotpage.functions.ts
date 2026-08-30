@@ -67,7 +67,17 @@ export const HotpageModuleSchema = z.enum([
 export type HotpageBgMediaType = "none" | "image" | "video" | "gif";
 export type HotpageBgTexture = "none" | "noise" | "dots" | "grid" | "mesh" | "glass";
 
-export type HotpageTemplateType = "turbo" | "hits" | "bogo" | "market" | "travel" | "services" | "custom";
+export type HotpageTemplateType =
+  | "hero_module"
+  | "category_hub"
+  | "editorial_card"
+  | "turbo"
+  | "hits"
+  | "bogo"
+  | "market"
+  | "travel"
+  | "services"
+  | "custom";
 export type HotpageRulePreset = "all" | "free_shipping" | "turbo_express" | "bogo" | "discount_only" | "top_rated" | "under_20" | "custom";
 
 export interface HotpageDTO {
@@ -107,6 +117,7 @@ export const listHotpages = createServerFn({ method: "GET" })
     z
       .object({
         module: HotpageModuleSchema.optional(),
+        template_type: z.string().optional(),
       })
       .optional(),
   )
@@ -120,9 +131,15 @@ export const listHotpages = createServerFn({ method: "GET" })
       .from("hotpages")
       .select("*")
       .eq("is_active", true)
-      .or("template_type.is.null,template_type.neq.category_hub")
       .order("sort_order", { ascending: true })
       .order("created_at", { ascending: false });
+
+    if (data?.template_type) {
+      query = query.eq("template_type", data.template_type);
+    } else if (normalizedModule === "home") {
+      // Por padrão na home, não mistura category_hub
+      query = query.or("template_type.is.null,template_type.neq.category_hub");
+    }
 
     if (normalizedModule && normalizedModule !== "all") {
       query = query.eq("module", normalizedModule);
@@ -143,6 +160,64 @@ export const listHotpages = createServerFn({ method: "GET" })
   });
 
 export const listActiveHotpages = listHotpages;
+
+/**
+ * Lista exclusivamente os Cards Herói do Topo (Módulos Principais 16:9 Limpos da Home)
+ */
+export const listHomeHeroCards = createServerFn({ method: "GET" }).handler(
+  async (): Promise<HotpageDTO[]> => {
+    const supabase = getAnonServerClient();
+    const { data: rows } = await supabase
+      .from("hotpages")
+      .select("*")
+      .eq("is_active", true)
+      .or("template_type.eq.hero_module,and(module.eq.home,template_type.neq.category_hub,template_type.neq.editorial_card)")
+      .order("sort_order", { ascending: true });
+
+    return (rows || []).map((h: any) => ({
+      ...h,
+      show_title: h.show_title ?? false,
+      show_description: h.show_description ?? false,
+      show_overlay: h.show_overlay ?? false,
+      show_badge: h.show_badge ?? false,
+    })) as HotpageDTO[];
+  }
+);
+
+/**
+ * Lista exclusivamente os Botões / Chips de Supercategorias (Continuação das categorias)
+ */
+export const listSubcategoryChips = createServerFn({ method: "GET" }).handler(
+  async (): Promise<HotpageDTO[]> => {
+    const supabase = getAnonServerClient();
+    const { data: rows } = await supabase
+      .from("hotpages")
+      .select("*")
+      .eq("is_active", true)
+      .eq("template_type", "category_hub")
+      .order("sort_order", { ascending: true });
+
+    return (rows || []) as HotpageDTO[];
+  }
+);
+
+/**
+ * Lista exclusivamente as Coleções & Hotpages Editoriais (para o HotpagesRail)
+ */
+export const listEditorialHotpages = createServerFn({ method: "GET" })
+  .validator(z.object({ module: HotpageModuleSchema.optional() }).optional())
+  .handler(async ({ data }): Promise<HotpageDTO[]> => {
+    const supabase = getAnonServerClient();
+    const mod = data?.module || "home";
+    const { data: rows } = await supabase
+      .from("hotpages")
+      .select("*")
+      .eq("is_active", true)
+      .eq("template_type", "editorial_card")
+      .order("sort_order", { ascending: true });
+
+    return (rows || []) as HotpageDTO[];
+  });
 
 export const getHotpageBySlug = createServerFn({ method: "GET" })
   .validator(z.object({ slug: z.string() }))
@@ -257,6 +332,8 @@ export const createHotpage = createServerFn({ method: "POST" })
       slug: z.string().min(2),
       title: z.string().min(2),
       badge_label: z.string().nullable().optional(),
+      hero_stat_badge: z.string().nullable().optional(),
+      hero_secondary_badge: z.string().nullable().optional(),
       description: z.string().nullable().optional(),
       cover_image_url: z.string().nullable().optional(),
       icon_name: z.string().nullable().optional(),
@@ -270,6 +347,18 @@ export const createHotpage = createServerFn({ method: "POST" })
       bg_texture: z.enum(["none", "noise", "dots", "grid", "mesh", "glass"]).default("none"),
       filter_rules: z.record(z.any()).optional(),
       module: HotpageModuleSchema.default("home"),
+      template_type: z.enum([
+        "hero_module",
+        "category_hub",
+        "editorial_card",
+        "turbo",
+        "hits",
+        "bogo",
+        "market",
+        "travel",
+        "services",
+        "custom",
+      ]).default("editorial_card"),
       sort_order: z.number().int().default(0),
       show_title: z.boolean().default(true),
       show_description: z.boolean().default(true),
@@ -285,8 +374,10 @@ export const createHotpage = createServerFn({ method: "POST" })
       .insert({
         slug: data.slug,
         title: data.title,
-        template_type: "editorial_card",
+        template_type: data.template_type || "editorial_card",
         badge_label: data.badge_label || null,
+        hero_stat_badge: data.hero_stat_badge || null,
+        hero_secondary_badge: data.hero_secondary_badge || null,
         description: data.description || null,
         cover_image_url: data.cover_image_url || null,
         icon_name: data.icon_name || null,
@@ -321,6 +412,8 @@ export const updateHotpage = createServerFn({ method: "POST" })
       slug: z.string().min(2).optional(),
       title: z.string().min(2).optional(),
       badge_label: z.string().nullable().optional(),
+      hero_stat_badge: z.string().nullable().optional(),
+      hero_secondary_badge: z.string().nullable().optional(),
       description: z.string().nullable().optional(),
       cover_image_url: z.string().nullable().optional(),
       icon_name: z.string().nullable().optional(),
@@ -334,6 +427,18 @@ export const updateHotpage = createServerFn({ method: "POST" })
       bg_texture: z.enum(["none", "noise", "dots", "grid", "mesh", "glass"]).optional(),
       filter_rules: z.record(z.any()).nullable().optional(),
       module: HotpageModuleSchema.optional(),
+      template_type: z.enum([
+        "hero_module",
+        "category_hub",
+        "editorial_card",
+        "turbo",
+        "hits",
+        "bogo",
+        "market",
+        "travel",
+        "services",
+        "custom",
+      ]).optional(),
       sort_order: z.number().int().optional(),
       show_title: z.boolean().optional(),
       show_description: z.boolean().optional(),
@@ -373,6 +478,8 @@ export const saveHotpage = createServerFn({ method: "POST" })
       slug: z.string().min(2),
       title: z.string().min(2),
       badge_label: z.string().optional(),
+      hero_stat_badge: z.string().optional(),
+      hero_secondary_badge: z.string().optional(),
       description: z.string().optional(),
       cover_image_url: z.string().optional(),
       icon_name: z.string().optional(),
@@ -386,6 +493,18 @@ export const saveHotpage = createServerFn({ method: "POST" })
       bg_texture: z.enum(["none", "noise", "dots", "grid", "mesh", "glass"]).optional(),
       filter_rules: z.record(z.any()).optional(),
       module: HotpageModuleSchema.optional(),
+      template_type: z.enum([
+        "hero_module",
+        "category_hub",
+        "editorial_card",
+        "turbo",
+        "hits",
+        "bogo",
+        "market",
+        "travel",
+        "services",
+        "custom",
+      ]).optional(),
       sort_order: z.number().int().default(0),
       show_title: z.boolean().default(true),
       show_description: z.boolean().default(true),
@@ -402,3 +521,329 @@ export const saveHotpage = createServerFn({ method: "POST" })
       return createHotpage({ data: { ...data, sort_order: data.sort_order ?? 0 } });
     }
   });
+
+export const syncDefaultHotpages = createServerFn({ method: "POST" }).handler(
+  async () => {
+    await requireAdmin();
+    const supabase = getServerClient();
+
+    // ── 1. CARDS HERÓI DE MÓDULOS PRINCIPAIS (100% LIMPOS - SEM TEXTO/BADGES POR PADRÃO) ──
+    const CANONICAL_HERO_MODULES = [
+      {
+        slug: "home-classificados",
+        title: "Classificados & Autos",
+        cover_image_url: "https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=1000&q=80",
+        target_route: "/classificados",
+        template_type: "hero_module" as const,
+        module: "home" as const,
+        sort_order: 1,
+        show_title: false,
+        show_badge: false,
+        show_overlay: false,
+      },
+      {
+        slug: "home-mercado",
+        title: "Supermercado & Feira",
+        cover_image_url: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=1000&q=80",
+        target_route: "/mercado",
+        template_type: "hero_module" as const,
+        module: "home" as const,
+        sort_order: 2,
+        show_title: false,
+        show_badge: false,
+        show_overlay: false,
+      },
+      {
+        slug: "home-gastronomia",
+        title: "Gastronomia & Delivery",
+        cover_image_url: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1000&q=80",
+        target_route: "/gastronomia",
+        template_type: "hero_module" as const,
+        module: "home" as const,
+        sort_order: 3,
+        show_title: false,
+        show_badge: false,
+        show_overlay: false,
+      },
+      {
+        slug: "home-empregos",
+        title: "Vagas & Carreiras",
+        cover_image_url: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1000&q=80",
+        target_route: "/empregos",
+        template_type: "hero_module" as const,
+        module: "home" as const,
+        sort_order: 4,
+        show_title: false,
+        show_badge: false,
+        show_overlay: false,
+      },
+      {
+        slug: "home-agenda",
+        title: "Agenda & Eventos Culturais",
+        cover_image_url: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1000&q=80",
+        target_route: "/agenda",
+        template_type: "hero_module" as const,
+        module: "home" as const,
+        sort_order: 5,
+        show_title: false,
+        show_badge: false,
+        show_overlay: false,
+      },
+      {
+        slug: "home-turismo",
+        title: "Turismo & Hospedagem",
+        cover_image_url: "https://images.unsplash.com/photo-1501555088652-021faa106b9b?w=1000&q=80",
+        target_route: "/turismo",
+        template_type: "hero_module" as const,
+        module: "home" as const,
+        sort_order: 6,
+        show_title: false,
+        show_badge: false,
+        show_overlay: false,
+      },
+      {
+        slug: "home-noticias",
+        title: "Notícias & Jornalismo",
+        cover_image_url: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1000&q=80",
+        target_route: "/noticias",
+        template_type: "hero_module" as const,
+        module: "home" as const,
+        sort_order: 7,
+        show_title: false,
+        show_badge: false,
+        show_overlay: false,
+      },
+      {
+        slug: "home-mobilidade",
+        title: "Mobilidade & MotoLink",
+        cover_image_url: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1000&q=80",
+        target_route: "/mobilidade",
+        template_type: "hero_module" as const,
+        module: "home" as const,
+        sort_order: 8,
+        show_title: false,
+        show_badge: false,
+        show_overlay: false,
+      },
+    ];
+
+    // ── 2. BOTÕES / CHIPS DE SUPERCATEGORIAS (CONTINUAÇÃO - NÃO REPETE O TOPO) ──
+    const CANONICAL_SUBCATEGORY_CHIPS = [
+      {
+        slug: "chip-farmacia",
+        title: "Farmácia",
+        target_route: "/farmacia",
+        template_type: "category_hub" as const,
+        module: "home" as const,
+        icon_name: "Heartbeat",
+        sort_order: 1,
+        show_title: true,
+      },
+      {
+        slug: "chip-bebidas",
+        title: "Bebidas & Adega",
+        target_route: "/bebidas",
+        template_type: "category_hub" as const,
+        module: "home" as const,
+        icon_name: "Coffee",
+        sort_order: 2,
+        show_title: true,
+      },
+      {
+        slug: "chip-acougue",
+        title: "Açougue & Carnes",
+        target_route: "/acougue",
+        template_type: "category_hub" as const,
+        module: "home" as const,
+        icon_name: "Flame",
+        sort_order: 3,
+        show_title: true,
+      },
+      {
+        slug: "chip-eletronicos",
+        title: "Eletrônicos & Tech",
+        target_route: "/eletronicos",
+        template_type: "category_hub" as const,
+        module: "home" as const,
+        icon_name: "Storefront",
+        sort_order: 4,
+        show_title: true,
+      },
+      {
+        slug: "chip-moda",
+        title: "Roupas & Moda",
+        target_route: "/moda",
+        template_type: "category_hub" as const,
+        module: "home" as const,
+        icon_name: "TShirt",
+        sort_order: 5,
+        show_title: true,
+      },
+      {
+        slug: "chip-casa",
+        title: "Casa & Decoração",
+        target_route: "/casa",
+        template_type: "category_hub" as const,
+        module: "home" as const,
+        icon_name: "Storefront",
+        sort_order: 6,
+        show_title: true,
+      },
+      {
+        slug: "chip-pet",
+        title: "Pet Shop & Veterinária",
+        target_route: "/pet",
+        template_type: "category_hub" as const,
+        module: "home" as const,
+        icon_name: "Heartbeat",
+        sort_order: 7,
+        show_title: true,
+      },
+      {
+        slug: "chip-beleza",
+        title: "Beleza & Estética",
+        target_route: "/beleza",
+        template_type: "category_hub" as const,
+        module: "home" as const,
+        icon_name: "Scissors",
+        sort_order: 8,
+        show_title: true,
+      },
+      {
+        slug: "chip-construcao",
+        title: "Construção & Reforma",
+        target_route: "/construcao",
+        template_type: "category_hub" as const,
+        module: "home" as const,
+        icon_name: "Storefront",
+        sort_order: 9,
+        show_title: true,
+      },
+      {
+        slug: "chip-servicos",
+        title: "Serviços & Profissionais",
+        target_route: "/servicos",
+        template_type: "category_hub" as const,
+        module: "home" as const,
+        icon_name: "Briefcase",
+        sort_order: 10,
+        show_title: true,
+      },
+      {
+        slug: "chip-imoveis",
+        title: "Imóveis & Locação",
+        target_route: "/imoveis",
+        template_type: "category_hub" as const,
+        module: "home" as const,
+        icon_name: "House",
+        sort_order: 11,
+        show_title: true,
+      },
+      {
+        slug: "chip-doacoes",
+        title: "Doações & Solidariedade",
+        target_route: "/doacoes",
+        template_type: "category_hub" as const,
+        module: "home" as const,
+        icon_name: "Heartbeat",
+        sort_order: 12,
+        show_title: true,
+      },
+      {
+        slug: "chip-diretorio",
+        title: "Diretório Comercial",
+        target_route: "/diretorio",
+        template_type: "category_hub" as const,
+        module: "home" as const,
+        icon_name: "Compass",
+        sort_order: 13,
+        show_title: true,
+      },
+    ];
+
+    // ── 3. COLEÇÕES & HOTPAGES EDITORIAIS (HOTPAGES RAIL) ──
+    const CANONICAL_EDITORIAL_HOTPAGES = [
+      {
+        slug: "ofertas-relampago",
+        title: "Ofertas Relâmpago",
+        badge_label: "OFERTAS",
+        hero_stat_badge: "ATÉ 60% OFF",
+        cover_image_url: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1000&q=80",
+        target_route: "/ofertas",
+        template_type: "editorial_card" as const,
+        module: "home" as const,
+        sort_order: 1,
+        show_title: true,
+        show_badge: true,
+        show_overlay: true,
+      },
+      {
+        slug: "almoco-executivo",
+        title: "Almoço Rápido & Pratos Executivos",
+        badge_label: "SABOR",
+        hero_stat_badge: "DELIVERY",
+        cover_image_url: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1000&q=80",
+        target_route: "/gastronomia",
+        template_type: "editorial_card" as const,
+        module: "home" as const,
+        sort_order: 2,
+        show_title: true,
+        show_badge: true,
+        show_overlay: true,
+      },
+      {
+        slug: "supermercado-express",
+        title: "Supermercado em 15 Minutos",
+        badge_label: "ESSENCIAL",
+        hero_stat_badge: "EXPRESS",
+        cover_image_url: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=1000&q=80",
+        target_route: "/mercado",
+        template_type: "editorial_card" as const,
+        module: "home" as const,
+        sort_order: 3,
+        show_title: true,
+        show_badge: true,
+        show_overlay: true,
+      },
+    ];
+
+    const ALL_ITEMS = [
+      ...CANONICAL_HERO_MODULES,
+      ...CANONICAL_SUBCATEGORY_CHIPS,
+      ...CANONICAL_EDITORIAL_HOTPAGES,
+    ];
+
+    let insertedCount = 0;
+    for (const item of ALL_ITEMS) {
+      const { data: existing } = await supabase
+        .from("hotpages")
+        .select("id, cover_image_url, custom_icon_url")
+        .eq("slug", item.slug)
+        .maybeSingle();
+
+      if (!existing) {
+        await supabase.from("hotpages").insert({
+          ...item,
+          is_active: true,
+        });
+        insertedCount++;
+      } else {
+        // Atualiza campos sem sobrescrever uploads personalizados
+        await supabase
+          .from("hotpages")
+          .update({
+            template_type: item.template_type,
+            target_route: item.target_route,
+            show_title: (item as any).show_title ?? false,
+            show_badge: (item as any).show_badge ?? false,
+            show_overlay: (item as any).show_overlay ?? false,
+            sort_order: item.sort_order,
+          })
+          .eq("id", existing.id);
+      }
+    }
+
+    return { success: true, insertedCount };
+  }
+);
+

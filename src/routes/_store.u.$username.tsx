@@ -24,7 +24,7 @@ export const Route = createFileRoute("/_store/u/$username")({
         { title },
         {
           name: "description",
-          content: loaderData?.data?.profile?.bio || "Perfil no ecossistema comunitário JAH.",
+          content: loaderData?.data?.profile?.bio || "Perfil no ecossistema comunitário Wider.",
         },
       ],
     };

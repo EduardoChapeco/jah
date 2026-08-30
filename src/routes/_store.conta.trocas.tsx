@@ -10,8 +10,7 @@ import { formatDate } from "@/lib/datetime";
 export const Route = createFileRoute("/_store/conta/trocas")({
   head: () => ({ meta: [{ title: "Trocas e Devoluções" }] }),
   loader: async () => {
-    const res = await listCustomerRmas();
-    return res;
+    return (await listCustomerRmas().catch(() => [])) || [];
   },
   component: Page,
 });

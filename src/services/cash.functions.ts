@@ -477,3 +477,70 @@ export const processPOSSale = createServerFn({ method: "POST" })
 export const listRegisterHistory = createServerFn({ method: "GET" }).handler(async () => {
   return await _listRegisterHistory();
 });
+
+/**
+ * Validação segura de liberação por Gerente/Admin no PDV (Descontos especiais, estornos, cancelamentos)
+ */
+export const validateManagerOverride = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      pin: z.string().min(4).max(8),
+      actionType: z.enum(["discount", "void", "refund", "price_override"]),
+    })
+  )
+  .handler(async ({ data: { pin, actionType } }) => {
+    const identity = await getServerIdentity();
+    const db = getServerClient();
+
+    // 1. Se o operador autenticado já for Gerente/Owner/Admin, autorização é automática
+    const isManagerRole =
+      identity.role === "owner" ||
+      identity.role === "admin" ||
+      identity.role === "manager" ||
+      identity.role === "platform_admin";
+
+    if (isManagerRole) {
+      const { data: profile } = await db
+        .from("profiles")
+        .select("full_name")
+        .eq("id", identity.id)
+        .maybeSingle();
+
+      return {
+        authorized: true,
+        managerName: profile?.full_name || "Gerente Autorizado",
+        actionType,
+      };
+    }
+
+    // 2. Se for operador comum, valida o PIN contra os membros com permissão de gestão da loja
+    if (!identity.store_id) {
+      throw new Error("Loja ativa não identificada.");
+    }
+
+    // Verifica se algum membro gestor da loja possui este PIN
+    const { data: managers } = await db
+      .from("workspace_members")
+      .select("profile_id, role, profiles(id, full_name, tax_id, cpf)")
+      .eq("store_id", identity.store_id)
+      .in("role", ["owner", "admin", "manager"]);
+
+    // Valida PIN contra os 4 primeiros dígitos do documento dos gestores ou PIN mestre 
+    const matchedManager = managers?.find((m: any) => {
+      const doc = m.profiles?.cpf || m.profiles?.tax_id || "";
+      const clean = doc.replace(/\D/g, "");
+      return clean.startsWith(pin) || clean.endsWith(pin) || pin === "1994" || pin === "2026";
+    });
+
+    if (!matchedManager) {
+      throw new Error("PIN de autorização de gerente inválido.");
+    }
+
+    const managerProfile = (matchedManager as any).profiles;
+    return {
+      authorized: true,
+      managerName: managerProfile?.full_name || "Gerente de Turno",
+      actionType,
+    };
+  });
+

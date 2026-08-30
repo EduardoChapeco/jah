@@ -213,6 +213,7 @@ const WORKSPACE_MODULES: NavGroup[] = [
     icon: Settings,
     items: [
       { path: "/workspace/configuracoes", label: "Configurações da Loja", icon: Settings },
+      { path: "/workspace/configuracoes/equipe", label: "Equipe & Colaboradores", icon: Users },
       { path: "/workspace/lojas", label: "Minhas Lojas / Unidades", icon: Store },
       { path: "/workspace/qualidade", label: "Curadoria & Selo de Qualidade", icon: ShieldCheck },
       { path: "/workspace/configuracoes/ai", label: "Agentes & IA", icon: Sparkles },

@@ -49,6 +49,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/workspace/configuracoes/")({
+  head: () => ({ meta: [{ title: "Configurações da Loja & Perfil Comercial | Workspace Wider" }] }),
   loader: async () => {
     try {
       const [settingsRes, hoursRes, policiesRes] = await Promise.all([
@@ -240,7 +241,21 @@ export default function WorkspaceConfiguracoesPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-semibold gap-1.5  h-9">
+          <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-semibold gap-1.5 h-9">
+            <Link to="/workspace/configuracoes/sessoes">
+              <ShieldCheck className="size-3.5 text-primary" />
+              <span>Sessões & Segurança</span>
+            </Link>
+          </Button>
+
+          <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-semibold gap-1.5 h-9">
+            <Link to="/workspace/configuracoes/equipe">
+              <Building2 className="size-3.5" />
+              <span>Equipe & Permissões</span>
+            </Link>
+          </Button>
+
+          <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-semibold gap-1.5 h-9">
             <Link to="/workspace/lojas">
               <Store className="size-3.5" />
               <span>Ver Lojas</span>

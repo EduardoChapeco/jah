@@ -10,14 +10,20 @@ export function HeroCarousel({
   content,
   node_id,
   block_type,
+  resolvedBanners,
 }: {
   content: Record<string, unknown>;
   node_id?: string;
   block_type?: string;
+  resolvedBanners?: any[];
 }) {
   const autoPlay = content.autoPlay !== false;
   const interval = Number(content.interval || 5) * 1000;
-  let banners = (Array.isArray(content.banners) ? content.banners : []) as any[];
+  let banners = (resolvedBanners && resolvedBanners.length > 0
+    ? resolvedBanners
+    : Array.isArray(content.banners)
+      ? content.banners
+      : []) as any[];
   if (banners.length === 0 && (content.image_url || content.title)) {
     banners = [
       {

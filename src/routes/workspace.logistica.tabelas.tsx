@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import {
   Truck,
   Car,
@@ -8,6 +8,7 @@ import {
   Zap,
   Save,
   CheckCircle2,
+  Loader2,
 } from "lucide-react";
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
@@ -17,17 +18,29 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { formatMoney } from "@/lib/money";
 import { toast } from "sonner";
+import {
+  listLogisticsPriceTables,
+  saveLogisticsPriceTable,
+} from "@/services/mobility.functions";
 
 export const Route = createFileRoute("/workspace/logistica/tabelas")({
   head: () => ({
     meta: [{ title: "Tabelas de Preço de Frete & KM | Wider Workspace" }],
   }),
+  loader: async () => {
+    try {
+      const res = await listLogisticsPriceTables();
+      return res || [];
+    } catch {
+      return [];
+    }
+  },
   component: WorkspaceLogisticsPriceTablesPage,
 });
 
 interface PriceTableItem {
-  id: string;
-  service_type: string;
+  id?: string;
+  service_type: any;
   name: string;
   base_fee_cents: number;
   km_rate_cents: number;
@@ -38,7 +51,6 @@ interface PriceTableItem {
 
 const DEFAULT_TABLES: PriceTableItem[] = [
   {
-    id: "1",
     service_type: "delivery_express",
     name: "Entrega Expressa (Moto / Flash)",
     base_fee_cents: 500,
@@ -48,7 +60,6 @@ const DEFAULT_TABLES: PriceTableItem[] = [
     is_active: true,
   },
   {
-    id: "2",
     service_type: "ride_car",
     name: "Transporte de Passageiros (Carro)",
     base_fee_cents: 600,
@@ -58,7 +69,6 @@ const DEFAULT_TABLES: PriceTableItem[] = [
     is_active: true,
   },
   {
-    id: "3",
     service_type: "freight_van",
     name: "Fretes & Utilitários (Fiorino / Van)",
     base_fee_cents: 2500,
@@ -68,7 +78,6 @@ const DEFAULT_TABLES: PriceTableItem[] = [
     is_active: true,
   },
   {
-    id: "4",
     service_type: "moving_truck",
     name: "Mudanças Completas (Caminhão Baú)",
     base_fee_cents: 8000,
@@ -80,21 +89,53 @@ const DEFAULT_TABLES: PriceTableItem[] = [
 ];
 
 function WorkspaceLogisticsPriceTablesPage() {
-  const [tables, setTables] = useState<PriceTableItem[]>(DEFAULT_TABLES);
+  const loadedTables = Route.useLoaderData() as any[];
+  const router = useRouter();
+
+  const [tables, setTables] = useState<PriceTableItem[]>(() => {
+    if (loadedTables && loadedTables.length > 0) {
+      return loadedTables;
+    }
+    return DEFAULT_TABLES;
+  });
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleUpdate = (id: string, field: keyof PriceTableItem, value: any) => {
+  useEffect(() => {
+    if (loadedTables && loadedTables.length > 0) {
+      setTables(loadedTables);
+    }
+  }, [loadedTables]);
+
+  const handleUpdate = (serviceType: string, field: keyof PriceTableItem, value: any) => {
     setTables((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, [field]: value } : t)),
+      prev.map((t) => (t.service_type === serviceType ? { ...t, [field]: value } : t)),
     );
   };
 
-  const handleSaveAll = () => {
+  const handleSaveAll = async () => {
     setIsSaving(true);
-    setTimeout(() => {
+    try {
+      for (const table of tables) {
+        await saveLogisticsPriceTable({
+          data: {
+            id: table.id,
+            name: table.name,
+            service_type: table.service_type,
+            base_fee_cents: table.base_fee_cents || 0,
+            km_rate_cents: table.km_rate_cents || 0,
+            min_fare_cents: table.min_fare_cents || 0,
+            helper_fee_cents: table.helper_fee_cents || 0,
+            is_active: table.is_active ?? true,
+          },
+        });
+      }
+      toast.success("Tabelas de frete e tarifas por KM salvas com sucesso no banco!");
+      await router.invalidate();
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao salvar tabelas de preço.");
+    } finally {
       setIsSaving(false);
-      toast.success("Tabelas de frete e tarifas por KM salvas com sucesso!");
-    }, 600);
+    }
   };
 
   return (
@@ -108,10 +149,10 @@ function WorkspaceLogisticsPriceTablesPage() {
             onClick={handleSaveAll}
             disabled={isSaving}
             size="sm"
-            className="font-bold text-xs bg-primary text-primary-foreground gap-2"
+            className="font-bold text-xs bg-primary text-primary-foreground gap-2 rounded-xl h-9"
           >
-            <Save className="size-3.5" />
-            <span>{isSaving ? "Salvando..." : "Salvar Alterações"}</span>
+            {isSaving ? <Loader2 className="size-3.5 animate-spin" /> : <Save className="size-3.5" />}
+            <span>{isSaving ? "Salvando no Banco..." : "Salvar Alterações"}</span>
           </Button>
         }
       />
@@ -148,7 +189,7 @@ function WorkspaceLogisticsPriceTablesPage() {
                 <input
                   type="checkbox"
                   checked={table.is_active}
-                  onChange={(e) => handleUpdate(table.id, "is_active", e.target.checked)}
+                  onChange={(e) => handleUpdate(table.id as string, "is_active", e.target.checked)}
                   className="rounded border-border text-primary size-4"
                 />
                 <span className={table.is_active ? "text-foreground" : "text-muted-foreground"}>
@@ -162,7 +203,7 @@ function WorkspaceLogisticsPriceTablesPage() {
                 <Label className="text-xs font-bold text-muted-foreground">Tarifa de Saída (Base)</Label>
                 <CurrencyField
                   value={table.base_fee_cents}
-                  onChange={(cents) => handleUpdate(table.id, "base_fee_cents", cents || 0)}
+                  onChange={(cents) => handleUpdate(table.id as string, "base_fee_cents", cents || 0)}
                   placeholder="0,00"
                   className="h-10 text-sm font-mono"
                 />
@@ -173,7 +214,7 @@ function WorkspaceLogisticsPriceTablesPage() {
                 <Label className="text-xs font-bold text-muted-foreground">Valor por KM Rodado</Label>
                 <CurrencyField
                   value={table.km_rate_cents}
-                  onChange={(cents) => handleUpdate(table.id, "km_rate_cents", cents || 0)}
+                  onChange={(cents) => handleUpdate(table.id as string, "km_rate_cents", cents || 0)}
                   placeholder="0,00"
                   className="h-10 text-sm font-mono"
                 />
@@ -184,7 +225,7 @@ function WorkspaceLogisticsPriceTablesPage() {
                 <Label className="text-xs font-bold text-muted-foreground">Corrida Mínima</Label>
                 <CurrencyField
                   value={table.min_fare_cents}
-                  onChange={(cents) => handleUpdate(table.id, "min_fare_cents", cents || 0)}
+                  onChange={(cents) => handleUpdate(table.id as string, "min_fare_cents", cents || 0)}
                   placeholder="0,00"
                   className="h-10 text-sm font-mono"
                 />
@@ -195,7 +236,7 @@ function WorkspaceLogisticsPriceTablesPage() {
                 <Label className="text-xs font-bold text-muted-foreground">Taxa de Ajudante / Carga</Label>
                 <CurrencyField
                   value={table.helper_fee_cents}
-                  onChange={(cents) => handleUpdate(table.id, "helper_fee_cents", cents || 0)}
+                  onChange={(cents) => handleUpdate(table.id as string, "helper_fee_cents", cents || 0)}
                   placeholder="0,00"
                   className="h-10 text-sm font-mono"
                 />

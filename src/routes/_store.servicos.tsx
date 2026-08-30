@@ -32,6 +32,7 @@ import { PageSkeleton } from "@/components/state/loading";
 import { HorizontalRail } from "@/components/commerce/horizontal-rail";
 import { StoreCard } from "@/components/commerce/store-card";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
+import { ContextualStoriesRail } from "@/components/stories/contextual-stories-rail";
 import { HotpagesRail } from "@/components/commerce/hotpages-rail";
 import { RequestQuoteModal } from "@/components/commerce/request-quote-modal";
 import { ServicePackagesRail } from "@/components/commerce/service-packages-rail";
@@ -268,6 +269,9 @@ function ServicosVerticalPage() {
           <BannerHeroCarousel banners={banners} />
         </section>
       )}
+
+      {/* ── 1.5. Stories de Prestadores & Demonstrações de Serviços ── */}
+      <ContextualStoriesRail niche="servicos" className="py-1" />
 
       {/* ── 2. Pacotes de Aulas & Passes com Desconto ── */}
       {packages && packages.length > 0 && (

@@ -661,3 +661,334 @@ export const listCommunityNewsTips = createServerFn({ method: "GET" }).handler(a
 
   return data || [];
 });
+
+// ── 5. Importador de Artigo via URL (Workspace Integration) ─────────────────
+
+export interface ImportedArticlePreview {
+  title: string;
+  subtitle: string;
+  kicker: string;
+  category: string;
+  tags: string[];
+  cover_media_url: string | null;
+  content_sections: NewsSectionDTO[];
+  reading_time_minutes: number;
+  quality_score: number;
+  ai_summary: string;
+  source_url: string;
+  source_domain: string;
+  ai_provider_used: string;
+  mined_article_id: string | null;
+}
+
+/**
+ * Importa e estrutura um artigo/notícia a partir de qualquer URL.
+ * Usa Firecrawl (se disponível) + IA (Gemini/Groq) para extração.
+ * Grava em mined_articles para rastreabilidade e retorna preview para o editor.
+ */
+export const importArticleFromUrl = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      url: z.string().url("URL inválida — informe uma URL completa (https://...)"),
+      tone: z.enum(["editorial", "profissional", "imparcial", "opinativo", "tecnico"]).default("editorial"),
+      content_type: z.enum(["news", "blog_post", "recipe", "tech_spec"]).default("news"),
+    })
+  )
+  .handler(async ({ data: input }): Promise<ImportedArticlePreview> => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    if (!identity.store_id) throw new Error("Nenhum espaço de trabalho ativo.");
+
+    const domain = new URL(input.url).hostname;
+
+    // Verifica bloqueio do domínio
+    const { data: scraperConfig } = await supabase
+      .from("scraper_configs")
+      .select("is_blocked, blocked_reason")
+      .eq("domain", domain)
+      .maybeSingle();
+
+    if (scraperConfig?.is_blocked) {
+      throw new Error(`Domínio ${domain} está bloqueado: ${scraperConfig.blocked_reason || "Violação de ToS"}`);
+    }
+
+    // Helper: próxima chave ativa
+    async function getNextActiveKey(provider: string) {
+      const { data } = await supabase
+        .from("api_key_pools")
+        .select("id, encrypted_key")
+        .eq("provider", provider)
+        .eq("is_active", true)
+        .order("last_used_at", { ascending: true, nullsFirst: true })
+        .limit(1)
+        .maybeSingle();
+      if (!data?.encrypted_key) return null;
+      const rawKey = Buffer.from(data.encrypted_key, "base64").toString("utf-8");
+      await supabase.from("api_key_pools").update({ last_used_at: new Date().toISOString() }).eq("id", data.id);
+      return { id: data.id, rawKey };
+    }
+
+    // 1. Extração de conteúdo
+    let rawContent = "";
+    let firecrawlUsed = false;
+
+    const firecrawlKey = await getNextActiveKey("firecrawl");
+    if (firecrawlKey) {
+      try {
+        const fcRes = await fetch("https://api.firecrawl.dev/v1/scrape", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${firecrawlKey.rawKey}` },
+          body: JSON.stringify({ url: input.url, formats: ["markdown"], onlyMainContent: true }),
+          signal: AbortSignal.timeout(12000),
+        });
+        if (fcRes.ok) {
+          const fcJson = await fcRes.json();
+          rawContent = fcJson?.data?.markdown || "";
+          if (rawContent) firecrawlUsed = true;
+        }
+      } catch (e: any) {
+        console.warn("[importArticle] Firecrawl error:", e.message);
+      }
+    }
+
+    if (!rawContent) {
+      const fetchRes = await fetch(input.url, {
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; WiderBot/1.0)" },
+        signal: AbortSignal.timeout(8000),
+      });
+      if (!fetchRes.ok) throw new Error(`Não foi possível acessar a URL (HTTP ${fetchRes.status})`);
+      const html = await fetchRes.text();
+      rawContent = html
+        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+        .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
+        .replace(/<[^>]+>/g, " ")
+        .replace(/\s+/g, " ")
+        .slice(0, 15000);
+    }
+
+    if (!rawContent || rawContent.length < 50) {
+      throw new Error("A página não retornou conteúdo suficiente para importação.");
+    }
+
+    const sanitized = rawContent.replace(/\{\{|\}\}/g, "").slice(0, 12000);
+
+    // 2. Estruturação via IA
+    const systemPrompt = `Você é um editor-chefe de jornalismo digital. Extraia e estruture o conteúdo abaixo no formato JSON solicitado. Retorne APENAS JSON válido, sem markdown.`;
+    const userPrompt = `Extraia e estruture este conteúdo como artigo jornalístico.
+URL: ${input.url}
+Tom: ${input.tone}
+
+Conteúdo:
+${sanitized}
+
+Retorne APENAS este JSON:
+{
+  "title": "Título editorial da matéria",
+  "subtitle": "Subtítulo/lead conciso e informativo",
+  "kicker": "Chapéu (ex: POLÍTICA, ECONOMIA, CIDADE)",
+  "category": "cidade|politica|economia|cultura|esportes|tecnologia|urgente|geral",
+  "tags": ["tag1", "tag2", "tag3"],
+  "cover_image_url": "URL da imagem de capa se encontrada ou null",
+  "summary": "Resumo executivo de 2-3 frases",
+  "estimated_reading_time": 3,
+  "quality_score": 75,
+  "sections": [
+    {"type": "paragraph", "content": "Primeiro parágrafo..."},
+    {"type": "heading", "content": "Subtítulo de seção"},
+    {"type": "paragraph", "content": "Continuação..."},
+    {"type": "quote", "content": "Citação importante", "caption": "Fonte/autor"}
+  ]
+}`;
+
+    let extracted: any = null;
+    let aiProviderUsed = "fallback";
+
+    const geminiKey = await getNextActiveKey("gemini");
+    const groqKey = await getNextActiveKey("groq");
+
+    if (geminiKey) {
+      try {
+        const gRes = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey.rawKey}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              systemInstruction: { parts: [{ text: systemPrompt }] },
+              contents: [{ parts: [{ text: userPrompt }] }],
+              generationConfig: { temperature: 0.2, responseMimeType: "application/json" },
+            }),
+            signal: AbortSignal.timeout(20000),
+          }
+        );
+        if (gRes.ok) {
+          const gJson = await gRes.json();
+          const txt = gJson?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (txt) { extracted = JSON.parse(txt); aiProviderUsed = "gemini"; }
+        }
+      } catch (e: any) {
+        console.warn("[importArticle] Gemini error:", e.message);
+      }
+    }
+
+    if (!extracted && groqKey) {
+      try {
+        const grRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${groqKey.rawKey}` },
+          body: JSON.stringify({
+            model: "llama-3.1-70b-versatile",
+            messages: [
+              { role: "system", content: `${systemPrompt}\nResponda APENAS com JSON válido.` },
+              { role: "user", content: userPrompt },
+            ],
+            temperature: 0.2,
+            response_format: { type: "json_object" },
+          }),
+          signal: AbortSignal.timeout(20000),
+        });
+        if (grRes.ok) {
+          const grJson = await grRes.json();
+          const content = grJson?.choices?.[0]?.message?.content;
+          if (content) { extracted = JSON.parse(content); aiProviderUsed = "groq"; }
+        }
+      } catch (e: any) {
+        console.warn("[importArticle] Groq error:", e.message);
+      }
+    }
+
+    // Fallback determinístico
+    if (!extracted) {
+      extracted = {
+        title: `Conteúdo importado de ${domain}`,
+        subtitle: `Importado de ${input.url}`,
+        kicker: "IMPORTADO",
+        category: "geral",
+        tags: [domain.replace("www.", "")],
+        cover_image_url: null,
+        summary: `Conteúdo importado de ${input.url}. Revise antes de publicar.`,
+        estimated_reading_time: 3,
+        quality_score: 20,
+        sections: [{ type: "paragraph" as const, content: sanitized.slice(0, 3000) }],
+      };
+      aiProviderUsed = "fallback";
+    }
+
+    // 3. Persiste em mined_articles para rastreabilidade
+    const { data: mined } = await supabase
+      .from("mined_articles")
+      .insert({
+        source_url: input.url,
+        source_domain: domain,
+        source_type: "crawl",
+        store_id: identity.store_id,
+        raw_title: extracted.title,
+        extracted_markdown: rawContent.slice(0, 50000),
+        ai_structured_title: extracted.title,
+        ai_structured_subtitle: extracted.subtitle,
+        ai_structured_sections: extracted.sections || [],
+        ai_suggested_kicker: extracted.kicker,
+        ai_suggested_category: extracted.category,
+        ai_suggested_tags: extracted.tags || [],
+        ai_suggested_cover_url: extracted.cover_image_url || null,
+        ai_summary: extracted.summary,
+        quality_score: extracted.quality_score || 50,
+        word_count: rawContent.split(/\s+/).length,
+        has_cover_image: !!extracted.cover_image_url,
+        status: "pending_review",
+        tokens_consumed: 3000, // burn_content_import_url
+        ai_provider_used: aiProviderUsed,
+        firecrawl_used: firecrawlUsed,
+        processing_completed_at: new Date().toISOString(),
+      })
+      .select("id")
+      .single();
+
+    return {
+      title: extracted.title || "",
+      subtitle: extracted.subtitle || "",
+      kicker: extracted.kicker || "",
+      category: extracted.category || "geral",
+      tags: extracted.tags || [],
+      cover_media_url: extracted.cover_image_url || null,
+      content_sections: (extracted.sections || []) as NewsSectionDTO[],
+      reading_time_minutes: extracted.estimated_reading_time || 3,
+      quality_score: extracted.quality_score || 50,
+      ai_summary: extracted.summary || "",
+      source_url: input.url,
+      source_domain: domain,
+      ai_provider_used: aiProviderUsed,
+      mined_article_id: mined?.id || null,
+    };
+  });
+
+/**
+ * Gera um resumo executivo de um artigo existente com IA
+ */
+export const aiSummarizeArticle = createServerFn({ method: "POST" })
+  .validator(z.object({ article_id: z.string().uuid() }))
+  .handler(async ({ data: { article_id } }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    if (!identity.store_id) throw new Error("Acesso negado.");
+
+    const { data: article, error } = await supabase
+      .from("news_articles")
+      .select("title, subtitle, content_sections")
+      .eq("id", article_id)
+      .eq("store_id", identity.store_id)
+      .single();
+
+    if (error || !article) throw new Error("Artigo não encontrado.");
+
+    const { data: keyData } = await supabase
+      .from("api_key_pools")
+      .select("encrypted_key")
+      .eq("provider", "gemini")
+      .eq("is_active", true)
+      .order("last_used_at", { ascending: true, nullsFirst: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (!keyData?.encrypted_key) throw new Error("Nenhuma chave de IA disponível.");
+    const rawKey = Buffer.from(keyData.encrypted_key, "base64").toString("utf-8");
+
+    const contentText = (article.content_sections as any[])
+      .filter((s) => s.type === "paragraph")
+      .map((s) => s.content)
+      .join("\n")
+      .slice(0, 5000);
+
+    const prompt = `Você é um editor de notícias. Gere um resumo executivo de 2-3 frases do artigo abaixo, capturando o ponto principal, impacto e contexto. Seja direto e objetivo.
+
+Título: ${article.title}
+Subtítulo: ${article.subtitle || ""}
+Conteúdo: ${contentText}
+
+Retorne APENAS o texto do resumo, sem formatação ou prefixos.`;
+
+    const gRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${rawKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.3, maxOutputTokens: 256 },
+        }),
+        signal: AbortSignal.timeout(15000),
+      }
+    );
+
+    if (!gRes.ok) throw new Error(`Erro na IA: HTTP ${gRes.status}`);
+    const gJson = await gRes.json();
+    const summary = gJson?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+    // Persiste o resumo no artigo
+    await supabase
+      .from("news_articles")
+      .update({ ai_summary: summary, updated_at: new Date().toISOString() })
+      .eq("id", article_id);
+
+    return { summary };
+  });

@@ -133,7 +133,7 @@ export const updateTeamMemberRole = createServerFn({ method: "POST" })
 export async function _inviteTeamMember(input: {
   email: string;
   fullName: string;
-  role: "admin" | "manager" | "seller" | "finance" | "content";
+  role: "admin" | "manager" | "seller" | "finance" | "content" | "stock" | "support";
 }) {
   const db = getServerClient();
   const identity = await getServerIdentity();
@@ -144,33 +144,64 @@ export async function _inviteTeamMember(input: {
     throw new Error("Gerentes não podem convidar membros com cargo de Administrador.");
   }
 
-  // 1. Create Auth User (using admin api)
+  let targetUserId: string | null = null;
+
+  // 1. Tenta criar usuário novo
   const { data: authData, error: authError } = await db.auth.admin.createUser({
-    email: input.email,
-    password: "Wider123!", // Temp password
+    email: input.email.toLowerCase().trim(),
+    password: "Wider" + Math.random().toString(36).slice(-8) + "!",
     email_confirm: true,
     user_metadata: {
       full_name: input.fullName,
     },
   });
 
-  if (authError) throw new Error(`Erro ao criar conta Auth: ${authError.message}`);
+  if (authError) {
+    if (
+      authError.message?.toLowerCase().includes("already") ||
+      authError.message?.toLowerCase().includes("registered") ||
+      authError.message?.toLowerCase().includes("exists")
+    ) {
+      // Localiza usuário já existente pelo e-mail
+      const { data: listData } = await db.auth.admin.listUsers();
+      const existingUser = listData?.users?.find(
+        (u) => u.email?.toLowerCase() === input.email.toLowerCase().trim(),
+      );
+      if (existingUser?.id) {
+        targetUserId = existingUser.id;
+      } else {
+        throw new Error(`Erro ao localizar usuário existente: ${authError.message}`);
+      }
+    } else {
+      throw new Error(`Erro ao registrar usuário: ${authError.message}`);
+    }
+  } else if (authData?.user?.id) {
+    targetUserId = authData.user.id;
+  }
 
-  // 2. Upsert the profile to mitigate latency and ensure store mapping is linked correctly
-  const { error: memberError } = await db.from("workspace_members").upsert({
-    profile_id: authData.user.id,
-    store_id: identity.store_id,
-    role: input.role,
-  });
+  if (!targetUserId) {
+    throw new Error("Não foi possível identificar o usuário para vincular à equipe.");
+  }
 
-  if (memberError) throw new Error("Erro ao promover usuário a membro da equipe.");
-
-  const { error: profileError } = await db.from("profiles").upsert({
-    id: authData.user.id,
+  // 2. Garante perfil preenchido
+  await db.from("profiles").upsert({
+    id: targetUserId,
     full_name: input.fullName,
   });
 
-  if (profileError) throw new Error("Erro ao promover usuário a membro da equipe.");
+  // 3. Insere ou atualiza vínculo estritamente no store_id da loja ativa
+  const { error: memberError } = await db.from("workspace_members").upsert(
+    {
+      profile_id: targetUserId,
+      store_id: identity.store_id,
+      role: input.role,
+    },
+    { onConflict: "profile_id,store_id" },
+  );
+
+  if (memberError) {
+    throw new Error(`Erro ao vincular membro à loja: ${memberError.message}`);
+  }
 
   return { status: "success" as const };
 }
@@ -180,7 +211,7 @@ export const inviteTeamMember = createServerFn({ method: "POST" })
     z.object({
       email: z.string().email(),
       fullName: z.string().min(1),
-      role: z.enum(["admin", "manager", "seller", "finance", "content"]),
+      role: z.enum(["admin", "manager", "seller", "finance", "content", "stock", "support"]),
     }),
   )
   .handler(async ({ data: input }) => {
@@ -188,6 +219,55 @@ export const inviteTeamMember = createServerFn({ method: "POST" })
       return await _inviteTeamMember(input);
     } catch (e: unknown) {
       console.error("[admin-team] inviteTeamMember error:", e);
-      throw new Error(e instanceof Error ? e.message : "Erro.");
+      throw new Error(e instanceof Error ? e.message : "Erro ao convidar membro.");
+    }
+  });
+
+export async function _removeTeamMember(input: { profileId: string }) {
+  const db = getServerClient();
+  const identity = await getServerIdentity();
+  assertStoreAccess(identity, ["owner", "admin"]);
+
+  if (input.profileId === identity.id) {
+    throw new Error("Você não pode remover o seu próprio acesso da loja.");
+  }
+
+  // Verifica se o alvo é owner
+  const { data: targetMember } = await db
+    .from("workspace_members")
+    .select("role")
+    .eq("profile_id", input.profileId)
+    .eq("store_id", identity.store_id)
+    .maybeSingle();
+
+  if (!targetMember) {
+    throw new Error("Membro não encontrado nesta loja.");
+  }
+
+  if (targetMember.role === "owner" && identity.role !== "owner") {
+    throw new Error("Apenas o proprietário principal pode remover outro proprietário.");
+  }
+
+  const { error } = await db
+    .from("workspace_members")
+    .delete()
+    .eq("profile_id", input.profileId)
+    .eq("store_id", identity.store_id);
+
+  if (error) {
+    throw new Error(`Erro ao revogar acesso: ${error.message}`);
+  }
+
+  return { status: "success" as const };
+}
+
+export const removeTeamMember = createServerFn({ method: "POST" })
+  .validator(z.object({ profileId: z.string().uuid() }))
+  .handler(async ({ data: input }) => {
+    try {
+      return await _removeTeamMember(input);
+    } catch (e: unknown) {
+      console.error("[admin-team] removeTeamMember error:", e);
+      throw new Error(e instanceof Error ? e.message : "Erro ao remover membro.");
     }
   });

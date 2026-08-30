@@ -17,7 +17,7 @@ import {
 export const Route = createFileRoute("/_store/conta/suporte")({
   head: () => ({ meta: [{ title: "Meus Atendimentos" }] }),
   loader: async () => {
-    return await listCustomerTickets();
+    return (await listCustomerTickets().catch(() => [])) || [];
   },
   component: CustomerSupportPage,
 });

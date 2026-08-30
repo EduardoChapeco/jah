@@ -26,6 +26,7 @@ import { getDashboardData, type DashboardMetrics } from "@/services/dashboard.fu
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/")({
+  head: () => ({ meta: [{ title: "Painel de Controle & Visão Geral | Workspace Wider" }] }),
   loader: async () => {
     let session: any = null;
     try {

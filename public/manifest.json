@@ -1,7 +1,7 @@
 {
-  "name": "Jah — Plataforma Comunitária",
-  "short_name": "Jah",
-  "description": "Wider Community Platform — Moda, Eventos e Cultura de Rua",
+  "name": "Wider — Super App Comunitário",
+  "short_name": "Wider",
+  "description": "Wider Community Platform — Comércio Local, Serviços, Turismo e Comunidade",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f4f4f0",

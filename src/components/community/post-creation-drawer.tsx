@@ -203,6 +203,14 @@ export function PostCreationDrawer({
   const handlePublish = async () => {
     if (isSubmitting || isUploadingMedia) return;
 
+    const isAuthenticated = Boolean(session?.user || session?.id);
+    if (!isAuthenticated) {
+      toast.info("Acesse sua conta para publicar no Mural.");
+      onOpenChange(false);
+      router.navigate({ to: "/entrar", search: { returnUrl: "/mural" } });
+      return;
+    }
+
     if (activeFormat === "simple" && !contentText.trim() && mediaUrls.length === 0) {
       toast.error("Escreva algo ou anexe uma foto para publicar.");
       return;

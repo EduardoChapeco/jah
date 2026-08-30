@@ -30,8 +30,7 @@ async function requirePlatformAdmin() {
   const { data: userData } = await db.auth.admin.getUserById(identity.id).catch(() => ({ data: { user: null } }));
   const email = userData?.user?.email?.toLowerCase();
   const MASTER_EMAILS = [
-    "excelenciatour.smo@gmail.com",
-    "eusoueduoficial@gmail.com",
+    "meuwider@gmail.com",
     "admin@wider.com.br",
   ];
 

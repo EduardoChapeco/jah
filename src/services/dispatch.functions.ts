@@ -148,17 +148,7 @@ export const getDeliveryByToken = createServerFn({ method: "GET" })
       .maybeSingle();
 
     if (error || !magicLink) {
-      return {
-        id: "demo-dispatch",
-        order_number: "PED-9821",
-        courier_name: "Entregador Parceiro",
-        delivery_address: "Av. Fernando Machado, 450 - Centro, Chapecó / SC",
-        recipient_name: "Cliente Final",
-        recipient_phone: "(49) 98844-2211",
-        delivery_fee_cents: 1200,
-        status: "in_transit" as const,
-        created_at: new Date().toISOString(),
-      };
+      return null;
     }
 
     const isDelivered = Boolean(magicLink.delivery_confirmed_at);

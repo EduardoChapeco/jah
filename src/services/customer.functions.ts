@@ -13,19 +13,24 @@ const AddressSchema = z.object({
 });
 
 export const getCustomerAddresses = createServerFn({ method: "GET" }).handler(async () => {
-  const ssrClient = await getSSRClient();
-  const {
-    data: { user },
-  } = await ssrClient.auth.getUser();
-  if (!user) throw new Error("Não autorizado");
-  const { data } = await ssrClient
-    .from("customer_addresses")
-    .select("*")
-    .eq("customer_id", user.id)
-    .order("is_default", { ascending: false })
-    .order("created_at", { ascending: false });
+  try {
+    const ssrClient = await getSSRClient();
+    const {
+      data: { user },
+    } = await ssrClient.auth.getUser();
+    if (!user) return [];
+    const { data } = await ssrClient
+      .from("customer_addresses")
+      .select("*")
+      .eq("customer_id", user.id)
+      .order("is_default", { ascending: false })
+      .order("created_at", { ascending: false });
 
-  return data || [];
+    return data || [];
+  } catch (err) {
+    console.warn("[customer.functions] getCustomerAddresses error:", err);
+    return [];
+  }
 });
 
 export const addCustomerAddress = createServerFn({ method: "POST" })

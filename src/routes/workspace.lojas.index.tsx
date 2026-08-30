@@ -31,6 +31,7 @@ import {
 } from "@/components/workspace/quick-store-editor-dialog";
 
 export const Route = createFileRoute("/workspace/lojas/")({
+  head: () => ({ meta: [{ title: "Minhas Lojas & Negócios | Workspace Wider" }] }),
   loader: async () => {
     const stores = await getMyStoresList();
     return { stores };
@@ -132,7 +133,7 @@ export default function WorkspaceLojasPage() {
               {activeStore?.name || "Nenhuma Selecionada"}
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
-              /{activeStore?.slug || "jah"} • {activeStore?.city || "Brasil"}
+              /{activeStore?.slug || "wider"} • {activeStore?.city || "Brasil"}
             </p>
           </div>
         </Card>

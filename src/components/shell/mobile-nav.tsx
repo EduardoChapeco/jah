@@ -48,7 +48,7 @@ export function MobileNav({ session }: MobileNavProps) {
 
       {/* 3. Ação Central de Criação (FAB + Sheet) */}
       <div className="flex items-center justify-center flex-1 min-h-[56px]">
-        <QuickCreateModal />
+        <QuickCreateModal isAuthenticated={isAuthenticated} session={session} />
       </div>
 
       {/* 4. Sacola de Compras */}

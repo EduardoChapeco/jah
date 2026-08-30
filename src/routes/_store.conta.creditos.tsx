@@ -22,8 +22,12 @@ import {
 export const Route = createFileRoute("/_store/conta/creditos")({
   head: () => ({ meta: [{ title: "Meus Créditos" }] }),
   loader: async () => {
-    const res = await getCustomerCredits();
-    return res;
+    return (
+      (await getCustomerCredits().catch(() => ({
+        balance_cents: 0,
+        customer_credit_transactions: [],
+      }))) || { balance_cents: 0, customer_credit_transactions: [] }
+    );
   },
   component: Page,
 });

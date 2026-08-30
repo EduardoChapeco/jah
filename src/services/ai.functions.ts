@@ -2,6 +2,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getServerClient } from "@/lib/supabase";
 import { getIdentity } from "./identity.functions";
+import { enforceRateLimit } from "@/lib/rate-limiter";
+import {
+  inspectPromptSecurity,
+  buildSandboxedPromptPayload,
+  sanitizeAiOutput,
+} from "@/lib/prompt-shield";
 
 // AI Router Function
 export const generateText = createServerFn({ method: "POST" })
@@ -18,6 +24,21 @@ export const generateText = createServerFn({ method: "POST" })
     const supabase = getServerClient();
     const identity = await getIdentity();
     if (!identity?.id) throw new Error("Não autenticado");
+
+    // 0. Rate Limiting de IA (Anti-Abuso & DDoS)
+    enforceRateLimit(identity.id, "ai_generation");
+
+    // 0.1 Prompt Shield: Varredura Anti-Jailbreak e Injeção de Instruções
+    const securityCheck = inspectPromptSecurity(input.prompt);
+    if (!securityCheck.isSafe) {
+      throw new Error(securityCheck.violationReason || "Prompt bloqueado por violação de segurança.");
+    }
+
+    // 0.2 Sandboxing de Contexto & Cláusula de Primazia do Sistema
+    const { hardenedSystemPrompt, sandboxedUserPrompt } = buildSandboxedPromptPayload(
+      securityCheck.sanitizedPrompt || input.prompt,
+      input.systemPrompt
+    );
 
     // 1. Resolve Credentials from Secret Vault
     // Prioritize personal scope, then organization, then global
@@ -48,13 +69,13 @@ export const generateText = createServerFn({ method: "POST" })
     
     try {
       if (input.provider === "gemini") {
-        generatedText = await invokeGemini(rawKey, input.prompt, input.systemPrompt, input.temperature, input.maxTokens);
+        generatedText = await invokeGemini(rawKey, sandboxedUserPrompt, hardenedSystemPrompt, input.temperature, input.maxTokens);
       } else if (input.provider === "openai") {
-        generatedText = await invokeOpenAI(rawKey, input.prompt, input.systemPrompt, input.temperature, input.maxTokens);
+        generatedText = await invokeOpenAI(rawKey, sandboxedUserPrompt, hardenedSystemPrompt, input.temperature, input.maxTokens);
       } else if (input.provider === "anthropic") {
-        generatedText = await invokeAnthropic(rawKey, input.prompt, input.systemPrompt, input.temperature, input.maxTokens);
+        generatedText = await invokeAnthropic(rawKey, sandboxedUserPrompt, hardenedSystemPrompt, input.temperature, input.maxTokens);
       } else if (input.provider === "openrouter") {
-        generatedText = await invokeOpenRouter(rawKey, input.prompt, input.systemPrompt, input.temperature, input.maxTokens);
+        generatedText = await invokeOpenRouter(rawKey, sandboxedUserPrompt, hardenedSystemPrompt, input.temperature, input.maxTokens);
       } else {
         throw new Error(`Provedor ${input.provider} ainda não implementado no roteador.`);
       }
@@ -63,12 +84,58 @@ export const generateText = createServerFn({ method: "POST" })
       throw new Error(`Falha no provedor de IA: ${err.message || "Erro desconhecido"}`);
     }
 
-    // 3. (TODO) Deduct usage from budget using a transaction log
+    // 2.1 Output Leakage Guard (Redação de credenciais e chaves expostas)
+    generatedText = sanitizeAiOutput(generatedText);
+
+    // 3. Deduct usage from budget & record in audit log
+    const estimatedTokens = Math.max(50, Math.ceil((input.prompt.length + generatedText.length) / 4));
+    
+    if (identity.store_id) {
+      try {
+        const { data: store } = await supabase
+          .from("stores")
+          .select("id, settings")
+          .eq("id", identity.store_id)
+          .single();
+
+        if (store) {
+          const settings = store.settings || {};
+          const wallet = settings.token_wallet || {
+            balance: 50_000,
+            lifetime_purchased: 50_000,
+            lifetime_consumed: 0,
+          };
+          const newBalance = Math.max(0, (wallet.balance || 0) - estimatedTokens);
+          wallet.balance = newBalance;
+          wallet.lifetime_consumed = (wallet.lifetime_consumed || 0) + estimatedTokens;
+          wallet.updated_at = new Date().toISOString();
+          settings.token_wallet = wallet;
+
+          await supabase.from("stores").update({ settings }).eq("id", store.id);
+
+          await supabase.from("audit_logs").insert({
+            store_id: store.id,
+            user_id: identity.id,
+            action: "ai_text_generation",
+            entity_type: "token_transaction",
+            payload_snapshot: {
+              provider: input.provider,
+              tokens_consumed: estimatedTokens,
+              balance_after: newBalance,
+              prompt_preview: input.prompt.slice(0, 100),
+            },
+          });
+        }
+      } catch (logErr) {
+        console.warn("[ai-router] Aviso ao debitar ledger de tokens:", logErr);
+      }
+    }
 
     return {
       success: true,
       provider: input.provider,
       text: generatedText,
+      tokensConsumed: estimatedTokens,
     };
   });
 

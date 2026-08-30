@@ -38,6 +38,7 @@ const ORDER_STATUS_LABELS: Record<string, string> = {
 };
 
 const ACCOUNT_SECTIONS = [
+  { to: "/conta/seguranca", label: "Segurança & Dispositivos Conectados", badge: "Proteção" },
   { to: "/conta/metricas", label: "Painel Profissional & Métricas", badge: "Insights" },
   { to: "/conta/pedidos", label: "Meus Pedidos", badge: null },
   { to: "/conta/agendamentos", label: "Minha Agenda & Horários", badge: "Serviços" },

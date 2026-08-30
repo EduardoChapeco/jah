@@ -275,9 +275,9 @@ export function BusinessHoursEditor({
                 className={cn(
                   "text-xs font-bold font-mono px-3 py-1 rounded-xl",
                   openStatus.isOpenNow
-                    ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30"
+                    ? "bg-success/10 text-success border-success/30"
                     : openStatus.status === "paused"
-                      ? "bg-amber-500/10 text-amber-600 border-amber-500/30"
+                      ? "bg-warning/10 text-warning border-warning/30"
                       : "bg-muted text-muted-foreground border-border"
                 )}
               >
@@ -285,9 +285,9 @@ export function BusinessHoursEditor({
                   className={cn(
                     "size-2 rounded-full mr-1.5 inline-block",
                     openStatus.isOpenNow
-                      ? "bg-emerald-500 animate-pulse"
+                      ? "bg-success animate-pulse"
                       : openStatus.status === "paused"
-                        ? "bg-amber-500 animate-ping"
+                        ? "bg-warning animate-ping"
                         : "bg-muted-foreground"
                   )}
                 />
@@ -303,7 +303,7 @@ export function BusinessHoursEditor({
                     type="button"
                     size="sm"
                     onClick={() => handleEmergencyPause(null)}
-                    className="h-8 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 shadow-xs"
+                    className="h-9 rounded-xl text-xs font-bold bg-success hover:bg-success/90 text-success-foreground gap-1.5 shadow-xs"
                   >
                     <PlayCircle className="size-3.5" />
                     <span>Retomar Loja Agora</span>
@@ -316,7 +316,7 @@ export function BusinessHoursEditor({
                       variant="outline"
                       size="sm"
                       onClick={() => handleEmergencyPause(30)}
-                      className="h-7 px-2 rounded-lg text-[11px] font-semibold"
+                      className="h-8 px-2.5 rounded-lg text-[11px] font-semibold"
                     >
                       30 min
                     </Button>
@@ -325,7 +325,7 @@ export function BusinessHoursEditor({
                       variant="outline"
                       size="sm"
                       onClick={() => handleEmergencyPause(60)}
-                      className="h-7 px-2 rounded-lg text-[11px] font-semibold"
+                      className="h-8 px-2.5 rounded-lg text-[11px] font-semibold"
                     >
                       1h
                     </Button>
@@ -334,7 +334,7 @@ export function BusinessHoursEditor({
                       variant="outline"
                       size="sm"
                       onClick={() => handleEmergencyPause("today")}
-                      className="h-7 px-2 rounded-lg text-[11px] font-semibold text-amber-600 hover:text-amber-700"
+                      className="h-8 px-2.5 rounded-lg text-[11px] font-semibold text-warning hover:text-warning/90"
                     >
                       Hoje
                     </Button>
@@ -599,7 +599,7 @@ export function BusinessHoursEditor({
                           className={cn(
                             "text-[10px] font-bold font-mono px-2 py-0.5",
                             hol.open
-                              ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30"
+                              ? "bg-success/10 text-success border-success/30"
                               : "bg-destructive/10 text-destructive border-destructive/30"
                           )}
                         >

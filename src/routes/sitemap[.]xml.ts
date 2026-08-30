@@ -38,10 +38,37 @@ export const Route = createFileRoute("/sitemap.xml")({
           // 3. Fetch active classifieds
           const { data: classifieds } = await db
             .from("classifieds")
-            .select("slug")
+            .select("slug, id")
             .eq("status", "published");
           if (classifieds) {
-            classifieds.forEach((c) => dynamicPaths.push(`/classificados/${c.slug}`));
+            classifieds.forEach((c) => dynamicPaths.push(`/classificados/${c.slug || c.id}`));
+          }
+
+          // 4. Fetch active tourism experiences
+          const { data: tourism } = await db
+            .from("tourism_experiences")
+            .select("id")
+            .eq("status", "published");
+          if (tourism) {
+            tourism.forEach((t) => dynamicPaths.push(`/turismo/${t.id}`));
+          }
+
+          // 5. Fetch active jobs
+          const { data: jobs } = await db
+            .from("jobs")
+            .select("id")
+            .eq("status", "published");
+          if (jobs) {
+            jobs.forEach((j) => dynamicPaths.push(`/empregos/${j.id}`));
+          }
+
+          // 6. Fetch active news articles
+          const { data: news } = await db
+            .from("news_articles")
+            .select("slug")
+            .eq("status", "published");
+          if (news) {
+            news.forEach((n) => dynamicPaths.push(`/noticias/${n.slug}`));
           }
         } catch (e) {
           console.error("Error generating dynamic sitemap paths:", e);

@@ -17,6 +17,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { signUpWithPassword, signInWithOAuth, getUserSession } from "@/services/auth.functions";
+import { ClientRegisterSchema, type RegisterForm } from "@/lib/contracts/auth.schema";
+import { LegalTermsSheet } from "@/components/legal/legal-terms-sheet";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/cadastro")({
@@ -32,21 +34,6 @@ export const Route = createFileRoute("/_store/cadastro")({
   component: RegisterPage,
 });
 
-const RegisterSchema = z.object({
-  fullName: z.string().min(2, "Digite seu nome completo"),
-  email: z.string().email("Digite um e-mail válido"),
-  password: z
-    .string()
-    .min(6, "A senha deve ter pelo menos 6 caracteres")
-    .regex(/[a-zA-Z]/, "A senha deve conter pelo menos uma letra")
-    .regex(/[0-9]/, "A senha deve conter pelo menos um número"),
-  isConsentLgpd: z.literal(true, {
-    errorMap: () => ({ message: "Você deve aceitar os termos de privacidade (LGPD)." }),
-  }),
-});
-
-type RegisterForm = z.infer<typeof RegisterSchema>;
-
 function RegisterPage() {
   const navigate = useNavigate();
   const router = useRouter();
@@ -54,6 +41,8 @@ function RegisterPage() {
   const returnUrl = search.returnUrl ?? "/";
   const errorParam = search.error;
   const [showPassword, setShowPassword] = useState(false);
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
+  const [termsSlug, setTermsSlug] = useState("termos");
 
   // Integração Google Login desativada por padrão
   const isGoogleAuthEnabled = false;
@@ -67,7 +56,7 @@ function RegisterPage() {
   }, [errorParam]);
 
   const form = useForm<RegisterForm>({
-    resolver: zodResolver(RegisterSchema),
+    resolver: zodResolver(ClientRegisterSchema),
     defaultValues: { fullName: "", email: "", password: "", isConsentLgpd: false as true },
   });
 
@@ -79,24 +68,21 @@ function RegisterPage() {
           password: data.password,
           fullName: data.fullName,
           redirectTo: returnUrl,
+          isConsentLgpd: data.isConsentLgpd,
         },
       });
 
-      if (!result.sessionActive) {
-        toast.success(
-          "Conta criada! Verifique seu e-mail e clique no link de confirmação para ativar seu acesso.",
-          { duration: 8000 },
-        );
-        navigate({ to: "/entrar", search: { returnUrl } });
+      if (!result.success) {
+        toast.error(result.message || "Erro ao cadastrar.");
         return;
       }
 
-      toast.success("Conta criada com sucesso!");
+      toast.success("Conta criada com sucesso! Bem-vindo(a) ao Wider.");
       if (typeof window !== "undefined") {
         sessionStorage.setItem("wider_just_registered", "true");
       }
       await new Promise((r) => setTimeout(r, 100));
-      await getUserSession();
+      await getUserSession().catch(() => null);
       window.location.href = returnUrl || "/";
     } catch (e: unknown) {
       toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao cadastrar.");
@@ -118,44 +104,20 @@ function RegisterPage() {
 
   return (
     <div className="min-h-screen w-full flex flex-col lg:flex-row bg-background">
-      {/* ── Left Side: Split Editorial Screen (Desktop) ────────── */}
-      <div className="relative hidden lg:flex lg:w-1/2 bg-zinc-950 text-white flex-col justify-between p-12 overflow-hidden ">
-        {/* Background Gradient & Pattern */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(120,50,255,0.15),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(#ffffff15_1px,transparent_1px)] [background-size:24px_24px] opacity-40" />
+      {/* ── Left Side: Minimal Brand Screen (Desktop) ────────── */}
+      <div className="relative hidden lg:flex lg:w-[45%] bg-zinc-950 text-white flex-col justify-between p-12 overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(120,50,255,0.10),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(#ffffff15_1px,transparent_1px)] [background-size:24px_24px] opacity-20" />
 
-        {/* Top Branding */}
-        <div className="relative z-10">
+        <div className="relative z-10 flex flex-col h-full justify-between">
           <Link to="/" className="inline-flex items-center gap-2 text-xl font-bold tracking-tight">
             <span className="bg-primary text-primary-foreground px-2 py-0.5 rounded-lg text-sm font-black">WIDER</span>
-            <span>Community Platform</span>
           </Link>
-        </div>
-
-        {/* Center Editorial Focus */}
-        <div className="relative z-10 max-w-lg space-y-4 my-auto">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-semibold border border-white/15">
-            <Sparkles className="size-3.5 text-primary" />
-            <span>Faça parte da nossa comunidade</span>
+          <div className="max-w-md">
+            <h2 className="text-3xl font-bold tracking-tight leading-tight">
+              Sua plataforma de comunidade.
+            </h2>
           </div>
-
-          <h2 className="text-4xl font-extrabold tracking-tight leading-tight">
-            Crie sua conta para desapegar, comprar e interagir sem intermediários.
-          </h2>
-
-          <p className="text-sm text-zinc-400 leading-relaxed">
-            Tenha acesso instantâneo a propostas de troca seguras, ingressos oficiais com QR Code e
-            feeds culturais locais.
-          </p>
-        </div>
-
-        {/* Bottom Trust Badge */}
-        <div className="relative z-10 flex items-center justify-between text-xs text-zinc-500 border-t border-white/10 pt-6">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="size-4 text-emerald-400" />
-            <span>Proteção de dados com RLS e LGPD nativa</span>
-          </div>
-          <span>Wider OS v3.0</span>
         </div>
       </div>
 
@@ -189,9 +151,6 @@ function RegisterPage() {
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
               Crie seu perfil
             </h1>
-            <p className="text-sm text-muted-foreground">
-              Leva menos de 1 minuto para começar a usar.
-            </p>
           </div>
 
           {/* Form */}
@@ -290,16 +249,27 @@ function RegisterPage() {
                     <div className="leading-none">
                       <FormLabel className="text-xs text-muted-foreground font-normal leading-normal cursor-pointer select-none">
                         Concordo com os{" "}
-                        <Link to="/termos" className="text-foreground font-semibold hover:underline">
-                          Termos de Uso
-                        </Link>{" "}
-                        e{" "}
-                        <Link
-                          to="/privacidade"
-                          className="text-foreground font-semibold hover:underline"
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTermsSlug("termos");
+                            setIsTermsOpen(true);
+                          }}
+                          className="text-foreground font-semibold hover:underline cursor-pointer"
                         >
-                          Política de Privacidade
-                        </Link>
+                          Termos de Uso
+                        </button>{" "}
+                        e{" "}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTermsSlug("privacidade");
+                            setIsTermsOpen(true);
+                          }}
+                          className="text-foreground font-semibold hover:underline cursor-pointer"
+                        >
+                          Política de Privacidade (LGPD)
+                        </button>
                         .
                       </FormLabel>
                       <FormMessage className="text-xs font-semibold mt-1" />
@@ -311,17 +281,10 @@ function RegisterPage() {
               <Button
                 type="submit"
                 size="lg"
-                className="w-full h-12 rounded-xl font-bold bg-primary text-primary-foreground  gap-2 text-sm mt-2"
+                className="w-full h-12 rounded-xl font-bold bg-primary text-primary-foreground gap-2 text-sm mt-2"
                 disabled={form.formState.isSubmitting}
               >
-                {form.formState.isSubmitting ? (
-                  "Criando conta..."
-                ) : (
-                  <>
-                    <span>Concluir Cadastro</span>
-                    <ArrowRight className="size-4" />
-                  </>
-                )}
+                {form.formState.isSubmitting ? "Criando..." : "Criar Conta"}
               </Button>
             </form>
           </Form>
@@ -339,6 +302,14 @@ function RegisterPage() {
           </div>
         </div>
       </div>
+
+      {/* Sheet de Termos Oficiais & LGPD */}
+      <LegalTermsSheet
+        isOpen={isTermsOpen}
+        onOpenChange={setIsTermsOpen}
+        initialSlug={termsSlug}
+        onAccept={() => form.setValue("isConsentLgpd", true, { shouldValidate: true })}
+      />
     </div>
   );
 }

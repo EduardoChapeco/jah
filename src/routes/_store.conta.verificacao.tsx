@@ -20,6 +20,7 @@ import { getMyKycStatus, submitKycVerification } from "@/services/kyc.functions"
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/conta/verificacao")({
+  head: () => ({ meta: [{ title: "Verificação de Identidade & KYC | Wider" }] }),
   loader: async () => {
     try {
       const kyc = await getMyKycStatus();

@@ -45,7 +45,9 @@ import { OrderEditWizard } from "@/components/admin/orders/order-edit-wizard";
 import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/workspace/pedidos/$id")({
-  head: () => ({ meta: [{ title: "Detalhes do Pedido" }] }),
+  head: ({ loaderData }) => ({
+    meta: [{ title: `Pedido #${loaderData?.order?.public_token?.slice(0, 8) || "Detalhes"} | Workspace Wider` }],
+  }),
   loader: async ({ params }: { params: { id: string } }) => {
     try {
       const [order, proofs] = await Promise.all([

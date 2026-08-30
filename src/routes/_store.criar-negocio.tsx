@@ -67,6 +67,7 @@ import { getUserSession } from "@/services/auth.functions";
 import { getPublicLogisticsPresentation } from "@/services/master.functions";
 import { NeighborhoodsManager, type NeighborhoodItem } from "@/components/commerce/neighborhoods-manager";
 import { CHAPECO_NEIGHBORHOODS } from "@/lib/constants/cities";
+import { useMasterLocation } from "@/components/location/location-master-pill";
 import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
@@ -304,7 +305,7 @@ function CriarNegocioPage() {
         await setTenantContext({ data: { store_id: result.storeId } }).catch(() => null);
       }
 
-      toast.success(`Negócio "${result?.storeName || name}" cadastrado com sucesso! Bem-vindo ao Workspace.`);
+      toast.success(`Negócio "${result?.storeName || name}" cadastrado com sucesso! Redirecionando...`);
       window.location.href = "/workspace";
     } catch (err: unknown) {
       toast.error(

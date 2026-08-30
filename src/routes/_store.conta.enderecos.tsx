@@ -22,7 +22,9 @@ import { CitySelect } from "@/components/ui/city-select";
 
 export const Route = createFileRoute("/_store/conta/enderecos")({
   head: () => ({ meta: [{ title: "Meus Endereços" }] }),
-  loader: () => getCustomerAddresses(),
+  loader: async () => {
+    return (await getCustomerAddresses().catch(() => [])) || [];
+  },
   component: AddressesPage,
 });
 

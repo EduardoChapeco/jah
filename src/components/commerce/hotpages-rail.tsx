@@ -53,9 +53,9 @@ export function HotpagesRail({
     <section className={`w-full overflow-hidden ${className}`} aria-label="Categorias Panorâmicas">
       <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 scrollbar-hide">
         {hotpages.map((hp) => {
-          const showTitle = hp.show_title === true;
-          const showBadge = (hp.show_badge === true || (!cleanMode && hp.show_badge !== false)) && !!hp.badge_label;
-          const showOverlay = hp.show_overlay === true && (showTitle || showBadge);
+          const showTitle = hp.show_title !== false;
+          const showBadge = hp.show_badge !== false && (!!hp.badge_label || !!hp.hero_stat_badge || !!hp.hero_secondary_badge);
+          const showOverlay = hp.show_overlay !== false;
           const isActive = activeSlug === hp.slug;
           const customIcon = hp.custom_icon_url || hp.icon_url;
 
@@ -82,11 +82,25 @@ export function HotpagesRail({
               )}
 
               {(showTitle || showBadge || customIcon) && (
-                <div className="relative z-10 p-3 space-y-1 text-left w-full">
-                  {showBadge && hp.badge_label && (
-                    <span className="inline-block px-2 py-0.5 rounded-md text-[9px] font-mono font-bold uppercase tracking-wider bg-white/25 backdrop-blur-md text-white border border-white/20 ">
-                      {hp.badge_label.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, "").trim()}
-                    </span>
+                <div className="relative z-10 p-3 space-y-1.5 text-left w-full">
+                  {showBadge && (
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {hp.badge_label && (
+                        <span className="inline-block px-2 py-0.5 rounded-md text-[9px] font-mono font-bold uppercase tracking-wider bg-white/25 backdrop-blur-md text-white border border-white/20 ">
+                          {hp.badge_label.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, "").trim()}
+                        </span>
+                      )}
+                      {hp.hero_stat_badge && (
+                        <span className="inline-block px-2 py-0.5 rounded-md text-[9px] font-mono font-bold uppercase tracking-wider bg-primary text-primary-foreground border border-primary/30 ">
+                          {hp.hero_stat_badge}
+                        </span>
+                      )}
+                      {hp.hero_secondary_badge && (
+                        <span className="inline-block px-2 py-0.5 rounded-md text-[9px] font-mono font-bold uppercase tracking-wider bg-black/60 text-white/90 border border-white/10 ">
+                          {hp.hero_secondary_badge}
+                        </span>
+                      )}
+                    </div>
                   )}
                   <div className="flex items-center gap-2">
                     {/* Ícone sem máscara — espaço delimitado, PNG transparente suportado */}
@@ -102,7 +116,7 @@ export function HotpagesRail({
                         />
                       </div>
                     )}
-                    {showTitle && (
+                    {showTitle && hp.title && (
                       <h3 className="text-xs sm:text-sm font-semibold text-white leading-tight drop- line-clamp-2">
                         {hp.title}
                       </h3>

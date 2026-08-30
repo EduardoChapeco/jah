@@ -127,6 +127,8 @@ async function hydrateBindings(
       if (bindings.limit && bindings.limit > maxClassifiedsLimit) {
         maxClassifiedsLimit = bindings.limit;
       }
+    } else if (bindingSource === "marketing_banners") {
+      needsMarketingBanners = true;
     }
 
     if (node.block_type === "image_hotspots" && Array.isArray(node.content?.hotspots)) {
@@ -157,6 +159,7 @@ async function hydrateBindings(
   };
 
   // 2. Execute Batched Queries (Concurrent via Promise.all)
+  let needsMarketingBanners = false;
   const cache = {
     collections: {} as Record<string, any[]>,
     latest: [] as any[],
@@ -164,6 +167,7 @@ async function hydrateBindings(
     hotspotsMap: new Map<string, any>(),
     events: [] as any[],
     classifieds: [] as any[],
+    banners: [] as any[],
   };
 
   await Promise.all([
@@ -351,6 +355,33 @@ async function hydrateBindings(
         console.error("[hydrateBindings] Classifieds error:", err);
       }
     })(),
+
+    // 2g. Marketing Banners
+    (async () => {
+      if (!needsMarketingBanners) return;
+      try {
+        const { data: banners } = await db
+          .from("banners")
+          .select("title, subtitle, badge_text, media_url, media_type, target_type, target_url, cta_label")
+          .eq("store_id", store_id)
+          .eq("is_active", true)
+          .order("sort_order", { ascending: true })
+          .limit(10);
+        if (banners && banners.length > 0) {
+          cache.banners = banners.map((b: any) => ({
+            title: b.title,
+            subtitle: b.subtitle,
+            image_url: b.media_url,
+            mobile_image_url: b.media_url,
+            link: b.target_url || "#",
+            button_text: b.cta_label || "Ver Mais",
+            alt_text: b.title,
+          }));
+        }
+      } catch (err) {
+        console.error("[hydrateBindings] Banners error:", err);
+      }
+    })(),
   ]);
 
   // 3. Hydrate the nodes using cached data (O(N) operation without async DB calls)
@@ -361,6 +392,8 @@ async function hydrateBindings(
 
     if (bindingSource === "store_profile" && storeProfileData) {
       transient_data = storeProfileData;
+    } else if (bindingSource === "marketing_banners") {
+      transient_data = { banners: cache.banners };
     } else if (bindingSource === "product_collection" && bindings.collection_slug) {
       const items = cache.collections[bindings.collection_slug];
       if (items) transient_data = { products: items };
@@ -2057,15 +2090,37 @@ export const getPublicExperienceDocumentBySlug = createServerFn({ method: "GET" 
           "campaign_popup",
         ])
         .default("storefront"),
+      storeId: z.string().optional(),
     }),
   )
   .handler(async ({ data: input }) => {
     try {
-      const { resolveTenantStoreId } = await import("@/lib/tenant.server");
-      const storeId = await resolveTenantStoreId();
-      if (!storeId) return { status: "not_found" as const };
-
       const db = getServerClient();
+      let resolvedStoreId: string | null = null;
+
+      if (input.storeId) {
+        // Se for um UUID válido
+        if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(input.storeId)) {
+          resolvedStoreId = input.storeId;
+        } else {
+          // Busca pelo slug da loja
+          const { data: st } = await db
+            .from("stores")
+            .select("id")
+            .eq("slug", input.storeId)
+            .limit(1)
+            .maybeSingle();
+          if (st) resolvedStoreId = st.id;
+        }
+      }
+
+      if (!resolvedStoreId) {
+        const { resolveTenantStoreId } = await import("@/lib/tenant.server");
+        resolvedStoreId = await resolveTenantStoreId();
+      }
+
+      if (!resolvedStoreId) return { status: "not_found" as const };
+      const storeId = resolvedStoreId;
 
       // 1. Get Document
       const { data: doc, error: docError } = await db

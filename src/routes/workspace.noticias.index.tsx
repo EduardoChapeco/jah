@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import {
   Newspaper,
   Plus,
@@ -16,6 +16,10 @@ import {
   User,
   Phone,
   Megaphone,
+  Bot,
+  ThumbsUp,
+  ThumbsDown,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +30,11 @@ import {
   listCommunityNewsTips,
   type NewsArticleDTO,
 } from "@/services/news.functions";
+import {
+  listMinedArticles,
+  curateMineArticle,
+  type MinedArticleDTO,
+} from "@/services/mining.functions";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/commerce/page-header";
 import { EmptyState } from "@/components/state/states";
@@ -33,19 +42,23 @@ import { EmptyState } from "@/components/state/states";
 export const Route = createFileRoute("/workspace/noticias/")({
   head: () => ({ meta: [{ title: "Redação & Gestão de Notícias | Wider Workspace" }] }),
   loader: async () => {
-    const [articles, tips] = await Promise.all([
+    const [articles, tips, mined] = await Promise.all([
       listWorkspaceArticles().catch(() => []),
       listCommunityNewsTips().catch(() => []),
+      listMinedArticles({ data: { limit: 20, status: "pending_review" } }).catch(() => ({ items: [], total: 0 })),
     ]);
-    return { articles, tips: tips || [] };
+    return { articles: articles || [], tips: tips || [], mined: mined.items || [] };
   },
   component: WorkspaceNoticiasIndexPage,
 });
 
 function WorkspaceNoticiasIndexPage() {
-  const { articles: initialArticles, tips } = Route.useLoaderData() as any;
+  const { articles: initialArticles, tips, mined: initialMined } = Route.useLoaderData() as any;
   const [articles, setArticles] = useState<NewsArticleDTO[]>(initialArticles || []);
+  const [minedArticles, setMinedArticles] = useState<MinedArticleDTO[]>(initialMined || []);
   const [activeTab, setActiveTab] = useState("materias");
+  const [isPending, startTransition] = useTransition();
+  const [curatingId, setCuratingId] = useState<string | null>(null);
 
   const refreshArticles = async () => {
     const updated = await listWorkspaceArticles().catch(() => []);
@@ -61,6 +74,48 @@ function WorkspaceNoticiasIndexPage() {
     } catch {
       toast.error("Erro ao remover matéria.");
     }
+  };
+
+  const handleApproveMined = (mined: MinedArticleDTO) => {
+    setCuratingId(mined.id);
+    startTransition(async () => {
+      try {
+        await curateMineArticle({
+          data: {
+            mined_article_id: mined.id,
+            action: "approve",
+          },
+        });
+        toast.success("Notícia minerada aprovada e publicada!");
+        setMinedArticles((prev) => prev.filter((m) => m.id !== mined.id));
+        await refreshArticles();
+      } catch (err: any) {
+        toast.error(err.message || "Erro ao aprovar matéria");
+      } finally {
+        setCuratingId(null);
+      }
+    });
+  };
+
+  const handleRejectMined = (minedId: string) => {
+    setCuratingId(minedId);
+    startTransition(async () => {
+      try {
+        await curateMineArticle({
+          data: {
+            mined_article_id: minedId,
+            action: "reject",
+            curator_notes: "Rejeitado na curadoria do workspace",
+          },
+        });
+        toast.success("Notícia minerada rejeitada.");
+        setMinedArticles((prev) => prev.filter((m) => m.id !== minedId));
+      } catch (err: any) {
+        toast.error(err.message || "Erro ao rejeitar matéria");
+      } finally {
+        setCuratingId(null);
+      }
+    });
   };
 
   return (
@@ -88,14 +143,18 @@ function WorkspaceNoticiasIndexPage() {
 
       {/* Abas */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-2 h-10 w-full max-w-sm mb-6">
+        <TabsList className="grid grid-cols-3 h-10 w-full max-w-md mb-6">
           <TabsTrigger value="materias" className="text-xs font-semibold gap-1.5">
             <Newspaper className="size-3.5" />
             Matérias ({articles.length})
           </TabsTrigger>
+          <TabsTrigger value="mineradas" className="text-xs font-semibold gap-1.5">
+            <Sparkles className="size-3.5" />
+            Mineradas ({minedArticles.length})
+          </TabsTrigger>
           <TabsTrigger value="pautas" className="text-xs font-semibold gap-1.5">
             <Inbox className="size-3.5" />
-            Pautas dos Leitores ({tips.length})
+            Pautas ({tips.length})
           </TabsTrigger>
         </TabsList>
 
@@ -178,7 +237,90 @@ function WorkspaceNoticiasIndexPage() {
           )}
         </TabsContent>
 
-        {/* ── Aba 2: Pautas dos Leitores ── */}
+        {/* ── Aba 2: Mineradas com IA ── */}
+        <TabsContent value="mineradas" className="space-y-4">
+          {minedArticles.length === 0 ? (
+            <EmptyState
+              title="Nenhuma notícia minerada pendente de curadoria"
+              description="Quando novas notícias da cidade ou região forem extraídas por IA ou feeds RSS, elas aparecerão aqui para aprovação rápida."
+            />
+          ) : (
+            <div className="grid grid-cols-1 gap-4">
+              {minedArticles.map((mined) => (
+                <div
+                  key={mined.id}
+                  className="p-4 sm:p-5 rounded-2xl bg-card border border-border/60 space-y-3"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-3 min-w-0">
+                      {mined.ai_suggested_cover_url && (
+                        <img
+                          src={mined.ai_suggested_cover_url}
+                          alt=""
+                          className="size-14 rounded-xl object-cover shrink-0 bg-muted"
+                          onError={(e) => (e.currentTarget.style.display = "none")}
+                        />
+                      )}
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {mined.ai_suggested_kicker && (
+                            <Badge variant="outline" className="text-[10px] font-mono uppercase text-primary">
+                              {mined.ai_suggested_kicker}
+                            </Badge>
+                          )}
+                          <span className="text-[11px] font-mono text-muted-foreground">
+                            {mined.source_domain}
+                          </span>
+                          <span className="text-[10px] font-bold text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                            Score {mined.quality_score || 75}/100
+                          </span>
+                        </div>
+
+                        <h3 className="text-sm font-bold text-foreground line-clamp-2">
+                          {mined.ai_structured_title || mined.raw_title}
+                        </h3>
+
+                        {mined.ai_summary && (
+                          <p className="text-xs text-muted-foreground line-clamp-2">
+                            {mined.ai_summary}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Button
+                        size="sm"
+                        disabled={curatingId === mined.id}
+                        onClick={() => handleApproveMined(mined)}
+                        className="rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-1 h-8"
+                      >
+                        {curatingId === mined.id ? (
+                          <Loader2 className="size-3.5 animate-spin" />
+                        ) : (
+                          <ThumbsUp className="size-3.5" />
+                        )}
+                        Aprovar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={curatingId === mined.id}
+                        onClick={() => handleRejectMined(mined.id)}
+                        className="rounded-xl font-bold text-xs border-destructive/30 text-destructive hover:bg-destructive/10 gap-1 h-8"
+                      >
+                        <ThumbsDown className="size-3.5" />
+                        Rejeitar
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        {/* ── Aba 3: Pautas dos Leitores ── */}
         <TabsContent value="pautas" className="space-y-4">
           {tips.length === 0 ? (
             <EmptyState

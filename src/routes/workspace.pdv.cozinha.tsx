@@ -10,18 +10,18 @@ import { Badge } from "@/components/ui/badge";
 import { formatTimeOnly } from "@/lib/datetime";
 
 export const Route = createFileRoute("/workspace/pdv/cozinha")({
-  head: () => ({ meta: [{ title: "KDS - Cozinha" }] }),
+  head: () => ({ meta: [{ title: "KDS - Cozinha Pro | Workspace Wider" }] }),
   component: KDSDashboard,
 });
 
 function KDSDashboard() {
   const queryClient = useQueryClient();
 
-  // Polling a cada 10s para simular o Realtime (No futuro trocar por Supabase Realtime Channel)
+  // Polling a cada 4s para atualização em tempo real de pedidos
   const { data: orders, isLoading } = useQuery({
     queryKey: ["kds-orders"],
     queryFn: () => listOrders(),
-    refetchInterval: 10000, 
+    refetchInterval: 4000, 
   });
 
   const { mutate: changeStatus, isPending } = useMutation({
@@ -35,7 +35,7 @@ function KDSDashboard() {
   });
 
   // Filtramos os pedidos para a visao da cozinha. 
-  // Na JAH, um pedido de comida comeca como 'pending' (aberto),
+  // No WIDER, um pedido de comida comeca como 'pending' (aberto),
   // passa para 'processing' (em preparo), 'shipped' ou 'ready' (pronto), e 'delivered' (arquivado do KDS).
   const activeOrders = orders?.filter((o: any) => 
     ["pending", "processing", "shipped"].includes(o.status)
@@ -69,11 +69,11 @@ function KDSDashboard() {
         </div>
         <div className="flex gap-4 text-sm font-bold text-muted-foreground">
           <span className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-amber-500 animate-pulse" />
+            <div className="w-3 h-3 rounded-full bg-warning animate-pulse" />
             {colPending.length} na fila
           </span>
           <span className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-blue-500" />
+            <div className="w-3 h-3 rounded-full bg-primary" />
             {colProcessing.length} em preparo
           </span>
         </div>
@@ -87,8 +87,8 @@ function KDSDashboard() {
             title="Recebidos (Fila)" 
             count={colPending.length}
             icon={UtensilsCrossed}
-            color="border-amber-500"
-            bg="bg-amber-500/10"
+            color="border-warning"
+            bg="bg-warning/10"
             orders={colPending}
             onAction={moveOrder}
             actionLabel="Iniciar Preparo"
@@ -100,8 +100,8 @@ function KDSDashboard() {
             title="Em Preparo" 
             count={colProcessing.length}
             icon={ChefHat}
-            color="border-blue-500"
-            bg="bg-blue-500/10"
+            color="border-primary"
+            bg="bg-primary/10"
             orders={colProcessing}
             onAction={moveOrder}
             actionLabel="Marcar como Pronto"
@@ -113,8 +113,8 @@ function KDSDashboard() {
             title="Pronto p/ Entrega" 
             count={colReady.length}
             icon={PackageCheck}
-            color="border-emerald-500"
-            bg="bg-emerald-500/10"
+            color="border-success"
+            bg="bg-success/10"
             orders={colReady}
             onAction={moveOrder}
             actionLabel="Despachar"
@@ -232,7 +232,7 @@ function TicketCard({ order, onAction, actionLabel, actionIcon: ActionIcon, isPe
                 
                 {/* Nota especial do item */}
                 {item.notes && (
-                  <p className="pl-6 mt-1 text-xs text-amber-600 font-medium bg-amber-500/10 p-1.5 rounded uppercase">
+                  <p className="pl-6 mt-1 text-xs text-warning font-medium bg-warning/10 p-1.5 rounded uppercase">
                     OBS: {item.notes}
                   </p>
                 )}

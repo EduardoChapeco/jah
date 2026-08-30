@@ -102,7 +102,7 @@ function DriverDirectPage() {
               className="w-full h-11 rounded-xl bg-foreground text-background font-semibold text-xs hover:opacity-90 transition-opacity gap-2"
             >
               <a
-                href={`https://wa.me/55${phoneDigits}?text=Ol%C3%A1%20${encodeURIComponent(courier.full_name)},%20encontrei%20seu%20perfil%20na%20JAH%20e%20gostaria%20de%20solicitar%20uma%20corrida/entrega!`}
+                href={`https://wa.me/55${phoneDigits}?text=Ol%C3%A1%20${encodeURIComponent(courier.full_name)},%20encontrei%20seu%20perfil%20na%20Wider%20e%20gostaria%20de%20solicitar%20uma%20corrida/entrega!`}
                 target="_blank"
                 rel="noreferrer"
               >

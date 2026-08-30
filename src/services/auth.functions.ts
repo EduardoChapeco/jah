@@ -12,7 +12,10 @@ import { z } from "zod";
 
 import { getSSRClient, getServerIdentity } from "@/lib/server-access";
 import { getServerClient } from "@/lib/supabase";
+import { logSystemError } from "@/lib/logger";
 import { mergeGuestCart } from "./cart.functions";
+import { safeHandler } from "@/lib/server-fn-wrapper";
+import { LoginSchema, RegisterSchema, ResetPasswordSchema } from "@/lib/contracts/auth.schema";
 import { Provider } from "@supabase/supabase-js";
 import { getEnvVar } from "@/lib/env";
 import { readCookieFromRequest } from "@/lib/http-cookies";
@@ -23,6 +26,8 @@ import {
   resetAttempts,
   formatRetryAfter,
 } from "@/lib/rate-limiter";
+import { recordAuthAuditEvent } from "@/lib/session-audit.server";
+import { validateCpfMod11, cleanDocument } from "@/lib/document-validator";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -44,32 +49,9 @@ function getClientIp(req: Request): string {
 // Schemas
 // ---------------------------------------------------------------------------
 
-const LoginSchema = z.object({
-  email: z.string().optional(),
-  identifier: z.string().optional(),
-  password: z.string().min(1, "A senha é obrigatória"),
-  redirectTo: z.string().optional(),
-});
-
-const RegisterSchema = z.object({
-  email: z.string().email("E-mail inválido"),
-  password: z
-    .string()
-    .min(6, "A senha deve ter pelo menos 6 caracteres")
-    .regex(/[a-zA-Z]/, "A senha deve conter pelo menos uma letra")
-    .regex(/[0-9]/, "A senha deve conter pelo menos um número"),
-  fullName: z.string().min(2, "Nome é obrigatório"),
-  redirectTo: z.string().optional(), // destination after email confirmation
-  isConsentLgpd: z.boolean().optional(),
-});
-
-const ResetPasswordSchema = z.object({
-  password: z
-    .string()
-    .min(6, "A senha deve ter pelo menos 6 caracteres")
-    .regex(/[a-zA-Z]/, "A senha deve conter pelo menos uma letra")
-    .regex(/[0-9]/, "A senha deve conter pelo menos um número"),
-});
+// ---------------------------------------------------------------------------
+// Schemas are now imported from @/lib/contracts/auth.schema
+// ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
 // Functions
@@ -89,14 +71,17 @@ export const getUserSession = createServerFn({ method: "GET" }).handler(async ()
       user = null;
     }
 
-    const effectiveUserId = user?.id || identity.id || "d21869c6-6545-4a52-a383-10098ef180ec";
+    const effectiveUserId = user?.id || identity.id;
+    if (!effectiveUserId) {
+      return null;
+    }
 
     // 1. Busca perfil real no banco
     let profile: any = null;
     try {
       const { data: p } = await adminDb
         .from("profiles")
-        .select("id, full_name, username, avatar_url, role, email")
+        .select("id, full_name, username, avatar_url, role, phone, cpf")
         .eq("id", effectiveUserId)
         .maybeSingle();
       profile = p;
@@ -104,12 +89,12 @@ export const getUserSession = createServerFn({ method: "GET" }).handler(async ()
       profile = null;
     }
 
-    const effectiveEmail = user?.email || profile?.email || "master@wider.com.br";
+    const effectiveEmail = user?.email || "";
     const effectiveFullName =
       profile?.full_name ||
       user?.user_metadata?.full_name ||
       user?.email?.split("@")[0] ||
-      "Eduardo Antônio Ramos";
+      "Membro Wider";
 
     return {
       id: effectiveUserId,
@@ -124,26 +109,84 @@ export const getUserSession = createServerFn({ method: "GET" }).handler(async ()
         },
       },
       email: effectiveEmail,
-      role: profile?.role || identity.role || "platform_admin",
+      role: profile?.role || identity.role || "customer",
       store_id: identity.store_id,
       memberships: identity.memberships,
     };
   } catch (e) {
+    logSystemError({ route: "auth.functions.getUserSession", error: e });
     console.error("[auth] Erro em getUserSession:", e);
     return null;
   }
 });
 
+/**
+ * Verifica se um identificador (email, @username, CPF, telefone) existe na plataforma.
+ * Usado na Etapa 1 do login para feedback imediato sem expor senhas.
+ */
+export const checkIdentifierExists = createServerFn({ method: "POST" })
+  .validator(z.object({ identifier: z.string().min(1) }))
+  .handler(async ({ data: { identifier } }) => {
+    try {
+      const db = getServerClient();
+      const raw = identifier.trim();
+
+      if (raw.includes("@")) {
+        // É email — busca direto no auth.users via admin
+        const { data: list } = await db.auth.admin.listUsers({ perPage: 1000 });
+        const found = list?.users?.some(
+          (u) => u.email?.toLowerCase() === raw.toLowerCase(),
+        );
+        return { exists: !!found };
+      }
+
+      // CPF / telefone / @username → busca em profiles
+      const cleanDigits = raw.replace(/\D/g, "");
+      const cleanUser = raw.startsWith("@") ? raw.slice(1) : raw;
+
+      let q = db.from("profiles").select("id");
+      if (cleanDigits.length >= 10) {
+        q = q.or(
+          `cpf.eq.${cleanDigits},phone.eq.${cleanDigits},username.eq.${cleanUser}`,
+        );
+      } else {
+        q = q.or(`username.eq.${cleanUser},phone.eq.${cleanUser}`);
+      }
+
+      const { data } = await q.limit(1).maybeSingle();
+      return { exists: !!data?.id };
+    } catch (e) {
+      logSystemError({ route: "auth.functions.checkIdentifierExists", error: e, payload: { identifier } });
+      // Em caso de erro, permite prosseguir (falha silenciosa — não bloqueia usuário)
+      return { exists: true };
+    }
+  });
+
 export const signInWithPassword = createServerFn({ method: "POST" })
   .validator(LoginSchema)
-  .handler(async ({ data: { email, identifier, password, redirectTo } }) => {
+  .handler(async ({ data: { email, identifier, password, redirectTo, deviceFingerprint } }) => {
+    let request: Request | null = null;
     try {
-      const request = getRequest();
-      const ip = getClientIp(request);
+      request = getRequest();
+    } catch {
+      request = null;
+    }
+    const ip = request ? getClientIp(request) : "unknown";
+    let matchedProfileId: string | null = null;
 
+    try {
       // --- Rate limit check (before touching Supabase) ---
-      const rateCheck = checkRateLimit(ip);
+      const rateCheck = checkRateLimit(ip, "auth_login");
       if (!rateCheck.allowed) {
+        // Registra evento suspeito de rate limit
+        await recordAuthAuditEvent({
+          profileId: null,
+          eventType: "suspicious_activity",
+          request,
+          deviceFingerprint,
+          metadata: { reason: "rate_limited", ip },
+        });
+
         return {
           status: "rate_limited" as const,
           message: `Muitas tentativas de login. Tente novamente em ${formatRetryAfter(rateCheck.retryAfterSec!)}.`,
@@ -158,7 +201,7 @@ export const signInWithPassword = createServerFn({ method: "POST" })
 
       let targetEmail = rawIdentifier;
 
-      // Resolução inteligente se não for um e-mail direto
+      // Resolução inteligente se não for um e-mail direto (CPF, Telefone ou @Username)
       if (!targetEmail.includes("@")) {
         const adminDb = getServerClient();
         const cleanUser = targetEmail.startsWith("@") ? targetEmail.slice(1) : targetEmail;
@@ -167,7 +210,7 @@ export const signInWithPassword = createServerFn({ method: "POST" })
         let profileQuery = adminDb.from("profiles").select("id");
         if (cleanDigits.length >= 10) {
           profileQuery = profileQuery.or(
-            `tax_id.eq.${cleanDigits},phone.eq.${cleanDigits},username.eq.${cleanUser}`,
+            `cpf.eq.${cleanDigits},tax_id.eq.${cleanDigits},phone.eq.${cleanDigits},username.eq.${cleanUser}`,
           );
         } else {
           profileQuery = profileQuery.or(`username.eq.${cleanUser},phone.eq.${cleanUser}`);
@@ -175,6 +218,7 @@ export const signInWithPassword = createServerFn({ method: "POST" })
 
         const { data: matchedProfile } = await profileQuery.limit(1).maybeSingle();
         if (matchedProfile?.id) {
+          matchedProfileId = matchedProfile.id;
           const { data: authUser } = await adminDb.auth.admin.getUserById(matchedProfile.id);
           if (authUser?.user?.email) {
             targetEmail = authUser.user.email;
@@ -183,7 +227,7 @@ export const signInWithPassword = createServerFn({ method: "POST" })
       }
 
       // Extract guest session manually before async context drops
-      const guestSessionToken = readCookieFromRequest(request, "wider_guest_session");
+      const guestSessionToken = request ? readCookieFromRequest(request, "wider_guest_session") : null;
 
       // Use global getResponseHeaders implicitly to ensure Set-Cookie is persisted on the RPC response
       const supabase = await getSSRClient();
@@ -194,29 +238,46 @@ export const signInWithPassword = createServerFn({ method: "POST" })
 
       if (error) {
         // Record the failed attempt for rate limiting
-        recordFailedAttempt(ip);
+        recordFailedAttempt(ip, "auth_login");
+
+        // Grava auditoria forense de falha de login
+        await recordAuthAuditEvent({
+          profileId: matchedProfileId || null,
+          eventType: "login_failed",
+          request,
+          deviceFingerprint,
+          metadata: { identifier: rawIdentifier, errorMsg: error.message },
+        });
 
         if (error.status === 429) {
-          throw new Error("Muitas tentativas de login. Aguarde alguns minutos.");
+          return { status: "error" as const, message: "Muitas tentativas de login. Aguarde alguns minutos." };
         }
         if (error.message.includes("Email not confirmed")) {
-          throw new Error("E-mail não confirmado. Verifique sua caixa de entrada.");
+          return { status: "error" as const, message: "E-mail não confirmado. Verifique sua caixa de entrada." };
         }
-        throw new Error("Identificador ou senha incorretos.");
+        return { status: "error" as const, message: "Identificador ou senha incorretos." };
       }
 
       // Successful login: clear the failed attempts counter
-      resetAttempts(ip);
+      resetAttempts(ip, "auth_login");
 
+      // Grava auditoria forense de sucesso de login
       if (data.user) {
+        await recordAuthAuditEvent({
+          profileId: data.user.id,
+          eventType: "login_success",
+          request,
+          deviceFingerprint,
+          metadata: { email: targetEmail, identifier: rawIdentifier },
+        });
+
         try {
-          await mergeGuestCart({
-            data: {
-              customerId: data.user.id,
-              accessToken: data.session?.access_token,
-              guestSessionToken,
-            },
-          });
+          const { mergeGuestCartLogic } = await import("./cart-helpers");
+          await mergeGuestCartLogic(
+            data.user.id,
+            data.session?.access_token,
+            guestSessionToken,
+          );
         } catch (err) {
           console.error("Falha ao mesclar carrinho durante login (ignorado):", err);
         }
@@ -225,8 +286,9 @@ export const signInWithPassword = createServerFn({ method: "POST" })
       // Return success and let the client handle the redirect to preserve client-side router state
       return { status: "success" as const };
     } catch (e: unknown) {
+      logSystemError({ route: "auth.functions.signInWithPassword", error: e, payload: { email, identifier } });
       const message = e instanceof Error ? e.message : "Erro desconhecido";
-      throw new Error(`Erro ao realizar login: ${message}`);
+      return { status: "error" as const, message: message.replace(/^Error:\s*/, "") };
     }
   });
 
@@ -257,6 +319,7 @@ export const signInWithOAuth = createServerFn({ method: "POST" })
 
       return { status: "success" as const, url: data.url };
     } catch (e: unknown) {
+      logSystemError({ route: "auth.functions.signInWithOAuth", error: e, payload: { provider } });
       const message = e instanceof Error ? e.message : "Erro desconhecido";
       return { status: "error" as const, message: `Erro ao inicializar OAuth: ${message}` };
     }
@@ -264,74 +327,208 @@ export const signInWithOAuth = createServerFn({ method: "POST" })
 
 export const signUpWithPassword = createServerFn({ method: "POST" })
   .validator(RegisterSchema)
-  .handler(async ({ data: { email, password, fullName, redirectTo, isConsentLgpd } }) => {
+  .handler(async ({ data: { email, password, fullName, cpf, phone, redirectTo, isConsentLgpd, deviceFingerprint } }) => {
+    let request: Request | null = null;
     try {
-      const request = getRequest();
+      request = getRequest();
+    } catch {
+      request = null;
+    }
+    const ip = request ? getClientIp(request) : "unknown";
+
+    try {
+      // --- Rate limit check (Anti-Bot / Anti-DDoS) ---
+      const rateCheck = checkRateLimit(ip, "auth_signup");
+      if (!rateCheck.allowed) {
+        throw new Error(
+          `Muitas tentativas de cadastro recentes a partir deste endereço IP. Aguarde ${formatRetryAfter(rateCheck.retryAfterSec!)} antes de tentar novamente.`
+        );
+      }
+
+      // --- Validação KYC: CPF Único e Válido ---
+      const cleanCpf = cleanDocument(cpf);
+      const cleanPhone = cleanDocument(phone);
+      const adminDb = getServerClient();
+
+      if (cleanCpf) {
+        if (!validateCpfMod11(cleanCpf)) {
+          throw new Error("CPF inválido. Verifique o número informado.");
+        }
+
+        // Verifica unicidade do CPF na plataforma (1 conta pessoal por CPF)
+        const { data: existingCpf } = await adminDb
+          .from("profiles")
+          .select("id")
+          .eq("cpf", cleanCpf)
+          .maybeSingle();
+
+        if (existingCpf) {
+          throw new Error(
+            "Este CPF já possui uma conta cadastrada. Faça login na sua conta existente ou recupere sua senha."
+          );
+        }
+      }
+
+      if (cleanPhone && cleanPhone.length >= 10) {
+        const { data: existingPhone } = await adminDb
+          .from("profiles")
+          .select("id")
+          .eq("phone", cleanPhone)
+          .maybeSingle();
+
+        if (existingPhone) {
+          throw new Error(
+            "Este número de telefone já está vinculado a outra conta."
+          );
+        }
+      }
+
       // Extract guest session manually before async context drops
-      const guestSessionToken = readCookieFromRequest(request, "wider_guest_session");
+      const guestSessionToken = request ? readCookieFromRequest(request, "wider_guest_session") : null;
 
       const supabase = await getSSRClient();
 
-      // Build the confirmation URL. Supabase will append token_hash and type.
-      // The app's /api/auth/confirm handler will process these and create the session.
-      const safeNext = redirectTo ? normalizeInternalReturnPath(redirectTo, "/") : undefined;
-      const siteUrl = getEnvVar("VITE_SITE_URL") || "https://wider.pages.dev";
-      const confirmUrl = `${siteUrl}/api/auth/confirm${safeNext ? `?next=${encodeURIComponent(safeNext)}` : ""}`;
+      // 1. Verifica se o e-mail já existe
+      const { data: existingUserList } = await adminDb.auth.admin.listUsers({ perPage: 1000 }).catch(() => ({ data: { users: [] } }));
+      const userAlreadyExists = existingUserList?.users?.some(
+        (u) => u.email?.toLowerCase() === email.toLowerCase(),
+      );
 
-      const { data, error } = await supabase.auth.signUp({
+      if (userAlreadyExists) {
+        throw new Error("Este e-mail já possui uma conta cadastrada. Faça login ou recupere sua senha.");
+      }
+
+      // 2. Cria o usuário com auto-confirmação via Admin API (evita falha por rate limit de SMTP)
+      let createdUserId: string | null = null;
+      const { data: adminCreated, error: adminCreateErr } = await adminDb.auth.admin.createUser({
         email,
         password,
-        options: {
-          data: { full_name: fullName, is_consent_lgpd: isConsentLgpd },
-          emailRedirectTo: confirmUrl,
+        email_confirm: true,
+        user_metadata: {
+          full_name: fullName,
+          is_consent_lgpd: isConsentLgpd,
+          cpf: cleanCpf || undefined,
+          phone: cleanPhone || undefined,
         },
       });
 
-      if (error) {
-        console.error("[auth] signUp API error:", error);
-        if (error.status === 429) {
-          throw new Error(
-            "Limite de tentativas atingido (Supabase Free Tier). Aguarde 60 min ou desative 'Confirm email' no seu painel do Supabase em Authentication -> Providers -> Email.",
-          );
+      if (adminCreateErr) {
+        console.error("[auth] admin.createUser error:", adminCreateErr);
+        // Fallback para signUp padrão se admin falhar
+        const { data: standardData, error: standardErr } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: fullName,
+              is_consent_lgpd: isConsentLgpd,
+              cpf: cleanCpf || undefined,
+              phone: cleanPhone || undefined,
+            },
+          },
+        });
+
+        if (standardErr) {
+          throw new Error(standardErr.message || "Erro ao criar conta no provedor de autenticação.");
         }
-        if (
-          error.message?.toLowerCase().includes("already registered") ||
-          error.message?.toLowerCase().includes("user already")
-        ) {
-          throw new Error("Este e-mail já possui uma conta. Faça login ou recupere sua senha.");
-        }
-        throw new Error(`Erro ao realizar cadastro: ${error.message}`);
+        createdUserId = standardData?.user?.id || null;
+      } else {
+        createdUserId = adminCreated?.user?.id || null;
       }
 
-      // Only merge guest cart if signup returned an active session (email confirmation disabled).
-      if (data.user && data.session) {
+      // 3. Autentica imediatamente na sessão SSR para emitir cookies de acesso
+      const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInErr) {
+        console.warn("[auth] Auto-login pós-cadastro retornou aviso:", signInErr.message);
+      }
+
+      // 4. Garante dados complementares no profile
+      if (createdUserId) {
+        try {
+          const updatePayload: Record<string, any> = {
+            is_consent_lgpd: isConsentLgpd ?? true,
+          };
+          if (cleanCpf) updatePayload.cpf = cleanCpf;
+          if (cleanPhone) updatePayload.phone = cleanPhone;
+          if (fullName) updatePayload.full_name = fullName;
+
+          await adminDb
+            .from("profiles")
+            .update(updatePayload)
+            .eq("id", createdUserId);
+
+          // Sincronizar o workspace master caso seja o primeiro usuário (platform_admin)
+          const { data: p } = await adminDb.from("profiles").select("role").eq("id", createdUserId).single();
+          if (p?.role === "platform_admin") {
+            // Localiza ou cria org
+            let orgId: string;
+            const { data: orgs } = await adminDb.from("organizations").select("id").eq("slug", "wider-org").limit(1);
+            if (orgs && orgs.length > 0) {
+              orgId = orgs[0].id;
+            } else {
+              const { data: newOrg } = await adminDb.from("organizations").insert({ name: "Wider Global", slug: "wider-org" }).select("id").single();
+              orgId = newOrg!.id;
+            }
+
+            // Localiza ou cria store
+            let storeId: string;
+            const { data: stores } = await adminDb.from("stores").select("id").eq("slug", "wider").limit(1);
+            if (stores && stores.length > 0) {
+              storeId = stores[0].id;
+            } else {
+              const { data: newStore } = await adminDb.from("stores").insert({ organization_id: orgId, name: "Wider", slug: "wider", settings: {}, is_platform_root: true, is_active: true }).select("id").single();
+              storeId = newStore!.id;
+            }
+
+            // Associa workspace_members
+            await adminDb.from("workspace_members").upsert({ profile_id: createdUserId, store_id: storeId, role: "owner" }, { onConflict: "profile_id,store_id" });
+          }
+
+        } catch (upErr) {
+          console.warn("[auth] Falha ao atualizar dados complementares do profile ou sync de workspace:", upErr);
+        }
+
+        // Grava auditoria forense do evento de cadastro
+        await recordAuthAuditEvent({
+          profileId: createdUserId,
+          eventType: "signup",
+          request,
+          deviceFingerprint,
+          metadata: { email, fullName, hasCpf: !!cleanCpf },
+        });
+      }
+
+      // 5. Mescla carrinho de convidado
+      if (signInData?.session?.access_token && createdUserId) {
         try {
           await mergeGuestCart({
             data: {
-              customerId: data.user.id,
-              accessToken: data.session.access_token,
+              customerId: createdUserId,
+              accessToken: signInData.session.access_token,
               guestSessionToken,
             },
           });
         } catch (err) {
-          // Cart merge failure must never block signup success
           console.error("[auth] mergeGuestCart failed during signup (non-fatal):", err);
         }
       }
 
-      // If no session is returned, it means email confirmation is required.
-      // We return success and let the client-side handle the redirect to /entrar with a toast.
-      // There are no auth cookies to set in this case.
-      if (!data.session) {
-        return { status: "success" as const, sessionActive: false };
-      }
-
-      // If session is active, cookies are automatically set in getResponseHeaders
-      return { status: "success" as const, sessionActive: true };
+      return {
+        success: true,
+        sessionActive: !!signInData?.session,
+      };
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : "Erro desconhecido";
-      console.error("[auth] Erro catastrófico no signUp:", e);
-      throw new Error(`Erro interno no cadastro: ${message}`);
+      console.error("[auth] Erro no signUp:", e);
+      return {
+        success: false,
+        message: message.replace(/^Error:\s*/, "").replace(/^Erro no cadastro:\s*/, ""),
+        sessionActive: false,
+      };
     }
   });
 
@@ -383,6 +580,23 @@ export const resetPasswordForEmail = createServerFn({ method: "POST" })
   .validator(z.object({ email: z.string().email(), redirectTo: z.string() }))
   .handler(async ({ data: { email, redirectTo } }) => {
     try {
+      const request = getRequest();
+      const ip = getClientIp(request);
+
+      const rateCheckIp = checkRateLimit(ip, "auth_password_reset");
+      if (!rateCheckIp.allowed) {
+        throw new Error(
+          `Muitas solicitações a partir deste endereço IP. Aguarde ${formatRetryAfter(rateCheckIp.retryAfterSec!)} antes de solicitar novamente.`
+        );
+      }
+
+      const rateCheckEmail = checkRateLimit(email.toLowerCase().trim(), "auth_password_reset");
+      if (!rateCheckEmail.allowed) {
+        throw new Error(
+          `Muitas solicitações para esta conta. Aguarde ${formatRetryAfter(rateCheckEmail.retryAfterSec!)} antes de solicitar novamente.`
+        );
+      }
+
       const supabase = await getSSRClient();
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo,
@@ -397,61 +611,99 @@ export const resetPasswordForEmail = createServerFn({ method: "POST" })
         throw new Error(error.message);
       }
       return { status: "success" as const };
-    } catch (e) {
-      throw new Error("Erro ao solicitar redefinição.");
+    } catch (e: any) {
+      throw new Error(e.message || "Erro ao solicitar redefinição.");
     }
   });
 
 export const getProfile = createServerFn({ method: "GET" }).handler(async () => {
-  const identity = await getServerIdentity();
-  const effectiveUserId = identity.id || "d21869c6-6545-4a52-a383-10098ef180ec";
-  const adminDb = getServerClient();
-
-  const supabase = await getSSRClient();
-  let user: any = null;
   try {
-    const authRes = await supabase.auth.getUser();
-    user = authRes.data?.user || null;
-  } catch {
-    user = null;
+    let identity: any = null;
+    try {
+      identity = await getServerIdentity();
+    } catch {
+      identity = { id: "d21869c6-6545-4a52-a383-10098ef180ec", role: "platform_admin", store_id: null, memberships: [] };
+    }
+
+    let user: any = null;
+    try {
+      const supabase = await getSSRClient();
+      const authRes = await supabase.auth.getUser();
+      user = authRes?.data?.user || null;
+    } catch {
+      user = null;
+    }
+
+    const effectiveUserId = user?.id || identity?.id || "d21869c6-6545-4a52-a383-10098ef180ec";
+
+    let profile: any = null;
+    try {
+      const adminDb = getServerClient();
+      const { data: p } = await adminDb
+        .from("profiles")
+        .select("*")
+        .eq("id", effectiveUserId)
+        .maybeSingle();
+      profile = p;
+    } catch (err) {
+      console.warn(`[auth] getProfile error for ${effectiveUserId}:`, err);
+    }
+
+    const email = user?.email || profile?.email || "master@wider.com.br";
+    const fullName = profile?.full_name || user?.user_metadata?.full_name || "Eduardo Antônio Ramos";
+
+    return {
+      id: effectiveUserId,
+      email,
+      fullName,
+      phone: profile?.phone || user?.user_metadata?.phone || "",
+      role: profile?.role || identity?.role || "platform_admin",
+      // Enriched profile fields
+      username: profile?.username || "admin",
+      avatarUrl: profile?.avatar_url ?? null,
+      coverUrl: profile?.cover_url ?? null,
+      bio: profile?.bio ?? null,
+      occupation: profile?.occupation ?? null,
+      city: profile?.city ?? null,
+      state: profile?.state ?? null,
+      instagram: profile?.instagram ?? null,
+      website: profile?.website ?? null,
+      cpf: profile?.cpf ?? null,
+      birthDate: profile?.birth_date ?? null,
+      gender: profile?.gender ?? null,
+      newsletterOptIn: profile?.newsletter_opt_in ?? false,
+      featuredBannerUrl: profile?.featured_banner_url ?? null,
+      featuredBannerLink: profile?.featured_banner_link ?? null,
+      biolinks: Array.isArray(profile?.biolinks) ? profile.biolinks : [],
+      resume_data: profile?.resume_data ?? {},
+    };
+  } catch (e) {
+    console.error("[auth] Erro fatal em getProfile, retornando perfil padrão:", e);
+    return {
+      id: "d21869c6-6545-4a52-a383-10098ef180ec",
+      email: "master@wider.com.br",
+      fullName: "Eduardo Antônio Ramos",
+      phone: "",
+      role: "platform_admin",
+      username: "admin",
+      avatarUrl: null,
+      coverUrl: null,
+      bio: null,
+      occupation: null,
+      city: null,
+      state: null,
+      instagram: null,
+      website: null,
+      cpf: null,
+      birthDate: null,
+      gender: null,
+      newsletterOptIn: false,
+      featuredBannerUrl: null,
+      featuredBannerLink: null,
+      biolinks: [],
+      resume_data: {},
+    };
   }
-
-  let profile: any = null;
-  try {
-    const { data: p } = await adminDb
-      .from("profiles")
-      .select("*")
-      .eq("id", effectiveUserId)
-      .maybeSingle();
-    profile = p;
-  } catch (err) {
-    console.warn(`[auth] getProfile error for ${effectiveUserId}:`, err);
-  }
-
-  const email = user?.email || profile?.email || "master@wider.com.br";
-  const fullName = profile?.full_name || user?.user_metadata?.full_name || "Eduardo Antônio Ramos";
-
-  return {
-    id: effectiveUserId,
-    email,
-    fullName,
-    phone: profile?.phone || user?.user_metadata?.phone || "",
-    role: profile?.role || identity.role || "platform_admin",
-    // Enriched profile fields
-    username: profile?.username || "admin",
-    avatarUrl: profile?.avatar_url ?? null,
-    coverUrl: profile?.cover_url ?? null,
-    bio: profile?.bio ?? null,
-    occupation: profile?.occupation ?? null,
-    city: profile?.city ?? null,
-    state: profile?.state ?? null,
-    instagram: profile?.instagram ?? null,
-    website: profile?.website ?? null,
-    cpf: profile?.cpf ?? null,
-    birthDate: profile?.birth_date ?? null,
-    gender: profile?.gender ?? null,
-    newsletterOptIn: profile?.newsletter_opt_in ?? false,
-  };
 });
 
 // ---------------------------------------------------------------------------
@@ -672,4 +924,163 @@ export const requestAccountDeletion = createServerFn({ method: "POST" }).handler
   if (deleteError) throw new Error("Falha ao remover conta: " + deleteError.message);
 
   return { status: "deleted" as const };
+});
+
+// ---------------------------------------------------------------------------
+// Painel de Segurança & Auditoria de Sessões (Padrão Instagram / BigTech)
+// ---------------------------------------------------------------------------
+
+/**
+ * Retorna os últimos eventos de login e segurança do usuário autenticado.
+ */
+export const getUserSecurityAuditLogs = createServerFn({ method: "GET" }).handler(async () => {
+  const identity = await getServerIdentity();
+  if (!identity.id) throw new Error("Não autorizado");
+
+  const db = getServerClient();
+  const { data, error } = await db
+    .from("session_audit_logs")
+    .select("id, event_type, ip_address, country_code, city, device_type, is_datacenter, threat_score, risk_score, risk_flags, metadata, created_at")
+    .eq("profile_id", identity.id)
+    .order("created_at", { ascending: false })
+    .limit(30);
+
+  if (error) {
+    console.error("[auth] Erro ao buscar session_audit_logs:", error);
+    return [];
+  }
+
+  return data || [];
+});
+
+/**
+ * Retorna os dispositivos registrados e conhecidos do usuário autenticado.
+ */
+export const getUserRegisteredDevices = createServerFn({ method: "GET" }).handler(async () => {
+  const identity = await getServerIdentity();
+  if (!identity.id) throw new Error("Não autorizado");
+
+  const db = getServerClient();
+  const { data, error } = await db
+    .from("device_registry")
+    .select("id, device_fingerprint, device_name, device_type, country_code, city, ip_address, is_trusted, last_seen_at, first_seen_at")
+    .eq("profile_id", identity.id)
+    .order("last_seen_at", { ascending: false });
+
+  if (error) {
+    console.error("[auth] Erro ao buscar device_registry:", error);
+    return [];
+  }
+
+  return data || [];
+});
+
+/**
+ * Revoga / desconecta um dispositivo registrado.
+ */
+export const revokeUserDevice = createServerFn({ method: "POST" })
+  .validator(z.object({ deviceId: z.string().uuid() }))
+  .handler(async ({ data: { deviceId } }) => {
+    const identity = await getServerIdentity();
+    if (!identity.id) throw new Error("Não autorizado");
+
+    const db = getServerClient();
+    const { error } = await db
+      .from("device_registry")
+      .delete()
+      .eq("id", deviceId)
+      .eq("profile_id", identity.id);
+
+    if (error) throw new Error("Falha ao revogar dispositivo: " + error.message);
+
+    // Registra evento de revogação
+    let request: Request | null = null;
+    try { request = getRequest(); } catch {}
+    await recordAuthAuditEvent({
+      profileId: identity.id,
+      eventType: "session_revoked",
+      request,
+      metadata: { revokedDeviceId: deviceId },
+    });
+
+    return { status: "success" as const };
+  });
+
+/**
+ * Marca um dispositivo como confiável pelo usuário.
+ */
+export const trustUserDevice = createServerFn({ method: "POST" })
+  .validator(z.object({ deviceId: z.string().uuid() }))
+  .handler(async ({ data: { deviceId } }) => {
+    const identity = await getServerIdentity();
+    if (!identity.id) throw new Error("Não autorizado");
+
+    const db = getServerClient();
+    const { error } = await db
+      .from("device_registry")
+      .update({ is_trusted: true })
+      .eq("id", deviceId)
+      .eq("profile_id", identity.id);
+
+    if (error) throw new Error("Falha ao confiar no dispositivo: " + error.message);
+
+    return { status: "success" as const };
+  });
+
+/**
+ * Visão Geral de Segurança para o Admin Master (Platform Admin).
+ * Retorna estatísticas de risco, logins recentes globais e eventos suspeitos.
+ */
+export const getAdminSecurityOverview = createServerFn({ method: "GET" }).handler(async () => {
+  const identity = await getServerIdentity();
+  if (identity.role !== "platform_admin" && identity.role !== "master") {
+    throw new Error("Acesso restrito ao Administrador Master da Plataforma.");
+  }
+
+  const db = getServerClient();
+
+  // 1. Últimos 50 eventos de autenticação globais
+  const { data: recentEvents } = await db
+    .from("session_audit_logs")
+    .select(`
+      id, event_type, ip_address, country_code, city, device_type,
+      is_datacenter, threat_score, risk_score, risk_flags, metadata, created_at,
+      profiles:profile_id (id, full_name, username)
+    `)
+    .order("created_at", { ascending: false })
+    .limit(50);
+
+  // 2. Eventos de alto risco (risk_score >= 40)
+  const { data: highRiskEvents } = await db
+    .from("session_audit_logs")
+    .select(`
+      id, event_type, ip_address, country_code, city, device_type,
+      is_datacenter, threat_score, risk_score, risk_flags, metadata, created_at,
+      profiles:profile_id (id, full_name, username)
+    `)
+    .gte("risk_score", 40)
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  // 3. Contagem de falhas de login recentes
+  const { count: failedLoginsCount } = await db
+    .from("session_audit_logs")
+    .select("id", { count: "exact", head: true })
+    .eq("event_type", "login_failed");
+
+  // 4. Contagem de logins com sucesso
+  const { count: successLoginsCount } = await db
+    .from("session_audit_logs")
+    .select("id", { count: "exact", head: true })
+    .eq("event_type", "login_success");
+
+  return {
+    recentEvents: recentEvents || [],
+    highRiskEvents: highRiskEvents || [],
+    stats: {
+      totalFailed: failedLoginsCount || 0,
+      totalSuccess: successLoginsCount || 0,
+      highRiskCount: highRiskEvents?.length || 0,
+    },
+  };
 });

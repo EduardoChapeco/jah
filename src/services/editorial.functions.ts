@@ -149,7 +149,7 @@ export const schedulePost = createServerFn({ method: "POST" })
         .insert({
           store_id: identity.store_id,
           title: input.title,
-          media_url: input.imageUrl || "/banner-placeholder.png",
+          media_url: input.imageUrl || "",
           expires_at: input.scheduledFor,
         })
         .select()
@@ -157,9 +157,10 @@ export const schedulePost = createServerFn({ method: "POST" })
 
       if (error) {
         console.error("[editorial] Error creating story:", error);
+        throw new Error("Erro ao agendar story.");
       }
       return {
-        id: story?.id || crypto.randomUUID(),
+        id: story.id,
         store_id: identity.store_id,
         title: input.title,
         content: input.content,

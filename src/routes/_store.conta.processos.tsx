@@ -23,6 +23,7 @@ import { useMasterLocation } from "@/components/location/location-master-pill";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/conta/processos")({
+  head: () => ({ meta: [{ title: "Meus Processos & Demandas | Wider" }] }),
   component: UserLawsuitsPage,
 });
 
@@ -35,13 +36,13 @@ function UserLawsuitsPage() {
   const [title, setTitle] = useState("");
   const [legalArea, setLegalArea] = useState<any>("civel");
   const [description, setDescription] = useState("");
-  const [urgency, setUrgency] = useState<"low" | "medium" | "high" | "urgent">("medium");
+  const [urgency, setUrgency] = useState<"low" | "normal" | "high" | "urgent">("normal");
   const [isAnonymous, setIsAnonymous] = useState(false);
 
   // Queries
   const { data: lawsuits, isLoading: loadingLawsuits } = useQuery({
     queryKey: ["jus_lawsuits_user"],
-    queryFn: () => getMyLawsuits(),
+    queryFn: () => listMyLawsuits(),
   });
 
   const { data: demands, isLoading: loadingDemands } = useQuery({
@@ -61,7 +62,7 @@ function UserLawsuitsPage() {
         await createJusDemand({
           data: {
             title,
-            legalArea,
+            legal_area: legalArea,
             description,
             urgency,
             is_anonymous: isAnonymous,
@@ -109,7 +110,7 @@ function UserLawsuitsPage() {
               }`}
             >
               <Scales className="h-4 w-4" />
-              Meus Processos ({lawsuits.length})
+              Meus Processos ({lawsuits?.length || 0})
             </button>
             <button
               onClick={() => setActiveTab("new_demand")}
@@ -128,7 +129,7 @@ function UserLawsuitsPage() {
         {/* Tab 1: Lista de Processos Sincronizados */}
         {activeTab === "lawsuits" && (
           <div className="space-y-4">
-            {lawsuits.length === 0 ? (
+            {!lawsuits || lawsuits.length === 0 ? (
               <div className="rounded-2xl border border-border bg-card p-8 text-center sm:p-12">
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                   <Scales className="h-7 w-7" />
@@ -157,7 +158,7 @@ function UserLawsuitsPage() {
               </div>
             ) : (
               <div className="grid gap-4">
-                {lawsuits.map((lawsuit: any) => (
+                {lawsuits?.map((lawsuit: any) => (
                   <div
                     key={lawsuit.id}
                     className="rounded-2xl border border-border bg-card p-5 transition-all hover:border-primary/40 hover:"

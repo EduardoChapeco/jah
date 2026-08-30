@@ -11,7 +11,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/pedido/$publicToken/confirmacao")({
   head: () => ({
-    meta: [{ title: "Pedido Confirmado" }],
+    meta: [{ title: "Pedido Confirmado | Wider" }],
   }),
   loader: ({ params }) => getOrderByToken({ data: { token: params.publicToken } }),
   component: ConfirmationPage,
@@ -64,7 +64,7 @@ function ConfirmationPage() {
     <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
       <div className="mx-auto max-w-3xl space-y-8">
         <div className="flex flex-col items-center text-center">
-          <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-success">
+          <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-success/15">
             <CheckCircle2 className="size-10 text-success" aria-hidden />
           </div>
           <PageHeader title="Pedido Realizado com Sucesso!" />
@@ -138,7 +138,7 @@ function ConfirmationPage() {
                     <strong>Conta Corrente:</strong> 45678-9
                   </p>
                   <p>
-                    <strong>Favorecido:</strong> JAH LTDA
+                    <strong>Favorecido:</strong> Wider LTDA
                   </p>
                   <p>
                     <strong>CNPJ:</strong> 00.000.000/0001-00
@@ -237,7 +237,7 @@ function ConfirmationPage() {
               <ShieldCheck className="size-5" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-foreground">Auditoria de Compromisso JAH</h4>
+              <h4 className="text-xs font-bold text-foreground">Auditoria de Compromisso Wider</h4>
               <p className="text-[11px] text-muted-foreground">
                 Ajude a manter o comércio local confiável validando o cumprimento de prazos e frete grátis da loja.
               </p>

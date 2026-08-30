@@ -14,8 +14,7 @@ import { formatDate } from "@/lib/datetime";
 export const Route = createFileRoute("/_store/conta/avaliacoes")({
   head: () => ({ meta: [{ title: "Minhas Avaliações" }] }),
   loader: async () => {
-    const res = await listCustomerReviews();
-    return res;
+    return (await listCustomerReviews().catch(() => [])) || [];
   },
   component: Page,
 });

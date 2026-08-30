@@ -56,7 +56,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Surface } from "@/components/ui/surface";
-import { formatDistanceToNow } from "@/lib/datetime";
+import { formatDate, formatRelativeTime } from "@/lib/datetime";
 
 const getColorHex = (name: string): string => {
   const colors: Record<string, string> = {
@@ -246,7 +246,7 @@ export const Route = createFileRoute("/_store/produto/$slug")({
               availability: product.variants?.some((v: any) => v.availableQty > 0)
                 ? "https://schema.org/InStock"
                 : "https://schema.org/OutOfStock",
-              seller: { "@type": "Organization", name: "Jah" },
+              seller: { "@type": "Organization", name: "Wider" },
             },
           }),
         },
@@ -476,13 +476,17 @@ function ProductContent({
         },
       });
 
-      if (!res || res.status !== "success" || (!res.cart && (!res.globalCarts || res.globalCarts.length === 0))) {
+      if (!res || res.status === "error") {
         throw new Error(
-          "Falha ao adicionar ao carrinho. Verifique sua conexão ou tente novamente.",
+          (res as any)?.message || "Falha ao adicionar ao carrinho. Verifique sua conexão ou tente novamente.",
         );
       }
 
-      setCartData((res.cart || res.globalCarts?.[0]) as any, (res as any).globalCarts as any);
+      if (!(res as any).cart && (!(res as any).globalCarts || (res as any).globalCarts.length === 0)) {
+         throw new Error("Falha ao sincronizar carrinho.");
+      }
+
+      setCartData(((res as any).cart || (res as any).globalCarts?.[0]) as any, (res as any).globalCarts as any);
 
       // Feedback imediato com animação e abertura da gaveta
       toast.success("Adicionado ao carrinho com sucesso!");
@@ -1087,7 +1091,7 @@ function ProductContent({
                   <p className="text-muted-foreground leading-normal text-[11px]">
                     {isFoodOrPerishable
                       ? "Garantia de preparo fresco e seguro. Entrega com controle térmico e higiene rigorosa para consumo imediato."
-                      : "Garantia de conformidade JAH. Trocas ou devoluções em até 7 dias úteis após o recebimento conforme o CDC."}
+                      : "Garantia de conformidade Wider. Trocas ou devoluções em até 7 dias úteis após o recebimento conforme o CDC."}
                   </p>
                 </div>
               </div>
@@ -1110,7 +1114,7 @@ function ProductContent({
                   search={{ storeId: product.store_id || (product as any).store?.id }}
                   className="text-sm font-bold text-foreground hover:text-primary transition-colors truncate block"
                 >
-                  {(product as any).store?.name || "Loja Parceira JAH"}
+                  {(product as any).store?.name || "Loja Parceira Wider"}
                 </Link>
                 {(product as any).store?.city && (
                   <p className="text-[11px] text-muted-foreground truncate">
@@ -1135,7 +1139,7 @@ function ProductContent({
                 </span>
                 <span className="flex items-center gap-1.5">
                   <ShieldCheck className="size-3.5 text-success fill-success/10" />
-                  Proteção JAH
+                  Proteção Wider
                 </span>
               </div>
 

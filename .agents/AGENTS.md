@@ -91,6 +91,8 @@ Antes de escrever qualquer linha de código, você DEVE ativar a skill `bigtech-
     Páginas públicas de vitrine e descoberta (Home, Mercado, Notícias, Agenda, Turismo, Diretório, Classificados) NUNCA devem ter blocos prolixos de título/descrição de boas-vindas ("Bem-vindo ao Mercado Central..."), nem títulos redundantes de seção (`<h2>`, `<h3>`) competindo com os cards e carrosséis. A interface deve ser direta e autoexplicativa: Banners imersivos, Chips de navegação rápida, `DiscoveryControlBar` e trilhos horizontais com snap scroll. No componente `HorizontalRail`, use a prop `hideHeader={true}` para renderizar apenas os carrosséis de produtos/lojas/destaques de forma limpa, mantendo a `aria-label` semântica para acessibilidade.
 12. **Arquitetura dos 3 Toques & Zona do Polegar (Nielsen Norman & Apple HIG).**
     Toda a experiência de compra, busca e agendamento deve colocar as ações primárias fixas no terço inferior da tela móvel (`Thumb Zone`), com alvos de toque mínimos de 44x44px (`h-11`) e preenchimento de formulário/endereço em no máximo 3 toques a partir do produto.
+13. **Proibição de AI-Smell e Botões Conversacionais Prolixos (Skill `anti-ai-design`).**
+    É terminantemente PROIBIDO criar botões com visual artificial de "Card Conversacional" com título + subtítulo + ícone em caixinha colorida tentando explicar o óbvio (ex: card com "Acessar Portal Comercial / Gestores, admins e equipes de loja"). Um designer humano sênior (Apple, Stripe, Linear, iFood) usa ações diretas: `<Button variant="outline">Entrar no Workspace</Button>`. Elimine caixas de instrução redundante embaixo de inputs e cabeçalhos prolixos. A interface deve ser silenciosa, limpa, objetiva e elegante.
 
 ## Fase Atual de Desenvolvimento
 

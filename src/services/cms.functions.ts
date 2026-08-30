@@ -877,11 +877,11 @@ export const listCustomerReviews = createServerFn({ method: "GET" }).handler(asy
     const {
       data: { user },
     } = await ssrClient.auth.getUser();
-    if (!user) throw new Error("Não autorizado");
+    if (!user) return [];
 
     const { resolveTenantStoreId } = await import("@/lib/tenant.server");
     const storeId = await resolveTenantStoreId();
-    if (!storeId) throw new Error("Loja não encontrada");
+    if (!storeId) return [];
 
     const { data, error } = await ssrClient
       .from("reviews")
@@ -892,7 +892,10 @@ export const listCustomerReviews = createServerFn({ method: "GET" }).handler(asy
       .eq("store_id", storeId)
       .order("created_at", { ascending: false });
 
-    if (error) throw new Error(error instanceof Error ? error.message : String(error));
+    if (error) {
+      console.warn("[cms.functions] listCustomerReviews query warning:", error);
+      return [];
+    }
 
     return (data || []).map((r: any) => ({
       id: r.id as string,
@@ -904,6 +907,7 @@ export const listCustomerReviews = createServerFn({ method: "GET" }).handler(asy
       productSlug: r.products?.slug as string | null,
     }));
   } catch (e: unknown) {
-    throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao buscar avaliações.");
+    console.warn("[cms.functions] listCustomerReviews fallback:", e);
+    return [];
   }
 });

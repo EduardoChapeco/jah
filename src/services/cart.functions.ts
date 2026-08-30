@@ -6,9 +6,11 @@
  */
 
 import { createServerFn } from "@tanstack/react-start";
+import { getServerIdentity, getSSRClient } from "@/lib/server-access";
+import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
+import { logSystemError } from "@/lib/logger";
 import { z } from "zod";
 
-import { getServerClient } from "@/lib/supabase";
 import { getGuestSession, getSellerRefCookie } from "@/lib/session";
 import { getCurrentIdentity, mergeGuestCartLogic } from "./cart-helpers";
 import type { CartDTO } from "@/types/orders";
@@ -65,7 +67,7 @@ async function getOrCreateCartId(
   }
 
   if (!storeId) {
-    throw new Error("Nenhuma loja disponível no momento.");
+    return { status: "error" as const, message: "Nenhuma loja disponível no momento." };
   }
 
   // 3. Create a new cart for this store
@@ -80,7 +82,7 @@ async function getOrCreateCartId(
     .select("id")
     .single();
 
-  if (error) throw new Error("Falha ao criar carrinho: " + error.message);
+  if (error) return { status: "error" as const, message: "Falha ao criar carrinho: " + error.message };
   return newCart.id;
 }
 
@@ -435,12 +437,12 @@ export const cancelCart = createServerFn({ method: "POST" })
     else query = query.eq("session_token", identity.session_token);
 
     const { data: cart } = await query.single();
-    if (!cart) throw new Error("Carrinho não encontrado ou acesso negado.");
+    if (!cart) return { status: "error" as const, message: "Carrinho não encontrado ou acesso negado." };
 
     // Update status to cancelled instead of deleting to keep history if needed,
     // or just delete it. Let's delete it so it removes items and cleans up.
     const { error } = await supabase.from("carts").delete().eq("id", cartId);
-    if (error) throw new Error("Falha ao cancelar pacote.");
+    if (error) return { status: "error" as const, message: "Falha ao cancelar pacote." };
     return { success: true };
   });
 
@@ -478,7 +480,7 @@ export const addToCart = createServerFn({ method: "POST" })
       }
 
       if (!targetVariantId) {
-        throw new Error("Selecione uma opção de produto válida.");
+        return { status: "error" as const, message: "Selecione uma opção de produto válida." };
       }
       const variantId = targetVariantId;
 
@@ -511,7 +513,7 @@ export const addToCart = createServerFn({ method: "POST" })
       }
 
       if (!storeId) {
-        throw new Error("Loja do produto indisponível.");
+        return { status: "error" as const, message: "Loja do produto indisponível." };
       }
 
       // 1. Tenta inserção atômica via RPC
@@ -604,7 +606,7 @@ export const removeFromCart = createServerFn({ method: "POST" })
       .eq("id", itemId)
       .single();
 
-    if (!item) throw new Error("Item não encontrado");
+    if (!item) return { status: "error" as const, message: "Item não encontrado" };
 
     // Removed stock reservation drop logic here since cart items no longer reserve stock immediately.
     // Stock reservation is handled during checkout order creation now.
@@ -645,7 +647,7 @@ export const updateCartItemQty = createServerFn({ method: "POST" })
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    if (!cart) throw new Error("Carrinho não encontrado");
+    if (!cart) return { status: "error" as const, message: "Carrinho não encontrado" };
 
     const { data: existingItem } = await supabase
       .from("cart_items")
@@ -654,7 +656,7 @@ export const updateCartItemQty = createServerFn({ method: "POST" })
       .eq("variant_id", variantId)
       .maybeSingle();
 
-    if (!existingItem) throw new Error("Item não está no carrinho");
+    if (!existingItem) return { status: "error" as const, message: "Item não está no carrinho" };
 
     const newTotalQty = existingItem.qty + delta;
     if (newTotalQty <= 0) {
@@ -679,7 +681,8 @@ const UpdateCartItemOptionsSchema = z.object({
 
 export const updateCartItemOptions = createServerFn({ method: "POST" })
   .validator(UpdateCartItemOptionsSchema)
-  .handler(async ({ data: { itemId, variantId, options, quantity } }) => {
+  .handler(async (params) => {
+    const { itemId, variantId, options, quantity } = params.data;
     const supabase = getServerClient();
     const identity = await getCurrentIdentity();
 
@@ -690,7 +693,7 @@ export const updateCartItemOptions = createServerFn({ method: "POST" })
       .eq("id", itemId)
       .single();
 
-    if (!item) throw new Error("Item do carrinho não encontrado.");
+    if (!item) return { status: "error" as const, message: "Item do carrinho não encontrado." };
 
     const updatePayload: Record<string, any> = {};
     if (variantId) updatePayload.variant_id = variantId;
@@ -710,14 +713,18 @@ export const updateCartItemOptions = createServerFn({ method: "POST" })
       updatePayload.price_snapshot_cents = priceSnapshot;
     }
 
-    const { error: updateError } = await supabase
-      .from("cart_items")
-      .update(updatePayload)
-      .eq("id", itemId);
+    try {
+      const { error: updateError } = await supabase
+        .from("cart_items")
+        .update(updatePayload)
+        .eq("id", itemId);
 
-    if (updateError) {
-      console.error("[cart.functions] Erro ao atualizar opções do item:", updateError);
-      throw new Error("Falha ao atualizar opções do item.");
+      if (updateError) throw updateError;
+    } catch (e: unknown) {
+      if (e instanceof SupabaseUnconfiguredError) throw e;
+      logSystemError({ route: "cart.functions.updateCartItemOptions", error: e, payload: params.data });
+      console.error("[cart.functions] Erro ao atualizar opções do item:", e);
+      return { status: "error" as const, message: "Falha ao atualizar opções do item." };
     }
 
     const [updatedCart, updatedGlobalCarts] = await Promise.all([
@@ -746,18 +753,18 @@ export const applyCouponToCart = createServerFn({ method: "POST" })
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    if (!cart) throw new Error("Carrinho não encontrado");
+    if (!cart) return { status: "error" as const, message: "Carrinho não encontrado" };
 
     // Get current cart details to check subtotal
     const cartDetails = await getCart();
-    if (!cartDetails) throw new Error("Erro ao buscar detalhes do carrinho");
+    if (!cartDetails) return { status: "error" as const, message: "Erro ao buscar detalhes do carrinho" };
 
     // Search for coupon
     const { resolveTenantStoreId } = await import("@/lib/tenant.server");
     const storeId = await resolveTenantStoreId();
-    if (!storeId) throw new Error("Loja não configurada");
+    if (!storeId) return { status: "error" as const, message: "Loja não configurada" };
     const store = { id: storeId };
-    if (!store) throw new Error("Loja não configurada");
+    if (!store) return { status: "error" as const, message: "Loja não configurada" };
 
     const { data: coupon } = await supabase
       .from("coupons")
@@ -767,20 +774,20 @@ export const applyCouponToCart = createServerFn({ method: "POST" })
       .eq("is_active", true)
       .maybeSingle();
 
-    if (!coupon) throw new Error("Cupom inválido ou expirado.");
+    if (!coupon) return { status: "error" as const, message: "Cupom inválido ou expirado." };
 
     // Check expiration
     if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
-      throw new Error("Este cupom já expirou.");
+      return { status: "error" as const, message: "Este cupom já expirou." };
     }
 
     // Check limits
     if (coupon.max_uses && coupon.uses_count >= coupon.max_uses) {
-      throw new Error("Este cupom atingiu o limite de usos.");
+      return { status: "error" as const, message: "Este cupom atingiu o limite de usos." };
     }
 
     if (coupon.min_order_cents && cartDetails.subtotalCents < coupon.min_order_cents) {
-      throw new Error(`Valor mínimo para este cupom é ${formatMoney(coupon.min_order_cents)}`);
+      return { status: "error" as const, message: `Valor mínimo para este cupom é ${formatMoney(coupon.min_order_cents)}` };
     }
 
     // Calculate discount
@@ -829,7 +836,7 @@ export const updateCartShipping = createServerFn({ method: "POST" })
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    if (!cart) throw new Error("Carrinho não encontrado");
+    if (!cart) return { status: "error" as const, message: "Carrinho não encontrado" };
 
     await supabase
       .from("carts")
@@ -856,7 +863,7 @@ export const updateCartContact = createServerFn({ method: "POST" })
       const cartId = await getOrCreateCartId(identity);
 
       if (!cartId) {
-        throw new Error("Nenhum carrinho ativo encontrado");
+        return { status: "error" as const, message: "Nenhum carrinho ativo encontrado" };
       }
 
       const db = getServerClient();
@@ -872,7 +879,7 @@ export const updateCartContact = createServerFn({ method: "POST" })
       return { success: true };
     } catch (e: unknown) {
       console.error("[cart] updateCartContact error:", e);
-      throw new Error("Falha ao atualizar contato do carrinho");
+      return { status: "error" as const, message: "Falha ao atualizar contato do carrinho" };
     }
   });
 
@@ -885,6 +892,6 @@ export const triggerAbandonedCartsEngine = createServerFn({ method: "POST" }).ha
     return { success: true };
   } catch (e: unknown) {
     console.error("[cart] triggerAbandonedCartsEngine error:", e);
-    throw new Error("Falha ao disparar motor de carrinhos abandonados");
+    return { status: "error" as const, message: "Falha ao disparar motor de carrinhos abandonados" };
   }
 });

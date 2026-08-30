@@ -30,8 +30,7 @@ async function requirePlatformAdmin() {
   const { data: userData } = await db.auth.admin.getUserById(identity.id).catch(() => ({ data: { user: null } }));
   const email = userData?.user?.email?.toLowerCase();
   const MASTER_EMAILS = [
-    "excelenciatour.smo@gmail.com",
-    "eusoueduoficial@gmail.com",
+    "meuwider@gmail.com",
     "admin@wider.com.br",
   ];
 
@@ -89,6 +88,26 @@ export const getLegalDocumentBySlug = createServerFn({ method: "GET" })
 
     return doc || null;
   });
+
+/**
+ * Retorna todos os documentos legais publicados para uso em drawers de consentimento, onboarding e rodapé
+ */
+export const getLegalBundle = createServerFn({ method: "GET" }).handler(async () => {
+  const db = getServerClient();
+
+  const { data: docs, error } = await db
+    .from("legal_documents")
+    .select("id, slug, title, category, version, summary, content_markdown, updated_at")
+    .eq("is_published", true)
+    .order("slug");
+
+  if (error) {
+    console.error("[LegalFunctions] Erro ao buscar pacote legal:", error);
+    return [];
+  }
+
+  return docs || [];
+});
 
 // ============================================================
 // 3. ADMIN: LISTAGEM DE DOCUMENTOS LEGAIS DA PLATAFORMA

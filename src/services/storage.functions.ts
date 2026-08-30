@@ -1,6 +1,29 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getServerClient } from "@/lib/supabase";
+import { enforceRateLimit } from "@/lib/rate-limiter";
+
+const ALLOWED_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "image/svg+xml",
+  "image/avif",
+  "video/mp4",
+  "video/webm",
+  "video/quicktime",
+  "application/pdf",
+]);
+
+function validateMimeType(contentType: string) {
+  const cleanType = contentType.toLowerCase().split(";")[0].trim();
+  if (!ALLOWED_MIME_TYPES.has(cleanType)) {
+    throw new Error(
+      `Tipo de arquivo não permitido (${contentType}). Apenas imagens (JPEG, PNG, WebP, GIF, SVG), vídeos (MP4, WebM) e PDFs são aceitos.`
+    );
+  }
+}
 
 /**
  * Retorna uma URL assinada para que o cliente faça o upload diretamente para o Supabase Storage,
@@ -15,14 +38,18 @@ export const getSignedUploadUrl = createServerFn({ method: "POST" })
       contentType: z.string(),
     }),
   )
-  .handler(async ({ data: { fileName, bucket } }) => {
+  .handler(async ({ data: { fileName, bucket, contentType } }) => {
     try {
+      validateMimeType(contentType);
+
       const supabase = getServerClient();
       const ext = fileName.split(".").pop() || "png";
 
       const { getServerIdentity } = await import("@/lib/server-access");
-      const { store_id } = await getServerIdentity();
-      if (!store_id) throw new Error("Loja não encontrada");
+      const { store_id, id: userId } = await getServerIdentity();
+      if (!store_id && !userId) throw new Error("Não autorizado");
+
+      enforceRateLimit(userId || store_id || "guest", "media_upload");
 
       const uniqueName = `${store_id}/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${ext}`;
 
@@ -87,11 +114,15 @@ export const getPostMediaSignedUrl = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data: { fileName, contentType } }) => {
+    validateMimeType(contentType);
+
     const supabase = getServerClient();
     const { getServerIdentity } = await import("@/lib/server-access");
     const identity = await getServerIdentity();
 
     if (!identity.id) throw new Error("Não autorizado — faça login para enviar mídia.");
+
+    enforceRateLimit(identity.id, "media_upload");
 
     const BUCKET = "post-media";
     const ext = fileName.split(".").pop() || contentType.split("/")[1] || "bin";
@@ -140,6 +171,12 @@ export const uploadStoreMedia = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: { fileName, fileType, base64Data, bucket } }) => {
     try {
+      validateMimeType(fileType);
+
+      const { getServerIdentity } = await import("@/lib/server-access");
+      const identity = await getServerIdentity().catch(() => ({ id: null, store_id: null }));
+      enforceRateLimit(identity.id || identity.store_id || "guest", "media_upload");
+
       const supabase = getServerClient();
       const ext = fileName.split(".").pop() || "png";
       const uniqueName = `stores/${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${ext}`;

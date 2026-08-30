@@ -386,7 +386,7 @@ function NegociacoesPage() {
                         <p className="text-[11px] text-muted-foreground">
                           {isRental
                             ? "Os dados do imóvel e as datas estão registrados na sua agenda."
-                            : "O acordo foi formalizado entre as partes na plataforma JAH."}
+                            : "O acordo foi formalizado entre as partes na plataforma Wider."}
                         </p>
                       </div>
                     </div>

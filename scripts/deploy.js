@@ -59,9 +59,26 @@ function runCommand(command, env = {}, input = null) {
 
 // 1. Supabase DB Push
 if (secrets.SUPABASE_ACCESS_TOKEN && secrets.SUPABASE_DB_PASSWORD) {
-  console.log("1. Realizando Push de Banco de Dados (Supabase)...");
+  console.log("1. Realizando Link e Push de Banco de Dados (Supabase)...");
   try {
-    execSync("npx supabase db push", {
+    const projectRef = secrets.PROJECT_REF || "jfuebqmltksyznovhlwa";
+    console.log(` -> Vinculando projeto Supabase: ${projectRef}`);
+    try {
+      execSync(`npx supabase link --project-ref ${projectRef} --password "${secrets.SUPABASE_DB_PASSWORD}"`, {
+        stdio: "inherit",
+        env: {
+          ...process.env,
+          SUPABASE_ACCESS_TOKEN: secrets.SUPABASE_ACCESS_TOKEN,
+          SUPABASE_DB_PASSWORD: secrets.SUPABASE_DB_PASSWORD,
+        },
+        shell: true,
+      });
+    } catch (linkErr) {
+      console.warn("Aviso ao vincular (talvez ja vinculado). Continuando...");
+    }
+
+    console.log(" -> Aplicando migrations com db push --include-all...");
+    execSync("npx supabase db push --include-all", {
       stdio: "inherit",
       env: {
         ...process.env,
@@ -71,7 +88,7 @@ if (secrets.SUPABASE_ACCESS_TOKEN && secrets.SUPABASE_DB_PASSWORD) {
       shell: true,
     });
   } catch (e) {
-    console.warn("Aviso no Supabase DB Push. Continuando...");
+    console.warn("Aviso no Supabase DB Push. Continuando...", e.message);
   }
 } else {
   console.warn("Aviso: Tokens do Supabase não encontrados no .env.secrets.");
@@ -81,32 +98,9 @@ if (secrets.SUPABASE_ACCESS_TOKEN && secrets.SUPABASE_DB_PASSWORD) {
 console.log("\n2. Realizando Build da Aplicação...");
 runCommand("npm run build");
 
-// 3. Cloudflare Secrets Put (opcional / fallback seguro)
-console.log("\n3. Injetando Segredos no Cloudflare Pages (Wrangler)...");
-const keysToPush = ["SUPABASE_SERVICE_ROLE_KEY", "JWT_SECRET"];
-
-for (const key of keysToPush) {
-  if (secrets[key]) {
-    try {
-      console.log(` -> Empacotando secret: ${key}`);
-      runCommand(
-        `npx wrangler pages secret put ${key} --project-name wider`,
-        {},
-        `${secrets[key]}\n`,
-      );
-    } catch {
-      console.warn(`Aviso: Secret ${key} já configurada ou ignorada.`);
-    }
-  }
-}
-
-// 4. Deploy Final
-console.log("\n4. Realizando Deploy para o Cloudflare Pages...");
-const outputDir = fs.existsSync(path.resolve(__dirname, "../.output/public"))
-  ? ".output/public"
-  : "dist";
-console.log(`Diretório alvo: ${outputDir}`);
-runCommand(`npx wrangler pages deploy ${outputDir} --project-name wider`);
+// 3. Deploy Final para Cloudflare Pages
+console.log("\n3. Realizando Deploy para o Cloudflare Pages...");
+runCommand(`npx wrangler pages deploy dist --project-name wider --commit-dirty=true`);
 
 console.log("\n==========================================");
 console.log("Deploy Finalizado com Sucesso!");

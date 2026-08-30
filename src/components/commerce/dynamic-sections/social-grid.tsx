@@ -16,7 +16,7 @@ interface SocialGridProps {
 export function SocialGrid({ content }: SocialGridProps) {
   const posts = content.posts || [];
   const title = content.title || "Siga-nos no Instagram";
-  const username = content.username || "jah";
+  const username = content.username || "wider";
 
   // As métricas de engajamento agora vêm diretamente dos campos definidos no painel
   // de administração (via CMS Builder), permitindo total flexibilidade sem mock data.

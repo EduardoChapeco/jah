@@ -40,6 +40,7 @@ import {
   type ViewModeType,
   type FilterChipOption,
 } from "@/components/commerce/discovery-control-bar";
+import { ContextualStoriesRail } from "@/components/stories/contextual-stories-rail";
 import { GroceryProductCard } from "@/components/commerce/grocery-product-card";
 import {
   listPublishedProducts,
@@ -248,6 +249,9 @@ function SupermarketMasterPage() {
       {banners && banners.length > 0 && (
         <BannerHeroCarousel banners={banners} className="w-full" />
       )}
+
+      {/* ── 2. Stories Rápidos & Ofertas em Vídeo dos Mercados Parceiros ── */}
+      <ContextualStoriesRail niche="mercado" className="py-1" />
 
       {/* ── 3. Seletor de Supermercados Parceiros (Multi-Store Filter) ── */}
       {availableStores.length > 0 && (

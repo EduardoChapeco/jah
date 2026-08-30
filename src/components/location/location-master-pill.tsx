@@ -128,9 +128,18 @@ export async function resolveGeoCoordinates(
 }
 
 export function useMasterLocation() {
-  const [location, setLocation] = useState<LocationState>(getStoredLocation);
+  const [location, setLocation] = useState<LocationState>(GLOBAL_DEFAULT_LOCATION);
 
   useEffect(() => {
+    const stored = getStoredLocation();
+    if (
+      stored.city !== GLOBAL_DEFAULT_LOCATION.city ||
+      stored.state !== GLOBAL_DEFAULT_LOCATION.state ||
+      stored.source !== GLOBAL_DEFAULT_LOCATION.source
+    ) {
+      setLocation(stored);
+    }
+
     const handleUpdate = (e: any) => {
       if (e.detail) {
         setLocation(e.detail);

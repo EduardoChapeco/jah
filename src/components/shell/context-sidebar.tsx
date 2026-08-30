@@ -29,6 +29,7 @@ import {
   Armchair,
   Broom,
   Books,
+  FilmStrip,
 } from "@phosphor-icons/react";
 
 export interface ContextSidebarProps {
@@ -50,6 +51,11 @@ const PRIMARY_DESTINATIONS = [
   { to: "/empregos", label: "Empregos", icon: Briefcase, exact: true },
   { to: "/diretorio", label: "Guia & Diretório", icon: Compass, exact: true },
   { to: "/mobilidade", label: "Mobilidade", icon: CarProfile, exact: true },
+];
+
+// ── 1.5. Estúdio & Criação Avançada (Vídeos & Artes) ──
+const CREATOR_DESTINATIONS = [
+  { to: "/workspace/estudio", label: "Studio 3.0 (Vídeos & Artes)", icon: FilmStrip, exact: true },
 ];
 
 // ── 2. Categorias Master & Nichos de Alto Consumo (16 Verticais Canônicas) ──
@@ -107,6 +113,38 @@ export function ContextSidebar({ config, session }: ContextSidebarProps) {
           </span>
           <nav className="flex flex-col space-y-1 pt-1">
             {PRIMARY_DESTINATIONS.map((item) => {
+              const Icon = item.icon;
+              const active = isCurrentActive(item);
+
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to as any}
+                  className={`flex items-center gap-3 h-9 px-3 rounded-xl text-xs transition-all cursor-pointer group ${
+                    active
+                      ? "bg-primary/10 text-primary font-bold shadow-2xs"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/60 font-medium"
+                  }`}
+                >
+                  <Icon
+                    size={17}
+                    weight={active ? "fill" : "regular"}
+                    className={`shrink-0 transition-colors ${active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`}
+                  />
+                  <span className="truncate">{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* 1.5. Estúdio & Criação */}
+        <div className="space-y-1 pt-2">
+          <span className="px-3 text-[10px] font-mono font-bold tracking-wider uppercase text-muted-foreground/70">
+            Criação
+          </span>
+          <nav className="flex flex-col space-y-1 pt-1">
+            {CREATOR_DESTINATIONS.map((item) => {
               const Icon = item.icon;
               const active = isCurrentActive(item);
 

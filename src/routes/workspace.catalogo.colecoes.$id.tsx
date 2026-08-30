@@ -19,8 +19,8 @@ import { Surface } from "@/components/ui/surface";
 import { getCollectionById, updateCollection } from "@/services/admin-catalog.functions";
 
 export const Route = createFileRoute("/workspace/catalogo/colecoes/$id")({
-  head: () => ({ meta: [{ title: "Editar Coleção" }] }),
-  loader: async ({ params }) => {
+  head: ({ loaderData }) => ({ meta: [{ title: `${(loaderData as any)?.name || "Coleção"} | Workspace Wider` }] }),
+  loader: async ({ params }): Promise<any> => {
     try {
       const res = await getCollectionById({ data: { id: params.id } });
       return res || { id: params.id, name: "Coleção", slug: "colecao", status: "active" };
@@ -32,7 +32,7 @@ export const Route = createFileRoute("/workspace/catalogo/colecoes/$id")({
 });
 
 function EditCollectionPage() {
-  const collection = Route.useLoaderData();
+  const collection = Route.useLoaderData() as any;
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -74,7 +74,7 @@ function EditCollectionPage() {
 
   return (
     <div className="space-y-6 max-w-2xl animate-in fade-in duration-200">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-3xl  bg-card ">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-border/60 bg-card">
         <div className="space-y-1">
           <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary">
             Catálogo & Coleções

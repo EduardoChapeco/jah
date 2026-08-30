@@ -24,6 +24,7 @@ import { PageHeader } from "@/components/commerce/page-header";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/workspace/advocacia/")({
+  head: () => ({ meta: [{ title: "Painel Jurídico & Demandas | Workspace Wider" }] }),
   loader: async () => {
     try {
       const demands = await listMarketplaceDemands().catch(() => []);

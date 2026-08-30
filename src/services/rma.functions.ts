@@ -343,8 +343,8 @@ export const resolveRmaWithCredit = createServerFn({ method: "POST" })
 
 export const listCustomerRmas = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    const identity = await getServerIdentity();
-    if (!identity.id) throw new Error("Não autorizado");
+    const identity = await getServerIdentity().catch(() => null);
+    if (!identity?.id) return [];
 
     const db = getServerClient();
     const { data, error } = await db
@@ -355,7 +355,10 @@ export const listCustomerRmas = createServerFn({ method: "GET" }).handler(async 
       .eq("customer_id", identity.id)
       .order("created_at", { ascending: false });
 
-    if (error) throw new Error(error instanceof Error ? error.message : String(error));
+    if (error) {
+      console.warn("[RMA] listCustomerRmas query warning:", error);
+      return [];
+    }
 
     return (data || []).map((rma: any) => ({
       id: rma.id,
@@ -370,8 +373,7 @@ export const listCustomerRmas = createServerFn({ method: "GET" }).handler(async 
       orderTotal: rma.orders?.total_cents as number | null,
     }));
   } catch (e: unknown) {
-    if (e instanceof SupabaseUnconfiguredError) return [];
-    console.error("[RMA] listCustomerRmas:", e instanceof Error ? e.message : String(e));
-    throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao buscar RMA.");
+    console.warn("[RMA] listCustomerRmas fallback:", e);
+    return [];
   }
 });

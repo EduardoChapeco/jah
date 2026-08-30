@@ -441,7 +441,7 @@ export function PostCard(props: PostCardProps) {
 
               {/* Card 3: Voucher / Mensagem de Chegada */}
               <div className="flex flex-col items-center bg-card rounded-2xl p-3 border border-border text-center space-y-2">
-                <div className="w-full aspect-[4/5] rounded-xl bg-purple-50 dark:bg-purple-950/20 overflow-hidden flex flex-col items-center justify-center p-3 relative border border-primary/50 dark:border-primary/30">
+                <div className="w-full aspect-[4/5] rounded-xl bg-muted/30 overflow-hidden flex flex-col items-center justify-center p-3 relative border border-border/80">
                   <Badge className="bg-emerald-600 text-white text-[9px] font-black px-2 py-0.5 mb-2">
                     ✓ Welcome to {item.location_name || "Destination"}
                   </Badge>

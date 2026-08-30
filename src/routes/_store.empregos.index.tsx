@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
 import { HotpagesRail } from "@/components/commerce/hotpages-rail";
+import { ContextualStoriesRail } from "@/components/stories/contextual-stories-rail";
 import { HorizontalRail } from "@/components/commerce/horizontal-rail";
 import {
   DiscoveryControlBar,
@@ -84,7 +85,7 @@ function JobsMasterPage() {
   const [selectedCategory, setSelectedCategory] = useState("todos");
   const [viewMode, setViewMode] = useState<ViewModeType>("feed");
   const [search, setSearch] = useState("");
-  const navigate = useNavigate();
+  const isDefaultFilter = selectedCategory === "todos" && !search;
 
   const { data: jobs, isLoading } = useQuery({
     queryKey: ["jobs-list", selectedCategory, search],
@@ -95,8 +96,9 @@ function JobsMasterPage() {
           search: search || undefined,
         },
       }),
-    initialData: initialJobs,
-    staleTime: 60_000,
+    initialData: isDefaultFilter ? initialJobs : undefined,
+    placeholderData: (prev) => prev,
+    staleTime: 30_000,
   });
 
   const jobsList = jobs || [];
@@ -130,6 +132,9 @@ function JobsMasterPage() {
       {banners && banners.length > 0 && (
         <BannerHeroCarousel banners={banners} className="w-full" />
       )}
+
+      {/* ── 1.5. Stories de Empresas & Bastidores de Carreiras ── */}
+      <ContextualStoriesRail niche="empregos" className="py-1" />
 
       {/* ── 2. Hotpages Contextuais de Empregos ── */}
       {hotpages && hotpages.length > 0 && (

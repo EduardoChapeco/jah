@@ -10,7 +10,9 @@ export const getCustomerCredits = createServerFn({ method: "GET" }).handler(asyn
       data: { user },
     } = await ssrClient.auth.getUser();
 
-    if (!user) throw new Error("Não autorizado");
+    if (!user) {
+      return { balance_cents: 0, customer_credit_transactions: [] };
+    }
 
     const { resolveTenantStoreId } = await import("@/lib/tenant.server");
     const storeId = await resolveTenantStoreId();
@@ -31,12 +33,15 @@ export const getCustomerCredits = createServerFn({ method: "GET" }).handler(asyn
       .eq("store_id", storeId)
       .maybeSingle();
 
-    if (error) throw error;
+    if (error) {
+      console.warn("[credits] getCustomerCredits query error:", error);
+      return { balance_cents: 0, customer_credit_transactions: [] };
+    }
 
     return credits || { balance_cents: 0, customer_credit_transactions: [] };
   } catch (e: unknown) {
-    console.error("[credits] getCustomerCredits error:", e);
-    throw new Error("Erro ao buscar créditos.");
+    console.warn("[credits] getCustomerCredits fallback:", e);
+    return { balance_cents: 0, customer_credit_transactions: [] };
   }
 });
 export const requestRedemption = createServerFn({ method: "POST" })

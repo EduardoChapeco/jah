@@ -22,11 +22,18 @@ import { HorizontalRail } from "@/components/commerce/horizontal-rail";
 import { OfferCard } from "@/components/commerce/offer-card";
 import { StoreCard } from "@/components/commerce/store-card";
 import { StoryRail } from "@/components/community/story-rail";
+import { ContextualStoriesRail } from "@/components/stories/contextual-stories-rail";
 import { HotpagesRail } from "@/components/commerce/hotpages-rail";
 import { MasterHeroCards } from "@/components/commerce/master-hero-cards";
 import { HitsLeadCard } from "@/components/commerce/hits-lead-card";
 import { listActiveBanners } from "@/services/banner.functions";
-import { listHotpages, type HotpageDTO } from "@/services/hotpage.functions";
+import {
+  listHotpages,
+  listHomeHeroCards,
+  listSubcategoryChips,
+  listEditorialHotpages,
+  type HotpageDTO,
+} from "@/services/hotpage.functions";
 import { getMarketplaceFeed } from "@/services/marketplace.functions";
 import { getFeedStories } from "@/services/social.functions";
 import { Button } from "@/components/ui/button";
@@ -88,49 +95,87 @@ export const Route = createFileRoute("/_store/")({
     ],
   }),
   loader: async () => {
-    const [banners, hotpages, categoryHubs, modularFeed, stories, newsArticles, packages] = await Promise.all([
+    const [
+      banners,
+      heroCards,
+      categoryChips,
+      editorialHotpages,
+      categoryHubs,
+      modularFeed,
+      stories,
+      newsArticles,
+      packages,
+    ] = await Promise.all([
       listActiveBanners({ data: { placement: "home" } }).catch(() => []),
-      listHotpages({ data: { module: "home" } }).catch(() => []),
+      listHomeHeroCards().catch(() => []),
+      listSubcategoryChips().catch(() => []),
+      listEditorialHotpages({ data: { module: "home" } }).catch(() => []),
       listPublicCategoryHubs({ data: { module: "home" } }).catch(() => []),
       getModularSurfaceFeed({ data: { surfaceSlug: "home" } }).catch(() => ({ sections: [], allProducts: [] })),
       getFeedStories().catch(() => []),
       listPublicArticles({ data: { limit: 6 } }).catch(() => []),
       listPublicStorePackages().catch(() => []),
     ]);
-    return { banners, hotpages, categoryHubs, modularFeed, stories, newsArticles, packages };
+    return {
+      banners,
+      heroCards,
+      categoryChips,
+      editorialHotpages,
+      categoryHubs,
+      modularFeed,
+      stories,
+      newsArticles,
+      packages,
+    };
   },
   component: CommercialHomePage,
 });
 
 function CommercialHomePage() {
-  const { banners, hotpages, categoryHubs, modularFeed, stories, newsArticles, packages } = Route.useLoaderData();
+  const {
+    banners,
+    heroCards,
+    categoryChips,
+    editorialHotpages,
+    categoryHubs,
+    modularFeed,
+    stories,
+    newsArticles,
+    packages,
+  } = Route.useLoaderData();
+
+  // Master categories fallback
+  const categoriesList =
+    categoryHubs && categoryHubs.length > 0
+      ? categoryHubs.map((ch: HotpageDTO) => {
+          const defaultMatch = DEFAULT_MASTER_CATEGORIES.find((c) => c.slug === ch.slug);
+          return {
+            to: ch.target_route || `/${ch.slug}`,
+            slug: ch.slug,
+            label: ch.title,
+            badge: ch.badge_label || undefined,
+            icon_url: ch.custom_icon_url || ch.icon_url || undefined,
+            icon: defaultMatch?.icon || Storefront,
+          };
+        })
+      : DEFAULT_MASTER_CATEGORIES;
 
   const hasAnyCommercialData =
-    banners.length > 0 ||
-    hotpages.length > 0 ||
-    (modularFeed.sections && modularFeed.sections.length > 0);
-
-  // Build master categories strictly from the database (CMS truth)
-  // Fallback to DEFAULT_MASTER_CATEGORIES only if the database has not been seeded/configured yet
-  const categoriesList = categoryHubs && categoryHubs.length > 0
-    ? categoryHubs.map((ch: HotpageDTO) => {
-        const defaultMatch = DEFAULT_MASTER_CATEGORIES.find(c => c.slug === ch.slug);
-        return {
-          to: ch.target_route || `/${ch.slug}`,
-          slug: ch.slug,
-          label: ch.title,
-          badge: ch.badge_label || undefined,
-          icon_url: ch.custom_icon_url || ch.icon_url || undefined,
-          icon: defaultMatch?.icon || Storefront,
-        };
-      })
-    : DEFAULT_MASTER_CATEGORIES;
+    (banners && banners.length > 0) ||
+    (heroCards && heroCards.length > 0) ||
+    (modularFeed && modularFeed.sections && modularFeed.sections.length > 0) ||
+    (stories && stories.length > 0) ||
+    (packages && packages.length > 0);
 
   return (
     <div className="w-full space-y-6 pb-20">
       {/* ── 1. Top Big Squircle Master Cards & Category Rail (Estilo iFood) ── */}
       <section aria-label="Acesso Rápido Master">
-        <MasterHeroCards customCategories={categoriesList} hotpages={hotpages} />
+        <MasterHeroCards
+          heroCards={heroCards}
+          categoryChips={categoryChips}
+          customCategories={categoriesList}
+        />
       </section>
 
       {/* ── 2. Top Banners Hero Carousel (100% Real do Supabase) ── */}
@@ -140,17 +185,13 @@ function CommercialHomePage() {
         </section>
       )}
 
-      {/* ── 3. Stories Rápidos de Lojas & Membros Locais ── */}
-      {stories && stories.length > 0 && (
-        <section aria-label="Stories Locais" className="py-1">
-          <StoryRail stories={stories} />
-        </section>
-      )}
+      {/* ── 3. Stories Contextuais & Algoritmo de Vitrine (Lojas Seguidas, Criadores & Ads) ── */}
+      <ContextualStoriesRail niche="todos" className="py-1" />
 
-      {/* ── 4. Categorias / Hotpages Panorâmicas Clean ── */}
-      {hotpages.length > 0 && (
+      {/* ── 4. Coleções & Hotpages Editoriais (Abaixo dos Banners) ── */}
+      {editorialHotpages.length > 0 && (
         <section aria-label="Coleções & Hotpages">
-          <HotpagesRail hotpages={hotpages} cleanMode={true} />
+          <HotpagesRail hotpages={editorialHotpages} cleanMode={true} />
         </section>
       )}
 

@@ -1,7 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { getServerClient } from "@/lib/supabase";
 import { getServerIdentity } from "@/lib/server-access";
+import { enforceRateLimit, extractClientIp } from "@/lib/rate-limiter";
 
 const SubmitContactSchema = z.object({
   name: z.string().min(2, "Nome é obrigatório"),
@@ -14,6 +16,12 @@ const SubmitContactSchema = z.object({
 export const submitContactMessage = createServerFn({ method: "POST" })
   .validator(SubmitContactSchema)
   .handler(async ({ data }) => {
+    const request = getRequest();
+    const clientIp = extractClientIp(request);
+
+    // Proteção Anti-Spam / Anti-Flood de E-mails
+    enforceRateLimit(clientIp, "email_contact_form");
+
     const db = getServerClient();
     const identity = await getServerIdentity().catch(() => ({ id: null, store_id: null }));
 

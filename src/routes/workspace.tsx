@@ -67,10 +67,28 @@ function WorkspaceErrorComponent({ error, reset }: { error: Error; reset: () => 
 function WorkspaceLayout() {
   const loaderData = Route.useLoaderData() as any;
   const session = loaderData?.session;
+  const hasStore = session?.memberships && session.memberships.length > 0;
 
   return (
     <WorkspaceShell session={session}>
-      <Outlet />
+      {hasStore ? (
+        <Outlet />
+      ) : (
+        <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 text-center">
+          <div className="size-16 rounded-2xl bg-muted text-foreground flex items-center justify-center mx-auto mb-4">
+            <Store size={32} />
+          </div>
+          <h2 className="text-2xl font-bold text-foreground mb-2">
+            Bem-vindo ao Workspace
+          </h2>
+          <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
+            Você ainda não possui nenhum negócio configurado na plataforma. Crie sua loja para acessar o catálogo, pedidos, estoque e relatórios.
+          </p>
+          <Button asChild className="rounded-xl font-bold px-8">
+            <Link to="/criar-negocio">Criar Meu Negócio</Link>
+          </Button>
+        </div>
+      )}
     </WorkspaceShell>
   );
 }

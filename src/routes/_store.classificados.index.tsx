@@ -30,6 +30,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
 import { HotpagesRail } from "@/components/commerce/hotpages-rail";
+import { ContextualStoriesRail } from "@/components/stories/contextual-stories-rail";
 import { HorizontalRail } from "@/components/commerce/horizontal-rail";
 import {
   DiscoveryControlBar,
@@ -186,6 +187,9 @@ function ClassifiedsMasterPage() {
           <BannerHeroCarousel banners={banners} />
         </section>
       )}
+
+      {/* 1.5. Stories de Desapegos & Oportunidades P2P */}
+      <ContextualStoriesRail niche="classificados" className="py-1" />
 
       {/* 2. Hotpages */}
       {(hotpages?.length > 0 || CLASSIFIEDS_HOTPAGES.length > 0) && (

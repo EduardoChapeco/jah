@@ -251,7 +251,7 @@ export const Route = createFileRoute("/_store/destaques/$slug")({
         name: "description",
         content:
           loaderData?.hotpage?.description ||
-          "Aproveite as melhores seleções, ofertas e entregas rápidas na plataforma JAH.",
+          "Aproveite as melhores seleções, ofertas e entregas rápidas na plataforma Wider.",
       },
     ],
   }),
@@ -304,8 +304,8 @@ function DedicatedHotpageView() {
     badgeBg: "bg-white/20 text-white",
     icon: Tag,
     defaultBadge: "✨ Coleção Especial",
-    heroPills: ["⭐ Seleção JAH", "🚚 Entrega Rápida", "💳 Pagamento Online"],
-    tagLine: "Produtos e lojas selecionadas na curadoria JAH",
+    heroPills: ["⭐ Seleção Wider", "🚚 Entrega Rápida", "💳 Pagamento Online"],
+    tagLine: "Produtos e lojas selecionadas na curadoria Wider",
     featuredRailTitle: "Destaques da Curadoria",
   };
 

@@ -19,6 +19,7 @@ import {
 import { getAccountantFinancialSummary } from "@/services/b2b-partners.functions";
 
 export const Route = createFileRoute("/workspace/contador/")({
+  head: () => ({ meta: [{ title: "Painel Contábil & DRE | Workspace Wider" }] }),
   loader: async () => {
     try {
       const summary = await getAccountantFinancialSummary({ data: {} }).catch(() => null);

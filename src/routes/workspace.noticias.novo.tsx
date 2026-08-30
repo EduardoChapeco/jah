@@ -13,12 +13,16 @@ import {
   Loader2,
   Eye,
   Sliders,
+  Sparkles,
+  Link as LinkIcon,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/commerce/page-header";
 import { createArticle, type NewsSectionDTO } from "@/services/news.functions";
+import { processUrlWithAI } from "@/services/mining.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/workspace/noticias/novo")({
@@ -29,6 +33,13 @@ export const Route = createFileRoute("/workspace/noticias/novo")({
 function WorkspaceNovaMateriaPage() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // IA Importer State
+  const [showAiImport, setShowAiImport] = useState(false);
+  const [aiUrl, setAiUrl] = useState("");
+  const [aiTone, setAiTone] = useState<"editorial" | "profissional" | "tecnico" | "persuasivo" | "minimalista">("editorial");
+  const [isAiProcessing, setIsAiProcessing] = useState(false);
+  const [extractedSourceDomain, setExtractedSourceDomain] = useState<string | null>(null);
 
   // Campos principais
   const [title, setTitle] = useState("");
@@ -71,6 +82,44 @@ function WorkspaceNovaMateriaPage() {
   const removeSection = (index: number) => {
     if (sections.length <= 1) return;
     setSections(sections.filter((_, i) => i !== index));
+  };
+
+  const handleAiExtract = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!aiUrl.trim()) return;
+
+    setIsAiProcessing(true);
+    try {
+      const result = await processUrlWithAI({
+        data: {
+          url: aiUrl.trim(),
+          tone: aiTone,
+          content_type: "news",
+          auto_enqueue: false,
+          consume_tokens: false,
+        },
+      });
+
+      if (result.ai_structured_title) handleTitleChange(result.ai_structured_title);
+      if (result.ai_structured_subtitle) setSubtitle(result.ai_structured_subtitle);
+      if (result.ai_suggested_kicker) setKicker(result.ai_suggested_kicker);
+      if (result.ai_suggested_category) setCategory(result.ai_suggested_category);
+      if (result.ai_suggested_cover_url) setCoverMediaUrl(result.ai_suggested_cover_url);
+      if (result.ai_estimated_reading_time) setReadingTime(result.ai_estimated_reading_time);
+
+      if (result.ai_structured_sections && Array.isArray(result.ai_structured_sections) && result.ai_structured_sections.length > 0) {
+        setSections(result.ai_structured_sections as NewsSectionDTO[]);
+      }
+
+      setExtractedSourceDomain(result.source_domain);
+      setShowAiImport(false);
+      setAiUrl("");
+      toast.success(`Notícia estruturada com sucesso! Qualidade: ${result.quality_score || 80}/100`);
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao extrair conteúdo da URL");
+    } finally {
+      setIsAiProcessing(false);
+    }
   };
 
   const handleSubmit = async (status: "published" | "draft") => {
@@ -127,7 +176,7 @@ function WorkspaceNovaMateriaPage() {
         title="Nova Matéria"
         actions={
           <div className="flex items-center gap-2">
-            <Button asChild variant="outline" size="sm" className="rounded-xl font-bold text-xs ">
+            <Button asChild variant="outline" size="sm" className="rounded-xl font-bold text-xs">
               <Link to="/workspace/noticias">
                 <ArrowLeft className="size-3.5 mr-1.5" />
                 Voltar
@@ -137,9 +186,19 @@ function WorkspaceNovaMateriaPage() {
               type="button"
               variant="outline"
               size="sm"
+              onClick={() => setShowAiImport(!showAiImport)}
+              className="rounded-xl font-bold text-xs border-primary/40 text-primary hover:bg-primary/10"
+            >
+              <Sparkles className="size-3.5 mr-1.5" />
+              Importar de Link (IA)
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
               disabled={isSubmitting}
               onClick={() => handleSubmit("draft")}
-              className="rounded-xl font-bold text-xs "
+              className="rounded-xl font-bold text-xs"
             >
               Salvar Rascunho
             </Button>
@@ -148,7 +207,7 @@ function WorkspaceNovaMateriaPage() {
               size="sm"
               disabled={isSubmitting}
               onClick={() => handleSubmit("published")}
-              className="rounded-xl font-bold text-xs bg-primary text-primary-foreground "
+              className="rounded-xl font-bold text-xs bg-primary text-primary-foreground"
             >
               {isSubmitting ? (
                 <Loader2 className="size-3.5 animate-spin mr-1.5" />
@@ -160,6 +219,75 @@ function WorkspaceNovaMateriaPage() {
           </div>
         }
       />
+
+      {/* ── Modal / Caixa de Importação IA ── */}
+      {showAiImport && (
+        <div className="p-5 rounded-2xl bg-primary/5 border border-primary/30 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Sparkles className="size-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-foreground">Importar Notícia de Link Externo com IA</h3>
+                <p className="text-[11px] text-muted-foreground">Cole a URL de qualquer portal de notícias e a IA estruturará os blocos editoriais automaticamente.</p>
+              </div>
+            </div>
+            <button onClick={() => setShowAiImport(false)} className="text-muted-foreground hover:text-foreground">
+              <X className="size-4" />
+            </button>
+          </div>
+
+          <form onSubmit={handleAiExtract} className="space-y-3">
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="relative flex-1">
+                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                <Input
+                  type="url"
+                  placeholder="https://g1.globo.com/sc/..."
+                  value={aiUrl}
+                  onChange={(e) => setAiUrl(e.target.value)}
+                  className="rounded-xl h-10 pl-9 text-xs border-border/60"
+                  required
+                />
+              </div>
+              <select
+                value={aiTone}
+                onChange={(e) => setAiTone(e.target.value as any)}
+                className="h-10 px-3 rounded-xl border border-border/60 bg-background text-xs font-semibold"
+              >
+                <option value="editorial">Tom Editorial</option>
+                <option value="profissional">Tom Profissional</option>
+                <option value="imparcial">Tom Imparcial / Factual</option>
+              </select>
+              <Button
+                type="submit"
+                disabled={isAiProcessing || !aiUrl.trim()}
+                className="rounded-xl font-bold text-xs bg-primary text-primary-foreground gap-1.5 h-10 px-4 shrink-0"
+              >
+                {isAiProcessing ? (
+                  <>
+                    <Loader2 className="size-3.5 animate-spin" />
+                    Processando...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="size-3.5" />
+                    Estruturar Matéria
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {extractedSourceDomain && (
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[11px] text-emerald-600 font-medium">
+          <CheckCircle2 className="size-3.5" />
+          <span>Conteúdo importado e reestruturado a partir de: <strong>{extractedSourceDomain}</strong></span>
+        </div>
+      )}
 
       <div className="space-y-6">
         {/* ── 1. Metadados e Manchete ── */}
@@ -198,9 +326,9 @@ function WorkspaceNovaMateriaPage() {
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs font-bold">Título da Manchete</Label>
+            <Label className="text-xs font-bold">Manchete / Título Principal *</Label>
             <Input
-              placeholder="Ex: Feira de Inovação de Chapecó reúne mais de 10 mil participantes"
+              placeholder="Digite o título da matéria..."
               value={title}
               onChange={(e) => handleTitleChange(e.target.value)}
               className="rounded-xl h-11 text-sm font-bold border-border/60"
@@ -208,66 +336,77 @@ function WorkspaceNovaMateriaPage() {
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs font-bold">Slug da Matéria (URL amigável)</Label>
-            <Input
-              placeholder="feira-de-inovacao-chapeco"
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
-              className="rounded-xl h-10 font-mono text-xs border-border/60"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label className="text-xs font-bold">
-              Subtítulo / Lead (Resumo expansível no mural)
-            </Label>
+            <Label className="text-xs font-bold">Subtítulo / Lead</Label>
             <textarea
-              placeholder="Escreva um resumo conciso de 2 a 3 linhas sobre a matéria..."
+              placeholder="Breve resumo ou linha de apoio da matéria..."
               value={subtitle}
               onChange={(e) => setSubtitle(e.target.value)}
               rows={2}
-              className="w-full p-3 rounded-xl border border-border/60 bg-background text-xs leading-relaxed resize-none"
+              className="w-full p-3 rounded-xl border border-border/60 bg-background text-xs font-medium resize-none focus:outline-none focus:border-primary"
             />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">Slug URL *</Label>
+              <Input
+                placeholder="slug-da-materia"
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                className="rounded-xl h-10 font-mono text-xs border-border/60"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">Tempo Estimado de Leitura (minutos)</Label>
+              <Input
+                type="number"
+                min={1}
+                max={60}
+                value={readingTime}
+                onChange={(e) => setReadingTime(parseInt(e.target.value) || 3)}
+                className="rounded-xl h-10 text-xs border-border/60"
+              />
+            </div>
           </div>
         </div>
 
         {/* ── 2. Mídia de Capa ── */}
         <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-4">
           <span className="text-xs font-black uppercase tracking-wider text-primary">
-            2. Capa da Notícia
+            2. Imagem de Capa
           </span>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label className="text-xs font-bold">URL da Mídia de Capa (Imagem / Vídeo)</Label>
-              <Input
-                placeholder="https://images.unsplash.com/..."
-                value={coverMediaUrl}
-                onChange={(e) => setCoverMediaUrl(e.target.value)}
-                className="rounded-xl h-10 font-mono text-xs border-border/60"
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold">URL da Imagem de Capa</Label>
+            <Input
+              type="url"
+              placeholder="https://exemplo.com/imagem.jpg"
+              value={coverMediaUrl}
+              onChange={(e) => setCoverMediaUrl(e.target.value)}
+              className="rounded-xl h-10 text-xs border-border/60"
+            />
+          </div>
+
+          {coverMediaUrl && (
+            <div className="rounded-xl overflow-hidden border border-border/60 max-h-56 bg-muted">
+              <img
+                src={coverMediaUrl}
+                alt="Preview"
+                className="w-full h-56 object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
               />
             </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Tipo de Mídia</Label>
-              <select
-                value={coverMediaType}
-                onChange={(e) => setCoverMediaType(e.target.value as any)}
-                className="w-full h-10 px-3 rounded-xl border border-border/60 bg-background text-xs font-semibold"
-              >
-                <option value="image">Imagem</option>
-                <option value="video">Vídeo</option>
-                <option value="gif">GIF Animado</option>
-              </select>
-            </div>
-          </div>
+          )}
         </div>
 
-        {/* ── 3. Redação em Blocos / Seções ── */}
+        {/* ── 3. Corpo da Matéria (Blocos) ── */}
         <div className="p-5 rounded-2xl bg-card border border-border/60 space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-xs font-black uppercase tracking-wider text-primary">
-              3. Conteúdo da Matéria (Blocos)
+              3. Conteúdo da Matéria ({sections.length} seções)
             </span>
 
             <div className="flex items-center gap-1.5">
@@ -276,85 +415,88 @@ function WorkspaceNovaMateriaPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => addSection("paragraph")}
-                className="h-7 px-2.5 rounded-lg text-[11px] font-bold gap-1"
+                className="h-8 text-xs font-bold gap-1 rounded-xl"
               >
                 <AlignLeft className="size-3" />
-                <span>+ Parágrafo</span>
+                Parágrafo
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => addSection("heading")}
-                className="h-7 px-2.5 rounded-lg text-[11px] font-bold gap-1"
+                className="h-8 text-xs font-bold gap-1 rounded-xl"
               >
                 <Heading className="size-3" />
-                <span>+ Subtítulo</span>
+                Subtítulo
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => addSection("quote")}
-                className="h-7 px-2.5 rounded-lg text-[11px] font-bold gap-1"
+                className="h-8 text-xs font-bold gap-1 rounded-xl"
               >
                 <Quote className="size-3" />
-                <span>+ Citação</span>
+                Citação
               </Button>
             </div>
           </div>
 
-          <div className="space-y-4 pt-2">
-            {sections.map((sec, idx) => (
+          <div className="space-y-3">
+            {sections.map((section, idx) => (
               <div
                 key={idx}
-                className="p-4 rounded-2xl border border-border/60 bg-muted/20 space-y-2 relative group"
+                className="p-4 rounded-xl bg-background border border-border/60 space-y-2 relative group"
               >
-                <div className="flex items-center justify-between text-[11px] font-bold text-muted-foreground">
-                  <span className="capitalize">
-                    Bloco {idx + 1}: {sec.type === "heading" ? "Subtítulo" : sec.type === "quote" ? "Citação Destacada" : "Parágrafo"}
+                <div className="flex items-center justify-between text-xs text-muted-foreground font-mono">
+                  <span className="uppercase text-[10px] font-bold">
+                    {section.type === "paragraph" && "Parágrafo"}
+                    {section.type === "heading" && "Subtítulo de Seção"}
+                    {section.type === "quote" && "Citação / Aspas"}
                   </span>
                   {sections.length > 1 && (
                     <button
                       type="button"
                       onClick={() => removeSection(idx)}
-                      className="text-destructive hover:opacity-80 cursor-pointer"
+                      className="text-muted-foreground hover:text-destructive p-1 rounded transition-colors"
+                      title="Remover seção"
                     >
                       <Trash2 className="size-3.5" />
                     </button>
                   )}
                 </div>
 
-                {sec.type === "heading" ? (
+                {section.type === "heading" ? (
                   <Input
-                    placeholder="Subtítulo da seção..."
-                    value={String(sec.content)}
+                    placeholder="Digite o subtítulo da seção..."
+                    value={section.content}
                     onChange={(e) => updateSectionContent(idx, e.target.value)}
-                    className="rounded-xl h-10 font-bold text-sm bg-background border-border/60"
+                    className="rounded-lg font-bold text-sm h-10"
                   />
-                ) : sec.type === "quote" ? (
+                ) : section.type === "quote" ? (
                   <div className="space-y-2">
                     <textarea
-                      placeholder="Citação ou declaração importante..."
-                      value={String(sec.content)}
-                      onChange={(e) => updateSectionContent(idx, e.target.value, sec.caption)}
+                      placeholder="Texto da declaração ou citação..."
+                      value={section.content}
+                      onChange={(e) => updateSectionContent(idx, e.target.value, section.caption)}
                       rows={2}
-                      className="w-full p-3 rounded-xl border border-border/60 bg-background text-xs font-serif italic"
+                      className="w-full p-2.5 rounded-lg border border-border/60 bg-card text-xs italic resize-none focus:outline-none focus:border-primary"
                     />
                     <Input
-                      placeholder="Nome do autor da fala / cargo"
-                      value={sec.caption || ""}
-                      onChange={(e) => updateSectionContent(idx, String(sec.content), e.target.value)}
-                      className="rounded-xl h-8 text-xs bg-background border-border/60"
+                      placeholder="Fonte / Autor da declaração (ex: Prefeito Municipal)"
+                      value={section.caption || ""}
+                      onChange={(e) => updateSectionContent(idx, typeof section.content === "string" ? section.content : section.content.join("\n"), e.target.value)}
+                      className="rounded-lg text-xs h-8"
                     />
                   </div>
                 ) : (
                   <textarea
-                    placeholder="Digite o texto do parágrafo..."
-                    value={String(sec.content)}
+                    placeholder="Escreva o parágrafo..."
+                    value={section.content}
                     onChange={(e) => updateSectionContent(idx, e.target.value)}
                     rows={4}
-                    className="w-full p-3 rounded-xl border border-border/60 bg-background text-xs leading-relaxed resize-y"
+                    className="w-full p-3 rounded-lg border border-border/60 bg-card text-xs font-normal leading-relaxed resize-none focus:outline-none focus:border-primary"
                   />
                 )}
               </div>

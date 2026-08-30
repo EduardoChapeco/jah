@@ -99,6 +99,11 @@ const EVENT_DATA_BLOCKS = new Set(["event_rail"]);
 const CLASSIFIEDS_DATA_BLOCKS = new Set(["community_feed"]);
 
 // ---------------------------------------------------------------------------
+// Block types that receive banner arrays from transient_data.banners
+// ---------------------------------------------------------------------------
+const BANNER_DATA_BLOCKS = new Set(["hero_carousel", "hero_banner", "mosaic_banners", "split_banner"]);
+
+// ---------------------------------------------------------------------------
 // BlockErrorBoundary — Prevents single blocks from crashing the whole page
 // ---------------------------------------------------------------------------
 class BlockErrorBoundary extends React.Component<
@@ -448,6 +453,16 @@ function ExperienceNodeRenderer({
     }
   }
 
+  // Props for banner blocks
+  let resolvedBanners: any[] | null = null;
+  if (BANNER_DATA_BLOCKS.has(node.block_type)) {
+    if (nodeTransientData?.banners) {
+      resolvedBanners = nodeTransientData.banners;
+    } else if (transientData?.banners) {
+      resolvedBanners = transientData.banners;
+    }
+  }
+
   // The canonical content object (from DB node.content JSONB)
   const content = (node.content as Record<string, any>) ?? {};
   const designTokens = (node.design_tokens as Record<string, any>) ?? {};
@@ -474,6 +489,7 @@ function ExperienceNodeRenderer({
         resolvedReviews={resolvedReviews}
         resolvedEvents={resolvedEvents}
         resolvedClassifieds={resolvedClassifieds}
+        resolvedBanners={resolvedBanners}
         {...storeProfileProps}
       />
     </TrackView>,

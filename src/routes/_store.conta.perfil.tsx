@@ -50,7 +50,12 @@ import {
 export const Route = createFileRoute("/_store/conta/perfil")({
   head: () => ({ meta: [{ title: "Meu Perfil | Wider" }] }),
   loader: async () => {
-    return await getProfile();
+    try {
+      const res = await getProfile();
+      return res || {};
+    } catch {
+      return {};
+    }
   },
   component: ProfilePage,
 });
@@ -64,7 +69,8 @@ function maskCpf(value: string): string {
 }
 
 function ProfilePage() {
-  const profile = Route.useLoaderData() as any;
+  const rawProfile = Route.useLoaderData() as any;
+  const profile = rawProfile || {};
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState("");
@@ -79,40 +85,40 @@ function ProfilePage() {
   const [cropperType, setCropperType] = useState<"avatar" | "cover">("avatar");
   const [isUploadingMedia, setIsUploadingMedia] = useState(false);
 
-  const initialResume = profile.resume_data || {};
+  const initialResume = profile?.resume_data || {};
   const [formData, setFormData] = useState({
-    fullName: profile.fullName || "",
-    username: profile.username || (profile.email ? profile.email.split("@")[0].toLowerCase().replace(/[^a-z0-9._]/g, "") : "") || (profile.fullName ? profile.fullName.toLowerCase().replace(/\s+/g, ".").replace(/[^a-z0-9._]/g, "") : "") || "",
-    phone: profile.phone || "",
-    avatarUrl: profile.avatarUrl || "",
-    coverUrl: profile.coverUrl || "",
-    bio: profile.bio || "",
-    occupation: profile.occupation || "",
-    city: profile.city || "",
-    state: profile.state || "SC",
-    instagram: profile.instagram || "",
-    website: profile.website || "",
-    cpf: profile.cpf ? maskCpf(profile.cpf) : "",
-    birthDate: profile.birthDate || "",
-    gender: profile.gender || "",
-    newsletterOptIn: profile.newsletterOptIn ?? false,
-    featuredBannerUrl: profile.featuredBannerUrl || "",
-    featuredBannerLink: profile.featuredBannerLink || "",
+    fullName: profile?.fullName || "",
+    username: profile?.username || (profile?.email ? profile.email.split("@")[0].toLowerCase().replace(/[^a-z0-9._]/g, "") : "") || (profile?.fullName ? profile.fullName.toLowerCase().replace(/\s+/g, ".").replace(/[^a-z0-9._]/g, "") : "") || "",
+    phone: profile?.phone || "",
+    avatarUrl: profile?.avatarUrl || "",
+    coverUrl: profile?.coverUrl || "",
+    bio: profile?.bio || "",
+    occupation: profile?.occupation || "",
+    city: profile?.city || "",
+    state: profile?.state || "SC",
+    instagram: profile?.instagram || "",
+    website: profile?.website || "",
+    cpf: profile?.cpf ? maskCpf(profile.cpf) : "",
+    birthDate: profile?.birthDate || "",
+    gender: profile?.gender || "",
+    newsletterOptIn: profile?.newsletterOptIn ?? false,
+    featuredBannerUrl: profile?.featuredBannerUrl || "",
+    featuredBannerLink: profile?.featuredBannerLink || "",
   });
 
   // Biolinks
   const [biolinks, setBiolinks] = useState<Array<{ id: string; label: string; url: string; isHighlight?: boolean }>>(
-    Array.isArray(profile.biolinks) ? profile.biolinks : []
+    Array.isArray(profile?.biolinks) ? profile.biolinks : []
   );
 
   // Perfil Profissional / Currículo (LinkedIn Style)
   const [resumeData, setResumeData] = useState({
-    headline: initialResume.headline || "",
-    summary: initialResume.summary || "",
-    hiringStatus: (initialResume.hiringStatus as "none" | "open_to_work" | "hiring") || "none",
-    skillsString: Array.isArray(initialResume.skills) ? initialResume.skills.join(", ") : "",
-    experiences: Array.isArray(initialResume.experiences) ? initialResume.experiences : [] as any[],
-    education: Array.isArray(initialResume.education) ? initialResume.education : [] as any[],
+    headline: initialResume?.headline || "",
+    summary: initialResume?.summary || "",
+    hiringStatus: (initialResume?.hiringStatus as "none" | "open_to_work" | "hiring") || "none",
+    skillsString: Array.isArray(initialResume?.skills) ? initialResume.skills.join(", ") : "",
+    experiences: Array.isArray(initialResume?.experiences) ? initialResume.experiences : [] as any[],
+    education: Array.isArray(initialResume?.education) ? initialResume.education : [] as any[],
   });
 
   const set = <K extends keyof typeof formData>(key: K, value: (typeof formData)[K]) =>

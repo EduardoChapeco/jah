@@ -11,14 +11,25 @@ import type { Role } from "@/types/domain";
  * Ensures the caller is authenticated and has one of the allowed roles.
  * Supports multi-store memberships automatically.
  */
-export async function requireRole(allowedRoles: Role[]): Promise<{ id: string; role: Role }> {
+export async function requireRole(allowedRoles: Role[]): Promise<{ id: string; role: Role; store_id: string }> {
   const { getServerIdentity } = await import("./identity.server");
   const identity = await getServerIdentity();
 
-  const userRole = (identity.role as Role) || "platform_admin";
-  const userId = identity.id || "d21869c6-6545-4a52-a383-10098ef180ec";
+  if (!identity.id) {
+    throw new Error("Unauthorized: User not authenticated.");
+  }
 
-  return { id: userId, role: userRole };
+  const isGlobalAdmin = identity.role === "platform_admin" || identity.role === "master";
+
+  if (!isGlobalAdmin && !(allowedRoles as readonly string[]).includes(identity.role)) {
+    throw new Error(`Forbidden: Insufficient privileges (${identity.role}). Required one of: ${allowedRoles.join(", ")}`);
+  }
+
+  if (!identity.store_id) {
+    throw new Error("Forbidden: No active store context associated with this identity.");
+  }
+
+  return { id: identity.id, role: identity.role as Role, store_id: identity.store_id };
 }
 
 export async function requireAdmin() {

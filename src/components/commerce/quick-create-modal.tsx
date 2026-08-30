@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate, useLocation } from "@tanstack/react-router";
 import {
   Tag,
   Camera,
@@ -8,6 +8,7 @@ import {
   Plus,
   Store,
   X,
+  LogIn,
 } from "lucide-react";
 import {
   Sheet,
@@ -17,6 +18,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 import { PostCreationDrawer } from "@/components/community/post-creation-drawer";
 
 interface QuickActionItem {
@@ -30,17 +32,55 @@ interface QuickActionItem {
   badges: string[];
   to?: string;
   onClick?: () => void;
+  requiresAuth?: boolean;
 }
 
-export function QuickCreateModal() {
+export function QuickCreateModal({
+  isAuthenticated = false,
+  session,
+}: {
+  isAuthenticated?: boolean;
+  session?: any;
+}) {
   const [open, setOpen] = useState(false);
   const [isPostDrawerOpen, setIsPostDrawerOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const closeSheet = () => setOpen(false);
 
   const handleOpenPostDrawer = () => {
     closeSheet();
+    if (!isAuthenticated) {
+      toast.info("Acesse sua conta para publicar no Mural da Comunidade.");
+      navigate({ to: "/entrar", search: { returnUrl: "/mural" } });
+      return;
+    }
     setIsPostDrawerOpen(true);
+  };
+
+  const handleProtectedNavigate = (toUrl: string, reason: string) => {
+    closeSheet();
+    if (!isAuthenticated) {
+      toast.info(`Acesse sua conta para ${reason}.`);
+      navigate({ to: "/entrar", search: { returnUrl: toUrl } });
+      return;
+    }
+    navigate({ to: toUrl as any });
+  };
+
+  const handleTriggerClick = (e: React.MouseEvent) => {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      e.stopPropagation();
+      toast.info("Acesse sua conta para publicar e anunciar no Wider.");
+      navigate({
+        to: "/entrar",
+        search: { returnUrl: location.pathname || "/" },
+      });
+      return;
+    }
+    setOpen(true);
   };
 
   const actionItems: QuickActionItem[] = [
@@ -54,6 +94,7 @@ export function QuickCreateModal() {
       borderHover: "hover:border-sky-500/50",
       badges: ["Mural", "Fotos & Texto"],
       onClick: handleOpenPostDrawer,
+      requiresAuth: true,
     },
     {
       id: "desapego",
@@ -64,7 +105,12 @@ export function QuickCreateModal() {
       iconColor: "text-amber-500",
       borderHover: "hover:border-amber-500/50",
       badges: ["Grátis", "Classificados"],
-      to: "/conta/classificados/novo",
+      onClick: () =>
+        handleProtectedNavigate(
+          "/conta/classificados/novo",
+          "publicar um novo anúncio classificado",
+        ),
+      requiresAuth: true,
     },
     {
       id: "loja",
@@ -75,7 +121,9 @@ export function QuickCreateModal() {
       iconColor: "text-rose-500",
       borderHover: "hover:border-rose-500/50",
       badges: ["Comércio", "Vitrine & PWA"],
-      to: "/criar-negocio",
+      onClick: () =>
+        handleProtectedNavigate("/criar-negocio", "cadastrar uma nova loja ou empresa"),
+      requiresAuth: true,
     },
     {
       id: "mobilidade",
@@ -107,8 +155,9 @@ export function QuickCreateModal() {
         <SheetTrigger asChild>
           <button
             type="button"
+            onClick={handleTriggerClick}
             aria-label="Criar ou Anunciar"
-            className="size-12 rounded-full bg-primary text-primary-foreground  flex items-center justify-center -mt-5 hover:scale-105 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer border-2 border-background"
+            className="size-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center -mt-5 hover:scale-105 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer border-2 border-background"
           >
             <Plus className="size-6 stroke-[2.5]" />
           </button>
@@ -116,7 +165,7 @@ export function QuickCreateModal() {
 
         <SheetContent
           side="right"
-          className="w-full sm:max-w-md md:sm:max-w-lg flex flex-col p-0 bg-background  max-sm:!inset-0 max-sm:!h-[100dvh] max-sm:!w-full max-sm:rounded-none max-sm:border-none  overflow-hidden"
+          className="w-full sm:max-w-md md:sm:max-w-lg flex flex-col p-0 bg-background max-sm:!inset-0 max-sm:!h-[100dvh] max-sm:!w-full max-sm:rounded-none max-sm:border-none overflow-hidden"
         >
           <SheetHeader className="p-4  flex items-center justify-between shrink-0 bg-background/95 backdrop-blur-md">
             <div className="flex items-center gap-3">

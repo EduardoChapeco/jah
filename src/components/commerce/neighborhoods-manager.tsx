@@ -301,7 +301,7 @@ export function NeighborhoodsManager({
             className="h-7 px-2.5 rounded-lg text-[11px] font-bold text-muted-foreground hover:text-foreground gap-1"
             title="Marcar todos os bairros como atendidos"
           >
-            <CheckCheck className="size-3.5 text-emerald-500" />
+            <CheckCheck className="size-3.5 text-success" />
             <span>Selecionar Todos</span>
           </Button>
 
@@ -310,10 +310,10 @@ export function NeighborhoodsManager({
             variant="ghost"
             size="sm"
             onClick={handleDeselectAll}
-            className="h-7 px-2.5 rounded-lg text-[11px] font-bold text-muted-foreground hover:text-foreground gap-1"
+            className="h-8 px-2.5 rounded-lg text-[11px] font-bold text-muted-foreground hover:text-foreground gap-1"
             title="Desmarcar todos os bairros"
           >
-            <XSquare className="size-3.5 text-rose-500" />
+            <XSquare className="size-3.5 text-destructive" />
             <span>Desmarcar Todos</span>
           </Button>
 
@@ -322,9 +322,9 @@ export function NeighborhoodsManager({
             variant={isBulkFeeOpen ? "secondary" : "outline"}
             size="sm"
             onClick={() => setIsBulkFeeOpen((prev) => !prev)}
-            className="h-7 px-2.5 rounded-lg text-[11px] font-bold gap-1"
+            className="h-8 px-2.5 rounded-lg text-[11px] font-bold gap-1"
           >
-            <DollarSign className="size-3.5 text-amber-500" />
+            <DollarSign className="size-3.5 text-warning" />
             <span>Taxa em Lote</span>
           </Button>
         </div>
@@ -332,9 +332,9 @@ export function NeighborhoodsManager({
 
       {/* ── BARRA EXPANSÍVEL DE TAXA EM LOTE ── */}
       {isBulkFeeOpen && (
-        <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between gap-3 animate-in fade-in duration-150">
+        <div className="p-3 rounded-2xl bg-warning/10 border border-warning/20 flex items-center justify-between gap-3 animate-in fade-in duration-150">
           <div className="flex items-center gap-2 flex-1">
-            <span className="text-xs font-bold text-amber-700 dark:text-amber-300 whitespace-nowrap">
+            <span className="text-xs font-bold text-warning whitespace-nowrap">
               Aplicar taxa fixa para todos os bairros ativos:
             </span>
             <div className="w-32">

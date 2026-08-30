@@ -77,7 +77,7 @@ export const Customer360Sidebar: React.FC<Customer360SidebarProps> = ({
         </div>
         <div className="min-w-0 flex-1">
           <h4 className="font-bold text-foreground truncate text-sm">
-            {profile?.full_name || "Cliente Jah"}
+            {profile?.full_name || "Cliente Wider"}
           </h4>
           <p className="text-muted-foreground text-[11px] truncate flex items-center gap-1">
             <Mail className="size-3" />
@@ -96,7 +96,7 @@ export const Customer360Sidebar: React.FC<Customer360SidebarProps> = ({
       <div className="grid grid-cols-2 gap-2">
         <div className="p-3 rounded-xl bg-card border border-border/80 space-y-1">
           <span className="text-[10px] text-muted-foreground uppercase font-bold flex items-center gap-1">
-            <DollarSign className="size-3 text-emerald-500" />
+            <DollarSign className="size-3 text-success" />
             LTV Total
           </span>
           <p className="text-sm font-extrabold text-foreground">

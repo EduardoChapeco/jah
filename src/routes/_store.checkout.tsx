@@ -580,8 +580,8 @@ export function CheckoutPage() {
         try {
           await initiatePaymentTransaction({
             data: {
-              orderId: res.orderId || res.orderToken,
-              publicToken: res.orderToken,
+              orderId: (res as any).orderId || (res as any).orderToken,
+              publicToken: (res as any).orderToken as string,
               method: formData.paymentMethod === "credit_card" ? "credit_card" : "pix",
               amountCents: checkoutTotalCents,
             },
@@ -600,7 +600,7 @@ export function CheckoutPage() {
       } else {
         navigate({
           to: "/pedido/$publicToken/confirmacao",
-          params: { publicToken: res.orderToken },
+          params: { publicToken: (res as any).orderToken as string },
         });
       }
     } catch (err: unknown) {
@@ -1482,15 +1482,15 @@ export function CheckoutPage() {
                 <Button
                   onClick={handleSubmitOrder}
                   disabled={isSubmitting}
-                  className="rounded-xl px-8 h-11 bg-primary text-primary-foreground font-bold text-sm  cursor-pointer active:scale-98 transition-all"
+                  className="rounded-xl px-8 h-11 bg-primary text-primary-foreground font-bold text-sm cursor-pointer active:scale-98 transition-all"
                 >
                   {isSubmitting ? (
                     <>
                       <Loader2 size={16} className="animate-spin mr-2" />
-                      <span>Processando Pedido...</span>
+                      <span>Processando...</span>
                     </>
                   ) : (
-                    <span>Confirmar e Finalizar Pedido • {formatMoney(checkoutTotalCents)}</span>
+                    <span>Finalizar Pedido • {formatMoney(checkoutTotalCents)}</span>
                   )}
                 </Button>
               </div>

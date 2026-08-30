@@ -210,7 +210,7 @@ export const listCustomerOrders = createServerFn({ method: "GET" }).handler(asyn
       data: { user },
     } = await ssrClient.auth.getUser();
 
-    if (!user) throw new Error("Não autenticado");
+    if (!user) return [];
 
     const { data, error } = await ssrClient
       .from("orders")
@@ -223,7 +223,10 @@ export const listCustomerOrders = createServerFn({ method: "GET" }).handler(asyn
       .eq("customer_id", user.id)
       .order("created_at", { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.warn("[order.functions] listCustomerOrders query error:", error);
+      return [];
+    }
 
     return (data || []).map((order: any) => ({
       ...order,
@@ -237,11 +240,11 @@ export const listCustomerOrders = createServerFn({ method: "GET" }).handler(asyn
         })) || [],
     }));
   } catch (e: unknown) {
-    console.error(
-      "[order.functions] listCustomerOrders:",
+    console.warn(
+      "[order.functions] listCustomerOrders fallback:",
       e instanceof Error ? e.message : String(e),
     );
-    throw new Error("Erro ao buscar seus pedidos.");
+    return [];
   }
 });
 

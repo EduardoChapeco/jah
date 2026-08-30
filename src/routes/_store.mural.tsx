@@ -10,6 +10,7 @@ import { PostCard } from "@/components/community/post-card";
 import { ThreadsFeedCard } from "@/components/social/threads-feed-card";
 import { MomentsStatusPicker } from "@/components/social/moments-status-picker";
 import { StoryRail } from "@/components/community/story-rail";
+import { FloatingCommunityDock } from "@/components/community/floating-community-dock";
 import { getMuralFeed, getFeedStories, type MuralFeedItem } from "@/services/social.functions";
 import { getUserSession } from "@/services/auth.functions";
 
@@ -217,6 +218,9 @@ function MuralPage() {
           </div>
         )}
       </section>
+
+      {/* Floating Action Dock (Chat + Criar Post Expansível) */}
+      <FloatingCommunityDock session={session} />
     </div>
   );
 }

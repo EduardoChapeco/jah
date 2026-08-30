@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/state/states";
 import { PageSkeleton } from "@/components/state/loading";
 import { HorizontalRail } from "@/components/commerce/horizontal-rail";
+import { ContextualStoriesRail } from "@/components/stories/contextual-stories-rail";
 import { StoreCard } from "@/components/commerce/store-card";
 import { HotpagesRail } from "@/components/commerce/hotpages-rail";
 import {
@@ -189,6 +190,9 @@ function GastronomiaVerticalPage() {
           <BannerHeroCarousel banners={banners} />
         </section>
       )}
+
+      {/* ── 1.5. Stories de Gastronomia & Delivery ── */}
+      <ContextualStoriesRail niche="gastronomia" className="py-1" />
 
       {/* ── 2. Hotpages por Turno / Almoço / Jantar ── */}
       {hotpages && hotpages.length > 0 && (

@@ -35,7 +35,7 @@ import {
 import { listCollections, updateCollection } from "@/services/admin-catalog.functions";
 
 export const Route = createFileRoute("/workspace/catalogo/colecoes/")({
-  head: () => ({ meta: [{ title: "Coleções" }] }),
+  head: () => ({ meta: [{ title: "Coleções & Agrupamentos | Workspace Wider" }] }),
   loader: async () => {
     try {
       const res = await listCollections();

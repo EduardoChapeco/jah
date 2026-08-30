@@ -185,10 +185,12 @@ export const calculateMobilityQuote = createServerFn({ method: "POST" })
       destination_address: z.string().min(3),
       distance_km: z.number().min(0.1).default(3.5),
       helpers_count: z.number().int().min(0).max(6).default(0),
+      surge_multiplier: z.number().min(1).max(3).default(1).optional(),
     }),
   )
   .handler(async ({ data }) => {
     const supabase = getServerClient();
+    const surge = data.surge_multiplier || 1;
 
     // Consulta tabelas de preço ativas cadastradas no banco
     const { data: priceTables, error } = await supabase
@@ -204,7 +206,7 @@ export const calculateMobilityQuote = createServerFn({ method: "POST" })
         const cfg = SERVICE_CONFIGS[st];
         const rawKmCost = Math.round(data.distance_km * cfg.km_rate_cents);
         const rawHelperCost = data.helpers_count * cfg.helper_fee_cents;
-        const total = cfg.base_fee_cents + rawKmCost + rawHelperCost;
+        const total = Math.round((cfg.base_fee_cents + rawKmCost + rawHelperCost) * surge);
         const finalPrice = Math.max(total, cfg.min_fare_cents);
 
         return {
@@ -228,7 +230,7 @@ export const calculateMobilityQuote = createServerFn({ method: "POST" })
       const rawKmCost = Math.round(data.distance_km * tbl.km_rate_cents);
       const rawMinuteCost = Math.round(durationMin * (tbl.minute_rate_cents || 0));
       const rawHelperCost = data.helpers_count * (tbl.helper_fee_cents || 0);
-      const rawTotal = tbl.base_fee_cents + rawKmCost + rawMinuteCost + rawHelperCost;
+      const rawTotal = Math.round((tbl.base_fee_cents + rawKmCost + rawMinuteCost + rawHelperCost) * surge);
       const finalPrice = Math.max(rawTotal, tbl.min_fare_cents || 0);
 
       const labelsMap: Record<MobilityServiceType, { label: string; description: string; icon: string }> = {

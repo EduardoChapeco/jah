@@ -32,27 +32,6 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
   let memberships: any[] = [];
 
   if (!user) {
-    // Modo Acesso Direto / Sem necessidade de login (Wider Universal Access):
-    // Resolve todas as lojas disponíveis para memberships e concede role platform_admin
-    try {
-      const { data: allStores } = await serverClient
-        .from("stores")
-        .select("id, name, slug, logo_url")
-        .order("created_at", { ascending: true });
-
-      if (allStores && allStores.length > 0) {
-        memberships = allStores.map((s: any) => ({
-          store_id: s.id,
-          role: "owner" as const,
-          name: s.name || "Loja",
-          slug: s.slug || "loja",
-          logo_url: s.logo_url || null,
-        }));
-      }
-    } catch (e) {
-      console.warn("[identity.server] Erro ao buscar stores para acesso direto:", e);
-    }
-
     let activeStoreId: string | null = null;
     try {
       const { resolveTenantStoreId } = await import("@/lib/tenant.server");
@@ -61,31 +40,11 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
       activeStoreId = null;
     }
 
-    const matched = activeStoreId ? memberships.find((m) => m.store_id === activeStoreId) : null;
-    if (matched) {
-      activeStoreId = matched.store_id;
-    } else {
-      activeStoreId = memberships[0]?.store_id || "00000000-0000-0000-0000-000000000002";
-    }
-
-    // Busca perfil mestre no banco ou usa ID canônico
-    let defaultProfileId = "d21869c6-6545-4a52-a383-10098ef180ec";
-    try {
-      const { data: defaultProfile } = await serverClient
-        .from("profiles")
-        .select("id")
-        .limit(1)
-        .maybeSingle();
-      if (defaultProfile?.id) {
-        defaultProfileId = defaultProfile.id;
-      }
-    } catch {}
-
     return {
-      id: defaultProfileId,
-      role: "platform_admin",
-      store_id: activeStoreId,
-      memberships,
+      id: null,
+      role: "customer",
+      store_id: activeStoreId || "fc28a389-8bed-4d2d-a3ee-169bb5779293",
+      memberships: [],
     };
   }
 
@@ -110,7 +69,8 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
     console.warn("[identity.server] Erro ao buscar workspace_members:", e);
   }
 
-  // 1. Busca perfil do usuário para verificar role global (platform_admin)
+  // 1. Busca perfil do usuário EXCLUSIVAMENTE no banco de dados
+  // NUNCA confiar em user.user_metadata.role (pode ser injetado via client-side updateUser)
   let userProfileRole = "customer";
   try {
     const { data: p } = await serverClient
@@ -118,12 +78,16 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
       .select("role")
       .eq("id", user.id)
       .maybeSingle();
-    userProfileRole = p?.role || user.user_metadata?.role || "customer";
-  } catch {
-    userProfileRole = user.user_metadata?.role || "customer";
+    userProfileRole = p?.role || "customer";
+  } catch (err) {
+    console.error("[identity.server] Falha ao verificar role no banco:", err);
+    userProfileRole = "customer";
   }
 
-  const isPlatformAdmin = userProfileRole === "platform_admin";
+  const isPlatformAdmin =
+    userProfileRole === "platform_admin" ||
+    userProfileRole === "master" ||
+    userProfileRole === "superadmin";
 
   // 2. Resolve active tenant/store context a partir do cookie ou request
   let activeStoreId: string | null = null;

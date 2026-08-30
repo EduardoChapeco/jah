@@ -37,8 +37,10 @@ import {
   signInWithOAuth,
   getUserSession,
   resetPasswordForEmail,
+  checkIdentifierExists,
 } from "@/services/auth.functions";
 import { getPublicBrandSettings } from "@/services/master.functions";
+import { LegalTermsSheet } from "@/components/legal/legal-terms-sheet";
 
 export const Route = createFileRoute("/_store/entrar")({
   head: () => ({
@@ -52,6 +54,22 @@ export const Route = createFileRoute("/_store/entrar")({
   },
   loader: async () => {
     try {
+      // Guard: se já estiver autenticado, redireciona para conta pessoal
+      // (nunca para /workspace automaticamente — o usuário escolhe o contexto)
+      const session = await getUserSession();
+      if (session?.id) {
+        // Só redireciona se não houver returnUrl definido (ex: redirect explicitado pelo sistema)
+        const searchStr = typeof window !== "undefined" ? window.location.search : "";
+        if (!searchStr.includes("returnUrl")) {
+          throw redirect({ to: "/conta" });
+        }
+      }
+    } catch (e: any) {
+      if (e && typeof e === "object" && ("_isRedirect" in e || e?.routerCode === "REDIRECT" || e?.to)) {
+        throw e;
+      }
+    }
+    try {
       const brand = await getPublicBrandSettings();
       return { brand };
     } catch {
@@ -61,7 +79,7 @@ export const Route = createFileRoute("/_store/entrar")({
   component: StepByStepAuthPage,
 });
 
-type AuthView = "login-step1" | "login-step2" | "register-step1" | "register-step2" | "register-step3" | "forgot-password";
+type AuthView = "login-step1" | "login-step2" | "register-step1" | "register-step2" | "register-step3" | "forgot-password" | "portal-step1" | "portal-step2" | "portal-step3";
 
 const DEFAULT_BG_DESKTOP = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1920&q=85";
 const DEFAULT_BG_TABLET = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1024&q=85";
@@ -72,10 +90,20 @@ function StepByStepAuthPage() {
   const navigate = useNavigate();
   const router = useRouter();
   const search = Route.useSearch();
-  const returnUrl = search.returnUrl ?? "/";
+  // Se returnUrl for /workspace ou /admin-master, mantém; caso contrário vai para /conta
+  const rawReturn = search.returnUrl;
+  const returnUrl = rawReturn?.startsWith("/workspace") || rawReturn?.startsWith("/admin-master")
+    ? rawReturn
+    : rawReturn?.startsWith("/") && !rawReturn.startsWith("/entrar")
+    ? rawReturn
+    : "/conta";
 
   // Estado da etapa ativa
   const [view, setView] = useState<AuthView>("login-step1");
+
+  // Estado do Portal Comercial
+  const [portalSlug, setPortalSlug] = useState(""); // @empresa
+  const portalSlugRef = useRef<HTMLInputElement>(null);
 
   // Dados do formulário
   const [identifier, setIdentifier] = useState("");
@@ -111,18 +139,102 @@ function StepByStepAuthPage() {
       setTimeout(() => passwordInputRef.current?.focus(), 150);
     } else if (view === "register-step2") {
       setTimeout(() => nameInputRef.current?.focus(), 150);
+    } else if (view === "portal-step1") {
+      setTimeout(() => portalSlugRef.current?.focus(), 150);
+    } else if (view === "portal-step2") {
+      setTimeout(() => identifierInputRef.current?.focus(), 150);
+    } else if (view === "portal-step3") {
+      setTimeout(() => passwordInputRef.current?.focus(), 150);
     }
   }, [view]);
 
-  // Avançar da Etapa 1 para a Etapa 2 de Login
-  const handleProceedLoginStep1 = (e: React.FormEvent) => {
+  // ── Handlers do Portal Comercial ──────────────────────────────────────────
+  const handlePortalSlugSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const slug = portalSlug.trim().replace(/^@/, "").toLowerCase();
+    if (!slug) {
+      toast.error("Digite o @ da empresa (ex: @minhaloja).");
+      return;
+    }
+    setPortalSlug(slug);
+    setView("portal-step2");
+  };
+
+  const handlePortalIdentifierSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanId = identifier.trim();
     if (!cleanId) {
       toast.error("Digite seu e-mail, telefone ou @usuário.");
       return;
     }
-    setView("login-step2");
+    setIsLoading(true);
+    try {
+      const result = await checkIdentifierExists({ data: { identifier: cleanId } });
+      if (!result.exists) {
+        toast.error("Conta não encontrada nesta plataforma.");
+        return;
+      }
+      setView("portal-step3");
+    } catch {
+      setView("portal-step3");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePortalLoginSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!password) {
+      toast.error("Digite sua senha.");
+      return;
+    }
+    setIsLoading(true);
+    const cleanId = identifier.trim();
+    try {
+      const res = await signInWithPassword({
+        data: { identifier: cleanId, password },
+      });
+
+      if (res.status === "success") {
+        toast.success(`Bem-vindo(a) ao Portal @${portalSlug}!`);
+        // Portal sempre vai para /workspace
+        window.location.replace("/workspace");
+        return;
+      } else if (res.status === "rate_limited" || res.status === "error") {
+        toast.error(res.message);
+      }
+    } catch (err: any) {
+      const rawMsg = err?.message || err?.error?.message || (typeof err === "string" ? err : "");
+      const cleanMsg = rawMsg.replace(/^Error:\s*/, "").replace(/^\[auth\]\s*/, "");
+      toast.error(cleanMsg || "Credenciais incorretas.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Avançar da Etapa 1 para a Etapa 2 de Login (com verificação de existência)
+  const handleProceedLoginStep1 = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanId = identifier.trim();
+    if (!cleanId) {
+      toast.error("Digite seu e-mail, telefone ou @usuário.");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const result = await checkIdentifierExists({ data: { identifier: cleanId } });
+      if (!result.exists) {
+        toast.error("Conta não encontrada. Verifique seu e-mail ou cadastre-se.");
+        return;
+      }
+      setView("login-step2");
+    } catch {
+      // Em caso de erro no BFF, avança mesmo assim
+      setView("login-step2");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Login Efetivo na Etapa 2
@@ -134,23 +246,30 @@ function StepByStepAuthPage() {
     }
 
     setIsLoading(true);
+    const cleanId = identifier.trim();
+
     try {
+      // Sempre chama o BFF para resolver @username/CPF, rate-limiting, cookies SSR e mesclar carrinho
       const res = await signInWithPassword({
         data: {
-          identifier: identifier.trim(),
+          identifier: cleanId,
           password,
         },
       });
 
       if (res.status === "success") {
         toast.success("Bem-vindo(a) de volta!");
-        router.invalidate();
-        navigate({ to: returnUrl as any });
-      } else if (res.status === "rate_limited") {
+        // Login de conta pessoal: vai para /conta por padrão, ou returnUrl se definido
+        const destination = returnUrl && returnUrl !== "/conta" && returnUrl.startsWith("/") ? returnUrl : "/conta";
+        window.location.replace(destination);
+        return;
+      } else if (res.status === "rate_limited" || res.status === "error") {
         toast.error(res.message);
       }
     } catch (err: any) {
-      toast.error(err?.message || "Identificador ou senha incorretos.");
+      const rawMsg = err?.message || err?.error?.message || (typeof err === "string" ? err : "");
+      const cleanMsg = rawMsg.replace(/^Error:\s*/, "").replace(/^\[auth\]\s*/, "");
+      toast.error(cleanMsg || "Identificador ou senha incorretos.");
     } finally {
       setIsLoading(false);
     }
@@ -188,7 +307,7 @@ function StepByStepAuthPage() {
     try {
       const cleanEmail = identifier.includes("@")
         ? identifier.trim().toLowerCase()
-        : `${identifier.replace(/\D/g, "") || "usuario"}@wider.local`;
+        : `${identifier.replace(/\D/g, "") || "usuario"}@wider.app`;
 
       const result = await signUpWithPassword({
         data: {
@@ -200,19 +319,18 @@ function StepByStepAuthPage() {
         },
       });
 
-      if (!result.sessionActive) {
-        toast.success("Conta criada! Verifique seu e-mail para ativar seu acesso.", {
-          duration: 7000,
-        });
-        setView("login-step1");
+      if (!result.success) {
+        toast.error(result.message || "Não foi possível concluir seu cadastro.");
         return;
       }
 
       toast.success("Conta criada com sucesso! Bem-vindo(a) ao Wider.");
-      await getUserSession();
+      await getUserSession().catch(() => null);
       window.location.href = returnUrl || "/";
     } catch (err: any) {
-      toast.error(err?.message || "Erro ao concluir cadastro.");
+      const rawMsg = err?.message || err?.error?.message || (typeof err === "string" ? err : "");
+      const cleanMsg = rawMsg.replace(/^Error:\s*/, "").replace(/^\[auth\]\s*/, "");
+      toast.error(cleanMsg || "Não foi possível concluir seu cadastro. Verifique os dados e tente novamente.");
     } finally {
       setIsLoading(false);
     }
@@ -285,6 +403,7 @@ function StepByStepAuthPage() {
 
   const isRegisterMode = view.startsWith("register");
   const isForgotMode = view === "forgot-password";
+  const isPortalMode = view.startsWith("portal");
 
   return (
     <main
@@ -350,15 +469,23 @@ function StepByStepAuthPage() {
               {isForgotMode
                 ? "Recuperar Acesso"
                 : isRegisterMode
-                ? "Crie sua conta"
-                : "Bem-vindo de volta"}
+                ? "Criar Conta"
+                : isPortalMode
+                ? "Portal Comercial"
+                : "Entrar"}
             </h1>
             <p className="text-xs text-muted-foreground">
               {isForgotMode
-                ? "Digite seu e-mail para receber as instruções de recuperação"
+                ? "Digite seu e-mail para receber as instruções"
                 : isRegisterMode
-                ? "Faça parte do ecossistema comercial da sua cidade"
-                : "Entre com suas credenciais para continuar"}
+                ? "Cadastre-se para continuar"
+                : isPortalMode
+                ? view === "portal-step1"
+                  ? "Digite o @ da sua empresa ou loja"
+                  : view === "portal-step2"
+                  ? `Acessando o portal @${portalSlug}`
+                  : `Confirme sua senha`
+                : "Acesse sua conta para continuar"}
             </p>
 
             {/* Indicador Minimalista de Progresso em Etapas */}
@@ -369,6 +496,12 @@ function StepByStepAuthPage() {
                     <div className={`h-1.5 rounded-full transition-all duration-300 ${view === "register-step1" ? "w-6 bg-primary" : "w-2 bg-muted"}`} />
                     <div className={`h-1.5 rounded-full transition-all duration-300 ${view === "register-step2" ? "w-6 bg-primary" : "w-2 bg-muted"}`} />
                     <div className={`h-1.5 rounded-full transition-all duration-300 ${view === "register-step3" ? "w-6 bg-primary" : "w-2 bg-muted"}`} />
+                  </>
+                ) : isPortalMode ? (
+                  <>
+                    <div className={`h-1.5 rounded-full transition-all duration-300 ${view === "portal-step1" ? "w-6 bg-amber-500" : "w-2 bg-muted"}`} />
+                    <div className={`h-1.5 rounded-full transition-all duration-300 ${view === "portal-step2" ? "w-6 bg-amber-500" : "w-2 bg-muted"}`} />
+                    <div className={`h-1.5 rounded-full transition-all duration-300 ${view === "portal-step3" ? "w-6 bg-amber-500" : "w-2 bg-muted"}`} />
                   </>
                 ) : (
                   <>
@@ -385,11 +518,12 @@ function StepByStepAuthPage() {
             <form onSubmit={handleProceedLoginStep1} className="space-y-4 animate-in fade-in duration-200">
               <div className="space-y-1.5 text-left">
                 <label className="text-xs font-bold text-foreground">Qual é seu e-mail?</label>
-                <p className="text-[11px] text-muted-foreground">Digite o e-mail, telefone ou @ da sua conta</p>
                 <div className="relative mt-1">
                   <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                   <Input
                     ref={identifierInputRef}
+                    name="username"
+                    autoComplete="username email"
                     type="text"
                     required
                     value={identifier}
@@ -455,6 +589,169 @@ function StepByStepAuthPage() {
                   Não tem uma conta? <strong className="text-primary font-bold">Cadastrar-se</strong>
                 </button>
               </div>
+
+              {/* Divisor Limpo */}
+              <div className="relative my-2">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-border/40" />
+                </div>
+                <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-wider">
+                  <span className="bg-card px-2 text-muted-foreground">ou</span>
+                </div>
+              </div>
+
+              {/* Botão Direto para o Workspace */}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => { setIdentifier(""); setPassword(""); setPortalSlug(""); setView("portal-step1"); }}
+                className="w-full h-11 rounded-xl text-xs font-semibold border-border/80 text-foreground hover:bg-muted/40 transition-colors cursor-pointer"
+              >
+                Entrar no Workspace
+              </Button>
+            </form>
+          )}
+
+          {/* ── PORTAL COMERCIAL: STEP 1 (@EMPRESA) ── */}
+          {view === "portal-step1" && (
+            <form onSubmit={handlePortalSlugSubmit} className="space-y-4 animate-in fade-in duration-200">
+              <div className="space-y-1.5 text-left">
+                <label className="text-xs font-bold text-foreground">@ da empresa</label>
+                <div className="relative mt-1">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">@</span>
+                  <Input
+                    ref={portalSlugRef}
+                    name="store-slug"
+                    autoComplete="off"
+                    type="text"
+                    required
+                    value={portalSlug}
+                    onChange={(e) => setPortalSlug(e.target.value.toLowerCase().replace(/[^a-z0-9._-]/g, ""))}
+                    placeholder="minhaloja"
+                    className="pl-8 h-11 rounded-xl text-xs bg-muted/30 border-border/70 focus:border-primary"
+                  />
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full h-11 rounded-xl font-bold text-xs cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                Continuar
+              </Button>
+
+              <div className="pt-2 text-center">
+                <button
+                  type="button"
+                  onClick={() => setView("login-step1")}
+                  className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground font-medium transition-colors cursor-pointer"
+                >
+                  <ArrowLeft className="size-3" />
+                  Voltar para conta pessoal
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* ── PORTAL COMERCIAL: STEP 2 (IDENTIFICADOR DO USUÁRIO) ── */}
+          {view === "portal-step2" && (
+            <form onSubmit={handlePortalIdentifierSubmit} className="space-y-4 animate-in fade-in duration-200">
+              {/* Identificador da empresa */}
+              <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-muted/40 border border-border/50 text-xs">
+                <span className="font-bold text-foreground">@{portalSlug}</span>
+                <button
+                  type="button"
+                  onClick={() => setView("portal-step1")}
+                  className="text-xs text-primary font-semibold hover:underline cursor-pointer"
+                >
+                  Alterar
+                </button>
+              </div>
+
+              <div className="space-y-1.5 text-left">
+                <label className="text-xs font-bold text-foreground">E-mail ou usuário</label>
+                <div className="relative mt-1">
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                  <Input
+                    ref={identifierInputRef}
+                    name="username"
+                    autoComplete="username email"
+                    type="text"
+                    required
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
+                    placeholder="seu@email.com ou @usuario"
+                    className="pl-10 h-11 rounded-xl text-xs bg-muted/30 border-border/70 focus:border-primary"
+                  />
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full h-11 rounded-xl font-bold text-xs cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                {isLoading ? "Verificando..." : "Continuar"}
+              </Button>
+
+              <div className="pt-2 text-center">
+                <button type="button" onClick={() => setView("portal-step1")}
+                  className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground font-medium transition-colors cursor-pointer">
+                  <ArrowLeft className="size-3" /> Voltar
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* ── PORTAL COMERCIAL: STEP 3 (SENHA) ── */}
+          {view === "portal-step3" && (
+            <form onSubmit={handlePortalLoginSubmit} className="space-y-4 animate-in fade-in duration-200">
+              {/* Resumo */}
+              <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-muted/40 border border-border/50 text-xs">
+                <span className="font-bold text-foreground">@{portalSlug}</span>
+                <span className="truncate text-muted-foreground font-medium">{identifier}</span>
+              </div>
+
+              <div className="space-y-1.5 text-left">
+                <label className="text-xs font-bold text-foreground">Senha</label>
+                <div className="relative mt-1">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                  <Input
+                    ref={passwordInputRef}
+                    name="password"
+                    autoComplete="current-password"
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="pl-10 pr-10 h-11 rounded-xl text-xs bg-muted/30 border-border/70 focus:border-primary"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full h-11 rounded-xl font-bold text-xs cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                {isLoading ? "Acessando..." : "Entrar no Workspace"}
+              </Button>
+
+              <div className="pt-2 text-center">
+                <button type="button" onClick={() => setView("portal-step2")}
+                  className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground font-medium transition-colors cursor-pointer">
+                  <ArrowLeft className="size-3" /> Voltar
+                </button>
+              </div>
             </form>
           )}
 
@@ -492,11 +789,12 @@ function StepByStepAuthPage() {
                     Esqueceu a senha?
                   </button>
                 </div>
-                <p className="text-[11px] text-muted-foreground">Insira a senha de acesso à sua conta</p>
                 <div className="relative mt-1">
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                   <Input
                     ref={passwordInputRef}
+                    name="password"
+                    autoComplete="current-password"
                     type={showPassword ? "text" : "password"}
                     required
                     value={password}
@@ -543,7 +841,6 @@ function StepByStepAuthPage() {
             <form onSubmit={handleProceedRegisterStep1} className="space-y-4 animate-in fade-in duration-200">
               <div className="space-y-1.5 text-left">
                 <label className="text-xs font-bold text-foreground">Qual é o seu melhor e-mail?</label>
-                <p className="text-[11px] text-muted-foreground">Usaremos para confirmação de pedidos e segurança</p>
                 <div className="relative mt-1">
                   <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                   <Input
@@ -620,7 +917,6 @@ function StepByStepAuthPage() {
             <form onSubmit={handleProceedRegisterStep2} className="space-y-4 animate-in fade-in duration-200">
               <div className="space-y-1.5 text-left">
                 <label className="text-xs font-bold text-foreground">Como devemos te chamar?</label>
-                <p className="text-[11px] text-muted-foreground">Informe seu nome ou nome da sua empresa</p>
                 <div className="relative mt-1">
                   <User className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                   <Input
@@ -661,8 +957,7 @@ function StepByStepAuthPage() {
           {view === "register-step3" && (
             <form onSubmit={handleRegisterSubmit} className="space-y-4 animate-in fade-in duration-200">
               <div className="space-y-1.5 text-left">
-                <label className="text-xs font-bold text-foreground">Crie uma senha de acesso</label>
-                <p className="text-[11px] text-muted-foreground">Mínimo de 6 caracteres</p>
+                <label className="text-xs font-bold text-foreground">Crie uma senha de acesso (min. 6)</label>
                 <div className="relative mt-1">
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                   <Input
@@ -831,97 +1126,12 @@ function StepByStepAuthPage() {
         </aside>
       )}
 
-      {/* ── 5. Sheet de Termos de Uso & LGPD com Leitura Completa ── */}
-      <Sheet open={isTermsSheetOpen} onOpenChange={setIsTermsSheetOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-xl flex flex-col justify-between overflow-hidden p-0">
-          <div className="p-6 pb-3 border-b border-border/40 space-y-2">
-            <div className="flex items-center gap-2">
-              <div className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
-                <FileCheck className="size-4" />
-              </div>
-              <div>
-                <SheetTitle className="text-base font-bold text-foreground">
-                  Termos de Uso & Consentimento LGPD
-                </SheetTitle>
-                <SheetDescription className="text-xs text-muted-foreground">
-                  Transparência absoluta e proteção aos seus dados pessoais
-                </SheetDescription>
-              </div>
-            </div>
-
-            {/* Barra de Progresso de Leitura */}
-            <div className="space-y-1 pt-1">
-              <div className="flex items-center justify-between text-[11px] font-mono">
-                <span className="text-muted-foreground">Progresso de leitura:</span>
-                <span className={hasScrolledTermsToBottom ? "text-emerald-500 font-bold" : "text-primary font-bold"}>
-                  {hasScrolledTermsToBottom ? "100% (Concluído)" : `${termsScrollProgress}%`}
-                </span>
-              </div>
-              <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
-                <div
-                  className="h-full bg-primary transition-all duration-150"
-                  style={{ width: `${hasScrolledTermsToBottom ? 100 : termsScrollProgress}%` }}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Container com Scroll dos Termos */}
-          <div
-            ref={termsScrollRef}
-            onScroll={handleTermsScroll}
-            className="flex-1 overflow-y-auto p-6 space-y-4 text-xs text-muted-foreground leading-relaxed select-text"
-          >
-            <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 text-foreground text-xs space-y-1">
-              <p className="font-bold flex items-center gap-1.5">
-                <ShieldCheck className="size-4 text-primary" />
-                Compromisso com a Privacidade e Soberania Comunitária
-              </p>
-              <p className="text-[11px] text-muted-foreground">
-                Nós nunca vendemos seus dados para terceiros. O ecossistema Wider opera sob o padrão de isolamento multi-tenant estrito e criptografia de ponta a ponta.
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <h4 className="font-bold text-foreground text-sm">1. Finalidade do Cadastro</h4>
-              <p>
-                Ao criar sua conta na Wider Community Platform, você obtém uma identidade única e soberana para participar do comércio local, negociar classificados, adquirir ingressos culturais, interagir em murais comunitários e realizar pedidos.
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <h4 className="font-bold text-foreground text-sm">2. Tratamento e Proteção de Dados (LGPD)</h4>
-              <p>
-                Seus dados (nome, e-mail, telefone, histórico de compras) são utilizados exclusivamente para o cumprimento de contratos comerciais e segurança da plataforma.
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <h4 className="font-bold text-foreground text-sm">3. Direitos do Titular</h4>
-              <p>
-                A qualquer momento, através da aba "Minha Conta", você pode exportar seu histórico de atividades ou gerenciar suas preferências de privacidade.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-xl bg-muted/40 border border-border/40 text-center space-y-1">
-              <p className="font-bold text-foreground">Fim do Documento</p>
-              <p className="text-[11px] text-muted-foreground">
-                Ao prosseguir, você confirma que leu e concorda com as diretrizes.
-              </p>
-            </div>
-          </div>
-
-          <SheetFooter className="p-6 pt-3 border-t border-border/40">
-            <Button
-              type="button"
-              onClick={() => setIsTermsSheetOpen(false)}
-              className="w-full text-xs font-bold"
-            >
-              Fechar e Continuar
-            </Button>
-          </SheetFooter>
-        </SheetContent>
-      </Sheet>
+      {/* ── 5. Sheet de Termos de Uso & LGPD com Documentação Legal Oficial Completa ── */}
+      <LegalTermsSheet
+        isOpen={isTermsSheetOpen}
+        onOpenChange={setIsTermsSheetOpen}
+        initialSlug="termos"
+      />
     </main>
   );
 }

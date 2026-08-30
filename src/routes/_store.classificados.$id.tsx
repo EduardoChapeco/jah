@@ -72,7 +72,7 @@ export const Route = createFileRoute("/_store/classificados/$id")({
         },
         {
           name: "description",
-          content: classified?.content?.slice(0, 160) || "Anúncio comunitário na plataforma JAH.",
+          content: classified?.content?.slice(0, 160) || "Anúncio comunitário na plataforma Wider.",
         },
         { property: "og:title", content: classified?.title || "Classificado Wider" },
         { property: "og:description", content: classified?.content?.slice(0, 160) || "" },
@@ -862,7 +862,7 @@ function ClassifiedDetailPage() {
               )}
             </div>
 
-            {/* Simulador de Frete & Logística JAH Express */}
+            {/* Simulador de Frete & Logística Wider Express */}
             {(classified.attributes?.delivery_mode !== "pickup" && classified.category !== "real_estate") && (
               <div className="border border-primary/20 rounded-2xl p-4 bg-primary/5 space-y-2.5">
                 <div className="flex items-center justify-between">
@@ -871,7 +871,7 @@ function ClassifiedDetailPage() {
                     <span>Calcular Entrega no seu Endereço</span>
                   </div>
                   <Badge variant="default" className="text-[9px] font-mono bg-primary text-primary-foreground">
-                    JAH Express
+                    Wider Express
                   </Badge>
                 </div>
 
@@ -971,7 +971,7 @@ function ClassifiedDetailPage() {
                               Identifique-se para reservar
                             </DialogTitle>
                             <DialogDescription className="text-xs text-muted-foreground">
-                              Faça login na sua conta JAH para reservar este imóvel por temporada com
+                              Faça login na sua conta Wider para reservar este imóvel por temporada com
                               garantia e suporte regional.
                             </DialogDescription>
                           </div>
@@ -1109,7 +1109,7 @@ function ClassifiedDetailPage() {
                               Identifique-se para negociar
                             </DialogTitle>
                             <DialogDescription className="text-xs text-muted-foreground">
-                              Para enviar ofertas personalizadas, faça login na sua conta JAH.
+                              Para enviar ofertas personalizadas, faça login na sua conta Wider.
                             </DialogDescription>
                           </div>
                           <Button
@@ -1232,7 +1232,7 @@ function ClassifiedDetailPage() {
                             </DialogTitle>
                             <DialogDescription className="text-xs text-muted-foreground">
                               Para enviar propostas, negociar valores e trocar itens com segurança,
-                              faça login na sua conta JAH.
+                              faça login na sua conta Wider.
                             </DialogDescription>
                           </div>
                           <Button
@@ -1398,7 +1398,7 @@ function ClassifiedDetailPage() {
                 <p className="font-semibold text-foreground">Negociação Segura</p>
                 <p>
                   Prefira encontros em locais públicos e formalize acordos de valor via proposta na
-                  JAH.
+                  Wider.
                 </p>
               </div>
             </div>

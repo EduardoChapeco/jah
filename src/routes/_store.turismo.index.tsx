@@ -31,6 +31,7 @@ import { listActiveBanners } from "@/services/banner.functions";
 import { listHotpages } from "@/services/hotpage.functions";
 import { listPublicTourism } from "@/services/tourism.functions";
 import { HorizontalRail } from "@/components/commerce/horizontal-rail";
+import { ContextualStoriesRail } from "@/components/stories/contextual-stories-rail";
 import { TravelQuoteModal } from "@/components/tourism/travel-quote-modal";
 import { resolveNicheDepartments } from "@/lib/niche-helpers";
 
@@ -120,7 +121,10 @@ function TourismMasterPage() {
         <BannerHeroCarousel banners={banners} className="w-full" />
       )}
 
-      {/* ── 2. Banner Fino Dinâmico (Renderiza SOMENTE se cadastrado no Admin Master) ── */}
+      {/* ── 2. Stories Rápidos de Roteiros, Hotéis & Experiências ── */}
+      <ContextualStoriesRail niche="turismo" className="py-1" />
+
+      {/* ── 2.5. Banner Fino Dinâmico (Renderiza SOMENTE se cadastrado no Admin Master) ── */}
       {banners?.some((b: any) => (b as any).format === "slim") && (
         <SlimActionBanner
           banner={banners?.find((b: any) => (b as any).format === "slim")}

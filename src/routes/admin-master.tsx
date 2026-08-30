@@ -2,6 +2,7 @@ import { createFileRoute, Outlet, redirect, Link, isRedirect } from "@tanstack/r
 import { getProfile, getUserSession } from "@/services/auth.functions";
 import {
   Shield,
+  ShieldAlert,
   LayoutDashboard,
   DollarSign,
   Store,
@@ -18,6 +19,7 @@ import {
   Menu,
   X,
   Truck,
+  Server,
   Eye,
   Coins,
   Sliders,
@@ -78,8 +80,10 @@ const NAV_SECTIONS = [
   {
     title: "Segurança & Compliance",
     items: [
+      { to: "/admin-master/seguranca", label: "Segurança & Forense", icon: ShieldAlert },
       { to: "/admin-master/kyc", label: "Verificação KYC", icon: UserCheck },
       { to: "/admin-master/denuncias", label: "Denúncias & Moderação", icon: AlertTriangle },
+      { to: "/admin-master/logs", label: "Logs de Sistema", icon: Server },
       { to: "/admin-master/faturas", label: "Faturas & Planos", icon: DollarSign },
       { to: "/admin-master/termos", label: "Termos & LGPD", icon: Scale },
       { to: "/admin-master/integracoes", label: "API & Conectores", icon: Plug },

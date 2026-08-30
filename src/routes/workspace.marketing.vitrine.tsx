@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Plus,
   Trash2,
@@ -100,9 +100,9 @@ function WorkspaceStoreVitrineCMSPage() {
     }
   };
 
-  useState(() => {
+  useEffect(() => {
     fetchStoreSections();
-  });
+  }, []);
 
   const handleOpenNew = () => {
     setEditingSection(null);

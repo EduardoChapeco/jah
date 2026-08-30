@@ -63,7 +63,7 @@ function CustomerTripsPage() {
 
   const handleShare = (code: string) => {
     if (typeof window !== "undefined" && navigator.clipboard) {
-      navigator.clipboard.writeText(`Voucher JAH Turismo: ${code}`);
+      navigator.clipboard.writeText(`Voucher Wider Turismo: ${code}`);
       toast.success("Código do voucher copiado!");
     }
   };
@@ -120,7 +120,7 @@ function CustomerTripsPage() {
         <div className="p-4 rounded-2xl  bg-card  col-span-2 sm:col-span-1">
           <div className="flex items-center gap-2 text-muted-foreground text-xs font-bold">
             <ShieldCheck size={16} weight="bold" className="text-primary" />
-            <span>Garantia JAH</span>
+            <span>Garantia Wider</span>
           </div>
           <p className="text-xs text-muted-foreground mt-2 font-medium">
             Embarque 100% verificado e suporte direto com o anfitrião.
@@ -263,7 +263,7 @@ function CustomerTripsPage() {
         </div>
       )}
 
-      {/* ── Modal Canônico de Voucher Digital (Padrão TravelAgencias / JAH) ── */}
+      {/* ── Modal Canônico de Voucher Digital (Padrão TravelAgencias / Wider) ── */}
       <Dialog open={isVoucherOpen} onOpenChange={setIsVoucherOpen}>
         <DialogContent className="sm:max-w-lg sm:rounded-3xl p-5 sm:p-8 bg-card border-border">
           {selectedBooking && (

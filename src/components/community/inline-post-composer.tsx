@@ -58,12 +58,33 @@ export function InlinePostComposer({ session }: InlinePostComposerProps) {
   const queryClient = useQueryClient();
   const router = useRouter();
 
-  const effectiveSession = session || {
-    id: "d21869c6-6545-4a52-a383-10098ef180ec",
-    email: "master@wider.com.br",
-    user_metadata: { full_name: "Eduardo Antônio Ramos" },
-  };
+  const isAuthenticated = Boolean(session?.user || session?.id);
 
+  if (!isAuthenticated) {
+    return (
+      <div className="w-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-card border border-border/60 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
+        <div className="flex items-center gap-3 text-left">
+          <div className="size-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <ChatCircleText className="size-6" weight="bold" />
+          </div>
+          <div className="space-y-0.5">
+            <h3 className="text-sm font-bold text-foreground">Participe do Mural Comunitário</h3>
+            <p className="text-xs text-muted-foreground">
+              Entre na sua conta para publicar fotos, vídeos e novidades na sua cidade.
+            </p>
+          </div>
+        </div>
+        <Button asChild size="sm" className="h-10 px-5 rounded-xl font-bold text-xs gap-2 shrink-0 w-full sm:w-auto">
+          <Link to="/entrar" search={{ returnUrl: "/mural" }}>
+            <SignIn className="size-4" weight="bold" />
+            <span>Entrar ou Cadastrar</span>
+          </Link>
+        </Button>
+      </div>
+    );
+  }
+
+  const effectiveSession = session?.user || session;
   const userInitial = (effectiveSession?.user_metadata?.full_name || effectiveSession?.email || "U")[0].toUpperCase();
   const userName = effectiveSession?.user_metadata?.full_name || effectiveSession?.email?.split("@")[0] || "Você";
 
@@ -280,7 +301,7 @@ export function InlinePostComposer({ session }: InlinePostComposerProps) {
 
       {/* Campos Específicos para Notícia */}
       {selectedTemplate === "news" && (
-        <div className="space-y-2 p-3 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-primary/50 dark:border-primary/30">
+        <div className="space-y-2 p-3 rounded-2xl bg-muted/40 border border-border/80">
           <Input
             value={newsTitle}
             onChange={(e) => setNewsTitle(e.target.value)}
@@ -298,7 +319,7 @@ export function InlinePostComposer({ session }: InlinePostComposerProps) {
 
       {/* Campos Específicos para Viagem */}
       {selectedTemplate === "travel" && (
-        <div className="grid grid-cols-2 gap-2 p-3 rounded-2xl bg-sky-50/50 dark:bg-sky-950/20 border border-sky-200/50 dark:border-sky-900/30">
+        <div className="grid grid-cols-2 gap-2 p-3 rounded-2xl bg-muted/40 border border-border/80">
           <Input
             value={travelOrigin}
             onChange={(e) => setTravelOrigin(e.target.value)}
@@ -316,7 +337,7 @@ export function InlinePostComposer({ session }: InlinePostComposerProps) {
 
       {/* Campos Específicos para Duo Badge / Crachás Conectados */}
       {selectedTemplate === "duo_badge" && (
-        <div className="space-y-2 p-3 rounded-2xl bg-purple-50/50 dark:bg-purple-950/20 border border-primary/50 dark:border-primary/30">
+        <div className="space-y-2 p-3 rounded-2xl bg-muted/40 border border-border/80">
           <Input
             value={badgeTitle}
             onChange={(e) => setBadgeTitle(e.target.value)}

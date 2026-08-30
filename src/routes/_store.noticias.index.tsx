@@ -21,6 +21,7 @@ import { listActiveBanners } from "@/services/banner.functions";
 import { listHotpages } from "@/services/hotpage.functions";
 import { BannerHeroCarousel } from "@/components/commerce/banner-hero-carousel";
 import { HotpagesRail } from "@/components/commerce/hotpages-rail";
+import { ContextualStoriesRail } from "@/components/stories/contextual-stories-rail";
 import { HorizontalRail } from "@/components/commerce/horizontal-rail";
 import { HitsLeadCard } from "@/components/commerce/hits-lead-card";
 import { NewsCard } from "@/components/news/news-card";
@@ -105,12 +106,15 @@ export function NoticiasFeedPage() {
 
   return (
     <div className="w-full space-y-8 pb-12">
-      {/* ── 1. Banners no Portal de Notícias ── */}
-      {banners && banners.length > 0 && (
+      {/* ── 1. Top Banners de Notícias ── */}
+      {banners.length > 0 && (
         <section aria-label="Banners e Anúncios">
           <BannerHeroCarousel banners={banners} />
         </section>
       )}
+
+      {/* ── 1.5. Stories e Coberturas Rápidas em Vídeo dos Correspondentes ── */}
+      <ContextualStoriesRail niche="noticias" className="py-1" />
 
       {/* ── 2. Barra Superior Editorial & Busca ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

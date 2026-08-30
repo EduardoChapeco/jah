@@ -55,7 +55,7 @@ import { formatMoney } from "@/lib/money";
 import type { AdminProductRow } from "@/types/catalog";
 
 export const Route = createFileRoute("/workspace/catalogo/produtos/")({
-  head: () => ({ meta: [{ title: "Gerenciador de Produtos" }] }),
+  head: () => ({ meta: [{ title: "Gerenciador de Produtos | Wider" }] }),
   loader: async () => {
     const res = await listAdminProducts().catch(() => []);
     return res || [];

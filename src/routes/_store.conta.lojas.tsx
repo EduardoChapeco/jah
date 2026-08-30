@@ -21,8 +21,8 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_store/conta/lojas")({
   head: () => ({ meta: [{ title: "Minhas Lojas & Negócios | Wider" }] }),
   loader: async () => {
-    const stores = await getMyStoresList();
-    return { stores };
+    const stores = await getMyStoresList().catch(() => []);
+    return { stores: stores || [] };
   },
   component: ContaLojasPage,
 });

@@ -9,8 +9,7 @@ import { formatDate } from "@/lib/datetime";
 export const Route = createFileRoute("/_store/conta/pedidos/")({
   head: () => ({ meta: [{ title: "Meus Pedidos" }] }),
   loader: async () => {
-    const res = await listCustomerOrders();
-    return res;
+    return (await listCustomerOrders().catch(() => [])) || [];
   },
   component: Page,
 });

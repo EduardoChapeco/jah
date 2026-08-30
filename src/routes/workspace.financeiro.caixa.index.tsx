@@ -90,7 +90,7 @@ import { formatDateTime } from "@/lib/datetime";
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/financeiro/caixa/")({
-  head: () => ({ meta: [{ title: "PDV & Frente de Caixa" }] }),
+  head: () => ({ meta: [{ title: "PDV & Frente de Caixa | Wider" }] }),
   loader: async () => {
     const [registerRes, productsRes] = await Promise.all([
       getActiveRegister().catch(() => null),

@@ -222,11 +222,11 @@ function ResolutionDrawer({
 
             <Button
               size="lg"
-              className="w-full mt-4 font-bold"
+              className="w-full mt-4 font-bold rounded-xl h-11"
               onClick={handleResolve}
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Finalizando..." : "Confirmar e Concluir Troca"}
+              {isSubmitting ? "Finalizando..." : "Confirmar Troca"}
             </Button>
           </div>
         </div>

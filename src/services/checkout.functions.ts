@@ -11,8 +11,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import crypto from "node:crypto";
-import { getServerClient } from "@/lib/supabase";
-import { getSSRClient } from "@/lib/server-access";
+import { getServerIdentity, getSSRClient } from "@/lib/server-access";
+import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
+import { logSystemError } from "@/lib/logger";
 import { getCurrentIdentity } from "./cart-helpers";
 import { getRequest } from "@tanstack/react-start/server";
 import { readCookieFromRequest } from "@/lib/http-cookies";
@@ -68,26 +69,17 @@ export const getOrderByToken = createServerFn({ method: "GET" })
     return data;
   });
 
-import { checkRateLimit, formatRetryAfter } from "@/lib/rate-limiter";
+import { enforceRateLimit, extractClientIp } from "@/lib/rate-limiter";
 
 export const processCheckout = createServerFn({ method: "POST" })
   .validator(CheckoutSchema)
   .handler(async ({ data: params }) => {
     try {
       const req = getRequest();
-      const clientIp = req
-        ? (req.headers.get("cf-connecting-ip") ??
-          req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-          "unknown")
-        : "unknown";
+      const clientIp = extractClientIp(req);
 
-      const rateCheck = checkRateLimit(`checkout-${clientIp}`);
-      if (!rateCheck.allowed) {
-        const timeStr = formatRetryAfter(rateCheck.retryAfterSec || 60);
-        throw new Error(
-          `Muitas tentativas de checkout. Por favor, aguarde ${timeStr} antes de tentar novamente.`,
-        );
-      }
+      // Anti-Flooding / Anti-Abuso de Checkout
+      enforceRateLimit(clientIp, "checkout_order");
 
       const db = await getServerClient();
 
@@ -137,9 +129,9 @@ export const processCheckout = createServerFn({ method: "POST" })
 
               if (matchedRate && Math.abs(matchedRate.price_cents - cartValidation.shipping_cents) > 500) {
                 // Pequena tolerância para oscilações mínimas de centavos, alerta apenas se diferença > R$ 5,00
-                throw new Error(
+                return { status: "error" as const, message: 
                   "O valor do frete mudou desde a cotação inicial. Por favor, revise o frete no carrinho.",
-                );
+                 };
               }
             }
           } catch (shipErr: unknown) {
@@ -172,14 +164,14 @@ export const processCheckout = createServerFn({ method: "POST" })
         
         // Translating PostgreSQL constraint errors into user-friendly messages
         if (errMsg.includes("stock_on_hand") || errMsg.includes("stock_reserved") || errMsg.includes("estoque insuficiente")) {
-          throw new Error("Desculpe, um ou mais itens do seu carrinho esgotaram. Por favor, revise as quantidades.");
+          return { status: "error" as const, message: "Desculpe, um ou mais itens do seu carrinho esgotaram. Por favor, revise as quantidades." };
         }
         
         if (errMsg.includes("Carrinho no encontrado")) {
-          throw new Error("Carrinho expirado ou jǭ processado. Inicie um novo checkout.");
+          return { status: "error" as const, message: "Carrinho expirado ou jǭ processado. Inicie um novo checkout." };
         }
 
-        throw new Error("Erro ao processar pedido: " + errMsg);
+        return { status: "error" as const, message: "Erro ao processar pedido: " + errMsg };
       }
 
       const result = data as {
@@ -190,7 +182,7 @@ export const processCheckout = createServerFn({ method: "POST" })
       };
 
       if (result.status !== "success") {
-        throw new Error("Checkout falhou.");
+        return { status: "error" as const, message: "Checkout falhou." };
       }
 
       // Persist custom checkout fields and notes if provided
@@ -210,10 +202,11 @@ export const processCheckout = createServerFn({ method: "POST" })
         orderToken: result.orderToken,
       };
     } catch (e: unknown) {
+      logSystemError({ route: "checkout.functions.processCheckout", error: e, payload: params });
       console.error(
         "[checkout.functions] processCheckout:",
         e instanceof Error ? e.message : String(e),
       );
-      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro no checkout");
+      return { status: "error" as const, message: (e instanceof Error ? e.message : String(e)) || "Erro no checkout" };
     }
   });

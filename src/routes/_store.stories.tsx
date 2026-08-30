@@ -181,10 +181,10 @@ function Page() {
             <div className="absolute top-6 left-4 right-4 z-30 flex justify-between items-center text-white">
               <div className="flex items-center gap-2">
                 <div className="size-8 rounded-full bg-primary/20 flex items-center justify-center font-bold text-xs border border-primary/40">
-                  HR
+                  WD
                 </div>
                 <div>
-                  <span className="text-xs font-bold block">Jah Oficial</span>
+                  <span className="text-xs font-bold block">Wider Oficial</span>
                   <span className="text-[10px] text-white/60">
                     Story {activeIdx! + 1} de {stories.length}
                   </span>

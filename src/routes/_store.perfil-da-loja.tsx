@@ -89,7 +89,7 @@ export const Route = createFileRoute("/_store/perfil-da-loja")({
     const [profile, docRes, catalogRes, jobsRes] = await Promise.all([
       getPublicStoreProfile({ data: targetStore ? { storeId: targetStore } : undefined }).catch(() => null),
       getPublicExperienceDocumentBySlug({
-        data: { slug: "institucional", document_type: "storefront" },
+        data: { slug: "home", document_type: "storefront", storeId: targetStore },
       }).catch(() => null),
       getStorePublicCatalog({ data: targetStore ? { storeId: targetStore } : undefined }).catch(() => null),
       listPublicJobs({ data: {} }).catch(() => null),
@@ -153,7 +153,15 @@ function StorePerfil() {
   if (builderTree) {
     return (
       <main className="w-full flex flex-col gap-0 min-h-screen">
-        <ExperienceRenderer nodes={builderTree} />
+        <ExperienceRenderer
+          nodes={builderTree}
+          transientData={{
+            store: data,
+            products: catalog,
+            categories,
+            jobs,
+          }}
+        />
       </main>
     );
   }
@@ -583,7 +591,7 @@ function StorePerfil() {
               <div className="p-6 sm:p-8 rounded-3xl bg-card space-y-3">
                 <h3 className="text-base font-bold text-foreground">Sobre a Empresa</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
-                  {store.description || "Empresa credenciada e verificada da rede comunitária JAH."}
+                  {store.description || "Empresa credenciada e verificada da rede comunitária Wider."}
                 </p>
               </div>
 
@@ -704,6 +712,40 @@ function StorePerfil() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* ── BARRA FIXA INFERIOR DE AÇÕES RÁPIDAS (MOBILE THUMB ZONE - 44px) ── */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 p-3 bg-background/90 backdrop-blur-xl border-t border-border/60 md:hidden flex items-center gap-2">
+        {store.phone && (
+          <Button
+            onClick={() =>
+              trackAndOpenWhatsApp({
+                phone: store.phone,
+                entityType: "store",
+                storeId: store.id,
+                entityTitle: store.name,
+                customMessage: `Olá, vi o perfil de ${store.name} no Wider e gostaria de falar com vocês!`,
+              })
+            }
+            className="flex-1 h-11 rounded-2xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-2 shadow-lg cursor-pointer"
+          >
+            <WhatsappLogo className="size-4" weight="bold" />
+            <span>Falar no WhatsApp</span>
+          </Button>
+        )}
+        <Button
+          onClick={() => {
+            setActiveTab("catalogo");
+            if (typeof window !== "undefined") {
+              window.scrollTo({ top: 320, behavior: "smooth" });
+            }
+          }}
+          variant="secondary"
+          className="h-11 px-4 rounded-2xl font-bold text-xs gap-1.5 cursor-pointer"
+        >
+          <CatalogIcon className="size-4" />
+          <span>{isGastronomy ? "Cardápio" : "Catálogo"}</span>
+        </Button>
       </div>
     </div>
   );

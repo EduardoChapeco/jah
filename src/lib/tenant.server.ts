@@ -19,7 +19,7 @@ export async function resolveTenantStoreId(): Promise<string | null> {
   const host = getRequestHeader("host");
   if (host) {
     const parts = host.split(".");
-    if (parts.length > 1 && parts[0] !== "www" && parts[0] !== "jah") {
+    if (parts.length > 1 && parts[0] !== "www" && parts[0] !== "wider") {
       const slugToMatch = parts[0];
       const db = getAnonServerClient();
       const { data: matchedStore } = await db
