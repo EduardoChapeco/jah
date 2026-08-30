@@ -108,7 +108,7 @@ function ProfilePage() {
   });
 
   // Biolinks
-  const [biolinks, setBiolinks] = useState<Array<{ id: string; label: string; url: string; isHighlight?: boolean }>>(
+  const [biolinks, setBiolinks] = useState<Array<{ id: string; label: string; url: string; imageUrl?: string; isHighlight?: boolean }>>(
     Array.isArray(profile?.biolinks) ? profile.biolinks : []
   );
 

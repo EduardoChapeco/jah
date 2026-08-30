@@ -50,6 +50,7 @@ import {
   Eye,
   ChevronRight,
   Heart,
+  Activity,
 } from "lucide-react";
 import { MediaLightboxModal } from "@/components/community/media-lightbox-modal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
