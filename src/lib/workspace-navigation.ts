@@ -55,6 +55,8 @@ import {
   PenTool,
   Layers2,
   FileSpreadsheet,
+  Gift,
+  Globe,
 } from "lucide-react";
 
 export type NavItem = {
@@ -362,6 +364,7 @@ const GROUP_MARKETING_VITRINE: NavGroup = {
     { path: "/workspace/marketing/banners", label: "Banners & Destaques", icon: ImageIcon },
     { path: "/workspace/marketing/hotpages", label: "Destaques & Hotpages", icon: Layers },
     { path: "/workspace/marketing/promocoes", label: "Promoções & Cupons", icon: Flame },
+    { path: "/workspace/marketing/gift-cards", label: "Vales-Presente", icon: Gift },
     { path: "/workspace/cms/stories", label: "Stories & Mídia", icon: ImageIcon },
     { path: "/workspace/marketing/anuncios", label: "Campanhas de Anúncios", icon: Megaphone },
   ],
@@ -369,12 +372,13 @@ const GROUP_MARKETING_VITRINE: NavGroup = {
 
 const GROUP_FINANCE_CLEAN: NavGroup = {
   id: "finance",
-  label: "Financeiro",
+  label: "Financeiro & RH",
   icon: Banknote,
   items: [
     { path: "/workspace/financeiro/caixa", label: "Fluxo de Caixa", icon: Banknote },
     { path: "/workspace/financeiro/pagamentos", label: "Pagamentos & Repasses", icon: DollarSign },
-    { path: "/workspace/financeiro/comprovantes", label: "Comprovantes", icon: Receipt },
+    { path: "/workspace/financeiro/recebiveis", label: "Recebíveis & Carnês", icon: Receipt },
+    { path: "/workspace/financeiro/funcionarios", label: "Folha & Vales (RH)", icon: Users },
   ],
 };
 
@@ -384,7 +388,8 @@ const GROUP_SETTINGS: NavGroup = {
   icon: Settings,
   items: [
     { path: "/workspace/configuracoes", label: "Dados da Loja", icon: Settings },
-    { path: "/workspace/configuracoes/equipe", label: "Equipe & Acessos", icon: Users },
+    { path: "/workspace/configuracoes/equipe", label: "Equipe & Vagas (RH)", icon: Users },
+    { path: "/workspace/configuracoes/dominios", label: "Domínios & DNS", icon: Globe },
     { path: "/workspace/configuracoes/integracoes", label: "Integrações", icon: Link2 },
   ],
 };
