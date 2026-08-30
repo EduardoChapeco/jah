@@ -86,156 +86,11 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 
-type NavItem = {
-  path: string;
-  label: string;
-  icon?: any;
-};
-
-type NavGroup = {
-  id: string;
-  label: string;
-  icon: any;
-  items: NavItem[];
-};
-
-const WORKSPACE_MODULES: NavGroup[] = [
-  {
-    id: "overview",
-    label: "Geral",
-    icon: LayoutDashboard,
-    items: [
-      { path: "/workspace", label: "Visão Geral", icon: LayoutDashboard },
-      { path: "/workspace/simulacao", label: "SimLab (Enxame IA)", icon: Sparkles },
-    ],
-  },
-  {
-    id: "news",
-    label: "Notícias & Redação",
-    icon: Newspaper,
-    items: [
-      { path: "/workspace/noticias", label: "Matérias & Artigos", icon: Newspaper },
-      { path: "/workspace/noticias/novo", label: "Nova Matéria", icon: Plus },
-    ],
-  },
-  {
-    id: "catalog",
-    label: "Catálogo",
-    icon: Package,
-    items: [
-      { path: "/workspace/catalogo/produtos", label: "Produtos", icon: Package },
-      { path: "/workspace/catalogo/tabelas", label: "Tabelas de Preços", icon: DollarSign },
-      { path: "/workspace/catalogo/categorias", label: "Categorias", icon: Tags },
-      { path: "/workspace/catalogo/colecoes", label: "Coleções", icon: Sliders },
-      { path: "/workspace/catalogo/atributos", label: "Atributos", icon: Boxes },
-      { path: "/workspace/estoque", label: "Estoque", icon: Boxes },
-      { path: "/workspace/estoque/alertas", label: "Alertas de Reposição", icon: AlertTriangle },
-      { path: "/workspace/estoque/movimentos", label: "Movimentações", icon: ArrowDownUp },
-    ],
-  },
-  {
-    id: "sales",
-    label: "Vendas & Logística",
-    icon: ShoppingBag,
-    items: [
-      { path: "/workspace/pedidos", label: "Todos os Pedidos", icon: ShoppingBag },
-      { path: "/workspace/pedidos/gestor", label: "Gestor (Kanban)", icon: ClipboardList },
-      { path: "/workspace/pedidos/trocas", label: "Trocas & Devoluções", icon: ArrowRightLeft },
-      { path: "/workspace/pedidos/frota", label: "Frota & Despacho", icon: Truck },
-      { path: "/workspace/logistica/tabelas", label: "Tabelas de Frete & KM", icon: DollarSign },
-      { path: "/workspace/logistica/faturas", label: "Faturas de Frota", icon: Banknote },
-      { path: "/workspace/logistica/pudo", label: "Pontos de Retirada (PUDO)", icon: MapPin },
-      { path: "/workspace/pdv", label: "PDV (Frente de Caixa)", icon: Store },
-      { path: "/workspace/clientes", label: "Clientes / CRM", icon: Users },
-      { path: "/workspace/orcamentos", label: "Orçamentos", icon: FileText },
-    ],
-  },
-  {
-    id: "marketing",
-    label: "Marketing & Monetização",
-    icon: Megaphone,
-    items: [
-      { path: "/workspace/marketing/banners", label: "Top Banners (Vídeo/GIF)", icon: ImageIcon },
-      { path: "/workspace/marketing/hotpages", label: "Cards de Categorias", icon: Sliders },
-      { path: "/workspace/marketing/vitrine", label: "Vitrine CMS", icon: Eye },
-      { path: "/workspace/marketing/patrocinadores", label: "Patrocinadores", icon: Megaphone },
-      { path: "/workspace/marketing/telemetria", label: "Telemetria & Audiência", icon: BarChart3 },
-      { path: "/workspace/marketing/promocoes", label: "Promoções & Ofertas", icon: Flame },
-      { path: "/workspace/marketing/anuncios", label: "Campanhas & Anúncios", icon: Megaphone },
-      { path: "/workspace/marketing/carrinhos", label: "Carrinhos Abandonados", icon: ShoppingCart },
-      { path: "/workspace/marketing/gift-cards", label: "Gift Cards", icon: Tag },
-    ],
-  },
-  {
-    id: "finance",
-    label: "Financeiro & P2P",
-    icon: Banknote,
-    items: [
-      { path: "/workspace/tokens", label: "Máquina do Tempo & Tokens", icon: Zap },
-      { path: "/workspace/financeiro/caixa", label: "Frente de Caixa", icon: Banknote },
-      { path: "/workspace/financeiro/afiliados", label: "Afiliados & Split", icon: Users },
-      { path: "/workspace/financeiro/comissoes", label: "Comissões", icon: Tag },
-      { path: "/workspace/financeiro/comprovantes", label: "Comprovantes", icon: Receipt },
-      { path: "/workspace/financeiro/pagamentos", label: "Pagamentos", icon: DollarSign },
-      { path: "/workspace/financeiro/funcionarios", label: "Funcionários & Folha", icon: Users },
-      { path: "/workspace/contador", label: "Módulo Contábil", icon: FileText },
-    ],
-  },
-  {
-    id: "services-agenda",
-    label: "Serviços & Agenda",
-    icon: Calendar,
-    items: [
-      { path: "/workspace/agenda", label: "Grade de Agendamentos", icon: Calendar },
-      { path: "/workspace/pacotes", label: "Pacotes & Passes de Aulas", icon: Ticket },
-      { path: "/workspace/agenda/servicos", label: "Catálogo de Serviços", icon: Package },
-      { path: "/workspace/agenda/recursos", label: "Profissionais & Salas", icon: Users },
-    ],
-  },
-  {
-    id: "cultural",
-    label: "Cultural, CMS & Zines",
-    icon: LayoutTemplate,
-    items: [
-      { path: "/workspace/cms/calendario", label: "Calendário Editorial", icon: Calendar },
-      { path: "/workspace/cms/stories", label: "Stories & Mídia", icon: ImageIcon },
-      { path: "/workspace/cms/bio", label: "Biolink Autoral", icon: Link2 },
-      { path: "/workspace/cms/paginas", label: "Páginas Institucionais", icon: FileText },
-      { path: "/workspace/cms/navegacao", label: "Menus & Navegação", icon: Navigation },
-      { path: "/workspace/cms/avaliacoes", label: "Avaliações & Reviews", icon: Star },
-      { path: "/workspace/estudio", label: "Estúdio / Builder", icon: LayoutTemplate },
-      { path: "/workspace/moderacao", label: "Moderação da Comunidade", icon: ShieldAlert },
-    ],
-  },
-  {
-    id: "settings",
-    label: "Configurações & IA",
-    icon: Settings,
-    items: [
-      { path: "/workspace/configuracoes", label: "Configurações da Loja", icon: Settings },
-      { path: "/workspace/configuracoes/equipe", label: "Equipe & Colaboradores", icon: Users },
-      { path: "/workspace/lojas", label: "Minhas Lojas / Unidades", icon: Store },
-      { path: "/workspace/qualidade", label: "Curadoria & Selo de Qualidade", icon: ShieldCheck },
-      { path: "/workspace/configuracoes/ai", label: "Agentes & IA", icon: Sparkles },
-      { path: "/workspace/configuracoes/integracoes", label: "Integrações", icon: Link2 },
-      { path: "/workspace/configuracoes/parceiros", label: "Parceiros & Fornecedores", icon: Users },
-      { path: "/workspace/configuracoes/fretes/cotacoes", label: "Fretes & Logística", icon: Truck },
-    ],
-  },
-  {
-    id: "verticals",
-    label: "Verticais & Operações",
-    icon: Building2,
-    items: [
-      { path: "/workspace/eventos", label: "Eventos & Ingressos", icon: Calendar },
-      { path: "/workspace/empregos/candidatos", label: "Recrutamento (ATS)", icon: Briefcase },
-      { path: "/workspace/turismo/cotacoes", label: "Turismo & Cotações", icon: Plane },
-      { path: "/workspace/imoveis/manutencoes", label: "Manutenções & Chamados", icon: Wrench },
-      { path: "/workspace/advocacia", label: "Processos Jurídicos", icon: Scale },
-      { path: "/workspace/atendimento", label: "Central de Atendimento", icon: MessageSquare },
-    ],
-  },
-];
+import {
+  resolveWorkspaceNavigation,
+  type NavGroup,
+  type NavItem,
+} from "@/lib/workspace-navigation";
 
 
 function getStoreContextualAction(storeData: any) {
@@ -329,15 +184,7 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
 
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
-    const initial: Record<string, boolean> = { overview: true };
-    for (const group of WORKSPACE_MODULES) {
-      if (group.items.some((item) => currentPath.startsWith(item.path))) {
-        initial[group.id] = true;
-      }
-    }
-    return initial;
-  });
+  const [isMasterAllVerticals, setIsMasterAllVerticals] = useState(false);
 
   // Estado do Modal de Confirmação de Alternância de Contexto
   const [showPersonalSwitchModal, setShowPersonalSwitchModal] = useState(false);
@@ -348,6 +195,25 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
   const activeStoreId = session?.store_id;
   const activeStore = memberships.find((m) => m.store_id === activeStoreId) || memberships[0];
 
+  const isPlatformAdmin =
+    session?.user?.role === "platform_admin" ||
+    session?.role === "platform_admin" ||
+    session?.user?.user_metadata?.role === "platform_admin";
+
+  const activeModules = resolveWorkspaceNavigation(activeStore, {
+    isMasterMode: isPlatformAdmin && isMasterAllVerticals,
+  });
+
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = { overview: true };
+    for (const group of activeModules) {
+      if (group.items.some((item) => currentPath.startsWith(item.path))) {
+        initial[group.id] = true;
+      }
+    }
+    return initial;
+  });
+
   const userDisplayName =
     session?.user?.user_metadata?.full_name ||
     session?.user?.email?.split("@")[0] ||
@@ -355,10 +221,6 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
     "Usuário";
 
   const userInitial = userDisplayName.charAt(0).toUpperCase();
-  const isPlatformAdmin =
-    session?.user?.role === "platform_admin" ||
-    session?.role === "platform_admin" ||
-    session?.user?.user_metadata?.role === "platform_admin";
 
   const toggleGroup = (groupId: string) => {
     setExpandedGroups((prev) => ({
@@ -408,10 +270,10 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
     <div className="flex flex-col space-y-1 select-none">
       {/* ── Módulo VIP: Painel Global Master para Platform Admin ── */}
       {isPlatformAdmin && (
-        <div className="mb-2 pb-2 border-b border-border/40">
+        <div className="mb-2 pb-2 border-b border-border/40 space-y-1.5">
           <Link
             to="/admin-master"
-            className="flex items-center justify-between px-3 py-2 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 transition-all font-bold text-xs group shadow-2xs"
+            className="flex items-center justify-between px-3 py-2 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 transition-all font-bold text-xs group"
           >
             <div className="flex items-center gap-2">
               <ShieldAlert className="size-4 text-primary shrink-0" />
@@ -419,10 +281,24 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
             </div>
             <ArrowUpRight className="size-3.5 text-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform shrink-0" />
           </Link>
+
+          <button
+            type="button"
+            onClick={() => setIsMasterAllVerticals((prev) => !prev)}
+            className={cn(
+              "w-full flex items-center justify-between px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-colors cursor-pointer",
+              isMasterAllVerticals
+                ? "bg-amber-500/10 text-amber-500 border-amber-500/30"
+                : "bg-muted/40 text-muted-foreground border-border/40 hover:text-foreground"
+            )}
+          >
+            <span>{isMasterAllVerticals ? "Modo Master: Todas as Verticais" : "Filtrar por Nicho da Loja"}</span>
+            <span className="size-2 rounded-full" style={{ backgroundColor: isMasterAllVerticals ? "var(--color-amber-500, #f59e0b)" : "currentColor" }} />
+          </button>
         </div>
       )}
 
-      {WORKSPACE_MODULES.map((group) => {
+      {activeModules.map((group) => {
         const isGroupActive = group.items.some((item) =>
           item.path === "/workspace"
             ? currentPath === "/workspace"
@@ -454,7 +330,7 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
             </button>
 
             {isExpanded && (
-              <div className="ml-3 pl-2.5  space-y-0.5 pt-0.5">
+              <div className="ml-3 pl-2.5 space-y-0.5 pt-0.5">
                 {group.items.map((item) => {
                   const isItemActive =
                     item.path === "/workspace"
@@ -468,7 +344,7 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
                       className={cn(
                         "flex items-center px-2.5 py-1.5 rounded-xl text-xs font-medium transition-colors",
                         isItemActive
-                          ? "bg-primary text-primary-foreground font-bold "
+                          ? "bg-primary text-primary-foreground font-bold"
                           : "text-muted-foreground hover:text-foreground hover:bg-muted/70",
                       )}
                     >
@@ -481,6 +357,17 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
           </div>
         );
       })}
+
+      {/* Botão Discreto de Recursos & Módulos da Loja */}
+      <div className="pt-2 mt-2 border-t border-border/30">
+        <Link
+          to="/workspace/configuracoes"
+          className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
+        >
+          <Sliders className="size-3.5 text-muted-foreground" />
+          <span>Recursos & Módulos da Loja</span>
+        </Link>
+      </div>
     </div>
   );
 
