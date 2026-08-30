@@ -51,7 +51,7 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
   try {
     const { data: membershipsData } = await serverClient
       .from("workspace_members")
-      .select("store_id, role, stores(id, name, slug, logo_url)")
+      .select("store_id, role, stores(id, name, slug, logo_url, segment, type, category, settings)")
       .eq("profile_id", user.id);
 
     if (membershipsData && membershipsData.length > 0) {
@@ -63,6 +63,10 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
           name: m.stores?.name || "Loja",
           slug: m.stores?.slug || "loja",
           logo_url: m.stores?.logo_url || null,
+          segment: m.stores?.segment || m.stores?.settings?.segment || null,
+          type: m.stores?.type || m.stores?.settings?.type || null,
+          category: m.stores?.category || m.stores?.settings?.category || null,
+          settings: m.stores?.settings || {},
         }));
     }
   } catch (e) {

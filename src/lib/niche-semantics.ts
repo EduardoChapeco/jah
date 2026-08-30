@@ -429,13 +429,22 @@ export const NICHE_SEMANTICS_REGISTRY: Record<string, NicheSemantics> = {
  * Analisa o campo `segment`, `type`, `category` ou configurações de nicho.
  */
 export function getNicheSemantics(storeData: any): NicheSemantics {
+  const storeName = (storeData?.name || storeData?.stores?.name || "").toLowerCase();
   const segment = (
     storeData?.segment ||
     storeData?.type ||
     storeData?.category ||
+    storeData?.stores?.segment ||
+    storeData?.stores?.type ||
+    storeData?.stores?.category ||
     storeData?.settings?.segment ||
     storeData?.settings?.type ||
     storeData?.settings?.niche ||
+    storeData?.stores?.settings?.segment ||
+    storeData?.stores?.settings?.type ||
+    storeData?.stores?.settings?.niche ||
+    storeData?.description ||
+    storeName ||
     ""
   ).toLowerCase();
 

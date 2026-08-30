@@ -430,13 +430,22 @@ export function resolveWorkspaceNavigation(
     ];
   }
 
+  const storeName = (storeData?.name || storeData?.stores?.name || "").toLowerCase();
   const segment = (
     storeData?.segment ||
     storeData?.type ||
     storeData?.category ||
+    storeData?.stores?.segment ||
+    storeData?.stores?.type ||
+    storeData?.stores?.category ||
     storeData?.settings?.segment ||
     storeData?.settings?.type ||
     storeData?.settings?.niche ||
+    storeData?.stores?.settings?.segment ||
+    storeData?.stores?.settings?.type ||
+    storeData?.stores?.settings?.niche ||
+    storeData?.description ||
+    storeName ||
     ""
   ).toLowerCase();
 
