@@ -152,13 +152,13 @@ function AdminCollectionsPage() {
           )}
         </div>
       ) : (
-        <div className=" rounded-2xl overflow-hidden bg-card ">
+        <div className="rounded-2xl overflow-hidden bg-card border border-border/60">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/40">
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Slug</TableHead>
+                  <TableHead className="w-12"></TableHead>
+                  <TableHead>Coleção & Slug</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="w-[80px] text-right">Ações</TableHead>
                 </TableRow>
@@ -166,11 +166,33 @@ function AdminCollectionsPage() {
               <TableBody>
                 {filteredCollections.map((col: any) => (
                   <TableRow key={col.id} className="hover:bg-muted/30 transition-colors">
-                    <TableCell className="font-semibold text-sm text-foreground">
-                      {col.name}
+                    <TableCell className="pl-4 pr-0">
+                      <div className="size-10 rounded-xl bg-muted/60 border border-border/50 overflow-hidden flex items-center justify-center shrink-0">
+                        {col.cover_url || col.image_url ? (
+                          <img
+                            src={col.cover_url || col.image_url}
+                            alt={col.name}
+                            className="size-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-[10px] font-bold text-muted-foreground uppercase">
+                            {col.name.slice(0, 2)}
+                          </span>
+                        )}
+                      </div>
                     </TableCell>
-                    <TableCell className="text-muted-foreground font-mono text-xs">
-                      {col.slug}
+                    <TableCell>
+                      <div className="space-y-0.5">
+                        <Link
+                          to={`/workspace/catalogo/colecoes/${col.id}` as any}
+                          className="font-bold text-xs text-foreground hover:text-primary transition-colors block"
+                        >
+                          {col.name}
+                        </Link>
+                        <span className="text-muted-foreground font-mono text-[11px] block">
+                          /{col.slug}
+                        </span>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <Badge
@@ -181,13 +203,13 @@ function AdminCollectionsPage() {
                               ? "outline"
                               : "secondary"
                         }
-                        className="text-xs"
+                        className="text-[10px] font-semibold"
                       >
                         {col.status === "active"
-                          ? "Ativa"
+                          ? "● Ativa"
                           : col.status === "inactive"
-                            ? "Inativa"
-                            : "Arquivada"}
+                            ? "● Inativa"
+                            : "● Arquivada"}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">

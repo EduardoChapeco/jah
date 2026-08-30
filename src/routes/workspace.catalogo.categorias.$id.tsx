@@ -77,10 +77,11 @@ function EditCategoryPage() {
       const res = await updateCategory({
         data: {
           id: category.id,
-          name: values.name,
-          slug: values.slug,
+          name: values.name.trim(),
+          slug: values.slug.trim(),
           status: values.status,
           parent_id: values.parent_id === "none" ? null : values.parent_id,
+          cover_url: coverUrl || undefined,
         },
       });
 

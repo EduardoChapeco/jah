@@ -645,6 +645,8 @@ export async function _createCollection(input: {
   name: string;
   slug: string;
   status: "active" | "inactive";
+  description?: string | null;
+  cover_url?: string | null;
 }) {
   const db = getServerClient();
 
@@ -673,6 +675,8 @@ export const createCollection = createServerFn({ method: "POST" })
       name: z.string().min(1).max(100),
       slug: z.string().regex(/^[a-z0-9-]+$/),
       status: z.enum(["active", "inactive"]).default("active"),
+      description: z.string().optional().nullable(),
+      cover_url: z.string().optional().nullable(),
     }),
   )
   .handler(async ({ data: input }) => {
@@ -718,6 +722,8 @@ export async function _updateCollection(input: {
   name?: string;
   slug?: string;
   status?: "active" | "inactive" | "archived";
+  description?: string | null;
+  cover_url?: string | null;
 }) {
   const db = getServerClient();
   const { id, ...updates } = input;
@@ -741,6 +747,8 @@ export const updateCollection = createServerFn({ method: "POST" })
         .regex(/^[a-z0-9-]+$/)
         .optional(),
       status: z.enum(["active", "inactive", "archived"]).optional(),
+      description: z.string().optional().nullable(),
+      cover_url: z.string().optional().nullable(),
     }),
   )
   .handler(async ({ data: input }) => {

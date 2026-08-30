@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -15,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Surface } from "@/components/ui/surface";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { getCollectionById, updateCollection } from "@/services/admin-catalog.functions";
 
 export const Route = createFileRoute("/workspace/catalogo/colecoes/$id")({
@@ -35,6 +36,7 @@ function EditCollectionPage() {
   const collection = Route.useLoaderData() as any;
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [coverUrl, setCoverUrl] = useState<string | null>(collection.cover_url || collection.image_url || null);
 
   const {
     register,
@@ -43,9 +45,10 @@ function EditCollectionPage() {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      name: collection.name,
-      slug: collection.slug,
-      status: collection.status,
+      name: collection.name || "",
+      slug: collection.slug || "",
+      description: collection.description || "",
+      status: collection.status || "active",
     },
   });
 
@@ -57,6 +60,8 @@ function EditCollectionPage() {
           id: collection.id,
           name: values.name.trim(),
           slug: values.slug.trim(),
+          description: values.description?.trim() || null,
+          cover_url: coverUrl || null,
           status: values.status,
         },
       });
@@ -83,7 +88,7 @@ function EditCollectionPage() {
             Editar Coleção: {collection.name}
           </h1>
           <p className="text-xs text-muted-foreground">
-            Ajuste o nome, identificador e visibilidade desta coleção no catálogo.
+            Ajuste o nome, identificador, descrição e capa visual desta coleção.
           </p>
         </div>
 
@@ -109,7 +114,7 @@ function EditCollectionPage() {
               <Label className="text-xs font-bold text-foreground">Nome da Coleção *</Label>
               <Input
                 {...register("name", { required: "Obrigatório" })}
-                className="rounded-xl text-xs h-9"
+                className="rounded-xl text-xs h-10"
                 onChange={(e) => {
                   register("name").onChange(e);
                   const slug = e.target.value
@@ -128,10 +133,20 @@ function EditCollectionPage() {
 
             <div className="space-y-1.5">
               <Label className="text-xs font-bold text-foreground">Identificador / Slug *</Label>
-              <Input {...register("slug", { required: "Obrigatório" })} className="rounded-xl text-xs h-9" />
+              <Input {...register("slug", { required: "Obrigatório" })} className="rounded-xl text-xs h-10 font-mono" />
               {errors.slug?.message && (
                 <p className="text-xs text-destructive">{String(errors.slug.message)}</p>
               )}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold text-foreground">Descrição Curta (Opcional)</Label>
+              <Textarea
+                {...register("description")}
+                placeholder="Explique o tema ou os produtos desta coleção..."
+                rows={2}
+                className="rounded-2xl text-xs resize-none"
+              />
             </div>
 
             <div className="space-y-1.5">
@@ -140,15 +155,26 @@ function EditCollectionPage() {
                 defaultValue={collection.status}
                 onValueChange={(v) => setValue("status", v as any)}
               >
-                <SelectTrigger className="rounded-xl text-xs h-9">
+                <SelectTrigger className="rounded-xl text-xs h-10">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  <SelectItem value="active" className="text-xs font-medium">Ativa na Vitrine</SelectItem>
-                  <SelectItem value="inactive" className="text-xs font-medium">Oculta (Rascunho)</SelectItem>
-                  <SelectItem value="archived" className="text-xs font-medium">Arquivada (Arquivo Morto)</SelectItem>
+                <SelectContent className="rounded-2xl">
+                  <SelectItem value="active" className="text-xs font-semibold text-emerald-600">● Ativa na Vitrine</SelectItem>
+                  <SelectItem value="inactive" className="text-xs text-muted-foreground font-semibold">● Oculta (Rascunho)</SelectItem>
+                  <SelectItem value="archived" className="text-xs text-amber-600 font-semibold">● Arquivada</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold text-foreground">Imagem de Capa (Panorâmica 16:10)</Label>
+              <ImageUpload
+                value={coverUrl}
+                onChange={setCoverUrl}
+                aspectPreset="widescreen"
+                bucket="product-media"
+                helperText="Upload com recorte panorâmico 16:10 para exibição na vitrine"
+              />
             </div>
           </div>
         </div>
@@ -157,7 +183,7 @@ function EditCollectionPage() {
           <Button type="button" variant="outline" size="sm" className="rounded-xl text-xs font-bold" asChild>
             <Link to="/workspace/catalogo/colecoes">Cancelar</Link>
           </Button>
-          <Button type="submit" size="sm" disabled={isSubmitting} className="rounded-xl text-xs font-bold bg-primary text-primary-foreground">
+          <Button type="submit" size="sm" disabled={isSubmitting} className="rounded-xl text-xs font-bold bg-primary text-primary-foreground min-w-32">
             {isSubmitting ? "Salvando..." : "Salvar Alterações"}
           </Button>
         </div>
