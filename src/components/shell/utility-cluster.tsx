@@ -225,19 +225,32 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
                 </DropdownMenuItem>
               </div>
 
-              {/* ── Gestão de Negócios & Espaços (Multiloja Transparente) ── */}
+              {/* ── Acesso Direto ao Workspace / Gestão da Loja ── */}
               <DropdownMenuSeparator className="my-1" />
+              <div className="p-1 space-y-1">
+                <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-bold bg-foreground text-background hover:bg-foreground/90 px-3 py-2 flex items-center justify-between">
+                  <Link to="/workspace">
+                    <div className="flex items-center gap-2">
+                      <LayoutDashboard className="size-3.5" />
+                      <span>Entrar no Workspace</span>
+                    </div>
+                    <ArrowUpRight className="size-3.5" />
+                  </Link>
+                </DropdownMenuItem>
+              </div>
+
+              {/* ── Gestão de Negócios & Espaços (Multiloja Transparente) ── */}
               {memberships.length > 0 ? (
                 <div className="py-1">
                   <div className="px-3 py-1.5 flex items-center justify-between">
                     <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                      Meus Negócios ({memberships.length})
+                      Minhas Lojas ({memberships.length})
                     </span>
                     <Link
                       to="/conta/lojas"
                       className="text-[10px] font-bold text-primary hover:underline flex items-center gap-0.5"
                     >
-                      <span>Ver Todos</span>
+                      <span>Ver Todas</span>
                       <ArrowUpRight className="size-2.5" />
                     </Link>
                   </div>
@@ -281,10 +294,10 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
                       );
                     })}
 
-                    <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-semibold text-primary hover:bg-primary/10 px-2.5 py-1.5 flex items-center justify-between mt-1">
-                      <Link to="/conta/lojas">
-                        <span>Central de Todas as Lojas</span>
-                        <ArrowUpRight className="size-3.5 ml-auto" />
+                    <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-semibold text-muted-foreground hover:text-foreground px-2.5 py-1.5 flex items-center gap-1.5 mt-1">
+                      <Link to="/criar-negocio">
+                        <Plus className="size-3.5" />
+                        <span>Cadastrar Outro Negócio</span>
                       </Link>
                     </DropdownMenuItem>
                   </div>

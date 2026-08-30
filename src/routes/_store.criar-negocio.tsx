@@ -326,7 +326,15 @@ function CriarNegocioPage() {
 
   return (
     <div className="w-full max-w-6xl mx-auto py-2 space-y-6 animate-in fade-in duration-200">
-      {/* ── Top Navigation Bar / Stepper Canônico em Largura Total ── */}
+      {/* ── Top Bar de Retorno / Atalho ao Workspace ── */}
+      <div className="flex items-center justify-between">
+        <Button asChild variant="ghost" size="sm" className="rounded-xl text-xs font-semibold gap-1.5 text-muted-foreground hover:text-foreground">
+          <Link to="/workspace">
+            <ArrowLeft className="size-3.5" />
+            <span>Voltar ao Workspace</span>
+          </Link>
+        </Button>
+      </div>
       {step > 1 && (
         <div className="bg-card p-4 rounded-3xl border border-border/70 space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
