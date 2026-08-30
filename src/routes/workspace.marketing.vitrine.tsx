@@ -4,28 +4,28 @@ import {
   Plus,
   Trash2,
   Pencil,
-  ArrowUp,
-  ArrowDown,
   Layout,
-  Sliders,
   Sparkles,
   Tag,
   Grid,
   Store,
+  SlidersHorizontal,
+  Loader2,
 } from "lucide-react";
+import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@/components/ui/sheet";
 import {
   Select,
   SelectContent,
@@ -38,7 +38,6 @@ import {
   listSurfaceSections,
   upsertSurfaceSection,
   deleteSurfaceSection,
-  reorderSurfaceSections,
   type SurfaceSectionDTO,
   type SurfaceSectionType,
   type SurfaceDataSource,
@@ -47,7 +46,7 @@ import {
 } from "@/services/surface-cms.functions";
 
 export const Route = createFileRoute("/workspace/marketing/vitrine")({
-  head: () => ({ meta: [{ title: "Vitrine da Loja (CMS) | Workspace" }] }),
+  head: () => ({ meta: [{ title: "Vitrine da Loja | Workspace Wider" }] }),
   component: WorkspaceStoreVitrineCMSPage,
 });
 
@@ -65,16 +64,16 @@ const STORE_DATA_SOURCES: Array<{ id: SurfaceDataSource; label: string }> = [
 ];
 
 const STORE_RANKING_OPTIONS: Array<{ id: SurfaceRankingStrategy; label: string }> = [
-  { id: "random_shuffle", label: "🎲 Embaralhar Itens (Shuffle)" },
-  { id: "discount", label: "🏷️ Maior Desconto" },
-  { id: "popularity", label: "⭐ Mais Populares" },
-  { id: "recency", label: "⏱️ Mais Recentes" },
+  { id: "random_shuffle", label: "Embaralhar Itens (Shuffle)" },
+  { id: "discount", label: "Maior Desconto" },
+  { id: "popularity", label: "Mais Populares" },
+  { id: "recency", label: "Mais Recentes" },
 ];
 
 function WorkspaceStoreVitrineCMSPage() {
   const [sections, setSections] = useState<SurfaceSectionDTO[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [editingSection, setEditingSection] = useState<SurfaceSectionDTO | null>(null);
 
   // Form states
@@ -114,7 +113,7 @@ function WorkspaceStoreVitrineCMSPage() {
     setLayoutVariant("rail_standard");
     setItemLimit(12);
     setIsActive(true);
-    setIsDialogOpen(true);
+    setIsSheetOpen(true);
   };
 
   const handleOpenEdit = (sec: SurfaceSectionDTO) => {
@@ -127,7 +126,7 @@ function WorkspaceStoreVitrineCMSPage() {
     setLayoutVariant(sec.layout_variant);
     setItemLimit(sec.item_limit || 12);
     setIsActive(sec.is_active);
-    setIsDialogOpen(true);
+    setIsSheetOpen(true);
   };
 
   const handleSave = async () => {
@@ -155,7 +154,7 @@ function WorkspaceStoreVitrineCMSPage() {
       });
 
       toast.success("Seção salva com sucesso!");
-      setIsDialogOpen(false);
+      setIsSheetOpen(false);
       fetchStoreSections();
     } catch (err: any) {
       toast.error(err.message || "Erro ao salvar.");
@@ -176,136 +175,152 @@ function WorkspaceStoreVitrineCMSPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto p-4 sm:p-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-4">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight text-foreground">
-            Vitrine da Loja
-          </h1>
+    <div className="space-y-6">
+      {/* ── PageHeader Canônico ── */}
+      <PageHeader
+        eyebrow="Vitrine & Divulgação"
+        title="Vitrine da Loja"
+        actions={
+          <Button
+            onClick={handleOpenNew}
+            size="sm"
+            className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground h-9"
+          >
+            <Plus className="size-3.5" />
+            <span>Nova Seção</span>
+          </Button>
+        }
+      />
+
+      {/* ── Conteúdo Principal ── */}
+      {isLoading ? (
+        <div className="py-16 text-center">
+          <Loader2 className="size-6 animate-spin text-muted-foreground mx-auto" />
         </div>
-
-        <Button
-          onClick={handleOpenNew}
-          size="sm"
-          className="h-9 px-4 rounded-xl gap-1.5 font-semibold cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
-        >
-          <Plus className="size-4" />
-          <span>Nova Seção</span>
-        </Button>
-      </div>
-
-      {/* Lista de Seções */}
-      <div className="space-y-4">
-        {isLoading ? (
-          <div className="p-12 text-center text-xs text-muted-foreground">Carregando vitrine...</div>
-        ) : sections.length === 0 ? (
-          <div className="p-12 border border-dashed border-border rounded-2xl text-center space-y-3 bg-card/40">
-            <Store className="size-8 text-muted-foreground/40 mx-auto" />
-            <p className="text-xs text-muted-foreground font-medium">Nenhuma seção personalizada ainda.</p>
-            <Button onClick={handleOpenNew} size="sm" variant="outline" className="h-8 rounded-xl text-xs font-bold">
-              Criar Primeira Seção
-            </Button>
+      ) : sections.length === 0 ? (
+        <div className="py-12 text-center space-y-4 border border-dashed border-border/70 rounded-2xl bg-card/40">
+          <div className="size-12 rounded-2xl bg-muted/60 flex items-center justify-center mx-auto text-muted-foreground">
+            <Store className="size-6" />
           </div>
-        ) : (
-          <div className="space-y-2.5">
-            {sections.map((sec, index) => {
-              const typeConfig = STORE_SECTION_TYPES.find((t) => t.id === sec.type);
-              const Icon = typeConfig?.icon || Tag;
+          <div className="space-y-1">
+            <h3 className="text-sm font-bold text-foreground">Nenhuma seção personalizada</h3>
+            <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+              Organize os carrosséis, promoções e blocos de destaque exibidos no seu perfil de loja.
+            </p>
+          </div>
+          <Button onClick={handleOpenNew} size="sm" variant="outline" className="rounded-xl text-xs font-bold h-9">
+            <Plus className="size-3.5 mr-1" />
+            Criar Primeira Seção
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {sections.map((sec) => {
+            const typeConfig = STORE_SECTION_TYPES.find((t) => t.id === sec.type);
+            const Icon = typeConfig?.icon || Tag;
 
-              return (
-                <div
-                  key={sec.id}
-                  className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card ${
-                    sec.is_active ? "border-border/80 shadow-2xs" : "border-border/40 opacity-60 bg-muted/20"
-                  }`}
-                >
-                  <div className="flex items-start sm:items-center gap-3 min-w-0">
-                    <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                      <Icon className="size-5" />
-                    </div>
-
-                    <div className="min-w-0 space-y-1">
-                      <h3 className="text-xs sm:text-sm font-bold text-foreground truncate">
-                        {sec.title}
-                      </h3>
-                      {sec.subtitle && (
-                        <p className="text-[11px] text-muted-foreground truncate">{sec.subtitle}</p>
-                      )}
-                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                        <span>{typeConfig?.label}</span>
-                        <span>•</span>
-                        <span>Limite: {sec.item_limit} itens</span>
-                      </div>
-                    </div>
+            return (
+              <div
+                key={sec.id}
+                className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card ${
+                  sec.is_active ? "border-border/80 shadow-2xs" : "border-border/40 opacity-60 bg-muted/20"
+                }`}
+              >
+                <div className="flex items-start sm:items-center gap-3 min-w-0">
+                  <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <Icon className="size-5" />
                   </div>
 
-                  <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      onClick={() => handleOpenEdit(sec)}
-                      className="size-8 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer border-border/60"
-                      title="Editar Seção"
-                    >
-                      <Pencil className="size-3.5" />
-                    </Button>
-
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => handleDelete(sec.id)}
-                      className="size-8 rounded-lg text-destructive hover:bg-destructive/10 cursor-pointer"
-                      title="Excluir Seção"
-                    >
-                      <Trash2 className="size-3.5" />
-                    </Button>
+                  <div className="min-w-0 space-y-1">
+                    <h3 className="text-xs sm:text-sm font-bold text-foreground truncate">
+                      {sec.title}
+                    </h3>
+                    {sec.subtitle && (
+                      <p className="text-[11px] text-muted-foreground truncate">{sec.subtitle}</p>
+                    )}
+                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                      <span>{typeConfig?.label}</span>
+                      <span>•</span>
+                      <span>Limite: {sec.item_limit} itens</span>
+                    </div>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
 
-      {/* Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-md sm:w-full sm:rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-base font-bold">
-              {editingSection ? "Editar Seção" : "Nova Seção da Vitrine"}
-            </DialogTitle>
-          </DialogHeader>
+                <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    onClick={() => handleOpenEdit(sec)}
+                    className="size-8 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer border-border/60"
+                    title="Editar Seção"
+                  >
+                    <Pencil className="size-3.5" />
+                  </Button>
 
-          <div className="space-y-4 py-2">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => handleDelete(sec.id)}
+                    className="size-8 rounded-lg text-destructive hover:bg-destructive/10 cursor-pointer"
+                    title="Excluir Seção"
+                  >
+                    <Trash2 className="size-3.5" />
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── Side Sheet: Nova / Editar Seção ── */}
+      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+        <SheetContent side="right" className="sm:max-w-md w-full flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border">
+          <SheetHeader className="p-6 pb-4 border-b border-border/80 bg-muted/20">
+            <div className="flex items-center gap-2.5">
+              <div className="size-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                <SlidersHorizontal className="size-4.5" />
+              </div>
+              <div>
+                <SheetTitle className="text-base font-bold text-foreground">
+                  {editingSection ? "Editar Seção da Vitrine" : "Nova Seção da Vitrine"}
+                </SheetTitle>
+                <SheetDescription className="text-xs text-muted-foreground mt-0.5">
+                  Configure o layout, carrossel e ordenação dos itens exibidos.
+                </SheetDescription>
+              </div>
+            </div>
+          </SheetHeader>
+
+          <div className="flex-1 overflow-y-auto p-6 space-y-4">
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Título da Seção</Label>
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Ex: Destaques da Semana, Mais Vendidos..."
-                className="h-9 text-xs rounded-xl"
+                className="h-10 text-xs rounded-xl"
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Subtítulo Opcional</Label>
+              <Label className="text-xs font-bold">Subtítulo (Opcional)</Label>
               <Input
                 value={subtitle}
                 onChange={(e) => setSubtitle(e.target.value)}
                 placeholder="Ex: Os produtos favoritos dos clientes"
-                className="h-9 text-xs rounded-xl"
+                className="h-10 text-xs rounded-xl"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold">Tipo de Seção</Label>
                 <Select value={type} onValueChange={(v: any) => setType(v)}>
-                  <SelectTrigger className="h-9 text-xs rounded-xl">
+                  <SelectTrigger className="h-10 text-xs rounded-xl">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="rounded-xl">
                     {STORE_SECTION_TYPES.map((opt) => (
                       <SelectItem key={opt.id} value={opt.id} className="text-xs">
                         {opt.label}
@@ -318,10 +333,10 @@ function WorkspaceStoreVitrineCMSPage() {
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold">Fonte de Dados</Label>
                 <Select value={dataSource} onValueChange={(v: any) => setDataSource(v)}>
-                  <SelectTrigger className="h-9 text-xs rounded-xl">
+                  <SelectTrigger className="h-10 text-xs rounded-xl">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="rounded-xl">
                     {STORE_DATA_SOURCES.map((opt) => (
                       <SelectItem key={opt.id} value={opt.id} className="text-xs">
                         {opt.label}
@@ -333,12 +348,12 @@ function WorkspaceStoreVitrineCMSPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Estratégia de Ordenação / Randomização</Label>
+              <Label className="text-xs font-bold">Estratégia de Ordenação</Label>
               <Select value={rankingStrategy} onValueChange={(v: any) => setRankingStrategy(v)}>
-                <SelectTrigger className="h-9 text-xs rounded-xl">
+                <SelectTrigger className="h-10 text-xs rounded-xl">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-xl">
                   {STORE_RANKING_OPTIONS.map((opt) => (
                     <SelectItem key={opt.id} value={opt.id} className="text-xs">
                       {opt.label}
@@ -348,27 +363,35 @@ function WorkspaceStoreVitrineCMSPage() {
               </Select>
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-muted/40 rounded-xl border border-border/60">
-              <span className="text-xs font-bold text-foreground">Exibir na Vitrine</span>
+            <div className="flex items-center justify-between p-3.5 bg-muted/40 rounded-xl border border-border/60">
+              <div className="space-y-0.5">
+                <span className="text-xs font-bold text-foreground block">Exibir na Vitrine</span>
+                <span className="text-[11px] text-muted-foreground block">Seção visível publicamente aos clientes</span>
+              </div>
               <Switch checked={isActive} onCheckedChange={setIsActive} />
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setIsDialogOpen(false)} className="h-9 rounded-xl text-xs">
+          <SheetFooter className="p-4 border-t border-border/80 bg-muted/10 gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsSheetOpen(false)}
+              className="h-10 rounded-xl text-xs"
+            >
               Cancelar
             </Button>
             <Button
               size="sm"
               disabled={isSubmitting}
               onClick={handleSave}
-              className="h-9 rounded-xl text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90"
+              className="h-10 rounded-xl text-xs font-bold bg-primary text-primary-foreground"
             >
               {isSubmitting ? "Salvando..." : "Salvar Seção"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

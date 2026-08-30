@@ -8,7 +8,9 @@ import {
   Eye,
   EyeOff,
   Pencil,
+  Search,
 } from "lucide-react";
+import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,7 +36,7 @@ import { MediaUploader } from "@/components/ui/media-uploader";
 import { DestinationPicker } from "@/components/ui/destination-picker";
 
 export const Route = createFileRoute("/workspace/marketing/banners")({
-  head: () => ({ meta: [{ title: "Banners da Loja | Workspace" }] }),
+  head: () => ({ meta: [{ title: "Banners da Loja | Workspace Wider" }] }),
   loader: async () => {
     const banners = await listActiveBanners({ data: { placement: "store" } }).catch(() => []);
     return { banners };
@@ -48,6 +50,7 @@ function WorkspaceStoreBannersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
@@ -162,10 +165,8 @@ function WorkspaceStoreBannersPage() {
       }
       setIsModalOpen(false);
       await refreshBanners();
-    } catch (err: unknown) {
-      toast.error(
-        err instanceof Error ? err.message : "Erro ao salvar banner da loja."
-      );
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao salvar banner.");
     } finally {
       setIsSubmitting(false);
     }
@@ -197,38 +198,42 @@ function WorkspaceStoreBannersPage() {
     }
   };
 
+  const filteredBanners = banners.filter((b) =>
+    b.title.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4">
-        <div>
-          <h1 className="text-xl font-bold text-foreground">Banners da Loja</h1>
-        </div>
-        <Button
-          onClick={handleOpenCreate}
-          className="h-10 px-4 rounded-xl text-xs font-bold gap-2 cursor-pointer"
-        >
-          <Plus className="size-4" />
-          <span>Novo Banner</span>
-        </Button>
-      </div>
+      <PageHeader
+        eyebrow="Vitrine & Divulgação"
+        title="Banners da Loja"
+        actions={
+          <Button
+            onClick={handleOpenCreate}
+            size="sm"
+            className="h-9 px-4 rounded-xl text-xs font-bold gap-1.5 bg-primary text-primary-foreground cursor-pointer"
+          >
+            <Plus className="size-3.5" />
+            <span>Novo Banner</span>
+          </Button>
+        }
+      />
 
       {banners.length === 0 ? (
-        <div className="p-12 text-center border-0 rounded-2xl bg-card space-y-3">
-          <ImageIcon className="size-10 mx-auto text-muted-foreground opacity-40" />
-          <h2 className="text-sm font-bold text-foreground">Nenhum banner cadastrado</h2>
-          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-            Crie banners para destacar promoções, lançamentos ou categorias da sua loja.
-          </p>
-          <div className="pt-2">
-            <Button
-              onClick={handleOpenCreate}
-              variant="outline"
-              size="sm"
-              className="rounded-xl text-xs font-bold h-9"
-            >
-              Criar Primeiro Banner
-            </Button>
+        <div className="py-12 text-center space-y-4 border border-dashed border-border/70 rounded-2xl bg-card/40">
+          <div className="size-12 rounded-2xl bg-muted/60 flex items-center justify-center mx-auto text-muted-foreground">
+            <ImageIcon className="size-6" />
           </div>
+          <div className="space-y-1">
+            <h3 className="text-sm font-bold text-foreground">Nenhum banner cadastrado</h3>
+            <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+              Crie banners para destacar promoções, lançamentos ou categorias na vitrine da sua loja.
+            </p>
+          </div>
+          <Button onClick={handleOpenCreate} size="sm" variant="outline" className="rounded-xl text-xs font-bold h-9">
+            <Plus className="size-3.5 mr-1" />
+            Criar Primeiro Banner
+          </Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

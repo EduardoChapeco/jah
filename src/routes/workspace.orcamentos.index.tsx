@@ -13,15 +13,18 @@ import {
   AlertTriangle,
   Loader2,
 } from "lucide-react";
+import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { listQuotes, type QuoteSummaryDTO } from "@/services/quotes.functions";
 import { formatMoney } from "@/lib/money";
 import { formatRelativeTime } from "@/lib/datetime";
 
 export const Route = createFileRoute("/workspace/orcamentos/")({
-  head: () => ({ meta: [{ title: "Orçamentos — Wider Workspace" }] }),
+  head: () => ({ meta: [{ title: "Orçamentos | Workspace Wider" }] }),
   loader: async () => {
     const res = await listQuotes({ data: { limit: 30 } });
     return { initialData: res };
@@ -47,7 +50,7 @@ function StatusBadge({ status }: { status: string }) {
   const cfg = STATUS_CONFIG[status] ?? { label: status, variant: "outline", icon: FileText };
   const Icon = cfg.icon;
   return (
-    <Badge variant={cfg.variant} className="gap-1.5 text-xs font-medium">
+    <Badge variant={cfg.variant} className="gap-1.5 text-[10px] font-semibold rounded-lg px-2 py-0.5">
       <Icon className="size-3" />
       {cfg.label}
     </Badge>
@@ -80,56 +83,53 @@ function QuotesListPage() {
   const quotes = data?.items ?? [];
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Toolbar */}
-      <div className="flex items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-lg font-semibold text-foreground">Orçamentos</h1>
-          <p className="text-sm text-muted-foreground">
-            Propostas e orçamentos enviados aos clientes
-          </p>
-        </div>
-        <Button asChild size="sm">
-          <Link to="/workspace/orcamentos/novo">
-            <Plus className="size-4 mr-1.5" />
-            Novo Orçamento
-          </Link>
-        </Button>
-      </div>
+    <div className="space-y-6">
+      {/* ── PageHeader Canônico ── */}
+      <PageHeader
+        eyebrow="Vendas & Logística"
+        title="Orçamentos"
+        actions={
+          <Button asChild size="sm" className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground">
+            <Link to="/workspace/orcamentos/novo">
+              <Plus className="size-3.5" />
+              Novo Orçamento
+            </Link>
+          </Button>
+        }
+      />
 
-      {/* Search */}
-      <div className="flex items-center gap-3 mb-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <input
+      {/* ── Toolbar Unificada de Filtros & Busca ── */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-card border border-border rounded-2xl px-4 py-3">
+        <Tabs
+          value={statusFilter || "all"}
+          onValueChange={(val) => setStatusFilter(val === "all" ? undefined : val)}
+        >
+          <TabsList className="flex overflow-x-auto no-scrollbar h-8">
+            {STATUS_TABS.map((tab) => (
+              <TabsTrigger
+                key={String(tab.key || "all")}
+                value={tab.key || "all"}
+                className="text-xs shrink-0"
+              >
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+
+        <div className="relative w-full sm:w-72">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+          <Input
             type="search"
             placeholder="Buscar por número, cliente..."
+            className="pl-8 text-xs w-full rounded-xl h-8 bg-background"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm bg-muted/40  rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-colors"
           />
         </div>
       </div>
 
-      {/* Status Tabs */}
-      <div className="flex gap-1  mb-4 overflow-x-auto pb-px">
-        {STATUS_TABS.map((tab) => (
-          <button
-            key={String(tab.key)}
-            onClick={() => setStatusFilter(tab.key as any)}
-            className={cn(
-              "px-3 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors",
-              statusFilter === tab.key
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Content */}
+      {/* ── Conteúdo Principal ── */}
       {isLoading && (
         <div className="flex justify-center py-16">
           <Loader2 className="size-6 animate-spin text-muted-foreground" />
@@ -144,23 +144,27 @@ function QuotesListPage() {
       )}
 
       {!isLoading && !isError && quotes.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <FileText className="size-10 text-muted-foreground/30 mb-3" />
-          <p className="text-sm font-medium text-foreground">Nenhum orçamento encontrado.</p>
-          <p className="text-sm text-muted-foreground mt-1">
-            Crie o primeiro orçamento para um cliente.
-          </p>
-          <Button asChild size="sm" className="mt-4">
+        <div className="py-12 text-center space-y-4 border border-dashed border-border/70 rounded-2xl bg-card/40">
+          <div className="size-12 rounded-2xl bg-muted/60 flex items-center justify-center mx-auto text-muted-foreground">
+            <FileText className="size-6" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-sm font-bold text-foreground">Nenhum orçamento encontrado</h3>
+            <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+              Crie propostas e orçamentos para enviar a clientes e negociar pedidos.
+            </p>
+          </div>
+          <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-bold h-9">
             <Link to="/workspace/orcamentos/novo">
-              <Plus className="size-4 mr-1.5" />
-              Novo Orçamento
+              <Plus className="size-3.5 mr-1" />
+              Criar Primeiro Orçamento
             </Link>
           </Button>
         </div>
       )}
 
       {!isLoading && !isError && quotes.length > 0 && (
-        <div className="divide-y divide-border  rounded-xl overflow-hidden">
+        <div className="divide-y divide-border/60 bg-card border border-border/70 rounded-2xl overflow-hidden shadow-2xs">
           {quotes.map((q: QuoteSummaryDTO) => (
             <QuoteRow key={q.id} quote={q} />
           ))}
@@ -180,21 +184,21 @@ function QuoteRow({ quote }: { quote: QuoteSummaryDTO }) {
     <Link
       to="/workspace/orcamentos/$id"
       params={{ id: quote.id }}
-      className="flex items-center gap-4 px-4 py-3 bg-background hover:bg-muted/40 transition-colors group"
+      className="flex items-center gap-4 px-4 py-3.5 bg-card hover:bg-muted/30 transition-colors group"
     >
       {/* Número e cliente */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-0.5">
-          <span className="text-sm font-semibold text-foreground">{quote.quote_number}</span>
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-xs font-mono font-bold text-foreground">{quote.quote_number}</span>
           <StatusBadge status={quote.status} />
           {isExpiring && (
-            <span className="text-xs text-warning font-medium flex items-center gap-1">
+            <span className="text-[10px] text-warning font-medium flex items-center gap-1">
               <AlertTriangle className="size-3" />
               Vence em breve
             </span>
           )}
         </div>
-        <p className="text-[13px] text-muted-foreground truncate">
+        <p className="text-xs text-muted-foreground truncate">
           {quote.customer_name ?? quote.customer_email ?? "Cliente não identificado"}
           {" · "}
           {quote.item_count} {quote.item_count === 1 ? "item" : "itens"}
@@ -203,8 +207,8 @@ function QuoteRow({ quote }: { quote: QuoteSummaryDTO }) {
 
       {/* Valor */}
       <div className="text-right shrink-0">
-        <p className="text-sm font-semibold text-foreground">{formatMoney(quote.total_cents)}</p>
-        <p className="text-xs text-muted-foreground">{formatRelativeTime(quote.updated_at)}</p>
+        <p className="text-xs font-bold text-foreground font-mono">{formatMoney(quote.total_cents)}</p>
+        <p className="text-[10px] text-muted-foreground">{formatRelativeTime(quote.updated_at)}</p>
       </div>
 
       <ChevronRight className="size-4 text-muted-foreground group-hover:text-foreground transition-colors shrink-0" />

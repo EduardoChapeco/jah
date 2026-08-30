@@ -12,6 +12,7 @@ import {
   Layers,
   Image as ImageIcon,
 } from "lucide-react";
+import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -175,38 +176,37 @@ function WorkspaceStoreHotpagesPage() {
         </div>
       )}
 
-      {/* Header Principal */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
-            <Sparkles className="size-5 text-amber-500" />
-            <span>Destaques & Hotpages da Loja</span>
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            Crie botões e cards de campanhas rápidas com texturas e mídias para seu perfil público.
-          </p>
-        </div>
+      {/* ── PageHeader Canônico ── */}
+      <PageHeader
+        eyebrow="Vitrine & Divulgação"
+        title="Destaques & Hotpages"
+        actions={
+          <Button
+            onClick={handleOpenCreate}
+            size="sm"
+            className="rounded-xl font-bold text-xs h-9 bg-primary text-primary-foreground gap-1.5 shadow-xs cursor-pointer"
+          >
+            <Plus className="size-3.5" />
+            <span>Novo Destaque</span>
+          </Button>
+        }
+      />
 
-        <Button
-          onClick={handleOpenCreate}
-          size="sm"
-          className="rounded-xl font-bold text-xs h-9 bg-primary text-primary-foreground gap-1.5 shadow-xs cursor-pointer"
-        >
-          <Plus className="size-4" />
-          <span>Novo Destaque</span>
-        </Button>
-      </div>
-
-      {/* Grade de Destaques Ativos */}
+      {/* ── Grade de Destaques ou Empty State ── */}
       {hotpages.length === 0 ? (
-        <div className="py-16 text-center space-y-3 bg-card rounded-3xl border border-border/60 p-8">
-          <Layers className="size-10 text-muted-foreground mx-auto" />
-          <p className="text-sm font-bold text-foreground">Nenhum destaque cadastrado</p>
-          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-            Adicione cartões especiais para promover combos, lançamentos ou seções exclusivas.
-          </p>
-          <Button onClick={handleOpenCreate} size="sm" className="rounded-xl font-bold text-xs">
-            <Plus className="size-3.5 mr-1" /> Criar Primeiro Destaque
+        <div className="py-12 text-center space-y-4 border border-dashed border-border/70 rounded-2xl bg-card/40">
+          <div className="size-12 rounded-2xl bg-muted/60 flex items-center justify-center mx-auto text-muted-foreground">
+            <Layers className="size-6" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-sm font-bold text-foreground">Nenhum destaque cadastrado</h3>
+            <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+              Adicione cartões especiais para promover combos, lançamentos ou seções exclusivas no seu perfil.
+            </p>
+          </div>
+          <Button onClick={handleOpenCreate} size="sm" variant="outline" className="rounded-xl text-xs font-bold h-9">
+            <Plus className="size-3.5 mr-1" />
+            Criar Primeiro Destaque
           </Button>
         </div>
       ) : (

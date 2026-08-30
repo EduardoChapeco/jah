@@ -13,13 +13,14 @@ import {
   MapPin,
   Sparkles,
 } from "lucide-react";
+import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatMoney } from "@/lib/money";
 import { listAdCampaigns, toggleAdCampaignStatus, type AdCampaign } from "@/services/ads.functions";
 
 export const Route = createFileRoute("/workspace/marketing/anuncios")({
-  head: () => ({ meta: [{ title: "Campanhas de Anúncios (Ads) | Wider" }] }),
+  head: () => ({ meta: [{ title: "Campanhas de Anúncios | Workspace Wider" }] }),
   loader: async () => {
     const campaigns = await listAdCampaigns().catch(() => []);
     return { campaigns };
@@ -61,37 +62,20 @@ function AnunciosWorkspacePage() {
   };
 
   return (
-    <div className="space-y-6 max-w-6xl pb-16">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4  pb-5">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary">
-              Wider Ads Engine
-            </span>
-            <Badge
-              variant="outline"
-              className="text-[10px] font-semibold rounded-full border-primary/30 text-primary"
-            >
-              Waesy/Wider
-            </Badge>
-          </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
-            Campanhas & Anúncios Patrocinados
-          </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-            Promova seus produtos, eventos e postagens para pessoas e bairros específicos da sua
-            região.
-          </p>
-        </div>
-
-        <Button asChild className="rounded-xl font-semibold gap-2  shrink-0">
-          <Link to="/workspace/marketing/anuncios/novo">
-            <Plus className="size-4" />
-            Criar Anúncio
-          </Link>
-        </Button>
-      </div>
+    <div className="space-y-6">
+      {/* ── PageHeader Canônico ── */}
+      <PageHeader
+        eyebrow="Vitrine & Divulgação"
+        title="Anúncios & Campanhas"
+        actions={
+          <Button asChild size="sm" className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground h-9 px-4">
+            <Link to="/workspace/marketing/anuncios/novo">
+              <Plus className="size-3.5" />
+              <span>Criar Anúncio</span>
+            </Link>
+          </Button>
+        }
+      />
 
       {/* Metric Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">

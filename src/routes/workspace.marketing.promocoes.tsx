@@ -5,13 +5,10 @@ import {
   Plus,
   Percent,
   Sparkles,
-  Calendar,
-  Package,
-  CheckCircle2,
-  Clock,
-  Trash2,
   Tag,
+  Loader2,
 } from "lucide-react";
+import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,12 +27,11 @@ import {
   togglePromotionStatus,
   type PromotionDTO,
 } from "@/services/promotions.functions";
-import { formatMoney } from "@/lib/money";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/workspace/marketing/promocoes")({
   head: () => ({
-    meta: [{ title: "Promoções & Ofertas Relâmpago | Workspace Wider" }],
+    meta: [{ title: "Promoções & Ofertas | Workspace Wider" }],
   }),
   loader: async () => {
     const promotions = await listStorePromotions();
@@ -70,7 +66,6 @@ function WorkspacePromotionsPage() {
       toast.success(nextStatus ? "Promoção ativada!" : "Promoção pausada.");
     } catch {
       toast.error("Erro ao alterar status.");
-      // Rollback
       setPromos((prev) =>
         prev.map((p) => (p.id === promoId ? { ...p, is_active: currentStatus } : p)),
       );
@@ -102,11 +97,9 @@ function WorkspacePromotionsPage() {
 
       toast.success("Promoção criada com sucesso!");
       setIsDialogOpen(false);
-      // Reload
       const updated = await listStorePromotions();
       setPromos(updated);
 
-      // Reset form
       setTitle("");
       setDescription("");
     } catch (err: unknown) {
@@ -117,223 +110,192 @@ function WorkspacePromotionsPage() {
   };
 
   return (
-    <div className="space-y-8 p-6 max-w-7xl mx-auto">
-      {/* ── Header ────────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="p-2 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20">
-              <Flame className="size-5" />
-            </span>
-            <div>
-              <h1 className="text-xl font-bold tracking-tight text-foreground">
-                Promoções & Ofertas
-              </h1>
+    <div className="space-y-6">
+      {/* ── PageHeader Canônico ── */}
+      <PageHeader
+        eyebrow="Vitrine & Divulgação"
+        title="Promoções & Cupons"
+        actions={
+          <Button
+            onClick={() => setIsDialogOpen(true)}
+            size="sm"
+            className="rounded-xl font-bold bg-primary text-primary-foreground text-xs gap-1.5 h-9 px-4 cursor-pointer"
+          >
+            <Plus className="size-3.5" />
+            <span>Nova Promoção</span>
+          </Button>
+        }
+      />
+
+      {/* ── Side Sheet: Nova Oferta ── */}
+      <SheetPage
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        title="Nova Promoção ou Oferta"
+        size="lg"
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsDialogOpen(false)}
+              className="h-10 px-4 rounded-xl text-xs font-bold"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleCreate}
+              disabled={isSubmitting}
+              className="h-10 px-5 rounded-xl font-bold text-xs bg-primary text-primary-foreground gap-1.5"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="size-3.5 animate-spin" />
+                  <span>Criando...</span>
+                </>
+              ) : (
+                "Criar Promoção"
+              )}
+            </Button>
+          </>
+        }
+      >
+        <form onSubmit={handleCreate} className="space-y-6 py-4">
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="font-semibold text-xs text-foreground">Título da Promoção *</label>
+              <Input
+                placeholder="Ex: Terça do Burger 20% OFF, Combo Família..."
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="rounded-xl text-xs h-10"
+              />
             </div>
-          </div>
-        </div>
 
-        <Button
-          onClick={() => setIsDialogOpen(true)}
-          className="rounded-xl font-bold bg-primary text-primary-foreground text-xs gap-2  h-11 px-4 cursor-pointer"
-        >
-          <Plus className="size-4" />
-          Nova Promoção
-        </Button>
-        <SheetPage
-          open={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
-          title="Nova Oferta ou Promoção"
-          size="lg"
-          footer={
-            <>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsDialogOpen(false)}
-                className="h-11 px-4 rounded-xl text-xs font-bold"
-              >
-                Cancelar
-              </Button>
-              <Button
-                onClick={handleCreate}
-                disabled={isSubmitting}
-                className="h-11 px-6 rounded-xl text-xs font-bold bg-primary text-primary-foreground"
-              >
-                {isSubmitting ? "Salvando..." : "Publicar Promoção"}
-              </Button>
-            </>
-          }
-        >
-          <form onSubmit={handleCreate} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="font-semibold text-xs text-foreground">Mecânica Promocional</label>
+              <Select value={type} onValueChange={(val: any) => setType(val)}>
+                <SelectTrigger className="rounded-xl text-xs h-10">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl text-xs">
+                  <SelectItem value="flash_offer">
+                    Oferta Relâmpago (Contagem Regressiva)
+                  </SelectItem>
+                  <SelectItem value="percentage_discount">
+                    Desconto Percentual Direto (%)
+                  </SelectItem>
+                  <SelectItem value="buy_x_get_y">Compre X e Leve Y (Combo)</SelectItem>
+                  <SelectItem value="progressive_quantity">
+                    Desconto Progressivo por Quantidade
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-              <div className="space-y-4 py-4 text-xs">
+            {(type === "flash_offer" || type === "percentage_discount") && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="font-semibold text-xs text-foreground">Desconto (%)</label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={90}
+                      value={discountPercent}
+                      onChange={(e) => setDiscountPercent(Number(e.target.value))}
+                      className="rounded-xl text-xs h-10"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="font-semibold text-xs text-foreground">Duração (Horas)</label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={168}
+                      value={durationHours}
+                      onChange={(e) => setDurationHours(Number(e.target.value))}
+                      className="rounded-xl text-xs h-10"
+                    />
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/60 space-y-2">
+                  <label className="font-bold text-xs text-foreground flex items-center gap-1.5">
+                    <Sparkles className="size-3.5 text-primary" />
+                    <span>Auto-Renovação de Estoque Promocional</span>
+                  </label>
+                  <p className="text-[11px] text-muted-foreground">
+                    Ao esgotar o lote inicial, reativa automaticamente uma nova cota de itens em oferta.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {type === "buy_x_get_y" && (
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="font-semibold text-foreground">Título Comercial</label>
+                  <label className="font-semibold text-xs text-foreground">Compre Quantidade</label>
                   <Input
-                    placeholder="Ex: 30% OFF em Todos os Burgers Artesanais"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    required
-                    className="rounded-xl text-xs"
+                    type="number"
+                    min={1}
+                    value={buyQty}
+                    onChange={(e) => setBuyQty(Number(e.target.value))}
+                    className="rounded-xl text-xs h-10"
                   />
                 </div>
-
                 <div className="space-y-1.5">
-                  <label className="font-semibold text-foreground">Mecânica Promocional</label>
-                  <Select value={type} onValueChange={(val: any) => setType(val)}>
-                    <SelectTrigger className="rounded-xl text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl text-xs">
-                      <SelectItem value="flash_offer">
-                        Oferta Relâmpago (Contagem Regressiva)
-                      </SelectItem>
-                      <SelectItem value="percentage_discount">
-                        Desconto Percentual Direto (%)
-                      </SelectItem>
-                      <SelectItem value="buy_x_get_y">Compre X e Leve Y (Combo)</SelectItem>
-                      <SelectItem value="progressive_quantity">
-                        Desconto Progressivo por Quantidade
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <label className="font-semibold text-xs text-foreground">Pague Quantidade</label>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={getQty}
+                    onChange={(e) => setGetQty(Number(e.target.value))}
+                    className="rounded-xl text-xs h-10"
+                  />
                 </div>
-
-                {(type === "flash_offer" || type === "percentage_discount") && (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="font-semibold text-foreground">Desconto (%)</label>
-                        <Input
-                          type="number"
-                          min={1}
-                          max={90}
-                          value={discountPercent}
-                          onChange={(e) => setDiscountPercent(Number(e.target.value))}
-                          className="rounded-xl text-xs"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="font-semibold text-foreground">Duração (Horas)</label>
-                        <Input
-                          type="number"
-                          min={1}
-                          max={168}
-                          value={durationHours}
-                          onChange={(e) => setDurationHours(Number(e.target.value))}
-                          className="rounded-xl text-xs"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Bloco de Gestão e Auto-Renovação de Estoque da Oferta */}
-                    <div className="p-3.5 rounded-2xl bg-muted/40  space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                          <label className="font-bold text-xs text-foreground flex items-center gap-1.5">
-                            <Sparkles className="size-3.5 text-primary" />
-                            <span>Auto-Renovação de Estoque Promocional</span>
-                          </label>
-                          <p className="text-[11px] text-muted-foreground">
-                            Ao esgotar o lote inicial, reativa automaticamente uma nova cota.
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3 pt-1">
-                        <div className="space-y-1">
-                          <label className="text-[11px] font-semibold text-muted-foreground">
-                            Cota Inicial (Unidades)
-                          </label>
-                          <Input
-                            type="number"
-                            defaultValue={10}
-                            min={1}
-                            className="rounded-xl text-xs h-9"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[11px] font-semibold text-muted-foreground">
-                            Repor Automaticamente
-                          </label>
-                          <Input
-                            type="number"
-                            defaultValue={10}
-                            min={1}
-                            className="rounded-xl text-xs h-9"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {type === "buy_x_get_y" && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="font-semibold text-foreground">Compre Quantidade</label>
-                      <Input
-                        type="number"
-                        min={1}
-                        value={buyQty}
-                        onChange={(e) => setBuyQty(Number(e.target.value))}
-                        className="rounded-xl text-xs"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="font-semibold text-foreground">Pague Quantidade</label>
-                      <Input
-                        type="number"
-                        min={1}
-                        value={getQty}
-                        onChange={(e) => setGetQty(Number(e.target.value))}
-                        className="rounded-xl text-xs"
-                      />
-                    </div>
-                  </div>
-                )}
-
-              <div className="space-y-1.5">
-                <label className="font-semibold text-foreground">
-                  Regulamento / Descrição Curta
-                </label>
-                <Textarea
-                  placeholder="Válido enquanto durarem os estoques. Limite de 2 por CPF."
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={2}
-                  className="rounded-xl text-xs"
-                />
               </div>
-            </div>
-          </form>
-        </SheetPage>
-      </div>
+            )}
 
-      {/* ── Stats Bar ─────────────────────────────────────────── */}
+            <div className="space-y-1.5">
+              <label className="font-semibold text-xs text-foreground">
+                Regulamento / Descrição Curta
+              </label>
+              <Textarea
+                placeholder="Válido enquanto durarem os estoques. Limite de 2 por cliente."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={2}
+                className="rounded-xl text-xs"
+              />
+            </div>
+          </div>
+        </form>
+      </SheetPage>
+
+      {/* ── Métricas Resumidas ── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 rounded-2xl  bg-card space-y-1 ">
+        <div className="p-4 rounded-2xl bg-card border border-border/70 space-y-1 shadow-2xs">
           <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
             Promoções Ativas
           </span>
-          <div className="text-2xl font-mono font-black text-foreground">
+          <div className="text-2xl font-mono font-bold text-foreground">
             {promos.filter((p) => p.is_active).length}
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl  bg-card space-y-1 ">
+        <div className="p-4 rounded-2xl bg-card border border-border/70 space-y-1 shadow-2xs">
           <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
             Total de Ofertas Criadas
           </span>
-          <div className="text-2xl font-mono font-black text-foreground">{promos.length}</div>
+          <div className="text-2xl font-mono font-bold text-foreground">{promos.length}</div>
         </div>
 
-        <div className="p-4 rounded-2xl  bg-card space-y-1 ">
+        <div className="p-4 rounded-2xl bg-card border border-border/70 space-y-1 shadow-2xs">
           <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
             Desconto Médio Aplicado
           </span>
-          <div className="text-2xl font-mono font-black text-primary">
+          <div className="text-2xl font-mono font-bold text-primary">
             {promos.length > 0
               ? `${Math.round(
                   promos.reduce((acc, p) => acc + (p.discount_percent || 0), 0) /
@@ -344,22 +306,29 @@ function WorkspacePromotionsPage() {
         </div>
       </div>
 
-      {/* ── Promotions List ───────────────────────────────────── */}
+      {/* ── Lista de Promoções ou Empty State ── */}
       <div className="space-y-3">
         {promos.length === 0 ? (
-          <div className="p-12 text-center space-y-3 rounded-2xl border-0 bg-card/40">
-            <Tag className="size-8 text-muted-foreground mx-auto" />
-            <h3 className="text-sm font-bold text-foreground">Nenhuma promoção cadastrada ainda</h3>
-            <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-              Crie sua primeira oferta relâmpago para aparecer em destaque na vitrine e nos rails do
-              Mercado Central.
-            </p>
+          <div className="py-12 text-center space-y-4 border border-dashed border-border/70 rounded-2xl bg-card/40">
+            <div className="size-12 rounded-2xl bg-muted/60 flex items-center justify-center mx-auto text-muted-foreground">
+              <Tag className="size-6" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-sm font-bold text-foreground">Nenhuma promoção ativa</h3>
+              <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                Crie sua primeira oferta relâmpago para aparecer em destaque na vitrine e atrair mais pedidos.
+              </p>
+            </div>
+            <Button onClick={() => setIsDialogOpen(true)} size="sm" variant="outline" className="rounded-xl text-xs font-bold h-9">
+              <Plus className="size-3.5 mr-1" />
+              Criar Primeira Promoção
+            </Button>
           </div>
         ) : (
           promos.map((promo) => (
             <div
               key={promo.id}
-              className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-2xl  bg-card gap-4  hover:border-primary/40 transition-all"
+              className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-2xl bg-card border border-border/70 gap-4 hover:border-border transition-all shadow-2xs"
             >
               <div className="flex items-center gap-3.5 min-w-0">
                 <div
