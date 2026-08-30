@@ -386,19 +386,27 @@ export default function WorkspaceConfiguracoesPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Ex: Wider Store"
-                  className="rounded-xl text-xs h-9"
+                  className="rounded-xl text-xs h-10 font-bold"
                   required
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-foreground">Favicon (Ícone de Aba do Navegador)</Label>
-                <Input
-                  value={faviconUrl}
-                  onChange={(e) => setFaviconUrl(e.target.value)}
-                  placeholder="https://.../favicon.ico"
-                  className="rounded-xl text-xs h-9"
-                />
+                <Label className="text-xs font-bold text-foreground">Favicon (Ícone de Aba)</Label>
+                <div className="flex items-center gap-3">
+                  <ImageUpload
+                    value={faviconUrl}
+                    onChange={(url) => setFaviconUrl(url)}
+                    onRemove={() => setFaviconUrl("")}
+                    bucket="cms-media"
+                    aspectPreset="square"
+                    className="w-16 h-16 shrink-0"
+                    helperText="Ícone 1:1"
+                  />
+                  <p className="text-[11px] text-muted-foreground flex-1">
+                    Ícone que identifica sua loja na aba do navegador e no atalho móvel PWA.
+                  </p>
+                </div>
               </div>
             </div>
 

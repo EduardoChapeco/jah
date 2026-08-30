@@ -37,6 +37,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/state/states";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { getCustomerInstallments } from "@/services/installments.functions";
 import { getCustomerOrderPayments } from "@/services/payment.functions";
 import { listUserReceivables, registerInstallmentPayment } from "@/services/receivables.functions";
@@ -439,13 +440,16 @@ function CustomerInstallmentsPage() {
             <div className="space-y-4 py-2 text-xs">
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold">
-                  Link do Comprovante de Pagamento (opcional)
+                  Comprovante de Pagamento (Foto / Anexo)
                 </Label>
-                <Input
+                <ImageUpload
                   value={paymentProofUrl}
-                  onChange={(e) => setPaymentProofUrl(e.target.value)}
-                  placeholder="https://..."
-                  className="h-10 rounded-xl text-xs bg-background"
+                  onChange={(url) => setPaymentProofUrl(url)}
+                  onRemove={() => setPaymentProofUrl("")}
+                  bucket="cms-media"
+                  aspectPreset="square"
+                  className="w-24 h-24"
+                  helperText="Foto do comprovante"
                 />
               </div>
 

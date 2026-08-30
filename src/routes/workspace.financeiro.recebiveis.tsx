@@ -24,6 +24,7 @@ import { formatMoney } from "@/lib/money";
 import { formatDate } from "@/lib/datetime";
 import { listUserReceivables, registerInstallmentPayment } from "@/services/receivables.functions";
 
+import { ImageUpload } from "@/components/ui/image-upload";
 import {
   Dialog,
   DialogContent,
@@ -188,27 +189,28 @@ function ReceivablesDashboard() {
           </DialogHeader>
           <form onSubmit={handlePay} className="space-y-4 pt-4">
             <div className="space-y-2">
-              <Label>Link do Comprovante (Opcional)</Label>
-              <div className="flex gap-2">
-                <Input 
-                  type="url" 
-                  placeholder="https://sua-nuvem.com/comprovante.pdf" 
-                  value={proofUrl} 
-                  onChange={(e) => setProofUrl(e.target.value)} 
-                />
-              </div>
-              <p className="text-[10px] text-muted-foreground">Na plataforma, use o app do seu banco para gerar o comprovante e cole o link público.</p>
-            </div>
-            <div className="space-y-2">
-              <Label>Observações</Label>
-              <Textarea 
-                placeholder="Ex: Transferência via PIX recebida na conta Nubank..." 
-                value={paymentNotes}
-                onChange={(e) => setPaymentNotes(e.target.value)}
+              <Label className="text-xs font-bold text-foreground">Comprovante de Pagamento (Foto / Anexo)</Label>
+              <ImageUpload
+                value={proofUrl}
+                onChange={(url) => setProofUrl(url)}
+                onRemove={() => setProofUrl("")}
+                bucket="cms-media"
+                aspectPreset="square"
+                className="w-28 h-28"
+                helperText="Foto ou print do comprovante"
               />
             </div>
-            <Button type="submit" className="w-full h-12 text-base rounded-xl font-bold bg-emerald-600 hover:bg-emerald-700" disabled={isPaying}>
-              <CheckCircle2 className="mr-2" /> Confirmar Liquidação
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-foreground">Observações</Label>
+              <Textarea 
+                placeholder="Ex: Transferência via PIX recebida na conta..." 
+                value={paymentNotes}
+                onChange={(e) => setPaymentNotes(e.target.value)}
+                className="rounded-2xl text-xs resize-none"
+              />
+            </div>
+            <Button type="submit" className="w-full h-11 text-xs rounded-xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white" disabled={isPaying}>
+              <CheckCircle2 className="mr-2 size-4" /> Confirmar Liquidação
             </Button>
           </form>
         </DialogContent>
