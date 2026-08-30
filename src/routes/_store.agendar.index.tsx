@@ -242,40 +242,54 @@ function BookingIndexPage() {
           {services.map((service: any) => (
             <div
               key={service.id}
-              className="rounded-2xl  bg-card p-5  hover:border-foreground/30 transition-all flex flex-col justify-between space-y-4"
+              className="rounded-3xl bg-card border border-border/60 overflow-hidden hover:border-primary/40 transition-all flex flex-col justify-between"
             >
-              <div className="space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <Badge variant="outline" className="text-[10px] font-mono font-bold uppercase">
-                    {service.category || "Estética"}
-                  </Badge>
-                  {service.duration_minutes && (
-                    <span className="text-xs text-muted-foreground flex items-center gap-1 font-mono">
-                      <Clock size={13} />
-                      <span>{service.duration_minutes} min</span>
-                    </span>
+              {service.image_url && (
+                <div className="w-full aspect-[16/9] bg-muted/40 overflow-hidden border-b border-border/40">
+                  <img
+                    src={service.image_url}
+                    alt={service.title || service.name}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+              )}
+
+              <div className="p-5 space-y-3 flex-1 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <Badge variant="outline" className="text-[10px] font-mono font-bold uppercase">
+                      {service.category || "Geral"}
+                    </Badge>
+                    {service.duration_minutes && (
+                      <span className="text-xs text-muted-foreground flex items-center gap-1 font-mono">
+                        <Clock size={13} />
+                        <span>{service.duration_minutes} min</span>
+                      </span>
+                    )}
+                  </div>
+
+                  <h3 className="font-bold text-base text-foreground leading-snug">
+                    {service.title || service.name}
+                  </h3>
+                  {service.description && (
+                    <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                      {service.description}
+                    </p>
                   )}
                 </div>
 
-                <h3 className="font-bold text-base text-foreground leading-snug">{service.name}</h3>
-                {service.description && (
-                  <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                    {service.description}
-                  </p>
-                )}
-              </div>
-
-              <div className="pt-3  flex items-center justify-between">
-                <span className="font-mono font-black text-lg text-foreground">
-                  {formatMoney(service.price_cents)}
-                </span>
-                <Button
-                  size="sm"
-                  onClick={() => handleOpenBooking(service)}
-                  className="rounded-xl font-bold text-xs h-9 px-4 bg-primary text-primary-foreground  cursor-pointer"
-                >
-                  Agendar Horário
-                </Button>
+                <div className="pt-3 border-t border-border/40 flex items-center justify-between">
+                  <span className="font-mono font-black text-lg text-foreground">
+                    {formatMoney(service.price_cents)}
+                  </span>
+                  <Button
+                    size="sm"
+                    onClick={() => handleOpenBooking(service)}
+                    className="rounded-xl font-bold text-xs h-9 px-4 bg-primary text-primary-foreground cursor-pointer"
+                  >
+                    Agendar Horário
+                  </Button>
+                </div>
               </div>
             </div>
           ))}

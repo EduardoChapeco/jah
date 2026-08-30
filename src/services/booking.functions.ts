@@ -595,6 +595,8 @@ export const upsertBookingService = createServerFn({ method: "POST" })
       price_cents: z.number().int().min(0),
       category: z.string().optional().nullable(),
       gender_target: z.string().optional().nullable(),
+      image_url: z.string().optional().nullable(),
+      cover_url: z.string().optional().nullable(),
       status: z.enum(["active", "archived"]).default("active"),
     }),
   )
@@ -606,6 +608,7 @@ export const upsertBookingService = createServerFn({ method: "POST" })
       if (!storeId) throw new Error("Loja não encontrada no contexto.");
 
       const db = getServerClient();
+      const finalImage = input.cover_url || input.image_url || null;
 
       if (input.id) {
         // Update
@@ -618,6 +621,7 @@ export const upsertBookingService = createServerFn({ method: "POST" })
             price_cents: input.price_cents,
             category: input.category ?? null,
             gender_target: input.gender_target ?? null,
+            image_url: finalImage,
             status: input.status,
             updated_at: new Date().toISOString(),
           })
@@ -640,6 +644,7 @@ export const upsertBookingService = createServerFn({ method: "POST" })
             price_cents: input.price_cents,
             category: input.category ?? null,
             gender_target: input.gender_target ?? null,
+            image_url: finalImage,
             status: input.status,
           })
           .select()
