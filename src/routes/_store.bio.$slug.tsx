@@ -240,6 +240,54 @@ function BiolinkPage() {
               );
             }
 
+            if (block.type === "product") {
+              const productUrl = block.url || "#";
+              return (
+                <a
+                  key={block.id || index}
+                  href={productUrl}
+                  target={productUrl.startsWith("http") ? "_blank" : undefined}
+                  rel={productUrl.startsWith("http") ? "noopener noreferrer" : undefined}
+                  className={`w-full p-3.5 rounded-2xl flex items-center gap-3.5 text-sm font-semibold transition-all hover:scale-[1.015] active:scale-[0.99] ${
+                    theme.card
+                  } ${block.isHighlighted ? "ring-2 ring-amber-400" : ""}`}
+                >
+                  <div className="size-16 rounded-xl bg-black/10 dark:bg-white/10 overflow-hidden shrink-0 border border-white/20 flex items-center justify-center">
+                    {block.imageUrl ? (
+                      <img
+                        src={block.imageUrl}
+                        alt={block.label}
+                        className="size-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-xl">🛍️</span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0 text-left space-y-0.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold truncate text-sm">{block.label}</span>
+                      {block.badge && (
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-amber-500 text-white shrink-0">
+                          {block.badge}
+                        </span>
+                      )}
+                    </div>
+                    {block.subtitle && (
+                      <p className="text-xs opacity-75 truncate">{block.subtitle}</p>
+                    )}
+                    <p className="text-xs font-mono font-extrabold text-primary pt-0.5">
+                      {block.priceCents
+                        ? `R$ ${(block.priceCents / 100).toFixed(2).replace(".", ",")}`
+                        : "Consulte Preço"}
+                    </p>
+                  </div>
+                  <div className="px-3 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shrink-0 shadow-xs">
+                    Pedir
+                  </div>
+                </a>
+              );
+            }
+
             const isWhatsapp = block.type === "whatsapp";
             let targetUrl = block.url || "#";
             if (isWhatsapp && !targetUrl.startsWith("http")) {

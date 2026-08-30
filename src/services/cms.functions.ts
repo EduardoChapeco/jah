@@ -583,6 +583,8 @@ export const upsertLinkInBio = createServerFn({ method: "POST" })
       description: z.string().optional().nullable(),
       avatar_url: z.string().optional().nullable(),
       links: z.array(z.any()), // array of link objects
+      theme: z.string().optional().nullable(),
+      socials: z.record(z.string()).optional().nullable(),
     }),
   )
   .handler(async ({ data: input }) => {

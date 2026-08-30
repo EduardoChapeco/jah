@@ -12,14 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetFooter,
-} from "@/components/ui/sheet";
+import { SheetPage } from "@/components/ui/sheet-page";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -134,72 +127,72 @@ function HrFinancePage() {
         </div>
       )}
 
-      {/* Transaction Modal */}
-      <Sheet open={modalOpen} onOpenChange={setModalOpen}>
-        <SheetContent side="right">
-          <SheetHeader>
-            <SheetTitle>Lançamento Financeiro</SheetTitle>
-            <SheetDescription>
-              Registrando lançamento para <strong>{selectedEmp?.name}</strong>
-            </SheetDescription>
-          </SheetHeader>
-
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Tipo de Lançamento</Label>
-              <Select
-                value={formData.type}
-                onValueChange={(v: any) => setFormData((prev) => ({ ...prev, type: v }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="advance">
-                    <div className="flex items-center text-destructive">
-                      <ArrowDownRight className="w-4 h-4 mr-2" /> Vale / Adiantamento (Débito)
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="adjustment">
-                    <div className="flex items-center text-success">
-                      <ArrowUpRight className="w-4 h-4 mr-2" /> Bônus / Ajuste (Crédito)
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Valor (R$)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                placeholder="Ex: 150.00"
-                value={formData.amount}
-                onChange={(e) => setFormData((prev) => ({ ...prev, amount: e.target.value }))}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Descrição / Motivo</Label>
-              <Input
-                placeholder="Ex: Adiantamento para transporte"
-                value={formData.description}
-                onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-              />
-            </div>
-          </div>
-
-          <SheetFooter className="pt-4">
-            <Button variant="outline" onClick={() => setModalOpen(false)} disabled={loading}>
+      {/* Transaction SheetPage */}
+      <SheetPage
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        title="Lançamento de Folha & Vales"
+        description={`Registrando lançamento para ${selectedEmp?.name || "colaborador"}`}
+        size="default"
+        footer={
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setModalOpen(false)} disabled={loading} className="rounded-xl">
               Cancelar
             </Button>
-            <Button onClick={handleSubmit} disabled={loading}>
+            <Button onClick={handleSubmit} disabled={loading} className="rounded-xl font-bold bg-primary text-primary-foreground">
               {loading ? "Registrando..." : "Confirmar Lançamento"}
             </Button>
-          </SheetFooter>
-        </SheetContent>
-      </Sheet>
+          </div>
+        }
+      >
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label className="text-xs font-bold">Tipo de Lançamento</Label>
+            <Select
+              value={formData.type}
+              onValueChange={(v: any) => setFormData((prev) => ({ ...prev, type: v }))}
+            >
+              <SelectTrigger className="h-10 rounded-xl">
+                <SelectValue placeholder="Selecione o tipo..." />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="advance">
+                  <div className="flex items-center text-destructive font-medium">
+                    <ArrowDownRight className="w-4 h-4 mr-2" /> Vale / Adiantamento (Débito)
+                  </div>
+                </SelectItem>
+                <SelectItem value="adjustment">
+                  <div className="flex items-center text-emerald-600 dark:text-emerald-400 font-medium">
+                    <ArrowUpRight className="w-4 h-4 mr-2" /> Bônus / Ajuste (Crédito)
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-xs font-bold">Valor (R$)</Label>
+            <Input
+              type="number"
+              step="0.01"
+              placeholder="Ex: 150.00"
+              value={formData.amount}
+              onChange={(e) => setFormData((prev) => ({ ...prev, amount: e.target.value }))}
+              className="h-10 rounded-xl font-mono"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-xs font-bold">Descrição / Motivo</Label>
+            <Input
+              placeholder="Ex: Adiantamento para transporte"
+              value={formData.description}
+              onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+              className="h-10 rounded-xl"
+            />
+          </div>
+        </div>
+      </SheetPage>
     </div>
   );
 }

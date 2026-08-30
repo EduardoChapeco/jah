@@ -49,7 +49,7 @@ export const Route = createFileRoute("/workspace/cms/bio")({
   component: CmsBioPage,
 });
 
-type BlockType = "link" | "whatsapp" | "pix" | "video" | "header";
+type BlockType = "link" | "whatsapp" | "pix" | "video" | "header" | "product";
 type ThemeId = "clean" | "dark" | "glass" | "sunset" | "emerald" | "zine";
 
 interface BioBlock {
@@ -64,6 +64,8 @@ interface BioBlock {
   pixReceiver?: string;
   videoUrl?: string;
   isHighlighted?: boolean;
+  imageUrl?: string;
+  priceCents?: number;
 }
 
 interface SocialLinks {
@@ -150,8 +152,11 @@ function CmsBioPage() {
               ? "Assista ao Nosso Vídeo"
               : type === "header"
                 ? "Destaques & Novidades"
-                : "Novo Link / Botão",
+                : type === "product"
+                  ? "Produto em Destaque"
+                  : "Novo Link / Botão",
       url: type === "header" ? undefined : "https://",
+      priceCents: type === "product" ? 4990 : undefined,
     };
 
     setFormData((prev) => ({
@@ -271,6 +276,15 @@ function CmsBioPage() {
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Button
+                    onClick={() => handleAddBlock("product")}
+                    variant="outline"
+                    size="sm"
+                    className="rounded-xl text-xs font-bold h-8 gap-1 text-primary"
+                  >
+                    <Plus className="size-3.5" />
+                    <span>Produto</span>
+                  </Button>
+                  <Button
                     onClick={() => handleAddBlock("link")}
                     variant="outline"
                     size="sm"
@@ -329,13 +343,15 @@ function CmsBioPage() {
                           <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-wider">
                             {block.type === "link"
                               ? "Link"
-                              : block.type === "whatsapp"
-                                ? "WhatsApp"
-                                : block.type === "pix"
-                                  ? "Chave PIX"
-                                  : block.type === "video"
-                                    ? "Vídeo Embed"
-                                    : "Título / Divisor"}
+                              : block.type === "product"
+                                ? "Produto / Oferta"
+                                : block.type === "whatsapp"
+                                  ? "WhatsApp"
+                                  : block.type === "pix"
+                                    ? "Chave PIX"
+                                    : block.type === "video"
+                                      ? "Vídeo Embed"
+                                      : "Título / Divisor"}
                           </Badge>
                           {block.isHighlighted && (
                             <Badge className="bg-amber-500 text-white text-[10px] font-bold">
@@ -434,6 +450,67 @@ function CmsBioPage() {
                               placeholder="Ex: Olá! Gostaria de saber mais sobre os produtos."
                               className="h-9 text-xs rounded-xl mt-1"
                             />
+                          </div>
+                        </div>
+                      ) : block.type === "product" ? (
+                        <div className="space-y-4">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                            <div className="shrink-0">
+                              <Label className="text-xs font-bold block mb-1.5">Foto do Produto</Label>
+                              <ImageUpload
+                                value={block.imageUrl}
+                                onChange={(url) => handleBlockChange(index, "imageUrl", url)}
+                                aspectPreset="square"
+                                bucket="product-media"
+                              />
+                            </div>
+                            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+                              <div>
+                                <Label className="text-xs font-bold">Nome do Produto</Label>
+                                <Input
+                                  value={block.label}
+                                  onChange={(e) => handleBlockChange(index, "label", e.target.value)}
+                                  placeholder="Ex: Hambúrguer Artesanal Duplo"
+                                  className="h-9 text-xs rounded-xl mt-1 font-bold"
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-xs font-bold">Preço de Venda (R$)</Label>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  value={block.priceCents ? (block.priceCents / 100).toFixed(2) : ""}
+                                  onChange={(e) => {
+                                    const val = parseFloat(e.target.value);
+                                    handleBlockChange(
+                                      index,
+                                      "priceCents",
+                                      isNaN(val) ? undefined : Math.round(val * 100),
+                                    );
+                                  }}
+                                  placeholder="49.90"
+                                  className="h-9 text-xs rounded-xl mt-1 font-mono font-bold"
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-xs font-bold">Link de Compra / WhatsApp</Label>
+                                <Input
+                                  value={block.url || ""}
+                                  onChange={(e) => handleBlockChange(index, "url", e.target.value)}
+                                  placeholder="/produto/hamburguer ou WhatsApp"
+                                  className="h-9 text-xs rounded-xl mt-1"
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-xs font-bold">Selo / Badge (Opcional)</Label>
+                                <Input
+                                  value={block.badge || ""}
+                                  onChange={(e) => handleBlockChange(index, "badge", e.target.value)}
+                                  placeholder="Ex: MAIS VENDIDO ou 15% OFF"
+                                  className="h-9 text-xs rounded-xl mt-1 font-mono uppercase"
+                                />
+                              </div>
+                            </div>
                           </div>
                         </div>
                       ) : (
@@ -752,6 +829,47 @@ function CmsBioPage() {
                           <div className="mt-1 flex items-center justify-between p-1.5 rounded-lg bg-black/20 font-mono text-[10px]">
                             <span className="truncate pr-2">{block.pixKey || "Chave PIX"}</span>
                             <Copy className="size-3 shrink-0 opacity-70" />
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    if (block.type === "product") {
+                      return (
+                        <div
+                          key={idx}
+                          className={`w-full p-2.5 rounded-2xl flex items-center gap-3 transition-all text-xs ${selectedTheme.cardClass} ${
+                            block.isHighlighted ? "ring-2 ring-amber-400" : ""
+                          }`}
+                        >
+                          <div className="size-12 rounded-xl bg-muted/40 overflow-hidden shrink-0 border border-white/10 flex items-center justify-center">
+                            {block.imageUrl ? (
+                              <img
+                                src={block.imageUrl}
+                                alt={block.label}
+                                className="size-full object-cover"
+                              />
+                            ) : (
+                              <Sparkles className="size-4 opacity-50" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0 text-left space-y-0.5">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-bold truncate text-[11px]">{block.label}</span>
+                              {block.badge && (
+                                <span className="px-1 py-0.2 rounded text-[8px] font-mono font-bold bg-amber-500 text-white shrink-0">
+                                  {block.badge}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[10px] font-mono font-bold text-primary">
+                              {block.priceCents
+                                ? `R$ ${(block.priceCents / 100).toFixed(2).replace(".", ",")}`
+                                : "Consulte"}
+                            </p>
+                          </div>
+                          <div className="px-2 py-1 rounded-lg bg-primary text-primary-foreground text-[9px] font-bold shrink-0">
+                            Pedir
                           </div>
                         </div>
                       );

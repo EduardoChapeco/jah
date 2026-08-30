@@ -36,6 +36,7 @@ import { ProductEditorLayout } from "@/components/admin/product-editor/product-e
 import { VariantOptionsBuilder } from "@/components/admin/product-editor/variant-options-builder";
 import { VariantMatrixGrid, type RawVariant } from "@/components/admin/catalog/variant-matrix-grid";
 import { ProductModifiersCard } from "@/components/admin/catalog/product-modifiers-card";
+import { ProductBomCard, type BomItem } from "@/components/admin/catalog/product-bom-card";
 import { PageHeader } from "@/components/commerce/page-header";
 import { PriceDisplay } from "@/components/commerce/price-display";
 import {
@@ -184,6 +185,43 @@ function EditProductPage() {
     return Math.max(0, livePriceCents - liveCostCents);
   }, [livePriceCents, liveCostCents]);
 
+  // Ficha Técnica & Insumos Composição
+  const initialBom = useMemo(() => ((product?.attributes as any)?.bill_of_materials as BomItem[]) || [], [product]);
+  const [bomItems, setBomItems] = useState<BomItem[]>(initialBom);
+
+  const handleBomItemsChange = async (newItems: BomItem[]) => {
+    setBomItems(newItems);
+    try {
+      await updateProduct({
+        data: {
+          id: product.id,
+          attributes: {
+            ...(product.attributes || {}),
+            bill_of_materials: newItems,
+          },
+        },
+      });
+      toast.success("Ficha técnica salva com sucesso!");
+    } catch {
+      toast.error("Erro ao salvar composição de insumos.");
+    }
+  };
+
+  const handleApplyCostToProduct = async (calculatedCostCents: number) => {
+    setLiveCostCents(calculatedCostCents);
+    try {
+      await updateProduct({
+        data: {
+          id: product.id,
+          cost_cents: calculatedCostCents,
+        },
+      });
+      router.invalidate();
+    } catch {
+      toast.error("Erro ao aplicar custo da ficha técnica ao produto.");
+    }
+  };
+
   // Atualiza a sincronização de grupos de opções no produto
   const handleSelectedGroupsChange = async (newSelectedIds: string[]) => {
     setSelectedOptionGroupIds(newSelectedIds);
@@ -310,6 +348,7 @@ function EditProductPage() {
           { id: "midias", label: "Galeria de Fotos", icon: <ImagePlus className="size-4" /> },
           { id: "variantes", label: nicheCtx.variationsSectionTitle, icon: <LayoutList className="size-4" /> },
           { id: "opcoes", label: "Adicionais & Opções", icon: <SlidersHorizontal className="size-4" /> },
+          { id: "ficha-tecnica", label: "Ficha Técnica & Insumos", icon: <Boxes className="size-4" /> },
         ]}
       >
         {/* ── SEÇÃO 1: INFORMAÇÕES BÁSICAS & COMERCIAIS ── */}
@@ -370,6 +409,16 @@ function EditProductPage() {
             selectedGroupIds={selectedOptionGroupIds}
             onSelectedGroupsChange={handleSelectedGroupsChange}
             onGroupsListChange={setOptionGroups}
+          />
+        </div>
+
+        {/* ── SEÇÃO 5: FICHA TÉCNICA & ESTOQUE COMPOSTO ── */}
+        <div id="ficha-tecnica" className="scroll-mt-32 pt-12 border-t">
+          <ProductBomCard
+            initialItems={bomItems}
+            productPriceCents={livePriceCents}
+            onApplyCostToProduct={handleApplyCostToProduct}
+            onItemsChange={handleBomItemsChange}
           />
         </div>
       </ProductEditorLayout>
