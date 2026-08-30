@@ -418,7 +418,7 @@ function ProfilePage() {
               {/* Capa */}
               <div className="space-y-2">
                 <Label className="text-xs font-bold text-muted-foreground">Foto de Capa</Label>
-                <div className="w-full h-44 sm:h-56 md:h-60 rounded-2xl bg-muted/40 relative overflow-hidden flex items-center justify-center group border border-border/60 shadow-2xs">
+                <div className="w-full aspect-[16/6] rounded-2xl bg-muted/40 relative overflow-hidden flex items-center justify-center group border border-border/60 shadow-2xs">
                   {formData.coverUrl ? (
                     <img src={formData.coverUrl} alt="Capa" className="size-full object-cover select-none" />
                   ) : (

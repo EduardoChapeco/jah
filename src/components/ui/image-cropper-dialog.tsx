@@ -108,8 +108,8 @@ export function ImageCropperDialog({
 
         {imageSrc ? (
           <div className="p-4 sm:p-5 space-y-3.5">
-            {/* Seletor de Proporções para Imagens Retangulares */}
-            {!isRound && (
+            {/* Seletor de Proporções apenas se o aspect ratio não for estritamente travado pelo layout */}
+            {!isRound && !lockAspect && (
               <div className="flex items-center justify-between gap-2 overflow-x-auto pb-0.5">
                 <span className="text-[11px] font-semibold text-muted-foreground whitespace-nowrap">
                   Proporção:

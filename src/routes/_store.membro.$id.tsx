@@ -489,8 +489,8 @@ export function MemberPublicProfileView({
       </div>
 
       <div className="rounded-3xl bg-card border border-border/40 overflow-hidden shadow-xs">
-        {/* ── 1. Capa Panorâmica do Perfil ── */}
-        <div className="relative w-full h-48 sm:h-64 md:h-72 overflow-hidden bg-muted/40 border-b border-border/30">
+        {/* ── 1. Capa Panorâmica do Perfil (Proporção Canônica 16:6 / 2.66:1 — 100% Idêntica ao Recorte) ── */}
+        <div className="relative w-full aspect-[16/6] overflow-hidden bg-muted/40 border-b border-border/30">
           {(profile.cover_url || profile.coverUrl || profile.banner_url) ? (
             <img
               src={profile.cover_url || profile.coverUrl || profile.banner_url}
