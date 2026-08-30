@@ -1,12 +1,11 @@
 import { createFileRoute, Link, useRouter, isRedirect } from "@tanstack/react-router";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import {
   ArrowDownLeft,
-  ArrowRightLeft,
   ArrowUpRight,
   Calculator,
   History,
@@ -15,18 +14,20 @@ import {
   ReceiptText,
   DollarSign,
   AlertTriangle,
-  ShoppingCart,
-  Search,
   Plus,
   Minus,
-  Trash2,
   CheckCircle2,
-  Printer,
+  Clock,
+  User,
+  ShieldCheck,
   CreditCard,
   QrCode,
-  User,
-  UserPlus,
-  Package,
+  Banknote,
+  MonitorCheck,
+  Sparkles,
+  ExternalLink,
+  ChevronRight,
+  TrendingUp,
 } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
@@ -58,7 +59,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
@@ -81,38 +82,42 @@ import {
   closeRegister,
   getActiveRegister,
   openRegister,
-  processPOSSale,
+  listRegisterHistory,
 } from "@/services/cash.functions";
-import { listAdminProducts } from "@/services/admin-catalog.functions";
-import { listCustomers, createCustomer } from "@/services/crm.functions";
 import { parseCurrencyInputToCents } from "@/lib/cash";
 import { formatDateTime } from "@/lib/datetime";
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/financeiro/caixa/")({
-  head: () => ({ meta: [{ title: "PDV & Frente de Caixa | Wider" }] }),
+  head: () => ({ meta: [{ title: "Fluxo de Caixa & Turnos | Workspace Wider" }] }),
   loader: async () => {
-    const [registerRes, productsRes] = await Promise.all([
+    const [registerRes, historyRes] = await Promise.all([
       getActiveRegister().catch(() => null),
-      listAdminProducts().catch(() => []),
+      listRegisterHistory().catch(() => []),
     ]);
     return {
       register: registerRes,
-      products: productsRes || [],
+      history: historyRes || [],
     };
   },
   errorComponent: ({ error }) => <CashRegisterError error={error} />,
-  component: CashRegisterPage,
+  component: CashRegisterManagerPage,
 });
 
 const OpenRegisterSchema = z.object({
-  initialBalance: z.string().min(1, "Informe o troco inicial"),
+  initialBalance: z.string().min(1, "Informe o troco inicial de abertura"),
   notes: z.string().optional(),
 });
 
 const CloseRegisterSchema = z.object({
-  countedBalance: z.string().min(1, "Informe quanto dinheiro há no caixa"),
+  countedBalance: z.string().min(1, "Informe o valor total em dinheiro contado na gaveta"),
   notes: z.string().optional(),
+});
+
+const SangriaSuprimentoSchema = z.object({
+  amount: z.string().min(1, "Informe o valor"),
+  type: z.enum(["sangria", "suprimento"]),
+  description: z.string().min(3, "Informe o motivo da movimentação"),
 });
 
 function CashRegisterError({ error }: { error: Error }) {
@@ -122,100 +127,28 @@ function CashRegisterError({ error }: { error: Error }) {
 
   return (
     <div className="space-y-6">
-      <PageHeader eyebrow="Operação Comercial" title="Frente de Caixa (PDV)" />
-      <ErrorState title="Falha ao carregar caixa" />
+      <PageHeader eyebrow="Financeiro & Tesouraria" title="Fluxo de Caixa & Turnos" />
+      <ErrorState title="Falha ao carregar fluxo de caixa" />
     </div>
   );
 }
 
-function CashRegisterPage() {
-  const { register, products } = Route.useLoaderData();
+function CashRegisterManagerPage() {
+  const { register, history } = Route.useLoaderData();
   const router = useRouter();
 
-  const [isOpening, setIsOpening] = useState(false);
-  const [isClosing, setIsClosing] = useState(false);
-  const [isProcessingSale, setIsProcessingSale] = useState(false);
+  // Dialog / Sheet states
+  const [isOpenModalOpen, setIsOpenModalOpen] = useState(false);
+  const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
+  const [isMovementModalOpen, setIsMovementModalOpen] = useState(false);
+  const [movementType, setMovementType] = useState<"sangria" | "suprimento">("sangria");
 
-  // PDV Cart State
-  const [searchQuery, setSearchQuery] = useState("");
-  const [cartItems, setCartItems] = useState<
-    Array<{
-      variantId: string;
-      title: string;
-      sku: string;
-      priceCents: number;
-      qty: number;
-      isBackorder?: boolean;
-    }>
-  >([]);
-  const [discountCentsInput, setDiscountCentsInput] = useState("0");
-  const [paymentMethod, setPaymentMethod] = useState<"cash" | "pix" | "credit" | "debit" | "other">(
-    "cash",
-  );
-  const [customerNameInput, setCustomerNameInput] = useState("Cliente Avulso Balcão");
-  const [amountPaidInput, setAmountPaidInput] = useState("");
-  const [lastReceipt, setLastReceipt] = useState<any | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // CRM Customer selector states
-  const [customersList, setCustomersList] = useState<any[]>([]);
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
-  const [isNewCustomerOpen, setIsNewCustomerOpen] = useState(false);
-  const [newCustomerForm, setNewCustomerForm] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-  });
-  const [isSavingCustomer, setIsSavingCustomer] = useState(false);
-
-  const fetchCustomers = async () => {
-    try {
-      const list = await listCustomers();
-      setCustomersList(list || []);
-    } catch (e) {
-      console.error("Erro ao listar clientes para o caixa:", e);
-    }
-  };
-
-  useEffect(() => {
-    fetchCustomers();
-  }, []);
-
-  const handleCreateCustomer = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCustomerForm.fullName || !newCustomerForm.email) {
-      toast.error("Nome e E-mail são obrigatórios");
-      return;
-    }
-    setIsSavingCustomer(true);
-    try {
-      const res = await createCustomer({
-        data: {
-          fullName: newCustomerForm.fullName,
-          email: newCustomerForm.email,
-          phone: newCustomerForm.phone,
-          tags: ["PDV Balcão"],
-          notes: "Cadastrado via terminal de caixa",
-        },
-      });
-
-      toast.success("Cliente cadastrado!");
-      setIsNewCustomerOpen(false);
-      setNewCustomerForm({ fullName: "", email: "", phone: "" });
-
-      await fetchCustomers();
-      setSelectedCustomerId(res.customerId);
-      setCustomerNameInput(newCustomerForm.fullName);
-    } catch (e: unknown) {
-      toast.error((e instanceof Error ? e.message : String(e)) || "Erro inesperado");
-    } finally {
-      setIsSavingCustomer(false);
-    }
-  };
-
-  // Forms for open/close/entry
+  // Forms
   const openForm = useForm<z.infer<typeof OpenRegisterSchema>>({
     resolver: zodResolver(OpenRegisterSchema),
-    defaultValues: { initialBalance: "100.00", notes: "" },
+    defaultValues: { initialBalance: "0,00", notes: "" },
   });
 
   const closeForm = useForm<z.infer<typeof CloseRegisterSchema>>({
@@ -223,800 +156,768 @@ function CashRegisterPage() {
     defaultValues: { countedBalance: "", notes: "" },
   });
 
-  // Flat variants list derived from products
-  const availableVariants = useMemo(() => {
-    const list: Array<{
-      variantId: string;
-      title: string;
-      sku: string;
-      priceCents: number;
-      coverUrl?: string;
-      isBackorder?: boolean;
-    }> = [];
+  const movementForm = useForm<z.infer<typeof SangriaSuprimentoSchema>>({
+    resolver: zodResolver(SangriaSuprimentoSchema),
+    defaultValues: { amount: "", type: "sangria", description: "" },
+  });
 
-    for (const p of products) {
-      const cover = p.product_media?.[0]?.url;
-      const variants = p.product_variants || [];
-
-      if (variants.length === 0) continue;
-
-      for (const v of variants) {
-        const variantAttributes = Object.values(v.attributes || {}).join(" -");
-        const titleSuffix = variantAttributes ? ` - ${variantAttributes}` : "";
-        const isBackorder = v.stock_on_hand <= 0 && v.allow_backorder;
-
-        // Se não tem estoque e não permite backorder, não mostra no caixa
-        if (v.stock_on_hand <= 0 && !v.allow_backorder) {
-          continue;
-        }
-
-        list.push({
-          variantId: v.id,
-          title: `${p.title}${titleSuffix}`,
-          sku: v.sku || p.slug,
-          priceCents: v.price_override_cents ?? p.price_cents,
-          coverUrl: cover,
-          isBackorder: isBackorder,
-        });
-      }
-    }
-    return list;
-  }, [products]);
-
-  const filteredVariants = useMemo(() => {
-    return availableVariants.filter(
-      (v) =>
-        v.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        v.sku.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
-  }, [availableVariants, searchQuery]);
-
-  // Cart helper functions
-  const handleAddToCart = (variant: (typeof availableVariants)[0]) => {
-    setCartItems((prev) => {
-      const existing = prev.find((i) => i.variantId === variant.variantId);
-      if (existing) {
-        return prev.map((i) => (i.variantId === variant.variantId ? { ...i, qty: i.qty + 1 } : i));
-      }
-      return [
-        ...prev,
-        {
-          variantId: variant.variantId,
-          title: variant.title,
-          sku: variant.sku,
-          priceCents: variant.priceCents,
-          qty: 1,
-          isBackorder: variant.isBackorder,
-        },
-      ];
-    });
-  };
-
-  const handleUpdateQty = (variantId: string, delta: number) => {
-    setCartItems((prev) =>
-      prev
-        .map((i) => (i.variantId === variantId ? { ...i, qty: i.qty + delta } : i))
-        .filter((i) => i.qty > 0),
-    );
-  };
-
-  // Cart Totals
-  const cartSubtotalCents = useMemo(() => {
-    return cartItems.reduce((acc, item) => acc + item.priceCents * item.qty, 0);
-  }, [cartItems]);
-
-  const discountCents = useMemo(() => {
-    return parseCurrencyInputToCents(discountCentsInput);
-  }, [discountCentsInput]);
-
-  const cartTotalCents = Math.max(0, cartSubtotalCents - discountCents);
-
-  const amountPaidCents = useMemo(() => {
-    if (!amountPaidInput) return cartTotalCents;
-    return parseCurrencyInputToCents(amountPaidInput);
-  }, [amountPaidInput, cartTotalCents]);
-
-  const changeCents = paymentMethod === "cash" ? Math.max(0, amountPaidCents - cartTotalCents) : 0;
-
-  // Execute POS Sale
-  const handleFinalizePOSSale = async () => {
-    if (!register || cartItems.length === 0 || isProcessingSale) return;
-
-    setIsProcessingSale(true);
+  // Abertura de Turno
+  const handleOpenRegister = async (values: z.infer<typeof OpenRegisterSchema>) => {
+    setIsSubmitting(true);
     try {
-      const res = await processPOSSale({
-        data: {
-          registerId: register.id,
-          items: cartItems,
-          paymentMethod,
-          discountCents,
-          customerName: customerNameInput,
-          customerId: selectedCustomerId,
-          amountPaidCents,
-        },
-      });
-
-      if (res) {
-        if (res.hasNegativeStock) {
-          toast.warning(
-            "Venda concluída, mas o estoque ficou negativo em alguns produtos. Recomendamos auditoria/recontagem de estoque.",
-            { duration: 8000 },
-          );
-        } else {
-          toast.success("Venda de balcão concluída!");
-        }
-        setLastReceipt(res);
-        setCartItems([]);
-        setDiscountCentsInput("0");
-        setAmountPaidInput("");
-        setSelectedCustomerId(null);
-        setCustomerNameInput("Cliente Avulso Balcão");
-        router.invalidate();
-      } else {
-        toast.error("Erro ao registrar venda.");
-      }
-    } catch (e: unknown) {
-      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao finalizar venda.");
-    } finally {
-      setIsProcessingSale(false);
-    }
-  };
-
-  // Open Register Action
-  const handleOpen = async (data: z.infer<typeof OpenRegisterSchema>) => {
-    setIsOpening(true);
-    try {
+      const cents = parseCurrencyInputToCents(values.initialBalance);
       await openRegister({
         data: {
-          initialBalanceCents: parseCurrencyInputToCents(data.initialBalance),
-          notes: data.notes,
+          initialBalanceCents: cents,
+          notes: values.notes || undefined,
         },
       });
-      toast.success("Caixa aberto com sucesso!");
+      toast.success("Turno de caixa aberto com sucesso!");
+      setIsOpenModalOpen(false);
       openForm.reset();
       router.invalidate();
-    } catch (e: unknown) {
-      toast.error(
-        e instanceof Error ? (e instanceof Error ? e.message : String(e)) : "Erro ao abrir caixa",
-      );
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao abrir caixa.");
     } finally {
-      setIsOpening(false);
+      setIsSubmitting(false);
     }
   };
 
-  // Close Register Action
-  const handleClose = async (data: z.infer<typeof CloseRegisterSchema>) => {
+  // Fechamento de Turno
+  const handleCloseRegister = async (values: z.infer<typeof CloseRegisterSchema>) => {
     if (!register) return;
-    setIsClosing(true);
+    setIsSubmitting(true);
     try {
+      const countedCents = parseCurrencyInputToCents(values.countedBalance);
       const res = await closeRegister({
         data: {
           registerId: register.id,
-          countedBalanceCents: parseCurrencyInputToCents(data.countedBalance),
-          notes: data.notes,
+          countedBalanceCents: countedCents,
+          notes: values.notes || undefined,
         },
       });
 
       if (res.discrepancy) {
-        toast.warning(
-          `Caixa fechado com diferença. Esperado: ${formatMoney(res.expected)}, informado: ${formatMoney(res.counted)}`,
-        );
+        const diff = res.counted - res.expected;
+        if (diff > 0) {
+          toast.warning(`Caixa fechado com SOBRA de ${formatMoney(diff)}.`);
+        } else {
+          toast.warning(`Caixa fechado com FALTA de ${formatMoney(Math.abs(diff))}.`);
+        }
       } else {
-        toast.success("Caixa fechado sem diferenças.");
+        toast.success("Turno de caixa fechado com sucesso e valores conferidos!");
       }
+
+      setIsCloseModalOpen(false);
       closeForm.reset();
       router.invalidate();
-    } catch (e: unknown) {
-      toast.error(
-        e instanceof Error ? (e instanceof Error ? e.message : String(e)) : "Erro ao fechar caixa",
-      );
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao fechar caixa.");
     } finally {
-      setIsClosing(false);
+      setIsSubmitting(false);
     }
   };
 
-  // If Register is Closed: Show Opening Card
-  if (!register) {
-    return (
-      <div className="space-y-6">
-        <PageHeader eyebrow="Frente de Loja / PDV" title="Caixa Fechado" />
+  // Sangria ou Suprimento
+  const handleMovement = async (values: z.infer<typeof SangriaSuprimentoSchema>) => {
+    if (!register) return;
+    setIsSubmitting(true);
+    try {
+      const rawCents = parseCurrencyInputToCents(values.amount);
+      const finalCents = values.type === "sangria" ? -Math.abs(rawCents) : Math.abs(rawCents);
 
-        <div className=" bg-surface-paper  p-6 rounded-xl max-w-2xl">
-          <div className="mb-6">
-            <h3 className="text-base font-bold flex items-center gap-2 text-warning">
-              <Lock className="size-5" />
-              Abertura Obrigatória de Turno
-            </h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              Sem um caixa aberto, vendas de balcão e lançamentos financeiros permanecem bloqueados.
-            </p>
+      await addRegisterEntry({
+        data: {
+          registerId: register.id,
+          amountCents: finalCents,
+          method: "cash",
+          description: `${values.type === "sangria" ? "[SANGRIA]" : "[SUPRIMENTO]"} ${values.description}`,
+        },
+      });
+
+      toast.success(
+        values.type === "sangria"
+          ? "Sangria de dinheiro realizada com sucesso!"
+          : "Suprimento de troco registrado com sucesso!",
+      );
+
+      setIsMovementModalOpen(false);
+      movementForm.reset();
+      router.invalidate();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao registrar movimentação.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const openMovementDialog = (type: "sangria" | "suprimento") => {
+    setMovementType(type);
+    movementForm.setValue("type", type);
+    movementForm.setValue("amount", "");
+    movementForm.setValue("description", "");
+    setIsMovementModalOpen(true);
+  };
+
+  const isBoxOpen = register?.status === "open";
+
+  return (
+    <div className="space-y-6">
+      {/* ── PageHeader Canônico ── */}
+      <PageHeader
+        eyebrow="Financeiro & Tesouraria"
+        title="Fluxo de Caixa & Turnos"
+        actions={
+          <div className="flex items-center gap-2">
+            <Button
+              asChild
+              size="sm"
+              className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground h-9 px-4 cursor-pointer shadow-xs"
+            >
+              <Link to="/workspace/pdv">
+                <Sparkles className="size-3.5" />
+                <span>Abrir Terminal PDV</span>
+              </Link>
+            </Button>
+            {isBoxOpen ? (
+              <>
+                <Button
+                  onClick={() => openMovementDialog("suprimento")}
+                  size="sm"
+                  variant="outline"
+                  className="rounded-xl text-xs font-bold h-9 gap-1"
+                >
+                  <ArrowDownLeft className="size-3.5 text-emerald-500" />
+                  <span>Suprimento</span>
+                </Button>
+                <Button
+                  onClick={() => openMovementDialog("sangria")}
+                  size="sm"
+                  variant="outline"
+                  className="rounded-xl text-xs font-bold h-9 gap-1"
+                >
+                  <ArrowUpRight className="size-3.5 text-rose-500" />
+                  <span>Sangria</span>
+                </Button>
+                <Button
+                  onClick={() => setIsCloseModalOpen(true)}
+                  size="sm"
+                  variant="destructive"
+                  className="rounded-xl text-xs font-bold h-9 gap-1"
+                >
+                  <Lock className="size-3.5" />
+                  <span>Fechar Turno</span>
+                </Button>
+              </>
+            ) : (
+              <Button
+                onClick={() => setIsOpenModalOpen(true)}
+                size="sm"
+                variant="outline"
+                className="rounded-xl text-xs font-bold h-9 gap-1 border-emerald-500/40 text-emerald-600 dark:text-emerald-400"
+              >
+                <Play className="size-3.5" />
+                <span>Abrir Turno de Caixa</span>
+              </Button>
+            )}
           </div>
-          <div>
-            <Form {...openForm}>
-              <form onSubmit={openForm.handleSubmit(handleOpen)} className="space-y-4 max-w-md">
+        }
+      />
+
+      {/* ── Card de Status do Turno Atual ── */}
+      <div className="p-6 rounded-2xl bg-card border border-border/70 shadow-2xs space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50 pb-4">
+          <div className="flex items-center gap-3">
+            <div
+              className={`size-11 rounded-2xl flex items-center justify-center font-bold shrink-0 ${
+                isBoxOpen
+                  ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                  : "bg-muted text-muted-foreground border border-border"
+              }`}
+            >
+              {isBoxOpen ? <MonitorCheck className="size-5" /> : <Lock className="size-5" />}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-bold text-foreground">
+                  {isBoxOpen ? "Turno Atual em Operação" : "Caixa Fechado"}
+                </h2>
+                <Badge
+                  variant={isBoxOpen ? "default" : "secondary"}
+                  className="text-[10px] font-bold rounded-lg"
+                >
+                  {isBoxOpen ? (register?.isExpired ? "Expirado (>24h)" : "Aberto") : "Fechado"}
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {isBoxOpen
+                  ? `Aberto por ${register?.opened_by_profile?.full_name || "Operador"} em ${formatDateTime(register?.opened_at)}`
+                  : "Nenhum turno em andamento. Abra o caixa para registrar vendas e movimentações."}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 self-end sm:self-center">
+            {isBoxOpen && (
+              <div className="text-right">
+                <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider block">
+                  Saldo em Gaveta (Dinheiro)
+                </span>
+                <span className="text-xl font-mono font-black text-emerald-600 dark:text-emerald-400">
+                  {formatMoney(register?.cashBalanceCents ?? register?.currentBalanceCents ?? 0)}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Grade de Métricas do Turno por Forma de Pagamento */}
+        {isBoxOpen && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className="p-3.5 rounded-xl bg-muted/40 border border-border/50 space-y-1">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
+                <Banknote className="size-3 text-emerald-500" />
+                <span>Dinheiro</span>
+              </span>
+              <p className="text-sm font-mono font-bold text-foreground">
+                {formatMoney(register?.cashBalanceCents ?? 0)}
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-muted/40 border border-border/50 space-y-1">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
+                <QrCode className="size-3 text-cyan-500" />
+                <span>PIX</span>
+              </span>
+              <p className="text-sm font-mono font-bold text-foreground">
+                {formatMoney(register?.pixBalanceCents ?? 0)}
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-muted/40 border border-border/50 space-y-1">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
+                <CreditCard className="size-3 text-blue-500" />
+                <span>Débito</span>
+              </span>
+              <p className="text-sm font-mono font-bold text-foreground">
+                {formatMoney(register?.debitBalanceCents ?? 0)}
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-muted/40 border border-border/50 space-y-1">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
+                <CreditCard className="size-3 text-indigo-500" />
+                <span>Crédito</span>
+              </span>
+              <p className="text-sm font-mono font-bold text-foreground">
+                {formatMoney(register?.creditBalanceCents ?? 0)}
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-muted/40 border border-border/50 space-y-1">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
+                <ArrowUpRight className="size-3 text-rose-500" />
+                <span>Sangrias</span>
+              </span>
+              <p className="text-sm font-mono font-bold text-rose-600 dark:text-rose-400">
+                -{formatMoney(register?.sangriaTotalCents ?? 0)}
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-muted/40 border border-border/50 space-y-1">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
+                <ArrowDownLeft className="size-3 text-emerald-500" />
+                <span>Suprimentos</span>
+              </span>
+              <p className="text-sm font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                +{formatMoney(register?.suprimentoTotalCents ?? 0)}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Abas de Governança: Extrato do Turno & Histórico ── */}
+      <Tabs defaultValue="current" className="space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-card border border-border rounded-2xl px-4 py-3">
+          <TabsList className="flex overflow-x-auto no-scrollbar h-8">
+            <TabsTrigger value="current" className="text-xs shrink-0">
+              Lançamentos do Turno Atual ({register?.recentEntries?.length || 0})
+            </TabsTrigger>
+            <TabsTrigger value="history" className="text-xs shrink-0">
+              Histórico de Turnos Passados ({history.length})
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        {/* ── Conteúdo: Lançamentos do Turno Atual ── */}
+        <TabsContent value="current" className="mt-0 space-y-4">
+          {!isBoxOpen ? (
+            <div className="py-12 text-center space-y-4 border border-dashed border-border/70 rounded-2xl bg-card/40">
+              <div className="size-12 rounded-2xl bg-muted/60 flex items-center justify-center mx-auto text-muted-foreground">
+                <ReceiptText className="size-6" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm font-bold text-foreground">Nenhum turno aberto</h3>
+                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                  Abra um turno de caixa para começar a registrar vendas de balcão e movimentações.
+                </p>
+              </div>
+              <Button
+                onClick={() => setIsOpenModalOpen(true)}
+                size="sm"
+                className="rounded-xl text-xs font-bold h-9"
+              >
+                <Play className="size-3.5 mr-1" />
+                Abrir Turno de Caixa
+              </Button>
+            </div>
+          ) : register?.recentEntries && register.recentEntries.length > 0 ? (
+            <div className="bg-card border border-border/70 rounded-2xl overflow-hidden shadow-2xs">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/30">
+                    <TableHead className="text-xs font-bold">Horário</TableHead>
+                    <TableHead className="text-xs font-bold">Tipo / Método</TableHead>
+                    <TableHead className="text-xs font-bold">Descrição / Notas</TableHead>
+                    <TableHead className="text-xs font-bold text-right">Valor</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {register.recentEntries.map((entry) => {
+                    const isNegative = entry.amount_cents < 0;
+                    return (
+                      <TableRow key={entry.id} className="hover:bg-muted/20 text-xs">
+                        <TableCell className="font-mono text-muted-foreground whitespace-nowrap">
+                          {formatDateTime(entry.created_at)}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={isNegative ? "destructive" : "outline"}
+                            className="text-[10px] font-mono uppercase"
+                          >
+                            {entry.method}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="max-w-md truncate text-foreground font-medium">
+                          {entry.description || "Venda balcão / Lançamento"}
+                        </TableCell>
+                        <TableCell
+                          className={`text-right font-mono font-bold ${
+                            isNegative
+                              ? "text-rose-600 dark:text-rose-400"
+                              : "text-emerald-600 dark:text-emerald-400"
+                          }`}
+                        >
+                          {isNegative ? "-" : "+"}
+                          {formatMoney(Math.abs(entry.amount_cents))}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <div className="py-12 text-center space-y-4 border border-dashed border-border/70 rounded-2xl bg-card/40">
+              <div className="size-12 rounded-2xl bg-muted/60 flex items-center justify-center mx-auto text-muted-foreground">
+                <ReceiptText className="size-6" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm font-bold text-foreground">Nenhuma movimentação neste turno</h3>
+                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                  As vendas realizadas no Terminal PDV, sangrias e suprimentos serão listadas aqui em tempo real.
+                </p>
+              </div>
+              <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-bold h-9">
+                <Link to="/workspace/pdv">
+                  <Sparkles className="size-3.5 mr-1" />
+                  Ir para Terminal PDV
+                </Link>
+              </Button>
+            </div>
+          )}
+        </TabsContent>
+
+        {/* ── Conteúdo: Histórico de Turnos Anteriores ── */}
+        <TabsContent value="history" className="mt-0 space-y-4">
+          {history.length === 0 ? (
+            <div className="py-12 text-center space-y-4 border border-dashed border-border/70 rounded-2xl bg-card/40">
+              <div className="size-12 rounded-2xl bg-muted/60 flex items-center justify-center mx-auto text-muted-foreground">
+                <History className="size-6" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm font-bold text-foreground">Nenhum histórico disponível</h3>
+                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                  Quando você fechar os turnos de caixa, o relatório e auditoria ficarão salvos aqui.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-card border border-border/70 rounded-2xl overflow-hidden shadow-2xs">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/30">
+                    <TableHead className="text-xs font-bold">Abertura / Fechamento</TableHead>
+                    <TableHead className="text-xs font-bold">Responsáveis</TableHead>
+                    <TableHead className="text-xs font-bold text-right">Troco Inicial</TableHead>
+                    <TableHead className="text-xs font-bold text-right">Esperado</TableHead>
+                    <TableHead className="text-xs font-bold text-right">Contado</TableHead>
+                    <TableHead className="text-xs font-bold text-center">Diferença</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {history.map((turn) => {
+                    const diff =
+                      turn.final_balance_cents !== null && turn.expected_balance_cents !== null
+                        ? turn.final_balance_cents - turn.expected_balance_cents
+                        : 0;
+
+                    return (
+                      <TableRow key={turn.id} className="hover:bg-muted/20 text-xs">
+                        <TableCell className="font-mono text-muted-foreground whitespace-nowrap">
+                          <div>
+                            <span className="text-foreground font-semibold">
+                              {formatDateTime(turn.opened_at)}
+                            </span>
+                            {turn.closed_at && (
+                              <p className="text-[10px] text-muted-foreground">
+                                Até {formatDateTime(turn.closed_at)}
+                              </p>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-foreground">
+                            <span>{turn.opened_by_profile?.full_name || "Operador"}</span>
+                            {turn.closed_by_profile && (
+                              <p className="text-[10px] text-muted-foreground">
+                                Fechado por {turn.closed_by_profile.full_name}
+                              </p>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right font-mono">
+                          {formatMoney(turn.initial_balance_cents)}
+                        </TableCell>
+                        <TableCell className="text-right font-mono">
+                          {formatMoney(turn.expected_balance_cents ?? turn.currentBalanceCents ?? 0)}
+                        </TableCell>
+                        <TableCell className="text-right font-mono font-bold">
+                          {turn.final_balance_cents !== null
+                            ? formatMoney(turn.final_balance_cents)
+                            : "Em Aberto"}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {turn.status === "open" ? (
+                            <Badge variant="default" className="text-[10px]">
+                              Aberto
+                            </Badge>
+                          ) : diff === 0 ? (
+                            <Badge variant="outline" className="text-[10px] text-emerald-600 border-emerald-500/30">
+                              Exato (R$ 0,00)
+                            </Badge>
+                          ) : diff > 0 ? (
+                            <Badge variant="outline" className="text-[10px] text-cyan-600 border-cyan-500/30">
+                              Sobra +{formatMoney(diff)}
+                            </Badge>
+                          ) : (
+                            <Badge variant="destructive" className="text-[10px]">
+                              Falta -{formatMoney(Math.abs(diff))}
+                            </Badge>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+
+      {/* ── Side Sheet: Abertura de Turno ── */}
+      <Sheet open={isOpenModalOpen} onOpenChange={setIsOpenModalOpen}>
+        <SheetContent side="right" className="sm:max-w-md w-full flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border">
+          <SheetHeader className="p-6 pb-4 border-b border-border/80 bg-muted/20">
+            <div className="flex items-center gap-2.5">
+              <div className="size-9 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0">
+                <Play className="size-4.5" />
+              </div>
+              <div>
+                <SheetTitle className="text-base font-bold text-foreground">
+                  Abrir Turno de Caixa
+                </SheetTitle>
+                <SheetDescription className="text-xs text-muted-foreground mt-0.5">
+                  Informe o fundo de troco inicial disponível na gaveta.
+                </SheetDescription>
+              </div>
+            </div>
+          </SheetHeader>
+
+          <Form {...openForm}>
+            <form onSubmit={openForm.handleSubmit(handleOpenRegister)} className="flex-1 flex flex-col justify-between">
+              <div className="p-6 space-y-4 overflow-y-auto">
                 <FormField
                   control={openForm.control}
                   name="initialBalance"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Fundo de Troco Inicial (R$) *</FormLabel>
+                      <FormLabel className="text-xs font-bold text-foreground">
+                        Fundo de Troco Inicial (R$) *
+                      </FormLabel>
                       <FormControl>
-                        <Input placeholder="100,00" {...field} />
+                        <Input
+                          placeholder="100,00"
+                          {...field}
+                          className="h-10 text-sm font-mono rounded-xl"
+                          autoFocus
+                        />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-xs" />
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={openForm.control}
                   name="notes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Observações de Abertura</FormLabel>
+                      <FormLabel className="text-xs font-bold text-foreground">
+                        Observações de Abertura (Opcional)
+                      </FormLabel>
                       <FormControl>
-                        <Input placeholder="Turno manhã / Operador..." {...field} />
+                        <Textarea
+                          placeholder="Ex: Turno da manhã, notas de 10 e 20..."
+                          {...field}
+                          rows={3}
+                          className="text-xs rounded-xl"
+                        />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <SheetFooter className="p-4 border-t border-border/80 bg-muted/10 gap-2 sm:gap-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsOpenModalOpen(false)}
+                  className="h-10 rounded-xl text-xs"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="h-10 rounded-xl text-xs font-bold bg-primary text-primary-foreground"
+                >
+                  {isSubmitting ? "Abrindo..." : "Confirmar Abertura"}
+                </Button>
+              </SheetFooter>
+            </form>
+          </Form>
+        </SheetContent>
+      </Sheet>
+
+      {/* ── Side Sheet: Fechamento de Turno ── */}
+      <Sheet open={isCloseModalOpen} onOpenChange={setIsCloseModalOpen}>
+        <SheetContent side="right" className="sm:max-w-md w-full flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border">
+          <SheetHeader className="p-6 pb-4 border-b border-border/80 bg-muted/20">
+            <div className="flex items-center gap-2.5">
+              <div className="size-9 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500 shrink-0">
+                <Lock className="size-4.5" />
+              </div>
+              <div>
+                <SheetTitle className="text-base font-bold text-foreground">
+                  Fechamento de Turno
+                </SheetTitle>
+                <SheetDescription className="text-xs text-muted-foreground mt-0.5">
+                  Faça a contagem cega do dinheiro na gaveta para auditoria.
+                </SheetDescription>
+              </div>
+            </div>
+          </SheetHeader>
+
+          <Form {...closeForm}>
+            <form onSubmit={closeForm.handleSubmit(handleCloseRegister)} className="flex-1 flex flex-col justify-between">
+              <div className="p-6 space-y-4 overflow-y-auto">
+                <div className="p-3.5 rounded-xl bg-muted/40 border border-border/60 space-y-1">
+                  <span className="text-[11px] font-bold text-muted-foreground block">
+                    Saldo Esperado em Dinheiro:
+                  </span>
+                  <span className="text-lg font-mono font-bold text-foreground">
+                    {formatMoney(register?.cashBalanceCents ?? register?.currentBalanceCents ?? 0)}
+                  </span>
+                </div>
+
+                <FormField
+                  control={closeForm.control}
+                  name="countedBalance"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs font-bold text-foreground">
+                        Valor Total Contado na Gaveta (R$) *
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Informe o dinheiro contado"
+                          {...field}
+                          className="h-10 text-sm font-mono rounded-xl"
+                          autoFocus
+                        />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
                     </FormItem>
                   )}
                 />
 
-                <Button type="submit" disabled={isOpening} size="lg" className="w-full font-bold">
-                  {isOpening ? "Abrindo..." : "Abrir Turno de Caixa"}
-                </Button>
-              </form>
-            </Form>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Active Register View (PDV Terminal)
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        eyebrow={`Caixa Aberto • Turno #${register.id.slice(0, 8)}`}
-        title="Frente de Caixa & PDV Balcão"
-        actions={
-          <div className="flex items-center gap-2">
-            <Badge variant="default" className="text-xs px-3 py-1 font-bold">
-              Gaveta: {formatMoney(register.currentBalanceCents)}
-            </Badge>
-            <Button variant="outline" asChild size="sm">
-              <Link to="/workspace/financeiro/comprovantes">
-                <ReceiptText className="mr-1.5 size-4" /> Comprovantes
-              </Link>
-            </Button>
-          </div>
-        }
-      />
-
-      <Tabs defaultValue="pdv" className="w-full">
-        <TabsList className="grid grid-cols-3 max-w-md">
-          <TabsTrigger value="pdv" className="text-xs">
-            Venda Balcão (PDV)
-          </TabsTrigger>
-          <TabsTrigger value="lancamentos" className="text-xs">
-            Extrato ({register.recentEntries?.length || 0})
-          </TabsTrigger>
-          <TabsTrigger value="fechamento" className="text-xs">
-            Fechamento
-          </TabsTrigger>
-        </TabsList>
-
-        {/* TAB 1: TERMINAL PDV BALCÃO */}
-        <TabsContent value="pdv" className="mt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            {/* LADO ESQUERDO: Busca de Produtos e Catálogo (7 Colunas) */}
-            <div className="lg:col-span-7 space-y-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 size-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Buscar produto por nome, código ou SKU..."
-                  className="pl-9 text-sm h-11 bg-card"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                <FormField
+                  control={closeForm.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs font-bold text-foreground">
+                        Justificativa / Observações (Opcional)
+                      </FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Ex: Diferença de troco para cliente, sangria não registrada..."
+                          {...field}
+                          rows={3}
+                          className="text-xs rounded-xl"
+                        />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[580px] overflow-y-auto pr-1">
-                {filteredVariants.map((variant) => (
-                  <div
-                    key={variant.variantId}
-                    onClick={() => handleAddToCart(variant)}
-                    className="p-3  bg-surface-paper  hover:border-primary/50 hover: transition-all cursor-pointer flex items-center gap-3 group rounded-xl"
-                  >
-                    {variant.coverUrl ? (
-                      <img
-                        src={variant.coverUrl}
-                        alt=""
-                        className="size-12 object-cover border shrink-0"
-                      />
-                    ) : (
-                      <div className="size-12 bg-muted border flex items-center justify-center shrink-0">
-                        <Package className="size-6 text-muted-foreground" />
-                      </div>
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <h4 className="font-semibold text-sm text-foreground truncate group-hover:text-primary transition-colors flex items-center gap-2">
-                        {variant.title}
-                        {variant.isBackorder && (
-                          <Badge variant="warning" className="text-[9px] px-1.5 py-0">
-                            Sob Encomenda
-                          </Badge>
-                        )}
-                      </h4>
-                      <p className="text-xs text-muted-foreground font-mono">/{variant.sku}</p>
-                      <span className="font-extrabold text-sm text-foreground block mt-0.5">
-                        {formatMoney(variant.priceCents)}
-                      </span>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="shrink-0 group-hover:bg-primary group-hover:text-primary-foreground"
-                    >
-                      <Plus className="size-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* LADO DIREITO: Carrinho do Balcão e Fechamento (5 Colunas) */}
-            <div className="lg:col-span-5 space-y-4">
-              <div className=" bg-surface-paper  rounded-xl overflow-hidden">
-                <div className="py-3 px-4 border-b bg-primary/5 flex flex-row items-center justify-between">
-                  <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
-                    <ShoppingCart className="size-4 text-primary" />
-                    Carrinho do Balcão
-                  </h3>
-                  <Badge variant="default" className="text-xs font-bold">
-                    {cartItems.reduce((a, b) => a + b.qty, 0)} itens
-                  </Badge>
-                </div>
-                <div className="p-4 space-y-4">
-                  {/* Item List */}
-                  {cartItems.length === 0 ? (
-                    <div className="py-12 text-center text-xs text-muted-foreground">
-                      Clique em um produto da lista à esquerda para adicionar ao carrinho do PDV.
-                    </div>
-                  ) : (
-                    <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-                      {cartItems.map((item) => (
-                        <div
-                          key={item.variantId}
-                          className="flex items-center justify-between p-2 border bg-muted/20"
-                        >
-                          <div className="min-w-0 flex-1 pr-2">
-                            <p className="font-bold text-xs truncate flex items-center gap-1.5">
-                              {item.title}
-                              {item.isBackorder && (
-                                <span className="text-[10px] text-warning bg-warning/10 px-1 rounded font-semibold uppercase">
-                                  Encomenda
-                                </span>
-                              )}
-                            </p>
-                            <span className="text-[11px] text-muted-foreground font-mono">
-                              {formatMoney(item.priceCents)} x {item.qty}
-                            </span>
-                          </div>
-
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              className="size-6 text-xs"
-                              onClick={() => handleUpdateQty(item.variantId, -1)}
-                            >
-                              <Minus className="size-3" />
-                            </Button>
-                            <span className="text-xs font-bold w-4 text-center">{item.qty}</span>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              className="size-6 text-xs"
-                              onClick={() => handleUpdateQty(item.variantId, 1)}
-                            >
-                              <Plus className="size-3" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Customer & Discount Controls */}
-                  <div className="space-y-3 pt-2 border-t">
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-xs">Cliente Balcão</Label>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          className="h-5 text-[10px] px-1 text-primary gap-1 hover:bg-primary/5"
-                          onClick={() => setIsNewCustomerOpen(true)}
-                        >
-                          <UserPlus className="size-3" />+ Novo Cliente
-                        </Button>
-                      </div>
-                      <div className="flex gap-2">
-                        <div className="flex-1">
-                          <Select
-                            value={selectedCustomerId || "guest"}
-                            onValueChange={(val) => {
-                              if (val === "guest") {
-                                setSelectedCustomerId(null);
-                                setCustomerNameInput("Cliente Avulso Balcão");
-                              } else {
-                                setSelectedCustomerId(val);
-                                const found = customersList.find((c) => c.id === val);
-                                setCustomerNameInput(found ? found.name : "Cliente Registrado");
-                              }
-                            }}
-                          >
-                            <SelectTrigger className="text-xs h-8 bg-card">
-                              <SelectValue placeholder="Selecione o cliente" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="guest">Cliente Avulso (Não registrado)</SelectItem>
-                              {customersList.map((c) => (
-                                <SelectItem key={c.id} value={c.id}>
-                                  {c.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        {selectedCustomerId === null && (
-                          <Input
-                            className="text-xs h-8 max-w-[150px]"
-                            placeholder="Nome..."
-                            value={customerNameInput}
-                            onChange={(e) => setCustomerNameInput(e.target.value)}
-                          />
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="space-y-1">
-                        <Label className="text-xs">Desconto (R$)</Label>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          className="text-xs h-8"
-                          placeholder="0,00"
-                          value={discountCentsInput}
-                          onChange={(e) => setDiscountCentsInput(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs">Meio de Pagamento</Label>
-                        <Select
-                          value={paymentMethod}
-                          onValueChange={(v: any) => setPaymentMethod(v)}
-                        >
-                          <SelectTrigger className="text-xs h-8">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="cash">Dinheiro</SelectItem>
-                            <SelectItem value="pix">Pix QR Code</SelectItem>
-                            <SelectItem value="credit">Cartão de Crédito</SelectItem>
-                            <SelectItem value="debit">Cartão de Débito</SelectItem>
-                            <SelectItem value="other">Outro / Cortesia</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    {/* Cash Change Calculation */}
-                    {paymentMethod === "cash" && (
-                      <div className="grid grid-cols-2 gap-2 pt-1">
-                        <div className="space-y-1">
-                          <Label className="text-xs">Valor Entregue (R$)</Label>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            className="text-xs h-8 font-bold"
-                            placeholder={(cartTotalCents / 100).toFixed(2)}
-                            value={amountPaidInput}
-                            onChange={(e) => setAmountPaidInput(e.target.value)}
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs">Troco a Devolver</Label>
-                          <div className="h-8 rounded-xl bg-success/15 border border-transparent flex items-center justify-center font-extrabold text-sm text-success">
-                            {formatMoney(changeCents)}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Order Summary */}
-                    <div className="pt-2 border-t space-y-1">
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>Subtotal:</span>
-                        <span>{formatMoney(cartSubtotalCents)}</span>
-                      </div>
-                      {discountCents > 0 && (
-                        <div className="flex justify-between text-xs text-success font-semibold">
-                          <span>Desconto:</span>
-                          <span>- {formatMoney(discountCents)}</span>
-                        </div>
-                      )}
-                      <div className="flex justify-between text-base font-extrabold text-foreground pt-1 border-t">
-                        <span>Total Final:</span>
-                        <span>{formatMoney(cartTotalCents)}</span>
-                      </div>
-                    </div>
-
-                    <Button
-                      size="lg"
-                      className="w-full font-extrabold text-sm mt-2"
-                      disabled={cartItems.length === 0 || isProcessingSale}
-                      onClick={handleFinalizePOSSale}
-                    >
-                      {isProcessingSale ? "Finalizando..." : "Finalizar Venda de Balcão"}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </TabsContent>
-
-        {/* TAB 2: EXTRATO DE LANÇAMENTOS */}
-        <TabsContent value="lancamentos" className="mt-6">
-          <div>
-            <div className="mb-4">
-              <h3 className="text-lg font-bold text-foreground">Extrato de Lançamentos do Turno</h3>
-              <p className="text-sm text-muted-foreground">
-                Vendas, reforços de troco e sangrias registradas.
-              </p>
-            </div>
-            <div className=" rounded-xl bg-surface-paper  overflow-hidden">
-              {!register.recentEntries || register.recentEntries.length === 0 ? (
-                <EmptyState title="Nenhum lançamento" />
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Horário</TableHead>
-                      <TableHead>Descrição</TableHead>
-                      <TableHead>Forma de Pagamento</TableHead>
-                      <TableHead className="text-right">Valor</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {register.recentEntries.map((entry: any) => (
-                      <TableRow key={entry.id}>
-                        <TableCell className="text-xs font-mono">
-                          {formatDateTime(entry.created_at)}
-                        </TableCell>
-                        <TableCell className="text-xs font-medium">{entry.description}</TableCell>
-                        <TableCell className="text-xs">
-                          <Badge variant="outline">{entry.method}</Badge>
-                        </TableCell>
-                        <TableCell className="text-right font-bold text-xs">
-                          <span
-                            className={
-                              entry.amount_cents >= 0 ? "text-success" : "text-destructive"
-                            }
-                          >
-                            {entry.amount_cents >= 0 ? "+" : ""}
-                            {formatMoney(entry.amount_cents)}
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </div>
-          </div>
-        </TabsContent>
-
-        {/* TAB 3: FECHAMENTO DE TURNO */}
-        <TabsContent value="fechamento" className="mt-6">
-          <div className="max-w-xl">
-            <div className="mb-4">
-              <h3 className="text-lg font-bold text-foreground">Encerrar Turno de Caixa</h3>
-              <p className="text-sm text-muted-foreground">
-                Efetue a contagem cega do dinheiro na gaveta para encerrar o caixa.
-              </p>
-            </div>
-            <div>
-              <Form {...closeForm}>
-                <form onSubmit={closeForm.handleSubmit(handleClose)} className="space-y-4">
-                  <FormField
-                    control={closeForm.control}
-                    name="countedBalance"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Dinheiro Físico Contado na Gaveta (R$) *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="0,00" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={closeForm.control}
-                    name="notes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Observações de Fechamento</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Motivo de eventuais divergências..." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button
-                    type="submit"
-                    variant="destructive"
-                    disabled={isClosing}
-                    className="w-full font-bold"
-                  >
-                    {isClosing ? "Encerrando..." : "Confirmar Fechamento de Turno"}
-                  </Button>
-                </form>
-              </Form>
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
-
-      {/* Sheet do Comprovante da Venda */}
-      <Sheet open={Boolean(lastReceipt)} onOpenChange={(open) => !open && setLastReceipt(null)}>
-        <SheetContent className="sm:max-w-md print:shadow-none print:border-none print:m-0 print:p-0">
-          <SheetHeader className="print:hidden">
-            <SheetTitle className="flex items-center gap-2 text-success">
-              <CheckCircle2 className="size-6" /> Venda Concluída!
-            </SheetTitle>
-            <SheetDescription>Comprovante de Venda do Balcão</SheetDescription>
-          </SheetHeader>
-
-          {lastReceipt && (
-            <div
-              id="pos-receipt"
-              className="space-y-3 p-4 bg-muted/40 text-xs text-left border font-mono text-black print:bg-white print:border-none print:w-[300px] print:text-[10px] print:p-0"
-            >
-              <div className="flex flex-col items-center justify-center border-b border-dashed pb-2 font-bold mb-2">
-                <span className="text-lg tracking-widest uppercase">WIDER STORE</span>
-                <span className="text-muted-foreground print:text-black">
-                  PDV #{lastReceipt.receiptId?.slice(0, 6)}
-                </span>
-                <span className="font-normal text-[10px] mt-1">
-                  {formatDateTime(lastReceipt.timestamp)}
-                </span>
-              </div>
-              <p className="border-b border-dashed pb-2">Cliente: {lastReceipt.customerName}</p>
-
-              {/* Items List */}
-              <div className="space-y-2 py-2">
-                <div className="flex justify-between font-bold border-b border-dashed pb-1">
-                  <span>ITEM</span>
-                  <span>TOTAL</span>
-                </div>
-                {lastReceipt.items?.map((item: any, idx: number) => (
-                  <div key={idx} className="flex flex-col gap-0.5">
-                    <div className="flex justify-between items-start">
-                      <span className="pr-2 leading-tight">
-                        {item.qty}x {item.title}
-                        {item.isBackorder && (
-                          <span className="block mt-0.5 font-bold uppercase text-[9px]">
-                            ** SOB ENCOMENDA **
-                          </span>
-                        )}
-                      </span>
-                      <span>{formatMoney(item.priceCents * item.qty)}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="border-t border-dashed pt-2 space-y-1">
-                <div className="flex justify-between">
-                  <span>Subtotal:</span>
-                  <span>{formatMoney(lastReceipt.subtotalCents)}</span>
-                </div>
-                {lastReceipt.discountCents > 0 && (
-                  <div className="flex justify-between">
-                    <span>Desconto:</span>
-                    <span>-{formatMoney(lastReceipt.discountCents)}</span>
-                  </div>
-                )}
-                <div className="flex justify-between font-extrabold text-sm pt-1 border-t border-dashed print:text-xs">
-                  <span>TOTAL PAGO:</span>
-                  <span>{formatMoney(lastReceipt.totalCents)}</span>
-                </div>
-                {lastReceipt.changeCents > 0 && (
-                  <div className="flex justify-between font-bold text-[11px] mt-1">
-                    <span>Troco:</span>
-                    <span>{formatMoney(lastReceipt.changeCents)}</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="text-center pt-4 text-[10px] italic border-t border-dashed mt-4">
-                Obrigado pela preferência!
-              </div>
-            </div>
-          )}
-
-          <SheetFooter className="flex-col sm:flex-row gap-2 print:hidden mt-8">
-            <Button variant="outline" onClick={() => window.print()} className="w-full text-xs">
-              <Printer className="size-3.5 mr-1" /> Imprimir Comprovante
-            </Button>
-            <Button onClick={() => setLastReceipt(null)} className="w-full text-xs font-bold">
-              Nova Venda
-            </Button>
-          </SheetFooter>
+              <SheetFooter className="p-4 border-t border-border/80 bg-muted/10 gap-2 sm:gap-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsCloseModalOpen(false)}
+                  className="h-10 rounded-xl text-xs"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  variant="destructive"
+                  className="h-10 rounded-xl text-xs font-bold"
+                >
+                  {isSubmitting ? "Fechando..." : "Confirmar Fechamento"}
+                </Button>
+              </SheetFooter>
+            </form>
+          </Form>
         </SheetContent>
       </Sheet>
 
-      {/* Sheet do Cadastro Rápido de Cliente no PDV */}
-      <Sheet open={isNewCustomerOpen} onOpenChange={setIsNewCustomerOpen}>
-        <SheetContent className="sm:max-w-md">
-          <SheetHeader>
-            <SheetTitle>Cadastro Rápido de Cliente</SheetTitle>
-            <SheetDescription>
-              Insira as informações do cliente para registrá-lo no caixa e vinculá-lo a esta venda.
-            </SheetDescription>
+      {/* ── Side Sheet: Sangria ou Suprimento ── */}
+      <Sheet open={isMovementModalOpen} onOpenChange={setIsMovementModalOpen}>
+        <SheetContent side="right" className="sm:max-w-md w-full flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border">
+          <SheetHeader className="p-6 pb-4 border-b border-border/80 bg-muted/20">
+            <div className="flex items-center gap-2.5">
+              <div
+                className={`size-9 rounded-xl flex items-center justify-center shrink-0 ${
+                  movementType === "sangria"
+                    ? "bg-rose-500/10 text-rose-500"
+                    : "bg-emerald-500/10 text-emerald-500"
+                }`}
+              >
+                {movementType === "sangria" ? (
+                  <ArrowUpRight className="size-4.5" />
+                ) : (
+                  <ArrowDownLeft className="size-4.5" />
+                )}
+              </div>
+              <div>
+                <SheetTitle className="text-base font-bold text-foreground">
+                  {movementType === "sangria" ? "Registrar Sangria" : "Registrar Suprimento"}
+                </SheetTitle>
+                <SheetDescription className="text-xs text-muted-foreground mt-0.5">
+                  {movementType === "sangria"
+                    ? "Retirada de dinheiro da gaveta (depósito ou despesa)."
+                    : "Reforço ou entrada de troco na gaveta."}
+                </SheetDescription>
+              </div>
+            </div>
           </SheetHeader>
-          <form onSubmit={handleCreateCustomer} className="space-y-4 pt-2">
-            <div className="space-y-2">
-              <Label htmlFor="pdv-cli-name">Nome Completo *</Label>
-              <Input
-                id="pdv-cli-name"
-                required
-                value={newCustomerForm.fullName}
-                onChange={(e) =>
-                  setNewCustomerForm({ ...newCustomerForm, fullName: e.target.value })
-                }
-                placeholder="Ex: Carlos Souza"
-                className="h-9"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="pdv-cli-email">E-mail *</Label>
-              <Input
-                id="pdv-cli-email"
-                type="email"
-                required
-                value={newCustomerForm.email}
-                onChange={(e) => setNewCustomerForm({ ...newCustomerForm, email: e.target.value })}
-                placeholder="carlos@exemplo.com"
-                className="h-9"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="pdv-cli-phone">Telefone / WhatsApp</Label>
-              <Input
-                id="pdv-cli-phone"
-                type="tel"
-                value={newCustomerForm.phone}
-                onChange={(e) => setNewCustomerForm({ ...newCustomerForm, phone: e.target.value })}
-                placeholder="(49) 99999-9999"
-                className="h-9"
-              />
-            </div>
-            <SheetFooter className="pt-8">
-              <Button type="button" variant="ghost" onClick={() => setIsNewCustomerOpen(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={isSavingCustomer} className="font-bold">
-                {isSavingCustomer ? "Salvando..." : "Confirmar e Vincular"}
-              </Button>
-            </SheetFooter>
-          </form>
+
+          <Form {...movementForm}>
+            <form onSubmit={movementForm.handleSubmit(handleMovement)} className="flex-1 flex flex-col justify-between">
+              <div className="p-6 space-y-4 overflow-y-auto">
+                <FormField
+                  control={movementForm.control}
+                  name="amount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs font-bold text-foreground">Valor (R$) *</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Ex: 50,00"
+                          {...field}
+                          className="h-10 text-sm font-mono rounded-xl"
+                          autoFocus
+                        />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={movementForm.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs font-bold text-foreground">
+                        Motivo / Justificativa *
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={
+                            movementType === "sangria"
+                              ? "Ex: Pagamento fornecedor pão, depósito cofre..."
+                              : "Ex: Troco moedas 1 real, reforço inicial..."
+                          }
+                          {...field}
+                          className="h-10 text-xs rounded-xl"
+                        />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <SheetFooter className="p-4 border-t border-border/80 bg-muted/10 gap-2 sm:gap-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsMovementModalOpen(false)}
+                  className="h-10 rounded-xl text-xs"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="h-10 rounded-xl text-xs font-bold bg-primary text-primary-foreground"
+                >
+                  {isSubmitting ? "Processando..." : "Confirmar Movimentação"}
+                </Button>
+              </SheetFooter>
+            </form>
+          </Form>
         </SheetContent>
       </Sheet>
     </div>
