@@ -51,14 +51,22 @@ import {
   bulkUpdateProductStatus,
   updateProduct,
 } from "@/services/admin-catalog.functions";
+import { getStoreSettings } from "@/services/store.functions";
+import { getNicheCatalogContext } from "@/lib/catalog-niche-context";
 import { formatMoney } from "@/lib/money";
 import type { AdminProductRow } from "@/types/catalog";
 
 export const Route = createFileRoute("/workspace/catalogo/produtos/")({
-  head: () => ({ meta: [{ title: "Gerenciador de Produtos | Wider" }] }),
+  head: () => ({ meta: [{ title: "Gerenciador de Catálogo | Wider" }] }),
   loader: async () => {
-    const res = await listAdminProducts().catch(() => []);
-    return res || [];
+    const [products, store] = await Promise.all([
+      listAdminProducts().catch(() => []),
+      getStoreSettings().catch(() => null),
+    ]);
+    return {
+      products: products || [],
+      store: store || null,
+    };
   },
   component: AdminProductsPage,
 });
@@ -184,7 +192,11 @@ function EditableStockCell({
 }
 
 function AdminProductsPage() {
-  const initialProducts = Route.useLoaderData();
+  const { products: initialProducts, store } = Route.useLoaderData();
+  const nicheCtx = getNicheCatalogContext(
+    store?.segment || store?.type || store?.settings?.segment || (store as any)?.category
+  );
+
   const [products, setProducts] = useState<AdminProductRow[]>(initialProducts);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("active");
@@ -231,11 +243,11 @@ function AdminProductsPage() {
     setIsProcessing(false);
 
     if (res.status === "success" && res.data) {
-      toast.success("Produto duplicado com sucesso em modo Rascunho!");
+      toast.success(`${nicheCtx.entityName} duplicado com sucesso em modo Rascunho!`);
       const reloaded = await listAdminProducts();
       if (reloaded) setProducts(reloaded);
     } else {
-      toast.error((res as any).message || "Erro ao duplicar produto.");
+      toast.error((res as any).message || `Erro ao duplicar ${nicheCtx.entityName.toLowerCase()}.`);
     }
   };
 
@@ -259,7 +271,7 @@ function AdminProductsPage() {
           id: productId,
           variants: [
             {
-              stock,
+              stock_on_hand: stock,
             },
           ],
         },
@@ -269,6 +281,7 @@ function AdminProductsPage() {
         toast.success("Estoque atualizado!");
         return true;
       }
+      toast.error("Erro ao atualizar estoque.");
       return false;
     } catch {
       toast.error("Erro ao atualizar estoque.");
@@ -276,47 +289,32 @@ function AdminProductsPage() {
     }
   };
 
-  // Action: Change Single Status
-  const handleToggleStatus = async (
-    productId: string,
-    newStatus: "draft" | "published" | "archived",
-  ) => {
-    setIsProcessing(true);
-    const res = await toggleProductStatus({ data: { productId, status: newStatus } });
-    setIsProcessing(false);
-
-    if (res) {
-      toast.success(
-        `Status alterado para ${newStatus === "published" ? "Publicado" : newStatus === "archived" ? "Arquivado" : "Rascunho"}.`,
-      );
+  // Action: Toggle Status
+  const handleToggleStatus = async (productId: string, newStatus: string) => {
+    const res = await toggleProductStatus({ data: { productId, newStatus } });
+    if (res?.status === "success") {
       setProducts((prev) =>
-        prev.map((p) => (p.id === productId ? { ...p, status: newStatus } : p)),
+        prev.map((p) => (p.id === productId ? { ...p, status: newStatus as any } : p)),
       );
+      toast.success("Status atualizado!");
     } else {
-      toast.error((res as any).message || "Erro ao alterar status.");
+      toast.error("Erro ao alterar status.");
     }
   };
 
-  // Action: Bulk Update
-  const handleBulkAction = async (action: "published" | "draft" | "archived" | "delete") => {
+  // Action: Bulk Status Update
+  const handleBulkAction = async (newStatus: "published" | "draft" | "archived") => {
     if (selectedIds.length === 0) return;
-
-    if (
-      action === "delete" &&
-      !confirm(`Deseja realmente excluir ${selectedIds.length} produto(s)? Esta ação é permanente.`)
-    ) {
-      return;
-    }
-
     setIsProcessing(true);
-    const res = await bulkUpdateProductStatus({ data: { productIds: selectedIds, action } });
+    const res = await bulkUpdateProductStatus({ data: { productIds: selectedIds, newStatus } });
     setIsProcessing(false);
 
-    if (res) {
-      toast.success(`Ação em lote executada para ${selectedIds.length} produto(s).`);
+    if (res.status === "success") {
+      toast.success(`Ação concluída em ${selectedIds.length} item(ns).`);
+      setProducts((prev) =>
+        prev.map((p) => (selectedIds.includes(p.id) ? { ...p, status: newStatus } : p)),
+      );
       setSelectedIds([]);
-      const reloaded = await listAdminProducts();
-      if (reloaded) setProducts(reloaded);
     } else {
       toast.error((res as any).message || "Erro ao executar ação em lote.");
     }
@@ -329,7 +327,7 @@ function AdminProductsPage() {
     )}`;
     const downloadAnchor = document.createElement("a");
     downloadAnchor.setAttribute("href", jsonString);
-    downloadAnchor.setAttribute("download", `catalogo_produtos_${Date.now()}.json`);
+    downloadAnchor.setAttribute("download", `catalogo_${Date.now()}.json`);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
@@ -339,7 +337,7 @@ function AdminProductsPage() {
   const ProductActionsMenu = ({ product }: { product: AdminProductRow }) => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="Ações do produto">
+        <Button variant="ghost" size="icon" aria-label="Ações do item">
           <MoreVertical className="size-4 text-muted-foreground" />
         </Button>
       </DropdownMenuTrigger>
@@ -348,7 +346,7 @@ function AdminProductsPage() {
         <DropdownMenuItem asChild>
           <Link to={`/workspace/catalogo/produtos/${product.id}` as never}>
             <Edit3 className="size-3.5 mr-2" />
-            Editar Produto
+            Editar {nicheCtx.entityName}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
@@ -359,7 +357,7 @@ function AdminProductsPage() {
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleDuplicate(product.id)}>
           <Copy className="size-3.5 mr-2" />
-          Duplicar Produto
+          Duplicar {nicheCtx.entityName}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
@@ -378,13 +376,13 @@ function AdminProductsPage() {
         {product.status !== "draft" && (
           <DropdownMenuItem onClick={() => handleToggleStatus(product.id, "draft")}>
             <FileText className="size-3.5 mr-2 text-warning" />
-            Tornar Rascunho
+            Mover para Rascunho
           </DropdownMenuItem>
         )}
         {product.status !== "archived" && (
           <DropdownMenuItem onClick={() => handleToggleStatus(product.id, "archived")}>
             <Archive className="size-3.5 mr-2" />
-            Arquivar Produto
+            Arquivar {nicheCtx.entityName}
           </DropdownMenuItem>
         )}
       </DropdownMenuContent>
@@ -395,7 +393,7 @@ function AdminProductsPage() {
     <div className="space-y-6">
       <PageHeader
         eyebrow="Catálogo"
-        title="Produtos"
+        title={nicheCtx.entityNamePlural}
         actions={
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={handleExportJSON} className="rounded-xl font-bold text-xs gap-1.5 ">
@@ -405,7 +403,7 @@ function AdminProductsPage() {
             <Button asChild size="sm" className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground ">
               <Link to="/workspace/catalogo/produtos/novo">
                 <Plus className="size-3.5" aria-hidden />
-                Novo Produto
+                Novo {nicheCtx.entityName}
               </Link>
             </Button>
           </div>
@@ -439,7 +437,7 @@ function AdminProductsPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" aria-hidden />
           <Input
             type="search"
-            placeholder="Buscar por título ou SKU..."
+            placeholder={`Buscar por nome ou ${nicheCtx.skuLabel.toLowerCase()}...`}
             className="pl-8 text-xs w-full rounded-xl h-8 bg-background"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}

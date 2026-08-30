@@ -55,6 +55,7 @@ import {
 import { ProductModifiersCard } from "@/components/admin/catalog/product-modifiers-card";
 import { importProductFromUrl } from "@/services/api-orchestrator.functions";
 import { getStoreSettings } from "@/services/store.functions";
+import { getNicheCatalogContext } from "@/lib/catalog-niche-context";
 import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
@@ -99,6 +100,10 @@ function slugify(text: string) {
 export function UnifiedNewProductPage() {
   const { categories, productTypes, optionGroupsList, store } = Route.useLoaderData();
   const navigate = useNavigate();
+
+  const nicheCtx = getNicheCatalogContext(
+    store?.segment || store?.type || store?.settings?.segment || (store as any)?.category
+  );
 
   const [activeTab, setActiveTab] = useState("basico");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -313,7 +318,7 @@ export function UnifiedNewProductPage() {
       {/* ── Top Header Limpo ── */}
       <PageHeader
         eyebrow="Catálogo"
-        title="Criar Novo Produto"
+        title={`Criar Novo ${nicheCtx.entityName}`}
         actions={
           <div className="flex items-center gap-2">
             <Button
@@ -328,8 +333,8 @@ export function UnifiedNewProductPage() {
             </Button>
             <Button variant="outline" asChild size="sm" className="rounded-xl text-xs font-bold">
               <Link to="/workspace/catalogo/produtos">
-                <ArrowLeft className="mr-1.5 size-3.5" />
-                Voltar
+                 <ArrowLeft className="mr-1.5 size-3.5" />
+                 Voltar
               </Link>
             </Button>
             <Button
@@ -346,7 +351,7 @@ export function UnifiedNewProductPage() {
               ) : (
                 <>
                   <CheckCircle2 className="size-3.5" />
-                  <span>Publicar Produto</span>
+                  <span>Publicar {nicheCtx.entityName}</span>
                 </>
               )}
             </Button>
@@ -360,27 +365,27 @@ export function UnifiedNewProductPage() {
           <DialogHeader>
             <DialogTitle className="text-base font-bold flex items-center gap-2">
               <Sparkles className="size-4 text-primary" />
-              <span>Importar Produto com Inteligência Artificial</span>
+              <span>Importar {nicheCtx.entityName} com IA</span>
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Cole o link de uma página da web ou cardápio online para preencher o formulário automaticamente.
+              Cole o link de uma página da web ou cardápio online para preencher as informações automaticamente.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold">URL do Produto / Página</Label>
+              <Label className="text-xs font-bold">Link da Página ou Cardápio</Label>
               <Input
                 value={importUrl}
                 onChange={(e) => setImportUrl(e.target.value)}
-                placeholder="https://exemplo.com.br/produto/item"
+                placeholder="https://exemplo.com.br/item"
                 className="h-10 text-xs rounded-xl"
                 disabled={isImporting}
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Tom da Descrição do Produto</Label>
+              <Label className="text-xs font-bold">Tom da Descrição</Label>
               <Select
                 value={importTone}
                 onValueChange={(v: any) => setImportTone(v)}
@@ -454,22 +459,22 @@ export function UnifiedNewProductPage() {
               <div className="bg-card rounded-2xl p-5 space-y-4 border border-border/60">
                 <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
                   <Tag className="size-4 text-primary" />
-                  <span>Identificação do Produto</span>
+                  <span>Identificação do {nicheCtx.entityName}</span>
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium text-foreground">Nome do Produto *</Label>
+                  <Label className="text-xs font-medium text-foreground">{nicheCtx.nameLabel}</Label>
                   <Input
                     value={formValues.title}
                     onChange={handleTitleChange}
-                    placeholder="Ex: Tênis Esportivo Air Runner Preto"
+                    placeholder={nicheCtx.namePlaceholder}
                     className="h-10 rounded-xl text-xs bg-background"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-foreground">Categoria</Label>
+                    <Label className="text-xs font-medium text-foreground">{nicheCtx.categoryLabel}</Label>
                     <Select
                       value={formValues.category_id}
                       onValueChange={(val) => setValue("category_id", val)}
@@ -488,10 +493,10 @@ export function UnifiedNewProductPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-foreground">Marca / Fabricante</Label>
+                    <Label className="text-xs font-medium text-foreground">{nicheCtx.brandLabel}</Label>
                     <Input
                       {...register("brand")}
-                      placeholder="Ex: Nike, Coca-Cola, Autoral"
+                      placeholder={nicheCtx.brandPlaceholder}
                       className="h-10 rounded-xl text-xs bg-background"
                     />
                   </div>
@@ -502,7 +507,7 @@ export function UnifiedNewProductPage() {
                     <Label className="text-xs font-medium text-foreground">Slug URL</Label>
                     <Input
                       {...register("slug")}
-                      placeholder="tenis-esportivo-air-runner"
+                      placeholder="slug-do-item"
                       className="h-10 rounded-xl text-xs bg-background font-mono"
                     />
                   </div>
@@ -530,20 +535,20 @@ export function UnifiedNewProductPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium text-foreground">Resumo Curto</Label>
+                  <Label className="text-xs font-medium text-foreground">{nicheCtx.shortDescLabel}</Label>
                   <Input
                     {...register("short_description")}
-                    placeholder="Ex: Conforto extremo com solado amortecedor"
+                    placeholder={nicheCtx.shortDescPlaceholder}
                     className="h-10 rounded-xl text-xs bg-background"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium text-foreground">Descrição Completa</Label>
+                  <Label className="text-xs font-medium text-foreground">{nicheCtx.descLabel}</Label>
                   <Textarea
                     {...register("description")}
                     rows={4}
-                    placeholder="Descreva as características, materiais, tamanhos e diferenciais do produto..."
+                    placeholder={nicheCtx.descPlaceholder}
                     className="rounded-xl text-xs bg-background"
                   />
                 </div>
@@ -667,10 +672,10 @@ export function UnifiedNewProductPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-foreground">Código SKU</Label>
+                    <Label className="text-xs font-medium text-foreground">{nicheCtx.skuLabel}</Label>
                     <Input
                       {...register("sku")}
-                      placeholder="Ex: TEN-RUN-001"
+                      placeholder={nicheCtx.skuPlaceholder}
                       className="h-10 rounded-xl text-xs bg-background font-mono"
                     />
                   </div>
@@ -703,7 +708,7 @@ export function UnifiedNewProductPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
                     <Box className="size-4 text-primary" />
-                    <span>Grade de Variações (Tamanho, Cor, Voltagem, etc.)</span>
+                    <span>{nicheCtx.variationsSectionTitle}</span>
                   </div>
                   <Button
                     type="button"
@@ -713,14 +718,14 @@ export function UnifiedNewProductPage() {
                     className="h-8 rounded-xl text-xs font-bold gap-1.5"
                   >
                     <Plus className="size-3.5" />
-                    <span>Adicionar Variação</span>
+                    <span>{nicheCtx.addVariationBtnText}</span>
                   </Button>
                 </div>
 
                 {variantsMatrix.length > 0 ? (
                   <div className="space-y-2">
                     <p className="text-xs text-muted-foreground">
-                      {variantsMatrix.length} variação(ões) configurada(s). Edite estoque individual, SKU e preços diretamente na grade:
+                      {variantsMatrix.length} variação(ões) configurada(s). Edite estoque individual, código e preços diretamente na grade:
                     </p>
                     <VariantMatrixGrid
                       variants={variantsMatrix}
@@ -731,7 +736,7 @@ export function UnifiedNewProductPage() {
                 ) : (
                   <div className="p-6 text-center rounded-xl border border-dashed border-border/70 space-y-2">
                     <p className="text-xs text-muted-foreground">
-                      Este produto atualmente é simples (sem variações).
+                      Este {nicheCtx.entityName.toLowerCase()} atualmente é simples (sem variações de tamanho, porção ou atributos).
                     </p>
                     <Button
                       type="button"
@@ -740,7 +745,7 @@ export function UnifiedNewProductPage() {
                       onClick={() => setIsAddDimensionOpen(true)}
                       className="rounded-xl text-xs font-bold"
                     >
-                      <Plus className="size-3.5 mr-1" /> Adicionar Variações (Cor, Tamanho, etc.)
+                      <Plus className="size-3.5 mr-1" /> {nicheCtx.addVariationBtnText}
                     </Button>
                   </div>
                 )}
@@ -1017,22 +1022,44 @@ export function UnifiedNewProductPage() {
           <DialogHeader className="pb-2">
             <DialogTitle className="text-base font-bold flex items-center gap-2">
               <Box className="size-4 text-primary" />
-              <span>Nova Dimensão de Variação</span>
+              <span>{nicheCtx.addDimensionDialogTitle}</span>
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
-              Ex: Tamanho (P, M, G), Cor (Azul, Preto), Voltagem (110v, 220v) ou Sabor.
+              {nicheCtx.addDimensionDialogDesc}
             </DialogDescription>
           </DialogHeader>
+
+          {/* Chips de Sugestão Rápida para o Nicho */}
+          {nicheCtx.suggestedDimensionChips && nicheCtx.suggestedDimensionChips.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+              <span className="text-[10px] uppercase font-bold text-muted-foreground mr-1">
+                Sugestões:
+              </span>
+              {nicheCtx.suggestedDimensionChips.map((chip) => (
+                <button
+                  key={chip.name}
+                  type="button"
+                  onClick={() => {
+                    setNewDimensionName(chip.name);
+                    if (!newDimensionValue) setNewDimensionValue(chip.firstValue);
+                  }}
+                  className="text-[11px] px-2.5 py-1 rounded-lg border border-border/70 bg-muted/40 hover:bg-primary/10 hover:border-primary/50 text-foreground transition-all cursor-pointer font-medium"
+                >
+                  + {chip.name}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
               <Label className="text-xs font-bold text-foreground">
-                Nome da Dimensão / Propriedade *
+                {nicheCtx.dimensionNameLabel} *
               </Label>
               <Input
                 value={newDimensionName}
                 onChange={(e) => setNewDimensionName(e.target.value)}
-                placeholder="Ex: Tamanho, Cor, Sabor, Voltagem"
+                placeholder={nicheCtx.dimensionNamePlaceholder}
                 className="h-10 rounded-xl text-xs bg-background"
                 autoFocus
               />
@@ -1040,12 +1067,12 @@ export function UnifiedNewProductPage() {
 
             <div className="space-y-1.5">
               <Label className="text-xs font-bold text-foreground">
-                Primeira Opção / Valor *
+                {nicheCtx.dimensionValueLabel} *
               </Label>
               <Input
                 value={newDimensionValue}
                 onChange={(e) => setNewDimensionValue(e.target.value)}
-                placeholder="Ex: P, Azul, Morango, 110V"
+                placeholder={nicheCtx.dimensionValuePlaceholder}
                 className="h-10 rounded-xl text-xs bg-background"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleAddDimensionSubmit();

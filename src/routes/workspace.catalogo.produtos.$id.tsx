@@ -86,6 +86,7 @@ import {
   listOptionGroups,
 } from "@/services/admin-catalog.functions";
 import { getStoreSettings } from "@/services/store.functions";
+import { getNicheCatalogContext } from "@/lib/catalog-niche-context";
 import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
@@ -124,6 +125,10 @@ function EditProductPage() {
   const { product, categories, productTypes, optionGroupsList, store } = Route.useLoaderData();
   const router = useRouter();
 
+  const nicheCtx = getNicheCatalogContext(
+    store?.segment || store?.type || store?.settings?.segment || (store as any)?.category
+  );
+
   if (!product) {
     return (
       <div className="space-y-6 max-w-4xl animate-in fade-in duration-200">
@@ -136,12 +141,12 @@ function EditProductPage() {
           </Button>
         </div>
         <div className="p-12 text-center border-0 rounded-3xl bg-card">
-          <h2 className="text-base font-bold text-foreground">Produto não encontrado</h2>
+          <h2 className="text-base font-bold text-foreground">{nicheCtx.entityName} não encontrado</h2>
           <p className="text-xs text-muted-foreground mt-1">
-            O produto solicitado não existe ou foi removido do catálogo.
+            O {nicheCtx.entityName.toLowerCase()} solicitado não existe ou foi removido do catálogo.
           </p>
           <Button asChild className="mt-4 rounded-xl text-xs font-bold bg-primary text-primary-foreground" size="sm">
-            <Link to="/workspace/catalogo/produtos">Ir para Lista de Produtos</Link>
+            <Link to="/workspace/catalogo/produtos">Ir para Lista de {nicheCtx.entityNamePlural}</Link>
           </Button>
         </div>
       </div>
@@ -198,8 +203,8 @@ function EditProductPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Catálogo / Editor Avançado"
-        title={liveTitle || "Editar Produto"}
+        eyebrow={`Catálogo / ${nicheCtx.entityName}`}
+        title={liveTitle || `Editar ${nicheCtx.entityName}`}
         actions={
           <div className="flex items-center gap-2">
             <Button variant="outline" asChild size="sm">
@@ -251,60 +256,39 @@ function EditProductPage() {
                   </div>
                 </div>
 
-                <div className="p-5 flex-1 flex flex-col space-y-3">
-                  {liveBrand && (
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                      {liveBrand}
-                    </span>
-                  )}
-                  <h3 className="text-lg font-black text-foreground uppercase tracking-tight leading-tight">
-                    {liveTitle || "Título do produto..."}
-                  </h3>
-
+                <div className="p-4 space-y-4 flex-1">
                   <div>
-                    <PriceDisplay
-                      amountCents={livePriceCents}
-                      compareAtCents={liveCompareCents ?? undefined}
-                      size="lg"
-                    />
-                  </div>
-
-                  {/* Adicionais no Preview */}
-                  {selectedOptionGroupIds.length > 0 && (
-                    <div className="pt-2 border-t space-y-1.5">
-                      <span className="text-[10px] font-bold uppercase text-muted-foreground">
-                        Adicionais & Modificadores
+                    {liveBrand && (
+                      <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block mb-1">
+                        {liveBrand}
                       </span>
-                      <div className="space-y-1">
-                        {optionGroups
-                          .filter((g) => selectedOptionGroupIds.includes(g.id))
-                          .map((grp) => (
-                            <div key={grp.id} className="p-2 rounded-lg bg-muted/30 text-[10px] border border-border/40">
-                              <span className="font-semibold text-foreground">{grp.display_name}</span>
-                              <div className="flex flex-wrap gap-1 mt-0.5">
-                                {(grp.values || []).slice(0, 3).map((v: any) => (
-                                  <span key={v.id || v.label} className="text-muted-foreground bg-background px-1 rounded">
-                                    {v.label} {v.price_modifier_cents > 0 && `(+${formatMoney(v.price_modifier_cents)})`}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {liveDescription && (
-                    <div className="text-xs text-muted-foreground line-clamp-3 font-mono leading-relaxed pt-2 border-t">
-                      {liveDescription}
-                    </div>
-                  )}
-
-                  <div className="mt-auto pt-3">
-                    <Button className="w-full h-11 text-sm font-bold rounded-xl shadow bg-primary text-primary-foreground">
-                      Comprar Agora
-                    </Button>
+                    )}
+                    <h3 className="font-bold text-base leading-tight">{liveTitle || `Nome do ${nicheCtx.entityName}`}</h3>
                   </div>
+
+                  {/* Preço Principal */}
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-xl font-bold text-primary font-mono">
+                      {formatMoney(livePriceCents)}
+                    </span>
+                    {liveCompareCents && liveCompareCents > livePriceCents && (
+                      <span className="text-xs text-muted-foreground line-through font-mono">
+                        {formatMoney(liveCompareCents)}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Descrição Curta */}
+                  {liveDescription && (
+                    <div className="pt-2 border-t">
+                      <h4 className="text-[11px] font-bold text-muted-foreground uppercase mb-1">
+                        Sobre o {nicheCtx.entityName}
+                      </h4>
+                      <p className="text-xs text-muted-foreground line-clamp-4 leading-relaxed whitespace-pre-wrap">
+                        {liveDescription}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -324,7 +308,7 @@ function EditProductPage() {
         sections={[
           { id: "geral", label: "Informações Básicas", icon: <Box className="size-4" /> },
           { id: "midias", label: "Galeria de Fotos", icon: <ImagePlus className="size-4" /> },
-          { id: "variantes", label: "Estoque & Matriz 2D", icon: <LayoutList className="size-4" /> },
+          { id: "variantes", label: nicheCtx.variationsSectionTitle, icon: <LayoutList className="size-4" /> },
           { id: "opcoes", label: "Adicionais & Opções", icon: <SlidersHorizontal className="size-4" /> },
         ]}
       >
@@ -334,6 +318,7 @@ function EditProductPage() {
             product={product}
             categories={categories}
             productTypes={productTypes}
+            nicheCtx={nicheCtx}
             onTitleChange={setLiveTitle}
             onDescriptionChange={setLiveDescription}
             onBrandChange={setLiveBrand}
@@ -361,10 +346,10 @@ function EditProductPage() {
         <div id="variantes" className="scroll-mt-32 pt-12 border-t">
           <div className="mb-6">
             <h2 className="text-xl font-bold flex items-center gap-2">
-              <LayoutList className="size-5 text-primary" /> Estoque & Matriz de Variações (Grade 2D)
+              <LayoutList className="size-5 text-primary" /> {nicheCtx.variationsSectionTitle}
             </h2>
             <p className="text-sm text-muted-foreground">
-              Gerencie o saldo em estoque granular, variações de tamanho, cor, SKUs, preços sobrepostos e fotos específicas.
+              Gerencie o saldo em estoque granular, variações de tamanho, porção, códigos, preços sobrepostos e fotos específicas.
             </p>
           </div>
           <VariantsManager product={product} />
@@ -396,6 +381,7 @@ function GeneralForm({
   product,
   categories,
   productTypes,
+  nicheCtx,
   onTitleChange,
   onDescriptionChange,
   onBrandChange,
@@ -407,6 +393,7 @@ function GeneralForm({
   product: any;
   categories: any[];
   productTypes: any[];
+  nicheCtx: any;
   onTitleChange: (v: string) => void;
   onDescriptionChange: (v: string) => void;
   onBrandChange: (v: string) => void;
@@ -559,9 +546,9 @@ function GeneralForm({
       });
 
       if (res) {
-        toast.success("Produto atualizado com sucesso!");
+        toast.success(`${nicheCtx.entityName} atualizado com sucesso!`);
       } else {
-        toast.error("Erro ao atualizar produto");
+        toast.error(`Erro ao atualizar ${nicheCtx.entityName.toLowerCase()}`);
       }
     } catch (e: any) {
       toast.error(e?.message || "Erro inesperado ao salvar alterações");
@@ -607,33 +594,33 @@ function GeneralForm({
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
       <div>
         <div className="mb-4">
-          <h3 className="text-lg font-bold text-foreground">Informações Comerciais Principais</h3>
+          <h3 className="text-lg font-bold text-foreground">Informações de Identificação</h3>
           <p className="text-sm text-muted-foreground">
-            Defina o título, marca e descrição detalhada do produto.
+            Defina o título, detalhes e descrição para a vitrine.
           </p>
         </div>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Título do Produto *</Label>
-            <Input {...register("title", { required: "Obrigatório" })} />
-            {errors.title && <span className="text-xs text-destructive">Título obrigatório</span>}
+            <Label>{nicheCtx.nameLabel}</Label>
+            <Input {...register("title", { required: "Obrigatório" })} placeholder={nicheCtx.namePlaceholder} />
+            {errors.title && <span className="text-xs text-destructive">Campo obrigatório</span>}
           </div>
           <div className="space-y-2">
-            <Label>Descrição Completa (Texto Detalhado)</Label>
+            <Label>{nicheCtx.descLabel}</Label>
             <Textarea
               {...register("description")}
               rows={5}
-              placeholder="Descreva os materiais, conforto, modo de preparo ou especificações..."
+              placeholder={nicheCtx.descPlaceholder}
             />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Marca / Fabricante</Label>
-              <Input {...register("brand")} placeholder="Ex: Wider, Nike, Tramontina..." />
+              <Label>{nicheCtx.brandLabel}</Label>
+              <Input {...register("brand")} placeholder={nicheCtx.brandPlaceholder} />
             </div>
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <Label>Categoria Principal</Label>
+                <Label>{nicheCtx.categoryLabel}</Label>
                 <Sheet open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
                   <SheetTrigger asChild>
                     <button
@@ -647,7 +634,7 @@ function GeneralForm({
                     <SheetHeader>
                       <SheetTitle>Criar Nova Categoria</SheetTitle>
                       <SheetDescription>
-                        Crie uma nova categoria para agrupar produtos na vitrine.
+                        Crie uma nova categoria para agrupar {nicheCtx.entityNamePlural.toLowerCase()} na vitrine.
                       </SheetDescription>
                     </SheetHeader>
                     <div className="space-y-4 py-4">
@@ -678,10 +665,10 @@ function GeneralForm({
               </div>
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione..." />
+                  <SelectValue placeholder="Selecione uma categoria..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Sem Categoria</SelectItem>
+                  <SelectItem value="none">Sem categoria</SelectItem>
                   {categories.map((c: any) => (
                     <SelectItem key={c.id} value={c.id}>
                       {c.name}
