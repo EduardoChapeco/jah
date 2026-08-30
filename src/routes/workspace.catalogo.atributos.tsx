@@ -4,6 +4,7 @@ import {
   MoreHorizontal,
   Edit,
   Trash2,
+  Copy,
   Search,
   ChevronDown,
   ChevronRight,
@@ -13,6 +14,11 @@ import {
   X,
   Sparkles,
   Loader2,
+  Utensils,
+  Coffee,
+  PlusCircle,
+  Layers,
+  Gift,
 } from "lucide-react";
 import { useState, useMemo, useRef } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
@@ -91,6 +97,87 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+const PRESETS = [
+  {
+    name: "Adicionais Pagos",
+    icon: PlusCircle,
+    desc: "Extras opcionais para o item",
+    data: {
+      display_name: "Turbine seu Pedido (Adicionais)",
+      internal_name: "adicionais-extras",
+      description: "Escolha seus adicionais favoritos para turbinar o item",
+      selection_type: "multiple" as const,
+      is_required: false,
+      min_selections: 0,
+      max_selections: 5,
+      values: [
+        { label: "Bacon Crocante Extra", description: "Fatias generosas de bacon defumado", price_modifier_cents: 450, is_default: false, is_active: true },
+        { label: "Queijo Cheddar Cremoso", description: "Dose extra de cheddar inglês", price_modifier_cents: 350, is_default: false, is_active: true },
+        { label: "Ovo Frito na Chapa", description: "Ovo caipira com gema mole ou no ponto", price_modifier_cents: 250, is_default: false, is_active: true },
+        { label: "Molho Especial da Casa", description: "Receita secreta artesanal", price_modifier_cents: 300, is_default: false, is_active: true },
+      ],
+    },
+  },
+  {
+    name: "Ponto da Carne",
+    icon: Utensils,
+    desc: "1 opção obrigatória",
+    data: {
+      display_name: "Ponto da Carne",
+      internal_name: "ponto-carne",
+      description: "Selecione o ponto de preparo da carne",
+      selection_type: "single" as const,
+      is_required: true,
+      min_selections: 1,
+      max_selections: 1,
+      values: [
+        { label: "Mal Passado", description: "Centro vermelho bem úmido e selado por fora", price_modifier_cents: 0, is_default: false, is_active: true },
+        { label: "Ao Ponto", description: "Centro rosado suculento e macio", price_modifier_cents: 0, is_default: true, is_active: true },
+        { label: "Bem Passado", description: "Totalmente cozido e dourado por completo", price_modifier_cents: 0, is_default: false, is_active: true },
+      ],
+    },
+  },
+  {
+    name: "Bebida Gelada",
+    icon: Coffee,
+    desc: "1 bebida opcional",
+    data: {
+      display_name: "Deseja Bebida Gelada?",
+      internal_name: "bebida-combo",
+      description: "Adicione uma bebida refrescante ao seu pedido",
+      selection_type: "single" as const,
+      is_required: false,
+      min_selections: 0,
+      max_selections: 1,
+      values: [
+        { label: "Não, obrigado", description: "Prosseguir sem bebida", price_modifier_cents: 0, is_default: true, is_active: true },
+        { label: "Coca-Cola Original 350ml", description: "Lata 350ml trincando de gelada", price_modifier_cents: 600, is_default: false, is_active: true },
+        { label: "Coca-Cola Zero 350ml", description: "Lata 350ml sem açúcar", price_modifier_cents: 600, is_default: false, is_active: true },
+        { label: "Suco Natural de Laranja 400ml", description: "100% fruta espremida na hora", price_modifier_cents: 850, is_default: false, is_active: true },
+      ],
+    },
+  },
+  {
+    name: "Tamanho / Porção",
+    icon: Layers,
+    desc: "Escolha de tamanho",
+    data: {
+      display_name: "Escolha o Tamanho",
+      internal_name: "tamanho-porcao",
+      description: "Selecione o tamanho ideal para você",
+      selection_type: "single" as const,
+      is_required: true,
+      min_selections: 1,
+      max_selections: 1,
+      values: [
+        { label: "Pequeno (Individual)", description: "Porção individual perfeita para 1 pessoa", price_modifier_cents: 0, is_default: false, is_active: true },
+        { label: "Médio (2 Pessoas)", description: "Porção média ideal para compartilhar em 2", price_modifier_cents: 600, is_default: true, is_active: true },
+        { label: "Grande (Família)", description: "Porção farta para 3 a 4 pessoas", price_modifier_cents: 1200, is_default: false, is_active: true },
+      ],
+    },
+  },
+];
+
 export const Route = createFileRoute("/workspace/catalogo/atributos")({
   head: () => ({ meta: [{ title: "Adicionais e Grupos de Opções | Workspace Wider" }] }),
   loader: async () => {
@@ -152,6 +239,52 @@ function OptionGroupsPage() {
       values: group.values || [],
     });
     setOpen(true);
+  };
+
+  const handleDuplicate = async (group: any) => {
+    setIsSubmitting(true);
+    try {
+      const duplicatedData = {
+        internal_name: `${group.internal_name}_copia_${Date.now().toString().slice(-4)}`,
+        display_name: `${group.display_name} (Cópia)`,
+        description: group.description || "",
+        selection_type: group.selection_type || "multiple",
+        min_selections: group.min_selections ?? 0,
+        max_selections: group.max_selections ?? 1,
+        is_required: group.is_required ?? false,
+        values: (group.values || []).map((v: any) => ({
+          label: v.label,
+          description: v.description || null,
+          image_url: v.image_url || null,
+          price_modifier_cents: v.price_modifier_cents || 0,
+          max_quantity_per_item: v.max_quantity_per_item || 1,
+          is_default: v.is_default || false,
+          is_active: v.is_active !== false,
+        })),
+      };
+      await upsertOptionGroup({ data: duplicatedData });
+      toast.success(`Grupo "${group.display_name}" duplicado com sucesso!`);
+      router.invalidate();
+    } catch (e: any) {
+      toast.error(e?.message || "Erro ao duplicar grupo.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const applyPreset = (preset: (typeof PRESETS)[number]) => {
+    form.reset({
+      id: undefined,
+      internal_name: preset.data.internal_name,
+      display_name: preset.data.display_name,
+      description: preset.data.description,
+      selection_type: preset.data.selection_type,
+      min_selections: preset.data.min_selections,
+      max_selections: preset.data.max_selections,
+      is_required: preset.data.is_required,
+      values: preset.data.values.map((v) => ({ ...v, max_quantity_per_item: 1, image_url: null })),
+    });
+    toast.info(`Modelo "${preset.name}" carregado.`);
   };
 
   const handleDelete = async (id: string) => {
@@ -286,6 +419,7 @@ function OptionGroupsPage() {
                   key={group.id}
                   group={group}
                   onEdit={() => handleEdit(group)}
+                  onDuplicate={() => handleDuplicate(group)}
                   onDelete={() => handleDelete(group.id)}
                 />
               ))}
@@ -307,6 +441,35 @@ function OptionGroupsPage() {
           </SheetHeader>
 
           <form onSubmit={form.handleSubmit(onSubmit as any)} className="p-5 space-y-6">
+            {/* Presets Rápidos de 1 Clique */}
+            {!form.watch("id") && (
+              <div className="space-y-2 pb-2 border-b border-border/40">
+                <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <Sparkles className="size-3.5 text-primary" />
+                  <span>Modelos Prontos (Presets de 1 Clique)</span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {PRESETS.map((preset) => {
+                    const Icon = preset.icon;
+                    return (
+                      <button
+                        key={preset.name}
+                        type="button"
+                        onClick={() => applyPreset(preset)}
+                        className="flex flex-col items-start p-2.5 rounded-xl border border-border/80 bg-background hover:bg-muted/40 hover:border-primary/40 transition-all text-left cursor-pointer group"
+                      >
+                        <div className="flex items-center gap-1.5 w-full mb-1">
+                          <Icon className="size-3.5 text-primary shrink-0" />
+                          <span className="text-xs font-semibold text-foreground truncate">{preset.name}</span>
+                        </div>
+                        <span className="text-[10px] text-muted-foreground line-clamp-1">{preset.desc}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="grid gap-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
@@ -668,10 +831,12 @@ function OptionItemCard({
 function OptionGroupTableRow({
   group,
   onEdit,
+  onDuplicate,
   onDelete,
 }: {
   group: any;
   onEdit: () => void;
+  onDuplicate: () => void;
   onDelete: () => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -753,6 +918,10 @@ function OptionGroupTableRow({
               <DropdownMenuItem onClick={onEdit} className="text-xs font-medium cursor-pointer">
                 <Edit className="size-3.5 mr-2" />
                 Editar Grupo
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onDuplicate} className="text-xs font-medium cursor-pointer">
+                <Copy className="size-3.5 mr-2" />
+                Duplicar Grupo
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="text-xs font-medium text-destructive focus:text-destructive cursor-pointer"

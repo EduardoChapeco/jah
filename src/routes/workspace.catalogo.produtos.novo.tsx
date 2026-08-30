@@ -39,13 +39,13 @@ import { Switch } from "@/components/ui/switch";
 import { MediaUploader } from "@/components/ui/media-uploader";
 import { VariantMatrixGrid, type RawVariant } from "@/components/admin/catalog/variant-matrix-grid";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@/components/ui/sheet";
 import {
   createProduct,
   listCategories,
@@ -359,20 +359,20 @@ export function UnifiedNewProductPage() {
         }
       />
 
-      {/* ── Dialog: Importador Inteligente por URL ── */}
-      <Dialog open={isImportModalOpen} onOpenChange={setIsImportModalOpen}>
-        <DialogContent className="sm:max-w-md sm:rounded-3xl">
-          <DialogHeader>
-            <DialogTitle className="text-base font-bold flex items-center gap-2">
+      {/* ── Sheet Lateral: Importador Inteligente por URL ── */}
+      <Sheet open={isImportModalOpen} onOpenChange={setIsImportModalOpen}>
+        <SheetContent side="right" className="sm:max-w-md w-full flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border">
+          <SheetHeader className="p-6 pb-4 border-b border-border/80 bg-muted/20">
+            <SheetTitle className="text-base font-bold flex items-center gap-2">
               <Sparkles className="size-4 text-primary" />
               <span>Importar {nicheCtx.entityName} com IA</span>
-            </DialogTitle>
-            <DialogDescription className="text-xs">
+            </SheetTitle>
+            <SheetDescription className="text-xs text-muted-foreground mt-0.5">
               Cole o link de uma página da web ou cardápio online para preencher as informações automaticamente.
-            </DialogDescription>
-          </DialogHeader>
+            </SheetDescription>
+          </SheetHeader>
 
-          <div className="space-y-4 py-2">
+          <div className="flex-1 overflow-y-auto p-6 space-y-4">
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Link da Página ou Cardápio</Label>
               <Input
@@ -404,19 +404,19 @@ export function UnifiedNewProductPage() {
             </div>
           </div>
 
-          <DialogFooter>
+          <SheetFooter className="p-4 border-t border-border/80 bg-muted/10 gap-2 sm:gap-0">
             <Button
               variant="outline"
               onClick={() => setIsImportModalOpen(false)}
               disabled={isImporting}
-              className="rounded-xl text-xs"
+              className="rounded-xl text-xs h-10"
             >
               Cancelar
             </Button>
             <Button
               onClick={handleImportProduct}
               disabled={isImporting || !importUrl.trim()}
-              className="rounded-xl font-bold text-xs gap-1.5"
+              className="rounded-xl font-bold text-xs gap-1.5 h-10 bg-primary text-primary-foreground"
             >
               {isImporting ? (
                 <>
@@ -430,9 +430,9 @@ export function UnifiedNewProductPage() {
                 </>
               )}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
       {/* ── Grid Principal: Formulário por Abas (5/12) + Preview Real da Vitrine (7/12) ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
