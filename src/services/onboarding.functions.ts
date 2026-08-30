@@ -658,7 +658,6 @@ export const provisionBusiness = createServerFn({ method: "POST" })
       phone: data.phone || null,
       email: data.email || null,
       settings,
-      created_by: userId,
     };
 
     const { data: store, error: storeError } = await db
@@ -668,13 +667,31 @@ export const provisionBusiness = createServerFn({ method: "POST" })
       .single();
     if (storeError) throw new Error("Erro ao criar loja: " + storeError.message);
 
-    // 4. Vincular Usuário como Owner
-    const { error: memberError } = await db.from("workspace_members").upsert({
-      profile_id: userId,
-      store_id: store.id,
-      role: "owner",
-    });
-    if (memberError) throw new Error("Erro ao vincular membro: " + memberError.message);
+    // 4. Vincular Usuário como Owner no workspace_members
+    const { error: memberError } = await db.from("workspace_members").upsert(
+      {
+        profile_id: userId,
+        store_id: store.id,
+        role: "owner",
+      },
+      { onConflict: "profile_id,store_id" }
+    );
+    if (memberError) {
+      console.warn("[onboarding] Aviso ao vincular workspace_members:", memberError.message);
+    }
+
+    // 4.1 Atualizar o contexto ativo do profile
+    try {
+      await db
+        .from("profiles")
+        .update({
+          store_id: store.id,
+          organization_id: org.id,
+        })
+        .eq("id", userId);
+    } catch {
+      // Silencioso
+    }
 
     // 4.0.1 SILENT BACKGROUND TRIGGER: Gravar log inicial no ledger de tokens
     try {

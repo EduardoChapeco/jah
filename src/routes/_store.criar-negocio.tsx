@@ -1228,38 +1228,82 @@ function CriarNegocioPage() {
                   )}
                 </div>
 
-                {/* Badges de Atendimento & Modelo */}
+                {/* Badges de Atendimento & Modelo Dinâmicos por Nicho */}
                 <div className="flex flex-wrap gap-1.5 pt-1">
-                  <Badge variant="secondary" className="text-[10px] font-bold gap-1 bg-primary/10 text-primary border-primary/20">
-                    {locationData.businessModel === "physical_and_delivery" && "Loja Física"}
-                    {locationData.businessModel === "delivery_only" && "Apenas Delivery"}
-                    {locationData.businessModel === "home_office" && "Home Office"}
-                    {locationData.businessModel === "service_at_client" && "Em Domicílio"}
-                    {locationData.businessModel === "digital_only" && "100% Online"}
-                  </Badge>
-
-                  {hasDelivery && (
-                    <Badge variant="secondary" className="text-[10px] font-semibold gap-1 bg-muted/60">
-                      <Truck className="size-3 text-primary" />
-                      <span>Delivery ({locationData.serviceRadiusKm > 0 ? `${locationData.serviceRadiusKm} km` : "Nacional"})</span>
-                    </Badge>
-                  )}
-                  {hasPickup && locationData.businessModel === "physical_and_delivery" && (
-                    <Badge variant="secondary" className="text-[10px] font-semibold gap-1 bg-muted/60">
-                      <Store className="size-3 text-primary" />
-                      <span>Retirada</span>
-                    </Badge>
+                  {isDeliverySegment ? (
+                    <>
+                      <Badge variant="secondary" className="text-[10px] font-bold gap-1 bg-primary/10 text-primary border-primary/20">
+                        {locationData.businessModel === "physical_and_delivery" && "Loja Física"}
+                        {locationData.businessModel === "delivery_only" && "Apenas Delivery"}
+                        {locationData.businessModel === "home_office" && "Home Office"}
+                        {locationData.businessModel === "service_at_client" && "Em Domicílio"}
+                        {locationData.businessModel === "digital_only" && "100% Online"}
+                      </Badge>
+                      {hasDelivery && (
+                        <Badge variant="secondary" className="text-[10px] font-semibold gap-1 bg-muted/60">
+                          <Truck className="size-3 text-primary" />
+                          <span>Delivery ({locationData.serviceRadiusKm > 0 ? `${locationData.serviceRadiusKm} km` : "Nacional"})</span>
+                        </Badge>
+                      )}
+                      {hasPickup && locationData.businessModel === "physical_and_delivery" && (
+                        <Badge variant="secondary" className="text-[10px] font-semibold gap-1 bg-muted/60">
+                          <Store className="size-3 text-primary" />
+                          <span>Retirada no Balcão</span>
+                        </Badge>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {hasInPersonService && (
+                        <Badge variant="secondary" className="text-[10px] font-bold gap-1 bg-primary/10 text-primary border-primary/20">
+                          <Building2 className="size-3" />
+                          <span>Atendimento Presencial</span>
+                        </Badge>
+                      )}
+                      {hasOnlineService && (
+                        <Badge variant="secondary" className="text-[10px] font-semibold gap-1 bg-muted/60">
+                          <Phone className="size-3 text-primary" />
+                          <span>Atendimento Online / WhatsApp</span>
+                        </Badge>
+                      )}
+                      <Badge variant="secondary" className="text-[10px] font-semibold gap-1 bg-muted/60">
+                        <Sparkles className="size-3 text-primary" />
+                        <span>{selectedSegment.badge}</span>
+                      </Badge>
+                    </>
                   )}
                 </div>
 
-                {/* Botões de Ação do Catálogo Simulado */}
+                {/* Botões de Ação do Catálogo Simulado Dinâmicos */}
                 <div className="pt-3 border-t border-border/50 grid grid-cols-2 gap-2">
-                  <div className="py-2 px-3 rounded-xl bg-muted/40 text-center text-[11px] font-bold text-foreground border border-border/40 truncate">
-                    Ver Catálogo
-                  </div>
-                  <div className="py-2 px-3 rounded-xl bg-primary text-center text-[11px] font-bold text-primary-foreground shadow-xs truncate">
-                    Fazer Pedido
-                  </div>
+                  {selectedSegment.id === "tourism" ? (
+                    <>
+                      <div className="py-2 px-3 rounded-xl bg-muted/40 text-center text-[11px] font-bold text-foreground border border-border/40 truncate">
+                        Ver Roteiros & Pacotes
+                      </div>
+                      <div className="py-2 px-3 rounded-xl bg-primary text-center text-[11px] font-bold text-primary-foreground shadow-xs truncate">
+                        Solicitar Cotação
+                      </div>
+                    </>
+                  ) : selectedSegment.category === "servicos" ? (
+                    <>
+                      <div className="py-2 px-3 rounded-xl bg-muted/40 text-center text-[11px] font-bold text-foreground border border-border/40 truncate">
+                        Conhecer Serviços
+                      </div>
+                      <div className="py-2 px-3 rounded-xl bg-primary text-center text-[11px] font-bold text-primary-foreground shadow-xs truncate">
+                        Agendar Horário
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="py-2 px-3 rounded-xl bg-muted/40 text-center text-[11px] font-bold text-foreground border border-border/40 truncate">
+                        Ver Catálogo
+                      </div>
+                      <div className="py-2 px-3 rounded-xl bg-primary text-center text-[11px] font-bold text-primary-foreground shadow-xs truncate">
+                        Fazer Pedido
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
