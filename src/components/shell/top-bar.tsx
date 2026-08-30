@@ -121,11 +121,19 @@ export function TopBar({ session, brandSettings }: TopBarProps) {
           </Link>
         </div>
 
-        {/* Lado Direito: Mobilidade + UtilityCluster (Ferramentas à Direita) */}
+        {/* Lado Direito: Mobilidade Contextual + UtilityCluster */}
         <div className="flex items-center gap-2 shrink-0 ml-auto">
-          <div className="hidden md:block">
-            <MobilityQuickButton />
-          </div>
+          {/* Exibe o botão de mobilidade apenas em contextos comerciais ou de mobilidade */}
+          {(location.pathname === "/" ||
+            location.pathname.startsWith("/gastronomia") ||
+            location.pathname.startsWith("/mercado") ||
+            location.pathname.startsWith("/farmacia") ||
+            location.pathname.startsWith("/mobilidade") ||
+            location.pathname.startsWith("/mapa")) && (
+            <div className="hidden md:block">
+              <MobilityQuickButton />
+            </div>
+          )}
           <UtilityCluster session={session} embedded={true} />
         </div>
       </div>

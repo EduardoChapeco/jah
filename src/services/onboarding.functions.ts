@@ -716,7 +716,9 @@ export const provisionBusiness = createServerFn({ method: "POST" })
       const niche = (data.type || "gastronomy").toLowerCase();
       let defaultCategories: string[] = ["Destaques", "Mais Vendidos", "Novidades"];
 
-      if (niche.includes("gastro") || niche.includes("lanche") || niche.includes("restaurante")) {
+      if (niche.includes("turis") || niche.includes("viage") || niche.includes("tour") || niche.includes("passeio")) {
+        defaultCategories = ["Pacotes Nacionais", "Viagens Internacionais", "Cruzeiros Marítimos", "Ecoturismo & Passeios", "Passagens Aéreas", "Assessoria de Vistos"];
+      } else if (niche.includes("gastro") || niche.includes("lanche") || niche.includes("restaurante") || niche.includes("marmita") || niche.includes("doce")) {
         defaultCategories = ["Burgers & Lanches", "Porções & Entradas", "Bebidas & Sucos", "Sobremesas"];
       } else if (niche.includes("mercado") || niche.includes("hortifruti")) {
         defaultCategories = ["Hortifrúti & Orgânicos", "Padaria & Frios", "Bebidas", "Mercearia"];
@@ -728,6 +730,16 @@ export const provisionBusiness = createServerFn({ method: "POST" })
         defaultCategories = ["Medicamentos & OTC", "Higiene Pessoal", "Dermocosméticos", "Suplementos & Vitaminas"];
       } else if (niche.includes("eletronico") || niche.includes("tech")) {
         defaultCategories = ["Smartphones & Acessórios", "Informática & Áudio", "Cabos & Carregadores", "Gamer"];
+      } else if (niche.includes("beleza") || niche.includes("salao") || niche.includes("barber") || niche.includes("estetica")) {
+        defaultCategories = ["Cabelo & Barba", "Estética Facial", "Tratamentos Corporais", "Pacotes & Sessões"];
+      } else if (niche.includes("legal") || niche.includes("advoca") || niche.includes("jurid")) {
+        defaultCategories = ["Consultoria & Pareceres", "Direito Civil & Família", "Trabalhista & Previdenciário", "Contratos Comerciais"];
+      } else if (niche.includes("imove") || niche.includes("imobili")) {
+        defaultCategories = ["Imóveis para Venda", "Locação Residencial", "Salas Comerciais", "Terrenos & Lançamentos"];
+      } else if (niche.includes("evento") || niche.includes("ingresso") || niche.includes("locacao")) {
+        defaultCategories = ["Ingressos & Lotes", "Área VIP & Mesas", "Locação de Estruturas", "Equipamentos de Som & Luz"];
+      } else if (niche.includes("educa") || niche.includes("curso") || niche.includes("escola")) {
+        defaultCategories = ["Cursos Presenciais", "Workshops & Imersões", "Aulas Particulares", "Materiais Didáticos"];
       }
 
       const categoriesPayload = defaultCategories.map((catName, idx) => ({
