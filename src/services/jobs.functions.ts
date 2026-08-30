@@ -389,3 +389,96 @@ export const withdrawJobApplication = createServerFn({ method: "POST" })
     return { success: true, message: "Candidatura cancelada com sucesso." };
   });
 
+export const createStoreJob = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      title: z.string().min(3, "Título muito curto"),
+      company_name: z.string().min(2, "Nome da empresa obrigatório"),
+      company_logo_url: z.string().optional().nullable(),
+      category: z.enum(["clt", "pj", "estagio", "tech", "comercial", "operacional", "saude", "outros"]).default("comercial"),
+      location: z.string().min(2, "Localização é obrigatória"),
+      workplace_type: z.enum(["Presencial", "Híbrido", "Remoto"]).default("Presencial"),
+      contract_type: z.enum(["CLT", "PJ", "Estágio", "Freelancer", "Temporário"]).default("CLT"),
+      salary_display: z.string().default("A combinar"),
+      description: z.string().min(10, "Descrição detalhada obrigatória"),
+      requirements: z.array(z.string()).default([]),
+      benefits: z.array(z.string()).default([]),
+      contact_whatsapp: z.string().optional().nullable(),
+      contact_email: z.string().email().optional().nullable(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const { getServerIdentity } = await import("@/lib/server-access");
+    const { store_id, user_id } = await getServerIdentity();
+
+    const { data: created, error } = await supabase
+      .from("jobs")
+      .insert({
+        store_id: store_id || null,
+        author_profile_id: user_id || null,
+        title: data.title.trim(),
+        company_name: data.company_name.trim(),
+        company_logo_url: data.company_logo_url || null,
+        category: data.category,
+        location: data.location.trim(),
+        workplace_type: data.workplace_type,
+        contract_type: data.contract_type,
+        salary_display: data.salary_display.trim(),
+        description: data.description.trim(),
+        requirements: data.requirements,
+        benefits: data.benefits,
+        contact_whatsapp: data.contact_whatsapp || null,
+        contact_email: data.contact_email || null,
+        status: "active",
+        is_featured: false,
+      })
+      .select("id, title")
+      .single();
+
+    if (error) {
+      console.error("Erro ao publicar vaga:", error);
+      throw new Error("Não foi possível publicar a vaga de emprego.");
+    }
+
+    return {
+      success: true,
+      job: created,
+      message: "Vaga de emprego publicada com sucesso no ecossistema!",
+    };
+  });
+
+export const listMyStoreJobs = createServerFn({ method: "GET" }).handler(async () => {
+  const supabase = getServerClient();
+  const { getServerIdentity } = await import("@/lib/server-access");
+  const { store_id } = await getServerIdentity();
+
+  if (!store_id) return [];
+
+  const { data: rows, error } = await supabase
+    .from("jobs")
+    .select("*, job_applications(id)")
+    .eq("store_id", store_id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Erro ao buscar vagas da loja:", error);
+    return [];
+  }
+
+  return (rows || []).map((row: any) => ({
+    id: row.id,
+    title: row.title,
+    company_name: row.company_name,
+    category: row.category,
+    location: row.location,
+    workplace_type: row.workplace_type,
+    contract_type: row.contract_type,
+    salary_display: row.salary_display,
+    status: row.status,
+    created_at: row.created_at,
+    applications_count: row.job_applications?.length || 0,
+  }));
+});
+
+

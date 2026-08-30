@@ -22,10 +22,16 @@ import {
   updateTeamMemberRole,
   removeTeamMember,
 } from "@/services/admin-team.functions";
+import { listMyStoreJobs, createStoreJob } from "@/services/jobs.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SheetPage } from "@/components/ui/sheet-page";
+import { ImageUpload } from "@/components/ui/image-upload";
+import { Link } from "@tanstack/react-router";
 import {
   Dialog,
   DialogContent,
@@ -52,20 +58,29 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import {
+  Briefcase,
+  ExternalLink,
+  Wallet,
+  Plus,
+} from "lucide-react";
 
 export const Route = createFileRoute("/workspace/configuracoes/equipe")({
   head: () => ({
     meta: [
-      { title: "Equipe & Permissões de Acesso | Workspace Wider" },
-      { name: "description", content: "Gerencie os membros, colaboradores e níveis de permissão da sua loja com isolamento total." },
+      { title: "Equipe, Folha & Recrutamento | Workspace Wider" },
+      { name: "description", content: "Gerencie os membros, cargos, folha de pagamento e vagas de emprego da sua loja." },
     ],
   }),
   loader: async () => {
     try {
-      const members = await listTeamMembers();
-      return { members: members || [] };
+      const [members, jobs] = await Promise.all([
+        listTeamMembers().catch(() => []),
+        listMyStoreJobs().catch(() => []),
+      ]);
+      return { members: members || [], jobs: jobs || [] };
     } catch {
-      return { members: [] };
+      return { members: [], jobs: [] };
     }
   },
   component: WorkspaceTeamPage,
@@ -118,8 +133,10 @@ const ROLE_DEFINITIONS: Record<
 };
 
 export default function WorkspaceTeamPage() {
-  const { members } = Route.useLoaderData();
+  const { members, jobs } = Route.useLoaderData();
   const router = useRouter();
+
+  const [activeTab, setActiveTab] = useState<"members" | "jobs">("members");
 
   // Estados do Modal de Convite
   const [isInviteOpen, setIsInviteOpen] = useState(false);
@@ -129,6 +146,24 @@ export default function WorkspaceTeamPage() {
     "admin" | "manager" | "seller" | "finance" | "content" | "stock" | "support"
   >("seller");
   const [isInviting, setIsInviting] = useState(false);
+
+  // Estados do Modal de Criação de Vaga
+  const [isJobOpen, setIsJobOpen] = useState(false);
+  const [isCreatingJob, setIsCreatingJob] = useState(false);
+  const [jobForm, setJobForm] = useState({
+    title: "",
+    company_name: "",
+    category: "comercial" as any,
+    location: "Chapecó / SC",
+    workplace_type: "Presencial" as any,
+    contract_type: "CLT" as any,
+    salary_display: "R$ 2.500 - R$ 3.500",
+    description: "",
+    requirements: "Experiência prévia na função\nBoa comunicação\nDisponibilidade de horário",
+    benefits: "Vale Transporte\nVale Alimentação\nComissão sobre vendas",
+    contact_whatsapp: "",
+    contact_email: "",
+  });
 
   // Estados de Remoção
   const [memberToRemove, setMemberToRemove] = useState<any | null>(null);
@@ -161,6 +196,55 @@ export default function WorkspaceTeamPage() {
       toast.error(err?.message || "Erro ao convidar colaborador.");
     } finally {
       setIsInviting(false);
+    }
+  };
+
+  const handleCreateJobSubmit = async () => {
+    if (!jobForm.title.trim() || !jobForm.company_name.trim() || !jobForm.description.trim()) {
+      toast.error("Preencha o título, empresa e descrição da vaga.");
+      return;
+    }
+
+    setIsCreatingJob(true);
+    try {
+      await createStoreJob({
+        data: {
+          title: jobForm.title,
+          company_name: jobForm.company_name,
+          category: jobForm.category,
+          location: jobForm.location,
+          workplace_type: jobForm.workplace_type,
+          contract_type: jobForm.contract_type,
+          salary_display: jobForm.salary_display,
+          description: jobForm.description,
+          requirements: jobForm.requirements.split("\n").filter((r) => r.trim()),
+          benefits: jobForm.benefits.split("\n").filter((b) => b.trim()),
+          contact_whatsapp: jobForm.contact_whatsapp || null,
+          contact_email: jobForm.contact_email || null,
+        },
+      });
+
+      toast.success("Vaga de emprego publicada no ecossistema e na sua vitrine!");
+      setIsJobOpen(false);
+      setJobForm({
+        title: "",
+        company_name: "",
+        category: "comercial",
+        location: "Chapecó / SC",
+        workplace_type: "Presencial",
+        contract_type: "CLT",
+        salary_display: "R$ 2.500 - R$ 3.500",
+        description: "",
+        requirements: "Experiência prévia na função\nBoa comunicação\nDisponibilidade de horário",
+        benefits: "Vale Transporte\nVale Alimentação\nComissão sobre vendas",
+        contact_whatsapp: "",
+        contact_email: "",
+      });
+      router.invalidate();
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao publicar vaga.");
+    } finally {
+      setIsCreatingJob(false);
     }
   };
 
@@ -205,40 +289,86 @@ export default function WorkspaceTeamPage() {
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
             <Users className="size-6 text-primary" />
-            <span>Equipe & Colaboradores</span>
+            <span>Equipe, Folha & Vagas de Trabalho</span>
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Gerencie os acessos, cargos e operadores da sua loja com isolamento seguro multi-tenant.
+            Gerencie colaboradores, permissões de acesso, folha de vales e recrutamento de novos talentos.
           </p>
         </div>
 
-        <Button
-          onClick={() => setIsInviteOpen(true)}
-          className="h-10 rounded-xl font-bold text-xs gap-2 shadow-xs cursor-pointer"
-        >
-          <UserPlus className="size-4" />
-          <span>Convidar Colaborador</span>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            asChild
+            variant="outline"
+            className="h-10 rounded-xl font-bold text-xs gap-1.5 shadow-2xs"
+          >
+            <Link to="/workspace/financeiro/funcionarios">
+              <Wallet className="size-4 text-emerald-600 dark:text-emerald-400" />
+              <span>Folha & Vales</span>
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            className="h-10 rounded-xl font-bold text-xs gap-1.5 shadow-2xs"
+          >
+            <Link to="/workspace/empregos/candidatos">
+              <Briefcase className="size-4 text-primary" />
+              <span>Triagem de Currículos (ATS)</span>
+            </Link>
+          </Button>
+          {activeTab === "members" ? (
+            <Button
+              onClick={() => setIsInviteOpen(true)}
+              className="h-10 rounded-xl font-bold text-xs gap-2 shadow-xs cursor-pointer bg-primary text-primary-foreground"
+            >
+              <UserPlus className="size-4" />
+              <span>Convidar Colaborador</span>
+            </Button>
+          ) : (
+            <Button
+              onClick={() => setIsJobOpen(true)}
+              className="h-10 rounded-xl font-bold text-xs gap-2 shadow-xs cursor-pointer bg-primary text-primary-foreground"
+            >
+              <Plus className="size-4" />
+              <span>Publicar Vaga</span>
+            </Button>
+          )}
+        </div>
       </div>
 
-      {/* ── Banner de Isolamento Multi-Tenant & Zero-Trust ── */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-muted/40 border border-border/60 flex flex-col sm:flex-row items-start sm:items-center gap-3.5">
-        <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20">
-          <ShieldCheck className="size-5" />
-        </div>
-        <div className="space-y-0.5 flex-1 min-w-0">
-          <h3 className="text-xs font-bold text-foreground flex items-center gap-2">
-            <span>Privacidade & Isolamento Estrito de Workspace</span>
-            <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary/30 text-primary font-bold">
-              Zero-Trust RLS
-            </Badge>
-          </h3>
-          <p className="text-[11px] text-muted-foreground leading-relaxed">
-            Cada colaborador vinculado abaixo terá permissões aplicadas <strong>exclusivamente para esta loja</strong>.
-            Nenhum dado, pedido, faturamento ou catálogo de outros comerciantes é acessível.
-          </p>
-        </div>
-      </div>
+      {/* ── Tabs de Navegação ── */}
+      <Tabs value={activeTab} onValueChange={(v: any) => setActiveTab(v)} className="w-full">
+        <TabsList className="grid grid-cols-2 max-w-md h-11 p-1 bg-muted/60 rounded-2xl">
+          <TabsTrigger value="members" className="rounded-xl font-bold text-xs gap-1.5">
+            <Users className="size-3.5" />
+            <span>Colaboradores ({members.length})</span>
+          </TabsTrigger>
+          <TabsTrigger value="jobs" className="rounded-xl font-bold text-xs gap-1.5">
+            <Briefcase className="size-3.5" />
+            <span>Vagas Abertas ({jobs.length})</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="members" className="space-y-6 pt-4">
+          {/* ── Banner de Isolamento Multi-Tenant & Zero-Trust ── */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-muted/40 border border-border/60 flex flex-col sm:flex-row items-start sm:items-center gap-3.5">
+            <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20">
+              <ShieldCheck className="size-5" />
+            </div>
+            <div className="space-y-0.5 flex-1 min-w-0">
+              <h3 className="text-xs font-bold text-foreground flex items-center gap-2">
+                <span>Privacidade & Isolamento Estrito de Workspace</span>
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary/30 text-primary font-bold">
+                  Zero-Trust RLS
+                </Badge>
+              </h3>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Cada colaborador vinculado abaixo terá permissões aplicadas <strong>exclusivamente para esta loja</strong>.
+                Nenhum dado, pedido, faturamento ou catálogo de outros comerciantes é acessível.
+              </p>
+            </div>
+          </div>
 
       {/* ── Tabela de Colaboradores ── */}
       <div className="bg-card border border-border/60 rounded-2xl overflow-hidden shadow-xs">
@@ -354,6 +484,232 @@ export default function WorkspaceTeamPage() {
           </div>
         )}
       </div>
+    </TabsContent>
+
+    {/* ── ABA 2: VAGAS & RECRUTAMENTO (ATS) ── */}
+    <TabsContent value="jobs" className="space-y-6 pt-4">
+      <div className="bg-card border border-border/60 rounded-2xl overflow-hidden shadow-xs">
+        <div className="p-4 border-b border-border/60 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs font-bold text-foreground">
+            <span>Vagas de Emprego Publicadas</span>
+            <Badge variant="secondary" className="text-[11px] font-bold">
+              {jobs.length}
+            </Badge>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.invalidate()}
+            className="h-8 text-xs gap-1 text-muted-foreground hover:text-foreground"
+          >
+            <RefreshCw className="size-3.5" />
+            <span>Atualizar</span>
+          </Button>
+        </div>
+
+        {jobs.length === 0 ? (
+          <div className="p-12 text-center space-y-3">
+            <div className="size-12 rounded-2xl bg-muted text-muted-foreground mx-auto flex items-center justify-center">
+              <Briefcase className="size-6" />
+            </div>
+            <p className="text-sm font-semibold text-foreground">Nenhuma vaga aberta no momento</p>
+            <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+              Publique vagas de trabalho para receber currículos de profissionais e candidatos qualificados da cidade.
+            </p>
+            <Button
+              onClick={() => setIsJobOpen(true)}
+              className="rounded-xl text-xs font-bold h-9 bg-primary text-primary-foreground gap-1.5"
+            >
+              <Plus className="size-3.5" />
+              <span>Publicar Primeira Vaga</span>
+            </Button>
+          </div>
+        ) : (
+          <div className="divide-y divide-border/40">
+            {jobs.map((job: any) => (
+              <div
+                key={job.id}
+                className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-muted/20 transition-colors"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-sm shrink-0 border border-primary/20">
+                    <Briefcase className="size-5" />
+                  </div>
+                  <div className="min-w-0 space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs font-bold text-foreground truncate">{job.title}</p>
+                      <Badge variant="outline" className="text-[10px] uppercase font-mono font-bold">
+                        {job.contract_type} • {job.workplace_type}
+                      </Badge>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground truncate">
+                      {job.location} • {job.salary_display}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 self-end sm:self-center">
+                  <Badge className="bg-primary/10 text-primary border-primary/20 text-xs font-mono font-bold">
+                    {job.applications_count} Candidatos
+                  </Badge>
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="rounded-xl text-xs font-bold h-8"
+                  >
+                    <Link to="/workspace/empregos/candidatos">
+                      <span>Ver Currículos</span>
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </TabsContent>
+  </Tabs>
+
+  {/* ── SheetPage de Criação de Vaga ── */}
+  <SheetPage
+    open={isJobOpen}
+    onOpenChange={setIsJobOpen}
+    title="Publicar Nova Vaga de Emprego"
+    description="A vaga será exibida no portal público da cidade e no perfil da sua loja."
+    size="lg"
+    footer={
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          onClick={() => setIsJobOpen(false)}
+          disabled={isCreatingJob}
+          className="rounded-xl text-xs font-semibold"
+        >
+          Cancelar
+        </Button>
+        <Button
+          onClick={handleCreateJobSubmit}
+          disabled={isCreatingJob}
+          className="rounded-xl text-xs font-bold bg-primary text-primary-foreground"
+        >
+          {isCreatingJob ? "Publicando..." : "Publicar Vaga de Emprego"}
+        </Button>
+      </div>
+    }
+  >
+    <div className="space-y-4 py-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <Label className="text-xs font-bold">Título da Vaga / Cargo</Label>
+          <Input
+            value={jobForm.title}
+            onChange={(e) => setJobForm({ ...jobForm, title: e.target.value })}
+            placeholder="Ex: Atendente de Balcão & Caixa"
+            className="h-10 rounded-xl text-xs font-bold"
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label className="text-xs font-bold">Nome da Empresa / Estabelecimento</Label>
+          <Input
+            value={jobForm.company_name}
+            onChange={(e) => setJobForm({ ...jobForm, company_name: e.target.value })}
+            placeholder="Ex: Café & Bistrô Central"
+            className="h-10 rounded-xl text-xs font-bold"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="space-y-1.5">
+          <Label className="text-xs font-bold">Tipo de Contrato</Label>
+          <Select
+            value={jobForm.contract_type}
+            onValueChange={(v: any) => setJobForm({ ...jobForm, contract_type: v })}
+          >
+            <SelectTrigger className="h-10 rounded-xl text-xs font-semibold">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="rounded-2xl">
+              <SelectItem value="CLT">CLT (Efetivo)</SelectItem>
+              <SelectItem value="PJ">PJ (Prestador)</SelectItem>
+              <SelectItem value="Estágio">Estágio</SelectItem>
+              <SelectItem value="Freelancer">Freelancer</SelectItem>
+              <SelectItem value="Temporário">Temporário</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label className="text-xs font-bold">Modelo de Trabalho</Label>
+          <Select
+            value={jobForm.workplace_type}
+            onValueChange={(v: any) => setJobForm({ ...jobForm, workplace_type: v })}
+          >
+            <SelectTrigger className="h-10 rounded-xl text-xs font-semibold">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="rounded-2xl">
+              <SelectItem value="Presencial">Presencial</SelectItem>
+              <SelectItem value="Híbrido">Híbrido</SelectItem>
+              <SelectItem value="Remoto">Remoto</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label className="text-xs font-bold">Faixa Salarial / Remuneração</Label>
+          <Input
+            value={jobForm.salary_display}
+            onChange={(e) => setJobForm({ ...jobForm, salary_display: e.target.value })}
+            placeholder="Ex: R$ 2.500 - R$ 3.200"
+            className="h-10 rounded-xl text-xs font-mono font-bold"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label className="text-xs font-bold">Localização / Cidade</Label>
+        <Input
+          value={jobForm.location}
+          onChange={(e) => setJobForm({ ...jobForm, location: e.target.value })}
+          placeholder="Ex: Centro - Chapecó / SC"
+          className="h-10 rounded-xl text-xs"
+        />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label className="text-xs font-bold">Descrição das Atividades & Responsabilidades</Label>
+        <Textarea
+          value={jobForm.description}
+          onChange={(e) => setJobForm({ ...jobForm, description: e.target.value })}
+          placeholder="Descreva as principais funções, ambiente de trabalho e rotina..."
+          className="h-28 rounded-2xl text-xs resize-none"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <Label className="text-xs font-bold">Requisitos (1 por linha)</Label>
+          <Textarea
+            value={jobForm.requirements}
+            onChange={(e) => setJobForm({ ...jobForm, requirements: e.target.value })}
+            className="h-24 rounded-2xl text-xs resize-none font-mono"
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label className="text-xs font-bold">Benefícios (1 por linha)</Label>
+          <Textarea
+            value={jobForm.benefits}
+            onChange={(e) => setJobForm({ ...jobForm, benefits: e.target.value })}
+            className="h-24 rounded-2xl text-xs resize-none font-mono"
+          />
+        </div>
+      </div>
+    </div>
+  </SheetPage>
 
       {/* ── Modal de Convite de Colaborador ── */}
       <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
