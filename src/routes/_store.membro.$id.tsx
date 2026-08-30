@@ -341,50 +341,47 @@ export function MemberPublicProfileView({
         />
       )}
 
-      {/* ── Top Bar de Navegação Rápida entre Modos Contextuais ── */}
+      {/* ── Top Bar de Navegação Rápida entre Modos Contextuais (Clean & Direto) ── */}
       <div className="flex items-center justify-between gap-2 px-1">
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-muted/40 text-xs font-semibold">
+        <div className="flex items-center gap-1 p-1 rounded-xl bg-muted/40 text-xs font-semibold">
           <Link
             to="/membro/$id"
             params={{ id: profile.username || profile.id }}
             search={{ modo: "social" }}
             className={cn(
-              "px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5",
+              "px-3.5 py-1.5 rounded-lg transition-colors",
               activeMode === "social"
-                ? "bg-background text-foreground font-bold"
+                ? "bg-background text-foreground font-bold shadow-2xs"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
-            <Sparkles className="size-3.5" />
-            <span>Social</span>
+            Social
           </Link>
           <Link
             to="/membro/$id"
             params={{ id: profile.username || profile.id }}
             search={{ modo: "profissional" }}
             className={cn(
-              "px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5",
+              "px-3.5 py-1.5 rounded-lg transition-colors",
               activeMode === "profissional"
-                ? "bg-background text-foreground font-bold"
+                ? "bg-background text-foreground font-bold shadow-2xs"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
-            <Briefcase className="size-3.5" />
-            <span>Profissional</span>
+            Profissional
           </Link>
           <Link
             to="/membro/$id"
             params={{ id: profile.username || profile.id }}
             search={{ modo: "comercial" }}
             className={cn(
-              "px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5",
+              "px-3.5 py-1.5 rounded-lg transition-colors",
               activeMode === "comercial"
-                ? "bg-background text-foreground font-bold"
+                ? "bg-background text-foreground font-bold shadow-2xs"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
-            <Store className="size-3.5" />
-            <span>Comercial</span>
+            Comercial
           </Link>
         </div>
 
@@ -1424,33 +1421,31 @@ export function MemberPublicProfileView({
         <div className="space-y-6">
           {/* Navegação de Abas do Perfil Social */}
           <div className="flex items-center justify-between border-b border-border/40 pb-2">
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <button
                 type="button"
                 onClick={() => setSocialTab("posts")}
                 className={cn(
-                  "px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer",
+                  "px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer",
                   socialTab === "posts"
-                    ? "bg-primary text-primary-foreground shadow-xs"
+                    ? "bg-foreground text-background shadow-xs"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                 )}
               >
-                <MessageSquare className="size-3.5" />
-                <span>Publicações ({posts.length})</span>
+                Publicações ({posts.length})
               </button>
 
               <button
                 type="button"
                 onClick={() => setSocialTab("media")}
                 className={cn(
-                  "px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer",
+                  "px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer",
                   socialTab === "media"
-                    ? "bg-primary text-primary-foreground shadow-xs"
+                    ? "bg-foreground text-background shadow-xs"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                 )}
               >
-                <Grid className="size-3.5" />
-                <span>Fotos & Mídias</span>
+                Fotos & Mídias
               </button>
 
               {isOwner && (
@@ -1459,28 +1454,26 @@ export function MemberPublicProfileView({
                     type="button"
                     onClick={() => setSocialTab("saved")}
                     className={cn(
-                      "px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer",
+                      "px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer",
                       socialTab === "saved"
-                        ? "bg-primary text-primary-foreground shadow-xs"
+                        ? "bg-foreground text-background shadow-xs"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                     )}
                   >
-                    <Tag className="size-3.5" />
-                    <span>Salvos</span>
+                    Salvos
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setSocialTab("liked")}
                     className={cn(
-                      "px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer",
+                      "px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer",
                       socialTab === "liked"
-                        ? "bg-primary text-primary-foreground shadow-xs"
+                        ? "bg-foreground text-background shadow-xs"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                     )}
                   >
-                    <Sparkles className="size-3.5" />
-                    <span>Curtidos</span>
+                    Curtidos
                   </button>
                 </>
               )}
