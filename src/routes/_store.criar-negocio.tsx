@@ -166,9 +166,11 @@ function CriarNegocioPage() {
   const [logoUrl, setLogoUrl] = useState("");
   const [bannerUrl, setBannerUrl] = useState("");
 
-  // Etapa 4: Operação & Entrega
+  // Etapa 4: Operação & Entrega / Atendimento
   const [hasDelivery, setHasDelivery] = useState(true);
   const [hasPickup, setHasPickup] = useState(true);
+  const [hasInPersonService, setHasInPersonService] = useState(true);
+  const [hasOnlineService, setHasOnlineService] = useState(true);
   const [neighborhoods, setNeighborhoods] = useState<NeighborhoodItem[]>(CHAPECO_NEIGHBORHOODS);
   const [workingHours, setWorkingHours] = useState<WeeklySchedule>(() =>
     getPresetForSegment("gastronomia")
@@ -188,6 +190,15 @@ function CriarNegocioPage() {
 
   const selectedSegment =
     BUSINESS_SEGMENTS.find((s) => s.id === selectedSegmentId) || BUSINESS_SEGMENTS[0];
+
+  const isDeliverySegment = useMemo(() => {
+    return (
+      selectedSegment.category === "alimentacao" ||
+      selectedSegment.id === "ecommerce" ||
+      selectedSegment.id === "pet" ||
+      selectedSegment.id === "pharmacy"
+    );
+  }, [selectedSegment]);
 
   // Filtro de nichos na Etapa 1
   const filteredSegments = useMemo(() => {
@@ -503,10 +514,10 @@ function CriarNegocioPage() {
                   key={segment.id}
                   onClick={() => handleSelectNicheAndProceed(segment.id)}
                   className={cn(
-                    "group relative h-[360px] rounded-3xl overflow-hidden cursor-pointer transition-all duration-300 border flex flex-col justify-between p-5 select-none active:scale-[0.98]",
+                    "group relative h-64 rounded-3xl overflow-hidden cursor-pointer transition-all duration-200 border flex flex-col justify-between p-5 select-none active:scale-[0.98]",
                     isSelected
-                      ? "border-primary ring-2 ring-primary"
-                      : "border-border/80 hover:border-foreground/40 hover:"
+                      ? "border-primary ring-2 ring-primary shadow-md"
+                      : "border-border/60 hover:border-foreground/30 hover:shadow-xs"
                   )}
                 >
                   <img
@@ -514,44 +525,24 @@ function CriarNegocioPage() {
                     alt={segment.title}
                     className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
-                  <div className={cn("absolute inset-0 bg-gradient-to-b opacity-90 transition-opacity group-hover:opacity-95", segment.gradient)} />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/30" />
 
                   <div className="relative z-10 flex items-start justify-between gap-2">
-                    <div className={cn("size-10 rounded-2xl flex items-center justify-center backdrop-blur-md bg-black/40 border border-white/20 text-white")}>
-                      <IconComp className="size-5" />
+                    <div className="size-9 rounded-xl flex items-center justify-center backdrop-blur-md bg-black/40 border border-white/15 text-white">
+                      <IconComp className="size-4" />
                     </div>
-                    <Badge className="bg-white/15 backdrop-blur-md text-white border-white/20 text-[10px] font-bold px-2.5 py-1">
+                    <Badge className="bg-white/15 backdrop-blur-md text-white border-white/20 text-[10px] font-semibold px-2 py-0.5">
                       {segment.badge}
                     </Badge>
                   </div>
 
-                  <div className="relative z-10 space-y-2.5 text-white">
-                    <div>
-                      <h3 className="font-bold text-base tracking-tight leading-snug">
-                        {segment.title}
-                      </h3>
-                      <p className="text-xs text-white/80 line-clamp-2 mt-1 leading-relaxed">
-                        {segment.shortDesc}
-                      </p>
-                    </div>
-
-                    <div className="flex flex-wrap gap-1 pt-1">
-                      {segment.modules.slice(0, 2).map((mod, mIdx) => (
-                        <span
-                          key={mIdx}
-                          className="text-[10px] bg-black/40 backdrop-blur-sm border border-white/15 text-white/90 px-2 py-0.5 rounded-full"
-                        >
-                          ✓ {mod}
-                        </span>
-                      ))}
-                    </div>
-
-                    <div className="pt-2">
-                      <div className="w-full py-2 rounded-xl bg-white text-black text-xs font-bold flex items-center justify-center gap-1.5 transition-transform group-hover:translate-x-0.5">
-                        <span>Selecionar & Avançar</span>
-                        <ChevronRight className="size-3.5" />
-                      </div>
-                    </div>
+                  <div className="relative z-10 space-y-1 text-white">
+                    <h3 className="font-bold text-sm tracking-tight leading-snug">
+                      {segment.title}
+                    </h3>
+                    <p className="text-[11px] text-white/80 line-clamp-2 leading-relaxed">
+                      {segment.shortDesc}
+                    </p>
                   </div>
                 </div>
               );
@@ -761,77 +752,113 @@ function CriarNegocioPage() {
               </div>
             )}
 
-            {/* ETAPA 4: OPERAÇÃO & LOGÍSTICA */}
+            {/* ETAPA 4: OPERAÇÃO & ATENDIMENTO */}
             {step === 4 && (
               <div className="space-y-6">
-                {/* Banner & Apresentação de Logística */}
-                <div className="relative rounded-3xl overflow-hidden border border-border/80 bg-card shadow-xs">
-                  <div className="relative h-44 sm:h-52 w-full overflow-hidden bg-muted">
-                    <img
-                      src={
-                        logisticsInfo?.image_desktop_url ||
-                        "https://images.unsplash.com/photo-1616401784845-180882ba9ba8?auto=format&fit=crop&w=1600&q=80"
-                      }
-                      alt="Logística Integrada e Entregadores"
-                      className="size-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+                {/* Banner de Logística — EXCLUSIVO para negócios de Delivery/Varejo */}
+                {isDeliverySegment && (
+                  <div className="relative rounded-3xl overflow-hidden border border-border/80 bg-card shadow-xs">
+                    <div className="relative h-44 sm:h-52 w-full overflow-hidden bg-muted">
+                      <img
+                        src={
+                          logisticsInfo?.image_desktop_url ||
+                          "https://images.unsplash.com/photo-1616401784845-180882ba9ba8?auto=format&fit=crop&w=1600&q=80"
+                        }
+                        alt="Logística Integrada e Entregadores"
+                        className="size-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
 
-                    <div className="absolute inset-x-0 bottom-0 p-5 text-white space-y-1.5">
-                      <div className="flex items-center gap-2">
-                        <Badge className="bg-emerald-500 text-white text-[10px] font-extrabold px-2.5 py-0.5 border-none">
-                          Zero Taxa de Intermediação
-                        </Badge>
+                      <div className="absolute inset-x-0 bottom-0 p-5 text-white space-y-1.5">
+                        <div className="flex items-center gap-2">
+                          <Badge className="bg-emerald-500 text-white text-[10px] font-extrabold px-2.5 py-0.5 border-none">
+                            Zero Taxa de Intermediação
+                          </Badge>
+                        </div>
+                        <h2 className="text-base sm:text-xl font-black tracking-tight text-white">
+                          {logisticsInfo?.title || "Logística Integrada & MotoLink"}
+                        </h2>
+                        <p className="text-xs text-white/90 line-clamp-2 leading-relaxed">
+                          {logisticsInfo?.subtitle ||
+                            "Conecte-se aos entregadores autônomos da sua cidade com 1 clique sem taxas abusivas."}
+                        </p>
                       </div>
-                      <h2 className="text-base sm:text-xl font-black tracking-tight text-white">
-                        {logisticsInfo?.title || "Logística Integrada & MotoLink"}
-                      </h2>
-                      <p className="text-xs text-white/90 line-clamp-2 leading-relaxed">
-                        {logisticsInfo?.subtitle ||
-                          "Conecte-se aos entregadores autônomos da sua cidade com 1 clique sem taxas abusivas."}
-                      </p>
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* Configurações Operacionais */}
                 <div className="bg-card p-6 sm:p-8 rounded-3xl border border-border/70 space-y-6 shadow-xs">
                   <div className="space-y-1 pb-2 border-b border-border/60">
-                    <h3 className="text-base font-bold text-foreground">Configurações de Atendimento da Loja</h3>
+                    <h3 className="text-base font-bold text-foreground">
+                      {isDeliverySegment ? "Configurações de Entrega & Atendimento" : "Modalidades de Atendimento & Horários"}
+                    </h3>
                     <p className="text-xs text-muted-foreground">
-                      Selecione as modalidades que sua loja atenderá no catálogo e defina horários de funcionamento.
+                      {isDeliverySegment
+                        ? "Selecione as modalidades que sua loja atenderá no catálogo e defina horários de entrega."
+                        : "Defina como seus clientes serão atendidos e o horário comercial de funcionamento da sua empresa."}
                     </p>
                   </div>
 
                   <div className="space-y-5">
-                    {/* Modalidades de Entrega */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="flex items-center justify-between p-4 rounded-2xl bg-muted/20 border border-border/60">
-                        <div className="space-y-0.5">
-                          <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                            <Truck className="size-4 text-primary" />
-                            <span>Delivery & MotoLink</span>
-                          </p>
-                          <p className="text-[11px] text-muted-foreground">
-                            Entregas no endereço do cliente via motoboys ou frota própria.
-                          </p>
+                    {/* Modalidades Condicionais */}
+                    {isDeliverySegment ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="flex items-center justify-between p-4 rounded-2xl bg-muted/20 border border-border/60">
+                          <div className="space-y-0.5">
+                            <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                              <Truck className="size-4 text-primary" />
+                              <span>Delivery & MotoLink</span>
+                            </p>
+                            <p className="text-[11px] text-muted-foreground">
+                              Entregas no endereço do cliente via motoboys ou frota própria.
+                            </p>
+                          </div>
+                          <Switch checked={hasDelivery} onCheckedChange={setHasDelivery} />
                         </div>
-                        <Switch checked={hasDelivery} onCheckedChange={setHasDelivery} />
-                      </div>
 
-                      <div className="flex items-center justify-between p-4 rounded-2xl bg-muted/20 border border-border/60">
-                        <div className="space-y-0.5">
-                          <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                            <Store className="size-4 text-primary" />
-                            <span>Retirada no Balcão</span>
-                          </p>
-                          <p className="text-[11px] text-muted-foreground">
-                            Permita que clientes retirem pessoalmente na sua loja.
-                          </p>
+                        <div className="flex items-center justify-between p-4 rounded-2xl bg-muted/20 border border-border/60">
+                          <div className="space-y-0.5">
+                            <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                              <Store className="size-4 text-primary" />
+                              <span>Retirada no Balcão</span>
+                            </p>
+                            <p className="text-[11px] text-muted-foreground">
+                              Permita que clientes retirem pessoalmente na sua loja.
+                            </p>
+                          </div>
+                          <Switch checked={hasPickup} onCheckedChange={setHasPickup} />
                         </div>
-                        <Switch checked={hasPickup} onCheckedChange={setHasPickup} />
                       </div>
-                    </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="flex items-center justify-between p-4 rounded-2xl bg-muted/20 border border-border/60">
+                          <div className="space-y-0.5">
+                            <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                              <Building2 className="size-4 text-primary" />
+                              <span>Atendimento Presencial no Escritório / Sede</span>
+                            </p>
+                            <p className="text-[11px] text-muted-foreground">
+                              Receba clientes e viajantes pessoalmente no seu endereço físico.
+                            </p>
+                          </div>
+                          <Switch checked={hasInPersonService} onCheckedChange={setHasInPersonService} />
+                        </div>
+
+                        <div className="flex items-center justify-between p-4 rounded-2xl bg-muted/20 border border-border/60">
+                          <div className="space-y-0.5">
+                            <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                              <Phone className="size-4 text-primary" />
+                              <span>Atendimento Online / WhatsApp / Remoto</span>
+                            </p>
+                            <p className="text-[11px] text-muted-foreground">
+                              Cotações, reservas e suporte digital direto via canais virtuais.
+                            </p>
+                          </div>
+                          <Switch checked={hasOnlineService} onCheckedChange={setHasOnlineService} />
+                        </div>
+                      </div>
+                    )}
 
                     {/* Horário de Atendimento */}
                     <div className="space-y-3 pt-2">
@@ -850,8 +877,8 @@ function CriarNegocioPage() {
                       />
                     </div>
 
-                    {/* Bairros e Taxas de Entrega com Power Tools */}
-                    {hasDelivery && (
+                    {/* Bairros e Taxas de Entrega — APENAS SE FOR DELIVERY ATIVO */}
+                    {isDeliverySegment && hasDelivery && (
                       <div className="pt-4 border-t border-border/60">
                         <NeighborhoodsManager
                           cityName={locationData.city || detectedCity || "Sua Cidade"}
