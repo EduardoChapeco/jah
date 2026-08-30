@@ -37,6 +37,10 @@ export const saveStoreSettingsSchema = z.object({
   state: z.string().max(2).optional(),
   zip_code: z.string().max(9).optional(),
   description: z.string().max(500).optional(),
+  segment: z.string().optional(),
+  type: z.string().optional(),
+  niche: z.string().optional(),
+  enabled_modules: z.array(z.string()).optional(),
   logoUrl: z.string().optional(),
   bannerUrl: z.string().optional(),
   faviconUrl: z.string().optional(),
@@ -52,6 +56,10 @@ export async function _saveStoreSettings(data: z.infer<typeof saveStoreSettingsS
   assertStoreAccess(identity, ["owner", "admin"]);
 
   const {
+    segment,
+    type,
+    niche,
+    enabled_modules,
     logoUrl,
     bannerUrl,
     faviconUrl,
@@ -72,6 +80,10 @@ export async function _saveStoreSettings(data: z.infer<typeof saveStoreSettingsS
     .single();
   const settings = {
     ...(currentStore?.settings || {}),
+    ...(segment ? { segment, type: segment, niche: segment } : {}),
+    ...(type && !segment ? { type, segment: type, niche: type } : {}),
+    ...(niche && !segment && !type ? { niche, segment: niche, type: niche } : {}),
+    ...(enabled_modules !== undefined ? { enabled_modules } : {}),
     logoUrl,
     bannerUrl,
     faviconUrl,

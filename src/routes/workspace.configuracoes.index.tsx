@@ -97,6 +97,9 @@ export default function WorkspaceConfiguracoesPage() {
   const [email, setEmail] = useState(store?.email || "");
   const [cnpj, setCnpj] = useState(store?.cnpj || "");
   const [address, setAddress] = useState(store?.address || "");
+  const [segment, setSegment] = useState(
+    store?.settings?.segment || store?.settings?.type || store?.settings?.niche || "gastronomy"
+  );
   const [city, setCity] = useState(store?.city || "");
   const [state, setState] = useState(store?.state || "");
   const [zipCode, setZipCode] = useState(store?.zip_code || "");
@@ -182,10 +185,11 @@ export default function WorkspaceConfiguracoesPage() {
 
     setIsSaving(true);
     try {
-      // 1. Salva Dados da Loja, Bairros e Perguntas de Checkout
+      // 1. Salva Dados da Loja, Nicho, Bairros e Perguntas de Checkout
       await saveStoreSettings({
         data: {
           name: name.trim(),
+          segment,
           description: description.trim() || undefined,
           logoUrl: logoUrl.trim() || undefined,
           bannerUrl: bannerUrl.trim() || undefined,
@@ -285,9 +289,12 @@ export default function WorkspaceConfiguracoesPage() {
 
       {/* ── 2. Abas de Governança ── */}
       <Tabs defaultValue="geral" className="w-full space-y-6">
-        <TabsList className="grid grid-cols-2 sm:grid-cols-6 bg-muted/60 p-1 rounded-2xl">
+        <TabsList className="grid grid-cols-2 sm:grid-cols-7 bg-muted/60 p-1 rounded-2xl">
           <TabsTrigger value="geral" className="rounded-xl text-xs font-semibold">
             Marca & Vitrine
+          </TabsTrigger>
+          <TabsTrigger value="nicho" className="rounded-xl text-xs font-semibold">
+            Nicho & Recursos
           </TabsTrigger>
           <TabsTrigger value="contato" className="rounded-xl text-xs font-semibold">
             Contato & Endereço
@@ -296,13 +303,13 @@ export default function WorkspaceConfiguracoesPage() {
             Entrega & Bairros
           </TabsTrigger>
           <TabsTrigger value="horarios" className="rounded-xl text-xs font-semibold">
-            Horários de Atendimento
+            Horários
           </TabsTrigger>
           <TabsTrigger value="politicas" className="rounded-xl text-xs font-semibold">
-            Políticas da Loja
+            Políticas
           </TabsTrigger>
           <TabsTrigger value="checkout" className="rounded-xl text-xs font-semibold">
-            Campos de Checkout
+            Checkout
           </TabsTrigger>
         </TabsList>
 
@@ -396,6 +403,93 @@ export default function WorkspaceConfiguracoesPage() {
               </p>
             </div>
             <ThemeSelector />
+          </Card>
+        </TabsContent>
+
+        {/* ABA: Nicho & Recursos da Loja */}
+        <TabsContent value="nicho" className="space-y-6">
+          <Card className="p-6 rounded-3xl border-border bg-card space-y-5">
+            <div className="pb-2">
+              <h2 className="text-base font-bold text-foreground">Nicho & Modelo de Operação</h2>
+              <p className="text-xs text-muted-foreground">
+                Ajusta automaticamente os módulos, menus e ferramentas da barra lateral para a realidade do seu negócio.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {[
+                {
+                  id: "gastronomy",
+                  title: "Gastronomia & Delivery",
+                  desc: "Restaurantes, pizzarias, hamburguerias, marmitarias e cafés. Inclui KDS de cozinha, comandas e taxa de entrega.",
+                },
+                {
+                  id: "ecommerce",
+                  title: "Varejo & Comércio",
+                  desc: "Lojas de roupas, calçados, pet shop, mercado e eletrônicos. Inclui variações de grade, estoque e fretes.",
+                },
+                {
+                  id: "services",
+                  title: "Serviços, Saúde & Beleza",
+                  desc: "Salões, barbearias, clínicas, consultorias e estética. Inclui agenda de profissionais, salas e passes.",
+                },
+                {
+                  id: "rental_events",
+                  title: "Locação & Eventos",
+                  desc: "Aluguel de som, luz, tendas, palcos e estruturas. Inclui inventário de bens, datas de locação e contratos.",
+                },
+                {
+                  id: "tech_repair",
+                  title: "Assistência & Mecânica",
+                  desc: "Conserto de celular, oficinas e informática. Inclui Ordens de Serviço (OS), peças de reposição e mão de obra.",
+                },
+                {
+                  id: "legal",
+                  title: "Advocacia & Jurídico",
+                  desc: "Escritórios de advocacia e consultoria jurídica. Inclui controle de processos, prazos e audiências.",
+                },
+                {
+                  id: "real_estate",
+                  title: "Imobiliária & Imóveis",
+                  desc: "Corretores e imobiliárias. Inclui catálogo de imóveis, vistorias e chamados de manutenção.",
+                },
+                {
+                  id: "tourism",
+                  title: "Turismo & Viagens",
+                  desc: "Agências de viagem, pousadas e guias turísticos. Inclui cotações de pacotes, passeios e ingressos.",
+                },
+              ].map((n) => {
+                const isSelected =
+                  segment.toLowerCase().includes(n.id) ||
+                  (n.id === "gastronomy" && segment.toLowerCase().includes("pizza")) ||
+                  (n.id === "gastronomy" && segment.toLowerCase().includes("restauran")) ||
+                  (n.id === "ecommerce" && segment.toLowerCase().includes("moda"));
+
+                return (
+                  <button
+                    key={n.id}
+                    type="button"
+                    onClick={() => setSegment(n.id)}
+                    className={cn(
+                      "flex flex-col text-left p-4 rounded-2xl border transition-all cursor-pointer relative",
+                      isSelected
+                        ? "border-primary bg-primary/5 ring-1 ring-primary/40"
+                        : "border-border/60 bg-muted/20 hover:bg-muted/50 text-muted-foreground"
+                    )}
+                  >
+                    <div className="flex items-center justify-between w-full mb-1.5">
+                      <span className={cn("text-xs font-bold", isSelected ? "text-primary" : "text-foreground")}>
+                        {n.title}
+                      </span>
+                      {isSelected && <Check className="size-3.5 text-primary shrink-0" />}
+                    </div>
+                    <p className="text-[11px] leading-relaxed text-muted-foreground">
+                      {n.desc}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
           </Card>
         </TabsContent>
 

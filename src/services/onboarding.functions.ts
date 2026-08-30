@@ -606,9 +606,11 @@ export const provisionBusiness = createServerFn({ method: "POST" })
       .single();
     if (orgError) throw new Error("Erro ao criar organização: " + orgError.message);
 
-    // 2. Montar objeto settings estruturado e persistido com type, logoUrl e configurações
+    // 2. Montar objeto settings estruturado e persistido com type, segment, logoUrl e configurações
     const settings: Record<string, any> = {
-      type: data.type || "ecommerce",
+      type: data.type || "gastronomy",
+      segment: data.type || "gastronomy",
+      niche: data.type || "gastronomy",
       logoUrl: data.logoUrl || null,
       bannerUrl: data.bannerUrl || null,
       business_model: data.businessModel || "physical_and_delivery",
