@@ -36,14 +36,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { SheetPage } from "@/components/ui/sheet-page";
 import { Input } from "@/components/ui/input";
 import { CurrencyField } from "@/components/ui/currency-field";
 import { Label } from "@/components/ui/label";
@@ -431,23 +424,50 @@ function OptionGroupsPage() {
         )}
       </div>
 
-      {/* Sheet de Criação / Edição de Grupo de Opções */}
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-0 bg-card border-border sm:rounded-l-3xl">
-          <SheetHeader className="p-5 pb-3 border-b border-border/50 bg-muted/20">
-            <SheetTitle className="text-base font-bold text-foreground">
-              {form.watch("id") ? "Editar Grupo de Opções" : "Novo Grupo de Opções"}
-            </SheetTitle>
-            <SheetDescription className="text-xs text-muted-foreground">
-              Configure complementos com fotos, limites de escolha e valores adicionais.
-            </SheetDescription>
-          </SheetHeader>
-
-          <form onSubmit={form.handleSubmit(onSubmit as any)} className="p-5 space-y-6">
-            {/* Presets Rápidos de 1 Clique */}
-            {!form.watch("id") && (
-              <div className="space-y-2 pb-2 border-b border-border/40">
-                <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+      {/* SheetPage de Criação / Edição de Grupo de Opções */}
+      <SheetPage
+        open={open}
+        onOpenChange={setOpen}
+        title={form.watch("id") ? "Editar Grupo de Opções" : "Novo Grupo de Opções"}
+        description="Configure complementos com fotos, limites de escolha e valores adicionais."
+        size="xl"
+        footer={
+          <div className="flex items-center justify-between w-full">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setOpen(false)}
+              disabled={isSubmitting}
+              className="rounded-xl text-xs font-semibold"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              onClick={form.handleSubmit(onSubmit as any)}
+              disabled={isSubmitting}
+              className="rounded-xl text-xs font-bold bg-foreground text-background hover:bg-foreground/90 gap-1.5 h-9"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="size-3.5 animate-spin" />
+                  <span>Salvando...</span>
+                </>
+              ) : (
+                <>
+                  <Check className="size-3.5" />
+                  <span>Salvar Grupo</span>
+                </>
+              )}
+            </Button>
+          </div>
+        }
+      >
+        <form onSubmit={form.handleSubmit(onSubmit as any)} className="space-y-6 py-2">
+          {/* Presets Rápidos de 1 Clique */}
+          {!form.watch("id") && (
+            <div className="space-y-2 pb-2 border-b border-border/40">
+              <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                   <Sparkles className="size-3.5 text-primary" />
                   <span>Modelos Prontos (Presets de 1 Clique)</span>
                 </div>
@@ -612,37 +632,8 @@ function OptionGroupsPage() {
               </div>
             </div>
 
-            <SheetFooter className="p-4 px-0 flex items-center justify-between gap-3 border-t border-border/50">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setOpen(false)}
-                disabled={isSubmitting}
-                className="rounded-xl text-xs font-semibold"
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="rounded-xl text-xs font-bold bg-foreground text-background hover:bg-foreground/90 gap-1.5 h-9"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="size-3.5 animate-spin" />
-                    <span>Salvando...</span>
-                  </>
-                ) : (
-                  <>
-                    <Check className="size-3.5" />
-                    <span>Salvar Grupo</span>
-                  </>
-                )}
-              </Button>
-            </SheetFooter>
           </form>
-        </SheetContent>
-      </Sheet>
+        </SheetPage>
     </div>
   );
 }
