@@ -46,7 +46,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
   accept = "all",
   aspect,
   cropShape = "rect",
-  lockAspect = false,
+  lockAspect = true,
   enableCrop = true,
   acceptedTypes = accept === "image"
     ? ["image/jpeg", "image/png", "image/webp", "image/gif"]

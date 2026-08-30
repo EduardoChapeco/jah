@@ -404,8 +404,9 @@ export function ImageUpload({
         onOpenChange={setCropModalOpen}
         imageSrc={currentImageSrc}
         aspect={effectiveAspect}
-        cropShape="rect"
-        lockAspect={false}
+        cropShape={isAvatar ? "round" : "rect"}
+        lockAspect={true}
+        title="Enquadrar Imagem"
         onCropCompleteAction={handleCropComplete}
       />
     </div>
