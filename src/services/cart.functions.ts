@@ -197,16 +197,19 @@ export async function mapCartToDTO(cart: any): Promise<CartDTO> {
     }
   });
 
-  const optionLabelsMap: Record<string, string> = {};
+  const optionMetaMap: Record<string, { label: string; priceModifierCents: number }> = {};
   if (allOptionIds.size > 0) {
     const { data: optionVals } = await supabase
       .from("option_values")
-      .select("id, label")
+      .select("id, label, price_modifier_cents")
       .in("id", Array.from(allOptionIds));
 
     if (optionVals) {
       optionVals.forEach((v) => {
-        optionLabelsMap[v.id] = v.label;
+        optionMetaMap[v.id] = {
+          label: v.label,
+          priceModifierCents: v.price_modifier_cents || 0,
+        };
       });
     }
   }
@@ -259,10 +262,24 @@ export async function mapCartToDTO(cart: any): Promise<CartDTO> {
       Object.values(item.selected_options).forEach((val) => {
         if (Array.isArray(val)) {
           val.forEach((v) => {
-            if (optionLabelsMap[v]) selectedOptionsLabels.push(optionLabelsMap[v]);
+            const meta = optionMetaMap[v];
+            if (meta) {
+              selectedOptionsLabels.push(
+                meta.priceModifierCents > 0
+                  ? `${meta.label} (+${formatMoney(meta.priceModifierCents)})`
+                  : meta.label
+              );
+            }
           });
-        } else if (optionLabelsMap[val]) {
-          selectedOptionsLabels.push(optionLabelsMap[val]);
+        } else {
+          const meta = optionMetaMap[val];
+          if (meta) {
+            selectedOptionsLabels.push(
+              meta.priceModifierCents > 0
+                ? `${meta.label} (+${formatMoney(meta.priceModifierCents)})`
+                : meta.label
+            );
+          }
         }
       });
     }
@@ -539,31 +556,54 @@ export const addToCart = createServerFn({ method: "POST" })
       if (!insertedSuccessfully) {
         const cartId = await getOrCreateCartId(identity, storeId);
 
-        // Preço snapshot da variante/produto
+        // Preço snapshot base da variante/produto
         const { data: variantRecord } = await supabase
           .from("product_variants")
           .select("price_override_cents, products(price_cents)")
           .eq("id", variantId)
           .single();
 
-        const priceSnapshot =
+        let optionsTotalCents = 0;
+        const selectedOptionIds: string[] = [];
+        if (options) {
+          Object.values(options).forEach((val) => {
+            if (Array.isArray(val)) val.forEach((v) => selectedOptionIds.push(v));
+            else if (typeof val === "string" && val) selectedOptionIds.push(val);
+          });
+        }
+        if (selectedOptionIds.length > 0) {
+          const { data: optRows } = await supabase
+            .from("option_values")
+            .select("price_modifier_cents")
+            .in("id", selectedOptionIds);
+          if (optRows) {
+            optionsTotalCents = optRows.reduce((acc, row) => acc + (row.price_modifier_cents || 0), 0);
+          }
+        }
+
+        const basePrice =
           variantRecord?.price_override_cents ??
           (variantRecord?.products as any)?.price_cents ??
           0;
+        const priceSnapshot = basePrice + optionsTotalCents;
 
-        // Verifica se item já existe no carrinho
-        const { data: existingItem } = await supabase
+        // Verifica se item com as MESMAS opções já existe no carrinho
+        const optionsJsonStr = JSON.stringify(options || {});
+        const { data: existingItems } = await supabase
           .from("cart_items")
-          .select("id, qty")
+          .select("id, qty, selected_options")
           .eq("cart_id", cartId)
-          .eq("variant_id", variantId)
-          .maybeSingle();
+          .eq("variant_id", variantId);
 
-        if (existingItem) {
+        const matchedItem = existingItems?.find(
+          (item) => JSON.stringify(item.selected_options || {}) === optionsJsonStr
+        );
+
+        if (matchedItem) {
           await supabase
             .from("cart_items")
-            .update({ qty: existingItem.qty + quantity })
-            .eq("id", existingItem.id);
+            .update({ qty: matchedItem.qty + quantity, price_snapshot_cents: priceSnapshot })
+            .eq("id", matchedItem.id);
         } else {
           await supabase.from("cart_items").insert({
             cart_id: cartId,

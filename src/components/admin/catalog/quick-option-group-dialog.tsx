@@ -297,13 +297,33 @@ export function QuickOptionGroupDialog({
     setUploadingIndex(index);
 
     try {
-      const file = new File([blob], `option-val-${Date.now()}.webp`, { type: "image/webp" });
-      const publicUrl = await uploadStoreMedia(file, "avatars");
-      form.setValue(`values.${index}.image_url`, publicUrl);
-      toast.success("Foto do adicional anexada!");
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const base64Data = reader.result as string;
+          const res = await uploadStoreMedia({
+            data: {
+              fileName: `option-val-${Date.now()}.webp`,
+              fileType: "image/webp",
+              base64Data,
+              bucket: "cms-media",
+            },
+          });
+          if (res?.url) {
+            form.setValue(`values.${index}.image_url`, res.url);
+            toast.success("Foto do adicional anexada com sucesso!");
+          }
+        } catch {
+          toast.error("Erro ao processar upload da foto.");
+        } finally {
+          setUploadingIndex(null);
+          setActiveValueIndexForUpload(null);
+          setCurrentImageToCrop(null);
+        }
+      };
+      reader.readAsDataURL(blob);
     } catch {
       toast.error("Erro ao fazer upload da foto.");
-    } finally {
       setUploadingIndex(null);
       setActiveValueIndexForUpload(null);
       setCurrentImageToCrop(null);
