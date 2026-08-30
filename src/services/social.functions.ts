@@ -1080,7 +1080,23 @@ export const getPublicMemberProfile = createServerFn({ method: "GET" })
     }
 
     if (!rawProfile) {
-      throw new Error("Perfil de membro não encontrado.");
+      return {
+        profile: null,
+        isOwner: false,
+        posts: [],
+        classifieds: [],
+        events: [],
+        stores: [],
+        stats: {
+          postsCount: 0,
+          classifiedsCount: 0,
+          eventsCount: 0,
+          followersCount: 0,
+          followingCount: 0,
+          totalLikes: 0,
+        },
+        isFollowing: false,
+      };
     }
 
     const targetUserId = rawProfile.id;

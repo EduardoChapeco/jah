@@ -1,6 +1,4 @@
--- Migration: Handle Governance & 30-Day Anti-Squatting Engine
--- Permite 1 mudanca de handle a cada 30 dias para membros gerais, protege o handle antigo por 30 dias para o mesmo titular
--- e garante resolucao historica sem quebrar links antigos compartilhados.
+-- Migration: Update claim_handle_atomic with admin exemptions and safe handling
 
 CREATE OR REPLACE FUNCTION public.claim_handle_atomic(
   p_profile_id UUID,
@@ -20,7 +18,7 @@ DECLARE
   v_days_since_change NUMERIC;
   v_days_remaining INT;
 BEGIN
-  -- 1. Normaliza e valida formato (apenas letras minusculas, numeros e underscores, 3-30 chars)
+  -- 1. Normaliza e valida formato
   v_normalized_handle := lower(trim(p_new_handle));
 
   IF v_normalized_handle !~ '^[a-z0-9_]{3,30}$' THEN
@@ -37,7 +35,7 @@ BEGIN
     RAISE EXCEPTION 'Perfil nao encontrado.';
   END IF;
 
-  -- 3. Se for o mesmo handle atual, retorna sucesso imediatamente (idempotente)
+  -- 3. Se for o mesmo handle atual, retorna sucesso imediatamente
   IF v_current_handle = v_normalized_handle THEN
     RETURN jsonb_build_object(
       'status', 'success',
@@ -56,7 +54,7 @@ BEGIN
     RAISE EXCEPTION 'Este nome de usuario ja esta em uso por outro membro.';
   END IF;
 
-  -- 5. Verifica protecao contra Squatting (handle antigo de outro usuario liberado ha menos de 30 dias)
+  -- 5. Verifica protecao contra Squatting
   SELECT profile_id, old_handle, created_at INTO v_squatter_lock
   FROM public.handle_history
   WHERE old_handle = v_normalized_handle
@@ -70,8 +68,12 @@ BEGIN
   END IF;
 
   -- 6. Verifica regra de frequencia: maximo de 1 alteracao a cada 30 dias
-  -- Excecoes: Admins/Masters, Handles Iniciais/Temporarios ou Restauracao para o handle anterior
-  IF v_current_handle IS NOT NULL AND v_current_role NOT IN ('admin', 'master', 'superadmin') AND v_current_handle NOT LIKE 'user_%' THEN
+  -- Admins, Masters e handles temporarios sao isentos para permitir configuracao
+  IF v_current_handle IS NOT NULL 
+     AND COALESCE(v_current_role, 'customer') NOT IN ('admin', 'master', 'superadmin') 
+     AND v_current_handle NOT LIKE 'user_%' 
+     AND v_current_handle NOT IN ('admin', 'master') THEN
+    
     SELECT id, old_handle, new_handle, created_at INTO v_last_change
     FROM public.handle_history
     WHERE profile_id = p_profile_id
@@ -82,9 +84,7 @@ BEGIN
       v_days_since_change := EXTRACT(EPOCH FROM (now() - v_last_change.created_at)) / 86400.0;
       
       IF v_days_since_change < 30.0 THEN
-        -- Se estiver restaurando para o handle imediatamente anterior, permite restauracao!
         IF v_last_change.old_handle = v_normalized_handle THEN
-          -- Restauracao autorizada
           NULL;
         ELSE
           v_days_remaining := CEIL(30.0 - v_days_since_change);
