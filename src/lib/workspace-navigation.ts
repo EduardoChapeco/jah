@@ -356,9 +356,14 @@ const GROUP_MARKETING_VITRINE: NavGroup = {
   icon: Megaphone,
   items: [
     { path: "/workspace/marketing/vitrine", label: "Vitrine da Loja", icon: Eye },
+    { path: "/workspace/cms/bio", label: "Editor de Link da Bio", icon: Link2 },
+    { path: "/workspace/cms/paginas", label: "Páginas do Site", icon: FileText },
+    { path: "/workspace/estudio", label: "Estúdio de Design (Studio)", icon: Sparkles },
     { path: "/workspace/marketing/banners", label: "Banners & Destaques", icon: ImageIcon },
+    { path: "/workspace/marketing/hotpages", label: "Destaques & Hotpages", icon: Layers },
     { path: "/workspace/marketing/promocoes", label: "Promoções & Cupons", icon: Flame },
     { path: "/workspace/cms/stories", label: "Stories & Mídia", icon: ImageIcon },
+    { path: "/workspace/marketing/anuncios", label: "Campanhas de Anúncios", icon: Megaphone },
   ],
 };
 
