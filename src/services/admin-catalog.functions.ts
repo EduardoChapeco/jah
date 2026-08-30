@@ -1831,11 +1831,11 @@ export const listOptionGroups = createServerFn({ method: "GET" }).handler(async 
       .from("option_groups")
       .select(
         `
-        id, internal_name, display_name, selection_type,
+        id, internal_name, display_name, description, selection_type,
         min_selections, max_selections, is_required,
         created_at, updated_at,
         values:option_values(
-          id, label, price_modifier_cents, is_default, is_active, sort_order
+          id, label, description, image_url, price_modifier_cents, max_quantity_per_item, is_default, is_active, sort_order
         )
       `,
       )
@@ -1866,6 +1866,7 @@ export const upsertOptionGroup = createServerFn({ method: "POST" })
       id: z.string().uuid().optional(),
       internal_name: z.string().min(1),
       display_name: z.string().min(1),
+      description: z.string().optional().nullable(),
       selection_type: z.enum(["single", "multiple"]),
       min_selections: z.number().int().min(0),
       max_selections: z.number().int().min(1),
@@ -1874,7 +1875,10 @@ export const upsertOptionGroup = createServerFn({ method: "POST" })
         z.object({
           id: z.string().uuid().optional(),
           label: z.string().min(1),
+          description: z.string().optional().nullable(),
+          image_url: z.string().optional().nullable(),
           price_modifier_cents: z.number().int().default(0),
+          max_quantity_per_item: z.number().int().min(1).default(1).optional(),
           is_default: z.boolean().default(false),
           is_active: z.boolean().default(true),
           sort_order: z.number().int().default(0),
@@ -1895,6 +1899,7 @@ export const upsertOptionGroup = createServerFn({ method: "POST" })
         store_id,
         internal_name: input.internal_name,
         display_name: input.display_name,
+        description: input.description || null,
         selection_type: input.selection_type,
         min_selections: input.min_selections,
         max_selections: input.max_selections,
@@ -1924,7 +1929,10 @@ export const upsertOptionGroup = createServerFn({ method: "POST" })
           ...(v.id ? { id: v.id } : {}),
           group_id: groupId,
           label: v.label,
+          description: v.description || null,
+          image_url: v.image_url || null,
           price_modifier_cents: v.price_modifier_cents,
+          max_quantity_per_item: v.max_quantity_per_item ?? 1,
           is_default: v.is_default,
           is_active: v.is_active,
           sort_order: v.sort_order ?? index,
@@ -1955,11 +1963,11 @@ export const upsertOptionGroup = createServerFn({ method: "POST" })
         .from("option_groups")
         .select(
           `
-          id, internal_name, display_name, selection_type,
+          id, internal_name, display_name, description, selection_type,
           min_selections, max_selections, is_required,
           created_at, updated_at,
           values:option_values(
-            id, label, price_modifier_cents, is_default, is_active, sort_order
+            id, label, description, image_url, price_modifier_cents, max_quantity_per_item, is_default, is_active, sort_order
           )
         `,
         )
@@ -2009,7 +2017,10 @@ export const quickUpdateOptionValue = createServerFn({ method: "POST" })
     z.object({
       id: z.string().uuid(),
       label: z.string().min(1).optional(),
+      description: z.string().nullable().optional(),
+      image_url: z.string().nullable().optional(),
       price_modifier_cents: z.number().int().optional(),
+      max_quantity_per_item: z.number().int().min(1).optional(),
       is_active: z.boolean().optional(),
     }),
   )
@@ -2034,8 +2045,12 @@ export const quickUpdateOptionValue = createServerFn({ method: "POST" })
 
       const updateData: Record<string, any> = {};
       if (input.label !== undefined) updateData.label = input.label;
+      if (input.description !== undefined) updateData.description = input.description;
+      if (input.image_url !== undefined) updateData.image_url = input.image_url;
       if (input.price_modifier_cents !== undefined)
         updateData.price_modifier_cents = input.price_modifier_cents;
+      if (input.max_quantity_per_item !== undefined)
+        updateData.max_quantity_per_item = input.max_quantity_per_item;
       if (input.is_active !== undefined) updateData.is_active = input.is_active;
 
       const { error: updErr } = await db

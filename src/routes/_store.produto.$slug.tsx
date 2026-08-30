@@ -924,7 +924,7 @@ function ProductContent({
                         {isMultiple ? `Até ${og.maxSelections} opções` : "Escolha 1 opção"}
                       </span>
                     </div>
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-2.5">
                       {og.values.map((val: any) => {
                         const isSelected = isMultiple
                           ? Array.isArray(selection) && selection.includes(val.id)
@@ -935,29 +935,72 @@ function ProductContent({
                             key={val.id}
                             type="button"
                             onClick={() => handleOptionToggle(val.id)}
-                            className={`flex items-center justify-between p-3 border rounded text-left transition-all ${isSelected ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border hover:border-primary/50"}`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div
-                                className={`flex items-center justify-center border transition-all ${isMultiple ? "size-4 rounded-lg" : "size-4 rounded-full"} ${isSelected ? "bg-primary border-primary" : "border-muted-foreground/40"}`}
-                              >
-                                {isSelected && (
-                                  <span className="size-2 bg-white rounded-full"></span>
-                                )}
-                              </div>
-                              <span className="text-sm font-medium text-foreground">
-                                {val.label}
-                              </span>
-                            </div>
-                            {val.priceModifierCents > 0 && (
-                              <span className="text-xs font-semibold text-muted-foreground">
-                                +
-                                {(val.priceModifierCents / 100).toLocaleString("pt-BR", {
-                                  style: "currency",
-                                  currency: "BRL",
-                                })}
-                              </span>
+                            className={cn(
+                              "flex items-center justify-between p-3 rounded-2xl border text-left transition-all cursor-pointer gap-3",
+                              isSelected
+                                ? "border-primary bg-primary/5 ring-1 ring-primary/40"
+                                : "border-border/70 bg-card hover:border-border hover:bg-muted/20"
                             )}
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              {/* Foto do Adicional (iFood / AmoOfertas) */}
+                              {val.imageUrl && (
+                                <div className="size-12 rounded-xl overflow-hidden shrink-0 border border-border/60 bg-muted">
+                                  <img
+                                    src={val.imageUrl}
+                                    alt={val.label}
+                                    className="size-full object-cover"
+                                  />
+                                </div>
+                              )}
+
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <div
+                                  className={cn(
+                                    "flex items-center justify-center border transition-all shrink-0",
+                                    isMultiple ? "size-4 rounded-md" : "size-4 rounded-full",
+                                    isSelected
+                                      ? "bg-primary border-primary text-primary-foreground"
+                                      : "border-muted-foreground/40 bg-background"
+                                  )}
+                                >
+                                  {isSelected && (
+                                    isMultiple ? (
+                                      <Check className="size-2.5 stroke-[3]" />
+                                    ) : (
+                                      <span className="size-1.5 bg-primary-foreground rounded-full" />
+                                    )
+                                  )}
+                                </div>
+                                <div className="min-w-0">
+                                  <span className="text-xs font-bold text-foreground block truncate">
+                                    {val.label}
+                                  </span>
+                                  {val.description && (
+                                    <span className="text-[11px] text-muted-foreground block truncate">
+                                      {val.description}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Preço do Adicional */}
+                            <div className="shrink-0 text-right">
+                              {val.priceModifierCents > 0 ? (
+                                <span className="text-xs font-bold text-foreground font-mono">
+                                  +
+                                  {(val.priceModifierCents / 100).toLocaleString("pt-BR", {
+                                    style: "currency",
+                                    currency: "BRL",
+                                  })}
+                                </span>
+                              ) : (
+                                <span className="text-[11px] font-semibold text-muted-foreground">
+                                  Incluso
+                                </span>
+                              )}
+                            </div>
                           </button>
                         );
                       })}

@@ -182,7 +182,10 @@ async function _getProductBySlug(slug: string): Promise<ProductDetailDTO> {
               .map((v: any) => ({
                 id: v.id,
                 label: v.label,
+                description: v.description || null,
+                imageUrl: v.image_url || null,
                 priceModifierCents: v.price_modifier_cents,
+                maxQuantityPerItem: v.max_quantity_per_item || 1,
                 isDefault: v.is_default,
               })),
           };

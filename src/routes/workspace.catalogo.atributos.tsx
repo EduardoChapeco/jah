@@ -1,6 +1,20 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { Plus, MoreHorizontal, Edit, Trash2, Search, ChevronDown, ChevronRight, Check } from "lucide-react";
-import { useState, useMemo } from "react";
+import {
+  Plus,
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  Search,
+  ChevronDown,
+  ChevronRight,
+  Check,
+  Image as ImageIcon,
+  ImagePlus,
+  X,
+  Sparkles,
+  Loader2,
+} from "lucide-react";
+import { useState, useMemo, useRef } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -24,12 +38,10 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Surface } from "@/components/ui/surface";
 import { Input } from "@/components/ui/input";
 import { CurrencyField } from "@/components/ui/currency-field";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { EmptyState } from "@/components/state/states";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,11 +62,17 @@ import {
   deleteOptionGroup,
   quickUpdateOptionValue,
 } from "@/services/admin-catalog.functions";
+import { uploadStoreMedia } from "@/services/storage.functions";
+import { ImageCropperDialog } from "@/components/ui/image-cropper-dialog";
+import { cn } from "@/lib/utils";
 
 const optionValueSchema = z.object({
   id: z.string().uuid().optional(),
   label: z.string().min(1, "Obrigatório"),
+  description: z.string().optional().nullable(),
+  image_url: z.string().optional().nullable(),
   price_modifier_cents: z.number().int().default(0),
+  max_quantity_per_item: z.number().int().min(1).default(1).optional(),
   is_default: z.boolean().default(false),
   is_active: z.boolean().default(true),
 });
@@ -63,6 +81,7 @@ const formSchema = z.object({
   id: z.string().uuid().optional(),
   internal_name: z.string().min(1, "Nome interno é obrigatório"),
   display_name: z.string().min(1, "Nome de exibição é obrigatório"),
+  description: z.string().optional().nullable(),
   selection_type: z.enum(["single", "multiple"]),
   min_selections: z.number().int().min(0),
   max_selections: z.number().int().min(1),
@@ -73,7 +92,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export const Route = createFileRoute("/workspace/catalogo/atributos")({
-  head: () => ({ meta: [{ title: "Adicionais e Opções" }] }),
+  head: () => ({ meta: [{ title: "Adicionais e Grupos de Opções | Workspace Wider" }] }),
   loader: async () => {
     try {
       const res = await listOptionGroups();
@@ -95,8 +114,8 @@ function OptionGroupsPage() {
   const filteredGroups = useMemo(() => {
     return groups.filter(
       (g: any) =>
-        g.internal_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        g.display_name.toLowerCase().includes(searchQuery.toLowerCase()),
+        g.internal_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        g.display_name?.toLowerCase().includes(searchQuery.toLowerCase()),
     );
   }, [groups, searchQuery]);
 
@@ -106,6 +125,7 @@ function OptionGroupsPage() {
     defaultValues: {
       internal_name: "",
       display_name: "",
+      description: "",
       selection_type: "multiple",
       min_selections: 0,
       max_selections: 1,
@@ -124,6 +144,7 @@ function OptionGroupsPage() {
       id: group.id,
       internal_name: group.internal_name,
       display_name: group.display_name,
+      description: group.description || "",
       selection_type: group.selection_type,
       min_selections: group.min_selections,
       max_selections: group.max_selections,
@@ -134,13 +155,13 @@ function OptionGroupsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir este grupo?")) return;
+    if (!confirm("Tem certeza que deseja excluir este grupo de opções?")) return;
     try {
       await deleteOptionGroup({ data: { id } });
-      toast.success("Grupo excluído");
+      toast.success("Grupo de opções excluído com sucesso.");
       router.invalidate();
     } catch (e: any) {
-      toast.error(e.message);
+      toast.error(e.message || "Erro ao excluir grupo.");
     }
   };
 
@@ -148,50 +169,65 @@ function OptionGroupsPage() {
     setIsSubmitting(true);
     try {
       await upsertOptionGroup({ data });
-      toast.success("Grupo salvo com sucesso!");
+      toast.success("Grupo de opções salvo com sucesso!");
       setOpen(false);
-      form.reset();
       router.invalidate();
-    } catch (error: any) {
-      toast.error(error.message || "Erro ao salvar grupo.");
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao salvar grupo.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="space-y-6">
       <PageHeader
-        eyebrow="Catálogo"
-        title="Atributos & Adicionais"
-        actions={
-          <Button
-            size="sm"
-            className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground "
-            onClick={() => {
-              form.reset({
-                internal_name: "",
-                display_name: "",
-                selection_type: "multiple",
-                min_selections: 0,
-                max_selections: 1,
-                is_required: false,
-                values: [],
-              });
-              setOpen(true);
-            }}
-          >
-            <Plus className="size-3.5" />
-            <span>Criar Grupo</span>
-          </Button>
-        }
-      />
+        title="Adicionais e Grupos de Opções"
+        description="Complementos, bordas, adicionais e variações para turbinar seus produtos."
+        breadcrumbs={[
+          { label: "Workspace", href: "/workspace" },
+          { label: "Catálogo", href: "/workspace/catalogo/produtos" },
+          { label: "Adicionais e Opções" },
+        ]}
+      >
+        <Button
+          size="sm"
+          className="rounded-xl font-bold text-xs gap-1.5 bg-foreground text-background hover:bg-foreground/90 h-9"
+          onClick={() => {
+            form.reset({
+              internal_name: "",
+              display_name: "",
+              description: "",
+              selection_type: "multiple",
+              min_selections: 0,
+              max_selections: 1,
+              is_required: false,
+              values: [
+                {
+                  label: "",
+                  description: "",
+                  image_url: null,
+                  price_modifier_cents: 0,
+                  max_quantity_per_item: 1,
+                  is_default: false,
+                  is_active: true,
+                },
+              ],
+            });
+            setOpen(true);
+          }}
+        >
+          <Plus className="size-4" />
+          <span>Novo Grupo</span>
+        </Button>
+      </PageHeader>
 
-      <div className="flex items-center gap-2">
+      {/* Barra de Busca */}
+      <div className="flex items-center justify-between gap-4">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por nome..."
+            placeholder="Buscar grupos..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9 h-9 text-xs rounded-xl"
@@ -199,7 +235,7 @@ function OptionGroupsPage() {
         </div>
       </div>
 
-      <div className=" rounded-2xl overflow-hidden bg-card ">
+      <div className="rounded-2xl overflow-hidden bg-card border border-border/70">
         {filteredGroups.length === 0 ? (
           <div className="py-12 text-center space-y-4">
             <div className="size-12 rounded-2xl bg-muted flex items-center justify-center mx-auto text-muted-foreground">
@@ -208,16 +244,17 @@ function OptionGroupsPage() {
             <div className="space-y-1">
               <h3 className="text-base font-bold text-foreground">Nenhum grupo de opções criado</h3>
               <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                Crie grupos como Tamanhos, Cores ou Adicionais de Gastronomia para vincular aos produtos.
+                Crie grupos como Adicionais de Hambúrguer, Bebidas, Bordas ou Molhos com fotos e preços.
               </p>
             </div>
             <Button
               size="sm"
-              className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground "
+              className="rounded-xl font-bold text-xs gap-1.5 bg-foreground text-background hover:bg-foreground/90 h-9"
               onClick={() => {
                 form.reset({
                   internal_name: "",
                   display_name: "",
+                  description: "",
                   selection_type: "multiple",
                   min_selections: 0,
                   max_selections: 1,
@@ -234,13 +271,12 @@ function OptionGroupsPage() {
         ) : (
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead className="w-[30px]"></TableHead>
-                <TableHead>Nome Interno</TableHead>
-                <TableHead>Nome Exibido</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Regras</TableHead>
-                <TableHead>Opções / Valores</TableHead>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-[36px]"></TableHead>
+                <TableHead className="text-xs font-bold text-foreground">Nome de Exibição</TableHead>
+                <TableHead className="text-xs font-bold text-foreground">Tipo de Seleção</TableHead>
+                <TableHead className="text-xs font-bold text-foreground">Regras</TableHead>
+                <TableHead className="text-xs font-bold text-foreground">Adicionais & Fotos</TableHead>
                 <TableHead className="w-[80px]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -258,189 +294,184 @@ function OptionGroupsPage() {
         )}
       </div>
 
+      {/* Sheet de Criação / Edição de Grupo de Opções */}
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent className="w-[450px] sm:w-[600px] overflow-y-auto sm:max-w-xl">
-          <SheetHeader>
-            <SheetTitle>{form.watch("id") ? "Editar Grupo" : "Novo Grupo de Opções"}</SheetTitle>
-            <SheetDescription>
-              Configure regras de exibição e os valores que o cliente poderá escolher.
+        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-0 bg-card border-border sm:rounded-l-3xl">
+          <SheetHeader className="p-5 pb-3 border-b border-border/50 bg-muted/20">
+            <SheetTitle className="text-base font-bold text-foreground">
+              {form.watch("id") ? "Editar Grupo de Opções" : "Novo Grupo de Opções"}
+            </SheetTitle>
+            <SheetDescription className="text-xs text-muted-foreground">
+              Configure complementos com fotos, limites de escolha e valores adicionais.
             </SheetDescription>
           </SheetHeader>
 
-          <form onSubmit={form.handleSubmit(onSubmit as any)} className="space-y-6 mt-6">
+          <form onSubmit={form.handleSubmit(onSubmit as any)} className="p-5 space-y-6">
             <div className="grid gap-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Nome Interno</Label>
-                  <Input {...form.register("internal_name")} placeholder="Ex: BORDAS_PIZZA" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-foreground">Nome Interno</Label>
+                  <Input
+                    {...form.register("internal_name")}
+                    placeholder="ex: ADICIONAIS_BURGER"
+                    className="rounded-xl text-xs h-9"
+                  />
                   {form.formState.errors.internal_name && (
-                    <p className="text-xs text-destructive">
+                    <p className="text-[11px] text-destructive">
                       {form.formState.errors.internal_name.message}
                     </p>
                   )}
                 </div>
-                <div className="space-y-2">
-                  <Label>Nome de Exibição (Vitrine)</Label>
-                  <Input {...form.register("display_name")} placeholder="Ex: Escolha a Borda" />
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-foreground">Nome para o Cliente (Vitrine)</Label>
+                  <Input
+                    {...form.register("display_name")}
+                    placeholder="ex: Turbine seu Hambúrguer"
+                    className="rounded-xl text-xs h-9"
+                  />
                   {form.formState.errors.display_name && (
-                    <p className="text-xs text-destructive">
+                    <p className="text-[11px] text-destructive">
                       {form.formState.errors.display_name.message}
                     </p>
                   )}
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label>Tipo de Seleção</Label>
-                <Select
-                  value={form.watch("selection_type")}
-                  onValueChange={(val: any) => form.setValue("selection_type", val)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="single">Escolha Única (Um apenas)</SelectItem>
-                    <SelectItem value="multiple">Escolha Múltipla (Vários)</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-foreground">Instrução / Descrição (Opcional)</Label>
+                <Input
+                  {...form.register("description")}
+                  placeholder="ex: Escolha até 3 opções para turbinar seu lanche"
+                  className="rounded-xl text-xs h-9"
+                />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Mínimo de Seleções</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-foreground">Tipo de Seleção</Label>
+                  <Select
+                    value={form.watch("selection_type")}
+                    onValueChange={(val: any) => form.setValue("selection_type", val)}
+                  >
+                    <SelectTrigger className="rounded-xl text-xs h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      <SelectItem value="single">Escolha Única (Radio)</SelectItem>
+                      <SelectItem value="multiple">Escolha Múltipla (Checkbox)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-foreground">Mínimo de Escolhas</Label>
                   <Input
                     type="number"
                     min={0}
                     {...form.register("min_selections", { valueAsNumber: true })}
+                    className="rounded-xl text-xs h-9"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label>Máximo de Seleções</Label>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-foreground">Máximo de Escolhas</Label>
                   <Input
                     type="number"
                     min={1}
                     {...form.register("max_selections", { valueAsNumber: true })}
+                    className="rounded-xl text-xs h-9"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2 pt-2 pb-4 ">
+              <div className="flex items-center space-x-2 pt-2">
                 <Checkbox
                   id="isRequired"
                   checked={form.watch("is_required")}
                   onCheckedChange={(c) => form.setValue("is_required", !!c)}
+                  className="rounded-md"
                 />
-                <Label htmlFor="isRequired" className="font-semibold text-foreground">
-                  Obrigatório
+                <Label htmlFor="isRequired" className="text-xs font-bold text-foreground cursor-pointer">
+                  Item Obrigatório (Cliente precisa selecionar para avançar)
                 </Label>
               </div>
 
-              <div className="space-y-3">
+              {/* Lista de Opções / Adicionais com Mini-Uploader de Imagem */}
+              <div className="space-y-3 pt-4 border-t border-border/50">
                 <div className="flex items-center justify-between">
-                  <Label className="text-base font-semibold">Valores (Opções)</Label>
+                  <div>
+                    <Label className="text-sm font-bold text-foreground">Itens / Adicionais</Label>
+                    <p className="text-[11px] text-muted-foreground">
+                      Fotos aparecem na vitrine do produto para o cliente ver o complemento.
+                    </p>
+                  </div>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
+                    className="rounded-xl text-xs font-bold gap-1.5 h-8"
                     onClick={() =>
                       append({
                         label: "",
+                        description: "",
+                        image_url: null,
                         price_modifier_cents: 0,
+                        max_quantity_per_item: 1,
                         is_default: false,
                         is_active: true,
                       })
                     }
                   >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Adicionar
+                    <Plus className="size-3.5" />
+                    <span>Adicionar Opção</span>
                   </Button>
                 </div>
 
                 {fields.length === 0 ? (
-                  <div className="text-sm text-muted-foreground p-4 text-center border rounded border-dashed">
-                    Nenhuma opção adicionada.
+                  <div className="text-xs text-muted-foreground p-6 text-center border border-dashed rounded-2xl bg-muted/20">
+                    Nenhum adicional incluído neste grupo. Clique em "Adicionar Opção".
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {fields.map((field, index) => (
-                      <div
+                      <OptionItemCard
                         key={field.id}
-                        className="flex gap-3 items-start border p-3 rounded-xl bg-muted/20"
-                      >
-                        <div className="grid flex-1 gap-3">
-                          <div className="grid grid-cols-2 gap-3">
-                            <div className="space-y-1">
-                              <Label className="text-xs">Nome / Label</Label>
-                              <Input
-                                {...form.register(`values.${index}.label`)}
-                                placeholder="Ex: Catupiry"
-                                className="h-8 text-sm"
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <Label className="text-xs">Preço Adicional (R$)</Label>
-                              <CurrencyField
-                                className="h-8 text-sm"
-                                placeholder="0,00"
-                                value={form.watch(`values.${index}.price_modifier_cents`)}
-                                onChange={(val) =>
-                                  form.setValue(
-                                    `values.${index}.price_modifier_cents`,
-                                    val || 0,
-                                  )
-                                }
-                              />
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-4">
-                            <label className="flex items-center gap-2 text-xs font-medium cursor-pointer">
-                              <Checkbox
-                                checked={form.watch(`values.${index}.is_default`)}
-                                onCheckedChange={(c) =>
-                                  form.setValue(`values.${index}.is_default`, !!c)
-                                }
-                              />
-                              Padrão
-                            </label>
-                            <label className="flex items-center gap-2 text-xs font-medium cursor-pointer text-muted-foreground">
-                              <Checkbox
-                                checked={form.watch(`values.${index}.is_active`)}
-                                onCheckedChange={(c) =>
-                                  form.setValue(`values.${index}.is_active`, !!c)
-                                }
-                              />
-                              Ativo
-                            </label>
-                          </div>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive shrink-0"
-                          onClick={() => remove(index)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                        index={index}
+                        form={form}
+                        onRemove={() => remove(index)}
+                      />
                     ))}
                   </div>
                 )}
               </div>
             </div>
 
-            <SheetFooter className="pt-4 ">
+            <SheetFooter className="p-4 px-0 flex items-center justify-between gap-3 border-t border-border/50">
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 onClick={() => setOpen(false)}
                 disabled={isSubmitting}
+                className="rounded-xl text-xs font-semibold"
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Salvando..." : "Salvar Grupo"}
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="rounded-xl text-xs font-bold bg-foreground text-background hover:bg-foreground/90 gap-1.5 h-9"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="size-3.5 animate-spin" />
+                    <span>Salvando...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="size-3.5" />
+                    <span>Salvar Grupo</span>
+                  </>
+                )}
               </Button>
             </SheetFooter>
           </form>
@@ -450,6 +481,190 @@ function OptionGroupsPage() {
   );
 }
 
+/** Componente de Edição do Adicional com Uploader de Foto Quadrada 1:1 */
+function OptionItemCard({
+  index,
+  form,
+  onRemove,
+}: {
+  index: number;
+  form: any;
+  onRemove: () => void;
+}) {
+  const imageUrl = form.watch(`values.${index}.image_url`);
+  const [cropOpen, setCropOpen] = useState(false);
+  const [tempSrc, setTempSrc] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleSelectFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setTempSrc(reader.result as string);
+      setCropOpen(true);
+    };
+    reader.readAsDataURL(file);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleCropComplete = async (croppedBase64: string) => {
+    setIsUploading(true);
+    try {
+      const res = await uploadStoreMedia({
+        data: {
+          fileName: `option-${Date.now()}.png`,
+          fileType: "image/png",
+          base64Data: croppedBase64,
+          bucket: "cms-media",
+        },
+      });
+
+      if (res?.url) {
+        form.setValue(`values.${index}.image_url`, res.url);
+        toast.success("Foto do adicional carregada.");
+      }
+    } catch {
+      toast.error("Erro ao fazer upload da imagem.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  return (
+    <div className="flex items-start gap-3 p-3.5 rounded-2xl border border-border/70 bg-card hover:border-border transition-all">
+      {/* Mini Uploader 1:1 */}
+      <div className="relative shrink-0">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleSelectFile}
+        />
+
+        {imageUrl ? (
+          <div className="relative size-14 rounded-xl overflow-hidden border border-border/80 group">
+            <img src={imageUrl} alt="" className="size-full object-cover" />
+            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="p-1 rounded-md text-white hover:bg-white/20"
+                title="Trocar Foto"
+              >
+                <Edit className="size-3" />
+              </button>
+              <button
+                type="button"
+                onClick={() => form.setValue(`values.${index}.image_url`, null)}
+                className="p-1 rounded-md text-destructive hover:bg-destructive/20"
+                title="Remover Foto"
+              >
+                <X className="size-3" />
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            className="size-14 rounded-xl border border-dashed border-border/80 bg-muted/20 hover:bg-muted/50 flex flex-col items-center justify-center text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+          >
+            {isUploading ? (
+              <Loader2 className="size-4 animate-spin text-primary" />
+            ) : (
+              <>
+                <ImagePlus className="size-4" />
+                <span className="text-[9px] font-semibold mt-0.5">Foto</span>
+              </>
+            )}
+          </button>
+        )}
+
+        <ImageCropperDialog
+          open={cropOpen}
+          onOpenChange={setCropOpen}
+          imageSrc={tempSrc}
+          aspect={1}
+          cropShape="rect"
+          lockAspect={true}
+          title="Enquadrar Foto do Adicional (1:1)"
+          onCropCompleteAction={handleCropComplete}
+        />
+      </div>
+
+      {/* Campos de Dados */}
+      <div className="grid flex-1 gap-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div className="space-y-1">
+            <Label className="text-[11px] font-bold text-foreground">Nome do Adicional *</Label>
+            <Input
+              {...form.register(`values.${index}.label`)}
+              placeholder="ex: Bacon Crocante Especial"
+              className="h-8 text-xs rounded-xl"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-[11px] font-bold text-foreground">Preço Adicional (R$)</Label>
+            <CurrencyField
+              className="h-8 text-xs rounded-xl"
+              placeholder="0,00"
+              value={form.watch(`values.${index}.price_modifier_cents`)}
+              onChange={(val) =>
+                form.setValue(`values.${index}.price_modifier_cents`, val || 0)
+              }
+            />
+          </div>
+        </div>
+
+        <div className="space-y-1">
+          <Input
+            {...form.register(`values.${index}.description`)}
+            placeholder="Descrição curta (ex: 4 fatias defumadas em lenha)"
+            className="h-7 text-[11px] rounded-lg text-muted-foreground"
+          />
+        </div>
+
+        <div className="flex items-center justify-between pt-0.5 text-xs">
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-1.5 text-[11px] font-semibold text-foreground cursor-pointer">
+              <Checkbox
+                checked={form.watch(`values.${index}.is_default`)}
+                onCheckedChange={(c) => form.setValue(`values.${index}.is_default`, !!c)}
+                className="rounded-md size-3.5"
+              />
+              <span>Marcado por Padrão</span>
+            </label>
+            <label className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground cursor-pointer">
+              <Checkbox
+                checked={form.watch(`values.${index}.is_active`)}
+                onCheckedChange={(c) => form.setValue(`values.${index}.is_active`, !!c)}
+                className="rounded-md size-3.5"
+              />
+              <span>Disponível / Ativo</span>
+            </label>
+          </div>
+
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-7 text-destructive hover:bg-destructive/10 rounded-lg shrink-0"
+            onClick={onRemove}
+          >
+            <Trash2 className="size-3.5" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Linha da Tabela de Grupos com Miniaturas de Adicionais */
 function OptionGroupTableRow({
   group,
   onEdit,
@@ -465,93 +680,122 @@ function OptionGroupTableRow({
   return (
     <>
       <TableRow className="hover:bg-muted/30 transition-colors">
-        <TableCell className="p-2 text-center">
-          {values.length > 0 && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 rounded-md text-muted-foreground hover:text-foreground"
-              onClick={() => setIsExpanded(!isExpanded)}
-            >
-              {isExpanded ? (
-                <ChevronDown className="size-3.5" />
-              ) : (
-                <ChevronRight className="size-3.5" />
-              )}
-            </Button>
-          )}
-        </TableCell>
-        <TableCell className="font-medium text-xs uppercase">
-          {group.internal_name}
-        </TableCell>
-        <TableCell className="font-semibold">{group.display_name}</TableCell>
-        <TableCell>
-          <Badge variant="outline" className="text-xs">
-            {group.selection_type === "single"
-              ? "Escolha Única (Radio)"
-              : "Múltipla (Checkbox)"}
-          </Badge>
-        </TableCell>
-        <TableCell className="text-xs text-muted-foreground">
-          {group.is_required && (
-            <Badge className="mr-2 bg-primary/20 text-primary">Obrigatório</Badge>
-          )}
-          Min: {group.min_selections} | Max: {group.max_selections}
-        </TableCell>
-        <TableCell className="text-xs">
+        <TableCell className="pl-4">
           <button
             type="button"
-            className="hover:underline text-primary font-medium cursor-pointer"
             onClick={() => setIsExpanded(!isExpanded)}
+            className="p-1 rounded-md text-muted-foreground hover:text-foreground"
           >
-            {values.length} valor(es) {isExpanded ? "▲" : "▼"}
+            {isExpanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
           </button>
         </TableCell>
         <TableCell>
+          <div className="space-y-0.5">
+            <span className="font-bold text-xs text-foreground block">
+              {group.display_name}
+            </span>
+            <span className="text-[10px] text-muted-foreground font-mono block">
+              {group.internal_name}
+            </span>
+          </div>
+        </TableCell>
+        <TableCell>
+          <Badge variant="outline" className="text-[10px] font-semibold rounded-lg px-2 py-0.5">
+            {group.selection_type === "single" ? "Única (Radio)" : "Múltipla (Checkbox)"}
+          </Badge>
+        </TableCell>
+        <TableCell className="text-xs text-muted-foreground">
+          {group.is_required ? (
+            <span className="text-primary font-bold text-[11px]">Obrigatório (min {group.min_selections})</span>
+          ) : (
+            <span>Opcional (máx {group.max_selections})</span>
+          )}
+        </TableCell>
+        <TableCell>
+          <div className="flex items-center gap-2">
+            {/* Pilha de Miniaturas com fotos */}
+            <div className="flex items-center -space-x-2 overflow-hidden">
+              {values.slice(0, 4).map((v: any, i: number) =>
+                v.image_url ? (
+                  <img
+                    key={v.id || i}
+                    src={v.image_url}
+                    alt={v.label}
+                    className="inline-block size-6 rounded-md object-cover ring-2 ring-background"
+                  />
+                ) : (
+                  <div
+                    key={v.id || i}
+                    className="inline-flex items-center justify-center size-6 rounded-md bg-muted text-[10px] font-bold text-muted-foreground ring-2 ring-background uppercase"
+                  >
+                    {v.label?.slice(0, 1) || "•"}
+                  </div>
+                ),
+              )}
+            </div>
+            <button
+              type="button"
+              className="text-xs text-muted-foreground hover:text-foreground font-semibold cursor-pointer"
+              onClick={() => setIsExpanded(!isExpanded)}
+            >
+              {values.length} opções
+            </button>
+          </div>
+        </TableCell>
+        <TableCell className="pr-4 text-right">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreHorizontal className="h-4 w-4" />
+              <Button variant="ghost" size="icon" className="size-8 rounded-lg">
+                <MoreHorizontal className="size-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={onEdit}>
-                <Edit className="mr-2 h-4 w-4" />
+            <DropdownMenuContent align="end" className="rounded-xl">
+              <DropdownMenuItem onClick={onEdit} className="text-xs font-medium cursor-pointer">
+                <Edit className="size-3.5 mr-2" />
                 Editar Grupo
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
+                className="text-xs font-medium text-destructive focus:text-destructive cursor-pointer"
                 onClick={onDelete}
               >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Excluir
+                <Trash2 className="size-3.5 mr-2" />
+                Excluir Grupo
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </TableCell>
       </TableRow>
 
+      {/* Expansão Rápida de Valores */}
       {isExpanded && values.length > 0 && (
-        <TableRow className="bg-muted/15 hover:bg-muted/15 border-b">
-          <TableCell colSpan={7} className="p-3 pl-10">
-            <div className="rounded-xl border border-border/60 bg-background/80 overflow-hidden">
-              <div className="p-2 bg-muted/40 border-b border-border/40 flex items-center justify-between text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-                <span>Edição Rápida de Valores / Opções ({group.display_name})</span>
-                <span className="text-[10px] font-normal lowercase">
-                  * alterações salvas automaticamente ao mudar de célula
-                </span>
-              </div>
+        <TableRow className="bg-muted/10 hover:bg-muted/10 border-b">
+          <TableCell colSpan={6} className="p-3 pl-10">
+            <div className="rounded-2xl border border-border/60 bg-card overflow-hidden">
               <Table className="text-xs">
                 <TableHeader>
                   <TableRow className="bg-transparent border-b">
-                    <TableHead className="h-8 text-xs font-semibold">Nome da Opção</TableHead>
-                    <TableHead className="h-8 text-xs font-semibold w-40">Preço Adicional</TableHead>
-                    <TableHead className="h-8 text-xs font-semibold w-24 text-center">Status</TableHead>
+                    <TableHead className="h-8 text-[11px] font-bold w-12 text-center">Foto</TableHead>
+                    <TableHead className="h-8 text-[11px] font-bold">Nome do Adicional</TableHead>
+                    <TableHead className="h-8 text-[11px] font-bold w-36">Preço Adicional</TableHead>
+                    <TableHead className="h-8 text-[11px] font-bold w-20 text-center">Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {values.map((val: any) => (
                     <TableRow key={val.id} className="hover:bg-muted/20">
+                      <TableCell className="p-2 text-center">
+                        {val.image_url ? (
+                          <img
+                            src={val.image_url}
+                            alt=""
+                            className="size-7 rounded-lg object-cover mx-auto border border-border/60"
+                          />
+                        ) : (
+                          <div className="size-7 rounded-lg bg-muted/40 border border-border/40 flex items-center justify-center mx-auto text-muted-foreground">
+                            <ImageIcon className="size-3.5" />
+                          </div>
+                        )}
+                      </TableCell>
                       <TableCell className="p-2">
                         <EditableOptionLabelCell option={val} />
                       </TableCell>
@@ -587,9 +831,9 @@ function EditableOptionLabelCell({ option }: { option: any }) {
           label: value.trim(),
         },
       });
-      toast.success("Nome da opção atualizado!");
+      toast.success("Nome atualizado!");
     } catch {
-      toast.error("Erro ao atualizar nome da opção.");
+      toast.error("Erro ao atualizar nome.");
       setValue(option.label);
     } finally {
       setIsSaving(false);
@@ -597,16 +841,14 @@ function EditableOptionLabelCell({ option }: { option: any }) {
   };
 
   return (
-    <div className="relative">
-      <Input
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onBlur={handleBlur}
-        onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
-        className="h-7 text-xs font-medium rounded-lg bg-background"
-        disabled={isSaving}
-      />
-    </div>
+    <Input
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+      onBlur={handleBlur}
+      onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
+      className="h-7 text-xs font-semibold rounded-lg bg-background"
+      disabled={isSaving}
+    />
   );
 }
 
@@ -626,7 +868,7 @@ function EditableOptionPriceCell({ option }: { option: any }) {
         },
       });
       setPriceCents(val);
-      toast.success("Preço adicional atualizado!");
+      toast.success("Preço atualizado!");
     } catch {
       toast.error("Erro ao atualizar preço.");
     } finally {
@@ -678,4 +920,3 @@ function EditableOptionActiveCell({ option }: { option: any }) {
     />
   );
 }
-
