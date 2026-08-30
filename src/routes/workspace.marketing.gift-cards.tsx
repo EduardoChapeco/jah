@@ -12,24 +12,15 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { CurrencyField } from "@/components/ui/currency-field";
-import { Label } from "@/components/ui/label";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { SheetPage } from "@/components/ui/sheet-page";
 import { EmptyState } from "@/components/state/states";
 import { listGiftCards, createGiftCard, cancelGiftCard } from "@/services/giftcard.functions";
 import { formatMoney } from "@/lib/money";
 import { formatDate } from "@/lib/datetime";
-import { Search, Plus, Gift, CheckCircle, XCircle } from "lucide-react";
+import { Search, Plus, Gift, CheckCircle, XCircle, Copy, ExternalLink, QrCode } from "lucide-react";
 
 export const Route = createFileRoute("/workspace/marketing/gift-cards")({
-  head: () => ({ meta: [{ title: "Vale-Presentes" }] }),
+  head: () => ({ meta: [{ title: "Vale-Presentes | Workspace Wider" }] }),
   loader: async () => {
     return { giftCards: await listGiftCards() };
   },
@@ -89,52 +80,53 @@ function NewGiftCardDrawer({
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={(val) => !val && onClose()}>
-      <SheetContent className="sm:max-w-md flex flex-col h-full">
-        <SheetHeader>
-          <SheetTitle>Gerar Vale-Presente (Avulso)</SheetTitle>
-          <SheetDescription>
-            Crie um cartão presente manualmente para campanhas, cortesias ou vendas corporativas.
-          </SheetDescription>
-        </SheetHeader>
-
-        <div className="py-6 space-y-6 flex-1">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold">Valor do Cartão (R$)</Label>
-              <CurrencyField
-                value={balanceCents}
-                onChange={setBalanceCents}
-                placeholder="0,00"
-                className="font-bold text-lg h-12"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold">E-mail do Destinatário (Opcional)</Label>
-              <Input
-                type="email"
-                placeholder="cliente@exemplo.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <p className="text-xs text-muted-foreground">
-                Se preenchido, o código será enviado automaticamente para este e-mail.
-              </p>
-            </div>
-
-            <Button
-              size="lg"
-              className="w-full mt-4 font-bold"
-              onClick={handleCreate}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Gerando..." : "Gerar e Ativar Código"}
-            </Button>
-          </div>
+    <SheetPage
+      open={isOpen}
+      onOpenChange={(val) => !val && onClose()}
+      title="Gerar Vale-Presente (Avulso)"
+      description="Crie um cartão presente para campanhas promocionais, cortesias ou vendas corporativas."
+      size="default"
+      footer={
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={onClose} disabled={isSubmitting} className="rounded-xl text-xs font-semibold">
+            Cancelar
+          </Button>
+          <Button
+            className="rounded-xl text-xs font-bold bg-primary text-primary-foreground"
+            onClick={handleCreate}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Gerando..." : "Gerar e Ativar Código"}
+          </Button>
         </div>
-      </SheetContent>
-    </Sheet>
+      }
+    >
+      <div className="py-2 space-y-4">
+        <div className="space-y-1.5">
+          <Label className="text-xs font-bold">Valor do Cartão (R$)</Label>
+          <CurrencyField
+            value={balanceCents}
+            onChange={setBalanceCents}
+            placeholder="0,00"
+            className="font-mono font-bold text-lg h-11 rounded-xl"
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label className="text-xs font-bold">E-mail do Destinatário (Opcional)</Label>
+          <Input
+            type="email"
+            placeholder="cliente@exemplo.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="h-10 rounded-xl text-xs"
+          />
+          <p className="text-[11px] text-muted-foreground">
+            Se preenchido, o código e link de resgate serão enviados automaticamente.
+          </p>
+        </div>
+      </div>
+    </SheetPage>
   );
 }
 
@@ -150,6 +142,21 @@ function GiftCardsDashboardPage() {
     const q = searchQuery.toLowerCase();
     return card.code?.toLowerCase().includes(q) || card.purchaserName?.toLowerCase().includes(q);
   });
+
+  const handleCopyCode = (code: string) => {
+    if (typeof navigator !== "undefined") {
+      navigator.clipboard.writeText(code);
+      toast.success(`Código ${code} copiado para a área de transferência!`);
+    }
+  };
+
+  const handleCopyClaimLink = (code: string) => {
+    if (typeof window !== "undefined") {
+      const url = `${window.location.origin}/gift-card/${code}`;
+      navigator.clipboard.writeText(url);
+      toast.success("Link público de resgate copiado!");
+    }
+  };
 
   const handleCancel = async (id: string) => {
     if (
@@ -174,18 +181,18 @@ function GiftCardsDashboardPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <PageHeader title="Vales-Presente & Store Credit" />
-        <Button onClick={() => setIsDrawerOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" /> Gerar Novo
+        <PageHeader title="Vales-Presente & Créditos de Loja" />
+        <Button onClick={() => setIsDrawerOpen(true)} className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground h-10">
+          <Plus className="h-4 w-4" /> Gerar Vale-Presente
         </Button>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <div className="relative flex-1 sm:w-80">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input
             placeholder="Buscar por código ou gerador..."
-            className="pl-9 bg-background"
+            className="pl-9 bg-card rounded-xl text-xs h-9"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -195,40 +202,60 @@ function GiftCardsDashboardPage() {
       {filteredCards.length === 0 ? (
         <EmptyState title="Nenhum Vale-Presente encontrado" />
       ) : (
-        <div className="rounded-xl border bg-card overflow-hidden">
+        <div className="rounded-2xl border border-border/60 bg-card overflow-hidden shadow-2xs">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Data de Criação</TableHead>
-                <TableHead>Código</TableHead>
-                <TableHead>Gerado Por</TableHead>
-                <TableHead>Valor Inicial</TableHead>
-                <TableHead>Saldo Atual</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
+              <TableRow className="border-border/40">
+                <TableHead className="text-xs font-bold">Data</TableHead>
+                <TableHead className="text-xs font-bold">Código do Cartão</TableHead>
+                <TableHead className="text-xs font-bold">Gerado Por</TableHead>
+                <TableHead className="text-xs font-bold">Valor Inicial</TableHead>
+                <TableHead className="text-xs font-bold">Saldo Atual</TableHead>
+                <TableHead className="text-xs font-bold">Status</TableHead>
+                <TableHead className="text-right text-xs font-bold">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredCards.map((card: any) => (
-                <TableRow key={card.id}>
-                  <TableCell className="whitespace-nowrap">{formatDate(card.createdAt)}</TableCell>
+                <TableRow key={card.id} className="border-border/40 hover:bg-muted/20">
+                  <TableCell className="whitespace-nowrap text-xs font-medium text-muted-foreground">{formatDate(card.createdAt)}</TableCell>
                   <TableCell>
-                    <Badge
-                      variant="outline"
-                      className="font-mono text-xs font-bold tracking-widest bg-muted/50"
-                    >
-                      {card.code}
-                    </Badge>
+                    <div className="flex items-center gap-1.5">
+                      <Badge
+                        variant="outline"
+                        className="font-mono text-xs font-bold tracking-widest bg-muted/40 border-border/60"
+                      >
+                        {card.code}
+                      </Badge>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => handleCopyCode(card.code)}
+                        className="size-7 rounded-lg text-muted-foreground hover:text-foreground"
+                        title="Copiar Código"
+                      >
+                        <Copy className="size-3.5" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => handleCopyClaimLink(card.code)}
+                        className="size-7 rounded-lg text-primary hover:bg-primary/10"
+                        title="Copiar Link de Resgate"
+                      >
+                        <ExternalLink className="size-3.5" />
+                      </Button>
+                    </div>
                   </TableCell>
-                  <TableCell>{card.purchaserName}</TableCell>
-                  <TableCell className="text-muted-foreground">
+                  <TableCell className="text-xs font-medium text-foreground">{card.purchaserName}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground font-mono">
                     {formatMoney(card.initialBalance)}
                   </TableCell>
-                  <TableCell className="font-bold text-foreground">
+                  <TableCell className="text-xs font-bold text-foreground font-mono">
                     {formatMoney(card.currentBalance)}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={getStatusBadge(card.status)}>
+                    <Badge variant={getStatusBadge(card.status)} className="text-[10px] font-bold uppercase">
                       {translateStatus(card.status)}
                     </Badge>
                   </TableCell>
@@ -237,11 +264,11 @@ function GiftCardsDashboardPage() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        className="h-7 text-xs font-bold text-destructive hover:bg-destructive/10 hover:text-destructive rounded-lg"
                         onClick={() => handleCancel(card.id)}
                         disabled={processingId === card.id}
                       >
-                        <XCircle className="size-4 mr-1" /> Cancelar
+                        <XCircle className="size-3.5 mr-1" /> Cancelar
                       </Button>
                     )}
                   </TableCell>
