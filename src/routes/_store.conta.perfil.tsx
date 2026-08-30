@@ -417,14 +417,14 @@ function ProfilePage() {
 
               {/* Capa */}
               <div className="space-y-2">
-                <Label className="text-xs font-bold text-muted-foreground">Foto de Capa (3:1)</Label>
-                <div className="w-full aspect-[3/1] max-h-52 rounded-2xl bg-muted/40 relative overflow-hidden flex items-center justify-center group border border-border/60">
+                <Label className="text-xs font-bold text-muted-foreground">Foto de Capa</Label>
+                <div className="w-full h-44 sm:h-56 md:h-60 rounded-2xl bg-muted/40 relative overflow-hidden flex items-center justify-center group border border-border/60 shadow-2xs">
                   {formData.coverUrl ? (
                     <img src={formData.coverUrl} alt="Capa" className="size-full object-cover select-none" />
                   ) : (
                     <span className="text-xs text-muted-foreground flex items-center gap-1.5">
                       <ImageIcon className="size-4 opacity-50" />
-                      Nenhuma capa adicionada (Recomendado: 1200x400 ou 3:1)
+                      Nenhuma capa adicionada (Recomendado: imagem panorâmica de alta resolução)
                     </span>
                   )}
 
@@ -879,7 +879,7 @@ function ProfilePage() {
         </div>
       </form>
 
-      {/* Modal de Recorte de Imagem (Faca Contextual Bloqueada) */}
+      {/* Modal de Recorte de Imagem */}
       {cropperSrc && (
         <ImageCropperDialog
           open={cropperOpen}
@@ -887,10 +887,10 @@ function ProfilePage() {
             if (!v) setCropperOpen(false);
           }}
           imageSrc={cropperSrc}
-          aspect={cropperType === "avatar" ? 1 : 3}
+          aspect={cropperType === "avatar" ? 1 : 16 / 6}
           cropShape={cropperType === "avatar" ? "round" : "rect"}
-          lockAspect={true}
-          title={cropperType === "avatar" ? "Recortar Foto de Perfil (1:1)" : "Recortar Capa (3:1 — idêntico ao perfil)"}
+          lockAspect={cropperType === "avatar"}
+          title={cropperType === "avatar" ? "Recortar Foto de Perfil" : "Recortar Foto de Capa"}
           onCropComplete={handleCropComplete}
         />
       )}
