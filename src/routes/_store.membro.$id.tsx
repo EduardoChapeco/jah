@@ -515,11 +515,8 @@ export function MemberPublicProfileView({
               </div>
             )}
 
-            {/* Card de Stats ao Final da Capa Panorâmica (Sem sobreposição e com dados 100% reais) */}
-            <div className="h-full min-w-[240px] flex-shrink-0 bg-background/90 backdrop-blur-md rounded-2xl border border-border/60 p-4 flex flex-col justify-center gap-2 shadow-xs">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                Estatísticas Reais
-              </div>
+            {/* Card de Stats ao Final da Capa Panorâmica (Direto, sem título redundante) */}
+            <div className="h-full min-w-[220px] flex-shrink-0 bg-background/90 backdrop-blur-md rounded-2xl border border-border/60 p-4 flex flex-col justify-center shadow-xs">
               <div className="grid grid-cols-3 gap-2 text-center">
                 <div>
                   <p className="text-base font-extrabold text-foreground">{followersCount}</p>
@@ -641,22 +638,6 @@ export function MemberPublicProfileView({
                   </Button>
                 </>
               )}
-            </div>
-          </div>
-
-          {/* Métricas Reais do Banco em Linha Única (Instagram Style) */}
-          <div className="flex items-center gap-4 sm:gap-6 text-xs sm:text-sm text-foreground py-0.5">
-            <div>
-              <strong className="font-extrabold text-foreground">{posts.length}</strong>{" "}
-              <span className="text-muted-foreground">publicações</span>
-            </div>
-            <div>
-              <strong className="font-extrabold text-foreground">{followersCount}</strong>{" "}
-              <span className="text-muted-foreground">seguidores</span>
-            </div>
-            <div>
-              <strong className="font-extrabold text-foreground">{stats.followingCount || 0}</strong>{" "}
-              <span className="text-muted-foreground">seguindo</span>
             </div>
           </div>
 
