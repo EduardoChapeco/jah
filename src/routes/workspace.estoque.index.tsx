@@ -31,14 +31,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { SheetPage } from "@/components/ui/sheet-page";
 import {
   Select,
   SelectContent,
@@ -349,77 +342,84 @@ function AdminStockPage() {
         </div>
       )}
 
-      {/* Sheet / Dialog de Movimentação por Linha */}
-      <Sheet
+      {/* SheetPage de Movimentação por Linha */}
+      <SheetPage
         open={Boolean(selectedVariant)}
         onOpenChange={(open) => !open && setSelectedVariant(null)}
+        title="Movimentação de Estoque"
+        description={`SKU: ${selectedVariant?.sku || ""} (${selectedVariant?.products?.title || ""})`}
+        size="default"
+        footer={
+          <div className="flex items-center justify-between w-full">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setSelectedVariant(null)}
+              disabled={isUpdating}
+              className="rounded-xl text-xs font-semibold"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              onClick={handleExecuteMovement}
+              disabled={isUpdating}
+              className="rounded-xl text-xs font-bold bg-primary text-primary-foreground"
+            >
+              {isUpdating ? "Gravando..." : "Confirmar Movimentação"}
+            </Button>
+          </div>
+        }
       >
-        <SheetContent className="max-w-md">
-          <SheetHeader>
-            <SheetTitle>Movimentação de Estoque</SheetTitle>
-            <SheetDescription>
-              SKU: <strong className="font-mono text-foreground">{selectedVariant?.sku}</strong> (
-              {selectedVariant?.products?.title})
-            </SheetDescription>
-          </SheetHeader>
+        <form onSubmit={handleExecuteMovement} className="space-y-4 py-2">
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold">Tipo de Movimentação</Label>
+            <Select value={movementType} onValueChange={(val: any) => setMovementType(val)}>
+              <SelectTrigger className="h-10 rounded-xl text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="purchase">Entrada por Compra (Fornecedor)</SelectItem>
+                <SelectItem value="adjustment">Ajuste Manual de Inventário</SelectItem>
+                <SelectItem value="damage">Perda / Avaria (Saída Físico)</SelectItem>
+                <SelectItem value="transfer">Transferência entre Filiais</SelectItem>
+                <SelectItem value="return">Devolução de Cliente</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-          <form onSubmit={handleExecuteMovement} className="space-y-4 pt-2">
-            <div className="space-y-2">
-              <Label>Tipo de Movimentação</Label>
-              <Select value={movementType} onValueChange={(val: any) => setMovementType(val)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="purchase">Entrada por Compra (Fornecedor)</SelectItem>
-                  <SelectItem value="adjustment">Ajuste Manual de Inventário</SelectItem>
-                  <SelectItem value="damage">Perda / Avaria (Saída Físico)</SelectItem>
-                  <SelectItem value="transfer">Transferência entre Filiais</SelectItem>
-                  <SelectItem value="return">Devolução de Cliente</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold">Quantidade *</Label>
+            <Input
+              type="number"
+              min="1"
+              value={qtyInput}
+              onChange={(e) => setQtyInput(e.target.value)}
+              required
+              className="h-10 rounded-xl text-xs font-mono font-bold"
+            />
+            <p className="text-[11px] text-muted-foreground">
+              {movementType === "damage"
+                ? "A quantidade será deduzida automaticamente do saldo em mãos."
+                : "A quantidade será adicionada ao saldo em mãos."}
+            </p>
+          </div>
 
-            <div className="space-y-2">
-              <Label>Quantidade *</Label>
-              <Input
-                type="number"
-                min="1"
-                value={qtyInput}
-                onChange={(e) => setQtyInput(e.target.value)}
-                required
-              />
-              <p className="text-[11px] text-muted-foreground">
-                {movementType === "damage"
-                  ? "A quantidade será deduzida automaticamente do saldo em mãos."
-                  : "A quantidade será adicionada ao saldo em mãos."}
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label>
-                Justificativa / Observação{""}
-                {(movementType === "damage" || movementType === "transfer") && "*"}
-              </Label>
-              <Input
-                placeholder="Ex: Nota fiscal 4092, caixa avariada no frete..."
-                value={noteInput}
-                onChange={(e) => setNoteInput(e.target.value)}
-                required={movementType === "damage" || movementType === "transfer"}
-              />
-            </div>
-
-            <SheetFooter className="pt-4 mt-8">
-              <Button type="button" variant="outline" onClick={() => setSelectedVariant(null)}>
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={isUpdating}>
-                {isUpdating ? "Gravando..." : "Confirmar Movimentação"}
-              </Button>
-            </SheetFooter>
-          </form>
-        </SheetContent>
-      </Sheet>
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold">
+              Justificativa / Observação{" "}
+              {(movementType === "damage" || movementType === "transfer") && "*"}
+            </Label>
+            <Input
+              placeholder="Ex: Nota fiscal 4092, caixa avariada no frete..."
+              value={noteInput}
+              onChange={(e) => setNoteInput(e.target.value)}
+              required={movementType === "damage" || movementType === "transfer"}
+              className="h-10 rounded-xl text-xs"
+            />
+          </div>
+        </form>
+      </SheetPage>
     </div>
   );
 }
