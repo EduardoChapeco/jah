@@ -197,8 +197,8 @@ function KycVerificationPage() {
                   value={docFrontUrl || undefined}
                   onChange={(url) => setDocFrontUrl(url || "")}
                   bucket="cms-media"
-                  aspectRatio="widescreen"
-                  label="Carregar Documento"
+                  aspectPreset="widescreen"
+                  helperText="Anexe foto nítida do documento"
                 />
               </div>
 
@@ -208,8 +208,8 @@ function KycVerificationPage() {
                   value={selfieUrl || undefined}
                   onChange={(url) => setSelfieUrl(url || "")}
                   bucket="cms-media"
-                  aspectRatio="square"
-                  label="Carregar Selfie"
+                  aspectPreset="square"
+                  helperText="Foto segurando o documento"
                 />
               </div>
             </div>
