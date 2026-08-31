@@ -438,10 +438,7 @@ function DirectoryBusinessCard({
 
 // ─── COMPONENTE: ITEM EM MODO LISTA COMPACTA ──────────────────────────────────
 function DirectoryListItem({ item }: { item: DirectoryListingDTO }) {
-  const coverUrl =
-    item.banner_url ||
-    CATEGORY_DEFAULT_COVERS[item.category] ||
-    CATEGORY_DEFAULT_COVERS.default;
+  const coverUrl = item.banner_url || item.avatar_url;
 
   const categoryLabel =
     DIRECTORY_CATEGORIES.find((c) => c.id === item.category)?.label || item.category;
@@ -456,18 +453,22 @@ function DirectoryListItem({ item }: { item: DirectoryListingDTO }) {
         className="flex items-center gap-3.5 min-w-0 flex-1 focus-visible:outline-none"
       >
         {/* Thumbnail de Capa */}
-        <div className="relative size-16 sm:size-20 rounded-xl overflow-hidden bg-muted  shrink-0">
-          <img
-            src={coverUrl}
-            alt={item.business_name}
-            loading="lazy"
-            className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-          {item.avatar_url && (
+        <div className="relative size-16 sm:size-20 rounded-xl overflow-hidden bg-muted/40 shrink-0 flex items-center justify-center">
+          {coverUrl ? (
+            <img
+              src={coverUrl}
+              alt={item.business_name}
+              className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
+              loading="lazy"
+            />
+          ) : (
+            <Briefcase size={20} className="text-primary/30" />
+          )}
+          {item.avatar_url && coverUrl !== item.avatar_url && (
             <img
               src={item.avatar_url}
               alt=""
-              className="absolute bottom-1 right-1 size-6 rounded-md border border-background object-cover bg-card "
+              className="absolute bottom-1 right-1 size-6 rounded-md border border-background object-cover bg-card"
             />
           )}
         </div>

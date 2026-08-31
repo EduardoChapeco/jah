@@ -415,8 +415,7 @@ function JobPostCard({ job }: { job: JobItemDTO }) {
 
 // ─── COMPONENTE: ITEM DE VAGA EM MODO LISTA COMPACTA ──────────────────────────
 function JobListItem({ job }: { job: JobItemDTO }) {
-  const coverUrl = JOB_DEFAULT_COVERS[job.category] || JOB_DEFAULT_COVERS.default;
-
+  const coverUrl = (job as any).cover_image_url || job.company_logo_url;
   const whatsappNumber = (job.contact_whatsapp || "").replace(/\D/g, "");
 
   return (
@@ -427,18 +426,22 @@ function JobListItem({ job }: { job: JobItemDTO }) {
         className="flex items-center gap-3.5 min-w-0 flex-1 focus-visible:outline-none"
       >
         {/* Thumbnail de Capa */}
-        <div className="relative size-16 sm:size-20 rounded-xl overflow-hidden bg-muted  shrink-0">
-          <img
-            src={coverUrl}
-            alt={job.company_name}
-            loading="lazy"
-            className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-          {job.company_logo_url && (
+        <div className="relative size-16 sm:size-20 rounded-xl overflow-hidden bg-muted/40 shrink-0 flex items-center justify-center">
+          {coverUrl ? (
+            <img
+              src={coverUrl}
+              alt={job.company_name}
+              loading="lazy"
+              className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          ) : (
+            <Briefcase size={20} className="text-primary/30" />
+          )}
+          {job.company_logo_url && coverUrl !== job.company_logo_url && (
             <img
               src={job.company_logo_url}
               alt=""
-              className="absolute bottom-1 right-1 size-6 rounded-md border border-background object-cover bg-card "
+              className="absolute bottom-1 right-1 size-6 rounded-md border border-background object-cover bg-card"
             />
           )}
         </div>

@@ -393,9 +393,10 @@ function StepByStepAuthPage() {
     }
   };
 
-  const desktopBg = brand?.login_bg_desktop_url || brand?.login_split_image_url || DEFAULT_BG_DESKTOP;
-  const tabletBg = brand?.login_bg_tablet_url || desktopBg || DEFAULT_BG_TABLET;
-  const mobileBg = brand?.login_bg_mobile_url || tabletBg || DEFAULT_BG_MOBILE;
+  const desktopBg = brand?.login_bg_desktop_url || brand?.login_split_image_url || "";
+  const tabletBg = brand?.login_bg_tablet_url || desktopBg || "";
+  const mobileBg = brand?.login_bg_mobile_url || tabletBg || "";
+  const hasCustomBg = Boolean(desktopBg || tabletBg || mobileBg);
 
   const isRegisterMode = view.startsWith("register");
   const isForgotMode = view === "forgot-password";
@@ -407,19 +408,23 @@ function StepByStepAuthPage() {
       aria-label="Autenticação Wider"
       className="min-h-screen w-full relative select-none flex flex-col justify-between p-4 sm:p-6 md:p-8 bg-background text-foreground overflow-x-hidden"
     >
-      {/* ── 1. Background com Mídia Responsiva (Upload Suportado no Master) ── */}
-      <picture className="fixed inset-0 size-full pointer-events-none z-0">
-        <source media="(min-width: 1024px)" srcSet={desktopBg} />
-        <source media="(min-width: 768px)" srcSet={tabletBg} />
-        <img
-          src={mobileBg}
-          alt=""
-          className="size-full object-cover transition-transform duration-1000 scale-100 opacity-90 dark:opacity-80"
-        />
-      </picture>
+      {/* ── 1. Background com Mídia Responsiva (Apenas se cadastrado no Master) ── */}
+      {hasCustomBg ? (
+        <picture className="fixed inset-0 size-full pointer-events-none z-0">
+          {desktopBg && <source media="(min-width: 1024px)" srcSet={desktopBg} />}
+          {tabletBg && <source media="(min-width: 768px)" srcSet={tabletBg} />}
+          <img
+            src={mobileBg || tabletBg || desktopBg}
+            alt="Fundo"
+            className="size-full object-cover opacity-25 filter blur-xs"
+          />
+        </picture>
+      ) : (
+        <div className="fixed inset-0 size-full pointer-events-none z-0 bg-gradient-to-br from-primary/5 via-background to-muted/30" />
+      )}
 
-      {/* Overlay com Blur Suave e Alto Contraste Editorial */}
-      <div className="fixed inset-0 bg-black/45 backdrop-blur-[2px] z-1 pointer-events-none" />
+      {/* Overlay com Blur Suave */}
+      <div className="fixed inset-0 bg-black/20 backdrop-blur-[1px] z-1 pointer-events-none" />
 
       {/* ── 2. Top Header Minimalista ── */}
       <header className="relative z-10 flex items-center justify-between w-full max-w-5xl mx-auto">
