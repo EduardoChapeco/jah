@@ -8,9 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Plus,
   Trash,
-  AirplaneTilt,
-  Buildings,
-  CalendarDots,
+  Plane,
+  Building2,
+  Calendar,
   DollarSign,
   Info,
   CheckCircle,

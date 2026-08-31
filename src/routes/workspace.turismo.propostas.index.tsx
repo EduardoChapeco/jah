@@ -6,7 +6,7 @@ import {
   Plus,
   ArrowUpRight,
   Sparkle,
-  CalendarDots,
+  Calendar,
   Users,
   Search,
   CheckCircle,
@@ -84,7 +84,7 @@ function WorkspaceProposalsIndexPage() {
     onSuccess: (res) => {
       toast.success("Proposta criada! Redirecionando para o Studio...");
       setIsNewModalOpen(false);
-      navigate({ to: "/workspace/turismo/propostas/$id", params: { id: res.id } });
+      navigate({ to: "/workspace/turismo/propostas/$id" as any, params: { id: res.id } as any });
     },
     onError: (err: any) => toast.error(err?.message || "Erro ao criar proposta."),
   });
@@ -264,7 +264,7 @@ function WorkspaceProposalsIndexPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {proposalsList.map((p) => {
+          {proposalsList.map((p: TravelProposalDTO) => {
             const totalCents = p.pricing?.total_price_cents || 0;
             return (
               <Card
@@ -307,12 +307,12 @@ function WorkspaceProposalsIndexPage() {
 
                 <div className="flex items-center gap-2 pt-2 border-t border-border/40">
                   <Button asChild size="sm" variant="outline" className="flex-1 rounded-xl text-xs font-bold h-9">
-                    <Link to={`/proposta/${p.public_token}`} target="_blank">
+                    <Link to={`/proposta/${p.public_token}` as any} target="_blank">
                       Ver Online
                     </Link>
                   </Button>
                   <Button asChild size="sm" className="flex-1 rounded-xl text-xs font-bold h-9 bg-foreground text-background">
-                    <Link to="/workspace/turismo/propostas/$id" params={{ id: p.id }}>
+                    <Link to="/workspace/turismo/propostas/$id" params={{ id: p.id } as any}>
                       Editar no Studio
                     </Link>
                   </Button>

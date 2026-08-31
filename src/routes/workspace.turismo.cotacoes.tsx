@@ -73,6 +73,30 @@ export default function AgencyQuotesPage() {
     return true;
   });
 
+  const navigate = useNavigate();
+
+  const createProposalMutation = useMutation({
+    mutationFn: (q: TravelQuoteRequestDTO) =>
+      createTravelProposal({
+        data: {
+          quoteId: q.id,
+          title: `Proposta: ${q.destination_city} (${q.adults_count} adultos)`,
+          clientName: q.contact_name,
+          clientWhatsapp: q.contact_whatsapp,
+          destinationCity: q.destination_city,
+          travelStartDate: q.departure_date || undefined,
+          travelEndDate: q.return_date || undefined,
+          adultsCount: q.adults_count,
+          childrenCount: q.children_count,
+        },
+      }),
+    onSuccess: (res) => {
+      toast.success("Lâmina criada! Abrindo Studio...");
+      navigate({ to: "/workspace/turismo/propostas/$id" as any, params: { id: res.id } as any });
+    },
+    onError: (err: any) => toast.error(err?.message || "Erro ao criar proposta."),
+  });
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* ── 1. Top Header ── */}
