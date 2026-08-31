@@ -43,6 +43,10 @@ import { CitySelect } from "@/components/ui/city-select";
 import { ThemeSelector } from "@/components/settings/theme-selector";
 import { BusinessHoursEditor } from "@/components/commerce/business-hours-editor";
 import { NeighborhoodsManager } from "@/components/commerce/neighborhoods-manager";
+import {
+  DeliveryTimeAndRadiusMatrix,
+  type DeliveryLogisticsConfig,
+} from "@/components/commerce/delivery-time-and-radius-matrix";
 import { CHAPECO_NEIGHBORHOODS, type NeighborhoodPreset } from "@/lib/constants/cities";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -138,6 +142,17 @@ export default function WorkspaceConfiguracoesPage() {
     store?.settings?.custom_checkout_fields || [],
   );
 
+  // Matriz de Entrega, Tempo de Preparo & Faixas de Raio (Estilo iFood Merchant)
+  const [deliveryConfig, setDeliveryConfig] = useState<DeliveryLogisticsConfig>(
+    store?.settings?.delivery_matrix || {
+      manualPrepTimeEnabled: true,
+      basePrepTimeMin: store?.settings?.delivery_time_min ? parseInt(String(store.settings.delivery_time_min), 10) || 15 : 15,
+      radiusTiers: store?.settings?.radius_tiers || [],
+      minOrderCents: store?.settings?.min_order_cents || 0,
+      freeDeliveryThresholdCents: store?.settings?.free_delivery_threshold_cents || null,
+    }
+  );
+
   // Feriados & Pausa de Emergência
   const [holidayExceptions, setHolidayExceptions] = useState<any[]>(
     store?.settings?.holiday_exceptions || [],
@@ -205,7 +220,7 @@ export default function WorkspaceConfiguracoesPage() {
 
     setIsSaving(true);
     try {
-      // 1. Salva Dados da Loja, Nicho, Módulos, Bairros e Perguntas de Checkout
+      // 1. Salva Dados da Loja, Nicho, Módulos, Bairros e Matriz de Entrega
       await saveStoreSettings({
         data: {
           name: name.trim(),
@@ -221,12 +236,13 @@ export default function WorkspaceConfiguracoesPage() {
           address: address.trim() || undefined,
           city: city.trim() || undefined,
           state: state.trim().toUpperCase() || undefined,
-          zip_code: zipCode.trim() || undefined,
-          custom_checkout_fields: customFields,
-          delivery_zones: neighborhoods,
-          holiday_exceptions: holidayExceptions,
-          emergency_pause_until: emergencyPauseUntil,
-        },
+          zipCode: zipCode.trim() || undefined,
+          deliveryZones: neighborhoods,
+          customCheckoutFields: customFields,
+          holidayExceptions: holidayExceptions,
+          emergencyPauseUntil: emergencyPauseUntil,
+          delivery_matrix: deliveryConfig,
+        } as any,
       });
 
       // 2. Salva Políticas
@@ -809,9 +825,26 @@ export default function WorkspaceConfiguracoesPage() {
           </Card>
         </TabsContent>
 
-        {/* ABA: Entrega & Bairros */}
+        {/* ABA: Entrega, Tempo de Preparo & Bairros */}
         <TabsContent value="entrega" className="space-y-6">
+          <Card className="p-6 rounded-3xl border-border bg-card space-y-6">
+            <DeliveryTimeAndRadiusMatrix
+              value={deliveryConfig}
+              onChange={setDeliveryConfig}
+              storeName={name || "Minha Cozinha & Loja"}
+              storeCategory={segment}
+              storeLogoUrl={logoUrl}
+              storeBannerUrl={bannerUrl}
+            />
+          </Card>
+
           <Card className="p-6 rounded-3xl border-border bg-card space-y-5">
+            <div className="pb-2">
+              <h3 className="text-sm font-bold text-foreground">Taxas Personalizadas por Bairro</h3>
+              <p className="text-xs text-muted-foreground">
+                Complemente o raio de entrega definindo regras e exceções por bairros específicos da cidade.
+              </p>
+            </div>
             <NeighborhoodsManager
               cityName={city || "Sua Cidade"}
               value={neighborhoods}
