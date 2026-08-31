@@ -427,7 +427,7 @@ export function BusinessLocationPicker({
   };
 
   const handleModelSelect = (model: BusinessModelType) => {
-    const selected = BUSINESS_MODELS.find((m) => m.id === model);
+    const selected = models.find((m: any) => m.id === model);
     onChange({
       ...value,
       businessModel: model,
