@@ -1,6 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   AirplaneTilt,
   MapPin,
@@ -15,15 +15,18 @@ import {
   ShieldCheck,
   Tag,
   ChatCircleDots,
+  FileText,
 } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 import {
   listAgencyTravelQuotes,
   type TravelQuoteRequestDTO,
 } from "@/services/tourism.functions";
+import { createTravelProposal } from "@/services/travel-proposal.functions";
 import { formatDate } from "@/lib/datetime";
 import { formatMoney } from "@/lib/money";
 
@@ -84,18 +87,18 @@ export default function AgencyQuotesPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-bold gap-1.5">
-            <Link to="/turismo">
-              <SuitcaseSimple className="size-3.5" />
-              <span>Ver Pacotes</span>
+          <Button asChild size="sm" className="rounded-xl text-xs font-bold bg-foreground text-background hover:bg-foreground/90 gap-1.5">
+            <Link to="/workspace/turismo/propostas">
+              <FileText size={16} weight="bold" />
+              <span>Ver Lâminas / Studio</span>
             </Link>
           </Button>
         </div>
       </div>
 
-      {/* ── 2. Filtros e Busca ── */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+      {/* ── 2. Filtros de Status ── */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-1.5">
           {STATUS_FILTERS.map((f) => (
             <button
               key={f.id}
@@ -240,20 +243,34 @@ export default function AgencyQuotesPage() {
                     </span>
                   </div>
 
-                  <Button
-                    asChild
-                    size="sm"
-                    className="rounded-xl font-bold text-xs h-9 px-4 bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5"
-                  >
-                    <a
-                      href={`https://wa.me/55${cleanWhatsapp}?text=${waMessage}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      disabled={createProposalMutation.isPending}
+                      onClick={() => createProposalMutation.mutate(q)}
+                      className="rounded-xl font-bold text-xs h-9 px-3 border-border gap-1.5 cursor-pointer"
                     >
-                      <WhatsappLogo size={16} weight="bold" />
-                      <span>Enviar Orçamento</span>
-                    </a>
-                  </Button>
+                      <Sparkle size={14} weight="bold" className="text-primary" />
+                      <span>Criar Lâmina</span>
+                    </Button>
+
+                    <Button
+                      asChild
+                      size="sm"
+                      className="rounded-xl font-bold text-xs h-9 px-3.5 bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5"
+                    >
+                      <a
+                        href={`https://wa.me/55${cleanWhatsapp}?text=${waMessage}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <WhatsappLogo size={16} weight="bold" />
+                        <span>WhatsApp</span>
+                      </a>
+                    </Button>
+                  </div>
                 </div>
               </Card>
             );
