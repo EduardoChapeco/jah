@@ -522,6 +522,16 @@ export function TravelQuoteModal({
                       <WhatsappLogo size={16} weight="bold" className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-600" />
                     </div>
                   </div>
+
+                  {/* Disclaimer Transparente Padrão CVC / Decolar */}
+                  <div className="p-3 rounded-xl bg-muted/30 border border-border/40 space-y-1 text-[11px] text-muted-foreground leading-relaxed">
+                    <span className="font-bold text-foreground block">
+                      ℹ️ Transparência de Valores & Disponibilidade:
+                    </span>
+                    <p>
+                      Tarifas aéreas e câmbio sofrem atualização em tempo real. Os valores de referência da vitrine são estimativas promocionais e serão confirmados pela agência parceira com as melhores opções de voo e hospedagem para o seu grupo.
+                    </p>
+                  </div>
                 </div>
               )}
 
