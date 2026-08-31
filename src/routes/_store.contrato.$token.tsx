@@ -220,7 +220,7 @@ function PublicTravelContractSignaturePage() {
           </h3>
 
           <div className="space-y-3 text-xs text-slate-700 leading-relaxed">
-            {contract.clauses.map((cl) => (
+            {contract.clauses.map((cl: any) => (
               <div key={cl.number} className="space-y-1">
                 <span className="font-black text-slate-900 block text-[11px]">
                   CLÁUSULA {cl.number}ª — {cl.section}
