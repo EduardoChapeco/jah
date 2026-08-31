@@ -52,58 +52,169 @@ export interface BusinessLocationData {
 export interface BusinessLocationPickerProps {
   value: BusinessLocationData;
   onChange: (data: BusinessLocationData) => void;
+  segment?: string;
   className?: string;
 }
 
-const BUSINESS_MODELS: Array<{
+export function getBusinessModelsForSegment(segment?: string): Array<{
   id: BusinessModelType;
   title: string;
   desc: string;
   icon: any;
   defaultPublic: boolean;
-}> = [
-  {
-    id: "physical_and_delivery",
-    title: "Loja Física com Atendimento",
-    desc: "Balcão ou salão aberto ao público para visitas e compras presenciais, além de entregas.",
-    icon: Store,
-    defaultPublic: true,
-  },
-  {
-    id: "delivery_only",
-    title: "Apenas Delivery / Retirada",
-    desc: "Dark Kitchen, ateliê fechado ou centro de distribuição sem atendimento presencial.",
-    icon: Bike,
-    defaultPublic: false,
-  },
-  {
-    id: "home_office",
-    title: "Home Office / Residencial",
-    desc: "Vendas ou produção a partir de casa. O endereço exato é preservado e não publicado.",
-    icon: Home,
-    defaultPublic: false,
-  },
-  {
-    id: "service_at_client",
-    title: "Serviço em Domicílio",
-    desc: "Profissionais que atendem na casa ou empresa do cliente (eletricista, diarista, etc).",
-    icon: Wrench,
-    defaultPublic: false,
-  },
-  {
-    id: "digital_only",
-    title: "100% Digital / Online",
-    desc: "Infoprodutos, consultorias remotas ou comércio sem necessidade de ponto físico local.",
-    icon: Globe,
-    defaultPublic: false,
-  },
-];
+}> {
+  const seg = (segment || "").toLowerCase();
+
+  // 1. Turismo, Viagens, Hotelaria, Passeios & Eventos
+  if (
+    seg.includes("turismo") ||
+    seg.includes("tourism") ||
+    seg.includes("viag") ||
+    seg.includes("passeio") ||
+    seg.includes("hotel") ||
+    seg.includes("resort")
+  ) {
+    return [
+      {
+        id: "physical_and_delivery",
+        title: "Agência / Escritório Físico",
+        desc: "Atendimento presencial ao público para montagem de roteiros, pacotes e reservas.",
+        icon: Store,
+        defaultPublic: true,
+      },
+      {
+        id: "digital_only",
+        title: "Atendimento 100% Online",
+        desc: "Consultoria e vendas via WhatsApp, videochamada e emissão digital de vouchers.",
+        icon: Globe,
+        defaultPublic: false,
+      },
+      {
+        id: "service_at_client",
+        title: "Atendimento Personalizado / Concierge",
+        desc: "Atendimento sob medida no hotel, aeroporto ou endereço do cliente.",
+        icon: Wrench,
+        defaultPublic: false,
+      },
+      {
+        id: "home_office",
+        title: "Consultor Independente / Home Office",
+        desc: "Operação remota a partir de casa. O endereço residencial é protegido.",
+        icon: Home,
+        defaultPublic: false,
+      },
+    ];
+  }
+
+  // 2. Serviços Especializados, Saúde, Estética, Barbearia, Advocacia
+  if (
+    seg.includes("servic") ||
+    seg.includes("beleza") ||
+    seg.includes("estetica") ||
+    seg.includes("barbearia") ||
+    seg.includes("saude") ||
+    seg.includes("advoc") ||
+    seg.includes("consultoria")
+  ) {
+    return [
+      {
+        id: "physical_and_delivery",
+        title: "Espaço / Consultório Físico",
+        desc: "Atendimento presencial no consultório, clínica, estúdio ou escritório.",
+        icon: Store,
+        defaultPublic: true,
+      },
+      {
+        id: "service_at_client",
+        title: "Atendimento em Domicílio / No Local",
+        desc: "Profissionais que realizam o atendimento na residência ou empresa do cliente.",
+        icon: Wrench,
+        defaultPublic: false,
+      },
+      {
+        id: "digital_only",
+        title: "Atendimento 100% Online / Remoto",
+        desc: "Consultorias, mentorias e serviços realizados integralmente via internet.",
+        icon: Globe,
+        defaultPublic: false,
+      },
+      {
+        id: "home_office",
+        title: "Ateliê / Home Studio Privado",
+        desc: "Atendimento exclusivo com hora marcada e endereço exato protegido.",
+        icon: Home,
+        defaultPublic: false,
+      },
+    ];
+  }
+
+  // 3. Imóveis, Locação & Temporada
+  if (seg.includes("imov") || seg.includes("real_estate") || seg.includes("aluguel")) {
+    return [
+      {
+        id: "physical_and_delivery",
+        title: "Imobiliária / Escritório de Vendas",
+        desc: "Espaço físico aberto para recepção de compradores, locatários e investidores.",
+        icon: Store,
+        defaultPublic: true,
+      },
+      {
+        id: "service_at_client",
+        title: "Corretor em Campo / Visitas Externas",
+        desc: "Atendimento direto nos imóveis com visitas agendadas com clientes.",
+        icon: Wrench,
+        defaultPublic: false,
+      },
+      {
+        id: "digital_only",
+        title: "Intermediação 100% Digital",
+        desc: "Plataforma digital de captação e consultoria de imóveis.",
+        icon: Globe,
+        defaultPublic: false,
+      },
+    ];
+  }
+
+  // 4. Padrão: Gastronomia, Mercado, Hortifrúti, Varejo & Delivery
+  return [
+    {
+      id: "physical_and_delivery",
+      title: "Loja Física com Atendimento",
+      desc: "Balcão ou salão aberto ao público para visitas e compras presenciais, além de entregas.",
+      icon: Store,
+      defaultPublic: true,
+    },
+    {
+      id: "delivery_only",
+      title: "Apenas Delivery / Retirada",
+      desc: "Dark Kitchen, ateliê fechado ou centro de distribuição sem atendimento presencial.",
+      icon: Bike,
+      defaultPublic: false,
+    },
+    {
+      id: "home_office",
+      title: "Produção Artesanal / Residencial",
+      desc: "Vendas ou produção a partir de casa. O endereço exato é preservado e não publicado.",
+      icon: Home,
+      defaultPublic: false,
+    },
+    {
+      id: "digital_only",
+      title: "E-commerce 100% Digital",
+      desc: "Loja online sem atendimento local físico, com envio para todo o país.",
+      icon: Globe,
+      defaultPublic: false,
+    },
+  ];
+}
 
 export function BusinessLocationPicker({
   value,
   onChange,
+  segment,
   className = "",
 }: BusinessLocationPickerProps) {
+  const models = getBusinessModelsForSegment(segment);
   const [isSearchingCep, setIsSearchingCep] = useState(false);
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [isGettingGps, setIsGettingGps] = useState(false);
@@ -352,7 +463,7 @@ export function BusinessLocationPicker({
           Como funciona o atendimento do seu negócio? *
         </Label>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-          {BUSINESS_MODELS.map((model) => {
+          {models.map((model) => {
             const isSelected = value.businessModel === model.id;
             const Icon = model.icon;
 

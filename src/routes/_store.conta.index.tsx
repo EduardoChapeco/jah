@@ -141,16 +141,14 @@ function AccountDashboardPage() {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-bold h-8 gap-1">
+            <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-bold h-8">
               <Link to="/workspace">
-                <LayoutDashboard className="size-3" />
                 <span>Entrar no Workspace</span>
               </Link>
             </Button>
             <Button asChild variant="ghost" size="sm" className="rounded-xl text-xs font-semibold h-8 text-primary">
               <Link to="/criar-negocio">
-                <Plus className="size-3" />
-                <span>Cadastrar Nova Loja</span>
+                <span>+ Cadastrar Nova Loja</span>
               </Link>
             </Button>
           </div>
@@ -161,46 +159,64 @@ function AccountDashboardPage() {
             {stores.map((st) => (
               <div
                 key={st.id}
-                className="px-5 py-4 flex items-center justify-between gap-3 hover:bg-muted/20 transition-colors"
+                className="px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-muted/20 transition-colors"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="size-10 rounded-xl bg-card border border-border/40 overflow-hidden shrink-0 flex items-center justify-center">
+                  <div className="size-11 rounded-xl bg-card border border-border/40 overflow-hidden shrink-0 flex items-center justify-center">
                     {st.logo_url ? (
                       <img src={st.logo_url} alt={st.name} className="size-full object-cover" />
                     ) : (
                       <span className="text-sm font-black text-primary">{st.name ? st.name.slice(0, 2).toUpperCase() : "LJ"}</span>
                     )}
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-foreground truncate">{st.name || "Loja"}</p>
+                  <div className="min-w-0 space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-bold text-foreground truncate">{st.name || "Loja"}</p>
+                      {st.role && (
+                        <Badge variant="outline" className="text-[9px] uppercase px-1.5 py-0">
+                          {st.role}
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-[11px] text-muted-foreground">
-                      {st.city ? `${st.city}, ${st.state || ""}` : "Loja Ativa"} • {st.product_count ?? 0} produtos
+                      {st.city ? `${st.city}, ${st.state || ""}` : "Loja Ativa"} • {st.product_count ?? 0} produtos cadastrados
                     </p>
                   </div>
                 </div>
 
-                <Button
-                  size="sm"
-                  onClick={() => handleOpenWorkspace(st.id)}
-                  className="rounded-xl text-xs font-bold h-9 bg-foreground text-background hover:bg-foreground/90 shrink-0 cursor-pointer gap-1.5"
-                >
-                  <span>Abrir Painel</span>
-                  <ArrowRight className="size-3" />
-                </Button>
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="rounded-xl text-xs font-semibold h-8"
+                  >
+                    <Link to="/perfil-da-loja" search={{ storeId: st.id }}>
+                      Ver Vitrine
+                    </Link>
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => handleOpenWorkspace(st.id)}
+                    className="rounded-xl text-xs font-bold h-8 bg-foreground text-background hover:bg-foreground/90 shrink-0 cursor-pointer"
+                  >
+                    Abrir Workspace
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
         ) : (
           <div className="px-5 py-8 text-center space-y-3">
             <p className="text-xs text-muted-foreground">
-              Você ainda não possui lojas vinculadas diretamente.
+              Você ainda não possui lojas vinculadas diretamente ao seu perfil.
             </p>
             <div className="flex items-center justify-center gap-2">
               <Button asChild size="sm" className="rounded-xl text-xs font-bold bg-primary text-primary-foreground">
-                <Link to="/workspace">Acessar Workspace Geral</Link>
+                <Link to="/workspace">Acessar Workspace Geral Wider</Link>
               </Button>
               <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-bold">
-                <Link to="/criar-negocio">Cadastrar Meu Negócio</Link>
+                <Link to="/criar-negocio">Cadastrar Minha Empresa</Link>
               </Button>
             </div>
           </div>

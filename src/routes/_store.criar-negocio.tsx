@@ -646,6 +646,7 @@ function CriarNegocioPage() {
                     <BusinessLocationPicker
                       value={locationData}
                       onChange={setLocationData}
+                      segment={selectedSegmentId}
                     />
                   </div>
                 </div>

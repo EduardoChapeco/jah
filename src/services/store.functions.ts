@@ -566,7 +566,11 @@ export const getMyStoresList = createServerFn({ method: "GET" }).handler(async (
       });
     }
 
-    const isPlatformAdmin = identity.role === "platform_admin";
+    const isPlatformAdmin =
+      identity.role === "platform_admin" ||
+      identity.role === "master" ||
+      identity.role === "admin" ||
+      identity.role === "superadmin";
 
     // Se o usuário não possui lojas vinculadas e não é admin da plataforma, retorna vazio
     if (storeIds.length === 0 && !isPlatformAdmin) {
@@ -577,10 +581,11 @@ export const getMyStoresList = createServerFn({ method: "GET" }).handler(async (
       .from("stores")
       .select("id, name, slug, type, logo_url, banner_url, phone, email, cnpj, address, city, state, description, status, settings, created_at");
 
-    if (storeIds.length > 0) {
+    if (isPlatformAdmin) {
+      // Platform Admin tem visão completa de todas as lojas e empresas
+      query = query.order("created_at", { ascending: false }).limit(50);
+    } else if (storeIds.length > 0) {
       query = query.in("id", storeIds);
-    } else if (isPlatformAdmin) {
-      query = query.order("created_at", { ascending: false }).limit(30);
     }
 
     const { data: stores, error } = await query;

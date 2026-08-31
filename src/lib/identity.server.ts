@@ -90,15 +90,17 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
     console.warn("[identity.server] Erro ao buscar workspace_members:", e);
   }
 
-  // ── Passo 2: Verificar role do perfil (fonte segura — banco, não JWT metadata)
+  // ── Passo 2: Verificar role do perfil e store_id associada
   let userProfileRole = "customer";
+  let profileStoreId: string | null = null;
   try {
     const { data: p } = await serverClient
       .from("profiles")
-      .select("role")
+      .select("role, store_id")
       .eq("id", user.id)
       .maybeSingle();
     userProfileRole = p?.role || "customer";
+    profileStoreId = p?.store_id || null;
   } catch (err) {
     console.error("[identity.server] Falha ao verificar role no banco:", err);
   }
@@ -107,66 +109,81 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
     userProfileRole === "platform_admin" ||
     userProfileRole === "master" ||
     userProfileRole === "superadmin" ||
+    userProfileRole === "admin" ||
     user?.email?.toLowerCase() === "meuwider@gmail.com" ||
     user?.email?.toLowerCase() === "master@wider.com.br";
 
-  // ── Passo 3: Auto-Heal — Se memberships ainda está vazio, busca lojas associadas ao usuário
-  if (memberships.length === 0) {
+  // Se o profile tem store_id vinculado e ainda não está em memberships, adiciona
+  if (profileStoreId && !memberships.some((m) => m.store_id === profileStoreId)) {
     try {
-      let query = serverClient
+      const { data: st } = await serverClient
         .from("stores")
-        .select("id, name, slug, logo_url, segment, type, category, settings, email, created_by");
+        .select("id, name, slug, logo_url, segment, type, category, settings")
+        .eq("id", profileStoreId)
+        .maybeSingle();
+      if (st) {
+        memberships.unshift({
+          store_id: st.id,
+          role: userProfileRole === "customer" ? "owner" : userProfileRole,
+          name: st.name || "Minha Loja",
+          slug: st.slug || "loja",
+          logo_url: st.logo_url || st.settings?.logoUrl || st.settings?.logo_url || null,
+          segment: st.segment || st.settings?.segment || null,
+          type: st.type || st.settings?.type || null,
+          category: st.category || st.settings?.category || null,
+          settings: st.settings || {},
+        });
+      }
+    } catch {
+      // Silencioso
+    }
+  }
 
+  // ── Passo 3: Auto-Heal — Se memberships está vazio ou é platform admin, busca lojas adicionais
+  if (memberships.length === 0 || isPlatformAdmin) {
+    try {
       let ownedStores: any[] = [];
       if (isPlatformAdmin) {
-        // Platform admin vê todas as lojas
-        const { data } = await query.order("created_at", { ascending: false }).limit(50);
-        ownedStores = data || [];
+        // Platform admin tem acesso a todas as lojas do ecossistema
+        const { data: allStores } = await serverClient
+          .from("stores")
+          .select("id, name, slug, logo_url, segment, type, category, settings")
+          .order("created_at", { ascending: false })
+          .limit(30);
+        ownedStores = allStores || [];
       } else {
-        // Usuário comum: busca por created_by ou email cadastrado na loja
+        // Usuário comum: busca por email cadastrado na loja ou owner_id
         const userEmail = user?.email?.toLowerCase() || "";
-        const { data: byCreated } = await query.eq("created_by", user.id);
         const { data: byEmail } = userEmail
-          ? await serverClient.from("stores").select("id, name, slug, logo_url, segment, type, category, settings").ilike("email", userEmail)
+          ? await serverClient
+              .from("stores")
+              .select("id, name, slug, logo_url, segment, type, category, settings")
+              .ilike("email", userEmail)
           : { data: [] };
 
-        const merged = [...(byCreated || []), ...(byEmail || [])];
-        const seenIds = new Set<string>();
-        ownedStores = merged.filter((s) => {
-          if (seenIds.has(s.id)) return false;
-          seenIds.add(s.id);
-          return true;
-        });
+        ownedStores = byEmail || [];
       }
 
       if (ownedStores && ownedStores.length > 0) {
-        memberships = ownedStores.map((s: any) => ({
-          store_id: s.id,
-          role: "owner",
-          name: s.name || "Minha Loja",
-          slug: s.slug || "loja",
-          logo_url: s.logo_url || s.settings?.logoUrl || s.settings?.logo_url || null,
-          segment: s.segment || s.settings?.segment || null,
-          type: s.type || s.settings?.type || null,
-          category: s.category || s.settings?.category || null,
-          settings: s.settings || {},
-        }));
+        const existingIds = new Set(memberships.map((m) => m.store_id));
+        const additional = ownedStores
+          .filter((s: any) => !existingIds.has(s.id))
+          .map((s: any) => ({
+            store_id: s.id,
+            role: "owner",
+            name: s.name || "Minha Loja",
+            slug: s.slug || "loja",
+            logo_url: s.logo_url || s.settings?.logoUrl || s.settings?.logo_url || null,
+            segment: s.segment || s.settings?.segment || null,
+            type: s.type || s.settings?.type || null,
+            category: s.category || s.settings?.category || null,
+            settings: s.settings || {},
+          }));
 
-        // Auto-reconciliar: inserir as memberships faltantes para acelerar acessos futuros
-        const rows = memberships.map((m) => ({
-          profile_id: user.id,
-          store_id: m.store_id,
-          role: "owner",
-        }));
-        const { error: upsertErr } = await serverClient
-          .from("workspace_members")
-          .upsert(rows, { onConflict: "profile_id,store_id", ignoreDuplicates: true });
-        if (upsertErr) {
-          console.warn("[identity.server] Auto-reconciliar memberships falhou:", upsertErr.message);
-        }
+        memberships = [...memberships, ...additional];
       }
     } catch (e) {
-      console.warn("[identity.server] Erro no fallback de lojas por created_by/email:", e);
+      console.warn("[identity.server] Erro no fallback de lojas:", e);
     }
   }
 
