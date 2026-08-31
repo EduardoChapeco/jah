@@ -74,18 +74,18 @@ function WorkspaceLayout() {
       {hasStore ? (
         <Outlet />
       ) : (
-        <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 text-center">
-          <div className="size-16 rounded-2xl bg-muted text-foreground flex items-center justify-center mx-auto mb-4">
-            <Store size={32} />
+        <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center max-w-sm mx-auto">
+          <div className="size-12 rounded-2xl bg-muted/60 text-foreground flex items-center justify-center mb-3 border border-border/60">
+            <Store size={22} className="text-primary" />
           </div>
-          <h2 className="text-2xl font-bold text-foreground mb-2">
-            Bem-vindo ao Workspace
+          <h2 className="text-base font-bold text-foreground mb-1">
+            Nenhum negócio ativo
           </h2>
-          <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
-            Você ainda não possui nenhum negócio configurado na plataforma. Crie sua loja para acessar o catálogo, pedidos, estoque e relatórios.
+          <p className="text-xs text-muted-foreground mb-5 leading-relaxed">
+            Cadastre seu ponto de venda ou loja para gerenciar cardápios, pedidos e estoque.
           </p>
-          <Button asChild className="rounded-xl font-bold px-8">
-            <Link to="/criar-negocio">Criar Meu Negócio</Link>
+          <Button asChild className="rounded-xl font-bold text-xs h-10 px-6">
+            <Link to="/criar-negocio">Cadastrar Ponto Comercial</Link>
           </Button>
         </div>
       )}

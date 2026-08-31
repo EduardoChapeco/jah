@@ -64,8 +64,7 @@ export function BannerHeroCarousel({
         className="size-full object-cover"
         loading="eager"
         onError={(e) => {
-          (e.currentTarget as HTMLImageElement).src =
-            "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&q=80";
+          (e.currentTarget as HTMLImageElement).style.display = "none";
         }}
       />
     );

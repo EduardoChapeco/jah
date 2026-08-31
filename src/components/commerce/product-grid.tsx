@@ -92,8 +92,7 @@ export function ProductGrid({
                     className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
                     loading="lazy"
                     onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).src =
-                        "https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&q=80";
+                      (e.currentTarget as HTMLImageElement).style.display = "none";
                     }}
                   />
                 ) : (
