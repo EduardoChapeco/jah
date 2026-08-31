@@ -279,8 +279,9 @@ function TourismDetailPage() {
 
       {/* ── 4. Main Content Grid ── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Left Column: Description, Inclusions, What to Bring */}
+        {/* Left Column: Description, Inclusions, Itinerary, Transport, Hotel, What to Bring */}
         <div className="md:col-span-2 space-y-8">
+          {/* Sobre a Experiência */}
           <section className="space-y-3">
             <h2 className="text-lg font-bold text-foreground">Sobre a Experiência</h2>
             <div className="text-sm sm:text-base text-muted-foreground leading-relaxed whitespace-pre-line">
@@ -288,6 +289,55 @@ function TourismDetailPage() {
             </div>
           </section>
 
+          {/* Roteiro Dia a Dia / Itinerário Detalhado */}
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <CalendarDots size={18} weight="bold" className="text-primary" />
+                <span>Roteiro Dia a Dia & Atividades</span>
+              </h3>
+              <Badge variant="outline" className="text-[10px] font-mono font-bold">
+                Programação Completa
+              </Badge>
+            </div>
+
+            <div className="space-y-3 relative before:absolute before:left-3.5 before:top-3 before:bottom-3 before:w-0.5 before:bg-border/60">
+              <div className="relative pl-8 space-y-1">
+                <div className="absolute left-2 top-1.5 size-3.5 rounded-full bg-primary ring-4 ring-background -translate-x-1/2" />
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary block">
+                  Dia 1 • Embarque & Boas-Vindas
+                </span>
+                <p className="text-xs font-bold text-foreground">Apresentação no ponto de encontro e check-in</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Recepção dos viajantes, conferência de vouchers e acomodação no transporte. Chegada ao destino e tarde livre para ambientação.
+                </p>
+              </div>
+
+              <div className="relative pl-8 space-y-1">
+                <div className="absolute left-2 top-1.5 size-3.5 rounded-full bg-border ring-4 ring-background -translate-x-1/2" />
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground block">
+                  Dia 2 • Roteiro Guiado & Atrações
+                </span>
+                <p className="text-xs font-bold text-foreground">Passeio principal e imersão cultural/natural</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Saída matinal com guia credenciado, paradas para fotos, degustação gastronômica e tempo reservado para compras e lazer.
+                </p>
+              </div>
+
+              <div className="relative pl-8 space-y-1">
+                <div className="absolute left-2 top-1.5 size-3.5 rounded-full bg-border ring-4 ring-background -translate-x-1/2" />
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground block">
+                  Dia 3 • Retorno & Encerramento
+                </span>
+                <p className="text-xs font-bold text-foreground">Check-out e viagem de retorno</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Manhã livre para últimas fotos, check-out do hotel e embarque de volta ao local de origem com assistência total.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* O que está incluso */}
           {experience.included_items && experience.included_items.length > 0 && (
             <section className="space-y-3">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
@@ -308,6 +358,31 @@ function TourismDetailPage() {
             </section>
           )}
 
+          {/* Transporte, Hospedagem & Documentação Obrigatória */}
+          <section className="p-5 rounded-2xl bg-muted/20 border border-border/60 space-y-4">
+            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+              <ShieldCheck size={18} weight="bold" className="text-primary" />
+              <span>Informações Importantes & Documentação</span>
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div className="p-3 rounded-xl bg-card border border-border/40 space-y-1">
+                <span className="font-bold text-foreground block">🛂 Documentação de Viagem:</span>
+                <p className="text-muted-foreground leading-relaxed">
+                  Documento oficial com foto (RG em bom estado emitido há menos de 10 anos ou CNH válida). Para viagens internacionais, passaporte com validade mínima de 6 meses.
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-card border border-border/40 space-y-1">
+                <span className="font-bold text-foreground block">🏨 Políticas de Hotelaria & Bagagem:</span>
+                <p className="text-muted-foreground leading-relaxed">
+                  Check-in a partir das 14h / Check-out até às 11h. Franquia de bagagem conforme modalidade de transporte informada no voucher.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* O que levar */}
           {experience.what_to_bring && experience.what_to_bring.length > 0 && (
             <section className="space-y-3">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
@@ -524,6 +599,17 @@ function TourismDetailPage() {
                 )}
               </DialogContent>
             </Dialog>
+
+            {/* Botão de Cotação Personalizada Sob Medida */}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsTravelQuoteOpen(true)}
+              className="w-full rounded-xl font-bold h-11 text-xs border-border gap-2 cursor-pointer bg-card hover:bg-muted/50"
+            >
+              <Sparkle size={16} weight="bold" className="text-primary" />
+              <span>Personalizar Viagem / Cotar Outras Datas</span>
+            </Button>
 
             {/* WhatsApp do Provedor — Rastreado */}
             {experience.contact_whatsapp && (
