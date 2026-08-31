@@ -805,4 +805,77 @@ export const HOME_TEMPLATES_LIBRARY: Record<string, HomeTemplatePreset> = {
       ];
     },
   },
+
+  biolink_linktree: {
+    id: "biolink_linktree",
+    slug: "biolink-linktree",
+    name: "Biolink & Cartaz Interativo (Linktree)",
+    category: "conversion",
+    description:
+      "Layout vertical otimizado para celulares com botões de ação direta, WhatsApp, carrossel de produtos e horários.",
+    thumbnail:
+      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=600",
+    tags: ["Biolink", "Linktree", "WhatsApp", "Mobile", "Conversão"],
+    nodesFactory: (uid) => {
+      const s1 = uid();
+      const c1 = uid();
+
+      return [
+        {
+          id: s1,
+          node_type: "section",
+          block_type: "section",
+          parent_id: null,
+          sort_order: 0,
+          design_tokens: {
+            backgroundColor: "var(--background)",
+            textColor: "var(--foreground)",
+          },
+        },
+        {
+          id: c1,
+          node_type: "container",
+          block_type: "container",
+          parent_id: s1,
+          sort_order: 0,
+          layout_rules: {
+            maxWidth: "md",
+            display: "flex",
+            flexDirection: "col",
+            gap: "md",
+            paddingX: "md",
+            paddingY: "xl",
+          },
+        },
+        {
+          id: uid(),
+          node_type: "composition",
+          block_type: "stories_ring",
+          parent_id: c1,
+          sort_order: 0,
+          content: { title: "Destaques Recentes" },
+        },
+        {
+          id: uid(),
+          node_type: "composition",
+          block_type: "product_rail",
+          parent_id: c1,
+          sort_order: 1,
+          content: { title: "Mais Vendidos & Ofertas" },
+          data_bindings: { source: "top_sellers" },
+        },
+        {
+          id: uid(),
+          node_type: "composition",
+          block_type: "trust_badges",
+          parent_id: c1,
+          sort_order: 2,
+          content: {
+            title: "Atendimento & Localização",
+            badges: [],
+          },
+        },
+      ];
+    },
+  },
 };
