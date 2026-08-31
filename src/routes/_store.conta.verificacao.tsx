@@ -17,6 +17,7 @@ import {
   Briefcase
 } from "@phosphor-icons/react";
 import { getMyKycStatus, submitKycVerification } from "@/services/kyc.functions";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/conta/verificacao")({
@@ -47,15 +48,25 @@ function KycVerificationPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!docFrontUrl) {
+      toast.error("Por favor, anexe a foto do seu documento de identificação.");
+      return;
+    }
+
+    if (!selfieUrl) {
+      toast.error("Por favor, tire ou anexe sua selfie segurando o documento.");
+      return;
+    }
+
     startTransition(async () => {
       try {
         await submitKycVerification({
           data: {
             entity_type: entityType,
-            registration_number: regNumber,
-            registration_state: regState,
-            document_front_url: docFrontUrl || "https://images.unsplash.com/photo-1544717305-2782549b5136?w=600",
-            selfie_url: selfieUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600",
+            registration_number: regNumber || undefined,
+            registration_state: regState || undefined,
+            document_front_url: docFrontUrl,
+            selfie_url: selfieUrl,
           },
         });
         toast.success("Documentos enviados com sucesso! A auditoria analisará seus dados em até 24h.");
@@ -179,35 +190,27 @@ function KycVerificationPage() {
             )}
 
             {/* Upload de Documentos */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="rounded-xl border border-dashed border-border p-5 text-center transition-all hover:border-primary/50">
-                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <UploadSimple className="h-5 w-5" />
-                </div>
-                <h4 className="mt-2 text-xs font-bold text-foreground">Documento Frente/Verso</h4>
-                <p className="mt-1 text-[11px] text-muted-foreground">RG, CNH ou Carteira Profissional</p>
-                <button
-                  type="button"
-                  onClick={() => setDocFrontUrl("https://images.unsplash.com/photo-1544717305-2782549b5136?w=600")}
-                  className="mt-3 rounded-lg bg-surface-paper px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent"
-                >
-                  {docFrontUrl ? "Documento Carregado ✓" : "Selecionar Arquivo"}
-                </button>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-foreground">Documento Frente/Verso (RG, CNH ou Carteira)</label>
+                <ImageUpload
+                  value={docFrontUrl || undefined}
+                  onChange={(url) => setDocFrontUrl(url || "")}
+                  bucket="cms-media"
+                  aspectRatio="widescreen"
+                  label="Carregar Documento"
+                />
               </div>
 
-              <div className="rounded-xl border border-dashed border-border p-5 text-center transition-all hover:border-primary/50">
-                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <Camera className="h-5 w-5" />
-                </div>
-                <h4 className="mt-2 text-xs font-bold text-foreground">Selfie de Validação</h4>
-                <p className="mt-1 text-[11px] text-muted-foreground">Foto segurando o documento ao lado do rosto</p>
-                <button
-                  type="button"
-                  onClick={() => setSelfieUrl("https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600")}
-                  className="mt-3 rounded-lg bg-surface-paper px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent"
-                >
-                  {selfieUrl ? "Selfie Carregada ✓" : "Tirar Foto / Carregar"}
-                </button>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-foreground">Selfie com Documento</label>
+                <ImageUpload
+                  value={selfieUrl || undefined}
+                  onChange={(url) => setSelfieUrl(url || "")}
+                  bucket="cms-media"
+                  aspectRatio="square"
+                  label="Carregar Selfie"
+                />
               </div>
             </div>
 

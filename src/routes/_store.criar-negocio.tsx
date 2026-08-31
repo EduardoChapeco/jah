@@ -759,15 +759,14 @@ function CriarNegocioPage() {
                 {/* Banner de Logística — EXCLUSIVO para negócios de Delivery/Varejo */}
                 {isDeliverySegment && (
                   <div className="relative rounded-3xl overflow-hidden border border-border/80 bg-card shadow-xs">
-                    <div className="relative h-44 sm:h-52 w-full overflow-hidden bg-muted">
-                      <img
-                        src={
-                          logisticsInfo?.image_desktop_url ||
-                          "https://images.unsplash.com/photo-1616401784845-180882ba9ba8?auto=format&fit=crop&w=1600&q=80"
-                        }
-                        alt="Logística Integrada e Entregadores"
-                        className="size-full object-cover"
-                      />
+                    <div className="relative h-44 sm:h-52 w-full overflow-hidden bg-gradient-to-br from-zinc-900 via-zinc-800 to-black">
+                      {logisticsInfo?.image_desktop_url && (
+                        <img
+                          src={logisticsInfo.image_desktop_url}
+                          alt="Logística Integrada e Entregadores"
+                          className="size-full object-cover"
+                        />
+                      )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
 
                       <div className="absolute inset-x-0 bottom-0 p-5 text-white space-y-1.5">

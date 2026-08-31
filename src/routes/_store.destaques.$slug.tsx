@@ -620,13 +620,17 @@ function DedicatedHotpageView() {
                     className="flex items-stretch justify-between p-3 sm:p-4 rounded-2xl  bg-card hover:border-foreground/30 transition-all gap-3.5 group "
                   >
                     {/* Imagem do Produto com Badge de Desconto */}
-                    <div className="relative size-20 sm:size-24 rounded-xl overflow-hidden bg-muted shrink-0">
-                      <img
-                        src={p.coverUrl || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80"}
-                        alt={p.title}
-                        loading="lazy"
-                        className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
+                    <div className="relative size-20 sm:size-24 rounded-xl overflow-hidden bg-muted shrink-0 flex items-center justify-center">
+                      {p.coverUrl ? (
+                        <img
+                          src={p.coverUrl}
+                          alt={p.title}
+                          loading="lazy"
+                          className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <ShoppingBag className="size-6 text-muted-foreground/40" />
+                      )}
                       {discountPercent && (
                         <div className="absolute top-1 left-1">
                           <span className="bg-destructive text-white font-mono font-black text-[9px] px-1.5 py-0.5 rounded-md ">
