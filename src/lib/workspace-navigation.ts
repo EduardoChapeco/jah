@@ -57,6 +57,7 @@ import {
   FileSpreadsheet,
   Gift,
   Globe,
+  Bus,
 } from "lucide-react";
 
 export type NavItem = {
@@ -221,13 +222,15 @@ const GROUP_REAL_ESTATE: NavGroup = {
 // 8. Turismo
 const GROUP_TURISMO: NavGroup = {
   id: "tourism",
-  label: "Turismo & Reservas",
+  label: "Turismo & Viagens",
   icon: Plane,
   items: [
-    { path: "/workspace/turismo/cotacoes", label: "Cotações de Pacotes", icon: Plane },
+    { path: "/workspace/turismo/cotacoes", label: "Central de Cotações", icon: Plane },
+    { path: "/workspace/turismo/propostas", label: "Lâminas & Propostas (Studio)", icon: Sparkles },
+    { path: "/workspace/turismo/contratos", label: "Contratos & Assinatura Digital", icon: FileText },
+    { path: "/workspace/turismo/grupos", label: "Grupos & Ônibus (ANTT)", icon: Bus },
     { path: "/workspace/eventos", label: "Passeios & Ingressos", icon: Calendar },
-    { path: "/workspace/agenda", label: "Grade de Reservas", icon: Clock },
-    { path: "/workspace/clientes", label: "Viajantes / Clientes", icon: Users },
+    { path: "/workspace/clientes", label: "Viajantes / CRM", icon: Users },
   ],
 };
 

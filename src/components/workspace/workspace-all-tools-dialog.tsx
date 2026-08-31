@@ -34,6 +34,9 @@ import {
   Receipt,
   Eye,
   Megaphone,
+  Plane,
+  Bus,
+  FileText,
 } from "lucide-react";
 import {
   Dialog,
@@ -135,6 +138,18 @@ const SECTOR_TOOL_GROUPS = [
       { title: "Cupons & Descontos", path: "/workspace/marketing/cupons", icon: Ticket },
       { title: "Campanhas & Anúncios", path: "/workspace/marketing/campanhas", icon: Zap },
       { title: "Notícias & Publicações", path: "/workspace/marketing/noticias", icon: Newspaper },
+    ],
+  },
+  {
+    id: "tourism",
+    title: "Turismo & Viagens",
+    description: "Cotações, estúdio de lâminas, contratos com assinatura digital e excursões",
+    tools: [
+      { title: "Central de Cotações", path: "/workspace/turismo/cotacoes", icon: Plane },
+      { title: "Lâminas & Propostas (Studio)", path: "/workspace/turismo/propostas", icon: Sparkles },
+      { title: "Contratos & Assinatura Digital", path: "/workspace/turismo/contratos", icon: FileText },
+      { title: "Grupos Terrestres & Ônibus (ANTT)", path: "/workspace/turismo/grupos", icon: Bus },
+      { title: "Passeios & Ingressos", path: "/workspace/eventos", icon: Calendar },
     ],
   },
   {
