@@ -237,6 +237,8 @@ import { Route as WorkspacePedidosEntregadoresIndexRouteImport } from './routes/
 import { Route as WorkspacePedidosEntregadoresIdRouteImport } from './routes/workspace.pedidos.entregadores.$id'
 import { Route as WorkspacePedidosEntregadoresNovoRouteImport } from './routes/workspace.pedidos.entregadores.novo'
 import { Route as WorkspaceTurismoContratosIndexRouteImport } from './routes/workspace.turismo.contratos.index'
+import { Route as WorkspaceTurismoGruposIndexRouteImport } from './routes/workspace.turismo.grupos.index'
+import { Route as WorkspaceTurismoGruposIdRouteImport } from './routes/workspace.turismo.grupos.$id'
 import { Route as WorkspaceTurismoPropostasIndexRouteImport } from './routes/workspace.turismo.propostas.index'
 import { Route as WorkspaceTurismoPropostasIdRouteImport } from './routes/workspace.turismo.propostas.$id'
 import { Route as WorkspacePedidosIdReciboRouteImport } from './routes/workspace_.pedidos.$id.recibo'
@@ -1438,6 +1440,18 @@ const WorkspaceTurismoContratosIndexRoute =
     path: '/turismo/contratos/',
     getParentRoute: () => WorkspaceRoute,
   } as any)
+const WorkspaceTurismoGruposIndexRoute =
+  WorkspaceTurismoGruposIndexRouteImport.update({
+    id: '/turismo/grupos/',
+    path: '/turismo/grupos/',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
+const WorkspaceTurismoGruposIdRoute =
+  WorkspaceTurismoGruposIdRouteImport.update({
+    id: '/turismo/grupos/$id',
+    path: '/turismo/grupos/$id',
+    getParentRoute: () => WorkspaceRoute,
+  } as any)
 const WorkspaceTurismoPropostasIndexRoute =
   WorkspaceTurismoPropostasIndexRouteImport.update({
     id: '/turismo/propostas/',
@@ -1675,6 +1689,7 @@ export interface FileRoutesByFullPath {
   '/workspace/marketing/anuncios/novo': typeof WorkspaceMarketingAnunciosNovoRoute
   '/workspace/pedidos/entregadores/$id': typeof WorkspacePedidosEntregadoresIdRoute
   '/workspace/pedidos/entregadores/novo': typeof WorkspacePedidosEntregadoresNovoRoute
+  '/workspace/turismo/grupos/$id': typeof WorkspaceTurismoGruposIdRoute
   '/workspace/turismo/propostas/$id': typeof WorkspaceTurismoPropostasIdRoute
   '/workspace/pedidos/$id/recibo': typeof WorkspacePedidosIdReciboRoute
   '/conta/classificados/': typeof StoreContaClassificadosIndexRoute
@@ -1687,6 +1702,7 @@ export interface FileRoutesByFullPath {
   '/workspace/financeiro/caixa/': typeof WorkspaceFinanceiroCaixaIndexRoute
   '/workspace/pedidos/entregadores/': typeof WorkspacePedidosEntregadoresIndexRoute
   '/workspace/turismo/contratos/': typeof WorkspaceTurismoContratosIndexRoute
+  '/workspace/turismo/grupos/': typeof WorkspaceTurismoGruposIndexRoute
   '/workspace/turismo/propostas/': typeof WorkspaceTurismoPropostasIndexRoute
 }
 export interface FileRoutesByTo {
@@ -1900,6 +1916,7 @@ export interface FileRoutesByTo {
   '/workspace/marketing/anuncios/novo': typeof WorkspaceMarketingAnunciosNovoRoute
   '/workspace/pedidos/entregadores/$id': typeof WorkspacePedidosEntregadoresIdRoute
   '/workspace/pedidos/entregadores/novo': typeof WorkspacePedidosEntregadoresNovoRoute
+  '/workspace/turismo/grupos/$id': typeof WorkspaceTurismoGruposIdRoute
   '/workspace/turismo/propostas/$id': typeof WorkspaceTurismoPropostasIdRoute
   '/workspace/pedidos/$id/recibo': typeof WorkspacePedidosIdReciboRoute
   '/conta/classificados': typeof StoreContaClassificadosIndexRoute
@@ -1912,6 +1929,7 @@ export interface FileRoutesByTo {
   '/workspace/financeiro/caixa': typeof WorkspaceFinanceiroCaixaIndexRoute
   '/workspace/pedidos/entregadores': typeof WorkspacePedidosEntregadoresIndexRoute
   '/workspace/turismo/contratos': typeof WorkspaceTurismoContratosIndexRoute
+  '/workspace/turismo/grupos': typeof WorkspaceTurismoGruposIndexRoute
   '/workspace/turismo/propostas': typeof WorkspaceTurismoPropostasIndexRoute
 }
 export interface FileRoutesById {
@@ -2134,6 +2152,7 @@ export interface FileRoutesById {
   '/workspace/marketing/anuncios/novo': typeof WorkspaceMarketingAnunciosNovoRoute
   '/workspace/pedidos/entregadores/$id': typeof WorkspacePedidosEntregadoresIdRoute
   '/workspace/pedidos/entregadores/novo': typeof WorkspacePedidosEntregadoresNovoRoute
+  '/workspace/turismo/grupos/$id': typeof WorkspaceTurismoGruposIdRoute
   '/workspace/turismo/propostas/$id': typeof WorkspaceTurismoPropostasIdRoute
   '/workspace_/pedidos/$id/recibo': typeof WorkspacePedidosIdReciboRoute
   '/_store/conta/classificados/': typeof StoreContaClassificadosIndexRoute
@@ -2146,6 +2165,7 @@ export interface FileRoutesById {
   '/workspace/financeiro/caixa/': typeof WorkspaceFinanceiroCaixaIndexRoute
   '/workspace/pedidos/entregadores/': typeof WorkspacePedidosEntregadoresIndexRoute
   '/workspace/turismo/contratos/': typeof WorkspaceTurismoContratosIndexRoute
+  '/workspace/turismo/grupos/': typeof WorkspaceTurismoGruposIndexRoute
   '/workspace/turismo/propostas/': typeof WorkspaceTurismoPropostasIndexRoute
 }
 export interface FileRouteTypes {
@@ -2368,6 +2388,7 @@ export interface FileRouteTypes {
     | '/workspace/marketing/anuncios/novo'
     | '/workspace/pedidos/entregadores/$id'
     | '/workspace/pedidos/entregadores/novo'
+    | '/workspace/turismo/grupos/$id'
     | '/workspace/turismo/propostas/$id'
     | '/workspace/pedidos/$id/recibo'
     | '/conta/classificados/'
@@ -2380,6 +2401,7 @@ export interface FileRouteTypes {
     | '/workspace/financeiro/caixa/'
     | '/workspace/pedidos/entregadores/'
     | '/workspace/turismo/contratos/'
+    | '/workspace/turismo/grupos/'
     | '/workspace/turismo/propostas/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -2593,6 +2615,7 @@ export interface FileRouteTypes {
     | '/workspace/marketing/anuncios/novo'
     | '/workspace/pedidos/entregadores/$id'
     | '/workspace/pedidos/entregadores/novo'
+    | '/workspace/turismo/grupos/$id'
     | '/workspace/turismo/propostas/$id'
     | '/workspace/pedidos/$id/recibo'
     | '/conta/classificados'
@@ -2605,6 +2628,7 @@ export interface FileRouteTypes {
     | '/workspace/financeiro/caixa'
     | '/workspace/pedidos/entregadores'
     | '/workspace/turismo/contratos'
+    | '/workspace/turismo/grupos'
     | '/workspace/turismo/propostas'
   id:
     | '__root__'
@@ -2826,6 +2850,7 @@ export interface FileRouteTypes {
     | '/workspace/marketing/anuncios/novo'
     | '/workspace/pedidos/entregadores/$id'
     | '/workspace/pedidos/entregadores/novo'
+    | '/workspace/turismo/grupos/$id'
     | '/workspace/turismo/propostas/$id'
     | '/workspace_/pedidos/$id/recibo'
     | '/_store/conta/classificados/'
@@ -2838,6 +2863,7 @@ export interface FileRouteTypes {
     | '/workspace/financeiro/caixa/'
     | '/workspace/pedidos/entregadores/'
     | '/workspace/turismo/contratos/'
+    | '/workspace/turismo/grupos/'
     | '/workspace/turismo/propostas/'
   fileRoutesById: FileRoutesById
 }
@@ -4456,6 +4482,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspaceTurismoContratosIndexRouteImport
       parentRoute: typeof WorkspaceRoute
     }
+    '/workspace/turismo/grupos/': {
+      id: '/workspace/turismo/grupos/'
+      path: '/turismo/grupos'
+      fullPath: '/workspace/turismo/grupos/'
+      preLoaderRoute: typeof WorkspaceTurismoGruposIndexRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
+    '/workspace/turismo/grupos/$id': {
+      id: '/workspace/turismo/grupos/$id'
+      path: '/turismo/grupos/$id'
+      fullPath: '/workspace/turismo/grupos/$id'
+      preLoaderRoute: typeof WorkspaceTurismoGruposIdRouteImport
+      parentRoute: typeof WorkspaceRoute
+    }
     '/workspace/turismo/propostas/': {
       id: '/workspace/turismo/propostas/'
       path: '/turismo/propostas'
@@ -4900,6 +4940,7 @@ interface WorkspaceRouteChildren {
   WorkspaceFinanceiroCaixaTurnosRoute: typeof WorkspaceFinanceiroCaixaTurnosRoute
   WorkspacePedidosEntregadoresIdRoute: typeof WorkspacePedidosEntregadoresIdRoute
   WorkspacePedidosEntregadoresNovoRoute: typeof WorkspacePedidosEntregadoresNovoRoute
+  WorkspaceTurismoGruposIdRoute: typeof WorkspaceTurismoGruposIdRoute
   WorkspaceTurismoPropostasIdRoute: typeof WorkspaceTurismoPropostasIdRoute
   WorkspaceAgendaServicosIndexRoute: typeof WorkspaceAgendaServicosIndexRoute
   WorkspaceCatalogoCategoriasIndexRoute: typeof WorkspaceCatalogoCategoriasIndexRoute
@@ -4909,6 +4950,7 @@ interface WorkspaceRouteChildren {
   WorkspaceFinanceiroCaixaIndexRoute: typeof WorkspaceFinanceiroCaixaIndexRoute
   WorkspacePedidosEntregadoresIndexRoute: typeof WorkspacePedidosEntregadoresIndexRoute
   WorkspaceTurismoContratosIndexRoute: typeof WorkspaceTurismoContratosIndexRoute
+  WorkspaceTurismoGruposIndexRoute: typeof WorkspaceTurismoGruposIndexRoute
   WorkspaceTurismoPropostasIndexRoute: typeof WorkspaceTurismoPropostasIndexRoute
 }
 
@@ -5001,6 +5043,7 @@ const WorkspaceRouteChildren: WorkspaceRouteChildren = {
   WorkspaceFinanceiroCaixaTurnosRoute: WorkspaceFinanceiroCaixaTurnosRoute,
   WorkspacePedidosEntregadoresIdRoute: WorkspacePedidosEntregadoresIdRoute,
   WorkspacePedidosEntregadoresNovoRoute: WorkspacePedidosEntregadoresNovoRoute,
+  WorkspaceTurismoGruposIdRoute: WorkspaceTurismoGruposIdRoute,
   WorkspaceTurismoPropostasIdRoute: WorkspaceTurismoPropostasIdRoute,
   WorkspaceAgendaServicosIndexRoute: WorkspaceAgendaServicosIndexRoute,
   WorkspaceCatalogoCategoriasIndexRoute: WorkspaceCatalogoCategoriasIndexRoute,
@@ -5011,6 +5054,7 @@ const WorkspaceRouteChildren: WorkspaceRouteChildren = {
   WorkspacePedidosEntregadoresIndexRoute:
     WorkspacePedidosEntregadoresIndexRoute,
   WorkspaceTurismoContratosIndexRoute: WorkspaceTurismoContratosIndexRoute,
+  WorkspaceTurismoGruposIndexRoute: WorkspaceTurismoGruposIndexRoute,
   WorkspaceTurismoPropostasIndexRoute: WorkspaceTurismoPropostasIndexRoute,
 }
 
