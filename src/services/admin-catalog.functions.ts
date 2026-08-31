@@ -649,6 +649,7 @@ export async function _createCollection(input: {
   status: "active" | "inactive";
   description?: string | null;
   cover_url?: string | null;
+  rules?: Record<string, any> | null;
 }) {
   const db = getServerClient();
 
@@ -679,6 +680,7 @@ export const createCollection = createServerFn({ method: "POST" })
       status: z.enum(["active", "inactive"]).default("active"),
       description: z.string().optional().nullable(),
       cover_url: z.string().optional().nullable(),
+      rules: z.record(z.any()).optional().nullable(),
     }),
   )
   .handler(async ({ data: input }) => {
@@ -751,6 +753,7 @@ export const updateCollection = createServerFn({ method: "POST" })
       status: z.enum(["active", "inactive", "archived"]).optional(),
       description: z.string().optional().nullable(),
       cover_url: z.string().optional().nullable(),
+      rules: z.record(z.any()).optional().nullable(),
     }),
   )
   .handler(async ({ data: input }) => {
