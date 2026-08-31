@@ -19,6 +19,7 @@ import {
   Phone,
   Mail,
 } from "lucide-react";
+import { useRouter } from "@tanstack/react-router";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { updateStoreDetails } from "@/services/store.functions";
 import { toast } from "sonner";
@@ -63,6 +64,7 @@ export function QuickStoreEditorDialog({
   store,
   onSuccess,
 }: QuickStoreEditorDialogProps) {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [type, setType] = useState("ecommerce");
@@ -130,9 +132,7 @@ export function QuickStoreEditorDialog({
       toast.success(`Informações de "${name}" atualizadas com sucesso!`);
       onOpenChange(false);
       if (onSuccess) onSuccess();
-      if (typeof window !== "undefined") {
-        window.location.reload();
-      }
+      await router.invalidate();
     } catch (err: any) {
       toast.error(err.message || "Erro ao salvar alterações da loja.");
     } finally {
