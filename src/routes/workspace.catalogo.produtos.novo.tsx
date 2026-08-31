@@ -61,6 +61,10 @@ import {
   listOptionGroups,
 } from "@/services/admin-catalog.functions";
 import { ProductModifiersCard } from "@/components/admin/catalog/product-modifiers-card";
+import {
+  ProductFoodSpecsCard,
+  type FoodSpecsData,
+} from "@/components/admin/catalog/product-food-specs-card";
 import { importProductFromUrl } from "@/services/api-orchestrator.functions";
 import { getStoreSettings } from "@/services/store.functions";
 import { getNicheCatalogContext } from "@/lib/catalog-niche-context";
@@ -123,6 +127,16 @@ export function UnifiedNewProductPage() {
   // Grupos de Opções / Adicionais gerenciados e selecionados
   const [optionGroups, setOptionGroups] = useState<any[]>(optionGroupsList || []);
   const [selectedOptionGroupIds, setSelectedOptionGroupIds] = useState<string[]>([]);
+
+  // Especificações Gastronômicas & Padrão iFood
+  const [foodSpecs, setFoodSpecs] = useState<FoodSpecsData>({
+    dietaryRestrictions: [],
+    beverageTags: [],
+    servesCount: "1 pessoa",
+    portionWeight: "",
+    portionUnit: "g",
+    preparationTimeMinutes: 15,
+  });
 
   // Modal: Importador Inteligente por URL
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -447,12 +461,15 @@ export function UnifiedNewProductPage() {
         {/* COLUNA ESQUERDA: FORMULÁRIO ERGONÔMICO (5 COLUNAS) */}
         <div className="lg:col-span-5 space-y-4">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-4 bg-muted/60 p-1 rounded-2xl h-10 mb-4">
+            <TabsList className="grid grid-cols-5 bg-muted/60 p-1 rounded-2xl h-10 mb-4">
               <TabsTrigger value="basico" className="rounded-xl text-xs font-bold">
                 Básico
               </TabsTrigger>
               <TabsTrigger value="preco" className="rounded-xl text-xs font-bold">
                 Preço
+              </TabsTrigger>
+              <TabsTrigger value="cardapio" className="rounded-xl text-xs font-bold">
+                Cardápio
               </TabsTrigger>
               <TabsTrigger value="midias" className="rounded-xl text-xs font-bold">
                 Fotos
@@ -758,6 +775,14 @@ export function UnifiedNewProductPage() {
                   </div>
                 )}
               </div>
+            </TabsContent>
+
+            {/* ── ABA: ESPECIFICAÇÕES GASTRONÔMICAS (PADRÃO IFOOD) ── */}
+            <TabsContent value="cardapio" className="space-y-4 m-0">
+              <ProductFoodSpecsCard
+                value={foodSpecs}
+                onChange={setFoodSpecs}
+              />
             </TabsContent>
 
             {/* ── ABA 3: FOTOS & MÍDIAS ── */}

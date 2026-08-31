@@ -37,6 +37,10 @@ import { VariantOptionsBuilder } from "@/components/admin/product-editor/variant
 import { VariantMatrixGrid, type RawVariant } from "@/components/admin/catalog/variant-matrix-grid";
 import { ProductModifiersCard } from "@/components/admin/catalog/product-modifiers-card";
 import { ProductBomCard, type BomItem } from "@/components/admin/catalog/product-bom-card";
+import {
+  ProductFoodSpecsCard,
+  type FoodSpecsData,
+} from "@/components/admin/catalog/product-food-specs-card";
 import { PageHeader } from "@/components/commerce/page-header";
 import { PriceDisplay } from "@/components/commerce/price-display";
 import {
@@ -207,6 +211,47 @@ function EditProductPage() {
     }
   };
 
+  // Especificações Gastronômicas & Padrão iFood
+  const initialFoodSpecs: FoodSpecsData = useMemo(() => {
+    const attrs = (product?.attributes as any) || {};
+    return {
+      dietaryRestrictions: attrs.dietary_restrictions || [],
+      beverageTags: attrs.beverage_tags || [],
+      servesCount: attrs.serves_count || "1 pessoa",
+      portionWeight: attrs.portion_weight || "",
+      portionUnit: attrs.portion_unit || "g",
+      preparationTimeMinutes: product?.preparation_time_days || attrs.preparation_time_minutes || 15,
+      posCode: attrs.pos_code || product?.sku || "",
+    };
+  }, [product]);
+
+  const [foodSpecs, setFoodSpecs] = useState<FoodSpecsData>(initialFoodSpecs);
+
+  const handleFoodSpecsChange = async (newSpecs: FoodSpecsData) => {
+    setFoodSpecs(newSpecs);
+    try {
+      await updateProduct({
+        data: {
+          id: product.id,
+          preparation_time_days: newSpecs.preparationTimeMinutes,
+          attributes: {
+            ...(product.attributes || {}),
+            dietary_restrictions: newSpecs.dietaryRestrictions,
+            beverage_tags: newSpecs.beverageTags,
+            serves_count: newSpecs.servesCount,
+            portion_weight: newSpecs.portionWeight,
+            portion_unit: newSpecs.portionUnit,
+            preparation_time_minutes: newSpecs.preparationTimeMinutes,
+            pos_code: newSpecs.posCode,
+          },
+        },
+      });
+      toast.success("Especificações do cardápio atualizadas!");
+    } catch {
+      toast.error("Erro ao salvar especificações.");
+    }
+  };
+
   const handleApplyCostToProduct = async (calculatedCostCents: number) => {
     setLiveCostCents(calculatedCostCents);
     try {
@@ -345,6 +390,7 @@ function EditProductPage() {
         }
         sections={[
           { id: "geral", label: "Informações Básicas", icon: <Box className="size-4" /> },
+          { id: "especificacoes", label: "Cardápio & Restrições", icon: <Sparkles className="size-4" /> },
           { id: "midias", label: "Galeria de Fotos", icon: <ImagePlus className="size-4" /> },
           { id: "variantes", label: nicheCtx.variationsSectionTitle, icon: <LayoutList className="size-4" /> },
           { id: "opcoes", label: "Adicionais & Opções", icon: <SlidersHorizontal className="size-4" /> },
@@ -365,6 +411,14 @@ function EditProductPage() {
             onCompareChange={setLiveCompareCents}
             onCostChange={setLiveCostCents}
             onStatusChange={setLiveStatus}
+          />
+        </div>
+
+        {/* ── SEÇÃO: ESPECIFICAÇÕES DO CARDÁPIO & RESTRIÇÕES (PADRÃO IFOOD) ── */}
+        <div id="especificacoes" className="scroll-mt-32 pt-12 border-t">
+          <ProductFoodSpecsCard
+            value={foodSpecs}
+            onChange={handleFoodSpecsChange}
           />
         </div>
 
