@@ -1,6 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { CheckCircle2, Package, ArrowRight, Copy, Info, MessageCircle, ShieldCheck } from "lucide-react";
+import {
+  CheckCircle2,
+  Package,
+  ArrowRight,
+  Copy,
+  Info,
+  MessageCircle,
+  ShieldCheck,
+  Clock,
+  ChefHat,
+  Bike,
+  Truck,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/commerce/page-header";
 import { ErrorState } from "@/components/state/states";
@@ -69,9 +81,79 @@ function ConfirmationPage() {
           </div>
           <PageHeader title="Pedido Realizado com Sucesso!" />
           <p className="mt-2 text-sm text-muted-foreground">
-            Código do pedido:{""}
+            Código do pedido:{" "}
             <span className="font-mono font-medium text-foreground">{order.public_token}</span>
           </p>
+        </div>
+
+        {/* ── LIVE ORDER TRACKER: Régua Visual de Acompanhamento em Tempo Real ── */}
+        <div className="p-5 sm:p-6 rounded-3xl bg-card border border-border/80 shadow-xs space-y-4">
+          <div className="flex items-center justify-between pb-2 border-b border-border/40">
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-muted-foreground">
+              Acompanhamento ao Vivo
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary/20 animate-pulse">
+              <span className="size-1.5 rounded-full bg-primary" />
+              Atualizando em tempo real
+            </span>
+          </div>
+
+          <div className="grid grid-cols-4 gap-2 pt-2">
+            {[
+              {
+                step: 1,
+                label: "Recebido",
+                icon: Clock,
+                isDone: ["paid", "processing", "shipped", "delivered"].includes(order.status),
+                isActive: order.status === "paid" || order.status === "awaiting_payment",
+              },
+              {
+                step: 2,
+                label: "Na Cozinha",
+                icon: ChefHat,
+                isDone: ["processing", "shipped", "delivered"].includes(order.status),
+                isActive: order.status === "processing",
+              },
+              {
+                step: 3,
+                label: "A Caminho",
+                icon: Bike,
+                isDone: ["shipped", "delivered"].includes(order.status),
+                isActive: order.status === "shipped",
+              },
+              {
+                step: 4,
+                label: "Entregue",
+                icon: CheckCircle2,
+                isDone: order.status === "delivered",
+                isActive: order.status === "delivered",
+              },
+            ].map((st) => {
+              const StepIcon = st.icon;
+              return (
+                <div key={st.step} className="flex flex-col items-center text-center space-y-1.5">
+                  <div
+                    className={`size-10 rounded-2xl flex items-center justify-center border transition-all ${
+                      st.isDone
+                        ? "bg-primary text-primary-foreground border-primary shadow-xs"
+                        : st.isActive
+                        ? "bg-primary/10 text-primary border-primary animate-bounce"
+                        : "bg-muted text-muted-foreground border-border/60 opacity-50"
+                    }`}
+                  >
+                    <StepIcon className="size-4" />
+                  </div>
+                  <span
+                    className={`text-[10px] sm:text-xs font-bold leading-tight ${
+                      st.isDone || st.isActive ? "text-foreground" : "text-muted-foreground"
+                    }`}
+                  >
+                    {st.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* Payment instructions */}
