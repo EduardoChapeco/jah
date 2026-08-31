@@ -46,17 +46,6 @@ const JOB_CATEGORY_CHIPS: FilterChipOption[] = [
   { id: "operacional", label: "Logística & Frota", emoji: "🚚", icon: Truck },
 ];
 
-// Capas temáticas de alta resolução por categoria de vaga
-const JOB_DEFAULT_COVERS: Record<string, string> = {
-  tech: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=800&q=80",
-  clt: "https://images.unsplash.com/photo-1556742049-0a67e55722c0?auto=format&fit=crop&w=800&q=80",
-  comercial: "https://images.unsplash.com/photo-1556742049-0a67e55722c0?auto=format&fit=crop&w=800&q=80",
-  saude: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80",
-  estagio: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80",
-  operacional: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80",
-  default: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80",
-};
-
 export const Route = createFileRoute("/_store/empregos/")({
   head: () => ({
     meta: [
@@ -282,8 +271,7 @@ function JobsMasterPage() {
 
 // ─── COMPONENTE PADRONIZADO: CARD DE VAGA COM CAPA FULL & LOGO ────────────────
 function JobPostCard({ job }: { job: JobItemDTO }) {
-  const coverUrl = JOB_DEFAULT_COVERS[job.category] || JOB_DEFAULT_COVERS.default;
-
+  const coverUrl = (job as any).cover_image_url || job.company_logo_url;
   const whatsappNumber = (job.contact_whatsapp || "").replace(/\D/g, "");
 
   return (
@@ -294,27 +282,33 @@ function JobPostCard({ job }: { job: JobItemDTO }) {
         className="focus-visible:outline-none block flex-1 flex flex-col justify-between"
       >
         {/* ── Imagem de Capa Full Bleed (100% largura no topo) ── */}
-        <div className="relative aspect-[16/9] w-full overflow-hidden bg-muted">
-          <img
-            src={coverUrl}
-            alt={job.company_name}
-            loading="lazy"
-            className="size-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
+        <div className="relative aspect-[16/9] w-full overflow-hidden bg-muted/30">
+          {coverUrl ? (
+            <img
+              src={coverUrl}
+              alt={job.company_name}
+              loading="lazy"
+              className="size-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+          ) : (
+            <div className="size-full bg-gradient-to-br from-primary/15 via-muted/50 to-muted flex items-center justify-center">
+              <Briefcase className="size-8 text-primary/40" />
+            </div>
+          )}
 
           {/* Gradiente sutil */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/25" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
 
           {/* Badge de Modalidade (Remoto / Presencial / Híbrido) */}
           <div className="absolute top-2.5 left-2.5">
-            <Badge className="bg-background/90 text-foreground backdrop-blur-md text-[10px] font-bold px-2 py-0.5 rounded-lg  ">
+            <Badge className="bg-background/90 text-foreground backdrop-blur-md text-[10px] font-bold px-2 py-0.5 rounded-lg">
               {job.workplace_type || "Presencial"}
             </Badge>
           </div>
 
           {/* Badge de Regime de Contrato */}
           <div className="absolute top-2.5 right-2.5">
-            <Badge className="bg-foreground/90 text-background backdrop-blur-md text-[10px] font-black px-2 py-0.5 rounded-lg ">
+            <Badge className="bg-foreground/90 text-background backdrop-blur-md text-[10px] font-black px-2 py-0.5 rounded-lg">
               {job.contract_type || "CLT"}
             </Badge>
           </div>

@@ -20,6 +20,9 @@ import {
   Sparkles,
   ChevronRight as ChevronIcon,
   ShieldAlert,
+  Users,
+  Scale,
+  Clock,
 } from "lucide-react";
 import { TagFraudDialog } from "@/components/commerce/tag-fraud-dialog";
 
@@ -755,13 +758,72 @@ function ProductContent({
 
             {/* Descrição Única e Canônica do Produto (Foto > Título > Preço > Descrição) */}
             {product.description && (
-              <div className="p-4 rounded-2xl  bg-card space-y-1.5  mt-3">
+              <div className="p-4 rounded-2xl bg-card space-y-1.5 mt-3 border border-border/60">
                 <h3 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                   Sobre o Produto
                 </h3>
                 <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
                   {product.description}
                 </p>
+              </div>
+            )}
+
+            {/* Especificações Gastronômicas & Padrão iFood */}
+            {((product as any).attributes?.dietary_restrictions?.length > 0 ||
+              (product as any).attributes?.serves_count ||
+              (product as any).attributes?.portion_weight ||
+              (product as any).preparationTimeDays ||
+              (product as any).attributes?.preparation_time_minutes) && (
+              <div className="p-4 rounded-2xl bg-muted/20 border border-border/50 space-y-3 mt-3">
+                <div className="flex items-center gap-2 text-xs font-bold text-foreground">
+                  <Sparkles className="size-3.5 text-primary" />
+                  <span>Especificações do Cardápio</span>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Serve Até */}
+                  {(product as any).attributes?.serves_count && (
+                    <Badge variant="outline" className="text-xs font-medium bg-background gap-1 py-1 px-2.5">
+                      <Users className="size-3.5 text-muted-foreground" />
+                      <span>Serve {(product as any).attributes.serves_count}</span>
+                    </Badge>
+                  )}
+
+                  {/* Peso / Volume */}
+                  {(product as any).attributes?.portion_weight && (
+                    <Badge variant="outline" className="text-xs font-medium bg-background gap-1 py-1 px-2.5">
+                      <Scale className="size-3.5 text-muted-foreground" />
+                      <span>
+                        {(product as any).attributes.portion_weight}{" "}
+                        {(product as any).attributes?.portion_unit || "g"}
+                      </span>
+                    </Badge>
+                  )}
+
+                  {/* Tempo de Preparo */}
+                  {((product as any).preparationTimeDays ||
+                    (product as any).attributes?.preparation_time_minutes) && (
+                    <Badge variant="outline" className="text-xs font-medium bg-background gap-1 py-1 px-2.5">
+                      <Clock className="size-3.5 text-muted-foreground" />
+                      <span>
+                        {(product as any).preparationTimeDays ||
+                          (product as any).attributes?.preparation_time_minutes}{" "}
+                        minutos de preparo
+                      </span>
+                    </Badge>
+                  )}
+
+                  {/* Restrições Alimentares */}
+                  {((product as any).attributes?.dietary_restrictions || []).map((diet: string) => (
+                    <Badge
+                      key={diet}
+                      variant="secondary"
+                      className="text-xs font-bold bg-primary/10 text-primary border-primary/20 capitalize py-1 px-2.5"
+                    >
+                      {diet.replace("_", " ")}
+                    </Badge>
+                  ))}
+                </div>
               </div>
             )}
           </div>

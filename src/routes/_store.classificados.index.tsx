@@ -77,7 +77,7 @@ const CLASSIFIEDS_HOTPAGES = [
     id: "hp-class-1",
     title: "Imóveis & Moradia",
     slug: "real_estate",
-    cover_image_url: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80",
+    cover_image_url: "",
     badge_label: "Venda & Aluguel",
     show_title: false,
     show_overlay: false,
@@ -86,7 +86,7 @@ const CLASSIFIEDS_HOTPAGES = [
     id: "hp-class-2",
     title: "Hospedagem por Temporada",
     slug: "real_estate_temporada",
-    cover_image_url: "https://images.unsplash.com/photo-1587061949409-02df41d5e562?w=800&q=80",
+    cover_image_url: "",
     badge_label: "Diária & Temporada",
     show_title: false,
     show_overlay: false,
@@ -95,7 +95,7 @@ const CLASSIFIEDS_HOTPAGES = [
     id: "hp-class-3",
     title: "Veículos & Autos",
     slug: "vehicle",
-    cover_image_url: "https://images.unsplash.com/photo-1590362891991-f776e747a588?w=800&q=80",
+    cover_image_url: "",
     badge_label: "Carros & Motos",
     show_title: false,
     show_overlay: false,
@@ -104,7 +104,7 @@ const CLASSIFIEDS_HOTPAGES = [
     id: "hp-class-4",
     title: "Desapegos & Tech",
     slug: "sale",
-    cover_image_url: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&q=80",
+    cover_image_url: "",
     badge_label: "Eletrônicos",
     show_title: false,
     show_overlay: false,
@@ -299,7 +299,7 @@ function ClassifiedsMasterPage() {
         /* ── MODO LISTA (100% Largura: Título, Preço, Tags à esquerda; Foto Squircle Generosa à direita) ── */
         <section className="flex flex-col space-y-3 w-full">
           {filtered.map((item: any) => {
-            const img = item.images?.[0] || "https://images.unsplash.com/photo-1526367790999-0150786686a2?w=600&q=80";
+            const img = item.images?.[0];
             const isTemporada = item.deal_type === "temporada";
             const isAluguel = item.deal_type === "aluguel";
 
@@ -311,13 +311,19 @@ function ClassifiedsMasterPage() {
                 className="group flex flex-col sm:flex-row items-stretch justify-between rounded-2xl border border-border/60 bg-card hover:border-foreground/30 transition-all overflow-hidden p-0 cursor-pointer w-full"
               >
                 {/* Lado Esquerdo: Foto 100% FULL BLEED */}
-                <div className="relative w-full sm:w-56 md:w-64 h-44 sm:h-auto min-h-[140px] overflow-hidden bg-muted shrink-0">
-                  <img
-                    src={img}
-                    alt={item.title}
-                    className="size-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    loading="lazy"
-                  />
+                <div className="relative w-full sm:w-56 md:w-64 h-44 sm:h-auto min-h-[140px] overflow-hidden bg-muted/40 shrink-0 flex items-center justify-center">
+                  {img ? (
+                    <img
+                      src={img}
+                      alt={item.title}
+                      className="size-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="size-full bg-gradient-to-br from-primary/10 via-muted/40 to-muted flex items-center justify-center">
+                      <Tag size={28} className="text-primary/30" />
+                    </div>
+                  )}
                   <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 flex-wrap z-10">
                     {item.deal_type && (
                       <Badge className="bg-background/95 backdrop-blur-md text-foreground font-mono text-[9px] uppercase font-bold  px-1.5 py-0.5 rounded-md ">
@@ -399,7 +405,7 @@ function ClassifiedsMasterPage() {
                 }}
               >
                 {catItems.map((item: any) => {
-                  const img = item.images?.[0] || "https://images.unsplash.com/photo-1526367790999-0150786686a2?w=600&q=80";
+                  const img = item.images?.[0];
                   const isTemporada = item.deal_type === "temporada";
                   const isAluguel = item.deal_type === "aluguel";
 
@@ -414,13 +420,19 @@ function ClassifiedsMasterPage() {
                         className="space-y-3 block focus-visible:outline-none"
                       >
                         {/* Imagem de Capa do Anúncio */}
-                        <div className="relative aspect-4/3 w-full overflow-hidden bg-muted">
-                          <img
-                            src={img}
-                            alt={item.title}
-                            className="size-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            loading="lazy"
-                          />
+                        <div className="relative aspect-4/3 w-full overflow-hidden bg-muted/40 flex items-center justify-center">
+                          {img ? (
+                            <img
+                              src={img}
+                              alt={item.title}
+                              className="size-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="size-full bg-gradient-to-br from-primary/10 via-muted/40 to-muted flex items-center justify-center">
+                              <Tag size={28} className="text-primary/30" />
+                            </div>
+                          )}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                           <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
                             {item.deal_type && (
@@ -491,7 +503,7 @@ function ClassifiedsMasterPage() {
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
               {filtered.map((item: any) => {
-                const img = item.images?.[0] || "https://images.unsplash.com/photo-1526367790999-0150786686a2?w=600&q=80";
+                const img = item.images?.[0];
                 const isTemporada = item.deal_type === "temporada";
                 const isAluguel = item.deal_type === "aluguel";
 
@@ -503,13 +515,19 @@ function ClassifiedsMasterPage() {
                     className="group rounded-2xl border border-border/60 bg-card overflow-hidden hover:border-foreground/30 transition-all flex flex-col justify-between cursor-pointer"
                   >
                     <div>
-                      <div className="relative aspect-4/3 w-full overflow-hidden bg-muted">
-                        <img
-                          src={img}
-                          alt={item.title}
-                          className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          loading="lazy"
-                        />
+                      <div className="relative aspect-4/3 w-full overflow-hidden bg-muted/40 flex items-center justify-center">
+                        {img ? (
+                          <img
+                            src={img}
+                            alt={item.title}
+                            className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="size-full bg-gradient-to-br from-primary/10 via-muted/40 to-muted flex items-center justify-center">
+                            <Tag size={24} className="text-primary/30" />
+                          </div>
+                        )}
                         <div className="absolute top-2 left-2 flex items-center gap-1">
                           {item.deal_type && (
                             <Badge
@@ -551,7 +569,7 @@ function ClassifiedsMasterPage() {
         /* ── MODO GRADE (Cards Compactos e Limpos — Imagem + Título + Preço + Tags, SEM textos de blog) ── */
         <section className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
           {filtered.map((item: any) => {
-            const img = item.images?.[0] || "https://images.unsplash.com/photo-1526367790999-0150786686a2?w=600&q=80";
+            const img = item.images?.[0];
             const isTemporada = item.deal_type === "temporada";
             const isAluguel = item.deal_type === "aluguel";
 
@@ -564,13 +582,19 @@ function ClassifiedsMasterPage() {
               >
                 <div>
                   {/* Imagem Squircle Compacta */}
-                  <div className="relative aspect-4/3 w-full overflow-hidden bg-muted">
-                    <img
-                      src={img}
-                      alt={item.title}
-                      className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      loading="lazy"
-                    />
+                  <div className="relative aspect-4/3 w-full overflow-hidden bg-muted/40 flex items-center justify-center">
+                    {img ? (
+                      <img
+                        src={img}
+                        alt={item.title}
+                        className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="size-full bg-gradient-to-br from-primary/10 via-muted/40 to-muted flex items-center justify-center">
+                        <Tag size={24} className="text-primary/30" />
+                      </div>
+                    )}
                     <div className="absolute top-2 left-2 flex items-center gap-1">
                       {item.deal_type && (
                         <Badge

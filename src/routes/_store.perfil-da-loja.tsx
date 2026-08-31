@@ -168,10 +168,7 @@ function StorePerfil() {
 
   const store = data as any;
   const settings = store.settings || {};
-  const coverUrl =
-    settings.cover_url ||
-    settings.bannerUrl ||
-    "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=85";
+  const coverUrl = settings.cover_url || settings.bannerUrl || settings.banner_url || null;
   const logoUrl = store.logo_url || settings.logoUrl || settings.logo_url;
   const rawHours = settings.working_hours || settings.business_hours_extended || store.business_hours || null;
   const holidayExceptions = settings.holiday_exceptions || [];
@@ -205,8 +202,14 @@ function StorePerfil() {
   return (
     <div className="w-full -mx-3 sm:-mx-6 -mt-4 sm:-mt-6 pb-12 animate-in fade-in duration-200">
       {/* ── 1. CAPA 100% LARGURA COM CONTROLES FLUTUANTES ── */}
-      <div className="relative h-52 sm:h-72 md:h-80 w-full overflow-hidden bg-muted">
-        <img src={coverUrl} alt={store.name} className="size-full object-cover" />
+      <div className="relative h-52 sm:h-72 md:h-80 w-full overflow-hidden bg-muted/40">
+        {coverUrl ? (
+          <img src={coverUrl} alt={store.name} className="size-full object-cover" />
+        ) : (
+          <div className="size-full bg-gradient-to-br from-primary/15 via-muted/50 to-muted flex items-center justify-center">
+            <Store className="size-16 text-primary/30" />
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-black/25 to-black/45" />
 
         {/* Botões Flutuantes no Topo */}

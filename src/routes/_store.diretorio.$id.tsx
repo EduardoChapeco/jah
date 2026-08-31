@@ -39,15 +39,6 @@ import { trackAndOpenWhatsApp } from "@/lib/whatsapp";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-const CATEGORY_DEFAULT_COVERS: Record<string, string> = {
-  saude: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1200&q=85",
-  reformas: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1200&q=85",
-  auto: "https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=1200&q=85",
-  pet: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=1200&q=85",
-  servicos: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=85",
-  default: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=85",
-};
-
 export const Route = createFileRoute("/_store/diretorio/$id")({
   head: ({ loaderData }: any) => ({
     meta: [
@@ -123,10 +114,7 @@ function CanonicalDirectoryDetailPage() {
     );
   }
 
-  const coverUrl =
-    listing.banner_url ||
-    CATEGORY_DEFAULT_COVERS[listing.category] ||
-    CATEGORY_DEFAULT_COVERS.default;
+  const coverUrl = listing.banner_url || listing.avatar_url;
 
   const handleShare = () => {
     if (typeof window !== "undefined" && navigator.clipboard) {
@@ -138,12 +126,18 @@ function CanonicalDirectoryDetailPage() {
   return (
     <div className="w-full -mx-3 sm:-mx-6 -mt-4 sm:-mt-6 pb-6 animate-in fade-in duration-200">
       {/* ── 1. CAPA 100% LARGURA (FULL BLEED COM CONTROLES FLUTUANTES) ── */}
-      <div className="relative h-56 sm:h-72 md:h-80 w-full overflow-hidden bg-muted">
-        <img
-          src={coverUrl}
-          alt={listing.business_name}
-          className="size-full object-cover"
-        />
+      <div className="relative h-56 sm:h-72 md:h-80 w-full overflow-hidden bg-muted/40">
+        {coverUrl ? (
+          <img
+            src={coverUrl}
+            alt={listing.business_name}
+            className="size-full object-cover"
+          />
+        ) : (
+          <div className="size-full bg-gradient-to-br from-primary/15 via-muted/50 to-muted flex items-center justify-center">
+            <Briefcase className="size-12 text-primary/30" />
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-black/30 to-black/50" />
 
         {/* Botões Flutuantes no Topo da Imagem */}

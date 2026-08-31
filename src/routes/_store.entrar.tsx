@@ -81,10 +81,6 @@ export const Route = createFileRoute("/_store/entrar")({
 
 type AuthView = "login-step1" | "login-step2" | "register-step1" | "register-step2" | "register-step3" | "forgot-password" | "portal-step1" | "portal-step2" | "portal-step3";
 
-const DEFAULT_BG_DESKTOP = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1920&q=85";
-const DEFAULT_BG_TABLET = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1024&q=85";
-const DEFAULT_BG_MOBILE = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1080&q=85";
-
 function StepByStepAuthPage() {
   const { brand } = Route.useLoaderData() as any;
   const navigate = useNavigate();

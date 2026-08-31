@@ -37,43 +37,43 @@ const DEFAULT_HERO_MODULES = [
     slug: "classificados",
     to: "/classificados",
     title: "Classificados & Autos",
-    defaultCover: "https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=1000&q=80",
+    defaultCover: "",
   },
   {
     slug: "mercado",
     to: "/mercado",
     title: "Supermercado & Feira",
-    defaultCover: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=1000&q=80",
+    defaultCover: "",
   },
   {
     slug: "gastronomia",
     to: "/gastronomia",
     title: "Gastronomia & Delivery",
-    defaultCover: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1000&q=80",
+    defaultCover: "",
   },
   {
     slug: "empregos",
     to: "/empregos",
     title: "Vagas & Carreiras",
-    defaultCover: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1000&q=80",
+    defaultCover: "",
   },
   {
     slug: "agenda",
     to: "/agenda",
     title: "Agenda & Eventos Culturais",
-    defaultCover: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1000&q=80",
+    defaultCover: "",
   },
   {
     slug: "turismo",
     to: "/turismo",
     title: "Turismo & Hospedagem",
-    defaultCover: "https://images.unsplash.com/photo-1501555088652-021faa106b9b?w=1000&q=80",
+    defaultCover: "",
   },
   {
     slug: "noticias",
     to: "/noticias",
     title: "Notícias & Jornalismo",
-    defaultCover: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1000&q=80",
+    defaultCover: "",
   },
   {
     slug: "mobilidade",
@@ -137,7 +137,7 @@ export function MasterHeroCards({
               hp.cover_image_url ||
               hp.bg_media_url ||
               defaultMatch?.defaultCover ||
-              "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1000&q=80",
+              "",
             iconUrl: hp.custom_icon_url || hp.icon_url || undefined,
             badgeLabel: hp.badge_label || undefined,
             heroStatBadge: hp.hero_stat_badge || undefined,
@@ -259,17 +259,17 @@ export function MasterHeroCards({
                   playsInline
                   className="absolute inset-0 size-full object-cover group-hover:scale-103 transition-transform duration-500"
                 />
-              ) : (
+              ) : card.coverUrl ? (
                 <img
                   src={card.coverUrl}
                   alt={card.title}
                   className="absolute inset-0 size-full object-cover group-hover:scale-103 transition-transform duration-500"
                   loading="eager"
-                  onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).src =
-                      "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1000&q=80";
-                  }}
                 />
+              ) : (
+                <div className="absolute inset-0 size-full bg-gradient-to-br from-primary/15 via-muted/50 to-muted flex items-center justify-center">
+                  <Sparkle size={36} className="text-primary/30" />
+                </div>
               )}
 
               {/* Degradê de Contraste Escuro (Apenas se explicitamente habilitado) */}

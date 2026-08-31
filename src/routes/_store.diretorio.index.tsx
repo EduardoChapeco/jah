@@ -47,16 +47,6 @@ const DIRECTORY_CATEGORIES: FilterChipOption[] = [
   { id: "servicos", label: "Serviços & B2B", emoji: "💼", icon: Briefcase },
 ];
 
-// Capas temáticas de alta resolução por categoria quando o negócio não tiver imagem customizada
-const CATEGORY_DEFAULT_COVERS: Record<string, string> = {
-  saude: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80",
-  reformas: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80",
-  auto: "https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=800&q=80",
-  pet: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=800&q=80",
-  servicos: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80",
-  default: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80",
-};
-
 export const Route = createFileRoute("/_store/diretorio/")({
   head: () => ({
     meta: [
@@ -284,10 +274,7 @@ function DirectoryBusinessCard({
   item: DirectoryListingDTO;
   compactMode?: boolean;
 }) {
-  const coverUrl =
-    item.banner_url ||
-    CATEGORY_DEFAULT_COVERS[item.category] ||
-    CATEGORY_DEFAULT_COVERS.default;
+  const coverUrl = item.banner_url || item.avatar_url;
 
   const categoryLabel =
     DIRECTORY_CATEGORIES.find((c) => c.id === item.category)?.label || item.category;
@@ -302,13 +289,19 @@ function DirectoryBusinessCard({
         className="space-y-3 focus-visible:outline-none block"
       >
         {/* ── Imagem Full de Capa do Negócio com Overlay ── */}
-        <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-muted ">
-          <img
-            src={coverUrl}
-            alt={item.business_name}
-            loading="lazy"
-            className="size-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
+        <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-muted/40">
+          {coverUrl ? (
+            <img
+              src={coverUrl}
+              alt={item.business_name}
+              loading="lazy"
+              className="size-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+          ) : (
+            <div className="size-full bg-gradient-to-br from-primary/10 via-muted/40 to-muted flex items-center justify-center">
+              <Briefcase className="size-8 text-primary/30" />
+            </div>
+          )}
 
           {/* Gradiente sutil */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
