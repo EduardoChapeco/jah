@@ -112,7 +112,147 @@ export const CANONICAL_TOURISM_CLAUSES: ContractClauseDTO[] = [
   },
 ];
 
-// ─── 1. Criação de Contrato de Viagem ──────────────────────────────────────────
+// ─── 1. Gestão de Minuta Padrão & Cláusulas da Agência ───────────────────────
+
+export const getAgencyContractTemplate = createServerFn({ method: "GET" })
+  .handler(async (): Promise<{ clauses: ContractClauseDTO[]; isCustom: boolean }> => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    if (!identity?.store_id) {
+      return { clauses: CANONICAL_TOURISM_CLAUSES, isCustom: false };
+    }
+
+    const { data: store } = await supabase
+      .from("stores")
+      .select("settings")
+      .eq("id", identity.store_id)
+      .maybeSingle();
+
+    const customClauses = store?.settings?.tourism_contract_clauses;
+    if (Array.isArray(customClauses) && customClauses.length > 0) {
+      return { clauses: customClauses, isCustom: true };
+    }
+
+    return { clauses: CANONICAL_TOURISM_CLAUSES, isCustom: false };
+  });
+
+export const saveAgencyContractTemplate = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      clauses: z
+        .array(
+          z.object({
+            number: z.number(),
+            section: z.string().min(2, "Título da cláusula obrigatório"),
+            clause_text: z.string().min(5, "Texto da cláusula obrigatório"),
+            is_mandatory: z.boolean().default(true),
+          }),
+        )
+        .min(1, "O contrato deve conter pelo menos uma cláusula"),
+    }),
+  )
+  .handler(async ({ data: { clauses } }): Promise<{ success: boolean; count: number }> => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    if (!identity?.store_id) {
+      throw new Error("Não autorizado — selecione uma agência ativa.");
+    }
+
+    const { data: store } = await supabase
+      .from("stores")
+      .select("settings")
+      .eq("id", identity.store_id)
+      .single();
+
+    const currentSettings = (store?.settings as Record<string, any>) || {};
+    const nextSettings = {
+      ...currentSettings,
+      tourism_contract_clauses: clauses,
+    };
+
+    const { error } = await supabase
+      .from("stores")
+      .update({ settings: nextSettings })
+      .eq("id", identity.store_id);
+
+    if (error) {
+      console.error("[travel-contract] Erro ao salvar minuta padrão:", error);
+      throw new Error("Erro ao salvar minuta padrão da agência: " + error.message);
+    }
+
+    return { success: true, count: clauses.length };
+  });
+
+export const resetAgencyContractTemplate = createServerFn({ method: "POST" })
+  .handler(async (): Promise<{ success: boolean }> => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    if (!identity?.store_id) {
+      throw new Error("Não autorizado — selecione uma agência ativa.");
+    }
+
+    const { data: store } = await supabase
+      .from("stores")
+      .select("settings")
+      .eq("id", identity.store_id)
+      .single();
+
+    const currentSettings = (store?.settings as Record<string, any>) || {};
+    const nextSettings = { ...currentSettings };
+    delete nextSettings.tourism_contract_clauses;
+
+    const { error } = await supabase
+      .from("stores")
+      .update({ settings: nextSettings })
+      .eq("id", identity.store_id);
+
+    if (error) {
+      throw new Error("Erro ao restaurar minuta padrão: " + error.message);
+    }
+
+    return { success: true };
+  });
+
+export const updateContractClauses = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      contractId: z.string().uuid(),
+      clauses: z.array(
+        z.object({
+          number: z.number(),
+          section: z.string().min(2),
+          clause_text: z.string().min(5),
+          is_mandatory: z.boolean().default(true),
+        }),
+      ),
+    }),
+  )
+  .handler(async ({ data: { contractId, clauses } }): Promise<{ success: boolean }> => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    if (!identity?.id) throw new Error("Não autorizado.");
+
+    const { data: contract, error: findErr } = await supabase
+      .from("travel_contracts")
+      .select("status")
+      .eq("id", contractId)
+      .single();
+
+    if (findErr || !contract) throw new Error("Contrato não encontrado.");
+    if (contract.status === "signed") {
+      throw new Error("Contrato já assinado digitalmente não pode ter suas cláusulas alteradas.");
+    }
+
+    const { error } = await supabase
+      .from("travel_contracts")
+      .update({ clauses })
+      .eq("id", contractId);
+
+    if (error) throw new Error("Erro ao atualizar cláusulas do contrato: " + error.message);
+    return { success: true };
+  });
+
+// ─── 2. Criação de Contrato de Viagem ──────────────────────────────────────────
 
 export const createTravelContract = createServerFn({ method: "POST" })
   .validator(
@@ -144,9 +284,24 @@ export const createTravelContract = createServerFn({ method: "POST" })
 
     const publicToken = "ct_" + Math.random().toString(36).substring(2, 12);
 
-    const clauses = input.customClauses && input.customClauses.length > 0
-      ? input.customClauses
-      : CANONICAL_TOURISM_CLAUSES;
+    let clauses = input.customClauses && input.customClauses.length > 0 ? input.customClauses : null;
+
+    if (!clauses && identity.store_id) {
+      const { data: store } = await supabase
+        .from("stores")
+        .select("settings")
+        .eq("id", identity.store_id)
+        .maybeSingle();
+
+      const agencyClauses = store?.settings?.tourism_contract_clauses;
+      if (Array.isArray(agencyClauses) && agencyClauses.length > 0) {
+        clauses = agencyClauses;
+      }
+    }
+
+    if (!clauses) {
+      clauses = CANONICAL_TOURISM_CLAUSES;
+    }
 
     const { data: inserted, error } = await supabase
       .from("travel_contracts")
@@ -178,6 +333,107 @@ export const createTravelContract = createServerFn({ method: "POST" })
     if (error) {
       console.error("[travel-contract.functions] Erro ao criar contrato:", error);
       throw new Error("Falha ao salvar contrato no banco: " + error.message);
+    }
+
+    return { success: true, id: inserted.id, publicToken: inserted.public_token };
+  });
+
+export const createContractFromProposal = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      proposalId: z.string().min(1),
+      clientDocument: z.string().optional(),
+    })
+  )
+  .handler(async ({ data: input }): Promise<{ success: boolean; id: string; publicToken: string }> => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+
+    if (!identity?.id) {
+      throw new Error("Não autorizado — faça login no painel da agência.");
+    }
+
+    // 1. Buscar a Proposta de Viagem
+    const { data: proposal, error: propErr } = await supabase
+      .from("travel_proposals")
+      .select("*")
+      .eq("id", input.proposalId)
+      .single();
+
+    if (propErr || !proposal) {
+      throw new Error("Proposta não encontrada para vincular ao contrato.");
+    }
+
+    // 2. Montar resumo estruturado do pacote
+    const flightsSummary = Array.isArray(proposal.flights) && proposal.flights.length > 0
+      ? `Aéreo: ${proposal.flights.map((f: any) => `${f.airline || "Cia"} (${f.origin} ➔ ${f.destination})`).join(", ")}.`
+      : "";
+    const hotelsSummary = Array.isArray(proposal.hotels) && proposal.hotels.length > 0
+      ? `Hospedagem: ${proposal.hotels.map((h: any) => `${h.name} (${h.room_type || "Apto"}${h.meal_plan ? ` - ${h.meal_plan}` : ""})`).join(", ")}.`
+      : "";
+    const includesSummary = Array.isArray(proposal.includes) && proposal.includes.length > 0
+      ? `Serviços inclusos: ${proposal.includes.join(", ")}.`
+      : "";
+
+    const fullPackageSummary = [
+      `Destino: ${proposal.destination_city || "Não especificado"}.`,
+      flightsSummary,
+      hotelsSummary,
+      includesSummary,
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    const totalCents = proposal.pricing?.total_cents || (proposal.pricing?.per_person_cents || 0) * (proposal.passengers_count || 1);
+    const paymentCond = proposal.pricing?.payment_terms || "À vista ou parcelado conforme negociação da lâmina.";
+    const publicToken = "ct_" + Math.random().toString(36).substring(2, 12);
+
+    const storeId = identity.store_id || proposal.store_id || null;
+    let clauses = CANONICAL_TOURISM_CLAUSES;
+
+    if (storeId) {
+      const { data: store } = await supabase
+        .from("stores")
+        .select("settings")
+        .eq("id", storeId)
+        .maybeSingle();
+
+      const agencyClauses = store?.settings?.tourism_contract_clauses;
+      if (Array.isArray(agencyClauses) && agencyClauses.length > 0) {
+        clauses = agencyClauses;
+      }
+    }
+
+    const { data: inserted, error: insertErr } = await supabase
+      .from("travel_contracts")
+      .insert({
+        store_id: storeId,
+        created_by_profile_id: identity.id,
+        proposal_id: proposal.id,
+        public_token: publicToken,
+        contract_title: `Contrato de Viagem — ${proposal.title || proposal.destination_city}`,
+        client_name: proposal.client_name || "Cliente",
+        client_document: input.clientDocument || "A preencher no aceite",
+        client_email: proposal.client_email || null,
+        client_phone: proposal.client_whatsapp || "",
+        client_address: null,
+        destination: proposal.destination_city || "Destino",
+        travel_start_date: proposal.start_date || null,
+        travel_end_date: proposal.end_date || null,
+        package_summary: fullPackageSummary || "Pacote de turismo personalizado.",
+        total_value_cents: totalCents,
+        payment_conditions: paymentCond,
+        passengers: [{ name: proposal.client_name || "Passageiro Principal" }],
+        clauses,
+        signatures: [],
+        status: "sent",
+      })
+      .select("id, public_token")
+      .single();
+
+    if (insertErr || !inserted) {
+      console.error("[travel-contract.functions] Erro ao emitir contrato da proposta:", insertErr);
+      throw new Error("Falha ao gerar contrato a partir da proposta: " + insertErr?.message);
     }
 
     return { success: true, id: inserted.id, publicToken: inserted.public_token };

@@ -243,9 +243,42 @@ export const verifyDocumentPublic = createServerFn({ method: "GET" })
       query = query.eq("verification_code", codeOrHash);
     }
 
-    const { data: contract, error } = await query.maybeSingle();
+    let { data: contract, error } = await query.maybeSingle();
 
-    if (error || !contract) {
+    if (!contract) {
+      // Tenta buscar em travel_contracts (Contratos de Turismo com SHA-256)
+      const { data: travelContract } = await supabase
+        .from("travel_contracts")
+        .select("*")
+        .or(`certificate_serial.eq.${codeOrHash},public_token.eq.${codeOrHash},content_hash.eq.${codeOrHash}`)
+        .maybeSingle();
+
+      if (travelContract) {
+        return {
+          isValid: true,
+          title: travelContract.contract_title,
+          category: "service_agreement",
+          status: travelContract.status === "signed" ? "sealed" : travelContract.status,
+          verificationCode: travelContract.certificate_serial || travelContract.public_token,
+          createdAt: travelContract.created_at,
+          sealedVersion: {
+            version_number: 1,
+            hash_sha256: travelContract.content_hash,
+            sealed_at: travelContract.signed_at,
+            is_sealed: Boolean(travelContract.signed_at),
+            envelopes: (travelContract.signatures as any[]) || [
+              {
+                signer_name: travelContract.client_name,
+                signer_role: "party",
+                status: travelContract.signed_at ? "signed" : "pending",
+                signed_at: travelContract.signed_at,
+                auth_level: "advanced",
+              },
+            ],
+          },
+        };
+      }
+
       throw new Error("Documento não encontrado ou sem registro de autenticidade.");
     }
 

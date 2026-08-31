@@ -304,7 +304,7 @@ export const getMarketplaceFeed = createServerFn({ method: "GET" })
         status,
         attributes,
         media:product_media(url, alt, sort_order),
-        store:stores(id, name, slug, type, settings)
+        store:stores(id, name, slug, settings)
       `,
       )
       .in("status", ["published", "active"]);
@@ -454,7 +454,7 @@ export const getGlobalDealsPage = createServerFn({ method: "GET" })
         status,
         attributes,
         media:product_media(url, alt, sort_order),
-        store:stores(id, name, slug, type, settings, description)
+        store:stores(id, name, slug, settings, description)
       `,
       )
       .in("status", ["published", "active"])

@@ -277,6 +277,7 @@ function EditProductPage() {
           option_group_ids: newSelectedIds,
         },
       });
+      router.invalidate();
       toast.success("Vínculo de adicionais atualizado no produto!");
     } catch {
       toast.error("Erro ao salvar adicionais vinculados.");
@@ -505,6 +506,7 @@ function GeneralForm({
   onCostChange: (v: number | null) => void;
   onStatusChange: (v: string) => void;
 }) {
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const initialCategoryId = product.product_categories?.[0]?.category_id || "";
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategoryId);
@@ -650,6 +652,7 @@ function GeneralForm({
 
       if (res) {
         toast.success(`${nicheCtx.entityName} atualizado com sucesso!`);
+        await router.invalidate();
       } else {
         toast.error(`Erro ao atualizar ${nicheCtx.entityName.toLowerCase()}`);
       }

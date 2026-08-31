@@ -667,28 +667,41 @@ export const provisionBusiness = createServerFn({ method: "POST" })
       .single();
     if (storeError) throw new Error("Erro ao criar loja: " + storeError.message);
 
-    // 4. Vincular Usuário como Owner no workspace_members
-    const { error: memberError } = await db.from("workspace_members").upsert(
-      {
-        profile_id: userId,
-        store_id: store.id,
-        role: "owner",
-      },
-      { onConflict: "profile_id,store_id" }
-    );
-    if (memberError) {
-      console.warn("[onboarding] Aviso ao vincular workspace_members:", memberError.message);
+    // 4. Vincular Usuário como Owner no workspace_members e store_members
+    try {
+      await db.from("workspace_members").upsert(
+        {
+          profile_id: userId,
+          store_id: store.id,
+          role: "owner",
+        },
+        { onConflict: "profile_id,store_id" }
+      );
+    } catch (memberError: any) {
+      console.warn("[onboarding] Aviso ao vincular workspace_members:", memberError?.message);
     }
 
-    // 4.1 Atualizar o contexto ativo do profile
+    // 4.1 Atualizar o role do profile para owner
     try {
       await db
         .from("profiles")
         .update({
-          store_id: store.id,
-          organization_id: org.id,
+          role: "owner",
         })
         .eq("id", userId);
+    } catch {
+      // Silencioso
+    }
+
+    // 4.2 Setar cookie do tenant ativo no servidor
+    try {
+      setCookie("wider_active_tenant", store.id, {
+        path: "/",
+        maxAge: 60 * 60 * 24 * 365,
+        httpOnly: false,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+      });
     } catch {
       // Silencioso
     }

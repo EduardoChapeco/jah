@@ -782,7 +782,7 @@ export const getFeedStories = createServerFn({ method: "GET" }).handler(async ()
   // Consulta apenas stories reais ativos publicados nas últimas 24 horas
   const { data: realStories, error } = await db
     .from("stories")
-    .select("id, store_id, media_url, link_url, created_at, stores(id, name, avatar_url, settings)")
+    .select("id, store_id, media_url, link_url, created_at, stores(id, name, settings)")
     .eq("status", "active")
     .gte("created_at", twentyFourHoursAgo)
     .order("created_at", { ascending: false })
@@ -794,7 +794,7 @@ export const getFeedStories = createServerFn({ method: "GET" }).handler(async ()
 
   return realStories.map((s: any) => {
     const store = s.stores;
-    const storeLogo = store?.avatar_url || store?.settings?.avatar_url || store?.settings?.logo_url || "";
+    const storeLogo = store?.settings?.logoUrl || store?.settings?.avatar_url || store?.settings?.logo_url || "";
     return {
       id: `story-${s.id}`,
       type: "store" as const,
@@ -940,7 +940,7 @@ export const searchStoresForCompanyAutocomplete = createServerFn({ method: "GET"
   .validator(z.object({ query: z.string().optional() }))
   .handler(async ({ data: { query } }) => {
     const db = getServerClient();
-    let q = db.from("stores").select("id, name, slug, logo_url, city, state").limit(10);
+    let q = db.from("stores").select("id, name, slug, settings, city, state").limit(10);
     if (query && query.trim().length > 0) {
       q = q.ilike("name", `%${query.trim()}%`);
     }
@@ -949,7 +949,7 @@ export const searchStoresForCompanyAutocomplete = createServerFn({ method: "GET"
       id: s.id,
       name: s.name,
       slug: s.slug,
-      logo_url: s.logo_url,
+      logo_url: s.settings?.logoUrl || s.settings?.logo_url || null,
       city: s.city,
       state: s.state,
     }));
@@ -1195,33 +1195,40 @@ export const getPublicMemberProfile = createServerFn({ method: "GET" })
         fetchIsFollowing(),
       ]);
 
-    // Buscar lojas associadas ao perfil via store_members ou stores.owner_id
+    // Buscar lojas associadas ao perfil via workspace_members (tabela canônica)
     let memberStores: any[] = [];
     try {
-      const { data: membershipsData } = await db
-        .from("store_members")
+      const { data: wsMemRows } = await db
+        .from("workspace_members")
         .select("store_id")
         .eq("profile_id", targetUserId)
-        .limit(10);
+        .limit(15);
 
-      if (membershipsData && membershipsData.length > 0) {
-        const storeIds = membershipsData.map((m: any) => m.store_id).filter(Boolean);
-        if (storeIds.length > 0) {
-          const { data: storesData } = await db
-            .from("stores")
-            .select("id, name, slug, logo_url, description, city, state")
-            .in("id", storeIds);
-          memberStores = storesData || [];
-        }
-      } else {
-        const { data: ownedStores } = await db
+      const storeIds = Array.from(
+        new Set((wsMemRows || []).map((m: any) => m.store_id)),
+      ).filter(Boolean);
+
+      if (storeIds.length > 0) {
+        const { data: storesData } = await db
           .from("stores")
-          .select("id, name, slug, logo_url, description, city, state")
-          .eq("owner_id", targetUserId)
-          .limit(10);
-        memberStores = ownedStores || [];
+          .select("id, name, slug, description, city, state, settings")
+          .in("id", storeIds);
+
+        memberStores = (storesData || []).map((st: any) => {
+          const settings = (st.settings as Record<string, any>) || {};
+          return {
+            id: st.id,
+            name: st.name,
+            slug: st.slug,
+            description: st.description || "",
+            city: st.city,
+            state: st.state,
+            logo_url: settings.logoUrl || settings.logo_url || null,
+          };
+        });
       }
-    } catch {
+    } catch (storeErr) {
+      console.warn("[social.functions] Erro ao buscar lojas do membro:", storeErr);
       memberStores = [];
     }
 

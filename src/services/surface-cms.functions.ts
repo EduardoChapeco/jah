@@ -217,7 +217,7 @@ export const getModularSurfaceFeed = createServerFn({ method: "GET" })
     // Futuro ideal: delegar essa agregação para uma RPC (Stored Procedure) no banco.
     let storesQuery = supabase
       .from("stores")
-      .select("id, name, slug, type, description, settings, logo_url")
+      .select("id, name, slug, description, settings")
       .order("created_at", { ascending: false })
       .limit(storeId ? 1 : 100);
 
@@ -235,7 +235,7 @@ export const getModularSurfaceFeed = createServerFn({ method: "GET" })
         attributes,
         created_at,
         media:product_media(url, alt, sort_order),
-        store:stores(id, name, slug, type, settings)
+        store:stores(id, name, slug, settings)
       `,
       )
       .in("status", ["published", "active"])
@@ -250,19 +250,23 @@ export const getModularSurfaceFeed = createServerFn({ method: "GET" })
     const [storesRes, productsRes] = await Promise.all([storesQuery, productsQuery]);
 
     // Mapeia lojas
-    const allDbStores: StoreCardDTO[] = (storesRes.data || []).map((s: any) => ({
-      id: s.id,
-      name: s.name,
-      slug: s.slug || `loja-${s.id.slice(0, 6)}`,
-      avatar_url: s.logo_url || s.settings?.logoUrl || s.settings?.logo_url || undefined,
-      banner_url: s.settings?.bannerUrl || undefined,
-      category: s.type || "Comércio Local",
-      rating: 4.9,
-      review_count: 120,
-      distance_km: 1.2,
-      is_open: true,
-      delivery_time_min: "Disponível",
-    }));
+    const allDbStores: StoreCardDTO[] = (storesRes.data || []).map((s: any) => {
+      const settings = (s.settings as Record<string, any>) || {};
+      const category = settings.segment || settings.type || settings.niche || "Comércio Local";
+      return {
+        id: s.id,
+        name: s.name,
+        slug: s.slug || `loja-${s.id.slice(0, 6)}`,
+        avatar_url: settings.logoUrl || settings.logo_url || undefined,
+        banner_url: settings.bannerUrl || settings.banner_url || undefined,
+        category,
+        rating: 4.9,
+        review_count: 120,
+        distance_km: 1.2,
+        is_open: true,
+        delivery_time_min: "Disponível",
+      };
+    });
 
     // Filtra lojas do nicho
     let filteredStores = allDbStores;

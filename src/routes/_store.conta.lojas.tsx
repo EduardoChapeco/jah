@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   Store,
@@ -29,6 +29,7 @@ export const Route = createFileRoute("/_store/conta/lojas")({
 
 export default function ContaLojasPage() {
   const { stores } = Route.useLoaderData();
+  const router = useRouter();
   const [switchingId, setSwitchingId] = useState<string | null>(null);
 
   const handleSelectStore = async (storeId: string, storeName: string) => {
@@ -38,7 +39,8 @@ export default function ContaLojasPage() {
       if (typeof window !== "undefined") {
         window.document.cookie = `wider_active_tenant=${storeId}; path=/; max-age=31536000; SameSite=Lax`;
         toast.success(`Contexto alterado para ${storeName}`);
-        window.location.href = "/workspace";
+        await router.invalidate();
+        router.navigate({ to: "/workspace" });
       }
     } catch {
       toast.error("Erro ao alternar loja.");

@@ -66,7 +66,15 @@ function AccountDashboardPage() {
   const orders = loaderData.orders || [];
   const profile = loaderData.profile || null;
   const session = loaderData.session || null;
-  const stores = (loaderData.stores as any[]) || [];
+  const rawStores = (loaderData.stores as any[]) || [];
+  const sessionMemberships = (session?.memberships as any[]) || [];
+  const profileMemberships = (profile?.memberships as any[]) || [];
+  const stores =
+    rawStores.length > 0
+      ? rawStores
+      : sessionMemberships.length > 0
+        ? sessionMemberships
+        : profileMemberships;
   const recentOrders = orders.slice(0, 3);
   const navigate = useNavigate();
 

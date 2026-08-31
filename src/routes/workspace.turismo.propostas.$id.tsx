@@ -11,6 +11,7 @@ import {
   Copy,
   ExternalLink,
   Sparkle,
+  FileCheck2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,7 @@ import {
   type TravelProposalDTO,
   type ProposalCanvasFormat,
 } from "@/services/travel-proposal.functions";
+import { createContractFromProposal } from "@/services/travel-contract.functions";
 import { StudioFrame, CANVAS_DIMENSIONS } from "@/components/tourism/studio/studio-frame";
 import { ProposalCanvasRenderer } from "@/components/tourism/studio/proposal-canvas-renderer";
 import { StudioSidebarEditor } from "@/components/tourism/studio/studio-sidebar-editor";
@@ -40,6 +42,7 @@ function WorkspaceProposalStudioPage() {
   const [proposal, setProposal] = useState<TravelProposalDTO | null>(initialProposal);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [isExportingImage, setIsExportingImage] = useState(false);
+  const [isCreatingContract, setIsCreatingContract] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const saveMutation = useMutation({
@@ -64,6 +67,28 @@ function WorkspaceProposalStudioPage() {
     },
     [proposal, saveMutation]
   );
+
+  const handleGenerateContract = async () => {
+    if (!proposal) return;
+    setIsCreatingContract(true);
+    try {
+      const res = await createContractFromProposal({
+        data: {
+          proposalId: proposal.id,
+        },
+      });
+      if (res?.success) {
+        toast.success("Contrato oficial gerado com sucesso! Redirecionando para contratos...");
+        if (typeof window !== "undefined") {
+          window.location.href = `/workspace/turismo/contratos`;
+        }
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao emitir contrato da proposta.");
+    } finally {
+      setIsCreatingContract(false);
+    }
+  };
 
   if (!proposal) {
     return (
@@ -191,6 +216,21 @@ function WorkspaceProposalStudioPage() {
           >
             <Download className="size-3.5" />
             <span>{isExportingPdf ? "Gerando..." : "Baixar PDF"}</span>
+          </Button>
+
+          <Button
+            type="button"
+            size="sm"
+            disabled={isCreatingContract}
+            onClick={handleGenerateContract}
+            className="rounded-xl text-xs font-bold gap-1.5 h-9 bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            {isCreatingContract ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <FileCheck2 className="size-3.5" />
+            )}
+            <span>Emitir Contrato Oficial</span>
           </Button>
 
           <Button

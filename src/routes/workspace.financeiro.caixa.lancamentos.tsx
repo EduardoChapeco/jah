@@ -1,7 +1,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Plus, Wallet, ArrowLeft } from "lucide-react";
+import { Plus, Wallet, ArrowLeft, Download } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Card } from "@/components/ui/card";
 
@@ -81,6 +81,34 @@ function CaixaLancamentosPage() {
     );
   }
 
+  const handleExportCsv = () => {
+    try {
+      const headers = ["Data e Hora", "Tipo", "Descricao", "Metodo", "Valor (BRL)"];
+      const rows = (register.recentEntries || []).map((entry: any) => {
+        const isOut = entry.amount_cents < 0;
+        const tipo = isOut ? "Saida" : "Entrada";
+        const desc = `"${(entry.description || "").replace(/"/g, '""')}"`;
+        const metodo = translateMethod(entry.method);
+        const valor = (entry.amount_cents / 100).toFixed(2).replace(".", ",");
+        return [formatDateTime(entry.created_at), tipo, desc, metodo, valor].join(";");
+      });
+
+      const csvContent = "\uFEFF" + [headers.join(";"), ...rows].join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `extrato_caixa_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success("Extrato exportado em CSV com sucesso!");
+    } catch {
+      toast.error("Erro ao gerar arquivo CSV.");
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const cents = form.amountCents || 0;
@@ -117,7 +145,7 @@ function CaixaLancamentosPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-2">
             <ArrowLeft className="size-4" />
@@ -125,84 +153,97 @@ function CaixaLancamentosPage() {
           </div>
           <PageHeader title="Lançamentos do Caixa" />
         </div>
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Novo Lançamento
-            </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>Registrar Lançamento Manual</SheetTitle>
-            </SheetHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="entry-type">Tipo</Label>
-                  <Select
-                    value={form.type}
-                    onValueChange={(v) => setForm((f) => ({ ...f, type: v as "in" | "out" }))}
-                  >
-                    <SelectTrigger id="entry-type">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="in">Entrada</SelectItem>
-                      <SelectItem value="out">Saída</SelectItem>
-                    </SelectContent>
-                  </Select>
+
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleExportCsv}
+            className="rounded-xl text-xs font-bold gap-2 cursor-pointer"
+          >
+            <Download className="size-4" />
+            <span>Exportar CSV</span>
+          </Button>
+
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger asChild>
+              <Button className="rounded-xl text-xs font-bold gap-2 cursor-pointer">
+                <Plus className="size-4" />
+                Novo Lançamento
+              </Button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>Registrar Lançamento Manual</SheetTitle>
+              </SheetHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="entry-type">Tipo</Label>
+                    <Select
+                      value={form.type}
+                      onValueChange={(v) => setForm((f) => ({ ...f, type: v as "in" | "out" }))}
+                    >
+                      <SelectTrigger id="entry-type">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="in">Entrada</SelectItem>
+                        <SelectItem value="out">Saída</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="entry-method">Forma de Pagamento</Label>
+                    <Select
+                      value={form.method}
+                      onValueChange={(v) =>
+                        setForm((f) => ({ ...f, method: v as typeof form.method }))
+                      }
+                    >
+                      <SelectTrigger id="entry-method">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cash">Dinheiro</SelectItem>
+                        <SelectItem value="pix">Pix</SelectItem>
+                        <SelectItem value="credit">Crédito</SelectItem>
+                        <SelectItem value="debit">Débito</SelectItem>
+                        <SelectItem value="other">Outro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="entry-method">Forma de Pagamento</Label>
-                  <Select
-                    value={form.method}
-                    onValueChange={(v) =>
-                      setForm((f) => ({ ...f, method: v as typeof form.method }))
-                    }
-                  >
-                    <SelectTrigger id="entry-method">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="cash">Dinheiro</SelectItem>
-                      <SelectItem value="pix">Pix</SelectItem>
-                      <SelectItem value="credit">Crédito</SelectItem>
-                      <SelectItem value="debit">Débito</SelectItem>
-                      <SelectItem value="other">Outro</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="entry-amount">Valor (R$)</Label>
+                  <CurrencyField
+                    id="entry-amount"
+                    placeholder="0,00"
+                    value={form.amountCents}
+                    onChange={(val) => setForm((f) => ({ ...f, amountCents: val }))}
+                    required
+                  />
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="entry-amount">Valor (R$)</Label>
-                <CurrencyField
-                  id="entry-amount"
-                  placeholder="0,00"
-                  value={form.amountCents}
-                  onChange={(val) => setForm((f) => ({ ...f, amountCents: val }))}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="entry-desc">Descrição</Label>
-                <Input
-                  id="entry-desc"
-                  placeholder="Ex: Pagamento fornecedor, retirada de troco..."
-                  value={form.description}
-                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                  required
-                  minLength={3}
-                />
-              </div>
-              <SheetFooter className="mt-8">
-                <Button type="submit" disabled={isSaving} className="w-full sm:w-auto">
-                  {isSaving ? "Salvando..." : "Registrar"}
-                </Button>
-              </SheetFooter>
-            </form>
-          </SheetContent>
-        </Sheet>
+                <div className="space-y-2">
+                  <Label htmlFor="entry-desc">Descrição</Label>
+                  <Input
+                    id="entry-desc"
+                    placeholder="Ex: Pagamento fornecedor, retirada de troco..."
+                    value={form.description}
+                    onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                    required
+                    minLength={3}
+                  />
+                </div>
+                <SheetFooter className="mt-8">
+                  <Button type="submit" disabled={isSaving} className="w-full sm:w-auto">
+                    {isSaving ? "Salvando..." : "Registrar"}
+                  </Button>
+                </SheetFooter>
+              </form>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-4">

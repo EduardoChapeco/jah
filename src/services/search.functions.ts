@@ -366,14 +366,19 @@ export const instantTypeaheadSearch = createServerFn({ method: "GET" })
     if (error || !res) {
       // Fallback gracioso com queries padrão
       const [storesRes, productsRes] = await Promise.all([
-        db.from("stores").select("id, name, slug, logo_url").ilike("name", `%${q}%`).limit(4),
+        db.from("stores").select("id, name, slug, settings").ilike("name", `%${q}%`).limit(4),
         db.from("products").select("id, title, slug, price_cents, cover_url, store_id").ilike("title", `%${q}%`).eq("status", "active").limit(4),
       ]);
 
       return {
         query: q,
         suggestions: (productsRes.data || []).map((p: any) => p.title).slice(0, 3),
-        stores: storesRes.data || [],
+        stores: (storesRes.data || []).map((s: any) => ({
+          id: s.id,
+          name: s.name,
+          slug: s.slug,
+          logo_url: s.settings?.logoUrl || s.settings?.logo_url || null,
+        })),
         products: productsRes.data || [],
       };
     }

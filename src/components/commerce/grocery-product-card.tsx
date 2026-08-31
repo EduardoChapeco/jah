@@ -357,9 +357,9 @@ export function GroceryProductCard({
                 <Button
                   size="sm"
                   onClick={handleQuickAdd}
-                  className="rounded-xl h-8 sm:h-9 px-3 font-bold text-xs bg-foreground text-background hover:bg-foreground/90 gap-1.5 cursor-pointer"
+                  className="rounded-xl min-h-[44px] sm:min-h-0 h-11 sm:h-9 px-3.5 font-bold text-xs bg-foreground text-background hover:bg-foreground/90 gap-1.5 cursor-pointer"
                 >
-                  <Plus className="size-3.5" />
+                  <Plus className="size-4 sm:size-3.5" />
                   <span className="hidden sm:inline">Adicionar</span>
                 </Button>
               ) : (
@@ -367,11 +367,12 @@ export function GroceryProductCard({
                   asChild
                   size="sm"
                   variant="outline"
-                  className="rounded-xl h-8 sm:h-9 px-3 font-bold text-xs border-border cursor-pointer"
+                  className="rounded-xl min-h-[44px] sm:min-h-0 h-11 sm:h-9 px-3.5 font-bold text-xs border-border cursor-pointer"
                 >
                   <Link
                     to="/produto/$slug"
                     params={{ slug: product.slug }}
+                    aria-label={`Ver opções de ${product.title}`}
                   >
                     Opções
                   </Link>

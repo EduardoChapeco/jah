@@ -23,10 +23,12 @@ export const Route = createFileRoute("/workspace/pdv/comandas")({
   head: () => ({ meta: [{ title: "Gestão de Comandas" }] }),
   loader: async () => {
     const orders = await listOrders().catch(() => []);
-    // Filter active comandas
+    // Filter active comandas (mesas em aberto)
     return orders.filter(
       (o: any) =>
-        o.origin_type === "pdv" && o.table_identifier && o.status === "payment_processing",
+        o.origin_type === "pdv" &&
+        o.table_identifier &&
+        ["payment_processing", "pending", "processing", "draft"].includes(o.status),
     );
   },
   component: PdvComandasPage,
@@ -45,10 +47,13 @@ function PdvComandasPage() {
       const orders = await listOrders();
       return orders.filter(
         (o: any) =>
-          o.origin_type === "pdv" && o.table_identifier && o.status === "payment_processing",
+          o.origin_type === "pdv" &&
+          o.table_identifier &&
+          ["payment_processing", "pending", "processing", "draft"].includes(o.status),
       );
     },
     initialData: initialComandas,
+    refetchInterval: 5000,
   });
 
   const payMutation = useMutation({

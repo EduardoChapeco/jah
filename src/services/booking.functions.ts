@@ -212,7 +212,7 @@ export const listBookingServices = createServerFn({ method: "GET" })
       const db = getServerClient();
       let query = db
         .from("booking_services")
-        .select("*, stores(id, name, slug, avatar_url)")
+        .select("*, stores(id, name, slug, settings)")
         .eq("status", "active")
         .order("title");
 
@@ -232,7 +232,20 @@ export const listBookingServices = createServerFn({ method: "GET" })
       const { data, error } = await query;
 
       if (error) throw error;
-      return { status: "success" as const, data: data || [] };
+      const mappedData = (data || []).map((row: any) => {
+        const storeSettings = (row.stores?.settings as any) || {};
+        const storeLogo = storeSettings.logoUrl || storeSettings.logo_url || null;
+        return {
+          ...row,
+          stores: row.stores ? {
+            ...row.stores,
+            avatar_url: storeLogo,
+            logo_url: storeLogo,
+          } : null,
+        };
+      });
+
+      return { status: "success" as const, data: mappedData };
     } catch (error: unknown) {
       console.error("[booking.functions] listBookingServices error:", error);
       return { status: "success" as const, data: [] };

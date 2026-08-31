@@ -61,7 +61,7 @@ export const Route = createFileRoute("/_store/entrar")({
         // Só redireciona se não houver returnUrl definido (ex: redirect explicitado pelo sistema)
         const searchStr = typeof window !== "undefined" ? window.location.search : "";
         if (!searchStr.includes("returnUrl")) {
-          throw redirect({ to: "/conta" });
+          throw redirect({ to: "/" });
         }
       }
     } catch (e: any) {
@@ -86,13 +86,13 @@ function StepByStepAuthPage() {
   const navigate = useNavigate();
   const router = useRouter();
   const search = Route.useSearch();
-  // Se returnUrl for /workspace ou /admin-master, mantém; caso contrário vai para /conta
+  // Se returnUrl for /workspace ou /admin-master, mantém; caso contrário vai para home (/)
   const rawReturn = search.returnUrl;
   const returnUrl = rawReturn?.startsWith("/workspace") || rawReturn?.startsWith("/admin-master")
     ? rawReturn
     : rawReturn?.startsWith("/") && !rawReturn.startsWith("/entrar")
     ? rawReturn
-    : "/conta";
+    : "/";
 
   // Estado da etapa ativa
   const [view, setView] = useState<AuthView>("login-step1");
@@ -255,8 +255,8 @@ function StepByStepAuthPage() {
 
       if (res.status === "success") {
         toast.success("Bem-vindo(a) de volta!");
-        // Login de conta pessoal: vai para /conta por padrão, ou returnUrl se definido
-        const destination = returnUrl && returnUrl !== "/conta" && returnUrl.startsWith("/") ? returnUrl : "/conta";
+        // Redireciona para home (/) por padrão, ou returnUrl se especificado
+        const destination = returnUrl && returnUrl !== "/entrar" ? returnUrl : "/";
         window.location.replace(destination);
         return;
       } else if (res.status === "rate_limited" || res.status === "error") {

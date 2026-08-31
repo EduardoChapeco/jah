@@ -40,7 +40,7 @@ export const setTenantContext = createServerFn({ method: "POST" })
       throw new Error("Loja ou espaço de trabalho não encontrado.");
     }
 
-    // 2. Se o usuário estiver autenticado, garante o vínculo em workspace_members
+    // 2. Se o usuário estiver autenticado, garante o vínculo em workspace_members e atualiza profiles
     if (identity.id) {
       try {
         await adminDb.from("workspace_members").upsert(
@@ -51,8 +51,13 @@ export const setTenantContext = createServerFn({ method: "POST" })
           },
           { onConflict: "profile_id,store_id" },
         );
+
+        await adminDb
+          .from("profiles")
+          .update({ store_id: store_id })
+          .eq("id", identity.id);
       } catch (e) {
-        console.warn("[setTenantContext] Upsert em workspace_members:", e);
+        console.warn("[setTenantContext] Upsert em workspace_members / profiles:", e);
       }
     }
 
@@ -123,7 +128,7 @@ export const createBusinessProfile = createServerFn({ method: "POST" })
       throw new Error("Não foi possível criar o perfil do coletivo.");
     }
 
-    // 3. Vincular o usuário em workspace_members e store_members
+    // 3. Vincular o usuário em workspace_members (tabela canônica)
     try {
       await adminDb.from("workspace_members").upsert(
         {
@@ -135,16 +140,6 @@ export const createBusinessProfile = createServerFn({ method: "POST" })
       );
     } catch (err) {
       console.warn("[createBusinessProfile] Erro ao vincular workspace_members:", err);
-    }
-
-    try {
-      await adminDb.from("store_members").insert({
-        store_id: store.id,
-        profile_id: identity.id,
-        role: "owner",
-      });
-    } catch {
-      // Silencioso se store_members não for obrigatório
     }
 
     // 4. Seta o tenant ativo

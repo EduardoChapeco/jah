@@ -31,7 +31,9 @@ import {
   saveHotpage,
   deleteHotpage,
   type HotpageDTO,
+  type HotpageModule,
 } from "@/services/hotpage.functions";
+import { getStoreSettings } from "@/services/store.functions";
 import { getUserSession } from "@/services/auth.functions";
 import { toast } from "sonner";
 import { MediaUploader } from "@/components/ui/media-uploader";
@@ -41,18 +43,21 @@ import { DestinationPicker } from "@/components/ui/destination-picker";
 export const Route = createFileRoute("/workspace/marketing/hotpages")({
   head: () => ({ meta: [{ title: "Destaques & Hotpages da Loja | Workspace" }] }),
   loader: async () => {
-    const [hotpages, session] = await Promise.all([
-      listHotpages({ data: { module: "home" } }).catch(() => []),
+    const [store, session] = await Promise.all([
+      getStoreSettings().catch(() => null),
       getUserSession().catch(() => null),
     ]);
-    return { hotpages, session };
+    const initialModule = (store?.settings?.segment || store?.segment || store?.type || "home") as HotpageModule;
+    const hotpages = await listHotpages({ data: { module: initialModule } }).catch(() => []);
+    return { hotpages, session, store, initialModule };
   },
   component: WorkspaceStoreHotpagesPage,
 });
 
 function WorkspaceStoreHotpagesPage() {
-  const { hotpages: initialHotpages, session } = Route.useLoaderData();
+  const { hotpages: initialHotpages, session, store, initialModule } = Route.useLoaderData();
   const [hotpages, setHotpages] = useState<HotpageDTO[]>(initialHotpages || []);
+  const [selectedModuleFilter, setSelectedModuleFilter] = useState<HotpageModule>(initialModule || "home");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -61,6 +66,7 @@ function WorkspaceStoreHotpagesPage() {
   const [slug, setSlug] = useState("");
   const [badgeLabel, setBadgeLabel] = useState("");
   const [targetRoute, setTargetRoute] = useState("");
+  const [module, setModule] = useState<HotpageModule>(initialModule || "home");
   const [bgMediaType, setBgMediaType] = useState<"none" | "image" | "video" | "gif">("none");
   const [bgMediaUrl, setBgMediaUrl] = useState("");
   const [bgTexture, setBgTexture] = useState<"none" | "noise" | "dots" | "grid" | "mesh" | "glass">("none");
@@ -70,9 +76,14 @@ function WorkspaceStoreHotpagesPage() {
 
   const isPlatformAdmin = session?.role === "platform_admin";
 
-  const refreshList = async () => {
-    const updated = await listHotpages({ data: { module: "home" } }).catch(() => []);
+  const refreshList = async (mod: HotpageModule = selectedModuleFilter) => {
+    const updated = await listHotpages({ data: { module: mod } }).catch(() => []);
     setHotpages(updated);
+  };
+
+  const handleModuleFilterChange = async (mod: HotpageModule) => {
+    setSelectedModuleFilter(mod);
+    await refreshList(mod);
   };
 
   const handleOpenCreate = () => {
@@ -81,6 +92,7 @@ function WorkspaceStoreHotpagesPage() {
     setSlug(`destaque-${Date.now()}`);
     setBadgeLabel("Novidade");
     setTargetRoute("/perfil-da-loja");
+    setModule(selectedModuleFilter);
     setBgMediaType("none");
     setBgMediaUrl("");
     setBgTexture("none");
@@ -96,6 +108,7 @@ function WorkspaceStoreHotpagesPage() {
     setSlug(h.slug);
     setBadgeLabel(h.badge_label || "");
     setTargetRoute(h.target_route || "");
+    setModule((h.module as HotpageModule) || selectedModuleFilter);
     setBgMediaType(h.bg_media_type || "none");
     setBgMediaUrl(h.bg_media_url || "");
     setBgTexture(h.bg_texture || "none");
@@ -126,7 +139,7 @@ function WorkspaceStoreHotpagesPage() {
           bg_overlay_opacity: bgOverlayOpacity,
           show_title: showTitle,
           show_badge: showBadge,
-          module: "home",
+          module,
           is_active: true,
           sort_order: 0,
         },
@@ -181,14 +194,38 @@ function WorkspaceStoreHotpagesPage() {
         eyebrow="Vitrine & Divulgação"
         title="Destaques & Hotpages"
         actions={
-          <Button
-            onClick={handleOpenCreate}
-            size="sm"
-            className="rounded-xl font-bold text-xs h-9 bg-primary text-primary-foreground gap-1.5 shadow-xs cursor-pointer"
-          >
-            <Plus className="size-3.5" />
-            <span>Novo Destaque</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Select
+              value={selectedModuleFilter}
+              onValueChange={(val: any) => handleModuleFilterChange(val)}
+            >
+              <SelectTrigger className="w-[180px] rounded-xl text-xs h-9 bg-background">
+                <SelectValue placeholder="Filtrar por vitrine" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="home">Home / Perfil da Loja</SelectItem>
+                <SelectItem value="gastronomia">Gastronomia</SelectItem>
+                <SelectItem value="mercado">Supermercados</SelectItem>
+                <SelectItem value="moda">Moda & Vestuário</SelectItem>
+                <SelectItem value="turismo">Turismo</SelectItem>
+                <SelectItem value="pet">Pet Shop</SelectItem>
+                <SelectItem value="beleza">Beleza</SelectItem>
+                <SelectItem value="servicos">Serviços</SelectItem>
+                <SelectItem value="imoveis">Imóveis</SelectItem>
+                <SelectItem value="eventos">Eventos</SelectItem>
+                <SelectItem value="all">Todas as Vitrines</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Button
+              onClick={handleOpenCreate}
+              size="sm"
+              className="rounded-xl font-bold text-xs h-9 bg-primary text-primary-foreground gap-1.5 shadow-xs cursor-pointer"
+            >
+              <Plus className="size-3.5" />
+              <span>Novo Destaque</span>
+            </Button>
+          </div>
         }
       />
 
@@ -314,6 +351,32 @@ function WorkspaceStoreHotpagesPage() {
             label="Página / Rota de Destino"
             helperText="Escolha a página interna ou informe uma URL externa para este destaque."
           />
+
+          {/* Módulo / Vitrine de Exibição */}
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold">Vitrine / Módulo de Exibição</Label>
+            <Select value={module} onValueChange={(val: any) => setModule(val)}>
+              <SelectTrigger className="rounded-xl text-xs h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="home">Página Inicial / Perfil da Loja (Home)</SelectItem>
+                <SelectItem value="gastronomia">Gastronomia / Restaurantes</SelectItem>
+                <SelectItem value="mercado">Supermercados & Empórios</SelectItem>
+                <SelectItem value="moda">Moda & Vestuário</SelectItem>
+                <SelectItem value="turismo">Turismo & Viagens</SelectItem>
+                <SelectItem value="pet">Pet Shop & Veterinária</SelectItem>
+                <SelectItem value="beleza">Beleza & Estética</SelectItem>
+                <SelectItem value="servicos">Serviços Profissionais</SelectItem>
+                <SelectItem value="casa">Casa & Decoração</SelectItem>
+                <SelectItem value="eletronicos">Eletrônicos & Tecnologia</SelectItem>
+                <SelectItem value="construcao">Construção & Reformas</SelectItem>
+                <SelectItem value="imoveis">Imóveis & Locação</SelectItem>
+                <SelectItem value="eventos">Eventos & Ingressos</SelectItem>
+                <SelectItem value="all">Todas as Vitrines (Global)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* Mídia de Fundo */}
           <div className="space-y-2 pt-2 border-t border-border/30">

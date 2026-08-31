@@ -49,7 +49,7 @@ export const getPublicDirectory = createServerFn({ method: "GET" })
 
     let query = supabase
       .from("directory_listings")
-      .select("*, stores(id, name, slug, avatar_url)")
+      .select("*, stores(id, name, slug, settings)")
       .eq("status", "active")
       .order("is_verified", { ascending: false })
       .order("rating", { ascending: false })
@@ -71,51 +71,9 @@ export const getPublicDirectory = createServerFn({ method: "GET" })
       return [];
     }
 
-    return (rows || []).map((row: any) => ({
-      id: row.id,
-      store_id: row.store_id,
-      store: row.stores || null,
-      author_profile_id: row.author_profile_id,
-      business_name: row.business_name || row.stores?.name || "Negócio Local",
-      category: row.category,
-      description: row.description || "",
-      specialties: row.specialties || [],
-      address: row.address || "Regional",
-      latitude: row.latitude,
-      longitude: row.longitude,
-      contact_phone: row.contact_phone,
-      contact_whatsapp: row.contact_whatsapp,
-      contact_email: row.contact_email,
-      website_url: row.website_url,
-      working_hours: typeof row.working_hours === "string" ? row.working_hours : (row.working_hours?.weekdays || "Seg a Sex: 08:00 - 18:00"),
-      is_verified: !!row.is_verified,
-      rating: Number(row.rating || 5.0),
-      reviews_count: Number(row.reviews_count || 0),
-      avatar_url: row.avatar_url || row.stores?.avatar_url,
-      banner_url: row.banner_url,
-      status: row.status,
-      created_at: row.created_at,
-    })) as DirectoryListingDTO[];
-  });
-
-export const getPublicDirectoryById = createServerFn({ method: "GET" })
-  .validator(z.object({ listingId: z.string() }))
-  .handler(async ({ data: { listingId } }) => {
-    const supabase = getServerClient();
-
-    // 1. Tenta buscar em directory_listings por ID ou store_id
-    let query = supabase.from("directory_listings").select("*, stores(id, name, slug, avatar_url)");
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(listingId);
-
-    if (isUuid) {
-      query = query.or(`id.eq.${listingId},store_id.eq.${listingId}`);
-    } else {
-      query = query.eq("id", listingId);
-    }
-
-    const { data: row } = await query.maybeSingle();
-
-    if (row) {
+    return (rows || []).map((row: any) => {
+      const storeSettings = (row.stores?.settings as any) || {};
+      const storeLogo = storeSettings.logoUrl || storeSettings.logo_url || null;
       return {
         id: row.id,
         store_id: row.store_id,
@@ -136,8 +94,56 @@ export const getPublicDirectoryById = createServerFn({ method: "GET" })
         is_verified: !!row.is_verified,
         rating: Number(row.rating || 5.0),
         reviews_count: Number(row.reviews_count || 0),
-        avatar_url: row.avatar_url || row.stores?.avatar_url,
-        banner_url: row.banner_url,
+        avatar_url: row.avatar_url || storeLogo,
+        banner_url: row.banner_url || storeSettings.bannerUrl || null,
+        status: row.status,
+        created_at: row.created_at,
+      };
+    }) as DirectoryListingDTO[];
+  });
+
+export const getPublicDirectoryById = createServerFn({ method: "GET" })
+  .validator(z.object({ listingId: z.string() }))
+  .handler(async ({ data: { listingId } }) => {
+    const supabase = getServerClient();
+
+    // 1. Tenta buscar em directory_listings por ID ou store_id
+    let query = supabase.from("directory_listings").select("*, stores(id, name, slug, settings)");
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(listingId);
+
+    if (isUuid) {
+      query = query.or(`id.eq.${listingId},store_id.eq.${listingId}`);
+    } else {
+      query = query.eq("id", listingId);
+    }
+
+    const { data: row } = await query.maybeSingle();
+
+    if (row) {
+      const storeSettings = (row.stores?.settings as any) || {};
+      const storeLogo = storeSettings.logoUrl || storeSettings.logo_url || null;
+      return {
+        id: row.id,
+        store_id: row.store_id,
+        store: row.stores || null,
+        author_profile_id: row.author_profile_id,
+        business_name: row.business_name || row.stores?.name || "Negócio Local",
+        category: row.category,
+        description: row.description || "",
+        specialties: row.specialties || [],
+        address: row.address || "Regional",
+        latitude: row.latitude,
+        longitude: row.longitude,
+        contact_phone: row.contact_phone,
+        contact_whatsapp: row.contact_whatsapp,
+        contact_email: row.contact_email,
+        website_url: row.website_url,
+        working_hours: typeof row.working_hours === "string" ? row.working_hours : (row.working_hours?.weekdays || "Seg a Sex: 08:00 - 18:00"),
+        is_verified: !!row.is_verified,
+        rating: Number(row.rating || 5.0),
+        reviews_count: Number(row.reviews_count || 0),
+        avatar_url: row.avatar_url || storeLogo,
+        banner_url: row.banner_url || storeSettings.bannerUrl || null,
         status: row.status,
         created_at: row.created_at,
       } as DirectoryListingDTO;

@@ -19,7 +19,9 @@ import { ErrorState } from "@/components/state/states";
 import { getOrderByToken } from "@/services/checkout.functions";
 import { formatMoney } from "@/lib/money";
 import { PostOrderAuditModal } from "@/components/commerce/post-order-audit-modal";
+import { getBrowserClient } from "@/lib/supabase";
 import { toast } from "sonner";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/_store/pedido/$publicToken/confirmacao")({
   head: () => ({
@@ -30,8 +32,62 @@ export const Route = createFileRoute("/_store/pedido/$publicToken/confirmacao")(
 });
 
 function ConfirmationPage() {
-  const order = Route.useLoaderData() as any;
+  const initialOrder = Route.useLoaderData() as any;
+  const [order, setOrder] = useState<any>(initialOrder);
   const [isAuditOpen, setIsAuditOpen] = useState(false);
+
+  // Polling híbrido resiliente (4s) + Supabase Realtime para confirmação instantânea no mobile
+  useEffect(() => {
+    if (!order?.public_token || order.status !== "awaiting_payment") return;
+
+    let isMounted = true;
+
+    // 1. Fallback Polling Interval de 4s (garante funcionamento mesmo se WebSocket oscilar no 4G/5G)
+    const interval = setInterval(async () => {
+      try {
+        const latest = await getOrderByToken({ data: { token: order.public_token } });
+        if (latest && isMounted) {
+          if (latest.status !== order.status) {
+            setOrder(latest);
+            if (latest.status === "paid") {
+              toast.success("Pagamento confirmado com sucesso! Seu pedido já está em preparação.");
+            }
+          }
+        }
+      } catch {
+        // Silencioso no fallback
+      }
+    }, 4000);
+
+    // 2. Realtime WebSocket subscription
+    const supabase = getBrowserClient();
+    const channel = supabase
+      .channel(`order-status-${order.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "orders",
+          filter: `id=eq.${order.id}`,
+        },
+        (payload) => {
+          if (payload.new && isMounted) {
+            setOrder((prev: any) => ({ ...prev, ...payload.new }));
+            if (payload.new.status === "paid") {
+              toast.success("Pagamento confirmado via Pix! Preparando seu pedido.");
+            }
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
+  }, [order?.id, order?.public_token, order?.status]);
 
   if (!order) {
     return (

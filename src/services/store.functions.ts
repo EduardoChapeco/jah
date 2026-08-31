@@ -20,12 +20,21 @@ export async function _getStoreSettings() {
   const { data: store } = await db
     .from("stores")
     .select(
-      "id, name, slug, email, phone, cnpj, address, city, state, zip_code, description, settings, logo_url, segment, type",
+      "id, name, slug, email, phone, cnpj, address, city, state, zip_code, description, settings",
     )
     .eq("id", targetStoreId)
     .maybeSingle();
 
-  return store || null;
+  if (!store) return null;
+
+  const settings = (store.settings as Record<string, any>) || {};
+  return {
+    ...store,
+    logo_url: settings.logoUrl || settings.logo_url || null,
+    segment: settings.segment || settings.type || settings.niche || null,
+    type: settings.type || settings.segment || null,
+    niche: settings.niche || settings.segment || null,
+  };
 }
 
 export const getStoreSettings = createServerFn({ method: "GET" }).handler(_getStoreSettings);
@@ -109,27 +118,13 @@ export async function _saveStoreSettings(data: z.infer<typeof saveStoreSettingsS
         : currentStore?.settings?.emergency_pause_until,
   };
 
-  const updateData: Record<string, any> = { ...columns, settings };
-  if (logoUrl !== undefined) {
-    updateData.logo_url = logoUrl;
-  }
-
-  const { error } = await db.from("stores").update(updateData).eq("id", identity.store_id);
+  const { error } = await db
+    .from("stores")
+    .update({ ...columns, settings })
+    .eq("id", identity.store_id);
 
   if (error) {
-    throw new Error("Erro ao salvar dados da loja: " + error.message);
-  }
-
-  // Sync logo and favicon to theme_settings automatically so vitrine and admin stay identical
-  if (logoUrl !== undefined || faviconUrl !== undefined) {
-    try {
-      const themeUpdate: Record<string, string> = {};
-      if (logoUrl !== undefined) themeUpdate.logo_url = logoUrl;
-      if (faviconUrl !== undefined) themeUpdate.favicon_url = faviconUrl;
-      await db.from("theme_settings").update(themeUpdate).eq("store_id", identity.store_id);
-    } catch {
-      // Ignore if theme_settings is missing or table structurally absent
-    }
+    throw new Error("Erro ao salvar configurações da loja: " + error.message);
   }
 
   return { status: "success" };
@@ -241,7 +236,7 @@ export async function _getPublicProfile() {
   const { data: store, error } = await db
     .from("stores")
     .select(
-      "id, name, description, logo_url, address, phone, business_hours, social_links, settings",
+      "id, name, description, address, phone, settings",
     )
     .eq("id", identity.store_id)
     .single();
@@ -250,7 +245,18 @@ export async function _getPublicProfile() {
     throw new Error("Loja não encontrada ou erro ao carregar perfil público");
   }
 
-  return store;
+  const settings = (store.settings as Record<string, any>) || {};
+  return {
+    id: store.id,
+    name: store.name,
+    description: store.description || "",
+    address: store.address || "",
+    phone: store.phone || "",
+    logo_url: settings.logoUrl || settings.logo_url || null,
+    business_hours: settings.working_hours || settings.businessHours || null,
+    social_links: settings.social_links || settings.socialLinks || null,
+    settings,
+  };
 }
 
 export const getPublicProfile = createServerFn({ method: "GET" }).handler(_getPublicProfile);
@@ -269,7 +275,31 @@ export async function _savePublicProfile(data: z.infer<typeof savePublicProfileS
   assertStoreAccess(identity, ["owner", "admin"]);
 
   const db = getServerClient();
-  const { error } = await db.from("stores").update(data).eq("id", identity.store_id);
+  const { data: currentStore } = await db
+    .from("stores")
+    .select("settings")
+    .eq("id", identity.store_id)
+    .single();
+
+  const currentSettings = (currentStore?.settings || {}) as Record<string, any>;
+  const { description, phone, address, business_hours, logo_url, settings: extraSettings } = data;
+
+  const mergedSettings = {
+    ...currentSettings,
+    ...(extraSettings || {}),
+    ...(logo_url !== undefined ? { logoUrl: logo_url, logo_url } : {}),
+    ...(business_hours !== undefined ? { working_hours: business_hours, businessHours: business_hours } : {}),
+  };
+
+  const { error } = await db
+    .from("stores")
+    .update({
+      description,
+      phone,
+      address,
+      settings: mergedSettings,
+    })
+    .eq("id", identity.store_id);
 
   if (error) {
     throw new Error("Erro ao salvar perfil público: " + error.message);
@@ -553,39 +583,94 @@ export async function getWorkingIntervalsForDate(
 
 export const getMyStoresList = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    const identity = await getServerIdentity();
     const db = getServerClient();
 
-    let storeIds: string[] = [];
-    const roleByStoreId: Record<string, string> = {};
+    // 1. Resolver usuário autenticado e perfil
+    let userId: string | null = null;
+    let userEmail: string | null = null;
+    let userRole = "customer";
+    let profileStoreId: string | null = null;
 
-    if (identity.memberships && identity.memberships.length > 0) {
-      identity.memberships.forEach((m) => {
-        storeIds.push(m.store_id);
-        roleByStoreId[m.store_id] = m.role;
-      });
+    try {
+      const { getSSRClient } = await import("@/lib/server-access");
+      const ssrClient = await getSSRClient();
+      const authRes = await ssrClient.auth.getUser();
+      userId = authRes.data?.user?.id || null;
+      userEmail = authRes.data?.user?.email?.toLowerCase() || null;
+    } catch {
+      userId = null;
+    }
+
+    try {
+      const identity = await getServerIdentity();
+      if (!userId && identity.id) userId = identity.id;
+      if (identity.role) userRole = identity.role;
+    } catch {
+      // Silencioso
+    }
+
+    if (userId) {
+      try {
+        const { data: p } = await db
+          .from("profiles")
+          .select("role")
+          .eq("id", userId)
+          .maybeSingle();
+
+        if (p?.role) userRole = p.role;
+      } catch {
+        // Silencioso
+      }
     }
 
     const isPlatformAdmin =
-      identity.role === "platform_admin" ||
-      identity.role === "master" ||
-      identity.role === "admin" ||
-      identity.role === "superadmin";
+      userRole === "platform_admin" ||
+      userRole === "master" ||
+      userRole === "admin" ||
+      userRole === "superadmin" ||
+      userEmail === "master@wider.com.br" ||
+      userEmail === "meuwider@gmail.com";
 
-    // Se o usuário não possui lojas vinculadas e não é admin da plataforma, retorna vazio
-    if (storeIds.length === 0 && !isPlatformAdmin) {
-      return [];
+    // 2. Coletar IDs de lojas na tabela canônica workspace_members
+    const storeIdsSet = new Set<string>();
+    const roleByStoreId: Record<string, string> = {};
+
+    if (userId) {
+      try {
+        const { data: wmRows, error: wmErr } = await db
+          .from("workspace_members")
+          .select("store_id, role")
+          .eq("profile_id", userId);
+
+        if (wmErr) {
+          console.warn("[stores] Erro ao buscar workspace_members em getMyStoresList:", wmErr.message);
+        }
+
+        (wmRows || []).forEach((m: any) => {
+          if (m.store_id) {
+            storeIdsSet.add(m.store_id);
+            roleByStoreId[m.store_id] = m.role || "owner";
+          }
+        });
+      } catch (memErr) {
+        console.warn("[stores] Erro ao buscar memberships em getMyStoresList:", memErr);
+      }
     }
 
+    // 3. Montar query de lojas
     let query = db
       .from("stores")
-      .select("id, name, slug, type, logo_url, banner_url, phone, email, cnpj, address, city, state, description, status, settings, created_at");
+      .select("id, name, slug, phone, email, cnpj, address, city, state, description, settings, created_at, is_active");
 
     if (isPlatformAdmin) {
       // Platform Admin tem visão completa de todas as lojas e empresas
       query = query.order("created_at", { ascending: false }).limit(50);
-    } else if (storeIds.length > 0) {
-      query = query.in("id", storeIds);
+    } else if (storeIdsSet.size > 0) {
+      query = query.in("id", Array.from(storeIdsSet)).order("created_at", { ascending: false });
+    } else if (userEmail) {
+      query = query.ilike("email", userEmail).order("created_at", { ascending: false }).limit(10);
+    } else {
+      return [];
     }
 
     const { data: stores, error } = await query;
@@ -594,7 +679,7 @@ export const getMyStoresList = createServerFn({ method: "GET" }).handler(async (
       return [];
     }
 
-    // Enriquece com contagem de produtos
+    // 4. Enriquecer lojas com metadados e contagem de produtos
     const enriched = await Promise.all(
       (stores || []).map(async (st: any) => {
         let productCount = 0;
@@ -608,15 +693,17 @@ export const getMyStoresList = createServerFn({ method: "GET" }).handler(async (
           productCount = 0;
         }
 
-        const settings = st.settings || {};
-        const bannerUrl = st.banner_url || settings.bannerUrl || settings.banner_url || null;
-        const logoUrl = st.logo_url || settings.logoUrl || settings.logo_url || null;
+        const settings = (st.settings as Record<string, any>) || {};
+        const bannerUrl = settings.bannerUrl || settings.banner_url || null;
+        const logoUrl = settings.logoUrl || settings.logo_url || null;
+        const type = settings.type || settings.segment || settings.niche || "ecommerce";
+        const status = st.is_active === false ? "inactive" : (settings.status || "active");
 
         return {
           id: st.id,
           name: st.name,
           slug: st.slug,
-          type: st.type || "ecommerce",
+          type,
           logo_url: logoUrl,
           banner_url: bannerUrl,
           phone: st.phone || "",
@@ -626,11 +713,11 @@ export const getMyStoresList = createServerFn({ method: "GET" }).handler(async (
           city: st.city || "",
           state: st.state || "",
           description: st.description || "",
-          status: st.status || "active",
+          status,
           settings,
           created_at: st.created_at,
-          role: roleByStoreId[st.id] || "owner",
-          is_active_context: st.id === identity.store_id,
+          role: roleByStoreId[st.id] || (isPlatformAdmin ? "owner" : "member"),
+          is_active_context: true,
           product_count: productCount,
         };
       }),

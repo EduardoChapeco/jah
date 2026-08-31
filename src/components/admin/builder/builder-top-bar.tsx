@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   Laptop,
   Smartphone,
+  Film,
   Undo2,
   Redo2,
   LayoutTemplate,
@@ -17,7 +18,7 @@ import { cn } from "@/lib/utils";
 export interface BuilderTopBarProps {
   document: any;
   version: any;
-  viewport: "desktop" | "mobile" | string;
+  viewport: "desktop" | "mobile" | "story" | string;
   setViewport: (vp: any) => void;
   undo: () => void;
   redo: () => void;
@@ -80,6 +81,7 @@ export function BuilderTopBar({
         <button
           type="button"
           onClick={() => setViewport("desktop")}
+          title="Desktop (1440px)"
           className={cn(
             "h-7 w-7 rounded-lg flex items-center justify-center transition-colors",
             viewport === "desktop" ? "bg-white/15 text-white" : "text-white/40 hover:text-white/70",
@@ -90,12 +92,24 @@ export function BuilderTopBar({
         <button
           type="button"
           onClick={() => setViewport("mobile")}
+          title="Mobile (390px)"
           className={cn(
             "h-7 w-7 rounded-lg flex items-center justify-center transition-colors",
             viewport === "mobile" ? "bg-white/15 text-white" : "text-white/40 hover:text-white/70",
           )}
         >
           <Smartphone className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => setViewport("story")}
+          title="Story / Zine 9:16 (360x640px)"
+          className={cn(
+            "h-7 w-7 rounded-lg flex items-center justify-center transition-colors",
+            viewport === "story" ? "bg-primary text-white" : "text-white/40 hover:text-white/70",
+          )}
+        >
+          <Film className="h-4 w-4" />
         </button>
       </div>
 

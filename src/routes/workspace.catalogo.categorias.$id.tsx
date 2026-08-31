@@ -32,10 +32,14 @@ export const Route = createFileRoute("/workspace/catalogo/categorias/$id")({
         listCategories().catch(() => []),
       ]);
 
-      const categoryData = resCategory?.status === "success" ? resCategory.data : resCategory?.data || null;
+      const categoryData = resCategory?.id
+        ? resCategory
+        : resCategory?.status === "success"
+          ? resCategory.data
+          : resCategory?.data || null;
 
       return {
-        category: categoryData || { id: params.id, name: "Categoria", slug: "categoria", status: "active" },
+        category: categoryData || { id: params.id, name: "", slug: "", status: "active" },
         allCategories: resAll || [],
       };
     } catch {

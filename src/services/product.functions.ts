@@ -29,8 +29,15 @@ async function _getProductBySlug(slug: string): Promise<ProductDetailDTO> {
         `id, slug, title, description, brand, manufacturer, ean,
          price_cents, compare_at_cents, allows_preorder, store_id, attributes,
          seo_title, seo_description, meta_title, meta_description, short_description, status, show_stock_publicly,
-         is_physical, weight_kg, width_cm, height_cm, length_cm, preparation_time_days, stores(id, name, slug, logo_url, city, state, address, is_verified, rating),
+         is_physical, weight_kg, width_cm, height_cm, length_cm, preparation_time_days, stores(id, name, slug, email, phone, city, state, address, settings),
          product_media(id, url, alt, media_type, sort_order, focal_point, variant_id),
+         product_option_groups(
+           sort_order,
+           option_groups(
+             id, internal_name, display_name, selection_type, min_selections, max_selections, is_required,
+             option_values(id, label, description, image_url, price_modifier_cents, max_quantity_per_item, is_default, is_active, sort_order)
+           )
+         ),
          product_variants(
            id, sku, display_name, status, price_override_cents,
            stock_on_hand, attributes, ean,
@@ -197,12 +204,30 @@ async function _getProductBySlug(slug: string): Promise<ProductDetailDTO> {
           return rest;
         });
 
+      const rawStore = (product as any).stores || null;
+      const storeSettings = (rawStore?.settings as Record<string, any>) || {};
+      const mappedStore = rawStore
+        ? {
+            id: rawStore.id,
+            name: rawStore.name,
+            slug: rawStore.slug,
+            city: rawStore.city || null,
+            state: rawStore.state || null,
+            address: rawStore.address || null,
+            phone: rawStore.phone || null,
+            email: rawStore.email || null,
+            logo_url: storeSettings.logoUrl || storeSettings.logo_url || null,
+            is_verified: true,
+            rating: 5.0,
+          }
+        : null;
+
       return {
         id: product.id as string,
         slug: product.slug as string,
         title: product.title as string,
         storeId: (product.store_id as string | null) ?? undefined,
-        store: (product as any).stores || null,
+        store: mappedStore,
         store_id: (product.store_id as string | null) ?? undefined,
         description: (product.description as string | null) ?? null,
         shortDescription: (product.short_description as string | null) ?? null,

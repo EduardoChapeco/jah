@@ -69,6 +69,33 @@ const DEPARTMENT_LABELS: Record<string, string> = {
   logistica: "Logística / Motoboy",
 };
 
+function playNotificationChime() {
+  try {
+    if (typeof window === "undefined") return;
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+    osc.frequency.setValueAtTime(880, ctx.currentTime + 0.08);
+
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 0.04);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(ctx.currentTime + 0.3);
+  } catch {
+    // Silencioso
+  }
+}
+
 function WorkspaceAtendimentoPage() {
   const { threads: initialThreads, metrics, isSupervisor } = Route.useLoaderData();
   const [threads, setThreads] = useState<any[]>(initialThreads);
@@ -128,7 +155,6 @@ function WorkspaceAtendimentoPage() {
       });
     }
   }, [messages]);
-
   // Realtime Supabase
   useEffect(() => {
     if (!activeThreadId) return;
@@ -154,6 +180,11 @@ function WorkspaceAtendimentoPage() {
             attachments: payload.new.attachments || [],
             payload: payload.new.payload || {},
           };
+
+          if (!payload.new.is_staff_reply) {
+            playNotificationChime();
+          }
+
           setMessages((prev) => {
             if (prev.some((m) => m.id === newMsg.id)) return prev;
             return [...prev, newMsg];

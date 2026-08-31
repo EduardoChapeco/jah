@@ -356,7 +356,7 @@ export const getCustomerChatThread = createServerFn({ method: "GET" })
         .select(`
           id, store_id, customer_id, guest_name, guest_email, status, subject,
           department, order_id, created_at, updated_at,
-          store:stores(id, name, slug, logo_url, phone),
+          store:stores(id, name, slug, phone, settings),
           order:orders(id, status, total_amount_cents, payment_method, created_at, items:order_items(product_name, quantity, price_cents))
         `)
         .eq("id", threadId)
@@ -369,13 +369,24 @@ export const getCustomerChatThread = createServerFn({ method: "GET" })
         throw new Error("Acesso não autorizado.");
       }
 
+      const rawStore: any = thread.store;
+      const storeObj = Array.isArray(rawStore) ? rawStore[0] : rawStore;
+      const storeSettings = (storeObj?.settings as any) || {};
+      const mappedStore = storeObj ? {
+        ...storeObj,
+        logo_url: storeSettings.logoUrl || storeSettings.logo_url || null,
+      } : null;
+
       const [messagesRes, ticketsRes] = await Promise.all([
         db.from("chat_messages").select("id, message, message_type, is_staff_reply, created_at, attachments, payload").eq("thread_id", threadId).order("created_at", { ascending: true }),
         db.from("store_support_tickets").select("*").eq("thread_id", threadId).order("created_at", { ascending: false }),
       ]);
 
       return {
-        thread,
+        thread: {
+          ...thread,
+          store: mappedStore,
+        },
         messages: (messagesRes.data || []).map((m: any) => ({
           id: m.id,
           message: m.message,
@@ -464,7 +475,7 @@ export const listCustomerChatThreads = createServerFn({ method: "GET" }).handler
       .from("chat_threads")
       .select(`
         id, status, subject, department, updated_at, created_at, order_id,
-        store:stores(id, name, slug, logo_url),
+        store:stores(id, name, slug, settings),
         chat_messages(id, message, created_at, is_staff_reply)
       `)
       .eq("customer_id", user.id)
@@ -478,16 +489,18 @@ export const listCustomerChatThreads = createServerFn({ method: "GET" }).handler
         (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
       );
       const lastMsg = messages[0];
+      const storeSettings = (thread.store?.settings as any) || {};
+      const mappedStore = thread.store ? {
+        ...thread.store,
+        logo_url: storeSettings.logoUrl || storeSettings.logo_url || null,
+      } : null;
 
       return {
-        id: thread.id,
-        status: thread.status,
-        subject: thread.subject || thread.store?.name || "Atendimento",
-        store: thread.store,
-        order_id: thread.order_id,
-        updated_at: thread.updated_at,
-        created_at: thread.created_at,
+        ...thread,
+        store: mappedStore,
         last_message: lastMsg ? lastMsg.message : "Conversa iniciada",
+        last_message_at: lastMsg ? lastMsg.created_at : thread.created_at,
+        unread_count: messages.filter((m: any) => m.is_staff_reply).length,
         is_last_reply_staff: lastMsg ? lastMsg.is_staff_reply : false,
       };
     });

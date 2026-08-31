@@ -57,10 +57,11 @@ export async function _calculateShipping({
   // Fetch store type to adapt shipping logic
   const { data: storeInfo } = await supabase
     .from("stores")
-    .select("type, address, city, state")
+    .select("address, city, state, settings")
     .eq("id", resolvedStoreId)
     .single();
-  const storeType = storeInfo?.type || "ecommerce";
+  const settings = (storeInfo?.settings as Record<string, any>) || {};
+  const storeType = settings.type || settings.segment || "ecommerce";
 
   const finalQuotes: any[] = [];
   const cleanZipcode = zipcode.replace(/\D/g, "");

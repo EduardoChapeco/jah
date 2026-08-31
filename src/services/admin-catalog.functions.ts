@@ -47,20 +47,21 @@ export async function _createProductType(input: {
   field_schema: any[];
 }) {
   const db = getServerClient();
+  const { getServerIdentity } = await import("@/lib/server-access");
+  const { store_id } = await getServerIdentity();
+  if (!store_id) throw new Error("Nenhuma loja ativa selecionada.");
 
-  // Need to resolve storeId for insertion
   const { data: storeData } = await db
     .from("stores")
-    .select("id, organization_id")
-    .limit(1)
-    .single();
-  if (!storeData) throw new Error("No store found");
+    .select("organization_id")
+    .eq("id", store_id)
+    .maybeSingle();
 
   const { data, error } = await db
     .from("product_types")
     .insert({
-      organization_id: storeData.organization_id,
-      store_id: storeData.id,
+      organization_id: storeData?.organization_id || null,
+      store_id: store_id,
       name: input.name,
       slug: input.slug,
       field_schema: input.field_schema,
@@ -104,6 +105,9 @@ export async function _updateProductType(input: {
   field_schema: any[];
 }) {
   const db = getServerClient();
+  const { getServerIdentity } = await import("@/lib/server-access");
+  const { store_id } = await getServerIdentity();
+  if (!store_id) throw new Error("Acesso não autorizado.");
 
   const { data, error } = await db
     .from("product_types")
@@ -113,6 +117,7 @@ export async function _updateProductType(input: {
       field_schema: input.field_schema,
     })
     .eq("id", input.id)
+    .eq("store_id", store_id)
     .select()
     .single();
 
@@ -148,7 +153,15 @@ export const updateProductType = createServerFn({ method: "POST" })
 
 export async function _deleteProductType(id: string) {
   const db = getServerClient();
-  const { error } = await db.from("product_types").delete().eq("id", id);
+  const { getServerIdentity } = await import("@/lib/server-access");
+  const { store_id } = await getServerIdentity();
+  if (!store_id) throw new Error("Acesso não autorizado.");
+
+  const { error } = await db
+    .from("product_types")
+    .delete()
+    .eq("id", id)
+    .eq("store_id", store_id);
   if (error) throw error;
   return true;
 }
@@ -340,9 +353,9 @@ export async function _createProduct(input: {
         product_id: productId,
         category_id: catId,
       }));
-      await db.from("product_category_assignments").insert(catRows);
-    } catch {
-      // Ignora erro de categoria no fallback
+      await db.from("product_categories").insert(catRows);
+    } catch (catErr) {
+      console.warn("[admin-catalog] Erro ao associar categorias:", catErr);
     }
   }
 
@@ -458,14 +471,19 @@ export const createProduct = createServerFn({ method: "POST" })
 // Categories
 // ---------------------------------------------------------------------------
 
-export async function _listCategories() {
+export async function _listCategories(store_id?: string) {
   const db = getServerClient();
 
-  const { data, error } = await db
+  let query = db
     .from("categories")
     .select("id, name, slug, status, sort_order, parent_id")
     .order("sort_order", { ascending: true });
 
+  if (store_id) {
+    query = query.eq("store_id", store_id);
+  }
+
+  const { data, error } = await query;
   if (error) throw error;
   return data;
 }
@@ -473,7 +491,9 @@ export async function _listCategories() {
 export const listCategories = createServerFn({ method: "GET" }).handler(async () => {
   try {
     await requireAdmin(); // SECURITY FIX
-    const data = await _listCategories();
+    const { getServerIdentity } = await import("@/lib/server-access");
+    const { store_id } = await getServerIdentity().catch(() => ({ store_id: null }));
+    const data = await _listCategories(store_id || undefined);
     return data;
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
@@ -619,14 +639,19 @@ export const updateCategory = createServerFn({ method: "POST" })
 // Collections
 // ---------------------------------------------------------------------------
 
-export async function _listCollections() {
+export async function _listCollections(store_id?: string) {
   const db = getServerClient();
 
-  const { data, error } = await db
+  let query = db
     .from("collections")
     .select("id, name, slug, status, sort_order")
     .order("sort_order", { ascending: true });
 
+  if (store_id) {
+    query = query.eq("store_id", store_id);
+  }
+
+  const { data, error } = await query;
   if (error) throw error;
   return data;
 }
@@ -634,7 +659,9 @@ export async function _listCollections() {
 export const listCollections = createServerFn({ method: "GET" }).handler(async () => {
   try {
     await requireAdmin(); // SECURITY FIX
-    const data = await _listCollections();
+    const { getServerIdentity } = await import("@/lib/server-access");
+    const { store_id } = await getServerIdentity().catch(() => ({ store_id: null }));
+    const data = await _listCollections(store_id || undefined);
     return data;
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
@@ -657,13 +684,14 @@ export async function _createCollection(input: {
   const { store_id } = await getServerIdentity();
   if (!store_id) throw new Error("No store found");
   const storeData = { id: store_id };
-  if (!storeData) throw new Error("No store found");
+
+  const { rules, ...collectionPayload } = input;
 
   const { data, error } = await db
     .from("collections")
     .insert({
       store_id: storeData.id,
-      ...input,
+      ...collectionPayload,
     })
     .select()
     .single();
@@ -728,9 +756,14 @@ export async function _updateCollection(input: {
   status?: "active" | "inactive" | "archived";
   description?: string | null;
   cover_url?: string | null;
+  rules?: any;
 }) {
   const db = getServerClient();
-  const { id, ...updates } = input;
+  const { id, rules, ...rawUpdates } = input;
+  const updates: Record<string, any> = { ...rawUpdates };
+  if (updates.status === "archived") {
+    updates.status = "inactive";
+  }
   const { data, error } = await db
     .from("collections")
     .update(updates)
@@ -788,6 +821,7 @@ export async function _getProductById(id: string) {
       product_variants (*),
       product_media (*),
       product_categories (category_id),
+      product_option_groups (option_group_id, sort_order, option_groups (*)),
       product_types (id, name, field_schema)
     `,
     )
@@ -854,7 +888,7 @@ export async function _updateProduct(input: {
   const { store_id } = await getServerIdentity();
   if (!store_id) throw new Error("Acesso não autorizado.");
 
-  const { id, category_ids, variants, ...updates } = input;
+  const { id, category_ids, option_group_ids, variants, ...updates } = input;
 
   // Garantir que a atualização só ocorre no tenant correto
   const { data, error } = await db
@@ -1657,9 +1691,11 @@ export const bulkUpdateProductStatus = createServerFn({ method: "POST" })
 
 export const getAdminDestaques = createServerFn({ method: "GET" }).handler(async () => {
   try {
+    const { getServerIdentity } = await import("@/lib/server-access");
+    const { store_id } = await getServerIdentity();
+    if (!store_id) return { status: "unconfigured" as const };
+
     const db = getServerClient();
-    const { data: store } = await db.from("stores").select("id").limit(1).single();
-    if (!store) return { status: "unconfigured" as const };
 
     // Get all published products and also their product_collections to see if they are in 'destaques'
     const { data, error } = await db
@@ -1673,11 +1709,20 @@ export const getAdminDestaques = createServerFn({ method: "GET" }).handler(async
         )
       `,
       )
-      .eq("store_id", store.id)
+      .eq("store_id", store_id)
       .eq("status", "published")
+      .eq("product_collections.collections.slug", "destaques")
       .order("created_at", { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error("[getAdminDestaques] Erro ao buscar destaques:", error);
+      return { status: "error" as const, message: error.message };
+    }
+
+    if (!data || data.length === 0) {
+      return { status: "empty" as const, data: [] };
+    }
+
     return { status: "ok" as const, data: data || [] };
   } catch (e: unknown) {
     if (e instanceof SupabaseUnconfiguredError) throw e;

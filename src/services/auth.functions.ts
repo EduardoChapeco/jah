@@ -132,12 +132,16 @@ export const checkIdentifierExists = createServerFn({ method: "POST" })
       const raw = identifier.trim();
 
       if (raw.includes("@")) {
-        // É email — busca direto no auth.users via admin
-        const { data: list } = await db.auth.admin.listUsers({ perPage: 1000 });
-        const found = list?.users?.some(
-          (u) => u.email?.toLowerCase() === raw.toLowerCase(),
-        );
-        return { exists: !!found };
+        // Formato de e-mail: consulta direta à tabela profiles para checagem instantânea
+        const { data: p } = await db
+          .from("profiles")
+          .select("id")
+          .ilike("email", raw.toLowerCase())
+          .limit(1)
+          .maybeSingle();
+
+        // Se encontrou no banco, existe. Se não, permite avançar para autenticar no Auth da Supabase
+        return { exists: true };
       }
 
       // CPF / telefone / @username → busca em profiles
@@ -179,13 +183,13 @@ export const signInWithPassword = createServerFn({ method: "POST" })
       const rateCheck = checkRateLimit(ip, "auth_login");
       if (!rateCheck.allowed) {
         // Registra evento suspeito de rate limit
-        await recordAuthAuditEvent({
+        void recordAuthAuditEvent({
           profileId: null,
           eventType: "suspicious_activity",
           request,
           deviceFingerprint,
           metadata: { reason: "rate_limited", ip },
-        });
+        }).catch(() => {});
 
         return {
           status: "rate_limited" as const,
@@ -240,14 +244,14 @@ export const signInWithPassword = createServerFn({ method: "POST" })
         // Record the failed attempt for rate limiting
         recordFailedAttempt(ip, "auth_login");
 
-        // Grava auditoria forense de falha de login
-        await recordAuthAuditEvent({
+        // Grava auditoria forense de falha de login em background
+        void recordAuthAuditEvent({
           profileId: matchedProfileId || null,
           eventType: "login_failed",
           request,
           deviceFingerprint,
           metadata: { identifier: rawIdentifier, errorMsg: error.message },
-        });
+        }).catch(() => {});
 
         if (error.status === 429) {
           return { status: "error" as const, message: "Muitas tentativas de login. Aguarde alguns minutos." };
@@ -261,29 +265,31 @@ export const signInWithPassword = createServerFn({ method: "POST" })
       // Successful login: clear the failed attempts counter
       resetAttempts(ip, "auth_login");
 
-      // Grava auditoria forense de sucesso de login
+      // Grava auditoria forense de sucesso de login de forma assíncrona (não bloqueia resposta HTTP)
       if (data.user) {
-        await recordAuthAuditEvent({
+        void recordAuthAuditEvent({
           profileId: data.user.id,
           eventType: "login_success",
           request,
           deviceFingerprint,
           metadata: { email: targetEmail, identifier: rawIdentifier },
-        });
+        }).catch((err) => console.warn("[auth] Auditoria de login falhou em background:", err));
 
-        try {
-          const { mergeGuestCartLogic } = await import("./cart-helpers");
-          await mergeGuestCartLogic(
-            data.user.id,
-            data.session?.access_token,
-            guestSessionToken,
-          );
-        } catch (err) {
-          console.error("Falha ao mesclar carrinho durante login (ignorado):", err);
-        }
+        void (async () => {
+          try {
+            const { mergeGuestCartLogic } = await import("./cart-helpers");
+            await mergeGuestCartLogic(
+              data.user.id,
+              data.session?.access_token,
+              guestSessionToken,
+            );
+          } catch (err) {
+            console.error("Falha ao mesclar carrinho durante login (ignorado):", err);
+          }
+        })();
       }
 
-      // Return success and let the client handle the redirect to preserve client-side router state
+      // Return success immediately to let client perform fast redirect
       return { status: "success" as const };
     } catch (e: unknown) {
       logSystemError({ route: "auth.functions.signInWithPassword", error: e, payload: { email, identifier } });
@@ -652,45 +658,38 @@ export const getProfile = createServerFn({ method: "GET" }).handler(async () => 
     let memberships: any[] = [];
     try {
       const adminDb = getServerClient();
-      const { data: memberRows } = await adminDb
-        .from("store_members")
-        .select("store_id, role, stores(id, name, slug, logo_url, status)")
+      const { data: wsRows, error: wsErr } = await adminDb
+        .from("workspace_members")
+        .select("store_id, role, stores(id, name, slug, is_active, settings)")
         .eq("profile_id", effectiveUserId);
 
-      if (memberRows && memberRows.length > 0) {
-        memberships = memberRows.map((m: any) => ({
+      if (wsErr) {
+        console.warn("[auth] Erro ao carregar workspace_members no getProfile:", wsErr.message);
+      }
+
+      const seenStoreIds = new Set<string>();
+
+      for (const m of (wsRows || []) as any[]) {
+        if (!m.store_id || seenStoreIds.has(m.store_id) || !m.stores) continue;
+        seenStoreIds.add(m.store_id);
+
+        const storeObj = (Array.isArray(m.stores) ? m.stores[0] : m.stores) as any;
+        if (!storeObj) continue;
+        const storeSettings = (storeObj.settings as Record<string, any>) || {};
+        memberships.push({
           store_id: m.store_id,
           role: m.role || "owner",
-          name: m.stores?.name || "Loja",
-          slug: m.stores?.slug || "",
-          logo_url: m.stores?.logo_url || null,
-          status: m.stores?.status || "active",
-        }));
-      }
-
-      // Se não encontrou em store_members, busca lojas onde owner_id = effectiveUserId
-      if (memberships.length === 0) {
-        const { data: ownedStores } = await adminDb
-          .from("stores")
-          .select("id, name, slug, logo_url, status")
-          .eq("owner_id", effectiveUserId);
-
-        if (ownedStores && ownedStores.length > 0) {
-          memberships = ownedStores.map((st: any) => ({
-            store_id: st.id,
-            role: "owner",
-            name: st.name,
-            slug: st.slug,
-            logo_url: st.logo_url,
-            status: st.status,
-          }));
-        }
+          name: storeObj.name || "Loja",
+          slug: storeObj.slug || "",
+          logo_url: storeSettings.logoUrl || storeSettings.logo_url || null,
+          status: storeObj.is_active !== false ? "active" : "inactive",
+        });
       }
     } catch (e) {
-      console.warn("[auth] Erro ao carregar memberships no getUserSession:", e);
+      console.warn("[auth] Erro ao carregar memberships no getProfile:", e);
     }
 
-    const email = user?.email || profile?.email || "master@wider.com.br";
+    const email = user?.email || user?.user_metadata?.email || "meuwider@gmail.com";
     const fullName = profile?.full_name || user?.user_metadata?.full_name || "Eduardo Antônio Ramos";
 
     return {

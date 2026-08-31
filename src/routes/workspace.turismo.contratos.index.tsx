@@ -14,6 +14,8 @@ import {
   Send,
   Copy,
   Download,
+  Settings,
+  Scale,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +36,7 @@ import {
   createTravelContract,
   type TravelContractDTO,
 } from "@/services/travel-contract.functions";
+import { AgencyClausesEditorModal } from "@/components/tourism/contract/agency-clauses-editor-modal";
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/turismo/contratos/")({
@@ -51,6 +54,7 @@ function WorkspaceContractsIndexPage() {
   const [search, setSearch] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
+  const [isClausesModalOpen, setIsClausesModalOpen] = useState(false);
 
   // Form states
   const [contractTitle, setContractTitle] = useState("");
@@ -124,6 +128,17 @@ function WorkspaceContractsIndexPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setIsClausesModalOpen(true)}
+            className="rounded-xl text-xs font-bold gap-1.5 cursor-pointer"
+          >
+            <Scale className="size-4 text-primary" />
+            <span>Minuta & Cláusulas Padrão</span>
+          </Button>
+
           <Dialog open={isNewModalOpen} onOpenChange={setIsNewModalOpen}>
             <DialogTrigger asChild>
               <Button size="sm" className="rounded-xl text-xs font-bold bg-foreground text-background hover:bg-foreground/90 gap-1.5">
@@ -390,6 +405,13 @@ function WorkspaceContractsIndexPage() {
           })}
         </div>
       )}
+
+      {/* Modal de Gestão de Minuta & Cláusulas Padrão da Agência */}
+      <AgencyClausesEditorModal
+        open={isClausesModalOpen}
+        onOpenChange={setIsClausesModalOpen}
+        onSaved={refetch}
+      />
     </div>
   );
 }

@@ -11,7 +11,10 @@ import {
   Ticket,
   Loader2,
   RefreshCw,
+  Camera,
+  CameraOff,
 } from "lucide-react";
+import { useRef, useEffect } from "react";
 
 import { validateTicketCheckin, getEventWithLots } from "@/services/events.functions";
 import { Button } from "@/components/ui/button";
@@ -35,6 +38,9 @@ function EventCheckinPage() {
   const { event } = Route.useLoaderData() as any;
   const [ticketCode, setTicketCode] = useState("");
   const [isValidating, setIsValidating] = useState(false);
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
   const [lastCheckin, setLastCheckin] = useState<{
     success: boolean;
     name?: string;
@@ -53,10 +59,49 @@ function EventCheckinPage() {
     }>
   >([]);
 
-  const handleValidate = async (e?: React.FormEvent) => {
+function playCheckinSuccessTone() {
+  try {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(880, now); // A5
+    osc.frequency.exponentialRampToValueAtTime(1760, now + 0.15); // A6
+    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.2);
+  } catch {}
+}
+
+function playCheckinErrorTone() {
+  try {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(220, now); // A3
+    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.35);
+  } catch {}
+}
+
+  const handleValidate = async (e?: React.FormEvent, customCode?: string) => {
     if (e) e.preventDefault();
-    const code = ticketCode.trim();
-    if (!code) return;
+    const code = (customCode || ticketCode).trim();
+    if (!code || isValidating) return;
 
     setIsValidating(true);
     try {
@@ -68,6 +113,7 @@ function EventCheckinPage() {
       });
 
       if (res.status === "success") {
+        playCheckinSuccessTone();
         toast.success(`Check-in confirmado: ${res.name}`);
         setLastCheckin({
           success: true,
@@ -89,6 +135,7 @@ function EventCheckinPage() {
         setTicketCode("");
       }
     } catch (err: any) {
+      playCheckinErrorTone();
       const errMsg = err?.message || "Ingresso inválido ou não encontrado.";
       toast.error(errMsg);
       setLastCheckin({
@@ -109,10 +156,45 @@ function EventCheckinPage() {
     }
   };
 
+  const startCamera = async () => {
+    try {
+      if (navigator?.mediaDevices?.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+        });
+        mediaStreamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+        setIsCameraActive(true);
+        toast.info("Câmera traseira ativada.");
+      } else {
+        toast.error("Câmera não suportada neste navegador.");
+      }
+    } catch {
+      toast.error("Permissão de câmera negada ou dispositivo indisponível.");
+      setIsCameraActive(false);
+    }
+  };
+
+  const stopCamera = () => {
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+      mediaStreamRef.current = null;
+    }
+    setIsCameraActive(false);
+  };
+
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       {/* Topbar Operacional */}
-      <header className="h-16  bg-card px-4 flex items-center justify-between sticky top-0 z-30">
+      <header className="h-16 bg-card px-4 flex items-center justify-between sticky top-0 z-30 border-b border-border/60">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" asChild>
             <Link to="/workspace">
@@ -131,14 +213,41 @@ function EventCheckinPage() {
             <p className="text-xs text-muted-foreground">Validador Oficial de Ingressos</p>
           </div>
         </div>
+
+        <Button
+          type="button"
+          size="sm"
+          variant={isCameraActive ? "destructive" : "outline"}
+          onClick={isCameraActive ? stopCamera : startCamera}
+          className="rounded-xl text-xs font-bold gap-2 cursor-pointer"
+        >
+          {isCameraActive ? <CameraOff className="size-4" /> : <Camera className="size-4" />}
+          <span className="hidden sm:inline">{isCameraActive ? "Desativar Câmera" : "Câmera Traseira"}</span>
+        </Button>
       </header>
 
       {/* Main Container */}
       <main className="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 grid gap-6 md:grid-cols-12 items-start">
         {/* Lado Esquerdo: Scanner / Validador Rápido */}
         <div className="md:col-span-7 space-y-5">
+          {/* Visualizador de Câmera */}
+          {isCameraActive && (
+            <div className="relative rounded-2xl overflow-hidden bg-black border border-primary/30 aspect-video flex items-center justify-center">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 border-2 border-primary/40 rounded-2xl pointer-events-none flex items-center justify-center">
+                <div className="size-48 border-2 border-dashed border-primary/80 rounded-xl animate-pulse" />
+              </div>
+            </div>
+          )}
+
           {/* Card de Leitura */}
-          <div className="p-5 rounded-2xl  bg-card  space-y-4">
+          <div className="p-5 rounded-2xl bg-card border border-border/80 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <QrCode className="size-5 text-primary" />

@@ -79,7 +79,7 @@ export async function _updateOrderStatus(
 
   const { data: order, error: orderError } = await db
     .from("orders")
-    .select("id")
+    .select("id, customer_id, public_token, total_cents, store_id")
     .eq("id", orderId)
     .eq("store_id", store_id)
     .single();
@@ -96,6 +96,22 @@ export async function _updateOrderStatus(
       throw new Error("Erro ao cancelar o pedido: " + rpcError.message);
     }
 
+    // Notificar cliente se cadastrado
+    if (order.customer_id) {
+      try {
+        await db.from("notifications").insert({
+          user_id: order.customer_id,
+          type: "order_cancelled",
+          title: "Pedido Cancelado",
+          message: `Seu pedido #${order.public_token.substring(0, 8)} foi cancelado e eventuais estornos foram processados.`,
+          link_url: `/_store/conta/pedidos/${order.id}`,
+          is_read: false,
+        });
+      } catch (err) {
+        console.error("[order.functions] Falha ao notificar cancelamento:", err);
+      }
+    }
+
     return { status: "ok" as const, message: "Pedido cancelado com sucesso." };
   }
 
@@ -106,6 +122,36 @@ export async function _updateOrderStatus(
 
   const { error } = await db.from("orders").update(updatePayload).eq("id", orderId);
   if (error) throw error;
+
+  // Notificar cliente sobre envio ou entrega
+  if (order.customer_id && (status === "shipped" || status === "delivered" || status === "paid")) {
+    const titlesMap: Record<string, string> = {
+      paid: "Pagamento Confirmado",
+      shipped: "Pedido a Caminho",
+      delivered: "Pedido Entregue",
+    };
+    const msgsMap: Record<string, string> = {
+      paid: `O pagamento do seu pedido #${order.public_token.substring(0, 8)} foi aprovado!`,
+      shipped: `Seu pedido #${order.public_token.substring(0, 8)} foi despachado e está a caminho.`,
+      delivered: `Seu pedido #${order.public_token.substring(0, 8)} foi entregue com sucesso!`,
+    };
+
+    if (titlesMap[status]) {
+      try {
+        await db.from("notifications").insert({
+          user_id: order.customer_id,
+          type: `order_${status}`,
+          title: titlesMap[status],
+          message: msgsMap[status],
+          link_url: `/_store/conta/pedidos/${order.id}`,
+          is_read: false,
+        });
+      } catch (err) {
+        console.error("[order.functions] Falha ao notificar cliente:", err);
+      }
+    }
+  }
+
   return { status: "ok" as const, message: "Status do pedido atualizado." };
 }
 

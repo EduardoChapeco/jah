@@ -157,11 +157,11 @@ export function ProductGrid({
                     type="button"
                     onClick={() => handleQuickAdd(product)}
                     disabled={isAddingThis}
-                    className="size-8 sm:size-9 rounded-xl bg-foreground text-background flex items-center justify-center hover:scale-105 active:scale-95 transition-transform disabled:opacity-50 cursor-pointer shrink-0"
-                    aria-label={`Adicionar ${product.title}`}
+                    className="size-11 sm:size-10 rounded-xl bg-foreground text-background flex items-center justify-center hover:scale-105 active:scale-95 transition-transform disabled:opacity-50 cursor-pointer shrink-0"
+                    aria-label={`Adicionar ${product.title} à sacola`}
                   >
                     {isAddingThis ? (
-                      <div className="size-3.5 border-2 border-background border-t-transparent rounded-full animate-spin" />
+                      <div className="size-4 border-2 border-background border-t-transparent rounded-full animate-spin" />
                     ) : (
                       <Plus className="size-4" />
                     )}

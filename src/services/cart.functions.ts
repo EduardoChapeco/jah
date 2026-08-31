@@ -106,7 +106,7 @@ export async function fetchCartDTO(
       discount_cents,
       shipping_cents,
       shipping_method,
-      store:stores(id, name, logo_url),
+      store:stores(id, name, slug, settings),
       cart_items (
         id,
         variant_id,
@@ -348,7 +348,7 @@ export async function mapCartToDTO(cart: any): Promise<CartDTO> {
     id: cart.id,
     storeId: cart.store?.id,
     storeName: cart.store?.name,
-    storeLogoUrl: cart.store?.logo_url,
+    storeLogoUrl: (cart.store?.settings as any)?.logoUrl || (cart.store?.settings as any)?.logo_url || null,
     items,
     subtotalCents: totalCents,
     totalCents: Math.max(0, totalCents + cart.shipping_cents - dynamicDiscountCents),
@@ -385,7 +385,7 @@ export async function fetchAllGlobalCarts(identity: {
       discount_cents,
       shipping_cents,
       shipping_method,
-      store:stores(id, name, logo_url),
+      store:stores(id, name, slug, settings),
       cart_items (
         id,
         variant_id,

@@ -48,59 +48,68 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
     };
   }
 
-  // ── Passo 1: Buscar memberships via workspace_members (consulta direta e resiliente)
+  // ── Passo 1: Buscar memberships via workspace_members (única fonte canônica)
   try {
-    const { data: memberRows, error: memErr } = await serverClient
+    const { data: memberRows, error: wmErr } = await serverClient
       .from("workspace_members")
       .select("store_id, role")
       .eq("profile_id", user.id);
 
-    if (memErr) {
-      console.warn("[identity.server] Aviso na busca de workspace_members:", memErr.message);
+    if (wmErr) {
+      console.warn("[identity.server] Erro ao buscar workspace_members:", wmErr.message);
     }
 
     if (memberRows && memberRows.length > 0) {
       const storeIds = Array.from(new Set(memberRows.map((m: any) => m.store_id).filter(Boolean)));
       if (storeIds.length > 0) {
-        const { data: storesList } = await serverClient
+        const { data: storesList, error: storesErr } = await serverClient
           .from("stores")
-          .select("id, name, slug, logo_url, segment, type, category, settings")
+          .select("id, name, slug, email, phone, cnpj, address, city, state, zip_code, settings")
           .in("id", storeIds);
 
+        if (storesErr) {
+          console.warn("[identity.server] Erro ao buscar stores por ID:", storesErr.message);
+        }
+
         const storeMap = new Map((storesList || []).map((s: any) => [s.id, s]));
-        memberships = memberRows
-          .filter((m: any) => storeMap.has(m.store_id))
-          .map((m: any) => {
+        const uniqueMembershipMap = new Map<string, any>();
+
+        memberRows.forEach((m: any) => {
+          if (storeMap.has(m.store_id) && !uniqueMembershipMap.has(m.store_id)) {
             const s = storeMap.get(m.store_id)!;
-            return {
+            const settings = (s.settings as Record<string, any>) || {};
+            uniqueMembershipMap.set(m.store_id, {
               store_id: s.id,
               role: m.role || "owner",
-              name: s.name || "Loja",
+              name: s.name || "Minha Empresa",
               slug: s.slug || "loja",
-              logo_url: s.logo_url || s.settings?.logoUrl || s.settings?.logo_url || null,
-              segment: s.segment || s.settings?.segment || null,
-              type: s.type || s.settings?.type || null,
-              category: s.category || s.settings?.category || null,
-              settings: s.settings || {},
-            };
-          });
+              logo_url: settings.logoUrl || settings.logo_url || null,
+              segment: settings.segment || settings.type || settings.niche || null,
+              type: settings.type || settings.segment || null,
+              category: settings.category || settings.segment || null,
+              city: s.city || null,
+              state: s.state || null,
+              settings: settings,
+            });
+          }
+        });
+
+        memberships = Array.from(uniqueMembershipMap.values());
       }
     }
   } catch (e) {
-    console.warn("[identity.server] Erro ao buscar workspace_members:", e);
+    console.warn("[identity.server] Erro ao buscar memberships:", e);
   }
 
-  // ── Passo 2: Verificar role do perfil e store_id associada
+  // ── Passo 2: Verificar role do perfil
   let userProfileRole = "customer";
-  let profileStoreId: string | null = null;
   try {
     const { data: p } = await serverClient
       .from("profiles")
-      .select("role, store_id")
+      .select("role")
       .eq("id", user.id)
       .maybeSingle();
     userProfileRole = p?.role || "customer";
-    profileStoreId = p?.store_id || null;
   } catch (err) {
     console.error("[identity.server] Falha ao verificar role no banco:", err);
   }
@@ -113,32 +122,6 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
     user?.email?.toLowerCase() === "meuwider@gmail.com" ||
     user?.email?.toLowerCase() === "master@wider.com.br";
 
-  // Se o profile tem store_id vinculado e ainda não está em memberships, adiciona
-  if (profileStoreId && !memberships.some((m) => m.store_id === profileStoreId)) {
-    try {
-      const { data: st } = await serverClient
-        .from("stores")
-        .select("id, name, slug, logo_url, segment, type, category, settings")
-        .eq("id", profileStoreId)
-        .maybeSingle();
-      if (st) {
-        memberships.unshift({
-          store_id: st.id,
-          role: userProfileRole === "customer" ? "owner" : userProfileRole,
-          name: st.name || "Minha Loja",
-          slug: st.slug || "loja",
-          logo_url: st.logo_url || st.settings?.logoUrl || st.settings?.logo_url || null,
-          segment: st.segment || st.settings?.segment || null,
-          type: st.type || st.settings?.type || null,
-          category: st.category || st.settings?.category || null,
-          settings: st.settings || {},
-        });
-      }
-    } catch {
-      // Silencioso
-    }
-  }
-
   // ── Passo 3: Auto-Heal — Se memberships está vazio ou é platform admin, busca lojas adicionais
   if (memberships.length === 0 || isPlatformAdmin) {
     try {
@@ -147,17 +130,17 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
         // Platform admin tem acesso a todas as lojas do ecossistema
         const { data: allStores } = await serverClient
           .from("stores")
-          .select("id, name, slug, logo_url, segment, type, category, settings")
+          .select("id, name, slug, email, phone, cnpj, address, city, state, zip_code, settings")
           .order("created_at", { ascending: false })
-          .limit(30);
+          .limit(50);
         ownedStores = allStores || [];
       } else {
-        // Usuário comum: busca por email cadastrado na loja ou owner_id
+        // Usuário comum: busca por email cadastrado na loja
         const userEmail = user?.email?.toLowerCase() || "";
         const { data: byEmail } = userEmail
           ? await serverClient
               .from("stores")
-              .select("id, name, slug, logo_url, segment, type, category, settings")
+              .select("id, name, slug, email, phone, cnpj, address, city, state, zip_code, settings")
               .ilike("email", userEmail)
           : { data: [] };
 
@@ -168,17 +151,22 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
         const existingIds = new Set(memberships.map((m) => m.store_id));
         const additional = ownedStores
           .filter((s: any) => !existingIds.has(s.id))
-          .map((s: any) => ({
-            store_id: s.id,
-            role: "owner",
-            name: s.name || "Minha Loja",
-            slug: s.slug || "loja",
-            logo_url: s.logo_url || s.settings?.logoUrl || s.settings?.logo_url || null,
-            segment: s.segment || s.settings?.segment || null,
-            type: s.type || s.settings?.type || null,
-            category: s.category || s.settings?.category || null,
-            settings: s.settings || {},
-          }));
+          .map((s: any) => {
+            const settings = (s.settings as Record<string, any>) || {};
+            return {
+              store_id: s.id,
+              role: "owner",
+              name: s.name || "Minha Empresa",
+              slug: s.slug || "loja",
+              logo_url: settings.logoUrl || settings.logo_url || null,
+              segment: settings.segment || settings.type || settings.niche || null,
+              type: settings.type || settings.segment || null,
+              category: settings.category || settings.segment || null,
+              city: s.city || null,
+              state: s.state || null,
+              settings: settings,
+            };
+          });
 
         memberships = [...memberships, ...additional];
       }

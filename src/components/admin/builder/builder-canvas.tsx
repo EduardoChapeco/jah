@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ExperienceRenderer } from "@/components/commerce/experience-renderer";
 
-export type ViewportMode = "desktop" | "mobile";
+export type ViewportMode = "desktop" | "mobile" | "story";
 
 export interface BuilderCanvasProps {
   viewport: ViewportMode | string;
@@ -24,6 +24,12 @@ export function BuilderCanvas({
   setSelectedNodeId,
   onAddSection,
 }: BuilderCanvasProps) {
+  const getViewportLabel = () => {
+    if (viewport === "desktop") return "Desktop — 1440px";
+    if (viewport === "story") return "Story / Zine — 9:16 (360x640px)";
+    return "Mobile — 390px";
+  };
+
   return (
     <main className="flex-1 overflow-y-auto bg-muted flex flex-col items-center">
       {/* Viewport indicator */}
@@ -32,17 +38,17 @@ export function BuilderCanvas({
           variant="outline"
           className="text-muted-foreground border-border text-[10px] bg-background/50 backdrop-blur"
         >
-          {viewport === "desktop" ? "Desktop — 1440px" : "Mobile — 390px"}
+          {getViewportLabel()}
         </Badge>
       </div>
 
       {/* Canvas frame */}
       <div
         className={cn(
-          "bg-background relative transition-all duration-300 mb-8 flex flex-col ",
-          viewport === "desktop"
-            ? "w-full max-w-[1280px] min-h-[calc(100vh-140px)] rounded-xl overflow-hidden"
-            : "w-[390px] h-[780px] rounded-[3rem] border-[8px] overflow-hidden",
+          "bg-background relative transition-all duration-300 mb-8 flex flex-col shadow-xl",
+          viewport === "desktop" && "w-full max-w-[1280px] min-h-[calc(100vh-140px)] rounded-xl overflow-hidden",
+          viewport === "mobile" && "w-[390px] h-[780px] rounded-[3rem] border-[8px] border-foreground/20 overflow-hidden",
+          viewport === "story" && "w-[360px] h-[640px] rounded-3xl border-[6px] border-primary/40 overflow-hidden",
         )}
         onClick={() => setSelectedNodeId(null)}
       >

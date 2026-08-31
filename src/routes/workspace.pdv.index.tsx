@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link, isRedirect } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link, isRedirect, useRouter } from "@tanstack/react-router";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import {
@@ -32,9 +32,11 @@ import {
   Layers,
   Image as ImageIcon,
   Share2,
+  Loader2,
 } from "lucide-react";
 import {
   getActiveRegister,
+  openRegister,
   processPOSSale,
   addRegisterEntry,
 } from "@/services/cash.functions";
@@ -69,6 +71,105 @@ import {
 } from "@/components/pos/product-modifiers-modal";
 import { listPriceTables, type PriceTableDTO } from "@/services/price-tables.functions";
 
+function QuickOpenRegisterInlineCard() {
+  const router = useRouter();
+  const [initialAmountStr, setInitialAmountStr] = useState("100,00");
+  const [notes, setNotes] = useState("");
+  const [isOpening, setIsOpening] = useState(false);
+
+  const presets = ["0,00", "50,00", "100,00", "200,00"];
+
+  const handleOpen = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsOpening(true);
+    try {
+      const cleanNum = parseFloat(initialAmountStr.replace(/\./g, "").replace(",", ".")) || 0;
+      const initialBalanceCents = Math.round(cleanNum * 100);
+
+      await openRegister({
+        data: {
+          initialBalanceCents,
+          notes: notes.trim() || "Abertura rápida no terminal PDV",
+        },
+      });
+
+      toast.success("Caixa aberto com sucesso! Iniciando terminal...");
+      await router.invalidate();
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao abrir o caixa.");
+    } finally {
+      setIsOpening(false);
+    }
+  };
+
+  return (
+    <div className="flex min-h-[80vh] items-center justify-center p-4 bg-muted/20 animate-in fade-in duration-200">
+      <div className="w-full max-w-md p-6 bg-card rounded-3xl border border-border/80 shadow-xs space-y-5 text-center">
+        <div className="size-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
+          <Banknote className="size-7" />
+        </div>
+        <div className="space-y-1">
+          <h2 className="text-xl font-bold text-foreground">Abertura de Caixa</h2>
+          <p className="text-muted-foreground text-xs">
+            Informe o fundo de troco inicial para liberar as vendas no PDV.
+          </p>
+        </div>
+
+        <form onSubmit={handleOpen} className="space-y-4 text-left">
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold text-muted-foreground">Fundo de Troco Inicial (R$)</Label>
+            <Input
+              type="text"
+              value={initialAmountStr}
+              onChange={(e) => setInitialAmountStr(e.target.value)}
+              placeholder="0,00"
+              className="text-lg font-bold text-center h-12 rounded-xl"
+              autoFocus
+            />
+          </div>
+
+          <div className="flex items-center justify-center gap-2">
+            {presets.map((val) => (
+              <button
+                key={val}
+                type="button"
+                onClick={() => setInitialAmountStr(val)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
+                  initialAmountStr === val
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-muted/40 text-muted-foreground hover:text-foreground border-border/40"
+                }`}
+              >
+                R$ {val}
+              </button>
+            ))}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold text-muted-foreground">Observação (Opcional)</Label>
+            <Input
+              type="text"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Ex: Turno da Tarde / Balcão 1"
+              className="text-xs rounded-xl h-10"
+            />
+          </div>
+
+          <Button
+            type="submit"
+            disabled={isOpening}
+            className="w-full text-xs font-bold rounded-xl h-11 bg-primary text-primary-foreground gap-2 cursor-pointer"
+          >
+            {isOpening ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
+            <span>{isOpening ? "Abrindo Turno..." : "Abrir Caixa & Iniciar Vendas"}</span>
+          </Button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export const Route = createFileRoute("/workspace/pdv/")({
   head: () => ({ meta: [{ title: "Frente de Caixa (PDV) Pro | Wider" }] }),
   loader: async () => {
@@ -93,24 +194,7 @@ export const Route = createFileRoute("/workspace/pdv/")({
       throw error;
     }
     if ((error instanceof Error ? error.message : String(error)) === "CAIXA_FECHADO") {
-      return (
-        <div className="flex h-[80vh] items-center justify-center p-4 bg-muted/20">
-          <div className="w-full max-w-md text-center p-8 bg-card rounded-2xl border border-border space-y-4">
-            <div className="size-16 rounded-2xl bg-muted/60 flex items-center justify-center mx-auto text-muted-foreground">
-              <MonitorPause className="size-8" />
-            </div>
-            <div className="space-y-1">
-              <h2 className="text-xl font-bold text-foreground">Caixa Fechado</h2>
-              <p className="text-muted-foreground text-xs">
-                Para operar a frente de caixa, abra o seu turno e informe o troco inicial de abertura.
-              </p>
-            </div>
-            <Button size="lg" className="w-full text-xs font-bold rounded-xl h-11" asChild>
-              <Link to="/workspace/financeiro/caixa">Abrir Turno de Caixa</Link>
-            </Button>
-          </div>
-        </div>
-      );
+      return <QuickOpenRegisterInlineCard />;
     }
     if (
       (error instanceof Error ? error.message : String(error)) === "CAIXA_EXPIRADO" ||
