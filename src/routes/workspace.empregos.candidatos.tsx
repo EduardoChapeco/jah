@@ -201,12 +201,12 @@ function WorkspaceCandidatesPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <PageHeader
-          eyebrow="Recrutamento & Seleção (ATS)"
-          title="Gestão de Candidatos & Entrevistas"
+          eyebrow="RH & Vagas"
+          title="Candidatos & Entrevistas"
         />
 
-        <Button asChild className="rounded-xl font-bold bg-primary text-primary-foreground text-xs">
-          <Link to="/workspace">Voltar ao Painel</Link>
+        <Button asChild variant="outline" className="rounded-xl font-bold text-xs h-9">
+          <Link to="/workspace">Voltar</Link>
         </Button>
       </div>
 

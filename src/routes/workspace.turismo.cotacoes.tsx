@@ -75,27 +75,19 @@ export default function AgencyQuotesPage() {
       {/* ── 1. Top Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-card border border-border/60">
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary">
-              Módulo Agências & Turismo
-            </span>
-            <Badge variant="outline" className="text-xs bg-info/10 text-info border-info/20">
-              ✈️ Gestão de Leads CVC
-            </Badge>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Central de Cotações de Viagem
+          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary">
+            Turismo & Cotações
+          </span>
+          <h1 className="text-xl font-bold tracking-tight text-foreground">
+            Cotações de Viagem
           </h1>
-          <p className="text-xs text-muted-foreground">
-            Receba solicitações completas com origem, destino, quartos, adultos e idades das crianças para montar propostas ágeis.
-          </p>
         </div>
 
         <div className="flex items-center gap-2">
           <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-bold gap-1.5">
             <Link to="/turismo">
               <SuitcaseSimple className="size-3.5" />
-              <span>Meus Pacotes & Roteiros</span>
+              <span>Ver Pacotes</span>
             </Link>
           </Button>
         </div>

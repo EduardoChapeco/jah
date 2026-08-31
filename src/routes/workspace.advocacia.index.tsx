@@ -86,11 +86,11 @@ function WorkspaceAdvocaciaPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Módulo Jurídico & OAB"
-        title="Workspace da Advocacia"
+        eyebrow="Advocacia & Contratos"
+        title="Demandas Jurídicas"
         actions={
-          <Badge variant="outline" className="border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 gap-1.5">
-            <ShieldCheck className="h-4 w-4" />
+          <Badge variant="outline" className="border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 gap-1.5 rounded-xl">
+            <ShieldCheck className="h-3.5 w-3.5" />
             <span>OAB Verificada</span>
           </Badge>
         }
