@@ -58,6 +58,8 @@ import {
   Receipt,
   AlertTriangle,
   ArrowDownUp,
+  Search,
+  HelpCircle,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -409,7 +411,7 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
           {/* 4. Central de Ajuda & Retorno ao Super App */}
           <div className="flex items-center justify-between pt-1 border-t border-border/40 text-[11px]">
             <Link
-              to="/ajuda"
+              to="/termos"
               className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground px-2 py-1 rounded-lg hover:bg-muted/40 transition-colors"
             >
               <HelpCircle className="size-3.5" />
