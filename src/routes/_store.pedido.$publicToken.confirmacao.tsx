@@ -337,11 +337,29 @@ function ConfirmationPage() {
           </Button>
         </div>
 
-        <div className="flex flex-col justify-center gap-4 sm:flex-row pt-2">
-          <Button asChild size="lg" variant="outline">
+        <div className="flex flex-col justify-center gap-3 sm:flex-row pt-2">
+          {whatsappPhone && (
+            <Button
+              asChild
+              size="lg"
+              className="bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold rounded-xl text-sm gap-2"
+            >
+              <a
+                href={`https://wa.me/55${whatsappPhone}?text=${encodeURIComponent(
+                  `Olá! Acabei de fazer o pedido #${order.public_token} no valor de ${formatMoney(total)} pelo app. Gostaria de acompanhar!`
+                )}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <MessageCircle className="size-4" />
+                <span>Conversar no WhatsApp</span>
+              </a>
+            </Button>
+          )}
+          <Button asChild size="lg" variant="outline" className="rounded-xl font-bold text-sm">
             <Link to="/conta/pedidos">Acompanhar Pedido</Link>
           </Button>
-          <Button asChild size="lg">
+          <Button asChild size="lg" className="rounded-xl font-bold text-sm bg-foreground text-background hover:bg-foreground/90">
             <Link to="/mercado">
               Continuar Comprando <ArrowRight className="ml-2 size-4" />
             </Link>
