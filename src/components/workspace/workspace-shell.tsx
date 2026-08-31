@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Package,
@@ -91,6 +91,9 @@ import {
   type NavGroup,
   type NavItem,
 } from "@/lib/workspace-navigation";
+import { WorkspaceAccountSwitcher } from "./workspace-account-switcher";
+import { WorkspaceAllToolsDialog } from "./workspace-all-tools-dialog";
+import { WorkspaceSidebarFlyout } from "./workspace-sidebar-flyout";
 
 
 function getStoreContextualAction(storeData: any) {
@@ -185,6 +188,7 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
   const currentPath = routerState.location.pathname;
 
   const [isMasterAllVerticals, setIsMasterAllVerticals] = useState(false);
+  const [isAllToolsOpen, setIsAllToolsOpen] = useState(false);
 
   // Estado do Modal de Confirmação de Alternância de Contexto
   const [showPersonalSwitchModal, setShowPersonalSwitchModal] = useState(false);
@@ -229,6 +233,18 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
     }));
   };
 
+  // Atalho global Cmd+K ou Ctrl+K para abrir Todas as Ferramentas
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setIsAllToolsOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const handleLogout = async () => {
     try {
       await signOut();
@@ -266,7 +282,7 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
     setShowPersonalSwitchModal(true);
   };
 
-  const NavLinks = () => (
+  const NavLinks = ({ isMobile = false }: { isMobile?: boolean }) => (
     <div className="flex flex-col space-y-1 select-none">
       {/* ── Módulo VIP: Painel Global Master para Platform Admin ── */}
       {isPlatformAdmin && (
@@ -298,6 +314,7 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
         </div>
       )}
 
+      {/* Lista de Grupos de Navegação com Flyout Flutuante / Accordion */}
       {activeModules.map((group) => {
         const isGroupActive = group.items.some((item) =>
           item.path === "/workspace"
@@ -305,237 +322,115 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
             : currentPath.startsWith(item.path),
         );
         const isExpanded = expandedGroups[group.id] ?? isGroupActive;
-        const Icon = group.icon;
 
         return (
-          <div key={group.id} className="space-y-0.5">
-            <button
-              onClick={() => toggleGroup(group.id)}
-              className={cn(
-                "flex w-full items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer",
-                isGroupActive
-                  ? "text-primary bg-primary/5"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/60",
-              )}
-            >
-              <div className="flex items-center gap-2">
-                <Icon className="size-4 shrink-0 text-muted-foreground" />
-                <span>{group.label}</span>
-              </div>
-              {isExpanded ? (
-                <ChevronDown className="size-3 text-muted-foreground" />
-              ) : (
-                <ChevronRight className="size-3 text-muted-foreground" />
-              )}
-            </button>
-
-            {isExpanded && (
-              <div className="ml-3 pl-2.5 space-y-0.5 pt-0.5">
-                {group.items.map((item) => {
-                  const isItemActive =
-                    item.path === "/workspace"
-                      ? currentPath === "/workspace"
-                      : currentPath.startsWith(item.path);
-
-                  return (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      className={cn(
-                        "flex items-center px-2.5 py-1.5 rounded-xl text-xs font-medium transition-colors",
-                        isItemActive
-                          ? "bg-primary text-primary-foreground font-bold"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted/70",
-                      )}
-                    >
-                      <span>{item.label}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+          <WorkspaceSidebarFlyout
+            key={group.id}
+            group={group}
+            currentPath={currentPath}
+            isExpanded={isExpanded}
+            onToggleExpand={() => toggleGroup(group.id)}
+            isMobile={isMobile}
+          />
         );
       })}
 
-      {/* Botão Discreto de Recursos & Módulos da Loja */}
+      {/* Botão de Atalho "Todas as Ferramentas" no Menu */}
       <div className="pt-2 mt-2 border-t border-border/30">
-        <Link
-          to="/workspace/configuracoes"
-          className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
+        <button
+          type="button"
+          onClick={() => setIsAllToolsOpen(true)}
+          className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold text-foreground bg-muted/40 hover:bg-muted transition-colors cursor-pointer"
         >
-          <Sliders className="size-3.5 text-muted-foreground" />
-          <span>Recursos & Módulos da Loja</span>
-        </Link>
+          <div className="flex items-center gap-2">
+            <Sliders className="size-4 text-primary" />
+            <span>Todas as Ferramentas</span>
+          </div>
+          <Badge variant="outline" className="text-[9px] font-mono font-bold px-1.5 py-0">
+            Hub
+          </Badge>
+        </button>
       </div>
     </div>
   );
 
   return (
     <div className="flex min-h-screen bg-background text-foreground selection:bg-primary selection:text-primary-foreground font-sans relative">
-      {/* ── 1. BARRA LATERAL CANÔNICA DO WORKSPACE (SEM SIDEBAR ANTIGA/GLOBAL RAIL) ── */}
-      <aside className="hidden lg:flex flex-col w-[250px] shrink-0 h-screen sticky top-0 bg-background border-r border-border/60 py-4 px-3 justify-between select-none">
-        <div className="space-y-4">
-          {/* Seletor de Loja Ativa (Store Switcher) */}
-          <div className="px-1">
-            {memberships.length > 1 ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    type="button"
-                    disabled={isSwitching}
-                    className="flex w-full items-center justify-between p-2 rounded-2xl border border-border/60 bg-card hover:bg-muted/70 transition-all text-left group cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20">
-                        <Store className="size-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground block">
-                          Loja Ativa
-                        </span>
-                        <h2 className="text-xs font-bold text-foreground truncate leading-tight group-hover:text-primary transition-colors">
-                          {activeStore?.name || "Minha Loja"}
-                        </h2>
-                      </div>
-                    </div>
-                    <ChevronsUpDown className="size-3.5 text-muted-foreground shrink-0 ml-1" />
-                  </button>
-                </DropdownMenuTrigger>
+      {/* ── 1. BARRA LATERAL CANÔNICA DO WORKSPACE (PADRÃO META STUDIO) ── */}
+      <aside className="hidden lg:flex flex-col w-[250px] shrink-0 h-screen sticky top-0 bg-background border-r border-border/60 py-3.5 px-3 justify-between select-none z-30">
+        <div className="space-y-3">
+          {/* Seletor de Conta / Portfólio Empresarial Multi-Ativos (Meta Studio) */}
+          <WorkspaceAccountSwitcher
+            memberships={memberships}
+            activeStoreId={activeStoreId}
+            activeStore={activeStore}
+            userDisplayName={userDisplayName}
+            userEmail={session?.email}
+            isSwitching={isSwitching}
+            onSwitchStore={handleSwitchStore}
+          />
 
-                <DropdownMenuContent align="start" className="w-[230px] rounded-2xl p-1.5 border-border ">
-                  <DropdownMenuLabel className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground px-2 py-1">
-                    Alternar Workspace
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {memberships.map((m) => {
-                    const isCurrent = m.store_id === activeStoreId;
-                    return (
-                      <DropdownMenuItem
-                        key={m.store_id}
-                        onClick={() => handleSwitchStore(m.store_id)}
-                        className="rounded-2xl cursor-pointer text-sm flex items-center justify-between py-2.5 px-3"
-                      >
-                        <div className="flex items-center gap-2.5 truncate">
-                          {m.logo_url ? (
-                            <img
-                              src={m.logo_url}
-                              alt={m.name}
-                              className="size-6 rounded-lg object-cover  shrink-0 bg-muted"
-                            />
-                          ) : (
-                            <div className="size-6 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0 border border-primary/20">
-                              {m.name ? m.name.slice(0, 2).toUpperCase() : "LJ"}
-                            </div>
-                          )}
-                          <span className={cn("truncate", isCurrent ? "font-bold text-foreground" : "font-medium text-muted-foreground")}>
-                            {m.name || "Loja"}
-                          </span>
-                        </div>
-                        {isCurrent && <Check className="size-4 text-primary shrink-0 ml-1" />}
-                      </DropdownMenuItem>
-                    );
-                  })}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-sm py-2 px-3 font-semibold text-primary">
-                    <Link to="/workspace/lojas">Gerenciar Todas as Lojas</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-sm py-2 px-3 font-medium text-muted-foreground">
-                    <Link to="/criar-negocio">Cadastrar Nova Loja</Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : memberships.length === 1 ? (
-              <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-card">
-                <div className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20">
-                  {memberships[0]?.logo_url ? (
-                    <img src={memberships[0].logo_url} alt={memberships[0].name} className="size-full object-cover rounded-xl" />
-                  ) : (
-                    <Store className="size-4" />
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary block">
-                    Workspace
-                  </span>
-                  <h2 className="text-xs font-bold text-foreground truncate leading-tight">
-                    {memberships[0]?.name || activeStore?.name || "Minha Loja"}
-                  </h2>
-                </div>
-              </div>
-            ) : (
-              <Link
-                to="/criar-negocio"
-                className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-primary/5 border border-primary/20 hover:bg-primary/10 transition-colors"
-              >
-                <div className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                  <Plus className="size-4" />
-                </div>
-                <div className="min-w-0">
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground block">
-                    Workspace
-                  </span>
-                  <h2 className="text-xs font-bold text-primary truncate leading-tight">
-                    Criar Meu Negócio
-                  </h2>
-                </div>
-              </Link>
-            )}
-          </div>
-
-          <ScrollArea className="h-[calc(100vh-170px)] pr-2">
-            <NavLinks />
+          <ScrollArea className="h-[calc(100vh-210px)] pr-2">
+            <NavLinks isMobile={false} />
           </ScrollArea>
         </div>
 
-        {/* Ações de Rodapé da Sidebar */}
-        <div className="pt-3 space-y-1.5">
-          {(() => {
-            const storeData = activeStore?.store || activeStore;
-            const storeSlug = storeData?.slug || storeData?.store_slug || activeStoreId;
-            const contextualAction = getStoreContextualAction(storeData);
-            const ActionIcon = contextualAction.icon;
-
-            return (
-              <Button
-                asChild
-                variant="outline"
-                size="sm"
-                className="w-full justify-between h-9 px-3 text-xs font-bold rounded-xl border-border bg-card hover:bg-muted"
-              >
-                <Link
-                  to="/perfil-da-loja"
-                  search={{ slug: storeSlug, aba: contextualAction.aba }}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <div className="flex items-center gap-2">
-                    <ActionIcon className="size-3.5 text-primary" />
-                    <span>{contextualAction.label}</span>
-                  </div>
-                  <ExternalLink className="size-3 text-muted-foreground" />
-                </Link>
-              </Button>
-            );
-          })()}
-
-          {/* Retorno ao Perfil Pessoal — link direto, sem modal */}
-          <Link
-            to="/conta"
-            className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground rounded-xl hover:bg-muted/60 transition-colors"
+        {/* ── Ações Canônicas de Rodapé da Sidebar (Padrão Meta Business Suite) ── */}
+        <div className="pt-2 space-y-1 border-t border-border/60">
+          {/* 1. Botão "Todas as ferramentas" */}
+          <button
+            type="button"
+            onClick={() => setIsAllToolsOpen(true)}
+            className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
           >
-            <div className="flex items-center gap-2">
-              <UserCircle className="size-4 text-muted-foreground" />
-              <span>Voltar ao Super App</span>
-            </div>
-            <ArrowUpRight className="size-3 text-muted-foreground/70" />
+            <Sliders className="size-4 text-primary shrink-0" />
+            <span className="truncate">Todas as ferramentas</span>
+          </button>
+
+          {/* 2. Pesquisar */}
+          <button
+            type="button"
+            onClick={() => setIsAllToolsOpen(true)}
+            className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+          >
+            <Search className="size-4 shrink-0 text-muted-foreground" />
+            <span className="truncate">Pesquisar</span>
+          </button>
+
+          {/* 3. Configurações da Loja */}
+          <Link
+            to="/workspace/configuracoes"
+            className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+          >
+            <Settings className="size-4 shrink-0 text-muted-foreground" />
+            <span className="truncate">Configurações</span>
           </Link>
+
+          {/* 4. Central de Ajuda & Retorno ao Super App */}
+          <div className="flex items-center justify-between pt-1 border-t border-border/40 text-[11px]">
+            <Link
+              to="/ajuda"
+              className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground px-2 py-1 rounded-lg hover:bg-muted/40 transition-colors"
+            >
+              <HelpCircle className="size-3.5" />
+              <span>Ajuda</span>
+            </Link>
+
+            <Link
+              to="/conta"
+              className="flex items-center gap-1 text-primary hover:underline px-2 py-1 font-bold"
+              title="Voltar ao marketplace"
+            >
+              <span>Super App</span>
+              <ArrowUpRight className="size-3" />
+            </Link>
+          </div>
         </div>
       </aside>
 
       {/* ── 2. ÁREA PRINCIPAL COM HEADER OPERACIONAL DEDICADO ── */}
       <div className="flex-1 flex flex-col min-w-0 min-h-screen overflow-y-auto">
-        <header className="h-14 bg-background/90 backdrop-blur-md border-b border-border/60 px-4 md:px-6 lg:px-8 flex items-center justify-between sticky top-0 z-30 shrink-0">
+        <header className="h-14 bg-background/90 backdrop-blur-md border-b border-border/60 px-4 md:px-6 lg:px-8 flex items-center justify-between sticky top-0 z-20 shrink-0">
           <div className="flex items-center gap-3">
             {/* Mobile Sheet Trigger */}
             <div className="lg:hidden">
@@ -545,11 +440,11 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
                     <Sliders className="size-4" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-[280px] p-4">
+                <SheetContent side="left" className="w-[290px] p-4">
                   <div className="space-y-4">
                     <div className="font-bold text-sm text-foreground">Menu Operacional</div>
                     <ScrollArea className="h-[calc(100vh-100px)] pr-2">
-                      <NavLinks />
+                      <NavLinks isMobile={true} />
                     </ScrollArea>
                   </div>
                 </SheetContent>
@@ -780,6 +675,13 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ── 4. HUB GLOBAL "TODAS AS FERRAMENTAS" (PADRÃO META STUDIO - IMAGEM 1) ── */}
+      <WorkspaceAllToolsDialog
+        open={isAllToolsOpen}
+        onOpenChange={setIsAllToolsOpen}
+        activeStore={activeStore}
+      />
     </div>
   );
 }
