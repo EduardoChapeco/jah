@@ -27,6 +27,8 @@ import {
   Cpu,
   FlaskConical,
   Layout,
+  Fingerprint,
+  Radio,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -40,7 +42,7 @@ export const Route = createFileRoute("/admin-master")({
         throw redirect({ to: "/entrar", search: { returnUrl: "/admin-master" } });
       }
     } catch (e: any) {
-      if (e?.isRedirect || e?.$$typeof) throw e;
+      if (isRedirect(e)) throw e;
       throw redirect({ to: "/entrar", search: { returnUrl: "/admin-master" } });
     }
   },
@@ -81,6 +83,8 @@ const NAV_SECTIONS = [
     title: "Segurança & Compliance",
     items: [
       { to: "/admin-master/seguranca", label: "Segurança & Forense", icon: ShieldAlert },
+      { to: "/admin-master/seguranca/certificados", label: "Certificados MCTU", icon: Fingerprint },
+      { to: "/admin-master/seguranca/telemetria", label: "Telemetria Live", icon: Radio },
       { to: "/admin-master/kyc", label: "Verificação KYC", icon: UserCheck },
       { to: "/admin-master/denuncias", label: "Denúncias & Moderação", icon: AlertTriangle },
       { to: "/admin-master/logs", label: "Logs de Sistema", icon: Server },

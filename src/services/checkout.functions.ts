@@ -17,6 +17,8 @@ import { logSystemError } from "@/lib/logger";
 import { getCurrentIdentity } from "./cart-helpers";
 import { getRequest } from "@tanstack/react-start/server";
 import { readCookieFromRequest } from "@/lib/http-cookies";
+import { generateTransactionCertificate } from "@/services/security.functions";
+
 
 const CheckoutSchema = z
   .object({
@@ -185,15 +187,36 @@ export const processCheckout = createServerFn({ method: "POST" })
         return { status: "error" as const, message: "Checkout falhou." };
       }
 
-      // Persist custom checkout fields and notes if provided
-      if (result.orderId && (params.customFields || params.notes)) {
-        await db
-          .from("orders")
-          .update({
-            notes: params.notes || null,
-            custom_fields: params.customFields || {},
-          })
-          .eq("id", result.orderId);
+      // ── MCTU: Gerar Certificado de Transação (fire-and-forget, não bloqueia resposta) ──
+      // O certificado é gerado SOMENTE após sucesso atômico confirmado.
+      // Vinculado ao orderId real para rastreabilidade forense completa.
+      if (result.orderId) {
+        const req2 = getRequest();
+        const clientIp = req2 ? extractClientIp(req2) : "server_internal";
+        const ua = req2?.headers.get("user-agent") || null;
+        const geoCountry = req2?.headers.get("cf-ipcountry") || null;
+        const geoCity = req2?.headers.get("cf-ipcity") || null;
+
+        generateTransactionCertificate({
+          data: {
+            entityType: "order",
+            entityId: result.orderId,
+            storeId: null, // O RPC não retorna store_id; será derivado internamente na função
+            payloadSnapshot: {
+              orderId: result.orderId,
+              orderToken: result.orderToken,
+              cartId: params.cartId,
+              paymentMethod: params.paymentMethod,
+              shippingMethod: params.shippingMethod,
+              isIdempotentReplay: result.is_idempotent_replay,
+            },
+            deviceFingerprint: "server_generated",
+            clientTimestamp: new Date().toISOString(),
+          },
+        }).catch((certErr: Error) => {
+          // Não propagamos erros de certificação para não bloquear o checkout
+          console.warn("[checkout.mctu] Falha ao gerar certificado:", certErr?.message);
+        });
       }
 
       return {

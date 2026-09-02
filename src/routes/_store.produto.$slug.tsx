@@ -23,8 +23,10 @@ import {
   Users,
   Scale,
   Clock,
+  BellRing,
 } from "lucide-react";
 import { TagFraudDialog } from "@/components/commerce/tag-fraud-dialog";
+import { ProductWaitlistSheet } from "@/components/commerce/product-waitlist-sheet";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -398,6 +400,7 @@ function ProductContent({
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [activeMedia, setActiveMedia] = useState<ProductMediaDTO | null>(coverImage);
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
+  const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
   const [zipcode, setZipcode] = useState("");
   const [shippingRates, setShippingRates] = useState<any[] | null>(null);
   const [loadingShipping, setLoadingShipping] = useState(false);
@@ -1282,15 +1285,32 @@ function ProductContent({
                 selectedVariant.availableQty <= 0 &&
                 !selectedVariant.allowBackorder;
 
+              if ((allOutOfStock || variantHardBlocked) && !isBackorder) {
+                return (
+                  <div className="space-y-2">
+                    <Button
+                      type="button"
+                      size="lg"
+                      className="w-full font-bold text-xs sm:text-sm uppercase rounded-xl h-13 bg-muted text-foreground border border-border/80 hover:bg-muted/80 gap-2 cursor-pointer shadow-xs"
+                      onClick={() => setIsWaitlistOpen(true)}
+                    >
+                      <BellRing className="size-4 text-primary" />
+                      <span>Avise-me quando chegar (Lista de Espera)</span>
+                    </Button>
+                    <p className="text-[11px] text-muted-foreground text-center">
+                      Este item está esgotado. Deixe seu contato para ser avisado primeiro assim que reposto.
+                    </p>
+                  </div>
+                );
+              }
+
               return (
                 <>
                   <Button
                     size="lg"
                     className={`w-full font-bold text-base uppercase rounded-xl h-13 transition-all duration-200  border border-transparent ${isBackorder ? "bg-foreground text-background" : "bg-primary text-primary-foreground"}`}
                     onClick={handleAddToCart}
-                    disabled={
-                      Boolean(isAdding) || Boolean(allOutOfStock) || Boolean(variantHardBlocked)
-                    }
+                    disabled={Boolean(isAdding)}
                   >
                     <ShoppingBag className="size-5 mr-2" aria-hidden />
                     {isAdding
@@ -1545,18 +1565,48 @@ function ProductContent({
         </div>
 
         {/* Botão de Ação com Preço Total Multiplicado */}
-        <Button
-          size="lg"
-          className="flex-1 rounded-xl font-bold text-xs h-11 px-4 bg-primary text-primary-foreground flex items-center justify-between  cursor-pointer active:scale-98 transition-all"
-          onClick={handleAddToCart}
-          disabled={Boolean(isAdding) || Boolean(allOutOfStock) || Boolean(selectedVariant && selectedVariant.availableQty <= 0 && !selectedVariant.allowBackorder)}
-        >
-          <span>{isAdding ? "Adicionando..." : "Adicionar"}</span>
-          <span className="font-mono font-black text-xs">
-            {formatMoney(currentPriceCents * (quantity || 1))}
-          </span>
-        </Button>
+        {Boolean(allOutOfStock) || Boolean(selectedVariant && selectedVariant.availableQty <= 0 && !selectedVariant.allowBackorder) ? (
+          <Button
+            size="lg"
+            className="flex-1 rounded-xl font-bold text-xs h-11 px-3 bg-muted text-foreground border border-border/80 flex items-center justify-center gap-1.5 cursor-pointer"
+            onClick={() => setIsWaitlistOpen(true)}
+          >
+            <BellRing className="size-3.5 text-primary shrink-0" />
+            <span>Avise-me quando chegar</span>
+          </Button>
+        ) : (
+          <Button
+            size="lg"
+            className="flex-1 rounded-xl font-bold text-xs h-11 px-4 bg-primary text-primary-foreground flex items-center justify-between cursor-pointer active:scale-98 transition-all"
+            onClick={handleAddToCart}
+            disabled={Boolean(isAdding)}
+          >
+            <span>
+              {isAdding
+                ? "Adicionando..."
+                : selectedVariant && selectedVariant.availableQty <= 0 && selectedVariant.allowBackorder
+                  ? "Encomendar"
+                  : "Adicionar"}
+            </span>
+            <span className="font-mono font-black text-xs">
+              {formatMoney(currentPriceCents * (quantity || 1))}
+            </span>
+          </Button>
+        )}
       </div>
+
+      {/* Sheet de Entrada na Lista de Espera */}
+      <ProductWaitlistSheet
+        open={isWaitlistOpen}
+        onOpenChange={setIsWaitlistOpen}
+        product={{
+          id: product.id,
+          title: product.title,
+          storeId: product.storeId || product.store_id || "",
+          coverImageUrl: coverImage?.url || product.media?.[0]?.url,
+        }}
+        variant={selectedVariant}
+      />
     </div>
   );
 }

@@ -25,7 +25,7 @@ import {
   Lock,
 } from "lucide-react";
 
-export const Route = createFileRoute("/admin-master/seguranca")({
+export const Route = createFileRoute("/admin-master/seguranca/")({
   head: () => ({ meta: [{ title: "Centro de Segurança Global | Admin Master" }] }),
   loader: async () => {
     try {
