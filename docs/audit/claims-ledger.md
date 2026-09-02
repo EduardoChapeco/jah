@@ -38,7 +38,18 @@
   - Redireciona para o produto? **SIM** (Redirecionamento para `/admin/catalogo/produtos/$id`).
 - **Classificação Final:** `COMPROVADO`
 
-### Alegação 4: "BFF sem Chamadas Diretas ao Supabase na UI"
+### Alegação 4: "MCTU (Certificados de Transação) e Captura de Demanda (Waitlist) Integrados ao Checkout e PDP"
+
+- **Prometido:** Emissão atômica de certificados forenses SHA-256 no pós-checkout e captura de intenção comercial em itens esgotados sem quebrar contratos de tipos.
+- **O Que Foi Codificado:** `generateTransactionCertificate` integrado no pós-checkout atômico em `src/services/checkout.functions.ts`; correção de contratos de tipos e propriedades em `_store.produto.$slug.tsx` para `ProductWaitlistSheet` e `src/services/waitlist.functions.ts` (`identity.id`); reconciliação do layout `/admin-master/seguranca/` em `src/routes/admin-master.seguranca.index.tsx` e regeneração de `src/routeTree.gen.ts`.
+- **Análise dos 20 Pontos**:
+  - Persiste no banco remoto? **SIM** (Tabela `transaction_certificates` com encriptação SHA-256 e `product_waitlist_entries`).
+  - Sobrevive ao reload F5? **SIM** (Listagem operacional no Admin Master e verificação pública por hash).
+  - Funciona na vitrine pública? **SIM** (Sheet de lista de espera abre em produtos sem estoque no PDP).
+  - Teste positivo? **SIM** (Build Vite e Nitro para Cloudflare Pages compilado com exit code 0).
+- **Classificação Final:** `COMPROVADO EM RUNTIME`
+
+### Alegação 5: "BFF sem Chamadas Diretas ao Supabase na UI"
 
 - **Prometido:** Proibição de `createClient()` ou requisições Supabase no frontend React.
 - **O Que Foi Codificado:** Data fetching via TanStack Query e Server Functions em `src/services/*`.
@@ -47,7 +58,7 @@
   - Regra mantida? **SIM** (Auditoria de código confirma 0 ocorrências de Supabase Client em `.tsx`).
 - **Classificação Final:** `COMPROVADO`
 
-### Alegação 5: "Checkout Transacional RPC v2"
+### Alegação 6: "Checkout Transacional RPC v2"
 
 - **Prometido:** Transação única idempotente no banco calculando subtotal, cupons, frete, reserva de estoque e criação do pedido.
 - **O Que Foi Codificado:** RPC PostgreSQL `process_checkout_transaction_v2` e handler `checkout.functions.ts`.
