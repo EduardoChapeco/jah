@@ -89,10 +89,10 @@ BEGIN
     DELETE FROM storage.objects WHERE owner = v_old_id OR owner_id = v_old_id::text;
   EXCEPTION WHEN OTHERS THEN NULL; END;
 
-  -- 3. Deletar do auth.users qualquer conta que não seja o meuwider@gmail.com
-  BEGIN
-    DELETE FROM auth.users WHERE email <> 'meuwider@gmail.com';
-  EXCEPTION WHEN OTHERS THEN NULL; END;
+  -- 3. [DEPRECATED / REMOVED] Deleção de contas desativada para proteger integridade em novos ambientes
+  -- BEGIN
+  --   DELETE FROM auth.users WHERE email <> 'meuwider@gmail.com';
+  -- EXCEPTION WHEN OTHERS THEN NULL; END;
 
   -- 4. Garantir Perfil Master Ativo se existir no auth.users
   IF EXISTS (SELECT 1 FROM auth.users WHERE id = v_master_id) THEN
