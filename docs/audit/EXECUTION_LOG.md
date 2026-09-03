@@ -313,3 +313,24 @@
 3. **Anúncios Patrocinados Responsivos**:
    - Em `workspace.marketing.anuncios.novo.tsx`, os formulários de orçamento diário e datas de veiculação adaptados para coluna única mobile.
 4. **Compilação e Validação**: Build de produção Vite + Nitro concluído com sucesso.
+
+## Ciclo 78 — Microfase 78D
+
+- **Data/Hora:** 2026-09-03T16:33:00-03:00
+- **Módulo:** Lançamentos de Caixa, Reservas e Relatórios de Gastronomia (Mobile-First)
+- **Commit Base:** `40ae9d5`
+- **Status:** `MICROFASE COMPROVADA EM RUNTIME E COMMITADA`
+
+### Diagnóstico Forense & Causa Raiz
+1. Em `workspace.financeiro.caixa.lancamentos.tsx`, os 3 cards de métricas de caixa (entradas, saídas, saldo) forçavam `grid-cols-3` estático em linha sem quebra, e o modal de sangria/suprimento de caixa usava 2 colunas rígidas.
+2. Em `workspace.relatorios.gastronomia.tsx`, os indicadores de giro de mesa, ticket médio, canais e horários de pico forçavam 2 e 4 colunas rígidas.
+3. Em `workspace.reservas.tsx`, o formulário modal de cadastro e edição de reservas de mesas continha 2 grids rígidos para datas, horários, número de pessoas e atribuição de mesa.
+
+### Ações Executadas
+1. **Controle Financeiro de Caixa Adaptativo**:
+   - Em `workspace.financeiro.caixa.lancamentos.tsx`, métricas de saldo e fluxo convertidas para `grid-cols-1 sm:grid-cols-3 gap-4` e modal de sangria/suprimento em `grid-cols-1 sm:grid-cols-2 gap-3`.
+2. **Relatórios de Gastronomia sem Quebra**:
+   - Em `workspace.relatorios.gastronomia.tsx`, métricas de desempenho e resumos de canais migrados para `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`.
+3. **Gestão de Reservas de Mesas Mobile-First**:
+   - Em `workspace.reservas.tsx`, os campos de reserva adaptados para coluna única mobile (`grid-cols-1 sm:grid-cols-2 gap-3`).
+4. **Compilação e Validação**: Build de produção Vite + Nitro concluído com sucesso.

@@ -17,17 +17,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetTrigger,
 } from "@/components/ui/sheet";
 import {
   CalendarDays,
@@ -293,20 +287,20 @@ export default function TableReservationsPage() {
               </button>
             </div>
 
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
+            <Sheet open={dialogOpen} onOpenChange={setDialogOpen}>
+              <SheetTrigger asChild>
                 <Button size="sm" className="gap-1.5 font-bold text-xs shadow-xs">
                   <Plus className="size-4" />
                   Nova Reserva
                 </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle className="font-bold flex items-center gap-2">
+              </SheetTrigger>
+              <SheetContent side="right" className="sm:max-w-md w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-6 overflow-y-auto bg-card">
+                <SheetHeader className="pb-4 border-b border-border/70 mb-4">
+                  <SheetTitle className="font-bold flex items-center gap-2">
                     <Utensils className="size-5 text-primary" />
                     Cadastrar Nova Reserva
-                  </DialogTitle>
-                </DialogHeader>
+                  </SheetTitle>
+                </SheetHeader>
                 <ReservationForm
                   customerName={customerName}
                   setCustomerName={setCustomerName}
@@ -337,8 +331,8 @@ export default function TableReservationsPage() {
                   }
                   isSubmitting={isCreating}
                 />
-              </DialogContent>
-            </Dialog>
+              </SheetContent>
+            </Sheet>
           </div>
         }
       />
@@ -726,7 +720,7 @@ function ReservationForm({
 }: any) {
   return (
     <div className="space-y-4 py-2">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <Label className="text-xs font-bold text-muted-foreground">Data *</Label>
           <Input type="date" value={reservationDate} onChange={(e) => setReservationDate(e.target.value)} className="mt-1 font-mono text-xs" />
@@ -737,7 +731,7 @@ function ReservationForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <Label className="text-xs font-bold text-muted-foreground">Pessoas *</Label>
           <Input

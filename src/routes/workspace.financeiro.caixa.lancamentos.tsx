@@ -177,7 +177,7 @@ function CaixaLancamentosPage() {
                 <SheetTitle>Registrar Lançamento Manual</SheetTitle>
               </SheetHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <Label htmlFor="entry-type">Tipo</Label>
                     <Select
@@ -246,7 +246,7 @@ function CaixaLancamentosPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className=" rounded-xl bg-card p-4">
           <p className="text-sm text-muted-foreground">Saldo Inicial</p>
           <p className="mt-1 text-2xl font-semibold">

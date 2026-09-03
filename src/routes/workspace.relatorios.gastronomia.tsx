@@ -237,7 +237,7 @@ function GastronomyReportsPage() {
       {/* ── KPIs Hoje ── */}
       <section>
         <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-3">Hoje</p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <KpiCard
             label="Faturamento"
             value={formatMoney(reports.revenueTodayCents)}
@@ -273,7 +273,7 @@ function GastronomyReportsPage() {
       {/* ── KPIs do Mês ── */}
       <section>
         <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-3">Este Mês</p>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <KpiCard
             label="Faturamento do Mês"
             value={formatMoney(reports.revenueMonthCents)}
@@ -316,7 +316,7 @@ function GastronomyReportsPage() {
               ao vivo
             </Badge>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30 text-center">
               <Flame className="size-6 text-blue-600 mx-auto mb-1" />
               <p className="text-2xl font-black text-blue-700 dark:text-blue-400">{reports.ordersInProgress}</p>
