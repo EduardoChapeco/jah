@@ -12,6 +12,8 @@ import {
   AlertTriangle,
   Star,
   Filter,
+  Calendar,
+  Layers,
 } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
@@ -34,6 +36,7 @@ import { TaskItemCard } from "@/components/tasks/task-item-card";
 import { TaskKanbanBoard } from "@/components/tasks/task-kanban";
 import { NewTaskModal } from "@/components/tasks/new-task-modal";
 import { TaskDetailSheet } from "@/components/tasks/task-detail-sheet";
+import { TaskCalendarView } from "@/components/tasks/task-calendar-view";
 
 export const Route = createFileRoute("/workspace/tarefas")({
   head: () => ({ meta: [{ title: "Tarefas & Produtividade | Workspace Wider" }] }),
@@ -61,9 +64,10 @@ function WorkspaceTasksPage() {
 
   const [tasks, setTasks] = useState<WorkspaceTask[]>(initialTasks);
   const [digest, setDigest] = useState(initialDigest);
-  const [activeTab, setActiveTab] = useState<"my-day" | "kanban" | "list">("my-day");
+  const [activeTab, setActiveTab] = useState<"my-day" | "kanban" | "list" | "calendar">("my-day");
   const [searchQuery, setSearchQuery] = useState("");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [contextFilter, setContextFilter] = useState<string>("all");
 
   const [newTaskOpen, setNewTaskOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<WorkspaceTask | null>(null);
@@ -150,11 +154,16 @@ function WorkspaceTasksPage() {
       // Filtro da aba
       if (activeTab === "my-day" && !t.is_my_day) return false;
 
+      // Filtro de contexto / nicho
+      if (contextFilter !== "all" && t.context_type !== contextFilter) return false;
+
       // Filtro de busca
       if (searchQuery.trim()) {
         const matchesTitle = t.title.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesDesc = t.description?.toLowerCase().includes(searchQuery.toLowerCase());
-        if (!matchesTitle && !matchesDesc) return false;
+        const matchesCode = t.task_code?.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesTag = t.tags?.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+        if (!matchesTitle && !matchesDesc && !matchesCode && !matchesTag) return false;
       }
 
       // Filtro de prioridade
@@ -162,7 +171,7 @@ function WorkspaceTasksPage() {
 
       return true;
     });
-  }, [tasks, activeTab, searchQuery, priorityFilter]);
+  }, [tasks, activeTab, searchQuery, priorityFilter, contextFilter]);
 
   const pendingTasks = filteredTasks.filter((t) => t.status !== "done");
   const completedTasks = filteredTasks.filter((t) => t.status === "done");
@@ -185,7 +194,7 @@ function WorkspaceTasksPage() {
       />
 
       {/* ── 2. Cards de Métricas Operacionais (Digest) ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <div className="p-4 rounded-2xl bg-card border border-border/70 space-y-1">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-xs font-semibold">Meu Dia</span>
@@ -232,52 +241,71 @@ function WorkspaceTasksPage() {
       </div>
 
       {/* ── 3. Barra de Controle & Abas Canônicas ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pt-2">
         <Tabs
           value={activeTab}
           onValueChange={(val) => setActiveTab(val as any)}
-          className="w-auto"
+          className="w-auto overflow-x-auto"
         >
-          <TabsList className="h-11 p-1 rounded-xl bg-muted/30 border border-border/70">
+          <TabsList className="h-11 p-1 rounded-xl bg-muted/30 border border-border/70 flex-nowrap overflow-x-auto no-scrollbar scrollbar-none">
             <TabsTrigger
               value="my-day"
-              className="rounded-lg px-4 text-xs font-semibold gap-1.5 cursor-pointer data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-2xs"
+              className="rounded-lg px-3 sm:px-4 text-xs font-semibold gap-1.5 cursor-pointer data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-2xs"
             >
               <Sun className="size-3.5 text-amber-500" /> Meu Dia
             </TabsTrigger>
             <TabsTrigger
               value="list"
-              className="rounded-lg px-4 text-xs font-semibold gap-1.5 cursor-pointer data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-2xs"
+              className="rounded-lg px-3 sm:px-4 text-xs font-semibold gap-1.5 cursor-pointer data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-2xs"
             >
               <ListTodo className="size-3.5 text-sky-500" /> Lista
             </TabsTrigger>
             <TabsTrigger
               value="kanban"
-              className="rounded-lg px-4 text-xs font-semibold gap-1.5 cursor-pointer data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-2xs"
+              className="rounded-lg px-3 sm:px-4 text-xs font-semibold gap-1.5 cursor-pointer data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-2xs"
             >
               <Kanban className="size-3.5 text-emerald-500" /> Quadro
+            </TabsTrigger>
+            <TabsTrigger
+              value="calendar"
+              className="rounded-lg px-3 sm:px-4 text-xs font-semibold gap-1.5 cursor-pointer data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-2xs"
+            >
+              <Calendar className="size-3.5 text-purple-500" /> Calendário
             </TabsTrigger>
           </TabsList>
         </Tabs>
 
-        {/* Filtros de Busca e Prioridade */}
-        <div className="flex items-center gap-2 flex-1 sm:max-w-md justify-end">
-          <div className="relative flex-1">
+        {/* Filtros de Nicho, Busca e Prioridade */}
+        <div className="flex flex-wrap items-center gap-2 flex-1 lg:max-w-2xl justify-end">
+          <div className="relative flex-1 min-w-0 w-full sm:w-auto">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar tarefas..."
+              placeholder="Buscar por título, tag, código..."
               className="h-10 pl-9 rounded-xl text-xs"
             />
           </div>
+
+          <select
+            value={contextFilter}
+            onChange={(e) => setContextFilter(e.target.value)}
+            className="h-10 px-3 rounded-xl border border-input bg-card text-xs font-semibold text-foreground focus:outline-none"
+          >
+            <option value="all">Todas as Áreas</option>
+            <option value="group_tour">Viagens / Pacotes</option>
+            <option value="order">Pedidos / Vendas</option>
+            <option value="inventory">Estoque / Fornecedor</option>
+            <option value="lead">Leads / Comercial</option>
+            <option value="general">Geral</option>
+          </select>
 
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
             className="h-10 px-3 rounded-xl border border-input bg-card text-xs font-semibold text-foreground focus:outline-none"
           >
-            <option value="all">Todas</option>
+            <option value="all">Prioridades</option>
             <option value="urgent">Urgente</option>
             <option value="high">Alta</option>
             <option value="medium">Média</option>
@@ -287,7 +315,16 @@ function WorkspaceTasksPage() {
       </div>
 
       {/* ── 4. Conteúdo das Abas ── */}
-      {activeTab === "kanban" ? (
+      {activeTab === "calendar" ? (
+        <TaskCalendarView
+          tasks={filteredTasks}
+          onSelectTask={(task) => {
+            setSelectedTask(task);
+            setDetailOpen(true);
+          }}
+          onAddTaskOnDate={() => setNewTaskOpen(true)}
+        />
+      ) : activeTab === "kanban" ? (
         <TaskKanbanBoard
           tasks={filteredTasks}
           onToggleStatus={handleToggleStatus}

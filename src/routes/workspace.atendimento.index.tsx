@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useState, useEffect, useRef } from "react";
 import {
@@ -19,16 +20,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetFooter,
+} from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   MessageSquare,
+  ArrowLeft,
   Search,
   Filter,
   Send,
@@ -54,8 +56,13 @@ import { Customer360Sidebar } from "@/components/chat/customer-360-sidebar";
 export const Route = createFileRoute("/workspace/atendimento/")({
   head: () => ({ meta: [{ title: "Central de Atendimento Omnichannel | Wider" }] }),
   loader: async () => {
-    const res = await listChatThreads();
-    return res;
+    try {
+      const res = await listChatThreads().catch(() => null);
+      return res || { threads: [], metrics: { total: 0, open: 0, closed: 0, avg_rating: 5, sla_first_response_min: 0 } };
+    } catch (e) {
+      console.warn("[workspace.atendimento] Fallback de segurança no loader:", e);
+      return { threads: [], metrics: { total: 0, open: 0, closed: 0, avg_rating: 5, sla_first_response_min: 0 } };
+    }
   },
   component: WorkspaceAtendimentoPage,
 });
@@ -336,7 +343,10 @@ function WorkspaceAtendimentoPage() {
       {/* Grid Principal: 3 Colunas (Threads | Chat | Customer 360) */}
       <div className="flex-1 flex overflow-hidden">
         {/* COLUNA 1: Lista de Conversas & Filtros */}
-        <div className="w-80 sm:w-96 border-r border-border/80 bg-background flex flex-col shrink-0">
+        <div className={cn(
+          "w-full md:w-80 lg:w-96 border-r border-border/80 bg-background flex flex-col shrink-0",
+          activeThreadId ? "hidden md:flex" : "flex"
+        )}>
           {/* Busca & Filtros Rápidos */}
           <div className="p-3 border-b border-border/80 space-y-2">
             <div className="relative">
@@ -433,10 +443,23 @@ function WorkspaceAtendimentoPage() {
 
         {/* COLUNA 2: Timeline de Mensagens & Envio */}
         {activeThread ? (
-          <div className="flex-1 flex flex-col bg-muted/10">
+          <div className={cn(
+            "flex-1 flex flex-col bg-muted/10 w-full min-w-0",
+            !activeThreadId ? "hidden md:flex" : "flex"
+          )}>
             {/* Header da Conversa Ativa */}
             <div className="p-3.5 bg-card border-b border-border/80 flex items-center justify-between gap-3 shrink-0">
-              <div className="flex items-center gap-3 min-w-0">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setActiveThreadId(null)}
+                  className="md:hidden size-8 -ml-1 text-muted-foreground hover:text-foreground cursor-pointer shrink-0"
+                  title="Voltar para a lista"
+                >
+                  <ArrowLeft className="size-4" />
+                </Button>
                 <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0">
                   {(activeThread.customer?.full_name || "C")[0].toUpperCase()}
                 </div>
@@ -603,55 +626,57 @@ function WorkspaceAtendimentoPage() {
         )}
       </div>
 
-      {/* Modal de Gestão de Ticket SAC / RMA */}
+      {/* Sheet de Gestão de Ticket SAC / RMA */}
       {selectedTicket && (
-        <Dialog open={ticketModalOpen} onOpenChange={setTicketModalOpen}>
-          <DialogContent className="sm:max-w-md rounded-2xl">
-            <DialogHeader>
-              <DialogTitle className="text-base font-bold">
-                Gerenciar Chamado #{selectedTicket.ticket_id?.slice(0, 8)}
-              </DialogTitle>
-            </DialogHeader>
+        <Sheet open={ticketModalOpen} onOpenChange={setTicketModalOpen}>
+          <SheetContent side="right" className="sm:max-w-md w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-6 overflow-y-auto bg-card flex flex-col justify-between">
+            <div className="space-y-6">
+              <SheetHeader>
+                <SheetTitle className="text-base font-bold">
+                  Gerenciar Chamado #{selectedTicket.ticket_id?.slice(0, 8)}
+                </SheetTitle>
+              </SheetHeader>
 
-            <div className="space-y-4 py-2 text-xs">
-              <div className="p-3 rounded-xl bg-muted/40 border border-border/80 space-y-1">
-                <span className="font-bold text-foreground block">{selectedTicket.title}</span>
-                <p className="text-muted-foreground">"{selectedTicket.description}"</p>
-              </div>
+              <div className="space-y-4 py-2 text-xs">
+                <div className="p-3 rounded-xl bg-muted/40 border border-border/80 space-y-1">
+                  <span className="font-bold text-foreground block">{selectedTicket.title}</span>
+                  <p className="text-muted-foreground">"{selectedTicket.description}"</p>
+                </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold">Atualizar Status</Label>
-                <Select value={ticketStatus} onValueChange={setTicketStatus}>
-                  <SelectTrigger className="h-10 rounded-xl text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    <SelectItem value="under_review">Em Análise Técnica</SelectItem>
-                    <SelectItem value="action_required">Aguardando Resposta do Cliente</SelectItem>
-                    <SelectItem value="resolved">Aprovado e Resolvido</SelectItem>
-                    <SelectItem value="refunded">Estornado / Reembolsado</SelectItem>
-                    <SelectItem value="rejected">Rejeitado / Fora da Garantia</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold">Atualizar Status</Label>
+                  <Select value={ticketStatus} onValueChange={setTicketStatus}>
+                    <SelectTrigger className="h-10 rounded-xl text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      <SelectItem value="under_review">Em Análise Técnica</SelectItem>
+                      <SelectItem value="action_required">Aguardando Resposta do Cliente</SelectItem>
+                      <SelectItem value="resolved">Aprovado e Resolvido</SelectItem>
+                      <SelectItem value="refunded">Estornado / Reembolsado</SelectItem>
+                      <SelectItem value="rejected">Rejeitado / Fora da Garantia</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold">Parecer da Empresa para o Cliente</Label>
-                <Textarea
-                  value={resolutionNotes}
-                  onChange={(e) => setResolutionNotes(e.target.value)}
-                  placeholder="Explique o que foi feito ou as instruções para o cliente..."
-                  rows={3}
-                  className="rounded-xl text-xs"
-                />
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold">Parecer da Empresa para o Cliente</Label>
+                  <Textarea
+                    value={resolutionNotes}
+                    onChange={(e) => setResolutionNotes(e.target.value)}
+                    placeholder="Explique o que foi feito ou as instruções para o cliente..."
+                    rows={4}
+                    className="rounded-xl text-xs"
+                  />
+                </div>
               </div>
             </div>
 
-            <DialogFooter>
+            <SheetFooter className="mt-6 sm:mt-0 flex-row gap-2 justify-end">
               <Button
                 variant="ghost"
                 onClick={() => setTicketModalOpen(false)}
-                className="rounded-xl text-xs"
+                className="rounded-xl text-xs flex-1 sm:flex-none"
                 disabled={isResolvingTicket}
               >
                 Cancelar
@@ -659,7 +684,7 @@ function WorkspaceAtendimentoPage() {
               <Button
                 onClick={handleResolveTicket}
                 disabled={isResolvingTicket}
-                className="rounded-xl text-xs font-bold"
+                className="rounded-xl text-xs font-bold flex-1 sm:flex-none"
               >
                 {isResolvingTicket ? (
                   <>
@@ -670,9 +695,9 @@ function WorkspaceAtendimentoPage() {
                   "Salvar Parecer e Notificar"
                 )}
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </SheetFooter>
+          </SheetContent>
+        </Sheet>
       )}
     </div>
   );

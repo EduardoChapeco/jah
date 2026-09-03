@@ -33,13 +33,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
   Sheet,
   SheetContent,
   SheetHeader,
@@ -607,17 +600,20 @@ function PdvComandasPage() {
         </SheetContent>
       </Sheet>
 
-      {/* ── MODAL DE CHECKOUT / FECHAMENTO DE CONTA ── */}
-      <Dialog open={checkoutModalOpen} onOpenChange={setCheckoutModalOpen}>
-        <DialogContent className="sm:max-w-[420px]">
-          <DialogHeader>
-            <DialogTitle className="font-bold text-lg text-center">
+      {/* ── SHEET DE CHECKOUT / FECHAMENTO DE CONTA ── */}
+      <Sheet open={checkoutModalOpen} onOpenChange={setCheckoutModalOpen}>
+        <SheetContent
+          side="right"
+          className="sm:max-w-md md:max-w-lg w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 overflow-hidden bg-card flex flex-col"
+        >
+          <SheetHeader className="p-4 sm:p-5 border-b border-border/80 bg-muted/20 text-left">
+            <SheetTitle className="font-bold text-base sm:text-lg text-foreground">
               Fechar Conta — {comandaToCheckout?.table_identifier || "Comanda"}
-            </DialogTitle>
-          </DialogHeader>
+            </SheetTitle>
+          </SheetHeader>
 
           {comandaToCheckout && (
-            <div className="py-4 space-y-4">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
               <div className="p-4 rounded-xl bg-muted/30 border border-border/70 text-center space-y-1">
                 <span className="text-xs text-muted-foreground uppercase font-bold">Valor Total</span>
                 <p className="text-3xl font-black text-foreground font-mono">
@@ -651,7 +647,7 @@ function PdvComandasPage() {
                           : "bg-muted/30 text-muted-foreground border-border/70 hover:text-foreground"
                       )}
                     >
-                      {count === 1 ? "Integral" : `${count}x`}
+                      {count === 1 ? "1x Total" : `${count}x`}
                     </button>
                   ))}
                 </div>
@@ -692,7 +688,7 @@ function PdvComandasPage() {
             </div>
           )}
 
-          <DialogFooter className="flex gap-2 sm:justify-end">
+          <div className="p-4 border-t border-border/80 bg-card flex items-center justify-end gap-2 shrink-0">
             <Button
               variant="ghost"
               size="sm"
@@ -705,25 +701,29 @@ function PdvComandasPage() {
               size="sm"
               onClick={handleConfirmPayment}
               disabled={payMutation.isPending}
-              className="rounded-xl font-bold text-xs h-9 px-4"
+              className="h-11 px-5 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
             >
               {payMutation.isPending ? "Processando..." : "Confirmar Recebimento"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </div>
+        </SheetContent>
+      </Sheet>
 
-      {/* ── MODAL GERADOR DE DISPLAYS DE MESA / QR CODE ── */}
-      <Dialog open={qrModalOpen} onOpenChange={setQrModalOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="font-bold text-lg flex items-center gap-2">
+      {/* ── SHEET GERADOR DE DISPLAYS DE MESA / QR CODE ── */}
+      <Sheet open={qrModalOpen} onOpenChange={setQrModalOpen}>
+        <SheetContent
+          side="right"
+          className="sm:max-w-xl md:max-w-2xl w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 overflow-hidden bg-card flex flex-col"
+        >
+          <SheetHeader className="p-4 sm:p-5 border-b border-border/80 bg-muted/20 text-left">
+            <SheetTitle className="font-bold text-base sm:text-lg flex items-center gap-2 text-foreground">
               <QrCode className="size-5 text-primary" />
               Displays de Mesa & QR Code para Impressão
-            </DialogTitle>
-          </DialogHeader>
+            </SheetTitle>
+          </SheetHeader>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-2">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold text-muted-foreground">Número da Mesa</Label>
@@ -758,7 +758,7 @@ function PdvComandasPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label className="text-xs font-bold text-muted-foreground">Wi-Fi (SSID)</Label>
                   <Input
@@ -834,15 +834,16 @@ function PdvComandasPage() {
                 )}
               </div>
             </div>
+            </div>
           </div>
 
-          <DialogFooter className="p-4 border-t border-border/80 bg-muted/10 flex sm:justify-between items-center">
+          <div className="p-4 border-t border-border/80 bg-muted/10 flex flex-col sm:flex-row sm:justify-between items-center gap-3 shrink-0">
             <span className="text-xs text-muted-foreground">Tamanho otimizado para display A6</span>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-1.5 text-xs font-bold rounded-xl"
+                className="gap-1.5 text-xs font-bold rounded-xl h-10 px-4"
                 onClick={() => {
                   const link = document.createElement("a");
                   link.href = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(publicMenuTableUrl)}`;
@@ -857,16 +858,16 @@ function PdvComandasPage() {
               </Button>
               <Button
                 size="sm"
-                className="gap-1.5 text-xs font-bold rounded-xl"
+                className="gap-1.5 text-xs font-bold rounded-xl h-10 px-4"
                 onClick={() => window.print()}
               >
                 <Printer className="size-3.5" />
                 Imprimir Display
               </Button>
             </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </div>
+        </SheetContent>
+      </Sheet>
       {/* Botão Flutuante Mobile: Abrir Comanda Rápida (Thumb Zone) */}
       <div className="md:hidden fixed bottom-6 right-6 z-40">
         <Button

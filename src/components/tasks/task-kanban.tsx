@@ -38,7 +38,7 @@ export function TaskKanbanBoard({
         return (
           <div
             key={col.id}
-            className="flex flex-col rounded-2xl border border-border/70 bg-muted/20 p-3.5 space-y-3 min-w-[280px]"
+            className="flex flex-col rounded-2xl border border-border/70 bg-muted/20 p-3.5 space-y-3 w-full min-w-0 sm:min-w-[280px]"
           >
             {/* Header da Coluna */}
             <div className="flex items-center justify-between px-1">

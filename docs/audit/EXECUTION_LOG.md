@@ -207,3 +207,25 @@
    - Em `admin-master.vitrines.tsx`, convertidos os seletores de vitrine para `grid-cols-1 sm:grid-cols-2 gap-3`.
    - Eliminados ícones decorativos de sparkles em favor de ícones semânticos limpos (`Tag` e `Sliders`).
 4. **Compilação e Validação**: Build de produção Vite + Nitro concluído com sucesso com código de saída 0 em 5.66s.
+
+## Ciclo 77 — Microfase 77B
+
+- **Data/Hora:** 2026-09-03T16:16:00-03:00
+- **Módulo:** Operação do Workspace: PDV Comandas, Tarefas/Kanban e Central de Atendimento (Mobile-First)
+- **Commit Base:** `d4ecc9e`
+- **Status:** `MICROFASE COMPROVADA EM RUNTIME E COMMITADA`
+
+### Diagnóstico Forense & Causa Raiz
+1. Em `workspace.pdv.comandas.tsx`, a divisão de conta no checkout continha botões espremidos e o gerador de displays de mesa QR continha 2 colunas rígidas para SSID e Senha Wi-Fi.
+2. Em `workspace.tarefas.tsx`, as métricas operacionais dividiam a tela em colunas rígidas e a barra de abas não permitia rolagem suave no mobile. Em `task-kanban.tsx`, as colunas impunham `min-w-[280px]` rígido no mobile.
+3. Em `workspace.atendimento.index.tsx`, o layout de 3 colunas (Threads, Chat e Perfil 360) tentava renderizar a lista de conversas e o chat lado a lado em celulares de 360px, comprimindo a caixa de diálogo para ~40px e tornando o chat inoperável.
+
+### Ações Executadas
+1. **Comandas & Mesas Ergonômicas**:
+   - Em `workspace.pdv.comandas.tsx`, ajustado o rótulo de divisão para `1x Total` e convertido o grid de Wi-Fi para `grid-cols-1 sm:grid-cols-2 gap-3`.
+2. **Tarefas & Kanban Móvel sem Quebra**:
+   - Em `workspace.tarefas.tsx`, convertidas as métricas operacionais para `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4` e as abas para carrossel elástico deslizável.
+   - Em `task-kanban.tsx`, colunas adaptadas com `w-full min-w-0 sm:min-w-[280px]` para evitar overflow lateral indesejado.
+3. **Atendimento Omnichannel Padrão WhatsApp/Telegram**:
+   - Em `workspace.atendimento.index.tsx`, implementada alternância adaptativa de Master-Detail: em smartphones, exibe a lista de conversas OU o chat ativo com botão explícito de retorno (`ArrowLeft`), garantindo 100% de largura para digitação e leitura.
+4. **Compilação e Validação**: Build de produção Vite + Nitro concluído com sucesso com código de saída 0 em 5.25s.
