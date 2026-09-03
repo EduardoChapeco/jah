@@ -423,7 +423,7 @@ function TourismDetailPage() {
                 </Button>
               </DialogTrigger>
 
-              <DialogContent className="sm:max-w-lg sm:rounded-3xl p-5 sm:p-8 bg-card border-border">
+              <DialogContent className="sm:max-w-lg sm:rounded-2xl p-5 sm:p-8 bg-card border-border">
                 <DialogHeader className="space-y-2">
                   <DialogTitle className="text-lg font-black text-foreground">
                     Reservar {experience.title}
@@ -479,7 +479,7 @@ function TourismDetailPage() {
                     }}
                     className="space-y-4 pt-2"
                   >
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="space-y-1.5">
                         <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
                           <CalendarDots size={14} weight="bold" />
@@ -519,7 +519,7 @@ function TourismDetailPage() {
 
                       <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
                         {passengers.map((p, idx) => (
-                          <div key={idx} className="grid grid-cols-2 gap-2 p-2.5 rounded-2xl bg-muted/40 ">
+                          <div key={idx} className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2.5 rounded-2xl bg-muted/40 ">
                             <Input
                               required
                               placeholder={`Nome do participante ${idx + 1}`}
@@ -538,7 +538,7 @@ function TourismDetailPage() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 pt-1 ">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 ">
                       <div className="space-y-1.5">
                         <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
                           <Phone size={14} weight="bold" />

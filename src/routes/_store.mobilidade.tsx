@@ -346,7 +346,7 @@ function MobilityPage() {
           /* Mobile: Bottom Sheet ancorado embaixo */
           bottom-0 left-0 right-0 max-h-[85vh] rounded-t-3xl border-t
           /* Desktop: Card flutuante lateral esquerdo */
-          sm:bottom-4 sm:top-4 sm:left-4 sm:right-auto sm:w-[420px] sm:max-h-none sm:rounded-3xl sm:border
+          sm:bottom-4 sm:top-4 sm:left-4 sm:right-auto sm:w-[420px] sm:max-h-none sm:rounded-2xl sm:border
           overflow-y-auto scrollbar-none bg-card/95 backdrop-blur-2xl p-5 text-foreground border-border/80 space-y-4 animate-in slide-in-from-bottom-4 sm:slide-in-from-left-4 duration-300
         "
       >
@@ -494,7 +494,7 @@ function MobilityPage() {
               <span>Calculando melhores rotas e tarifas...</span>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {availableModals.map((mod) => {
                 const Icon =
                   mod.service_type === "ride_moto"
@@ -608,7 +608,7 @@ function MobilityPage() {
 
             {showDetails && (
               <div className="space-y-2.5 pt-3 animate-in fade-in duration-200">
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
                     <Label className="text-[10px] text-muted-foreground">Número</Label>
                     <Input
@@ -639,7 +639,7 @@ function MobilityPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
                     <Label className="text-[10px] text-muted-foreground">Nome Passageiro/Contato</Label>
                     <Input
@@ -720,7 +720,7 @@ function MobilityPage() {
 
       {/* ── 3. FLOATING WIDGET PWA (Canto Inferior Direito como no Print de Referência) ── */}
       {showPwaBanner && (
-        <div className="hidden lg:flex fixed bottom-4 right-4 z-30 max-w-xs w-full p-4 rounded-3xl bg-card/95 backdrop-blur-2xl border border-border/80 flex-col gap-3 animate-in fade-in slide-in-from-bottom-2">
+        <div className="hidden lg:flex fixed bottom-4 right-4 z-30 max-w-xs w-full p-4 rounded-2xl bg-card/95 backdrop-blur-2xl border border-border/80 flex-col gap-3 animate-in fade-in slide-in-from-bottom-2">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2.5">
               <div className="size-9 rounded-2xl bg-foreground text-background flex items-center justify-center font-bold">
