@@ -2,8 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Input } from "./input";
 import { Button } from "./button";
 import { MapPin, Search, Loader2 } from "lucide-react";
-import * as maplibregl from "maplibre-gl";
-import "maplibre-gl/dist/maplibre-gl.css";
+import type { Map, Marker } from "maplibre-gl";
 import { getCanonicalMapStyle, setupMapResizeObserver } from "@/lib/map-styles";
 
 export interface AddressData {
@@ -21,55 +20,61 @@ export const AddressField: React.FC<AddressFieldProps> = ({ value, onChange }) =
   const [query, setQuery] = useState(value?.text || "");
   const [loading, setLoading] = useState(false);
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<maplibregl.Map | null>(null);
-  const marker = useRef<maplibregl.Marker | null>(null);
+  const map = useRef<Map | null>(null);
+  const marker = useRef<Marker | null>(null);
 
-  // Inicializa o mapa uma única vez se houver lat/lng
+  // Inicializa o mapa dinamicamente uma única vez se houver container no browser
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
-
-    const initialLat = value?.lat || -23.5505; // São Paulo default
-    const initialLng = value?.lng || -46.6333;
-
+    let isMounted = true;
     let cleanupResize: (() => void) | undefined;
 
-    map.current = new maplibregl.Map({
-      container: mapContainer.current,
-      style: getCanonicalMapStyle(),
-      center: [initialLng, initialLat],
-      zoom: value?.lat ? 15 : 4,
-      attributionControl: false,
-    });
+    import("maplibre-gl").then((maplibreglModule) => {
+      if (!isMounted || !mapContainer.current || map.current) return;
+      const maplibregl = maplibreglModule.default || maplibreglModule;
 
-    cleanupResize = setupMapResizeObserver(map.current, mapContainer.current);
+      const initialLat = value?.lat || -23.5505; // São Paulo default
+      const initialLng = value?.lng || -46.6333;
 
-    map.current.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-right");
-    map.current.addControl(new maplibregl.NavigationControl(), "top-right");
+      map.current = new maplibregl.Map({
+        container: mapContainer.current,
+        style: getCanonicalMapStyle(),
+        center: [initialLng, initialLat],
+        zoom: value?.lat ? 15 : 4,
+        attributionControl: false,
+      });
 
-    marker.current = new maplibregl.Marker({ draggable: true, color: "#18181b" })
-      .setLngLat([initialLng, initialLat])
-      .addTo(map.current);
+      cleanupResize = setupMapResizeObserver(map.current, mapContainer.current);
 
-    // Se a localização mudar via arraste do pino
-    marker.current.on("dragend", async () => {
-      const lngLat = marker.current?.getLngLat();
-      if (lngLat) {
-        // Reverse geocoding (Nominatim)
-        try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lngLat.lat}&lon=${lngLat.lng}`,
-          );
-          const data = await res.json();
-          const newText = data.display_name || query;
-          setQuery(newText);
-          onChange?.({ text: newText, lat: lngLat.lat, lng: lngLat.lng });
-        } catch {
-          onChange?.({ text: query, lat: lngLat.lat, lng: lngLat.lng });
+      map.current.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-right");
+      map.current.addControl(new maplibregl.NavigationControl(), "top-right");
+
+      marker.current = new maplibregl.Marker({ draggable: true, color: "#18181b" })
+        .setLngLat([initialLng, initialLat])
+        .addTo(map.current);
+
+      // Se a localização mudar via arraste do pino
+      marker.current.on("dragend", async () => {
+        const lngLat = marker.current?.getLngLat();
+        if (lngLat) {
+          // Reverse geocoding (Nominatim)
+          try {
+            const res = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lngLat.lat}&lon=${lngLat.lng}`,
+            );
+            const data = await res.json();
+            const newText = data.display_name || query;
+            setQuery(newText);
+            onChange?.({ text: newText, lat: lngLat.lat, lng: lngLat.lng });
+          } catch {
+            onChange?.({ text: query, lat: lngLat.lat, lng: lngLat.lng });
+          }
         }
-      }
+      });
     });
 
     return () => {
+      isMounted = false;
       cleanupResize?.();
       map.current?.remove();
       map.current = null;

@@ -12,6 +12,7 @@ export default defineConfig({
   },
   nitro: {
     preset: "cloudflare-pages",
+    minify: true,
   },
   vite: {
     build: {

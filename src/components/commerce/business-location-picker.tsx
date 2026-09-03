@@ -19,9 +19,6 @@ import {
   Globe,
   Sliders,
 } from "lucide-react";
-import * as maplibregl from "maplibre-gl";
-import "maplibre-gl/dist/maplibre-gl.css";
-import { getCanonicalMapStyle, setupMapResizeObserver } from "@/lib/map-styles";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 

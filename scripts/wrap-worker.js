@@ -58,6 +58,41 @@ if (content.includes("async fetch(cfReq, env, context) {")) {
   console.warn("Could not find fetch entrypoint in worker.");
 }
 
+// 1.5 Empacotar e minificar em arquivo único _worker.js com esbuild
+try {
+  const { buildSync } = await import("esbuild");
+  console.log("Compiling and minifying single-file Cloudflare Pages _worker.js with esbuild...");
+  const bundledFile = path.join(process.cwd(), "dist/_worker.bundle.js");
+  buildSync({
+    entryPoints: [file],
+    outfile: bundledFile,
+    bundle: true,
+    minify: true,
+    target: "es2022",
+    format: "esm",
+    external: ["node:*", "cloudflare:*"],
+  });
+
+  // Injetar variáveis de ambiente do Supabase no topo do worker bundle
+  const envHeader = `const __fallbackEnv__ = ${JSON.stringify(fallbackEnv)};
+if (typeof globalThis.process === "undefined") {
+  globalThis.process = { env: Object.assign({}, __fallbackEnv__) };
+} else {
+  globalThis.process.env = Object.assign({}, __fallbackEnv__, globalThis.process.env || {});
+}
+globalThis.__env__ = Object.assign({}, __fallbackEnv__, globalThis.__env__ || {});
+`;
+  const bundledCode = fs.readFileSync(bundledFile, "utf-8");
+  fs.writeFileSync(bundledFile, envHeader + bundledCode);
+
+  const workerDir = path.join(process.cwd(), "dist/_worker.js");
+  fs.rmSync(workerDir, { recursive: true, force: true });
+  fs.renameSync(bundledFile, workerDir);
+  console.log("Successfully created ultra-optimized single-file dist/_worker.js with Supabase env for Cloudflare Pages.");
+} catch (esbuildErr) {
+  console.warn("Notice during esbuild worker bundling:", esbuildErr.message);
+}
+
 // 2. Ensure Cloudflare Pages _routes.json uses wildcard exclude for /assets/* to prevent stylesheet interception
 const routesJsonPath = path.join(process.cwd(), "dist/_routes.json");
 const cleanRoutesJson = {
