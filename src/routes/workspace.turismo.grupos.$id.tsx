@@ -208,7 +208,7 @@ function WorkspaceGroupTourDetailPage() {
 
       {/* ── 2. ABAS DE GESTÃO DA VIAGEM ── */}
       <Tabs defaultValue="onibus" className="space-y-4">
-        <TabsList className="grid grid-cols-2 sm:grid-cols-5 h-auto p-1 rounded-2xl bg-muted/40 max-w-2xl">
+        <TabsList className="flex items-center gap-1.5 w-full overflow-x-auto no-scrollbar scrollbar-none p-1 rounded-xl h-11">
           <TabsTrigger value="onibus" className="text-xs rounded-xl font-bold gap-1.5 py-2">
             <Bus className="size-3.5" />
             <span>Mapa do Ônibus</span>
@@ -258,12 +258,12 @@ function WorkspaceGroupTourDetailPage() {
 
         {/* ABA 5: DADOS OPERACIONAIS DO TRANSPORTE */}
         <TabsContent value="transporte" className="space-y-4">
-          <div className="p-6 rounded-3xl bg-card border border-border/80 space-y-4 max-w-xl">
+          <div className="p-6 rounded-2xl bg-card border border-border/80 space-y-4 max-w-xl">
             <h3 className="text-sm font-bold text-foreground">
               Identificação do Transporte Rodoviário
             </h3>
 
-            <div className="grid grid-cols-2 gap-3 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div className="space-y-1">
                 <Label className="text-xs font-bold">Empresa de Fretamento</Label>
                 <Input
@@ -331,7 +331,7 @@ function WorkspaceGroupTourDetailPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
             <div>
               <span className="text-slate-500 block text-[10px]">Data e Hora Saída:</span>
               <strong>{tour.departure_date} às {tour.departure_time}</strong>

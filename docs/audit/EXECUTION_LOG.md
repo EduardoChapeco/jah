@@ -334,3 +334,24 @@
 3. **Gestão de Reservas de Mesas Mobile-First**:
    - Em `workspace.reservas.tsx`, os campos de reserva adaptados para coluna única mobile (`grid-cols-1 sm:grid-cols-2 gap-3`).
 4. **Compilação e Validação**: Build de produção Vite + Nitro concluído com sucesso.
+
+## Ciclo 78 — Microfase 78E
+
+- **Data/Hora:** 2026-09-03T16:37:00-03:00
+- **Módulo:** Hotéis Parceiros, Grupos Rodoviários e Estúdio Criativo (Mobile-First)
+- **Commit Base:** `86e057f`
+- **Status:** `MICROFASE COMPROVADA EM RUNTIME E COMMITADA`
+
+### Diagnóstico Forense & Causa Raiz
+1. Em `workspace.turismo.hoteis.tsx`, os modais de cadastro de novos hotéis operavam com 2 colunas rígidas para destinos, classificação, diária e horários de check-in/out, além de 2 ocorrências de cantos bulbosos (`rounded-3xl`).
+2. Em `workspace.turismo.grupos.$id.tsx`, o `TabsList` forçava `grid-cols-2 sm:grid-cols-5` quebrando abas em celulares menores, e a exibição de capacidade e vagas usava colunas incondicionais.
+3. Em `workspace.estudio.index.tsx`, a seleção de aspecto visual (1:1, 4:5, 9:16, 16:9, 1.91:1) e botões de formas gráficas utilizavam grids rígidos.
+
+### Ações Executadas
+1. **Hotéis Parceiros com Escala Apple HIG**:
+   - Em `workspace.turismo.hoteis.tsx`, os formulários de hotel foram convertidos para `grid-cols-1 sm:grid-cols-2 gap-3` e os 2 `rounded-3xl` moderados para `rounded-2xl`.
+2. **Grupos Rodoviários & Excursões sem Quebra**:
+   - Em `workspace.turismo.grupos.$id.tsx`, as abas foram convertidas para carrossel horizontal elástico (`overflow-x-auto no-scrollbar`), e os blocos de capacidade e resumo de passageiros para `grid-cols-1 sm:grid-cols-2` e `grid-cols-1 sm:grid-cols-3`.
+3. **Estúdio Criativo Responsivo**:
+   - Em `workspace.estudio.index.tsx`, o seletor de proporção de tela adaptado para `grid-cols-3 sm:grid-cols-5 gap-1.5` e formas em `grid-cols-1 sm:grid-cols-2`.
+4. **Compilação e Validação**: Build de produção Vite + Nitro concluído com sucesso.

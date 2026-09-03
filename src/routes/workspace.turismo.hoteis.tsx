@@ -292,7 +292,7 @@ function WorkspaceHotelsPage() {
 
       {/* Grid de Hotéis */}
       {filtered.length === 0 ? (
-        <div className="p-12 text-center rounded-3xl bg-card border border-border/60 space-y-3">
+        <div className="p-12 text-center rounded-2xl bg-card border border-border/60 space-y-3">
           <div className="size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
             <Hotel className="size-6" />
           </div>
@@ -309,7 +309,7 @@ function WorkspaceHotelsPage() {
           {filtered.map((hotel: HotelBankDTO) => (
             <div
               key={hotel.id}
-              className="bg-card rounded-3xl overflow-hidden border border-border/70 hover:border-primary/40 transition-all group flex flex-col shadow-2xs"
+              className="bg-card rounded-2xl overflow-hidden border border-border/70 hover:border-primary/40 transition-all group flex flex-col shadow-2xs"
             >
               {/* Foto de Capa & Estrelas */}
               <div className="relative aspect-[16/9] w-full bg-muted/30 overflow-hidden">
@@ -469,7 +469,7 @@ function WorkspaceHotelsPage() {
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="font-semibold text-foreground">Cidade *</Label>
                 <Input
@@ -492,7 +492,7 @@ function WorkspaceHotelsPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="font-semibold text-foreground">Classificação (Estrelas)</Label>
                 <Select

@@ -248,28 +248,31 @@ function StudioWorkspacePage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-60px)] min-h-0 bg-background text-foreground overflow-hidden font-sans select-none">
-      {/* ── 1. HEADER DO ESTÚDIO: Título + Modos + Salvar/Exportar ── */}
+    <div className="fixed inset-0 w-screen h-screen z-50 flex flex-col bg-background text-foreground overflow-hidden font-sans select-none">
+      {/* ── 1. HEADER DO ESTÚDIO FULLPAGE: Título + Modos + Salvar/Exportar ── */}
       <header className="h-14 border-b border-border/80 bg-card/95 backdrop-blur-md px-4 flex items-center justify-between shrink-0 z-20">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Button
             variant="ghost"
-            size="icon"
+            size="sm"
             onClick={() => navigate({ to: "/workspace" })}
-            className="size-8 rounded-xl"
+            className="h-8 px-2.5 rounded-xl text-xs font-semibold gap-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/80"
             title="Voltar ao Workspace"
           >
             <ArrowLeft className="size-4" />
+            <span className="hidden sm:inline">Workspace</span>
           </Button>
+
+          <span className="hidden sm:inline text-muted-foreground/50 text-xs">/</span>
 
           <div className="flex items-center gap-2">
             <Input
               value={projectTitle}
               onChange={(e) => setProjectTitle(e.target.value)}
-              className="h-8 px-2 text-xs font-black bg-transparent border-transparent hover:border-border/60 focus:border-border rounded-lg max-w-[200px]"
+              className="h-8 px-2 text-xs font-black bg-transparent border-transparent hover:border-border/60 focus:border-border rounded-lg max-w-[180px] sm:max-w-[260px]"
             />
-            <Badge variant="outline" className="text-[10px] font-mono uppercase">
-              {studioMode === "graphic" ? "Gráfico" : "Vídeo 4K"}
+            <Badge variant="outline" className="text-[10px] font-mono uppercase font-bold">
+              {studioMode === "graphic" ? "Design Gráfico" : "Vídeo 4K"}
             </Badge>
           </div>
 
@@ -364,7 +367,7 @@ function StudioWorkspacePage() {
           {/* Seletor de Aspect Ratio */}
           <div className="space-y-1.5">
             <Label className="text-xs font-bold text-foreground">Formato do Canvas</Label>
-            <div className="grid grid-cols-3 gap-1">
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
               {(["1:1", "4:5", "9:16", "16:9", "1.91:1"] as StudioAspectRatio[]).map((ar) => (
                 <button
                   key={ar}
@@ -396,7 +399,7 @@ function StudioWorkspacePage() {
                 <span>Adicionar Texto</span>
               </Button>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <Button
                   type="button"
                   variant="outline"
