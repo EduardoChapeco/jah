@@ -166,7 +166,7 @@ function ContractEditorPage() {
                     >
                       <Trash size={14} />
                     </Button>
-                    <div className="grid grid-cols-2 gap-3 pr-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pr-8 sm:pr-8">
                       <div className="space-y-1">
                         <Label className="text-xs">Nome Completo</Label>
                         <Input 
@@ -185,7 +185,7 @@ function ContractEditorPage() {
                         />
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <Label className="text-xs">Papel</Label>
                         <Select value={signer.role} onValueChange={(v) => updateSigner(idx, "role", v)}>

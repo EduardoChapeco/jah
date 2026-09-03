@@ -250,3 +250,24 @@
 3. **Editor de Menus e Links sem Truncamento**:
    - Em `workspace.cms.navegacao.tsx`, os campos de configuração do menu e itens de link foram adaptados para coluna única mobile (`grid-cols-1 sm:grid-cols-2`).
 4. **Compilação e Validação**: Build de produção Vite + Nitro concluído com sucesso.
+
+## Ciclo 78 — Microfase 78A
+
+- **Data/Hora:** 2026-09-03T16:22:00-03:00
+- **Módulo:** Contratos Digitais, Termos Master e Destinos Turísticos (Mobile-First)
+- **Commit Base:** `a27a179`
+- **Status:** `MICROFASE COMPROVADA EM RUNTIME E COMMITADA`
+
+### Diagnóstico Forense & Causa Raiz
+1. Em `workspace.contratos.$id.editor.tsx`, os formulários de cadastro de signatários (Nome, E-mail, Papel e Documento) dividiam a tela em 2 colunas rígidas (`grid-cols-2`), truncando inputs de e-mail e CPF em smartphones.
+2. Em `admin-master.termos.tsx`, o formulário modal de cadastro e atualização de termos legais e políticas de privacidade operava com `grid-cols-2`.
+3. Em `workspace.turismo.destinos.tsx`, o cadastro de destinos de viagens continha 2 grids rígidos em categorias e duração sugerida, além de 2 ocorrências de `rounded-3xl`.
+
+### Ações Executadas
+1. **Editor de Contratos Mobile-Ready**:
+   - Em `workspace.contratos.$id.editor.tsx`, os 2 blocos de signatário foram convertidos para `grid-cols-1 sm:grid-cols-2 gap-3`.
+2. **Governança de Termos & Políticas sem Corte**:
+   - Em `admin-master.termos.tsx`, os campos de novo termo e metadados de hash foram adaptados para `grid-cols-1 sm:grid-cols-2`.
+3. **Gestão de Destinos com Escala Apple HIG**:
+   - Em `workspace.turismo.destinos.tsx`, os formulários de destino foram convertidos para `grid-cols-1 sm:grid-cols-2 gap-3` e as bordas moderadas de `rounded-3xl` para `rounded-2xl`.
+4. **Compilação e Validação**: Build de produção Vite + Nitro concluído com sucesso.

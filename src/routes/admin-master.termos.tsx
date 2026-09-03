@@ -475,7 +475,7 @@ function AdminMasterTermosPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label className="text-xs font-bold">Versão</Label>
                   <Input
@@ -570,7 +570,7 @@ function AdminMasterTermosPage() {
 
           {selectedLog && (
             <div className="space-y-4 text-xs mt-3">
-              <div className="grid grid-cols-2 gap-3 p-3 rounded-xl bg-muted/50  font-mono text-[11px]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 rounded-xl bg-muted/50 font-mono text-[11px]">
                 <div>
                   <span className="text-muted-foreground block text-[10px] uppercase font-bold">ID do Registro</span>
                   <span className="text-foreground">{selectedLog.id}</span>
