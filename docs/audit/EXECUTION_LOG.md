@@ -112,3 +112,27 @@
 4. **Quebra de Linha Natural em Formulários**: Convertidos todos os grids rígidos de formulários em `_store.conta.classificados.novo.tsx` para `grid-cols-1 sm:grid-cols-2 gap-3`, assegurando largura integral (100%) em smartphones.
 5. **Responsividade da Vitrine**: Em `travel-package-detail-view.tsx`, ajustados os cards de franquia de bagagem e transfer para `grid-cols-1 sm:grid-cols-2` e adicionada a classe de safe-area `pb-safe` na barra fixa inferior de reservas.
 6. **Compilação e Validação**: Build de produção Vite + TanStack Start + Nitro concluído com sucesso com código de saída 0 em 6.51s.
+
+## Ciclo 76 — Microfase 76B
+
+- **Data/Hora:** 2026-09-03T15:58:00-03:00
+- **Módulo:** Onboarding, Checkout e Perfil Público (Mobile-First & Apple HIG)
+- **Commit Base:** `a2d12f2`
+- **Status:** `MICROFASE COMPROVADA EM RUNTIME E COMMITADA`
+
+### Diagnóstico Forense & Causa Raiz
+1. Em `_store.criar-negocio.tsx`, o stepper superior de etapas possuía uma classe fixa `min-w-[580px]`, o que quebrava o container em smartphones de 320px a 375px e provocava rolagem lateral indesejada em toda a página de onboarding. Além disso, possuía 10 ocorrências de `rounded-3xl` que geravam cantos desproporcionalmente arredondados.
+2. Em `_store.checkout.tsx`, o seletor de modalidade de frete (Entrega vs Retirada) e o seletor de política de reposição de itens utilizavam grids rígidos (`grid-cols-2` e `grid-cols-3`), forçando botões com textos longos e ícones em larguras inferiores a 100px-140px, causando quebras de texto truncadas. Também continha 5 `rounded-3xl` nos surfaces principais.
+3. Em `_store.membro.$id.tsx`, os modais de cadastro de trajetória profissional, acadêmica e certificações utilizavam `grid-cols-2` incondicional para datas de início e término, apertando os seletores em telas móveis. Apresentava 10 ocorrências de `rounded-3xl` em avatares e cards.
+
+### Ações Executadas
+1. **Onboarding Fluido sem Quebra de Viewport**:
+   - Em `_store.criar-negocio.tsx`, removido `min-w-[580px]` e reestruturado o container para `flex sm:grid sm:grid-cols-6 gap-2 min-w-max sm:min-w-0`, permitindo deslizamento horizontal natural no mobile e grade proporcional no desktop.
+   - Moderados os 10 `rounded-3xl` para `rounded-2xl` no padrão contínuo Apple HIG.
+2. **Checkout Ultra-Responsivo**:
+   - Em `_store.checkout.tsx`, convertido o seletor de frete para `grid-cols-1 sm:grid-cols-2 gap-3` e a política de substituição para `grid-cols-1 sm:grid-cols-3 gap-2`, oferecendo botões cartões amplos de toque fácil (>= 44px) no mobile.
+   - Moderados os 5 `rounded-3xl` para `rounded-2xl`.
+3. **Perfil & Currículo Mobile-Ready**:
+   - Em `_store.membro.$id.tsx`, convertidos os campos emparelhados de data dos modais de experiência, educação e certificação para `grid-cols-1 sm:grid-cols-2 gap-3`.
+   - Moderados os 10 `rounded-3xl` para `rounded-2xl` no avatar e seções do perfil.
+4. **Compilação e Validação**: Build de produção Vite + Nitro concluído com sucesso com código de saída 0 em 6.09s.

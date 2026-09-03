@@ -377,7 +377,7 @@ function CriarNegocioPage() {
         </Button>
       </div>
       {step > 1 && (
-        <div className="bg-card p-4 rounded-3xl border border-border/70 space-y-3">
+        <div className="bg-card p-4 rounded-2xl border border-border/70 space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <Button
@@ -415,7 +415,7 @@ function CriarNegocioPage() {
 
           {/* Stepper Horizontal */}
           <div className="overflow-x-auto no-scrollbar scrollbar-none pt-1">
-            <div className="grid grid-cols-6 gap-2 min-w-[580px]">
+            <div className="flex sm:grid sm:grid-cols-6 gap-2 min-w-max sm:min-w-0">
               {stepsList.map((s) => {
                 const isActive = step === s.number;
                 const isPassed = step > s.number;
@@ -514,7 +514,7 @@ function CriarNegocioPage() {
                   key={segment.id}
                   onClick={() => handleSelectNicheAndProceed(segment.id)}
                   className={cn(
-                    "group relative h-64 rounded-3xl overflow-hidden cursor-pointer transition-all duration-200 border flex flex-col justify-between p-5 select-none active:scale-[0.98]",
+                    "group relative h-64 rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 border flex flex-col justify-between p-5 select-none active:scale-[0.98]",
                     isSelected
                       ? "border-primary ring-2 ring-primary shadow-md"
                       : "border-border/60 hover:border-foreground/30 hover:shadow-xs"
@@ -550,7 +550,7 @@ function CriarNegocioPage() {
           </div>
 
           {filteredSegments.length === 0 && (
-            <div className="p-12 text-center bg-card rounded-3xl border border-dashed border-border/80 space-y-2">
+            <div className="p-12 text-center bg-card rounded-2xl border border-dashed border-border/80 space-y-2">
               <p className="text-sm font-bold text-foreground">Nenhum segmento encontrado</p>
               <p className="text-xs text-muted-foreground">
                 Tente buscar com outros termos ou selecione "Todas as Categorias".
@@ -580,7 +580,7 @@ function CriarNegocioPage() {
           <div className="lg:col-span-7 space-y-6 w-full min-w-0">
             {/* ETAPA 2: IDENTIFICAÇÃO */}
             {step === 2 && (
-              <div className="bg-card p-6 sm:p-8 rounded-3xl border border-border/70 space-y-6 shadow-xs">
+              <div className="bg-card p-6 sm:p-8 rounded-2xl border border-border/70 space-y-6 shadow-xs">
                 <div className="space-y-1 pb-2 border-b border-border/60">
                   <h2 className="text-lg font-bold text-foreground">Identificação do Negócio</h2>
                   <p className="text-xs text-muted-foreground">
@@ -682,7 +682,7 @@ function CriarNegocioPage() {
 
             {/* ETAPA 3: IDENTIDADE VISUAL */}
             {step === 3 && (
-              <div className="bg-card p-6 sm:p-8 rounded-3xl border border-border/70 space-y-6 shadow-xs">
+              <div className="bg-card p-6 sm:p-8 rounded-2xl border border-border/70 space-y-6 shadow-xs">
                 <div className="space-y-1 pb-2 border-b border-border/60">
                   <h2 className="text-lg font-bold text-foreground">Identidade Visual da Loja</h2>
                   <p className="text-xs text-muted-foreground">
@@ -758,7 +758,7 @@ function CriarNegocioPage() {
               <div className="space-y-6">
                 {/* Banner de Logística — EXCLUSIVO para negócios de Delivery/Varejo */}
                 {isDeliverySegment && (
-                  <div className="relative rounded-3xl overflow-hidden border border-border/80 bg-card shadow-xs">
+                  <div className="relative rounded-2xl overflow-hidden border border-border/80 bg-card shadow-xs">
                     <div className="relative h-44 sm:h-52 w-full overflow-hidden bg-gradient-to-br from-zinc-900 via-zinc-800 to-black">
                       {logisticsInfo?.image_desktop_url && (
                         <img
@@ -788,7 +788,7 @@ function CriarNegocioPage() {
                 )}
 
                 {/* Configurações Operacionais */}
-                <div className="bg-card p-6 sm:p-8 rounded-3xl border border-border/70 space-y-6 shadow-xs">
+                <div className="bg-card p-6 sm:p-8 rounded-2xl border border-border/70 space-y-6 shadow-xs">
                   <div className="space-y-1 pb-2 border-b border-border/60">
                     <h3 className="text-base font-bold text-foreground">
                       {isDeliverySegment ? "Configurações de Entrega & Atendimento" : "Modalidades de Atendimento & Horários"}
@@ -911,7 +911,7 @@ function CriarNegocioPage() {
 
             {/* ETAPA 5: DOCUMENTOS OPCIONAIS */}
             {step === 5 && (
-              <div className="bg-card p-6 sm:p-8 rounded-3xl border border-border/70 space-y-6 shadow-xs">
+              <div className="bg-card p-6 sm:p-8 rounded-2xl border border-border/70 space-y-6 shadow-xs">
                 <div className="space-y-1 pb-2 border-b border-border/60">
                   <div className="flex items-center justify-between">
                     <h2 className="text-lg font-bold text-foreground">Documentos & Regularização</h2>
@@ -993,7 +993,7 @@ function CriarNegocioPage() {
 
             {/* ETAPA 6: EQUIPE & PERMISSÕES */}
             {step === 6 && (
-              <div className="bg-card p-6 sm:p-8 rounded-3xl border border-border/70 space-y-6 shadow-xs">
+              <div className="bg-card p-6 sm:p-8 rounded-2xl border border-border/70 space-y-6 shadow-xs">
                 <div className="space-y-1 pb-2 border-b border-border/60">
                   <div className="flex items-center justify-between">
                     <h2 className="text-lg font-bold text-foreground">Equipe & Permissões</h2>
@@ -1150,7 +1150,7 @@ function CriarNegocioPage() {
 
           {/* ── COLUNA DIREITA STICKY: THE TRUTHFUL STORE PREVIEW (5 COLS) ── */}
           <div className="lg:col-span-5 sticky top-24 space-y-4 w-full min-w-0">
-            <div className="bg-card rounded-3xl border border-border/80 overflow-hidden">
+            <div className="bg-card rounded-2xl border border-border/80 overflow-hidden">
               {/* Header do Mockup */}
               <div className="p-3.5 bg-muted/40 border-b border-border/60 flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-foreground">

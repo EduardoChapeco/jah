@@ -725,7 +725,7 @@ export function CheckoutPage() {
         <div className="lg:col-span-2 space-y-6">
           {/* ── ETAPA 1: IDENTIFICAÇÃO DO CLIENTE ── */}
           {activeStep === 1 && (
-            <Surface variant="default" className="p-5 sm:p-6 rounded-3xl  space-y-5">
+            <Surface variant="default" className="p-5 sm:p-6 rounded-2xl  space-y-5">
               {userProfile ? (
                 <div className="flex items-start gap-3.5 p-3.5 rounded-2xl bg-muted/30 ">
                   <div className="size-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm shrink-0">
@@ -887,9 +887,9 @@ export function CheckoutPage() {
 
           {/* ── ETAPA 2: ENTREGA OU RETIRADA ── */}
           {activeStep === 2 && (
-            <Surface variant="default" className="p-5 sm:p-6 rounded-3xl  space-y-5">
+            <Surface variant="default" className="p-5 sm:p-6 rounded-2xl  space-y-5">
               {/* Seletor de Modalidade: Entrega vs Retirada */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, shippingMethod: "manual_table" })}
@@ -1228,7 +1228,7 @@ export function CheckoutPage() {
                         <CheckCircle2 size={13} className="text-emerald-500" />
                         Se algum item do mercado estiver em falta:
                       </Label>
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         {[
                           { id: "similar", label: "Trocar por similar", desc: "Mesma categoria" },
                           { id: "contact", label: "Confirmar comigo", desc: "Via WhatsApp" },
@@ -1295,7 +1295,7 @@ export function CheckoutPage() {
 
           {/* ── ETAPA 3: FORMA DE PAGAMENTO ── */}
           {activeStep === 3 && (
-            <Surface variant="default" className="p-5 sm:p-6 rounded-3xl  space-y-5">
+            <Surface variant="default" className="p-5 sm:p-6 rounded-2xl  space-y-5">
               <Label className="text-xs font-bold text-foreground">Escolha a Forma de Pagamento</Label>
 
               <div className="space-y-3">
@@ -1481,7 +1481,7 @@ export function CheckoutPage() {
 
           {/* ── ETAPA 4: REVISÃO & CONFIRMAÇÃO ── */}
           {activeStep === 4 && (
-            <Surface variant="default" className="p-5 sm:p-6 rounded-3xl  space-y-5">
+            <Surface variant="default" className="p-5 sm:p-6 rounded-2xl  space-y-5">
               <div className="space-y-4">
                 {/* Resumo de Entrega */}
                 <div className="p-4 rounded-2xl bg-muted/20  space-y-1.5">
@@ -1578,7 +1578,7 @@ export function CheckoutPage() {
 
         {/* Coluna da Direita: Resumo da Sacola & Totais */}
         <div className="space-y-4">
-          <Surface variant="default" className="p-5 rounded-3xl  space-y-4">
+          <Surface variant="default" className="p-5 rounded-2xl  space-y-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Resumo do Pedido
             </h3>

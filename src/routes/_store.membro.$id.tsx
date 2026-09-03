@@ -487,21 +487,21 @@ export function MemberPublicProfileView({
         </div>
       </div>
 
-      <div className="rounded-3xl bg-card border border-border/40 p-4 sm:p-6 space-y-6 shadow-xs">
+      <div className="rounded-2xl bg-card border border-border/40 p-4 sm:p-6 space-y-6 shadow-xs">
         {/* Faixa Superior Panorâmica: Foto + Capa Panorâmica 1090px com Card de Stats no Término */}
         <div className="flex items-center gap-3 sm:gap-4 overflow-hidden">
           {/* Foto de Perfil em Squircle 1:1 (Altura Fixa h-28 sm:h-36) */}
           <div className="flex-shrink-0">
-            <Avatar className="size-28 sm:size-36 rounded-3xl ring-2 ring-border/60 bg-muted flex-shrink-0 shadow-xs">
+            <Avatar className="size-28 sm:size-36 rounded-2xl ring-2 ring-border/60 bg-muted flex-shrink-0 shadow-xs">
               <AvatarImage src={profile.avatar_url || ""} alt={profile.full_name} className="object-cover" />
-              <AvatarFallback className="text-2xl sm:text-3xl font-extrabold bg-muted text-foreground rounded-3xl">
+              <AvatarFallback className="text-2xl sm:text-3xl font-extrabold bg-muted text-foreground rounded-2xl">
                 {profile.full_name?.slice(0, 2)?.toUpperCase() || "WD"}
               </AvatarFallback>
             </Avatar>
           </div>
 
           {/* Container da Capa Panorâmica (min-w-[1090px]) com Scroll Horizontal Fluido */}
-          <div className="flex-1 h-28 sm:h-36 rounded-3xl bg-muted/30 overflow-x-auto overflow-y-hidden scrollbar-none flex items-center gap-3 pr-3 border border-border/40">
+          <div className="flex-1 h-28 sm:h-36 rounded-2xl bg-muted/30 overflow-x-auto overflow-y-hidden scrollbar-none flex items-center gap-3 pr-3 border border-border/40">
             {(profile.cover_url || profile.coverUrl || profile.banner_url) ? (
               <img
                 src={profile.cover_url || profile.coverUrl || profile.banner_url}
@@ -707,40 +707,46 @@ export function MemberPublicProfileView({
           </div>
 
           {/* Botões de Ação Personalizados / Links na Bio Compactos */}
+          {/* Botões de Ação & Biolinks (Banners Gráficos ou Botões Limpos) */}
           {Array.isArray(profile.biolinks) && profile.biolinks.length > 0 && (
-            <div className="space-y-2 pt-1 max-w-xl">
-              {/* Botões com Capa / Mini-Banners de Ação Slim */}
+            <div className="space-y-3 pt-2 max-w-xl">
+              {/* Mini-Banners Gráficos com Imagem (16:9 Fiel e Delicado) */}
               {profile.biolinks.some((b: any) => !!b.imageUrl) && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {profile.biolinks.filter((b: any) => !!b.imageUrl).map((link: any, idx: number) => (
                     <a
-                      key={idx}
+                      key={link.id || idx}
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="relative h-11 sm:h-12 rounded-xl overflow-hidden border border-border/50 group flex items-center justify-between px-3 text-white shadow-2xs hover:scale-[1.01] transition-transform select-none"
+                      className="block w-full aspect-[16/9] rounded-2xl overflow-hidden border border-border/60 relative group shadow-xs hover:border-border transition-all select-none"
                     >
-                      <img src={link.imageUrl} alt="" className="absolute inset-0 size-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/55 to-black/40 backdrop-blur-[0.5px]" />
-                      <span className="relative z-10 text-xs font-bold tracking-tight drop-shadow-sm truncate pr-2">
-                        {link.label || link.title || "Acessar Link"}
-                      </span>
-                      <ExternalLink className="relative z-10 size-3.5 text-white/80 shrink-0" />
+                      <img
+                        src={link.imageUrl}
+                        alt={link.label || "Banner"}
+                        className="size-full object-cover group-hover:scale-102 transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent flex flex-col justify-end p-2.5">
+                        <span className="text-xs font-bold text-white drop-shadow-sm truncate flex items-center justify-between gap-1">
+                          <span>{link.label || link.title || "Acessar"}</span>
+                          <ExternalLink className="size-3 text-white/80 shrink-0" />
+                        </span>
+                      </div>
                     </a>
                   ))}
                 </div>
               )}
 
-              {/* Botões Pílula Clean (sem imagem de fundo) */}
+              {/* Botões Normais Clean (sem imagem de fundo, minimalistas padrão Apple/Clean) */}
               {profile.biolinks.some((b: any) => !b.imageUrl) && (
-                <div className="flex flex-wrap gap-1.5 pt-0.5">
+                <div className="flex flex-wrap gap-2 pt-0.5">
                   {profile.biolinks.filter((b: any) => !b.imageUrl).map((link: any, idx: number) => (
                     <a
-                      key={idx}
+                      key={link.id || idx}
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-3 py-1.5 rounded-xl text-xs font-bold bg-muted/40 hover:bg-muted text-foreground border border-border/40 flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
+                      className="inline-flex items-center gap-2 h-9 px-4 rounded-xl text-xs font-semibold bg-muted/40 hover:bg-muted text-foreground border border-border/50 transition-all hover:border-border cursor-pointer shadow-2xs"
                     >
                       <span>{link.label || link.title || link.url}</span>
                       <ExternalLink className="size-3 text-muted-foreground" />
@@ -751,23 +757,23 @@ export function MemberPublicProfileView({
             </div>
           )}
 
-          {/* Mini-Banner de Destaque Slim & Contido */}
+          {/* Mini-Banner de Destaque Delicado & Proporcional (16:9 Fiel ao Recorte) */}
           {profile.featured_banner_url && (
-            <div className="pt-2 max-w-xl">
+            <div className="pt-2 max-w-[320px] sm:max-w-[360px]">
               <a
                 href={profile.featured_banner_link || "#"}
                 target={profile.featured_banner_link ? "_blank" : undefined}
                 rel="noopener noreferrer"
-                className="block w-full h-20 sm:h-24 rounded-2xl overflow-hidden border border-border/50 shadow-xs relative group select-none"
+                className="block w-full aspect-[16/9] rounded-2xl overflow-hidden border border-border/60 shadow-xs relative group select-none hover:border-border transition-all"
               >
                 <img
                   src={profile.featured_banner_url}
                   alt="Destaque"
-                  className="size-full object-cover group-hover:scale-103 transition-transform duration-300"
+                  className="size-full object-cover group-hover:scale-102 transition-transform duration-300"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2.5">
                   <span className="text-[11px] font-bold text-white flex items-center gap-1 drop-shadow-sm">
-                    <span>Ver Destaque</span>
+                    <span>Acessar</span>
                     <ExternalLink className="size-3" />
                   </span>
                 </div>
@@ -823,7 +829,7 @@ export function MemberPublicProfileView({
 
       {/* ── Bloco 2: Perfil Profissional Estilo LinkedIn (Quando modo === "profissional") ── */}
       {activeMode === "profissional" && (
-        <div className="rounded-3xl bg-card p-6 sm:p-8 space-y-8 divide-y divide-border/40">
+        <div className="rounded-2xl bg-card p-6 sm:p-8 space-y-8 divide-y divide-border/40">
           {/* ── 1. Seção Sobre ── */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -1508,7 +1514,7 @@ export function MemberPublicProfileView({
           {socialTab === "posts" && (
             <div className="space-y-6">
               {posts.length === 0 ? (
-                <div className="py-16 text-center text-muted-foreground space-y-3 rounded-3xl bg-card border border-border/40">
+                <div className="py-16 text-center text-muted-foreground space-y-3 rounded-2xl bg-card border border-border/40">
                   <MessageSquare className="size-10 mx-auto text-muted-foreground/30" />
                   <p className="text-sm font-medium">Nenhuma publicação compartilhada ainda.</p>
                 </div>
@@ -1560,7 +1566,7 @@ export function MemberPublicProfileView({
               ) : (
                 <div className="space-y-4">
                   {posts.map((p: any) => (
-                    <div key={p.id} className="p-4 sm:p-6 rounded-3xl bg-card border border-border/40 shadow-2xs">
+                    <div key={p.id} className="p-4 sm:p-6 rounded-2xl bg-card border border-border/40 shadow-2xs">
                       <ThreadsFeedCard
                         post={{
                           id: p.id,
@@ -1590,7 +1596,7 @@ export function MemberPublicProfileView({
           {socialTab === "media" && (
             <div className="space-y-6">
               {posts.filter((p: any) => !!p.media_url).length === 0 ? (
-                <div className="py-16 text-center text-muted-foreground space-y-3 rounded-3xl bg-card border border-border/40">
+                <div className="py-16 text-center text-muted-foreground space-y-3 rounded-2xl bg-card border border-border/40">
                   <Grid className="size-10 mx-auto text-muted-foreground/30" />
                   <p className="text-sm font-medium">Nenhuma foto ou vídeo compartilhado ainda.</p>
                 </div>
@@ -1612,7 +1618,7 @@ export function MemberPublicProfileView({
 
           {/* Conteúdo da Aba: Salvos (Apenas Proprietário) */}
           {isOwner && socialTab === "saved" && (
-            <div className="py-16 text-center text-muted-foreground space-y-3 rounded-3xl bg-card border border-border/40">
+            <div className="py-16 text-center text-muted-foreground space-y-3 rounded-2xl bg-card border border-border/40">
               <Tag className="size-10 mx-auto text-muted-foreground/30" />
               <p className="text-sm font-medium">Seus itens salvos aparecerão aqui de forma privada.</p>
             </div>
@@ -1620,7 +1626,7 @@ export function MemberPublicProfileView({
 
           {/* Conteúdo da Aba: Curtidos (Apenas Proprietário) */}
           {isOwner && socialTab === "liked" && (
-            <div className="py-16 text-center text-muted-foreground space-y-3 rounded-3xl bg-card border border-border/40">
+            <div className="py-16 text-center text-muted-foreground space-y-3 rounded-2xl bg-card border border-border/40">
               <Sparkles className="size-10 mx-auto text-muted-foreground/30" />
               <p className="text-sm font-medium">Publicações que você curtiu na comunidade Wider.</p>
             </div>
@@ -2340,7 +2346,7 @@ function ExperienceEditModal({
               </Label>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold">Data de Início</Label>
                 <Input
@@ -2515,7 +2521,7 @@ function EducationEditModal({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold">Início</Label>
                 <Input
