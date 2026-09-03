@@ -371,3 +371,94 @@ Abaixo estão os capítulos de capability profunda que regem a expansão contín
   3. KDS Kanban conectado ao Supabase Realtime.
 - **Acceptance:** Pedido com modificadores calcula total com precisão de centavos no backend.
 - **Runtime Proof:** Teste de cálculo de pedido com modificadores obrigatórios e opcionais.
+
+---
+
+### Capability 10: Tourism, Travel Proposals & Digital Contracts Engine
+
+- **Current State:** Módulo completo de Turismo e Agências operando com propostas, contratos com assinatura digital SHA-256 e cotação em tempo real.
+- **Target State:** Gestão de viagens individuais e em grupo (`travel_groups`), cotações com cálculo de passageiros e integração de leads WhatsApp (`whatsapp_leads`), emissão de vouchers com QR Code e verificação pública de autenticidade documental (`/verify/document/:code`).
+- **Dependencies:** `travel_proposals`, `travel_contracts`, `travel_groups`, `signature_evidence`.
+- **Canonical Authority:** `docs/DOMAINS/02_CATALOG_COMMERCE.md` e `docs/BUSINESS_FLOWS.md`.
+- **Microphases:**
+  1. Criação de propostas interativas no Workspace (`/workspace/turismo/propostas`).
+  2. Assinatura eletrônica com captura de evidências (IP, User-Agent, Canvas de assinatura).
+  3. Geração de PDF selado com hash criptográfico SHA-256 e visualização pública.
+- **Acceptance:** Proposta aceita sincroniza status com contrato assinado e emite comprovante auditável.
+- **Runtime Proof:** Verificação de autenticidade em `/verify/document/:code` confirmando integridade do hash.
+
+---
+
+### Capability 11: Universal Visual Builder, Hotpages & Dynamic Sections
+
+- **Current State:** Motor de Construtor Visual (`ExperienceRenderer`) operando com documentos JSONB, suporte a mais de 35 tipos de seções e gaveta inteligente de nichos (Turismo, Gastronomia, Varejo, Estética, Imóveis).
+- **Target State:** Builder com drag-and-drop, layout split-view desktop e mobile preview, controle de versionamento atômico, publicação instantânea e renderização SSR sem layout shift.
+- **Dependencies:** `cms_documents`, `cms_nodes`, `hotpages`.
+- **Canonical Authority:** `docs/DOMAINS/06_BUILDER_CMS.md`.
+- **Microphases:**
+  1. Gaveta de 3 colunas categorizada por nicho com templates prontos.
+  2. Componentes especializados de conversão (TourismQuoteHero, FlashSaleHero, ServicePricingTable).
+  3. Unificação de Hotpages e Biolinks como documentos de 1ª classe.
+- **Acceptance:** Lojista monta, personaliza e publica páginas sem tocar em código.
+- **Runtime Proof:** Renderização de página no Canvas do Builder e no SSR público com 0 erros.
+
+---
+
+### Capability 12: Appointments, Multi-Agenda & Service Packages
+
+- **Current State:** Agendamento de serviços para salões, clínicas e consultórios com gestão de múltiplos profissionais (`booking_resources`) e pacotes de sessões (`service_packages`).
+- **Target State:** Calendário operacional com detecção de conflitos de horário, bloqueios de férias, compra de pacotes multi-sessão com controle de saldo de passes e auto-agendamento pelo cliente na vitrine.
+- **Dependencies:** `booking_appointments`, `booking_resources`, `booking_services`, `service_packages`.
+- **Canonical Authority:** `docs/DOMAIN_MODEL.md`.
+- **Microphases:**
+  1. Gestão de recursos e horários no Workspace (`/workspace/agenda`).
+  2. Seleção de profissional e dia/horário no fluxo público (`/_store/agendar`).
+  3. Gestão de passes e vouchers na área pessoal (`/_store/conta/pacotes`).
+- **Acceptance:** Agendamento respeita bloqueios de horário e debita passes de pacotes automaticamente.
+- **Runtime Proof:** Validação de slots de horário via `getAvailableBookingSlots`.
+
+---
+
+### Capability 13: Omnichannel POS, Cash Management & Comandas
+
+- **Current State:** Frente de Caixa (PDV Touch) para lojas físicas com atalhos de teclado, controle de turno de caixa cego (`cash_shifts`), sangrias, suprimentos e comandas de mesa.
+- **Target State:** PDV offline-first sincronizado com estoque central, integração com leitores de código de barras e emissão de comprovantes de venda térmicos e digitais (`workspace_.pedidos.$id.recibo`).
+- **Dependencies:** `cash_shifts`, `cash_register_entries`, `orders`, `stock_movements`.
+- **Canonical Authority:** `docs/DOMAINS/05_OPERATIONS_FINANCE.md`.
+- **Microphases:**
+  1. Abertura e fechamento de turnos de caixa com conferência cega.
+  2. Operação ágil de venda no PDV Touch com suporte a PIX, Dinheiro e Cartão.
+  3. Relatório de quebra de caixa e conciliação financeira diária.
+- **Acceptance:** Fechamento de caixa impede divergências sem registro de justificativa.
+- **Runtime Proof:** Execução da procedure `0034_cash_transactional_close.sql` com auditoria.
+
+---
+
+### Capability 14: Cryptographic Token Ledger & Solvency Proof
+
+- **Current State:** Ledger imutável de créditos e tokens comunitários com prova matemática de solvência.
+- **Target State:** Carteiras multi-tenant para lojistas e usuários com extrato transacional append-only, hashes encadeados estilo blockchain, limites de gastos e recompensas virais (bounties).
+- **Dependencies:** `store_token_wallets`, `user_token_wallets`, `token_ledger_immutable`.
+- **Canonical Authority:** `docs/TOKEN_ECONOMY_MANIFESTO.md`.
+- **Microphases:**
+  1. Criação de carteiras e regras de precificação de tokens.
+  2. Ledger append-only imutável com triggers de validação de saldo no Postgres.
+  3. Painel de solvência e auditoria global no Admin Master (`/admin-master/tokens`).
+- **Acceptance:** Nenhuma transação pode gerar saldo negativo ou alterar registros históricos.
+- **Runtime Proof:** Auditoria de integridade do ledger com reconciliação de saldo em centavos.
+
+---
+
+### Capability 15: MotoLink Dynamic Surge Pricing & Fleet Dispatch
+
+- **Current State:** Motor de precificação dinâmica de entregas urbanas com multiplicadores de demanda e clima (chuva).
+- **Target State:** Painel de despacho de entregadores próprios e terceirizados, cálculo de rota e distância em tempo real, rastreamento público para o cliente (`/_store/entrega/$token`) e acerto de diárias e taxas de entrega.
+- **Dependencies:** `logistics_price_tables`, `couriers`, `dispatch_trips`.
+- **Canonical Authority:** `docs/skills/dynamic-surge-pricing/SKILL.md`.
+- **Microphases:**
+  1. Tabelas de frete por faixa de distância e peso.
+  2. Multiplicadores dinâmicos de clima (chuva) e horários de pico.
+  3. Gestão de frotas e entregadores no Workspace (`/workspace/pedidos/frota`).
+- **Acceptance:** Cálculo de entrega é realizado 100% no servidor com base em geolocalização precisa.
+- **Runtime Proof:** Simulação de cotações com diferentes multiplicadores de demanda.
+

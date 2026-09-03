@@ -34,6 +34,7 @@ export async function _getStoreSettings() {
     segment: settings.segment || settings.type || settings.niche || null,
     type: settings.type || settings.segment || null,
     niche: settings.niche || settings.segment || null,
+    order_types: settings.order_types || { delivery: true, takeout: true, dine_in: true },
   };
 }
 
@@ -61,6 +62,13 @@ export const saveStoreSettingsSchema = z.object({
   delivery_zones: z.array(z.any()).optional(),
   holiday_exceptions: z.array(z.any()).optional(),
   emergency_pause_until: z.string().nullable().optional(),
+  order_types: z
+    .object({
+      delivery: z.boolean().default(true),
+      takeout: z.boolean().default(true),
+      dine_in: z.boolean().default(true),
+    })
+    .optional(),
 });
 
 export async function _saveStoreSettings(data: z.infer<typeof saveStoreSettingsSchema>) {
@@ -80,6 +88,7 @@ export async function _saveStoreSettings(data: z.infer<typeof saveStoreSettingsS
     delivery_zones,
     holiday_exceptions,
     emergency_pause_until,
+    order_types,
     ...columns
   } = data;
   const db = getServerClient();
@@ -116,6 +125,10 @@ export async function _saveStoreSettings(data: z.infer<typeof saveStoreSettingsS
       emergency_pause_until !== undefined
         ? emergency_pause_until
         : currentStore?.settings?.emergency_pause_until,
+    order_types:
+      order_types !== undefined
+        ? order_types
+        : currentStore?.settings?.order_types || { delivery: true, takeout: true, dine_in: true },
   };
 
   const { error } = await db
@@ -133,6 +146,71 @@ export async function _saveStoreSettings(data: z.infer<typeof saveStoreSettingsS
 export const saveStoreSettings = createServerFn({ method: "POST" })
   .validator(saveStoreSettingsSchema)
   .handler(async ({ data }) => _saveStoreSettings(data));
+
+// --- CONTROLE DE ABERTURA / PAUSA OPERACIONAL IMEDIATA ---
+
+export const toggleStoreOpenStatusSchema = z.object({
+  isOpen: z.boolean(),
+  pauseMinutes: z.number().optional(),
+});
+
+export async function _toggleStoreOpenStatus(data: z.infer<typeof toggleStoreOpenStatusSchema>) {
+  const identity = await getServerIdentity();
+  assertStoreAccess(identity, ["owner", "admin", "manager"]);
+
+  const db = getServerClient();
+  const storeId = identity.store_id;
+
+  const { data: currentStore, error: fetchErr } = await db
+    .from("stores")
+    .select("settings")
+    .eq("id", storeId)
+    .single();
+
+  if (fetchErr || !currentStore) {
+    throw new Error("Loja não encontrada para alteração de status.");
+  }
+
+  let emergency_pause_until: string | null = null;
+  if (!data.isOpen) {
+    if (data.pauseMinutes && data.pauseMinutes > 0) {
+      const pauseDate = new Date(Date.now() + data.pauseMinutes * 60 * 1000);
+      emergency_pause_until = pauseDate.toISOString();
+    } else {
+      const endOfDay = new Date();
+      endOfDay.setHours(23, 59, 59, 999);
+      emergency_pause_until = endOfDay.toISOString();
+    }
+  }
+
+  const updatedSettings = {
+    ...(currentStore.settings || {}),
+    emergency_pause_until,
+    manual_open_override: data.isOpen ? true : false,
+  };
+
+  const { error: updateErr } = await db
+    .from("stores")
+    .update({
+      settings: updatedSettings,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", storeId);
+
+  if (updateErr) {
+    throw new Error(`Erro ao atualizar status da loja: ${updateErr.message}`);
+  }
+
+  return {
+    success: true,
+    isOpen: data.isOpen,
+    emergency_pause_until,
+  };
+}
+
+export const toggleStoreOpenStatus = createServerFn({ method: "POST" })
+  .validator((d: unknown) => toggleStoreOpenStatusSchema.parse(d))
+  .handler(async ({ data }) => _toggleStoreOpenStatus(data));
 
 // --- POLÍTICAS DA LOJA ---
 
@@ -586,89 +664,62 @@ export const getMyStoresList = createServerFn({ method: "GET" }).handler(async (
     const db = getServerClient();
 
     // 1. Resolver usuário autenticado e perfil
-    let userId: string | null = null;
-    let userEmail: string | null = null;
-    let userRole = "customer";
-    let profileStoreId: string | null = null;
-
-    try {
-      const { getSSRClient } = await import("@/lib/server-access");
-      const ssrClient = await getSSRClient();
-      const authRes = await ssrClient.auth.getUser();
-      userId = authRes.data?.user?.id || null;
-      userEmail = authRes.data?.user?.email?.toLowerCase() || null;
-    } catch {
-      userId = null;
-    }
-
-    try {
-      const identity = await getServerIdentity();
-      if (!userId && identity.id) userId = identity.id;
-      if (identity.role) userRole = identity.role;
-    } catch {
-      // Silencioso
-    }
-
-    if (userId) {
-      try {
-        const { data: p } = await db
-          .from("profiles")
-          .select("role")
-          .eq("id", userId)
-          .maybeSingle();
-
-        if (p?.role) userRole = p.role;
-      } catch {
-        // Silencioso
-      }
-    }
-
+    const identity = await getServerIdentity();
+    const userId = identity.id;
+    const userRole = identity.role;
     const isPlatformAdmin =
       userRole === "platform_admin" ||
       userRole === "master" ||
-      userRole === "admin" ||
-      userRole === "superadmin" ||
-      userEmail === "master@wider.com.br" ||
-      userEmail === "meuwider@gmail.com";
+      userRole === "superadmin";
+
+    if (!userId) {
+      return [];
+    }
 
     // 2. Coletar IDs de lojas na tabela canônica workspace_members
     const storeIdsSet = new Set<string>();
     const roleByStoreId: Record<string, string> = {};
 
-    if (userId) {
-      try {
-        const { data: wmRows, error: wmErr } = await db
-          .from("workspace_members")
-          .select("store_id, role")
-          .eq("profile_id", userId);
+    try {
+      const { data: wmRows, error: wmErr } = await db
+        .from("workspace_members")
+        .select("store_id, role")
+        .eq("profile_id", userId);
 
-        if (wmErr) {
-          console.warn("[stores] Erro ao buscar workspace_members em getMyStoresList:", wmErr.message);
-        }
-
-        (wmRows || []).forEach((m: any) => {
-          if (m.store_id) {
-            storeIdsSet.add(m.store_id);
-            roleByStoreId[m.store_id] = m.role || "owner";
-          }
-        });
-      } catch (memErr) {
-        console.warn("[stores] Erro ao buscar memberships em getMyStoresList:", memErr);
+      if (wmErr) {
+        console.warn("[stores] Erro ao buscar workspace_members em getMyStoresList:", wmErr.message);
       }
+
+      (wmRows || []).forEach((m: any) => {
+        if (m.store_id) {
+          storeIdsSet.add(m.store_id);
+          roleByStoreId[m.store_id] = m.role || "owner";
+        }
+      });
+    } catch (memErr) {
+      console.warn("[stores] Erro ao buscar memberships em getMyStoresList:", memErr);
     }
+
+    // Também inclui qualquer store_id presente nos memberships resolvidos pela identity
+    (identity.memberships || []).forEach((m: any) => {
+      if (m.store_id) {
+        storeIdsSet.add(m.store_id);
+        if (!roleByStoreId[m.store_id]) {
+          roleByStoreId[m.store_id] = m.role || "owner";
+        }
+      }
+    });
 
     // 3. Montar query de lojas
     let query = db
       .from("stores")
-      .select("id, name, slug, phone, email, cnpj, address, city, state, description, settings, created_at, is_active");
+      .select("id, name, slug, phone, email, cnpj, address, city, state, description, settings, logo_url, created_at, is_active");
 
     if (isPlatformAdmin) {
       // Platform Admin tem visão completa de todas as lojas e empresas
       query = query.order("created_at", { ascending: false }).limit(50);
     } else if (storeIdsSet.size > 0) {
       query = query.in("id", Array.from(storeIdsSet)).order("created_at", { ascending: false });
-    } else if (userEmail) {
-      query = query.ilike("email", userEmail).order("created_at", { ascending: false }).limit(10);
     } else {
       return [];
     }
@@ -678,6 +729,8 @@ export const getMyStoresList = createServerFn({ method: "GET" }).handler(async (
       console.error("[stores] Erro ao listar lojas:", error);
       return [];
     }
+
+    const activeStoreId = identity.store_id;
 
     // 4. Enriquecer lojas com metadados e contagem de produtos
     const enriched = await Promise.all(
@@ -695,7 +748,7 @@ export const getMyStoresList = createServerFn({ method: "GET" }).handler(async (
 
         const settings = (st.settings as Record<string, any>) || {};
         const bannerUrl = settings.bannerUrl || settings.banner_url || null;
-        const logoUrl = settings.logoUrl || settings.logo_url || null;
+        const logoUrl = st.logo_url || settings.logoUrl || settings.logo_url || null;
         const type = settings.type || settings.segment || settings.niche || "ecommerce";
         const status = st.is_active === false ? "inactive" : (settings.status || "active");
 
@@ -717,7 +770,7 @@ export const getMyStoresList = createServerFn({ method: "GET" }).handler(async (
           settings,
           created_at: st.created_at,
           role: roleByStoreId[st.id] || (isPlatformAdmin ? "owner" : "member"),
-          is_active_context: true,
+          is_active_context: st.id === activeStoreId,
           product_count: productCount,
         };
       }),

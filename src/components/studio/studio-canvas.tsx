@@ -69,6 +69,7 @@ export function StudioCanvas({
       style={{ transform: `scale(${zoom})`, transformOrigin: "center center" }}
     >
       <div
+        id="studio-canvas-stage"
         className="relative overflow-hidden rounded-3xl transition-all duration-200 border border-white/10"
         style={{
           width: `${dimensions.width / 2.5}px`,

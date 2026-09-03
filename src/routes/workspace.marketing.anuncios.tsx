@@ -65,13 +65,13 @@ function AnunciosWorkspacePage() {
     <div className="space-y-6">
       {/* ── PageHeader Canônico ── */}
       <PageHeader
-        eyebrow="Vitrine & Divulgação"
-        title="Anúncios & Campanhas"
+        eyebrow="Marketing"
+        title="Anúncios"
         actions={
           <Button asChild size="sm" className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground h-9 px-4">
             <Link to="/workspace/marketing/anuncios/novo">
               <Plus className="size-3.5" />
-              <span>Criar Anúncio</span>
+              <span>Novo Anúncio</span>
             </Link>
           </Button>
         }

@@ -9,6 +9,7 @@ import { z } from "zod";
 
 import { requireAdmin } from "@/lib/server-access";
 import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
+import { logSystemError } from "@/lib/logger";
 import { getOpenStatus } from "@/lib/datetime";
 import {
   ExperienceNodeSchema,
@@ -2122,15 +2123,35 @@ export const getPublicExperienceDocumentBySlug = createServerFn({ method: "GET" 
       if (!resolvedStoreId) return { status: "not_found" as const };
       const storeId = resolvedStoreId;
 
-      // 1. Get Document
-      const { data: doc, error: docError } = await db
+      // 1. Get Document (tenta primeiro com o document_type solicitado, ou qualquer tipo ativo se não especificado)
+      let docQuery = db
         .from("experience_documents")
         .select("*")
         .eq("store_id", storeId)
         .eq("slug", input.slug)
-        .eq("document_type", input.document_type)
-        .eq("is_active", true)
-        .single();
+        .eq("is_active", true);
+
+      if (input.document_type) {
+        docQuery = docQuery.eq("document_type", input.document_type);
+      }
+
+      let { data: doc, error: docError } = await docQuery.maybeSingle();
+
+      // Fallback: se não encontrou com o document_type exato, busca qualquer documento ativo com esse slug
+      if (!doc && input.document_type) {
+        const { data: fallbackDoc } = await db
+          .from("experience_documents")
+          .select("*")
+          .eq("store_id", storeId)
+          .eq("slug", input.slug)
+          .eq("is_active", true)
+          .maybeSingle();
+
+        if (fallbackDoc) {
+          doc = fallbackDoc;
+          docError = null;
+        }
+      }
 
       if (docError) {
         if (
@@ -2279,6 +2300,7 @@ export const getPublicExperienceDocumentBySlug = createServerFn({ method: "GET" 
       // Backend não configurado não é erro fatal de página: a vitrine deve
       // renderizar o estado "em configuração" em vez de derrubar o SSR.
       if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+      logSystemError({ route: "builder.getPublicExperienceDocumentBySlug", error: e, payload: input });
       console.error("[builder.functions] getPublicExperienceDocumentBySlug error:", e);
       throw new Error("Erro ao carregar página.");
     }
@@ -2592,3 +2614,148 @@ export const getBuilderReviews = createServerFn({ method: "GET" }).handler(async
     throw new Error("Erro ao buscar avaliações.");
   }
 });
+
+export const getOrCreateStorefrontExperienceDocument = createServerFn({ method: "POST" })
+  .validator(z.object({ template_id: z.string().optional() }).optional())
+  .handler(async ({ data: input }) => {
+    await requireAdmin();
+    const { getServerIdentity } = await import("@/lib/server-access");
+    const identity = await getServerIdentity();
+    if (!identity.store_id) throw new Error("No store found");
+    const db = getServerClient();
+
+    // Check if storefront document exists
+    const { data: existing } = await db
+      .from("experience_documents")
+      .select("id")
+      .eq("store_id", identity.store_id)
+      .eq("slug", "home")
+      .eq("document_type", "storefront")
+      .maybeSingle();
+
+    if (existing?.id) {
+      return { documentId: existing.id };
+    }
+
+    // Otherwise create default storefront document
+    const res = await createExperienceDocument({
+      data: {
+        title: "Vitrine Principal da Loja",
+        slug: "home",
+        document_type: "storefront",
+        template_id: input?.template_id || "homepage_classic",
+      },
+    });
+
+    return { documentId: res.data.document.id };
+  });
+
+export const getOrCreateBiolinkExperienceDocument = createServerFn({ method: "POST" })
+  .validator(z.object({ template_id: z.string().optional() }).optional())
+  .handler(async ({ data: input }) => {
+    await requireAdmin();
+    const { getServerIdentity } = await import("@/lib/server-access");
+    const identity = await getServerIdentity();
+    if (!identity.store_id) throw new Error("No store found");
+    const db = getServerClient();
+
+    // Check if biolink document exists
+    const { data: existing } = await db
+      .from("experience_documents")
+      .select("id")
+      .eq("store_id", identity.store_id)
+      .eq("slug", "bio")
+      .eq("document_type", "biolink")
+      .maybeSingle();
+
+    if (existing?.id) {
+      return { documentId: existing.id };
+    }
+
+    // Otherwise create default biolink document
+    const res = await createExperienceDocument({
+      data: {
+        title: "Link da Bio Oficial",
+        slug: "bio",
+        document_type: "biolink",
+        template_id: input?.template_id || "biolink_classic",
+      },
+    });
+
+    return { documentId: res.data.document.id };
+  });
+
+export const duplicateExperienceDocument = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string().uuid() }))
+  .handler(async ({ data: input }) => {
+    await requireAdmin();
+    const { getServerIdentity } = await import("@/lib/server-access");
+    const identity = await getServerIdentity();
+    if (!identity.store_id) throw new Error("No store found");
+    const db = getServerClient();
+
+    // 1. Get original doc
+    const original = await getExperienceDocument({ data: { id: input.id } });
+    if (!original.data?.document) throw new Error("Documento original não encontrado.");
+
+    const origDoc = original.data.document;
+    const origNodes = original.data.nodes || [];
+
+    const newSlug = `${origDoc.slug}-copia-${Date.now().toString().slice(-4)}`;
+    const newTitle = `${origDoc.title} (Cópia)`;
+
+    // 2. Create new document
+    const { data: newDoc, error: docError } = await db
+      .from("experience_documents")
+      .insert({
+        store_id: identity.store_id,
+        title: newTitle,
+        slug: newSlug,
+        document_type: origDoc.document_type || "campaign",
+        is_active: true,
+      })
+      .select()
+      .single();
+
+    if (docError || !newDoc) throw new Error("Erro ao duplicar documento.");
+
+    // 3. Create version
+    const { data: newVersion, error: verError } = await db
+      .from("experience_versions")
+      .insert({
+        document_id: newDoc.id,
+        version_number: 1,
+        status: "draft",
+      })
+      .select()
+      .single();
+
+    if (verError || !newVersion) throw new Error("Erro ao criar versão duplicada.");
+
+    // 4. Duplicate nodes with new IDs
+    if (origNodes.length > 0) {
+      const idMap = new Map<string, string>();
+      const getNewId = (oldId: string) => {
+        if (!idMap.has(oldId)) idMap.set(oldId, crypto.randomUUID());
+        return idMap.get(oldId)!;
+      };
+
+      const nodesToInsert = origNodes.map((node) => ({
+        id: getNewId(node.id),
+        version_id: newVersion.id,
+        parent_id: node.parent_id ? getNewId(node.parent_id) : null,
+        node_type: node.node_type,
+        block_type: node.block_type,
+        sort_order: node.sort_order,
+        layout_rules: node.layout_rules,
+        design_tokens: node.design_tokens,
+        content: node.content,
+        data_bindings: node.data_bindings,
+      }));
+
+      await db.from("experience_nodes").insert(nodesToInsert);
+    }
+
+    return { documentId: newDoc.id };
+  });
+

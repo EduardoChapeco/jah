@@ -167,7 +167,7 @@ function AdminOrdersPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <PageHeader eyebrow="Gestão Comercial de Vendas" title="Painel & Expedição de Pedidos" />
+        <PageHeader eyebrow="Vendas" title="Pedidos" />
 
         {/* Action Controls */}
         <div className="flex items-center gap-2 shrink-0">
@@ -202,7 +202,7 @@ function AdminOrdersPage() {
               }`}
             >
               <ShoppingBag className="size-3.5 text-primary" />
-              <span>Separação Mercado</span>
+              <span>Separação</span>
             </button>
             <button
               onClick={() => setViewMode("table")}

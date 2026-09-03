@@ -111,8 +111,8 @@ function QuotesListPage() {
     <div className="space-y-6">
       {/* ── PageHeader Canônico ── */}
       <PageHeader
-        eyebrow="Funil & Vendas"
-        title="Orçamentos & Pipeline"
+        eyebrow="Vendas"
+        title="Orçamentos"
         actions={
           <div className="flex items-center gap-2">
             <div className="bg-muted/60 p-1 rounded-xl flex items-center gap-1">

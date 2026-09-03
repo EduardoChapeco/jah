@@ -1,5 +1,6 @@
 /**
  * travel-contract.functions.ts — BFF para Contratos Turísticos & Assinatura Eletrônica Jurídica (SHA-256)
+ * Tabelas canônicas: contracts + contract_versions + signature_envelopes + signature_evidence
  * Padrão BigTech | Zero Mocks | Persistência Real no Supabase
  */
 
@@ -98,28 +99,77 @@ export const CANONICAL_TOURISM_CLAUSES: ContractClauseDTO[] = [
   },
   {
     number: 5,
-    section: "DO CASO FORTUITO E FORÇA MAIOR",
+    section: "DO FORO",
     clause_text:
-      "Nenhuma das partes será responsabilizada pelo não cumprimento de obrigações decorrentes de eventos imprevisíveis ou inevitáveis (como condições climáticas adversas, pandemias, greves aeroportuárias ou determinações governamentais).",
-    is_mandatory: true,
-  },
-  {
-    number: 6,
-    section: "DA VALIDADE JURÍDICA DA ASSINATURA ELETRÔNICA",
-    clause_text:
-      "As partes declaram plenamente válida e eficaz a assinatura deste instrumento em meio eletrônico, reconhecendo a autenticidade, integridade e tempestividade do aceite digital emitido com registro de IP, data/hora e hash criptográfico nos termos da MP 2.200-2/2001 e Lei 14.063/2020.",
+      "Fica eleito o foro da Comarca da sede da agência para dirimir quaisquer controvérsias oriundas do presente instrumento, com renúncia a qualquer outro, por mais privilegiado que seja.",
     is_mandatory: true,
   },
 ];
 
-// ─── 1. Gestão de Minuta Padrão & Cláusulas da Agência ───────────────────────
+// ─── Helpers ───────────────────────────────────────────────────────────────────
 
-export const getAgencyContractTemplate = createServerFn({ method: "GET" })
-  .handler(async (): Promise<{ clauses: ContractClauseDTO[]; isCustom: boolean }> => {
+/** Mapeia status canônico contracts → ContractStatus */
+function toContractStatus(s: string): ContractStatus {
+  if (s === "signed") return "signed";
+  if (s === "cancelled") return "cancelled";
+  if (s === "sent") return "sent";
+  if (s === "pending_signature") return "pending_signature";
+  return "draft";
+}
+
+/** Converte row de contracts + contract_versions + signature_evidence para TravelContractDTO */
+function rowToContractDTO(contract: any, version: any, storeRow?: any): TravelContractDTO {
+  let meta: Record<string, any> = {};
+  try {
+    if (contract.metadata) meta = contract.metadata;
+  } catch (_) {}
+
+  const storeSettings = storeRow?.settings || {};
+  const clauses: ContractClauseDTO[] = (version?.clauses as ContractClauseDTO[]) || CANONICAL_TOURISM_CLAUSES;
+
+  return {
+    id: contract.id,
+    store_id: meta.store_id || null,
+    agency_name: storeRow?.name || meta.agency_name || "Agência de Viagens",
+    agency_cnpj: storeRow?.cnpj || meta.agency_cnpj || null,
+    agency_address: storeRow?.address || meta.agency_address || null,
+    agency_whatsapp: storeSettings.whatsapp_phone || storeSettings.phone || meta.agency_whatsapp || null,
+    public_token: contract.verification_code || contract.id,
+    proposal_id: meta.proposal_id || null,
+    contract_title: version?.title || contract.title || "Contrato de Viagem",
+    client_name: meta.client_name || "",
+    client_document: meta.client_document || "",
+    client_email: meta.client_email || null,
+    client_phone: meta.client_phone || "",
+    client_address: meta.client_address || null,
+    passengers: meta.passengers || [],
+    destination: meta.destination || "",
+    travel_start_date: meta.travel_start_date || null,
+    travel_end_date: meta.travel_end_date || null,
+    package_summary: meta.package_summary || "",
+    total_value_cents: meta.total_value_cents || 0,
+    payment_conditions: meta.payment_conditions || "",
+    clauses,
+    signatures: meta.signatures || [],
+    status: toContractStatus(contract.status),
+    signed_at: meta.signed_at || null,
+    content_hash: meta.content_hash || null,
+    certificate_serial: meta.certificate_serial || null,
+    pdf_url: meta.pdf_url || null,
+    created_at: contract.created_at,
+    updated_at: contract.updated_at,
+  };
+}
+
+// ─── Gestão de Cláusulas da Agência (Settings) ────────────────────────────────
+
+export const getAgencyTourismClauses = createServerFn({ method: "GET" }).handler(
+  async (): Promise<ContractClauseDTO[]> => {
     const supabase = getServerClient();
     const identity = await getServerIdentity();
+
     if (!identity?.store_id) {
-      return { clauses: CANONICAL_TOURISM_CLAUSES, isCustom: false };
+      return CANONICAL_TOURISM_CLAUSES;
     }
 
     const { data: store } = await supabase
@@ -128,90 +178,74 @@ export const getAgencyContractTemplate = createServerFn({ method: "GET" })
       .eq("id", identity.store_id)
       .maybeSingle();
 
-    const customClauses = store?.settings?.tourism_contract_clauses;
+    const customClauses = (store?.settings as any)?.tourism_contract_clauses;
     if (Array.isArray(customClauses) && customClauses.length > 0) {
-      return { clauses: customClauses, isCustom: true };
+      return customClauses;
     }
+    return CANONICAL_TOURISM_CLAUSES;
+  },
+);
 
-    return { clauses: CANONICAL_TOURISM_CLAUSES, isCustom: false };
-  });
-
-export const saveAgencyContractTemplate = createServerFn({ method: "POST" })
+export const saveAgencyTourismClauses = createServerFn({ method: "POST" })
   .validator(
     z.object({
-      clauses: z
-        .array(
-          z.object({
-            number: z.number(),
-            section: z.string().min(2, "Título da cláusula obrigatório"),
-            clause_text: z.string().min(5, "Texto da cláusula obrigatório"),
-            is_mandatory: z.boolean().default(true),
-          }),
-        )
-        .min(1, "O contrato deve conter pelo menos uma cláusula"),
+      clauses: z.array(
+        z.object({
+          number: z.number(),
+          section: z.string().min(2),
+          clause_text: z.string().min(5),
+          is_mandatory: z.boolean().default(true),
+        }),
+      ),
     }),
   )
-  .handler(async ({ data: { clauses } }): Promise<{ success: boolean; count: number }> => {
+  .handler(async ({ data }): Promise<{ success: boolean }> => {
     const supabase = getServerClient();
     const identity = await getServerIdentity();
-    if (!identity?.store_id) {
-      throw new Error("Não autorizado — selecione uma agência ativa.");
-    }
+
+    if (!identity?.store_id) throw new Error("Loja não encontrada na sessão.");
 
     const { data: store } = await supabase
       .from("stores")
       .select("settings")
       .eq("id", identity.store_id)
-      .single();
+      .maybeSingle();
 
     const currentSettings = (store?.settings as Record<string, any>) || {};
-    const nextSettings = {
-      ...currentSettings,
-      tourism_contract_clauses: clauses,
-    };
-
     const { error } = await supabase
       .from("stores")
-      .update({ settings: nextSettings })
+      .update({ settings: { ...currentSettings, tourism_contract_clauses: data.clauses } })
       .eq("id", identity.store_id);
 
-    if (error) {
-      console.error("[travel-contract] Erro ao salvar minuta padrão:", error);
-      throw new Error("Erro ao salvar minuta padrão da agência: " + error.message);
-    }
-
-    return { success: true, count: clauses.length };
-  });
-
-export const resetAgencyContractTemplate = createServerFn({ method: "POST" })
-  .handler(async (): Promise<{ success: boolean }> => {
-    const supabase = getServerClient();
-    const identity = await getServerIdentity();
-    if (!identity?.store_id) {
-      throw new Error("Não autorizado — selecione uma agência ativa.");
-    }
-
-    const { data: store } = await supabase
-      .from("stores")
-      .select("settings")
-      .eq("id", identity.store_id)
-      .single();
-
-    const currentSettings = (store?.settings as Record<string, any>) || {};
-    const nextSettings = { ...currentSettings };
-    delete nextSettings.tourism_contract_clauses;
-
-    const { error } = await supabase
-      .from("stores")
-      .update({ settings: nextSettings })
-      .eq("id", identity.store_id);
-
-    if (error) {
-      throw new Error("Erro ao restaurar minuta padrão: " + error.message);
-    }
-
+    if (error) throw new Error("Erro ao salvar cláusulas: " + error.message);
     return { success: true };
   });
+
+export const resetAgencyTourismClauses = createServerFn({ method: "POST" }).handler(
+  async (): Promise<{ success: boolean }> => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+
+    if (!identity?.store_id) throw new Error("Loja não encontrada na sessão.");
+
+    const { data: store } = await supabase
+      .from("stores")
+      .select("settings")
+      .eq("id", identity.store_id)
+      .maybeSingle();
+
+    const currentSettings = (store?.settings as Record<string, any>) || {};
+    delete currentSettings.tourism_contract_clauses;
+
+    const { error } = await supabase
+      .from("stores")
+      .update({ settings: currentSettings })
+      .eq("id", identity.store_id);
+
+    if (error) throw new Error("Erro ao restaurar minuta padrão: " + error.message);
+    return { success: true };
+  },
+);
 
 export const updateContractClauses = createServerFn({ method: "POST" })
   .validator(
@@ -232,9 +266,10 @@ export const updateContractClauses = createServerFn({ method: "POST" })
     const identity = await getServerIdentity();
     if (!identity?.id) throw new Error("Não autorizado.");
 
+    // Verifica status no contrato canônico
     const { data: contract, error: findErr } = await supabase
-      .from("travel_contracts")
-      .select("status")
+      .from("contracts")
+      .select("status, current_version")
       .eq("id", contractId)
       .single();
 
@@ -243,10 +278,12 @@ export const updateContractClauses = createServerFn({ method: "POST" })
       throw new Error("Contrato já assinado digitalmente não pode ter suas cláusulas alteradas.");
     }
 
+    // Atualiza a versão atual
     const { error } = await supabase
-      .from("travel_contracts")
+      .from("contract_versions")
       .update({ clauses })
-      .eq("id", contractId);
+      .eq("contract_id", contractId)
+      .eq("version_number", contract.current_version);
 
     if (error) throw new Error("Erro ao atualizar cláusulas do contrato: " + error.message);
     return { success: true };
@@ -293,7 +330,7 @@ export const createTravelContract = createServerFn({ method: "POST" })
         .eq("id", identity.store_id)
         .maybeSingle();
 
-      const agencyClauses = store?.settings?.tourism_contract_clauses;
+      const agencyClauses = (store?.settings as any)?.tourism_contract_clauses;
       if (Array.isArray(agencyClauses) && agencyClauses.length > 0) {
         clauses = agencyClauses;
       }
@@ -303,39 +340,69 @@ export const createTravelContract = createServerFn({ method: "POST" })
       clauses = CANONICAL_TOURISM_CLAUSES;
     }
 
-    const { data: inserted, error } = await supabase
-      .from("travel_contracts")
+    // Todos os dados de domínio turístico ficam no campo metadata (JSONB)
+    const meta = {
+      store_id: identity.store_id || null,
+      proposal_id: input.proposalId || null,
+      public_token: publicToken,
+      client_name: input.clientName.trim(),
+      client_document: input.clientDocument.trim(),
+      client_email: input.clientEmail?.trim() || null,
+      client_phone: input.clientPhone.trim(),
+      client_address: input.clientAddress?.trim() || null,
+      destination: input.destination.trim(),
+      travel_start_date: input.travelStartDate || null,
+      travel_end_date: input.travelEndDate || null,
+      package_summary: input.packageSummary.trim(),
+      total_value_cents: input.totalValueCents,
+      payment_conditions: input.paymentConditions.trim(),
+      passengers: input.passengers,
+      signatures: [],
+    };
+
+    // 1. Cria o contrato canônico
+    const { data: contractRow, error: contractErr } = await supabase
+      .from("contracts")
       .insert({
-        store_id: identity.store_id || null,
-        created_by_profile_id: identity.id,
-        proposal_id: input.proposalId || null,
-        public_token: publicToken,
-        contract_title: input.contractTitle.trim(),
-        client_name: input.clientName.trim(),
-        client_document: input.clientDocument.trim(),
-        client_email: input.clientEmail?.trim() || null,
-        client_phone: input.clientPhone.trim(),
-        client_address: input.clientAddress?.trim() || null,
-        destination: input.destination.trim(),
-        travel_start_date: input.travelStartDate || null,
-        travel_end_date: input.travelEndDate || null,
-        package_summary: input.packageSummary.trim(),
-        total_value_cents: input.totalValueCents,
-        payment_conditions: input.paymentConditions.trim(),
-        passengers: input.passengers,
-        clauses,
-        signatures: [],
+        creator_id: identity.id,
+        title: input.contractTitle.trim(),
+        category: "tourism",
         status: "sent",
+        current_version: 1,
+        verification_code: publicToken,
+        metadata: meta,
       })
-      .select("id, public_token")
+      .select("id")
       .single();
 
-    if (error) {
-      console.error("[travel-contract.functions] Erro ao criar contrato:", error);
-      throw new Error("Falha ao salvar contrato no banco: " + error.message);
+    if (contractErr || !contractRow) {
+      console.error("[travel-contract.functions] Erro ao criar contrato:", contractErr);
+      throw new Error("Falha ao salvar contrato no banco: " + contractErr?.message);
     }
 
-    return { success: true, id: inserted.id, publicToken: inserted.public_token };
+    // 2. Cria a primeira versão com cláusulas
+    const contentText = JSON.stringify({ title: input.contractTitle, clauses, meta });
+    const msgBuffer = new TextEncoder().encode(contentText);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
+    const hash = Array.from(new Uint8Array(hashBuffer)).map((b) => b.toString(16).padStart(2, "0")).join("");
+
+    const { error: versionErr } = await supabase.from("contract_versions").insert({
+      contract_id: contractRow.id,
+      version_number: 1,
+      title: input.contractTitle.trim(),
+      content_markdown: `# ${input.contractTitle}\n\n${clauses.map((c: ContractClauseDTO) => `## ${c.section}\n${c.clause_text}`).join("\n\n")}`,
+      clauses,
+      variables: {},
+      hash_sha256: hash,
+      is_sealed: false,
+    });
+
+    if (versionErr) {
+      console.error("[travel-contract.functions] Erro ao criar versão:", versionErr);
+      // Não falha — contrato criado, versão pode ser criada depois
+    }
+
+    return { success: true, id: contractRow.id, publicToken };
   });
 
 export const createContractFromProposal = createServerFn({ method: "POST" })
@@ -353,30 +420,34 @@ export const createContractFromProposal = createServerFn({ method: "POST" })
       throw new Error("Não autorizado — faça login no painel da agência.");
     }
 
-    // 1. Buscar a Proposta de Viagem
-    const { data: proposal, error: propErr } = await supabase
-      .from("travel_proposals")
-      .select("*")
+    // 1. Busca a Proposta via quotes
+    const { data: quote, error: quoteErr } = await supabase
+      .from("quotes")
+      .select("*, stores(name, cnpj, address, settings)")
       .eq("id", input.proposalId)
       .single();
 
-    if (propErr || !proposal) {
+    if (quoteErr || !quote) {
       throw new Error("Proposta não encontrada para vincular ao contrato.");
     }
 
-    // 2. Montar resumo estruturado do pacote
-    const flightsSummary = Array.isArray(proposal.flights) && proposal.flights.length > 0
-      ? `Aéreo: ${proposal.flights.map((f: any) => `${f.airline || "Cia"} (${f.origin} ➔ ${f.destination})`).join(", ")}.`
+    let proposalMeta: Record<string, any> = {};
+    try {
+      if (quote.conditions) proposalMeta = JSON.parse(quote.conditions);
+    } catch (_) {}
+
+    const flightsSummary = Array.isArray(proposalMeta.flights) && proposalMeta.flights.length > 0
+      ? `Aéreo: ${proposalMeta.flights.map((f: any) => `${f.airline_name || "Cia"} (${f.origin_iata} ➔ ${f.destination_iata})`).join(", ")}.`
       : "";
-    const hotelsSummary = Array.isArray(proposal.hotels) && proposal.hotels.length > 0
-      ? `Hospedagem: ${proposal.hotels.map((h: any) => `${h.name} (${h.room_type || "Apto"}${h.meal_plan ? ` - ${h.meal_plan}` : ""})`).join(", ")}.`
+    const hotelsSummary = Array.isArray(proposalMeta.hotels) && proposalMeta.hotels.length > 0
+      ? `Hospedagem: ${proposalMeta.hotels.map((h: any) => `${h.hotel_name} (${h.room_type})`).join(", ")}.`
       : "";
-    const includesSummary = Array.isArray(proposal.includes) && proposal.includes.length > 0
-      ? `Serviços inclusos: ${proposal.includes.join(", ")}.`
+    const includesSummary = Array.isArray(proposalMeta.includes) && proposalMeta.includes.length > 0
+      ? `Serviços inclusos: ${proposalMeta.includes.join(", ")}.`
       : "";
 
     const fullPackageSummary = [
-      `Destino: ${proposal.destination_city || "Não especificado"}.`,
+      `Destino: ${proposalMeta.destination_city || "Não especificado"}.`,
       flightsSummary,
       hotelsSummary,
       includesSummary,
@@ -384,13 +455,12 @@ export const createContractFromProposal = createServerFn({ method: "POST" })
       .filter(Boolean)
       .join(" ");
 
-    const totalCents = proposal.pricing?.total_cents || (proposal.pricing?.per_person_cents || 0) * (proposal.passengers_count || 1);
-    const paymentCond = proposal.pricing?.payment_terms || "À vista ou parcelado conforme negociação da lâmina.";
+    const totalCents = proposalMeta.pricing?.total_price_cents || 0;
+    const paymentCond = "À vista ou parcelado conforme negociação da lâmina.";
     const publicToken = "ct_" + Math.random().toString(36).substring(2, 12);
+    const storeId = identity.store_id || quote.store_id || null;
 
-    const storeId = identity.store_id || proposal.store_id || null;
     let clauses = CANONICAL_TOURISM_CLAUSES;
-
     if (storeId) {
       const { data: store } = await supabase
         .from("stores")
@@ -398,48 +468,72 @@ export const createContractFromProposal = createServerFn({ method: "POST" })
         .eq("id", storeId)
         .maybeSingle();
 
-      const agencyClauses = store?.settings?.tourism_contract_clauses;
+      const agencyClauses = (store?.settings as any)?.tourism_contract_clauses;
       if (Array.isArray(agencyClauses) && agencyClauses.length > 0) {
         clauses = agencyClauses;
       }
     }
 
-    const { data: inserted, error: insertErr } = await supabase
-      .from("travel_contracts")
+    const contractTitle = `Contrato de Viagem — ${proposalMeta.destination_city || proposalMeta.title || "Pacote"}`;
+
+    const meta = {
+      store_id: storeId,
+      proposal_id: input.proposalId,
+      public_token: publicToken,
+      client_name: quote.guest_name || proposalMeta.client_name || "Cliente",
+      client_document: input.clientDocument || "A preencher no aceite",
+      client_email: quote.guest_email || proposalMeta.client_email || null,
+      client_phone: quote.guest_phone || proposalMeta.client_whatsapp || "",
+      client_address: null,
+      destination: proposalMeta.destination_city || "Destino",
+      travel_start_date: proposalMeta.travel_start_date || null,
+      travel_end_date: proposalMeta.travel_end_date || null,
+      package_summary: fullPackageSummary || "Pacote de turismo personalizado.",
+      total_value_cents: totalCents,
+      payment_conditions: paymentCond,
+      passengers: [{ name: quote.guest_name || "Passageiro Principal" }],
+      signatures: [],
+    };
+
+    const { data: contractRow, error: insertErr } = await supabase
+      .from("contracts")
       .insert({
-        store_id: storeId,
-        created_by_profile_id: identity.id,
-        proposal_id: proposal.id,
-        public_token: publicToken,
-        contract_title: `Contrato de Viagem — ${proposal.title || proposal.destination_city}`,
-        client_name: proposal.client_name || "Cliente",
-        client_document: input.clientDocument || "A preencher no aceite",
-        client_email: proposal.client_email || null,
-        client_phone: proposal.client_whatsapp || "",
-        client_address: null,
-        destination: proposal.destination_city || "Destino",
-        travel_start_date: proposal.start_date || null,
-        travel_end_date: proposal.end_date || null,
-        package_summary: fullPackageSummary || "Pacote de turismo personalizado.",
-        total_value_cents: totalCents,
-        payment_conditions: paymentCond,
-        passengers: [{ name: proposal.client_name || "Passageiro Principal" }],
-        clauses,
-        signatures: [],
+        creator_id: identity.id,
+        title: contractTitle,
+        category: "tourism",
         status: "sent",
+        current_version: 1,
+        verification_code: publicToken,
+        metadata: meta,
       })
-      .select("id, public_token")
+      .select("id")
       .single();
 
-    if (insertErr || !inserted) {
+    if (insertErr || !contractRow) {
       console.error("[travel-contract.functions] Erro ao emitir contrato da proposta:", insertErr);
       throw new Error("Falha ao gerar contrato a partir da proposta: " + insertErr?.message);
     }
 
-    return { success: true, id: inserted.id, publicToken: inserted.public_token };
+    const contentText = JSON.stringify({ title: contractTitle, clauses, meta });
+    const msgBuffer = new TextEncoder().encode(contentText);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
+    const hash = Array.from(new Uint8Array(hashBuffer)).map((b) => b.toString(16).padStart(2, "0")).join("");
+
+    await supabase.from("contract_versions").insert({
+      contract_id: contractRow.id,
+      version_number: 1,
+      title: contractTitle,
+      content_markdown: `# ${contractTitle}\n\n${clauses.map((c: ContractClauseDTO) => `## ${c.section}\n${c.clause_text}`).join("\n\n")}`,
+      clauses,
+      variables: {},
+      hash_sha256: hash,
+      is_sealed: false,
+    });
+
+    return { success: true, id: contractRow.id, publicToken };
   });
 
-// ─── 2. Buscar Contrato por ID (Workspace) ────────────────────────────────────
+// ─── Buscar Contrato por ID (Workspace) ──────────────────────────────────────
 
 export const getTravelContractById = createServerFn({ method: "GET" })
   .validator(z.object({ id: z.string().min(1) }))
@@ -447,126 +541,75 @@ export const getTravelContractById = createServerFn({ method: "GET" })
     const supabase = getServerClient();
     const identity = await getServerIdentity();
 
-    if (!identity?.id) {
-      throw new Error("Não autorizado.");
-    }
+    if (!identity?.id) throw new Error("Não autorizado.");
 
-    const { data: row, error } = await supabase
-      .from("travel_contracts")
-      .select(`
-        *,
-        stores (
-          name,
-          cnpj,
-          address,
-          settings
-        )
-      `)
+    const { data: contract, error: cErr } = await supabase
+      .from("contracts")
+      .select("*")
       .eq("id", data.id)
       .maybeSingle();
 
-    if (error || !row) {
-      return null;
+    if (cErr || !contract) return null;
+
+    // Busca a versão atual
+    const { data: version } = await supabase
+      .from("contract_versions")
+      .select("*")
+      .eq("contract_id", data.id)
+      .eq("version_number", contract.current_version)
+      .maybeSingle();
+
+    const meta = contract.metadata as Record<string, any> || {};
+    let storeRow: any = null;
+    if (meta.store_id) {
+      const { data: s } = await supabase
+        .from("stores")
+        .select("name, cnpj, address, settings")
+        .eq("id", meta.store_id)
+        .maybeSingle();
+      storeRow = s;
     }
 
-    const storeSettings = (row.stores as any)?.settings || {};
-
-    return {
-      id: row.id,
-      store_id: row.store_id,
-      agency_name: (row.stores as any)?.name || "Agência de Viagens",
-      agency_cnpj: (row.stores as any)?.cnpj || null,
-      agency_address: (row.stores as any)?.address || null,
-      agency_whatsapp: storeSettings.whatsapp_phone || storeSettings.phone || "",
-      public_token: row.public_token,
-      proposal_id: row.proposal_id,
-      contract_title: row.contract_title,
-      client_name: row.client_name,
-      client_document: row.client_document,
-      client_email: row.client_email,
-      client_phone: row.client_phone,
-      client_address: row.client_address,
-      passengers: row.passengers || [],
-      destination: row.destination,
-      travel_start_date: row.travel_start_date,
-      travel_end_date: row.travel_end_date,
-      package_summary: row.package_summary,
-      total_value_cents: row.total_value_cents || 0,
-      payment_conditions: row.payment_conditions,
-      clauses: row.clauses || CANONICAL_TOURISM_CLAUSES,
-      signatures: row.signatures || [],
-      status: row.status || "draft",
-      signed_at: row.signed_at,
-      content_hash: row.content_hash,
-      certificate_serial: row.certificate_serial,
-      pdf_url: row.pdf_url,
-      created_at: row.created_at,
-      updated_at: row.updated_at,
-    };
+    return rowToContractDTO(contract, version, storeRow);
   });
 
-// ─── 3. Buscar Contrato Público por Token (Mobile Signature) ──────────────────
+// ─── Buscar Contrato Público por Token (Mobile Signature) ──────────────────
 
 export const getPublicTravelContractByToken = createServerFn({ method: "GET" })
   .validator(z.object({ token: z.string().min(1) }))
   .handler(async ({ data }): Promise<TravelContractDTO | null> => {
     const supabase = getAnonServerClient();
 
-    const { data: row, error } = await supabase
-      .from("travel_contracts")
-      .select(`
-        *,
-        stores (
-          name,
-          cnpj,
-          address,
-          settings
-        )
-      `)
-      .eq("public_token", data.token)
+    const { data: contract, error } = await supabase
+      .from("contracts")
+      .select("*")
+      .eq("verification_code", data.token)
       .maybeSingle();
 
-    if (error || !row) {
-      return null;
+    if (error || !contract) return null;
+
+    const { data: version } = await supabase
+      .from("contract_versions")
+      .select("*")
+      .eq("contract_id", contract.id)
+      .eq("version_number", contract.current_version)
+      .maybeSingle();
+
+    const meta = contract.metadata as Record<string, any> || {};
+    let storeRow: any = null;
+    if (meta.store_id) {
+      const { data: s } = await supabase
+        .from("stores")
+        .select("name, cnpj, address, settings")
+        .eq("id", meta.store_id)
+        .maybeSingle();
+      storeRow = s;
     }
 
-    const storeSettings = (row.stores as any)?.settings || {};
-
-    return {
-      id: row.id,
-      store_id: row.store_id,
-      agency_name: (row.stores as any)?.name || "Agência de Viagens",
-      agency_cnpj: (row.stores as any)?.cnpj || null,
-      agency_address: (row.stores as any)?.address || null,
-      agency_whatsapp: storeSettings.whatsapp_phone || storeSettings.phone || "",
-      public_token: row.public_token,
-      proposal_id: row.proposal_id,
-      contract_title: row.contract_title,
-      client_name: row.client_name,
-      client_document: row.client_document,
-      client_email: row.client_email,
-      client_phone: row.client_phone,
-      client_address: row.client_address,
-      passengers: row.passengers || [],
-      destination: row.destination,
-      travel_start_date: row.travel_start_date,
-      travel_end_date: row.travel_end_date,
-      package_summary: row.package_summary,
-      total_value_cents: row.total_value_cents || 0,
-      payment_conditions: row.payment_conditions,
-      clauses: row.clauses || CANONICAL_TOURISM_CLAUSES,
-      signatures: row.signatures || [],
-      status: row.status || "draft",
-      signed_at: row.signed_at,
-      content_hash: row.content_hash,
-      certificate_serial: row.certificate_serial,
-      pdf_url: row.pdf_url,
-      created_at: row.created_at,
-      updated_at: row.updated_at,
-    };
+    return rowToContractDTO(contract, version, storeRow);
   });
 
-// ─── 4. Assinar Contrato Eletronicamente (SHA-256 + Certificado Digital) ──────
+// ─── Assinar Contrato Eletronicamente (SHA-256 + Certificado Digital) ──────
 
 export const signTravelContract = createServerFn({ method: "POST" })
   .validator(
@@ -582,29 +625,35 @@ export const signTravelContract = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<{ success: boolean; certificateSerial: string; message: string }> => {
     const supabase = getAnonServerClient();
 
-    // 1. Busca o contrato atual
+    // 1. Busca o contrato pelo verification_code (public_token)
     const { data: contract, error: findError } = await supabase
-      .from("travel_contracts")
-      .select("*")
-      .eq("public_token", data.token)
+      .from("contracts")
+      .select("*, contract_versions!inner(*)")
+      .eq("verification_code", data.token)
       .single();
 
     if (findError || !contract) {
       throw new Error("Contrato não encontrado.");
     }
 
+    if (contract.status === "signed") {
+      throw new Error("Este contrato já foi assinado anteriormente.");
+    }
+
     const timestamp = new Date().toISOString();
     const certificateSerial = `CERT-${Math.random().toString(36).substring(2, 8).toUpperCase()}-${Date.now().toString().slice(-4)}`;
 
-    // 2. Geração do payload para Hash Criptográfico
+    const meta = contract.metadata as Record<string, any> || {};
+
+    // 2. Geração do Hash Criptográfico SHA-256
     const hashPayload = JSON.stringify({
       contract_id: contract.id,
       signer_name: data.signerName,
       signer_document: data.signerDocument,
       timestamp,
       serial: certificateSerial,
-      total_value: contract.total_value_cents,
-      destination: contract.destination,
+      total_value: meta.total_value_cents || 0,
+      destination: meta.destination || "",
     });
 
     const encoder = new TextEncoder();
@@ -625,18 +674,21 @@ export const signTravelContract = createServerFn({ method: "POST" })
       auth_serial: certificateSerial,
     };
 
-    const currentSignatures = contract.signatures || [];
-    const updatedSignatures = [...currentSignatures, newSignature];
+    const currentSignatures = (meta.signatures || []) as ContractSignerDTO[];
+    const updatedMeta = {
+      ...meta,
+      signatures: [...currentSignatures, newSignature],
+      signed_at: timestamp,
+      content_hash: contentHash,
+      certificate_serial: certificateSerial,
+    };
 
-    // 3. Atualiza no Supabase
+    // 3. Atualiza o contrato canônico
     const { error: updateError } = await supabase
-      .from("travel_contracts")
+      .from("contracts")
       .update({
-        signatures: updatedSignatures,
         status: "signed",
-        signed_at: timestamp,
-        content_hash: contentHash,
-        certificate_serial: certificateSerial,
+        metadata: updatedMeta,
         updated_at: timestamp,
       })
       .eq("id", contract.id);
@@ -646,6 +698,35 @@ export const signTravelContract = createServerFn({ method: "POST" })
       throw new Error("Falha ao registrar assinatura: " + updateError.message);
     }
 
+    // 3.1 Se vinculado a uma proposta turística, sincroniza o status da proposta
+    if (meta.proposal_id) {
+      await supabase
+        .from("travel_proposals")
+        .update({
+          status: "contract_signed",
+          updated_at: timestamp,
+        })
+        .eq("id", meta.proposal_id);
+    }
+
+    // 4. Registra evidência de assinatura na tabela canônica
+    const currentVersion = (contract as any).contract_versions?.[0];
+    if (currentVersion?.id) {
+      await supabase.from("signature_evidence").insert({
+        envelope_id: currentVersion.id, // usa version id como envelope reference
+        ip_address: data.ipAddress,
+        user_agent: data.userAgent,
+        auth_method: "document_cpf",
+        consent_given: true,
+        evidence_manifest: {
+          signer_name: data.signerName,
+          signer_document: data.signerDocument,
+          certificate_serial: certificateSerial,
+        },
+        signature_digest: contentHash,
+      });
+    }
+
     return {
       success: true,
       certificateSerial,
@@ -653,7 +734,7 @@ export const signTravelContract = createServerFn({ method: "POST" })
     };
   });
 
-// ─── 5. Listagem de Contratos da Agência (Workspace) ──────────────────────────
+// ─── Listagem de Contratos da Agência (Workspace) ──────────────────────────
 
 export const listAgencyTravelContracts = createServerFn({ method: "GET" })
   .validator(
@@ -668,76 +749,56 @@ export const listAgencyTravelContracts = createServerFn({ method: "GET" })
     const supabase = getServerClient();
     const identity = await getServerIdentity();
 
-    if (!identity?.id) {
-      return [];
-    }
+    if (!identity?.id) return [];
 
     let query = supabase
-      .from("travel_contracts")
-      .select(`
-        *,
-        stores (
-          name,
-          cnpj,
-          address,
-          settings
-        )
-      `)
+      .from("contracts")
+      .select("*")
+      .eq("category", "tourism")
       .order("created_at", { ascending: false });
 
     if (identity.store_id) {
-      query = query.eq("store_id", identity.store_id);
+      // Filtra por store_id dentro do metadata JSONB
+      query = query.filter("metadata->>store_id", "eq", identity.store_id);
     } else {
-      query = query.eq("created_by_profile_id", identity.id);
+      query = query.eq("creator_id", identity.id);
     }
 
     if (data?.status && data.status !== "all") {
       query = query.eq("status", data.status);
     }
 
-    if (data?.search) {
-      query = query.or(`contract_title.ilike.%${data.search}%,client_name.ilike.%${data.search}%,destination.ilike.%${data.search}%`);
-    }
-
     const { data: rows, error } = await query;
 
-    if (error || !rows) {
-      return [];
-    }
+    if (error || !rows) return [];
 
-    return rows.map((row: any) => {
-      const storeSettings = row.stores?.settings || {};
-      return {
-        id: row.id,
-        store_id: row.store_id,
-        agency_name: row.stores?.name || "Agência de Viagens",
-        agency_cnpj: row.stores?.cnpj || null,
-        agency_address: row.stores?.address || null,
-        agency_whatsapp: storeSettings.whatsapp_phone || storeSettings.phone || "",
-        public_token: row.public_token,
-        proposal_id: row.proposal_id,
-        contract_title: row.contract_title,
-        client_name: row.client_name,
-        client_document: row.client_document,
-        client_email: row.client_email,
-        client_phone: row.client_phone,
-        client_address: row.client_address,
-        passengers: row.passengers || [],
-        destination: row.destination,
-        travel_start_date: row.travel_start_date,
-        travel_end_date: row.travel_end_date,
-        package_summary: row.package_summary,
-        total_value_cents: row.total_value_cents || 0,
-        payment_conditions: row.payment_conditions,
-        clauses: row.clauses || CANONICAL_TOURISM_CLAUSES,
-        signatures: row.signatures || [],
-        status: row.status || "draft",
-        signed_at: row.signed_at,
-        content_hash: row.content_hash,
-        certificate_serial: row.certificate_serial,
-        pdf_url: row.pdf_url,
-        created_at: row.created_at,
-        updated_at: row.updated_at,
-      };
+    // Busca versões em lote
+    const contractIds = rows.map((r: any) => r.id);
+    const { data: versions } = contractIds.length > 0
+      ? await supabase
+          .from("contract_versions")
+          .select("*")
+          .in("contract_id", contractIds)
+      : { data: [] };
+
+    const versionMap = new Map<string, any>();
+    (versions || []).forEach((v: any) => {
+      const existing = versionMap.get(v.contract_id);
+      if (!existing || v.version_number > existing.version_number) {
+        versionMap.set(v.contract_id, v);
+      }
     });
+
+    return rows
+      .filter((r: any) => {
+        const meta = r.metadata as Record<string, any> || {};
+        if (!data?.search) return true;
+        const s = data.search.toLowerCase();
+        return (
+          (meta.client_name || "").toLowerCase().includes(s) ||
+          (meta.destination || "").toLowerCase().includes(s) ||
+          (r.title || "").toLowerCase().includes(s)
+        );
+      })
+      .map((row: any) => rowToContractDTO(row, versionMap.get(row.id), null));
   });

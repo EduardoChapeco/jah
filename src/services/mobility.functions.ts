@@ -336,18 +336,91 @@ export const createMobilityRequest = createServerFn({ method: "POST" })
       magic_token: `req_${Math.random().toString(36).substring(2, 10)}`,
     };
 
-    const { data: request, error } = await supabase
-      .from("mobility_requests")
-      .insert(payload)
-      .select(`*, courier_profiles(full_name, phone, vehicle_type, vehicle_model, vehicle_plate, rating)`)
+    // Usa orders como tabela canônica com origin_type = 'mobility'
+    const orderPayload = {
+      customer_id: identity?.id || null,
+      origin_type: "mobility" as const,
+      status: assignedCourierProfileId ? "processing" : "draft",
+      driver_id: assignedCourierProfileId || null,
+      public_token: payload.magic_token,
+      customer_snapshot: {
+        name: data.customer_name || "Cliente Wider",
+        phone: data.customer_phone || "",
+      },
+      shipping_address: {
+        street: data.origin_address,
+        destination: data.destination_address,
+        lat: data.origin_lat || null,
+        lng: data.origin_lng || null,
+        dest_lat: data.destination_lat || null,
+        dest_lng: data.destination_lng || null,
+        origin_instructions: data.origin_instructions || null,
+        destination_instructions: data.destination_instructions || null,
+      },
+      items_snapshot: [
+        {
+          service_type: data.service_type,
+          distance_km: data.distance_km,
+          estimated_duration_minutes: Math.max(10, Math.round(data.distance_km * 3) + 5),
+          package_description: data.package_description || data.notes || null,
+          helpers_count: data.helpers_count,
+          needs_packing: data.needs_packing,
+          scheduled_for: data.scheduled_for ? new Date(data.scheduled_for).toISOString() : null,
+          payment_method: data.payment_method,
+          magic_token: payload.magic_token,
+        },
+      ],
+      subtotal_cents: data.estimated_price_cents,
+      total_cents: data.estimated_price_cents,
+      shipping_cents: 0,
+      discount_cents: 0,
+    };
+
+    const { data: order, error } = await supabase
+      .from("orders")
+      .insert(orderPayload)
+      .select("*, courier_profiles:driver_id(full_name, phone, vehicle_type, vehicle_model, vehicle_plate, rating)")
       .single();
 
     if (error) {
-      console.error("[mobility] Erro ao criar request no banco:", error);
-      throw new Error("Erro ao criar solicitação de mobilidade no banco: " + error.message);
+      console.error("[mobility] Erro ao criar pedido de mobilidade:", error);
+      throw new Error("Erro ao criar solicitação de mobilidade: " + error.message);
     }
 
-    return request as MobilityRequestDTO;
+    // Mapeia order para MobilityRequestDTO
+    const snap = (order.items_snapshot as any[])?.[0] || {};
+    return {
+      id: order.id,
+      store_id: order.store_id || null,
+      customer_id: order.customer_id,
+      customer_name: (order.customer_snapshot as any)?.name || "Cliente",
+      customer_phone: (order.customer_snapshot as any)?.phone || "",
+      service_type: snap.service_type as MobilityServiceType,
+      status: order.status as MobilityStatus,
+      origin_address: (order.shipping_address as any)?.street || "",
+      origin_lat: (order.shipping_address as any)?.lat || null,
+      origin_lng: (order.shipping_address as any)?.lng || null,
+      origin_instructions: (order.shipping_address as any)?.origin_instructions || null,
+      destination_address: (order.shipping_address as any)?.destination || "",
+      destination_lat: (order.shipping_address as any)?.dest_lat || null,
+      destination_lng: (order.shipping_address as any)?.dest_lng || null,
+      destination_instructions: (order.shipping_address as any)?.destination_instructions || null,
+      distance_km: snap.distance_km || 0,
+      estimated_duration_minutes: snap.estimated_duration_minutes || 0,
+      package_description: snap.package_description || null,
+      helpers_count: snap.helpers_count || 0,
+      needs_packing: snap.needs_packing || false,
+      scheduled_for: snap.scheduled_for || null,
+      estimated_price_cents: order.total_cents || 0,
+      final_price_cents: order.total_cents || 0,
+      payment_method: snap.payment_method || "cash",
+      payment_status: "pending",
+      courier_id: order.driver_id || null,
+      courier_profile_id: order.driver_id || null,
+      magic_token: snap.magic_token || null,
+      created_at: order.created_at,
+      courier_profiles: (order as any).courier_profiles || null,
+    } as MobilityRequestDTO;
   });
 
 /**
@@ -360,9 +433,10 @@ export const listCustomerMobilityRequests = createServerFn({ method: "GET" }).ha
 
     const supabase = getServerClient();
     const { data: rows, error } = await supabase
-      .from("mobility_requests")
-      .select(`*, courier_profiles(full_name, phone, vehicle_type, vehicle_model, vehicle_plate, rating)`)
+      .from("orders")
+      .select("*, courier_profiles:driver_id(full_name, phone, vehicle_type, vehicle_model, vehicle_plate, rating)")
       .eq("customer_id", identity.id)
+      .eq("origin_type", "mobility")
       .order("created_at", { ascending: false })
       .limit(30);
 
@@ -371,7 +445,41 @@ export const listCustomerMobilityRequests = createServerFn({ method: "GET" }).ha
       return [];
     }
 
-    return (rows || []) as MobilityRequestDTO[];
+    return (rows || []).map((order: any) => {
+      const snap = (order.items_snapshot as any[])?.[0] || {};
+      return {
+        id: order.id,
+        store_id: order.store_id || null,
+        customer_id: order.customer_id,
+        customer_name: order.customer_snapshot?.name || "Cliente",
+        customer_phone: order.customer_snapshot?.phone || "",
+        service_type: snap.service_type,
+        status: order.status,
+        origin_address: order.shipping_address?.street || "",
+        origin_lat: order.shipping_address?.lat || null,
+        origin_lng: order.shipping_address?.lng || null,
+        origin_instructions: order.shipping_address?.origin_instructions || null,
+        destination_address: order.shipping_address?.destination || "",
+        destination_lat: order.shipping_address?.dest_lat || null,
+        destination_lng: order.shipping_address?.dest_lng || null,
+        destination_instructions: order.shipping_address?.destination_instructions || null,
+        distance_km: snap.distance_km || 0,
+        estimated_duration_minutes: snap.estimated_duration_minutes || 0,
+        package_description: snap.package_description || null,
+        helpers_count: snap.helpers_count || 0,
+        needs_packing: snap.needs_packing || false,
+        scheduled_for: snap.scheduled_for || null,
+        estimated_price_cents: order.total_cents || 0,
+        final_price_cents: order.total_cents || 0,
+        payment_method: snap.payment_method || "cash",
+        payment_status: "pending",
+        courier_id: order.driver_id || null,
+        courier_profile_id: order.driver_id || null,
+        magic_token: snap.magic_token || null,
+        created_at: order.created_at,
+        courier_profiles: order.courier_profiles || null,
+      } as MobilityRequestDTO;
+    });
   },
 );
 
@@ -384,26 +492,56 @@ export const getMobilityRequestDetails = createServerFn({ method: "GET" })
     const supabase = getServerClient();
 
     let query = supabase
-      .from("mobility_requests")
-      .select(`*, courier_profiles(full_name, phone, vehicle_type, vehicle_model, vehicle_plate, rating)`);
+      .from("orders")
+      .select("*, courier_profiles:driver_id(full_name, phone, vehicle_type, vehicle_model, vehicle_plate, rating)")
+      .eq("origin_type", "mobility");
 
     if (idOrToken.startsWith("req_")) {
-      query = query.eq("magic_token", idOrToken);
+      query = query.eq("public_token", idOrToken);
     } else {
       query = query.eq("id", idOrToken);
     }
 
-    const { data: req, error } = await query.maybeSingle();
-    if (error || !req) {
+    const { data: order, error } = await query.maybeSingle();
+    if (error || !order) {
       throw new Error("Solicitação de mobilidade/entrega não encontrada.");
     }
 
-    return req as MobilityRequestDTO;
+    const snap = (order.items_snapshot as any[])?.[0] || {};
+    return {
+      id: order.id,
+      store_id: order.store_id || null,
+      customer_id: order.customer_id,
+      customer_name: (order.customer_snapshot as any)?.name || "Cliente",
+      customer_phone: (order.customer_snapshot as any)?.phone || "",
+      service_type: snap.service_type,
+      status: order.status,
+      origin_address: (order.shipping_address as any)?.street || "",
+      origin_lat: (order.shipping_address as any)?.lat || null,
+      origin_lng: (order.shipping_address as any)?.lng || null,
+      origin_instructions: (order.shipping_address as any)?.origin_instructions || null,
+      destination_address: (order.shipping_address as any)?.destination || "",
+      destination_lat: (order.shipping_address as any)?.dest_lat || null,
+      destination_lng: (order.shipping_address as any)?.dest_lng || null,
+      destination_instructions: (order.shipping_address as any)?.destination_instructions || null,
+      distance_km: snap.distance_km || 0,
+      estimated_duration_minutes: snap.estimated_duration_minutes || 0,
+      package_description: snap.package_description || null,
+      helpers_count: snap.helpers_count || 0,
+      needs_packing: snap.needs_packing || false,
+      scheduled_for: snap.scheduled_for || null,
+      estimated_price_cents: order.total_cents || 0,
+      final_price_cents: order.total_cents || 0,
+      payment_method: snap.payment_method || "cash",
+      payment_status: "pending",
+      courier_id: order.driver_id || null,
+      courier_profile_id: order.driver_id || null,
+      magic_token: snap.magic_token || null,
+      created_at: order.created_at,
+      courier_profiles: (order as any).courier_profiles || null,
+    } as MobilityRequestDTO;
   });
 
-/**
- * 5. Lista chamados em aberto no Dispatch Hub para motoristas e empresas de logística.
- */
 export const listOpenMobilityRequests = createServerFn({ method: "GET" })
   .validator(
     z
@@ -416,15 +554,12 @@ export const listOpenMobilityRequests = createServerFn({ method: "GET" })
     const supabase = getServerClient();
 
     let query = supabase
-      .from("mobility_requests")
-      .select(`*, courier_profiles(full_name, phone, vehicle_type, vehicle_model, vehicle_plate, rating)`)
-      .in("status", ["searching", "accepted", "in_progress"])
+      .from("orders")
+      .select("*, courier_profiles:driver_id(full_name, phone, vehicle_type, vehicle_model, vehicle_plate, rating)")
+      .eq("origin_type", "mobility")
+      .in("status", ["draft", "processing", "paid"])
       .order("created_at", { ascending: false })
       .limit(40);
-
-    if (data?.service_type) {
-      query = query.eq("service_type", data.service_type);
-    }
 
     const { data: rows, error } = await query;
     if (error) {
@@ -432,7 +567,35 @@ export const listOpenMobilityRequests = createServerFn({ method: "GET" })
       return [];
     }
 
-    return (rows || []) as MobilityRequestDTO[];
+    return (rows || []).map((order: any) => {
+      const snap = (order.items_snapshot as any[])?.[0] || {};
+      return {
+        id: order.id,
+        store_id: order.store_id || null,
+        customer_id: order.customer_id,
+        customer_name: order.customer_snapshot?.name || "Cliente",
+        customer_phone: order.customer_snapshot?.phone || "",
+        service_type: snap.service_type || data?.service_type,
+        status: order.status,
+        origin_address: order.shipping_address?.street || "",
+        destination_address: order.shipping_address?.destination || "",
+        distance_km: snap.distance_km || 0,
+        estimated_duration_minutes: snap.estimated_duration_minutes || 0,
+        package_description: snap.package_description || null,
+        helpers_count: snap.helpers_count || 0,
+        needs_packing: snap.needs_packing || false,
+        scheduled_for: snap.scheduled_for || null,
+        estimated_price_cents: order.total_cents || 0,
+        final_price_cents: order.total_cents || 0,
+        payment_method: snap.payment_method || "cash",
+        payment_status: "pending",
+        courier_id: order.driver_id || null,
+        courier_profile_id: order.driver_id || null,
+        magic_token: snap.magic_token || null,
+        created_at: order.created_at,
+        courier_profiles: order.courier_profiles || null,
+      } as MobilityRequestDTO;
+    });
   });
 
 /**
@@ -447,26 +610,50 @@ export const acceptMobilityRequest = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const supabase = getServerClient();
-    const identity = await getServerIdentity().catch(() => null);
 
     const { data: updated, error } = await supabase
-      .from("mobility_requests")
+      .from("orders")
       .update({
-        status: "accepted",
-        accepted_at: new Date().toISOString(),
-        courier_profile_id: data.courierProfileId || null,
+        status: "processing",
+        driver_id: data.courierProfileId || null,
+        updated_at: new Date().toISOString(),
       })
       .eq("id", data.requestId)
-      .select(`*, courier_profiles(full_name, phone, vehicle_type, vehicle_model, vehicle_plate, rating)`)
+      .eq("origin_type", "mobility")
+      .select("*, courier_profiles:driver_id(full_name, phone, vehicle_type, vehicle_model, vehicle_plate, rating)")
       .single();
 
     if (error) throw new Error(`Erro ao aceitar chamado: ${error.message}`);
-    return updated as MobilityRequestDTO;
+
+    const snap = ((updated as any).items_snapshot as any[])?.[0] || {};
+    return {
+      id: (updated as any).id,
+      store_id: (updated as any).store_id || null,
+      customer_id: (updated as any).customer_id,
+      customer_name: (updated as any).customer_snapshot?.name || "Cliente",
+      customer_phone: (updated as any).customer_snapshot?.phone || "",
+      service_type: snap.service_type,
+      status: (updated as any).status,
+      origin_address: (updated as any).shipping_address?.street || "",
+      destination_address: (updated as any).shipping_address?.destination || "",
+      distance_km: snap.distance_km || 0,
+      estimated_duration_minutes: snap.estimated_duration_minutes || 0,
+      package_description: snap.package_description || null,
+      helpers_count: snap.helpers_count || 0,
+      needs_packing: snap.needs_packing || false,
+      scheduled_for: snap.scheduled_for || null,
+      estimated_price_cents: (updated as any).total_cents || 0,
+      final_price_cents: (updated as any).total_cents || 0,
+      payment_method: snap.payment_method || "cash",
+      payment_status: "pending",
+      courier_id: (updated as any).driver_id || null,
+      courier_profile_id: (updated as any).driver_id || null,
+      magic_token: snap.magic_token || null,
+      created_at: (updated as any).created_at,
+      courier_profiles: (updated as any).courier_profiles || null,
+    } as MobilityRequestDTO;
   });
 
-/**
- * 7. Atualiza o status do chamado (ex: in_progress, delivered, completed).
- */
 export const updateMobilityStatus = createServerFn({ method: "POST" })
   .validator(
     z.object({
@@ -477,28 +664,66 @@ export const updateMobilityStatus = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const supabase = getServerClient();
+    // Map mobility statuses to orders statuses
+    const orderStatusMap: Record<string, string> = {
+      searching: "draft",
+      accepted: "processing",
+      in_progress: "shipped",
+      delivered: "delivered",
+      completed: "completed",
+      cancelled: "cancelled",
+      draft: "draft",
+    };
+
     const patch: Record<string, any> = {
-      status: data.status,
+      status: orderStatusMap[data.status] || data.status,
       updated_at: new Date().toISOString(),
     };
 
-    if (data.status === "in_progress") patch.started_at = new Date().toISOString();
     if (data.status === "delivered" || data.status === "completed")
-      patch.completed_at = new Date().toISOString();
+      patch.delivered_at = new Date().toISOString();
+    if (data.status === "in_progress") patch.shipped_at = new Date().toISOString();
     if (data.status === "cancelled") {
       patch.cancelled_at = new Date().toISOString();
       patch.cancellation_reason = data.cancellationReason || "Cancelado pelo operador";
     }
 
     const { data: updated, error } = await supabase
-      .from("mobility_requests")
+      .from("orders")
       .update(patch)
       .eq("id", data.requestId)
-      .select(`*, courier_profiles(full_name, phone, vehicle_type, vehicle_model, vehicle_plate, rating)`)
+      .eq("origin_type", "mobility")
+      .select("id, status, driver_id, items_snapshot, total_cents, customer_snapshot, shipping_address, created_at")
       .single();
 
     if (error) throw new Error(`Erro ao atualizar status: ${error.message}`);
-    return updated as MobilityRequestDTO;
+
+    const snap = ((updated as any).items_snapshot as any[])?.[0] || {};
+    return {
+      id: (updated as any).id,
+      store_id: null,
+      customer_id: null,
+      customer_name: (updated as any).customer_snapshot?.name || "Cliente",
+      customer_phone: (updated as any).customer_snapshot?.phone || "",
+      service_type: snap.service_type,
+      status: data.status,
+      origin_address: (updated as any).shipping_address?.street || "",
+      destination_address: (updated as any).shipping_address?.destination || "",
+      distance_km: snap.distance_km || 0,
+      estimated_duration_minutes: snap.estimated_duration_minutes || 0,
+      package_description: snap.package_description || null,
+      helpers_count: snap.helpers_count || 0,
+      needs_packing: snap.needs_packing || false,
+      scheduled_for: snap.scheduled_for || null,
+      estimated_price_cents: (updated as any).total_cents || 0,
+      final_price_cents: (updated as any).total_cents || 0,
+      payment_method: snap.payment_method || "cash",
+      payment_status: "pending",
+      courier_id: (updated as any).driver_id || null,
+      courier_profile_id: (updated as any).driver_id || null,
+      magic_token: snap.magic_token || null,
+      created_at: (updated as any).created_at,
+    } as MobilityRequestDTO;
   });
 
 /**

@@ -33,6 +33,8 @@ import {
   Image as ImageIcon,
   Share2,
   Loader2,
+  ChefHat,
+  Armchair,
 } from "lucide-react";
 import {
   getActiveRegister,
@@ -44,6 +46,7 @@ import { listAdminProducts } from "@/services/admin-catalog.functions";
 import { formatMoney } from "@/lib/money";
 import { formatDateTime } from "@/lib/datetime";
 import { parseCurrencyInputToCents } from "@/lib/cash";
+import { addItemsToTableComanda } from "@/services/order.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -70,6 +73,8 @@ import {
   type SelectedModifier,
 } from "@/components/pos/product-modifiers-modal";
 import { listPriceTables, type PriceTableDTO } from "@/services/price-tables.functions";
+import { getStoreSettings } from "@/services/store.functions";
+import { getNicheSemantics } from "@/lib/niche-semantics";
 
 function QuickOpenRegisterInlineCard() {
   const router = useRouter();
@@ -171,6 +176,10 @@ function QuickOpenRegisterInlineCard() {
 }
 
 export const Route = createFileRoute("/workspace/pdv/")({
+  validateSearch: (search: Record<string, unknown>): { mesa?: string; orderId?: string } => ({
+    mesa: typeof search.mesa === "string" ? search.mesa : undefined,
+    orderId: typeof search.orderId === "string" ? search.orderId : undefined,
+  }),
   head: () => ({ meta: [{ title: "Frente de Caixa (PDV) Pro | Wider" }] }),
   loader: async () => {
     const activeRegister = await getActiveRegister();
@@ -182,12 +191,13 @@ export const Route = createFileRoute("/workspace/pdv/")({
       throw new Error("CAIXA_EXPIRADO");
     }
 
-    const [catalog, priceTables] = await Promise.all([
+    const [catalog, priceTables, store] = await Promise.all([
       listAdminProducts().catch(() => []),
       listPriceTables().catch(() => []),
+      getStoreSettings().catch(() => null),
     ]);
 
-    return { activeRegister, catalog: catalog || [], priceTables: priceTables || [] };
+    return { activeRegister, catalog: catalog || [], priceTables: priceTables || [], store };
   },
   errorComponent: ({ error }) => {
     if (isRedirect(error)) {
@@ -248,12 +258,26 @@ interface SplitPayment {
 }
 
 function PdvTerminal() {
-  const { activeRegister, catalog, priceTables } = Route.useLoaderData() as any;
+  const { activeRegister, catalog, priceTables, store } = Route.useLoaderData() as any;
+  const search = Route.useSearch() as { mesa?: string; orderId?: string };
+  const semantics = useMemo(() => getNicheSemantics(store), [store]);
+  const availableModes = useMemo(
+    () =>
+      semantics.posServiceModes && semantics.posServiceModes.length > 0
+        ? semantics.posServiceModes
+        : [
+            { id: "counter", label: "Balcão (Takeout)", placeholder: "Nome do Cliente" },
+            { id: "table", label: "Mesa / Salão", placeholder: "Nº da Mesa" },
+            { id: "delivery", label: "Delivery", placeholder: "Endereço / Telefone" },
+          ],
+    [semantics],
+  );
+
   const [cart, setCart] = useState<CartItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [serviceMode, setServiceMode] = useState<"takeout" | "table" | "comanda" | "delivery">("takeout");
-  const [tableOrComandaNumber, setTableOrComandaNumber] = useState("");
+  const [serviceMode, setServiceMode] = useState<string>(() => (search.mesa ? "table" : (availableModes[0]?.id || "counter")));
+  const [tableOrComandaNumber, setTableOrComandaNumber] = useState(search.mesa || "");
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -589,6 +613,47 @@ function PdvTerminal() {
     }
   };
 
+  // Envia itens para a comanda de mesa / cozinha sem cobrar agora
+  const handleSendItemsToTable = async () => {
+    if (cart.length === 0) return;
+    if (!tableOrComandaNumber.trim()) {
+      toast.error("Informe o número da mesa antes de enviar.");
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const itemsPayload = cart.map((i) => ({
+        productId: i.product.id,
+        variantId: i.variant?.id && i.variant.id !== i.product.id ? i.variant.id : null,
+        productTitle: i.product.title,
+        qty: i.qty,
+        unitPriceCents: i.unitPriceCents,
+        totalCents: i.unitPriceCents * i.qty,
+        selectedOptions: i.selectedModifiers?.reduce((acc: any, m: any) => {
+          acc[m.id] = { label: m.label, price_modifier_cents: m.priceModifierCents };
+          return acc;
+        }, {}),
+        notes: null,
+      }));
+
+      await addItemsToTableComanda({
+        data: {
+          tableNumber: tableOrComandaNumber,
+          orderId: search.orderId,
+          items: itemsPayload,
+        },
+      });
+
+      toast.success(`Itens enviados para a cozinha na Mesa ${tableOrComandaNumber}!`);
+      setCart([]);
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao lançar itens na mesa.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   // Movimentação Rápida (Sangria / Suprimento)
   const openQuickMovement = (type: "sangria" | "suprimento") => {
     setQuickMovementType(type);
@@ -642,64 +707,51 @@ function PdvTerminal() {
               ref={searchInputRef}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar por nome ou código de barras... [F2]"
+              placeholder={semantics.searchItemPlaceholder || "Buscar por nome ou código de barras... [F2]"}
               className="pl-9 h-10 text-xs rounded-xl bg-background border-border/80 focus-visible:ring-1"
               autoFocus
             />
           </div>
         </div>
 
-        {/* Seletor de Modo de Atendimento */}
+        {/* Seletor de Modo de Atendimento Dinâmico por Nicho */}
         <div className="flex items-center gap-1.5 p-1 bg-muted/40 rounded-xl border border-border/60">
-          <button
-            type="button"
-            onClick={() => setServiceMode("takeout")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-              serviceMode === "takeout"
-                ? "bg-primary text-primary-foreground shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <ShoppingBag className="size-3.5" />
-            <span>Balcão</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setServiceMode("table")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-              serviceMode === "table"
-                ? "bg-primary text-primary-foreground shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Utensils className="size-3.5" />
-            <span>Mesa</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setServiceMode("comanda")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-              serviceMode === "comanda"
-                ? "bg-primary text-primary-foreground shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Receipt className="size-3.5" />
-            <span>Comanda</span>
-          </button>
+          {availableModes.map((mode: any) => {
+            const isSelected = serviceMode === mode.id;
+            return (
+              <button
+                key={mode.id}
+                type="button"
+                onClick={() => setServiceMode(mode.id)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  isSelected
+                    ? "bg-primary text-primary-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <span>{mode.label}</span>
+              </button>
+            );
+          })}
         </div>
 
-        {/* Identificador se for Mesa ou Comanda */}
-        {(serviceMode === "table" || serviceMode === "comanda") && (
-          <div className="w-24">
-            <Input
-              placeholder={serviceMode === "table" ? "Nº Mesa" : "Nº Comanda"}
-              value={tableOrComandaNumber}
-              onChange={(e) => setTableOrComandaNumber(e.target.value)}
-              className="h-9 text-xs rounded-xl font-mono text-center"
-            />
-          </div>
-        )}
+        {/* Identificador Dinâmico (ex: Mesa, Comanda, Nome do Viajante, Reserva) */}
+        {(() => {
+          const currentModeObj = availableModes.find((m: any) => m.id === serviceMode);
+          if (currentModeObj && currentModeObj.placeholder) {
+            return (
+              <div className="w-40">
+                <Input
+                  placeholder={currentModeObj.placeholder}
+                  value={tableOrComandaNumber}
+                  onChange={(e) => setTableOrComandaNumber(e.target.value)}
+                  className="h-9 text-xs rounded-xl font-mono text-center bg-background"
+                />
+              </div>
+            );
+          }
+          return null;
+        })()}
 
         {/* Ações Rápidas de Operação */}
         <div className="flex items-center gap-2">
@@ -743,6 +795,45 @@ function PdvTerminal() {
             title="Alternar Tela Cheia"
           >
             {isFullscreen ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
+          </Button>
+
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="h-9 rounded-xl text-xs font-bold gap-1"
+            title="KDS — Estações de Preparo"
+          >
+            <Link to="/workspace/pdv/cozinha">
+              <ChefHat className="size-3.5 text-orange-500" />
+              <span className="hidden xl:inline">Cozinha</span>
+            </Link>
+          </Button>
+
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="h-9 rounded-xl text-xs font-bold gap-1"
+            title="Salão & Mesas / Comandas"
+          >
+            <Link to="/workspace/pdv/comandas">
+              <Utensils className="size-3.5 text-amber-500" />
+              <span className="hidden xl:inline">Comandas</span>
+            </Link>
+          </Button>
+
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="h-9 rounded-xl text-xs font-bold gap-1"
+            title="Mapa de Reservas do Salão"
+          >
+            <Link to="/workspace/reservas">
+              <Armchair className="size-3.5 text-blue-500" />
+              <span className="hidden xl:inline">Reservas</span>
+            </Link>
           </Button>
 
           <Button
@@ -991,16 +1082,41 @@ function PdvTerminal() {
               </div>
             </div>
 
-            <Button
-              size="lg"
-              onClick={handleOpenCheckout}
-              disabled={cart.length === 0}
-              className="w-full h-12 rounded-xl font-bold text-xs bg-primary text-primary-foreground gap-2 cursor-pointer shadow-md"
-            >
-              <CreditCard className="size-4" />
-              <span>Cobrar [F4]</span>
-              <span className="font-mono ml-auto text-sm">{formatMoney(cartTotal)}</span>
-            </Button>
+            {serviceMode === "table" && tableOrComandaNumber ? (
+              <div className="space-y-2">
+                <Button
+                  size="lg"
+                  onClick={handleSendItemsToTable}
+                  disabled={cart.length === 0 || isProcessing}
+                  className="w-full h-12 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-700 text-white gap-2 cursor-pointer shadow-md"
+                >
+                  <Utensils className="size-4" />
+                  <span>Enviar para a Cozinha (Mesa {tableOrComandaNumber})</span>
+                  <span className="font-mono ml-auto text-sm">{formatMoney(cartTotal)}</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleOpenCheckout}
+                  disabled={cart.length === 0}
+                  className="w-full h-9 rounded-xl font-bold text-xs gap-1.5"
+                >
+                  <CreditCard className="size-3.5" />
+                  <span>Receber / Cobrar no Balcão [F4]</span>
+                </Button>
+              </div>
+            ) : (
+              <Button
+                size="lg"
+                onClick={handleOpenCheckout}
+                disabled={cart.length === 0}
+                className="w-full h-12 rounded-xl font-bold text-xs bg-primary text-primary-foreground gap-2 cursor-pointer shadow-md"
+              >
+                <CreditCard className="size-4" />
+                <span>Cobrar [F4]</span>
+                <span className="font-mono ml-auto text-sm">{formatMoney(cartTotal)}</span>
+              </Button>
+            )}
           </div>
         </div>
       </div>

@@ -654,10 +654,30 @@ Ver `BUSINESS_FLOWS.md — Módulo 3.2` para anatomia completa.
 
 ---
 
-## W-006 · Gestor Avançado de Pedidos
+## W-006 · Gestor Avançado de Pedidos (KDS & Omnichannel)
 
 **Rota:** `/workspace/pedidos/gestor` (`workspace.pedidos.gestor.tsx`) | **Status:** `✅ IMPLEMENTADO`
-**Shell:** Workspace | **Padrão:** operational board | **Ator:** Owner, Manager
+**Shell:** Workspace Clean Shell | **Padrão:** operational board (KDS Kanban) | **Ator:** Operador de Caixa, Chefe de Cozinha, Gerente
+
+### Anatomia Desktop (1440px) & Mobile
+```
+[Header Superior: Indicador Ao Vivo WebSocket + Alerta Sonoro WebAudio + Toggle Tela Cheia KDS + Alternador Kanban/Grid]
+[Subheader Operacional:
+  - Abas de Produção: [Agora (N)] vs [Agendados (N)] com contagem dinâmica em tempo real
+  - Chips Omnichannel: [Todos] [iFood] [WhatsApp] [Cardápio Próprio] [Delivery] [Balcão / Mesa]
+  - Campo de Busca Instantânea com filtro reativo por cliente, comanda e endereço]
+[Board Kanban KDS 4 Colunas com Barra de SLA (Verde <20m, Amarelo 20-30m, Vermelho >30m):
+  - 1. Novos / Pendentes (Ação: Iniciar Preparo ou Recusar)
+  - 2. Em Preparo / Cozinha (Ação: Concluir Preparo / Pronto)
+  - 3. Pronto / Despacho (Ação: Despachar / Retirar)
+  - 4. Finalizados (Histórico de entregas e comandas pagas)
+  - Ações Rápidas em Cada Card: Botão de Impressão Térmica 80mm com 1 clique + Botão WhatsApp do Cliente]
+[Sheet / Drawer Lateral de Detalhes (Desktop Drawer / Mobile Fullpage na Thumb Zone):
+  - Tabs Apple HIG: [Detalhes dos Itens] [Cliente & Entrega] [Histórico & SLAs]
+  - Visualização rica de complementos (adicionais, meio-a-meio, observações e modificadores com preços)
+  - Botões de Navegação GPS (Google Maps e Waze com 1 toque)
+  - Barra de Rodapé Fixa (Thumb Zone 44px): Imprimir 80mm, WhatsApp e Botão Primário Largo de Próximo Status]
+```
 
 ---
 
@@ -676,41 +696,34 @@ Ver `BUSINESS_FLOWS.md — Módulo 3.2` para anatomia completa.
 
 ---
 
-## W-008 · Frota e Entregas
+## W-008 · Frota e Expedição Rápida
 
 **Rota:** `/workspace/pedidos/frota` (`workspace.pedidos.frota.tsx`) | **Status:** `✅ IMPLEMENTADO`
-**Shell:** Workspace | **Padrão:** delivery_board | **Ator:** Owner, Manager
+**Shell:** Workspace Clean Shell | **Padrão:** delivery_board | **Ator:** Operador, Expedidor, Gerente
 
 ### Anatomia
 
 ```
-[Board Kanban: Para Atribuir | Em Rota | Concluído | Incidente]
-[Painel lateral: info do entregador selecionado + GPS real-time]
-[Botão: Gerar Link Mágico para Avulso]
+[Seção de Expedição Imediata: Cards de pedidos de delivery pendentes (listPendingDeliveryOrders) prontos para despacho com 1 toque]
+[Board Kanban da Frota: Para Atribuir | Em Rota | Concluído | Incidente]
+[Formulário de Despacho com Seletores Inteligentes: Seleciona pedidos e entregadores reais da loja sem mocks]
+[Link Mágico de Entrega com GPS em tempo real, validação por PIN de 4 dígitos e comprovante com foto e assinatura]
 ```
 
 ---
 
-## W-009 · Entregadores (GAP)
+## W-009 · Entregadores & Frota Local
 
-**Rota:** GAP — `/workspace/pedidos/entregadores` | **Status:** `🔴 GAP`
-**Shell:** Workspace | **Padrão:** couriers | **Ator:** Owner, Manager
+**Rota:** `/workspace/pedidos/entregadores` (`workspace.pedidos.entregadores.index.tsx`, `workspace.pedidos.entregadores.novo.tsx`, `workspace.pedidos.entregadores.$id.tsx`) | **Status:** `✅ IMPLEMENTADO`
+**Shell:** Workspace Clean Shell | **Padrão:** couriers | **Ator:** Owner, Gerente de Logística
 
 ### Anatomia
 
 ```
-[DataGrid: foto, nome, veículo, status, ativas, último check-in]
-[Inline actions: ver entregas, fatura, histórico]
-[Botão: Cadastrar novo entregador]
+[DataGrid: foto, nome, telefone, veículo, placa, modalidade de remuneração (por km / fixa), status ativo/em rota]
+[Métricas de Frota: entregas do dia, tempo médio de entrega e faturamento acumulado]
+[Página de Cadastro e Edição com upload de foto e regras de tarifas locais]
 ```
-
-### Detalhe do Entregador (GAP)
-
-- Entregas do dia.
-- Histórico completo.
-- Documentos (CNH, foto).
-- Extrato de pagamentos.
-- Incidentes registrados.
 
 ---
 
@@ -738,40 +751,42 @@ Ver `BUSINESS_FLOWS.md — Módulo 3.2` para anatomia completa.
 
 ---
 
-## W-012 · Novo Produto
+## W-012 · Novo Produto Universal
 
-**Rota:** `/workspace/catalogo/produtos/novo` (`workspace.catalogo.produtos.novo.tsx`) | **Status:** `🔵 PARCIAL`
-**Shell:** Workspace (Editor) | **Padrão:** editor_product | **Ator:** Owner, Manager
+**Rota:** `/workspace/catalogo/produtos/novo` (`workspace.catalogo.produtos.novo.tsx`) | **Status:** `✅ IMPLEMENTADO`
+**Shell:** Workspace Clean Shell | **Padrão:** editor_product | **Ator:** Owner, Manager
 
-### Anatomia Desktop
+### Anatomia Desktop & Mobile
 
 ```
-[Breadcrumb: Catálogo > Produtos > Novo]
-[Coluna principal: formulário em seções]
-[Coluna preview ~300px: miniatura da vitrine]
-[Seções (progressive disclosure):
-  1. Principal: nome, descrição, tipo
-  2. Mídia: MediaUploader (galeria real)
-  3. Precificação: preço, compare_at, custo
-  4. Variantes: matriz de opções (cor x tamanho)
-  5. Extras/Modificadores
-  6. Estoque: SKU, barcode, quantidade por local
-  7. Disponibilidade: pré-venda, encomenda, lead time
-  8. Categorias e Coleções
-  9. SEO: slug, meta title, meta description
-  10. Canais: online, PDV, marketplace
+[PageHeader: Eyebrow "Catálogo", Título contextualizado por nicho (nicheCtx.entityName), Botões "Importar com IA", "Voltar" e "Publicar"]
+[Tabs Principais:
+  - 1. Básico & Comercial: Identificação, Título, Categoria, Marca, Slug, Unidade de Venda, Preço, Comparação, Custo, Margem, Estoque, Matriz de Variações 2D Combinatória e Card de Adicionais & Modificadores (ProductModifiersCard com criação inline via QuickOptionGroupDialog)
+  - 2. Cardápio & Especificações Gastronômicas (Exclusivo Gastronomia): Porção, rendimento em pessoas, tempo de preparo, tags alimentares (Sem Glúten, Vegano, etc.) e código PDV
+  - 3. Fotos & Mídias: Galeria MediaUploader com dropzone real, ordenação e recorte de imagens
 ]
-[Botões: Salvar Rascunho | Publicar]
 ```
 
 ---
 
-## W-013 · Editor de Produto
+## W-013 · Editor Avançado de Produto
 
-**Rota:** `/workspace/catalogo/produtos/$id` (`workspace.catalogo.produtos.$id.tsx`) | **Status:** `🔵 PARCIAL`
-**Shell:** Workspace (Editor) | **Padrão:** editor_product | **Ator:** Owner, Manager
+**Rota:** `/workspace/catalogo/produtos/$id` (`workspace.catalogo.produtos.$id.tsx`) | **Status:** `✅ IMPLEMENTADO`
+**Shell:** Workspace Clean Shell | **Padrão:** editor_product | **Ator:** Owner, Manager
 
-Mesma anatomia que W-012, mas em modo edição com dados pré-populados.
+### Anatomia Desktop & Mobile
+
+```
+[Layout com Truthful Preview Lateral: Card de produto em tempo real com imagem de capa, preço, badge de margem estimada e descrição]
+[Navegação por Seções:
+  - 1. Informações Básicas & Comerciais (GeneralForm)
+  - 2. Especificações do Cardápio & Restrições (ProductFoodSpecsCard - Gastronomia)
+  - 3. Galeria de Fotos e Mídias (MediaManager)
+  - 4. Estoque & Matriz de Variações Granulares (VariantsManager)
+  - 5. Adicionais & Modificadores (ProductModifiersCard vinculado atomicamente a product_option_groups)
+  - 6. Ficha Técnica & Composição de Insumos (ProductBomCard para cálculo automatizado de CMV)
+]
+```
 
 ---
 
@@ -1019,33 +1034,47 @@ Ver `BUSINESS_FLOWS.md — Módulo 6 / Editor de Serviço`.
 
 ---
 
-## W-041 · Link-in-Bio Editor
+## W-041 · Hub de Sites, Vitrines, Biolinks & Hotpages
 
-**Rota:** `/workspace/cms/bio` | **Status:** `✅ IMPLEMENTADO`
-**Shell:** Builder Shell | **Padrão:** builder_bio | **Ator:** Owner, Content
+**Rota:** `/workspace/marketing/vitrine` (`workspace.marketing.vitrine.tsx`) | **Status:** `✅ IMPLEMENTADO`
+**Shell:** Workspace Clean Shell | **Padrão:** resource-grid | **Ator:** Owner, Content, Marketing
 
----
-
-## W-042 · Páginas / Builder
-
-**Rota:** `/workspace/cms/paginas` | **Status:** `✅ IMPLEMENTADO`
-**Shell:** Builder Shell | **Padrão:** builder | **Ator:** Owner, Content
-
-### Anatomia Desktop
-
+### Anatomia Desktop (1440px)
 ```
-[Library/Layers 220px] [Canvas flex] [Inspector 280px] [Topbar 50px]
-- Topbar: voltar, nome da página, save status, preview, publish
-- Library: tipos de seção para adicionar, componentes
-- Canvas: preview real do site renderizado
-- Inspector: configurações da seção selecionada (tokens canônicos apenas)
+[Main max-w-6xl mx-auto]
+- PageHeader: Título "Sites, Vitrines & Hotpages", ação primária "Nova Hotpage / Página"
+- Tabs de Segmentação: [Todos os Sites] [🔥 Hotpages & Ofertas] [Modelos & Templates]
+- Toolbar de Controle: Campo de busca rápida + Alternador de visualização [Grid / List]
+- Grid de Documentos:
+  1. Card Criar Novo Documento (Dashed)
+  2. Card Vitrine Principal da Loja (Status Ao Vivo, Seções Ativas, Botão "Editar no Builder")
+  3. Card Link da Bio & Perfil Mobile (Status Ativo, Botão "Editar no Builder")
+  4. Cards de Hotpages e Landing Pages Personalizadas (Duplicar, Excluir, Abrir no Builder)
+- Galeria de Modelos Profissionais com 8 templates de alta conversão (Turismo, Gastronomia, Varejo, Spas, Imóveis)
 ```
 
 ---
 
-## W-043 · Editor de Página/Builder (modo canvas)
+## W-042 · Hotpages & Campanhas Promocionais
 
-**Rota:** `/workspace/builder/$documentId/editor` | **Status:** `✅ IMPLEMENTADO`
+**Rota:** `/workspace/marketing/hotpages` (`workspace.marketing.hotpages.tsx`) | **Status:** `✅ IMPLEMENTADO`
+**Shell:** Workspace Clean Shell | **Padrão:** resource-list | **Ator:** Owner, Marketing
+
+---
+
+## W-043 · Construtor Visual Universal (Canvas Editor)
+
+**Rota:** `/workspace/builder/$documentId/editor` (`workspace.builder.$documentId.editor.tsx`) | **Status:** `✅ IMPLEMENTADO`
+**Shell:** Builder Shell | **Padrão:** canvas-wysiwyg | **Ator:** Owner, Content
+
+### Anatomia
+```
+[TopBar 48px: Voltar | Título do Doc | Status de Salvamento | Responsividade (Desktop/Tablet/Mobile) | Prévia | Publicar]
+[Left Panel 60px: Camadas | Adicionar Seção | Temas | Configurações]
+[Add Panel 3-Col: Gaveta de 3 colunas por nicho (Turismo, Ofertas, Varejo, Food, Serviços, Geral)]
+[Canvas Central: Viewport com snap scroll e renderização dinâmica ExperienceRenderer]
+[Right Inspector 300px: Propriedades de nó, tipografia, espaçamentos, bindings de dados e ações de CTA]
+```
 
 ---
 
@@ -1062,7 +1091,29 @@ Ver `BUSINESS_FLOWS.md — Módulo 6 / Editor de Serviço`.
 
 ---
 
-## W-046 · Carrinhos Abandonados
+## W-046 · Turismo / Propostas Comerciais & Cotações
+
+**Rota:** `/workspace/turismo/propostas` (`workspace.turismo.propostas.index.tsx`) | **Status:** `✅ IMPLEMENTADO`
+**Shell:** Workspace Clean Shell | **Padrão:** resource-list | **Ator:** Agente de Viagem, Owner
+
+---
+
+## W-047 · Turismo / Contratos Digitais & Assinatura
+
+**Rota:** `/workspace/turismo/contratos` (`workspace.turismo.contratos.index.tsx`) | **Status:** `✅ IMPLEMENTADO`
+**Shell:** Workspace Clean Shell | **Padrão:** resource-list | **Ator:** Agente de Viagem, Owner
+
+---
+
+## W-048 · Turismo / Grupos de Viagem & Excursões
+
+**Rota:** `/workspace/turismo/grupos` (`workspace.turismo.grupos.index.tsx`) | **Status:** `✅ IMPLEMENTADO`
+**Shell:** Workspace Clean Shell | **Padrão:** resource-list | **Ator:** Agente de Viagem, Guia
+
+---
+
+## W-049 · Carrinhos Abandonados & Recuperação de Vendas
+
 
 **Rota:** `/workspace/marketing/carrinhos` | **Status:** `✅ IMPLEMENTADO`
 
@@ -1337,4 +1388,69 @@ Renomeia módulos na sidebar conforme o nicho selecionado.
 | GAP-013 | `/_store/conta/negociacoes`           | Propostas & Reservas   | `✅ IMPLEMENTADO`    | `_store.conta.negociacoes.tsx`                         |
 | GAP-014 | `/_store/conta/agendamentos`          | Agendamentos (cliente) | `✅ IMPLEMENTADO`    | `_store.conta.agendamentos.tsx`                        |
 | GAP-015 | `/workspace/agenda/servicos` (Sheet)  | Editor de Serviço      | `✅ IMPLEMENTADO`    | `workspace.agenda.servicos.index.tsx` (Sheet integrado)|
+| GAP-016 | `/workspace/pdv/comandas`             | Salão & Comanda Garçom | `✅ IMPLEMENTADO`    | `workspace.pdv.comandas.tsx` + `QuickWaiterOrderModal` |
+| GAP-017 | `/workspace/pdv`                      | PDV com Suporte a Mesa | `✅ IMPLEMENTADO`    | `workspace.pdv.index.tsx` (params `mesa`, `orderId`)   |
+| GAP-018 | `/workspace/catalogo/produtos`        | Importador de Cardápio | `✅ IMPLEMENTADO`    | `workspace.catalogo.produtos.index.tsx` + `ImportCatalogModal` |
+
+---
+
+## W-007 · Salão, Mesas, Comandas & Aplicativo Garçom
+
+**Rota:** `/workspace/pdv/comandas` (`workspace.pdv.comandas.tsx`) | **Status:** `✅ IMPLEMENTADO`  
+**Shell:** Workspace Shell | **Padrão:** salon_tables_manager | **Ator:** Garçom / Caixa / Gerente
+
+### Anatomia Desktop & Mobile
+```
+[Header com Métricas em Tempo Real: Total Mesas, Ocupadas, Livres, Conta Solicitada e Faturamento Ativo]
+[Grid de Mesas Dinâmico com Badges de Estado: Livre (Verde), Ocupada (Azul), Conta (Amarelo), Atraso (Vermelho)]
+- Drawer Lateral da Mesa Selecionada:
+  - Lista de itens consumidos com timestamps e valores
+  - Botão "Lançar Itens na Mesa (Garçom / Salão)" -> Abre QuickWaiterOrderModal
+  - Botão "Solicitar Fechamento / Conta" -> Altera status para awaiting_payment
+  - Botão "Fechar Conta / Receber" -> Modal com divisão de conta (1x a 10x) e emissão de comprovante
+  - Botão "Lançar Mais Itens no PDV" -> Redireciona para /workspace/pdv?mesa=XX
+[Gerador de Displays de Mesa com QR Code para Autoatendimento dos Clientes]
+```
+
+---
+
+## W-005 · Frente de Caixa (PDV) Pro com Suporte a Mesas e Salão
+
+**Rota:** `/workspace/pdv` (`workspace.pdv.index.tsx`) | **Status:** `✅ IMPLEMENTADO`  
+**Shell:** Fullscreen POS Shell | **Padrão:** pos_terminal | **Ator:** Operador de Caixa / Atendente
+
+### Anatomia Desktop & Mobile
+```
+[Header com Busca F2, Seletor de Modo (Balcão, Mesa, Delivery) e Input de Identificador]
+[Grid de Produtos com Grade de Preço e Seletor de Modificadores (ProductModifiersModal)]
+[Carrinho Lateral:]
+  - Badge Contextual: "Lançando para Mesa XX" (quando em modo Mesa)
+  - Lista de itens com stepper de quantidade e modificadores
+  - Botão Primário Contextual:
+    - Se Mesa: "Enviar para a Cozinha (Mesa XX)" via addItemsToTableComanda
+    - Se Balcão: "Cobrar [F4]" via processPOSSale
+  - Suporte a múltiplos pagamentos divididos (SplitPayment: Dinheiro, PIX, Cartão)
+  - Emissão de Cupom Não Fiscal 80mm com 1 clique
+```
+
+---
+
+## W-011 · Catálogo de Produtos com Importador Inteligente (iFood / IA)
+
+**Rota:** `/workspace/catalogo/produtos` (`workspace.catalogo.produtos.index.tsx`) | **Status:** `✅ IMPLEMENTADO`  
+**Shell:** Workspace Shell | **Padrão:** catalog_management | **Ator:** Lojista / Gerente
+
+### Anatomia Desktop & Mobile
+```
+[PageHeader com Ações: "Importar Cardápio (IA)", "Exportar JSON" e "Novo Produto"]
+[Abas de Navegação: "Cardápio & Itens" vs "Grupos de Adicionais / Complementos"]
+[Filtro por status (Ativos, Rascunhos, Arquivados) e Busca Instantânea]
+[Tabela com Edição Rápida de Estoque Inline (EditableStockCell) e Menu de Ações Comerciais]
+[ImportCatalogModal:]
+  - Aba 1: Link do Cardápio (iFood, Anota AI, Goomer, site próprio)
+  - Aba 2: Colar Texto Bruto ou PDF
+  - Análise com IA (Gemini 1.5 Flash / Groq LLaMA 3.1) via importFullCatalogMenu
+  - Prévia de categorias e itens detectados com contadores
+  - Inserção em lote atômica via batchCreateCatalogMenu com isolamento multi-tenant
+```
 

@@ -53,16 +53,19 @@ export const submitPostOrderAudit = createServerFn({ method: "POST" })
     const supabase = getServerClient();
 
     try {
-      const { error } = await supabase.from("post_order_tag_audits").insert({
-        order_id: data.order_id || null,
-        store_id: data.store_id,
-        product_id: data.product_id || null,
-        tag_audited: data.tag_audited,
-        was_fulfilled: data.was_fulfilled,
-        extra_fee_charged: data.extra_fee_charged || false,
-        delay_minutes: data.delay_minutes || 0,
-        comments: data.comments || null,
-        created_at: new Date().toISOString(),
+      const { error } = await supabase.from("forensic_audit_events").insert({
+        target_entity_type: "store",
+        target_entity_id: data.store_id,
+        action: "tag_compliance_audit",
+        payload_snapshot: {
+          order_id: data.order_id || null,
+          product_id: data.product_id || null,
+          tag_audited: data.tag_audited,
+          was_fulfilled: data.was_fulfilled,
+          extra_fee_charged: data.extra_fee_charged || false,
+          delay_minutes: data.delay_minutes || 0,
+          comments: data.comments || null,
+        },
       });
 
       if (error) {
@@ -92,14 +95,16 @@ export const reportTagFraud = createServerFn({ method: "POST" })
     const supabase = getServerClient();
 
     try {
-      const { error } = await supabase.from("tag_fraud_reports").insert({
-        product_id: data.product_id,
-        store_id: data.store_id,
-        report_reason: data.report_reason,
+      const { error } = await supabase.from("moderation_reports").insert({
+        entity_type: "product",
+        entity_id: data.product_id,
+        reason: data.report_reason,
         description: data.description,
-        consumer_contact: data.consumer_contact || null,
         status: "pending_review",
-        created_at: new Date().toISOString(),
+        entity_snapshot: {
+          store_id: data.store_id,
+          consumer_contact: data.consumer_contact || null,
+        },
       });
 
       if (error) {
@@ -128,12 +133,16 @@ export const getStoreReputation = createServerFn({ method: "GET" })
         .single();
 
       const { data: audits } = await supabase
-        .from("post_order_tag_audits")
-        .select("was_fulfilled, extra_fee_charged")
-        .eq("store_id", store_id);
+        .from("forensic_audit_events")
+        .select("payload_snapshot")
+        .eq("target_entity_type", "store")
+        .eq("target_entity_id", store_id)
+        .eq("action", "tag_compliance_audit");
 
       const totalAudits = audits?.length || 0;
-      const fulfilledCount = audits?.filter((a) => a.was_fulfilled && !a.extra_fee_charged).length || 0;
+      const fulfilledCount =
+        audits?.filter((a: any) => a.payload_snapshot?.was_fulfilled && !a.payload_snapshot?.extra_fee_charged)
+          .length || 0;
       const complianceRate = totalAudits > 0 ? Math.round((fulfilledCount / totalAudits) * 100) : 100;
 
       let penaltyStatus: StoreReputationDTO["penalty_status"] = "clean";

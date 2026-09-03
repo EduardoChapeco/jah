@@ -51,11 +51,8 @@ export const setTenantContext = createServerFn({ method: "POST" })
           },
           { onConflict: "profile_id,store_id" },
         );
-
-        await adminDb
-          .from("profiles")
-          .update({ store_id: store_id })
-          .eq("id", identity.id);
+        // NOTA: profiles.store_id foi removida na migração de identidade.
+        // O contexto de loja ativo é resolvido via workspace_members + cookie wider_active_tenant.
       } catch (e) {
         console.warn("[setTenantContext] Upsert em workspace_members / profiles:", e);
       }
@@ -111,14 +108,20 @@ export const createBusinessProfile = createServerFn({ method: "POST" })
     }
 
     // 2. Criar Store (Loja/Coletivo)
+    const storeSlug = name
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") + "-" + Math.floor(1000 + Math.random() * 9000);
+
     const { data: store, error: storeError } = await adminDb
       .from("stores")
       .insert({
         organization_id: org.id,
         name,
-        type,
-        settings_snapshot: {},
-        created_by: identity.id,
+        slug: storeSlug,
+        settings: { type, segment: type },
       })
       .select("id")
       .single();

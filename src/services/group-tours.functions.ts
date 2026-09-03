@@ -117,24 +117,28 @@ export const createGroupTour = createServerFn({ method: "POST" })
     const defaultSeats = generateDefaultBusSeats(input.totalSeats);
 
     const { data: inserted, error } = await supabase
-      .from("travel_group_tours")
+      .from("tourism_experiences")
       .insert({
         store_id: identity.store_id || null,
-        created_by_profile_id: identity.id,
+        author_profile_id: identity.id,
         title: input.title.trim(),
-        destination: input.destination.trim(),
-        departure_city: input.departureCity.trim(),
-        departure_date: input.departureDate,
-        departure_time: input.departureTime,
-        return_date: input.returnDate,
-        return_time: input.returnTime,
-        total_seats: input.totalSeats,
-        seats: defaultSeats,
-        rooms: [],
+        subtitle: `${input.departureCity} -> ${input.destination} (${input.departureDate})`,
+        category: "group_tour",
+        location: input.destination.trim(),
         price_cents: input.priceCents,
         included_items: input.includedItems,
-        notes: input.notes?.trim() || null,
-        status: "open",
+        description: JSON.stringify({
+          departure_city: input.departureCity,
+          departure_date: input.departureDate,
+          departure_time: input.departureTime,
+          return_date: input.returnDate,
+          return_time: input.returnTime,
+          total_seats: input.totalSeats,
+          seats: defaultSeats,
+          rooms: [],
+          notes: input.notes?.trim() || null,
+        }),
+        status: "published",
       })
       .select("id")
       .single();
@@ -160,7 +164,7 @@ export const getGroupTourById = createServerFn({ method: "GET" })
     }
 
     const { data: row, error } = await supabase
-      .from("travel_group_tours")
+      .from("tourism_experiences")
       .select("*")
       .eq("id", data.id)
       .maybeSingle();
@@ -169,27 +173,34 @@ export const getGroupTourById = createServerFn({ method: "GET" })
       return null;
     }
 
+    let meta: any = {};
+    try {
+      meta = typeof row.description === "string" && row.description.startsWith("{") ? JSON.parse(row.description) : {};
+    } catch {
+      meta = {};
+    }
+
     return {
       id: row.id,
       store_id: row.store_id,
       title: row.title,
-      destination: row.destination,
-      departure_city: row.departure_city,
-      departure_date: row.departure_date,
-      departure_time: row.departure_time,
-      return_date: row.return_date,
-      return_time: row.return_time,
-      bus_company_name: row.bus_company_name,
-      bus_plate: row.bus_plate,
-      driver_name: row.driver_name,
-      driver_phone: row.driver_phone,
-      total_seats: row.total_seats || 46,
-      seats: row.seats || generateDefaultBusSeats(row.total_seats || 46),
-      rooms: row.rooms || [],
+      destination: row.location || meta.destination || "Destino",
+      departure_city: meta.departure_city || "Origem",
+      departure_date: meta.departure_date || row.created_at?.split("T")[0],
+      departure_time: meta.departure_time || "06:00",
+      return_date: meta.return_date || meta.departure_date || row.created_at?.split("T")[0],
+      return_time: meta.return_time || "20:00",
+      bus_company_name: meta.bus_company_name,
+      bus_plate: meta.bus_plate,
+      driver_name: meta.driver_name,
+      driver_phone: meta.driver_phone,
+      total_seats: meta.total_seats || 46,
+      seats: meta.seats || generateDefaultBusSeats(meta.total_seats || 46),
+      rooms: meta.rooms || [],
       price_cents: row.price_cents || 0,
       included_items: row.included_items || [],
       status: row.status || "open",
-      notes: row.notes,
+      notes: meta.notes,
       created_at: row.created_at,
       updated_at: row.updated_at,
     };
@@ -218,17 +229,34 @@ export const updateGroupTourAllocations = createServerFn({ method: "POST" })
       throw new Error("Não autorizado.");
     }
 
-    const patch: any = { updated_at: new Date().toISOString() };
-    if (data.seats) patch.seats = data.seats;
-    if (data.rooms) patch.rooms = data.rooms;
-    if (data.busCompanyName !== undefined) patch.bus_company_name = data.busCompanyName;
-    if (data.busPlate !== undefined) patch.bus_plate = data.busPlate;
-    if (data.driverName !== undefined) patch.driver_name = data.driverName;
-    if (data.driverPhone !== undefined) patch.driver_phone = data.driverPhone;
+    const { data: current } = await supabase
+      .from("tourism_experiences")
+      .select("description")
+      .eq("id", data.id)
+      .maybeSingle();
+
+    let meta: any = {};
+    try {
+      meta = typeof current?.description === "string" && current.description.startsWith("{") ? JSON.parse(current.description) : {};
+    } catch {
+      meta = {};
+    }
+
+    if (data.seats) meta.seats = data.seats;
+    if (data.rooms) meta.rooms = data.rooms;
+    if (data.busCompanyName !== undefined) meta.bus_company_name = data.busCompanyName;
+    if (data.busPlate !== undefined) meta.bus_plate = data.busPlate;
+    if (data.driverName !== undefined) meta.driver_name = data.driverName;
+    if (data.driverPhone !== undefined) meta.driver_phone = data.driverPhone;
+
+    const patch: any = {
+      description: JSON.stringify(meta),
+      updated_at: new Date().toISOString(),
+    };
     if (data.status) patch.status = data.status;
 
     const { error } = await supabase
-      .from("travel_group_tours")
+      .from("tourism_experiences")
       .update(patch)
       .eq("id", data.id);
 
@@ -260,14 +288,15 @@ export const listAgencyGroupTours = createServerFn({ method: "GET" })
     }
 
     let query = supabase
-      .from("travel_group_tours")
+      .from("tourism_experiences")
       .select("*")
-      .order("departure_date", { ascending: true });
+      .eq("category", "group_tour")
+      .order("created_at", { ascending: false });
 
     if (identity.store_id) {
       query = query.eq("store_id", identity.store_id);
     } else {
-      query = query.eq("created_by_profile_id", identity.id);
+      query = query.eq("author_profile_id", identity.id);
     }
 
     if (data?.status && data.status !== "all") {
@@ -308,4 +337,116 @@ export const listAgencyGroupTours = createServerFn({ method: "GET" })
       created_at: row.created_at,
       updated_at: row.updated_at,
     }));
+  });
+
+// ─── 5. Gestão Financeira de Custos da Excursão & Break-even ───────────────────
+
+export interface GroupTourCostItem {
+  id: string;
+  tour_id: string;
+  category: "transport" | "hotel" | "insurance" | "tickets" | "guide" | "food" | "other";
+  description: string;
+  cost_cents: number;
+  is_fixed: boolean;
+  created_at: string;
+}
+
+export const listGroupTourCosts = createServerFn({ method: "GET" })
+  .validator(z.object({ tour_id: z.string().uuid() }))
+  .handler(async ({ data }): Promise<GroupTourCostItem[]> => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    if (!identity?.id) throw new Error("Não autorizado.");
+
+    const { data: costs, error } = await supabase
+      .from("group_tour_costs")
+      .select("*")
+      .eq("tour_id", data.tour_id)
+      .order("created_at", { ascending: true });
+
+    if (error) throw error;
+    return costs || [];
+  });
+
+export const createGroupTourCost = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      tour_id: z.string().uuid(),
+      category: z.enum(["transport", "hotel", "insurance", "tickets", "guide", "food", "other"]),
+      description: z.string().min(1, "Descrição do custo obrigatória"),
+      cost_cents: z.number().int().min(0),
+      is_fixed: z.boolean().default(true),
+    })
+  )
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    if (!identity?.id) throw new Error("Não autorizado.");
+
+    const { data: created, error } = await supabase
+      .from("group_tour_costs")
+      .insert({
+        tour_id: data.tour_id,
+        category: data.category,
+        description: data.description.trim(),
+        cost_cents: data.cost_cents,
+        is_fixed: data.is_fixed,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return created;
+  });
+
+export const deleteGroupTourCost = createServerFn({ method: "POST" })
+  .validator(z.object({ cost_id: z.string().uuid() }))
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    if (!identity?.id) throw new Error("Não autorizado.");
+
+    const { error } = await supabase
+      .from("group_tour_costs")
+      .delete()
+      .eq("id", data.cost_id);
+
+    if (error) throw error;
+    return { success: true };
+  });
+
+export const getGroupTourBudgetSummary = createServerFn({ method: "GET" })
+  .validator(z.object({ tour_id: z.string().uuid(), price_cents: z.number().int() }))
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    if (!identity?.id) throw new Error("Não autorizado.");
+
+    const { data: costs, error } = await supabase
+      .from("group_tour_costs")
+      .select("*")
+      .eq("tour_id", data.tour_id);
+
+    if (error) throw error;
+
+    const allCosts = costs || [];
+    const totalFixedCents = allCosts
+      .filter((c) => c.is_fixed)
+      .reduce((sum, c) => sum + (c.cost_cents || 0), 0);
+
+    const variablePerPaxCents = allCosts
+      .filter((c) => !c.is_fixed)
+      .reduce((sum, c) => sum + (c.cost_cents || 0), 0);
+
+    const contributionMarginPerPax = data.price_cents - variablePerPaxCents;
+    const breakEvenPax =
+      contributionMarginPerPax > 0 ? Math.ceil(totalFixedCents / contributionMarginPerPax) : 0;
+
+    return {
+      totalFixedCents,
+      variablePerPaxCents,
+      contributionMarginPerPax,
+      breakEvenPax,
+      itemCount: allCosts.length,
+    };
   });

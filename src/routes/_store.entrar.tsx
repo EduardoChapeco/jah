@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate, useRouter, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useRouter, redirect, isRedirect } from "@tanstack/react-router";
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import {
@@ -54,18 +54,26 @@ export const Route = createFileRoute("/_store/entrar")({
   },
   loader: async () => {
     try {
-      // Guard: se já estiver autenticado, redireciona para conta pessoal
-      // (nunca para /workspace automaticamente — o usuário escolhe o contexto)
       const session = await getUserSession();
       if (session?.id) {
-        // Só redireciona se não houver returnUrl definido (ex: redirect explicitado pelo sistema)
         const searchStr = typeof window !== "undefined" ? window.location.search : "";
+        const role = session?.role || session?.user?.user_metadata?.role;
+        const isMaster = role === "platform_admin" || role === "master";
+
+        if (searchStr.includes("returnUrl=%2Fadmin-master") || searchStr.includes("returnUrl=/admin-master")) {
+          if (isMaster) {
+            throw redirect({ to: "/admin-master" });
+          }
+        }
+        if (searchStr.includes("returnUrl=%2Fworkspace") || searchStr.includes("returnUrl=/workspace")) {
+          throw redirect({ to: "/workspace" });
+        }
         if (!searchStr.includes("returnUrl")) {
           throw redirect({ to: "/" });
         }
       }
     } catch (e: any) {
-      if (e && typeof e === "object" && ("_isRedirect" in e || e?.routerCode === "REDIRECT" || e?.to)) {
+      if (isRedirect(e)) {
         throw e;
       }
     }

@@ -82,61 +82,75 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Seed canônica de faturas iniciais persistidas no banco
-INSERT INTO public.logistics_invoices (
-  id,
-  courier_name,
-  courier_phone,
-  period,
-  total_rides,
-  gross_amount_cents,
-  platform_fee_cents,
-  net_payable_cents,
-  status,
-  paid_at
-) VALUES 
-(
-  'b0000000-0000-0000-0000-000000000001',
-  'Marcos Vinícius',
-  '(49) 99881-2233',
-  '01/08 a 15/08/2026',
-  48,
-  89000,
-  8900,
-  80100,
-  'paid',
-  now() - interval '1 day'
-),
-(
-  'b0000000-0000-0000-0000-000000000002',
-  'Transportes Rápidos Chapecó',
-  '(49) 3322-1100',
-  '01/08 a 15/08/2026',
-  112,
-  345000,
-  34500,
-  310500,
-  'pending',
-  NULL
-),
-(
-  'b0000000-0000-0000-0000-000000000003',
-  'Leandro Fretes & Mudanças',
-  '(49) 99123-4567',
-  '01/08 a 15/08/2026',
-  14,
-  280000,
-  28000,
-  252000,
-  'pending',
-  NULL
-)
-ON CONFLICT (id) DO UPDATE SET
-  courier_name = EXCLUDED.courier_name,
-  courier_phone = EXCLUDED.courier_phone,
-  period = EXCLUDED.period,
-  total_rides = EXCLUDED.total_rides,
-  gross_amount_cents = EXCLUDED.gross_amount_cents,
-  platform_fee_cents = EXCLUDED.platform_fee_cents,
-  net_payable_cents = EXCLUDED.net_payable_cents,
-  status = EXCLUDED.status,
-  paid_at = EXCLUDED.paid_at;
+DO $$ 
+DECLARE
+  v_store_id UUID;
+BEGIN
+  SELECT id INTO v_store_id FROM public.stores LIMIT 1;
+  IF v_store_id IS NOT NULL THEN
+    INSERT INTO public.logistics_invoices (
+      id,
+      store_id,
+      courier_name,
+      courier_phone,
+      period,
+      total_rides,
+      gross_amount_cents,
+      platform_fee_cents,
+      net_payable_cents,
+      status,
+      paid_at
+    ) VALUES 
+    (
+      'b0000000-0000-0000-0000-000000000001',
+      v_store_id,
+      'Marcos Vinícius',
+      '(49) 99881-2233',
+      '01/08 a 15/08/2026',
+      48,
+      89000,
+      8900,
+      80100,
+      'paid',
+      now() - interval '1 day'
+    ),
+    (
+      'b0000000-0000-0000-0000-000000000002',
+      v_store_id,
+      'Transportes Rápidos Chapecó',
+      '(49) 3322-1100',
+      '01/08 a 15/08/2026',
+      112,
+      345000,
+      34500,
+      310500,
+      'pending',
+      NULL
+    ),
+    (
+      'b0000000-0000-0000-0000-000000000003',
+      v_store_id,
+      'Leandro Fretes & Mudanças',
+      '(49) 99123-4567',
+      '01/08 a 15/08/2026',
+      14,
+      280000,
+      28000,
+      252000,
+      'pending',
+      NULL
+    )
+    ON CONFLICT (id) DO UPDATE SET
+      courier_name = EXCLUDED.courier_name,
+      courier_phone = EXCLUDED.courier_phone,
+      period = EXCLUDED.period,
+      total_rides = EXCLUDED.total_rides,
+      gross_amount_cents = EXCLUDED.gross_amount_cents,
+      platform_fee_cents = EXCLUDED.platform_fee_cents,
+      net_payable_cents = EXCLUDED.net_payable_cents,
+      status = EXCLUDED.status,
+      paid_at = EXCLUDED.paid_at;
+  END IF;
+EXCEPTION WHEN OTHERS THEN
+  NULL;
+END $$;

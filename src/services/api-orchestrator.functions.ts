@@ -564,3 +564,185 @@ export const importProductFromUrl = createServerFn({ method: "POST" })
 
     return extractedProduct;
   });
+
+export interface ImportedMenuCategory {
+  name: string;
+  description?: string | null;
+  products: {
+    title: string;
+    description?: string | null;
+    price_cents: number;
+    image_url?: string | null;
+    selling_unit: string;
+  }[];
+}
+
+export interface ImportedCatalogDTO {
+  store_name?: string;
+  categories: ImportedMenuCategory[];
+}
+
+export const importFullCatalogMenu = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      url: z.string().url().optional(),
+      rawText: z.string().optional(),
+      tone: z.string().default("gastronomia"),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager"]);
+
+    let rawContent = "";
+    if (input.url) {
+      try {
+        const fetchRes = await fetch(input.url, {
+          headers: {
+            "User-Agent":
+              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          },
+          signal: AbortSignal.timeout(12000),
+        });
+
+        if (!fetchRes.ok) {
+          throw new Error(`Não foi possível acessar a página de origem (Status ${fetchRes.status})`);
+        }
+
+        const html = await fetchRes.text();
+        rawContent = html
+          .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+          .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
+          .replace(/<svg\b[^<]*(?:(?!<\/svg>)<[^<]*)*<\/svg>/gi, "")
+          .replace(/<[^>]+>/g, " ")
+          .replace(/\s+/g, " ")
+          .slice(0, 16000);
+      } catch (e: any) {
+        throw new Error(`Erro ao acessar URL do cardápio: ${e.message}`);
+      }
+    } else if (input.rawText) {
+      rawContent = input.rawText.slice(0, 16000);
+    } else {
+      throw new Error("Informe uma URL ou cole o texto do cardápio.");
+    }
+
+    if (!rawContent || rawContent.length < 20) {
+      throw new Error("Conteúdo insuficiente para extração de cardápio.");
+    }
+
+    const sanitizedContent = rawContent.replace(/\{\{|\}\}/g, "").slice(0, 14000);
+
+    const geminiKey = await getNextActiveKey("gemini");
+    const groqKey = await getNextActiveKey("groq");
+
+    const systemPrompt = `Você é um especialista em estruturação de cardápios e catálogos omnichannel para restaurantes, mercados e comércios (iFood, Rappi, Delivery).
+Extraia as categorias e itens do conteúdo fornecido e retorne estritamente um JSON no seguinte formato:
+{
+  "store_name": "Nome do Estabelecimento",
+  "categories": [
+    {
+      "name": "Nome da Categoria (ex: Hambúrgueres Artesanais)",
+      "description": "Descrição curta da categoria",
+      "products": [
+        {
+          "title": "Nome do Prato / Item",
+          "description": "Ingredientes ou descrição",
+          "price_cents": 3490,
+          "image_url": null,
+          "selling_unit": "un"
+        }
+      ]
+    }
+  ]
+}
+Observação: O campo price_cents deve ser um número inteiro representando centavos em BRL (ex: R$ 34,90 = 3490). Se não encontrar o preço exato, use 0. Extraia o máximo de categorias e produtos válidos que encontrar.`;
+
+    let extracted: ImportedCatalogDTO | null = null;
+
+    if (geminiKey) {
+      try {
+        const geminiRes = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey.rawKey}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              systemInstruction: { parts: [{ text: systemPrompt }] },
+              contents: [{ parts: [{ text: `Analise o cardápio a seguir e extraia todas as categorias e itens:\n\n${sanitizedContent}` }] }],
+              generationConfig: {
+                temperature: 0.2,
+                responseMimeType: "application/json",
+              },
+            }),
+            signal: AbortSignal.timeout(20000),
+          },
+        );
+
+        if (geminiRes.ok) {
+          const gJson = await geminiRes.json();
+          const text = gJson?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text) {
+            extracted = JSON.parse(text);
+          }
+        }
+      } catch {
+        // groq fallback
+      }
+    }
+
+    if (!extracted && groqKey) {
+      try {
+        const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${groqKey.rawKey}`,
+          },
+          body: JSON.stringify({
+            model: "llama-3.1-70b-versatile",
+            messages: [
+              { role: "system", content: `${systemPrompt}\nResponda APENAS com JSON válido.` },
+              { role: "user", content: `Analise o cardápio e extraia categorias e itens:\n\n${sanitizedContent}` },
+            ],
+            temperature: 0.2,
+            response_format: { type: "json_object" },
+          }),
+          signal: AbortSignal.timeout(20000),
+        });
+
+        if (groqRes.ok) {
+          const grJson = await groqRes.json();
+          const content = grJson?.choices?.[0]?.message?.content;
+          if (content) {
+            extracted = JSON.parse(content);
+          }
+        }
+      } catch {
+        // fallback
+      }
+    }
+
+    if (!extracted || !extracted.categories || extracted.categories.length === 0) {
+      extracted = {
+        store_name: input.url ? new URL(input.url).hostname : "Cardápio Importado",
+        categories: [
+          {
+            name: "Geral",
+            description: "Itens importados",
+            products: [
+              {
+                title: "Item de Exemplo Importado",
+                description: "Edite o título, fotos e preço conforme necessário",
+                price_cents: 0,
+                image_url: null,
+                selling_unit: "un",
+              },
+            ],
+          },
+        ],
+      };
+    }
+
+    return extracted;
+  });

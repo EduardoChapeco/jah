@@ -20,6 +20,8 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { listMyLawsuits, createJusDemand, getMyDemands } from "@/services/jus.functions";
 import { useMasterLocation } from "@/components/location/location-master-pill";
+import { LawsuitDetailsSheet } from "@/components/jus/lawsuit-details-sheet";
+import { MediaUploader } from "@/components/ui/media-uploader";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/conta/processos")({
@@ -30,6 +32,7 @@ export const Route = createFileRoute("/_store/conta/processos")({
 function UserLawsuitsPage() {
   const { location: masterLoc } = useMasterLocation();
   const [activeTab, setActiveTab] = useState<"lawsuits" | "demands" | "new_demand">("lawsuits");
+  const [selectedLawsuit, setSelectedLawsuit] = useState<any | null>(null);
   const [isPending, startTransition] = useTransition();
 
   // New Demand Form State
@@ -38,6 +41,7 @@ function UserLawsuitsPage() {
   const [description, setDescription] = useState("");
   const [urgency, setUrgency] = useState<"low" | "normal" | "high" | "urgent">("normal");
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [documents, setDocuments] = useState<string[]>([]);
 
   // Queries
   const { data: lawsuits, isLoading: loadingLawsuits } = useQuery({
@@ -68,13 +72,14 @@ function UserLawsuitsPage() {
             is_anonymous: isAnonymous,
             city: (masterLoc.city && masterLoc.city.toLowerCase() !== "global") ? masterLoc.city : "Regional",
             state: masterLoc.state || "SC",
-            documents: [],
+            documents: documents,
           },
         });
         toast.success("Demanda jurídica publicada com sucesso! Advogados da região poderão enviar propostas.");
         setTitle("");
         setDescription("");
-        setActiveTab("lawsuits");
+        setDocuments([]);
+        setActiveTab("demands");
       } catch (err: any) {
         toast.error(err.message || "Erro ao publicar demanda");
       }
@@ -161,7 +166,8 @@ function UserLawsuitsPage() {
                 {lawsuits?.map((lawsuit: any) => (
                   <div
                     key={lawsuit.id}
-                    className="rounded-2xl border border-border bg-card p-5 transition-all hover:border-primary/40 hover:"
+                    onClick={() => setSelectedLawsuit(lawsuit)}
+                    className="rounded-2xl border border-border bg-card p-5 transition-all hover:border-primary/40 cursor-pointer shadow-xs"
                   >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div>
@@ -289,6 +295,18 @@ function UserLawsuitsPage() {
                 />
               </div>
 
+              <div>
+                <MediaUploader
+                  value={documents}
+                  onChange={setDocuments}
+                  maxFiles={4}
+                  bucket="post-media"
+                  folder="jus-documents"
+                  label="Anexar Comprovantes ou Documentos do Caso (Opcional)"
+                  accept="image"
+                />
+              </div>
+
               <div className="flex items-center gap-2 pt-2">
                 <input
                   type="checkbox"
@@ -321,6 +339,13 @@ function UserLawsuitsPage() {
             </form>
           </div>
         )}
+
+        {/* Ficha 360° do Processo Judicial */}
+        <LawsuitDetailsSheet
+          open={Boolean(selectedLawsuit)}
+          onOpenChange={(open) => !open && setSelectedLawsuit(null)}
+          lawsuit={selectedLawsuit}
+        />
       </div>
     </div>
   );

@@ -40,6 +40,8 @@ import { listPublishedProducts } from "@/services/catalog.functions";
 
 import type { ProductCardDTO } from "@/types/catalog";
 import { resolveNicheDepartments } from "@/lib/niche-helpers";
+import { useCart } from "@/lib/cart-context";
+import { formatMoney } from "@/lib/money";
 
 const SearchSchema = z.object({
   q: z.string().optional(),
@@ -100,6 +102,10 @@ function GastronomiaVerticalPage() {
   const { banners, hotpages, marketplaceFeed, catalogProducts } = Route.useLoaderData();
   const search = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
+  const { cart, setIsCartOpen } = useCart();
+
+  const cartItemsCount = cart?.itemCount ?? cart?.items?.reduce((acc, item) => acc + (item.qty || 1), 0) ?? 0;
+  const cartTotalCents = cart?.subtotalCents || cart?.totalCents || 0;
 
   const [activeDepartment, setActiveDepartment] = useState(search.categoria || "todos");
   const [viewMode, setViewMode] = useState<ViewModeType>(search.view || "feed");
@@ -227,6 +233,34 @@ function GastronomiaVerticalPage() {
             </div>
           )}
         </section>
+      )}
+
+      {/* ── BARRA FLUTUANTE DA SACOLA (3 TOQUES - APPLE HIG THUMB ZONE) ── */}
+      {cartItemsCount > 0 && (
+        <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:w-96 z-40 p-3 rounded-2xl bg-foreground text-background shadow-2xl flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-4 border border-background/20">
+          <div className="flex items-center gap-2.5">
+            <div className="size-10 rounded-xl bg-primary/20 text-primary flex items-center justify-center shrink-0">
+              <ShoppingBag className="size-5" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] text-background/70 font-mono uppercase tracking-wider">
+                {cartItemsCount} {cartItemsCount === 1 ? "item adicionado" : "itens adicionados"}
+              </span>
+              <span className="text-sm font-black font-mono">
+                {formatMoney(cartTotalCents / 100)}
+              </span>
+            </div>
+          </div>
+
+          <Button
+            size="sm"
+            onClick={() => setIsCartOpen(true)}
+            className="h-10 px-4 rounded-xl bg-primary text-primary-foreground font-bold text-xs gap-1.5 shadow-md cursor-pointer shrink-0"
+          >
+            <span>Ver Sacola</span>
+            <ArrowRight className="size-3.5" />
+          </Button>
+        </div>
       )}
     </div>
   );

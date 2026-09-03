@@ -23,8 +23,8 @@ export const listScheduledPosts = createServerFn({ method: "GET" }).handler(asyn
 
   const [storiesRes, eventsRes] = await Promise.all([
     supabase
-      .from("cms_stories")
-      .select("id, store_id, title, media_url, created_at, expires_at")
+      .from("stories")
+      .select("id, store_id, media_url, created_at, expires_at")
       .eq("store_id", identity.store_id)
       .order("created_at", { ascending: false }),
     supabase
@@ -145,10 +145,9 @@ export const schedulePost = createServerFn({ method: "POST" })
       };
     } else {
       const { data: story, error } = await supabase
-        .from("cms_stories")
+        .from("stories")
         .insert({
           store_id: identity.store_id,
-          title: input.title,
           media_url: input.imageUrl || "",
           expires_at: input.scheduledFor,
         })
@@ -192,7 +191,7 @@ export const reschedulePost = createServerFn({ method: "POST" })
       .eq("store_id", identity.store_id);
 
     await supabase
-      .from("cms_stories")
+      .from("stories")
       .update({ expires_at: input.newScheduledFor })
       .eq("id", input.postId)
       .eq("store_id", identity.store_id);

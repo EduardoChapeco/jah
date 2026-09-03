@@ -94,21 +94,23 @@ BEGIN
     DELETE FROM auth.users WHERE email <> 'meuwider@gmail.com';
   EXCEPTION WHEN OTHERS THEN NULL; END;
 
-  -- 4. Garantir Perfil Master Ativo
-  INSERT INTO public.profiles (id, full_name, username, role, is_verified, cpf)
-  VALUES (v_master_id, 'Eduardo Antônio Ramos', 'wider', 'platform_admin', true, '10780979923')
-  ON CONFLICT (id) DO UPDATE SET
-    full_name = 'Eduardo Antônio Ramos',
-    username = 'wider',
-    role = 'platform_admin',
-    is_verified = true,
-    cpf = '10780979923';
+  -- 4. Garantir Perfil Master Ativo se existir no auth.users
+  IF EXISTS (SELECT 1 FROM auth.users WHERE id = v_master_id) THEN
+    INSERT INTO public.profiles (id, full_name, username, role, is_verified, cpf)
+    VALUES (v_master_id, 'Eduardo Antônio Ramos', 'wider', 'platform_admin', true, '10780979923')
+    ON CONFLICT (id) DO UPDATE SET
+      full_name = 'Eduardo Antônio Ramos',
+      username = 'wider',
+      role = 'platform_admin',
+      is_verified = true,
+      cpf = '10780979923';
 
-  -- 5. Vincular Master a todas as lojas
-  INSERT INTO public.workspace_members (store_id, profile_id, role)
-  SELECT id, v_master_id, 'owner'
-  FROM public.stores
-  ON CONFLICT (store_id, profile_id) DO UPDATE SET role = 'owner';
+    -- 5. Vincular Master a todas as lojas
+    INSERT INTO public.workspace_members (store_id, profile_id, role)
+    SELECT id, v_master_id, 'owner'
+    FROM public.stores
+    ON CONFLICT (store_id, profile_id) DO UPDATE SET role = 'owner';
+  END IF;
 
   -- 6. Atualizar Lojas e Branding Matriz para Wider
   UPDATE public.stores

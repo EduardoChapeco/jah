@@ -205,8 +205,8 @@ function WorkspaceStoreBannersPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Vitrine & Divulgação"
-        title="Banners da Loja"
+        eyebrow="Marketing"
+        title="Banners"
         actions={
           <Button
             onClick={handleOpenCreate}

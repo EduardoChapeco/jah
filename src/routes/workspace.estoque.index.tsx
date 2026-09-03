@@ -177,8 +177,8 @@ function AdminStockPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Operação Comercial"
-        title="Estoque Operacional"
+        eyebrow="Estoque"
+        title="Controle de Estoque"
         actions={
           <div className="flex items-center gap-2">
             <Button asChild variant="outline" size="sm">

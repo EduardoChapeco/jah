@@ -201,8 +201,8 @@ function WorkspaceCandidatesPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <PageHeader
-          eyebrow="RH & Vagas"
-          title="Candidatos & Entrevistas"
+          eyebrow="RH"
+          title="Candidatos"
         />
 
         <Button asChild variant="outline" className="rounded-xl font-bold text-xs h-9">

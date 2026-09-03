@@ -627,21 +627,26 @@ export const submitCommunityNewsTip = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const supabase = getServerClient();
+    const slug = `pauta-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const { data: tip, error } = await supabase
-      .from("community_news_tips")
+      .from("news_articles")
       .insert({
         store_id: data.storeId,
-        tip_text: data.tipText,
+        title: `[Sugestão de Pauta] ${data.authorName}`,
+        subtitle: data.contactInfo ? `Contato: ${data.contactInfo}` : null,
+        kicker: "Comunidade",
+        slug,
+        content_sections: [{ type: "paragraph", content: data.tipText }],
+        cover_media_url: data.mediaUrls && data.mediaUrls.length > 0 ? data.mediaUrls[0] : null,
+        status: "draft",
+        source_type: "community_tip",
+        curation_status: "pending_review",
         author_name: data.authorName,
-        contact_info: data.contactInfo || null,
-        media_urls: data.mediaUrls || [],
-        status: "pending",
       })
       .select()
       .single();
 
     if (error) {
-      // If table is absent, log gracefully
       console.warn("[news_tips] Erro ao salvar pauta:", error.message);
       return { success: true, message: "Sugestão recebida pela redação!" };
     }
@@ -654,9 +659,10 @@ export const listCommunityNewsTips = createServerFn({ method: "GET" }).handler(a
   if (!identity.store_id) return [];
 
   const { data } = await supabase
-    .from("community_news_tips")
+    .from("news_articles")
     .select("*")
     .eq("store_id", identity.store_id)
+    .eq("source_type", "community_tip")
     .order("created_at", { ascending: false });
 
   return data || [];

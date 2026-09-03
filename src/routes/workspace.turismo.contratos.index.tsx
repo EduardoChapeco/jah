@@ -23,12 +23,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetDescription,
+} from "@/components/ui/sheet";
+import { PageHeader } from "@/components/commerce/page-header";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import {
@@ -109,50 +111,39 @@ function WorkspaceContractsIndexPage() {
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* ── 1. HEADER DO WORKSPACE ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-card border border-border/80">
-        <div className="space-y-1">
+      <PageHeader
+        eyebrow="Turismo & Jurídico"
+        title="Contratos & Assinaturas"
+        actions={
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-muted-foreground">
-              Jurídico & Compliance de Turismo
-            </span>
-            <Badge variant="outline" className="text-[10px] font-mono font-bold">
-              {contractsList.length} Contratos
-            </Badge>
-          </div>
-          <h1 className="text-xl font-bold tracking-tight text-foreground">
-            Contratos & Assinatura Eletrônica
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            Emita minutas com validade jurídica (MP 2.200-2 e SHA-256) e envie o link de assinatura para o cliente.
-          </p>
-        </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsClausesModalOpen(true)}
+              className="rounded-xl text-xs font-bold gap-1.5 cursor-pointer"
+            >
+              <Scale className="size-4 text-primary" />
+              <span>Minuta & Cláusulas Padrão</span>
+            </Button>
 
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setIsClausesModalOpen(true)}
-            className="rounded-xl text-xs font-bold gap-1.5 cursor-pointer"
-          >
-            <Scale className="size-4 text-primary" />
-            <span>Minuta & Cláusulas Padrão</span>
-          </Button>
+            <Sheet open={isNewModalOpen} onOpenChange={setIsNewModalOpen}>
+              <SheetTrigger asChild>
+                <Button size="sm" className="rounded-xl text-xs font-bold bg-primary text-primary-foreground gap-1.5">
+                  <Plus className="size-4" />
+                  <span>Novo Contrato</span>
+                </Button>
+              </SheetTrigger>
 
-          <Dialog open={isNewModalOpen} onOpenChange={setIsNewModalOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="rounded-xl text-xs font-bold bg-foreground text-background hover:bg-foreground/90 gap-1.5">
-                <Plus className="size-4" />
-                <span>Emitir Novo Contrato</span>
-              </Button>
-            </DialogTrigger>
-
-            <DialogContent className="sm:max-w-lg sm:rounded-3xl p-6 bg-card border-border max-h-[90vh] overflow-y-auto">
-              <DialogHeader className="space-y-1">
-                <DialogTitle className="text-base font-bold text-foreground">
+            <SheetContent side="right" className="w-full sm:max-w-xl flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border">
+              <SheetHeader className="p-6 pb-4 border-b border-border/60 bg-card">
+                <SheetTitle className="text-base font-bold text-foreground">
                   Emitir Contrato de Prestação de Serviços Turísticos
-                </DialogTitle>
-              </DialogHeader>
+                </SheetTitle>
+                <SheetDescription className="text-xs text-muted-foreground mt-1">
+                  Preencha os dados da viagem e do contratante para gerar a minuta com validade jurídica.
+                </SheetDescription>
+              </SheetHeader>
 
               <form
                 onSubmit={(e) => {
@@ -163,7 +154,7 @@ function WorkspaceContractsIndexPage() {
                   }
                   createMutation.mutate();
                 }}
-                className="space-y-3.5 pt-2 text-xs"
+                className="flex-1 overflow-y-auto p-6 space-y-4 text-xs"
               >
                 <div className="space-y-1">
                   <Label className="text-xs font-bold">Título do Contrato (Opcional)</Label>
@@ -277,18 +268,21 @@ function WorkspaceContractsIndexPage() {
                   </div>
                 </div>
 
-                <Button
-                  type="submit"
-                  disabled={createMutation.isPending}
-                  className="w-full h-11 rounded-xl text-xs font-bold bg-foreground text-background mt-2"
-                >
-                  {createMutation.isPending ? "Gerando contrato..." : "Gerar Contrato & Criar Link de Assinatura"}
-                </Button>
+                <div className="pt-2">
+                  <Button
+                    type="submit"
+                    disabled={createMutation.isPending}
+                    className="w-full h-11 rounded-xl text-xs font-bold bg-foreground text-background"
+                  >
+                    {createMutation.isPending ? "Gerando contrato..." : "Gerar Contrato & Criar Link de Assinatura"}
+                  </Button>
+                </div>
               </form>
-            </DialogContent>
-          </Dialog>
+            </SheetContent>
+          </Sheet>
         </div>
-      </div>
+      }
+    />
 
       {/* ── 2. FILTROS & BUSCA ── */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">

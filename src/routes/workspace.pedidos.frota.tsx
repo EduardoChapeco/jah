@@ -24,14 +24,20 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { listDispatches, createDispatch, type DispatchRecord } from "@/services/dispatch.functions";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
+  listDispatches,
+  createDispatch,
+  listPendingDeliveryOrders,
+  type DispatchRecord,
+} from "@/services/dispatch.functions";
+import { listCouriers, type CourierSummaryDTO } from "@/services/fleet.functions";
 import {
   listLogisticsPriceTables,
   saveLogisticsPriceTable,
@@ -39,30 +45,42 @@ import {
   type MobilityServiceType,
 } from "@/services/mobility.functions";
 import { formatMoney } from "@/lib/money";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/workspace/pedidos/frota")({
   head: () => ({ meta: [{ title: "Frota & Despacho de Entregas | Wider" }] }),
   loader: async () => {
-    const [dispatches, priceTables] = await Promise.all([
+    const [dispatches, priceTables, pendingOrders, couriers] = await Promise.all([
       listDispatches().catch(() => []),
       listLogisticsPriceTables().catch(() => []),
+      listPendingDeliveryOrders().catch(() => []),
+      listCouriers({ data: {} }).catch(() => []),
     ]);
-    return { dispatches, priceTables };
+    return { dispatches, priceTables, pendingOrders, couriers };
   },
   component: FrotaEntregasPage,
 });
 
 function FrotaEntregasPage() {
-  const { dispatches: initialDispatches, priceTables: initialPriceTables } = Route.useLoaderData();
+  const {
+    dispatches: initialDispatches,
+    priceTables: initialPriceTables,
+    pendingOrders: initialPendingOrders,
+    couriers: initialCouriers,
+  } = Route.useLoaderData();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"dispatches" | "pricing">("dispatches");
 
   // Dispatches state
   const [dispatches, setDispatches] = useState<DispatchRecord[]>(initialDispatches);
+  const [pendingOrders, setPendingOrders] = useState<any[]>(initialPendingOrders);
+  const [couriers, setCouriers] = useState<CourierSummaryDTO[]>(initialCouriers);
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form states for dispatch
+  const [selectedOrderId, setSelectedOrderId] = useState<string>("");
+  const [selectedCourierId, setSelectedCourierId] = useState<string>("");
   const [orderNumber, setOrderNumber] = useState("");
   const [courierName, setCourierName] = useState("");
   const [courierPhone, setCourierPhone] = useState("");
@@ -70,6 +88,41 @@ function FrotaEntregasPage() {
   const [recipientPhone, setRecipientPhone] = useState("");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [feeReal, setFeeReal] = useState("10.00");
+
+  const handleSelectPendingOrder = (orderId: string) => {
+    setSelectedOrderId(orderId);
+    if (!orderId || orderId === "manual") {
+      return;
+    }
+    const found = pendingOrders.find((o) => o.id === orderId);
+    if (found) {
+      setOrderNumber(found.public_token ? found.public_token.slice(0, 8).toUpperCase() : found.id.slice(0, 8).toUpperCase());
+      const cName = found.customer_snapshot?.name || "Cliente";
+      setRecipientName(cName);
+      setRecipientPhone(found.customer_snapshot?.phone || "");
+      const addr = found.shipping_address;
+      const formatted = addr
+        ? `${addr.street || ""}, ${addr.number || "S/N"}${addr.complement ? ` - ${addr.complement}` : ""}${addr.neighborhood ? ` (${addr.neighborhood})` : ""}, ${addr.city || ""}`
+        : "";
+      setDeliveryAddress(formatted);
+      setFeeReal(found.shipping_cents ? (found.shipping_cents / 100).toFixed(2) : "10.00");
+    }
+  };
+
+  const handleSelectCourier = (courierId: string) => {
+    setSelectedCourierId(courierId);
+    if (!courierId || courierId === "manual") return;
+    const found = couriers.find((c) => c.id === courierId);
+    if (found) {
+      setCourierName(found.name);
+      setCourierPhone(found.phone || "");
+    }
+  };
+
+  const openDispatchForOrder = (ord: any) => {
+    handleSelectPendingOrder(ord.id);
+    setIsOpen(true);
+  };
 
   // Pricing Table states
   const [priceTables, setPriceTables] = useState<any[]>(initialPriceTables);
@@ -96,7 +149,7 @@ function FrotaEntregasPage() {
       const feeCents = Math.round(parseFloat(feeReal || "0") * 100);
       const created = await createDispatch({
         data: {
-          orderId: "ord_" + Math.random().toString(36).substring(2, 9),
+          orderId: selectedOrderId && selectedOrderId !== "manual" ? selectedOrderId : `ord_${orderNumber}`,
           orderNumber,
           courierName,
           courierPhone: courierPhone || undefined,
@@ -108,7 +161,12 @@ function FrotaEntregasPage() {
       });
 
       setDispatches([created, ...dispatches]);
+      if (selectedOrderId) {
+        setPendingOrders(pendingOrders.filter((o) => o.id !== selectedOrderId));
+      }
       setIsOpen(false);
+      setSelectedOrderId("");
+      setSelectedCourierId("");
       setOrderNumber("");
       setCourierName("");
       setCourierPhone("");
@@ -219,120 +277,206 @@ function FrotaEntregasPage() {
 
       {/* ── ABA 1: DESPACHOS ATIVOS ─────────────────────────────────── */}
       {activeTab === "dispatches" && (
-        <div className="space-y-4">
-          <div className="flex justify-end">
-            <Dialog open={isOpen} onOpenChange={setIsOpen}>
-              <DialogTrigger asChild>
-                <Button className="rounded-xl h-10 px-4 font-semibold text-xs bg-foreground text-background hover:opacity-90 gap-1.5">
+        <div className="space-y-6">
+          {/* Seção de Pedidos Pendentes de Despacho */}
+          {pendingOrders.length > 0 && (
+            <div className="p-4 rounded-2xl bg-card border border-border/60 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-foreground font-bold text-sm">
+                  <Bike className="size-4 text-primary" />
+                  <span>Pedidos Prontos para Entrega ({pendingOrders.length})</span>
+                </div>
+                <Badge variant="outline" className="text-[10px] uppercase font-mono">
+                  Fila de Expedição
+                </Badge>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {pendingOrders.map((ord) => (
+                  <div key={ord.id} className="p-3.5 rounded-xl bg-muted/40 border border-border/60 flex flex-col justify-between gap-3">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono font-bold text-xs text-foreground">
+                          #{ord.public_token?.slice(0, 8).toUpperCase()}
+                        </span>
+                        <span className="font-bold text-xs text-primary font-mono">
+                          {formatMoney(ord.total_cents)}
+                        </span>
+                      </div>
+                      <p className="text-xs font-semibold text-foreground mt-1">
+                        {ord.customer_snapshot?.name || "Cliente"}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground truncate mt-0.5">
+                        {ord.shipping_address?.street ? `${ord.shipping_address.street}, ${ord.shipping_address.number || ""}` : "Entrega Delivery"}
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => openDispatchForOrder(ord)}
+                      className="w-full h-8 rounded-lg font-bold text-xs gap-1.5"
+                    >
+                      <Truck className="size-3.5" />
+                      <span>Despachar Este Pedido</span>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-bold text-foreground">Despachos & Rotas Ativas ({dispatches.length})</h2>
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild>
+                <Button className="rounded-xl h-10 px-4 font-semibold text-xs bg-foreground text-background hover:opacity-90 gap-1.5 cursor-pointer">
                   <Plus className="size-4" />
                   <span>Novo Despacho</span>
                 </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:rounded-2xl bg-card sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle className="text-base font-semibold text-foreground">
+              </SheetTrigger>
+              <SheetContent side="right" className="w-full sm:max-w-md flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border">
+                <SheetHeader className="p-6 pb-4 border-b border-border/60 bg-card">
+                  <SheetTitle className="text-base font-semibold text-foreground">
                     Despachar Pedido para Entrega
-                  </DialogTitle>
-                  <DialogDescription className="text-xs text-muted-foreground">
+                  </SheetTitle>
+                  <SheetDescription className="text-xs text-muted-foreground mt-1">
                     Gera um Link Mágico com mapa e PIN de confirmação para o entregador.
-                  </DialogDescription>
-                </DialogHeader>
+                  </SheetDescription>
+                </SheetHeader>
 
-                <form onSubmit={handleCreateDispatch} className="space-y-3 pt-2">
+                <form onSubmit={handleCreateDispatch} className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+                  {/* Seletor de Pedido Pendente */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold text-foreground">Vincular a Pedido da Loja</Label>
+                    <Select value={selectedOrderId} onValueChange={handleSelectPendingOrder}>
+                      <SelectTrigger className="h-10 rounded-xl text-xs bg-background">
+                        <SelectValue placeholder="Escolha um pedido ou preencha manual..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="manual">-- Pedido Manual / Avulso --</SelectItem>
+                        {pendingOrders.map((ord) => (
+                          <SelectItem key={ord.id} value={ord.id}>
+                            #{ord.public_token?.slice(0, 8).toUpperCase()} • {ord.customer_snapshot?.name || "Cliente"} ({formatMoney(ord.total_cents)})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Seletor de Entregador Cadastrado */}
+                  {couriers.length > 0 && (
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-bold text-foreground">Entregador da Frota</Label>
+                      <Select value={selectedCourierId} onValueChange={handleSelectCourier}>
+                        <SelectTrigger className="h-10 rounded-xl text-xs bg-background">
+                          <SelectValue placeholder="Escolha um entregador ou digite abaixo..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="manual">-- Entregador Avulso / Não cadastrado --</SelectItem>
+                          {couriers.map((c) => (
+                            <SelectItem key={c.id} value={c.id}>
+                              {c.name} {c.phone ? `(${c.phone})` : ""}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <Label className="text-xs font-medium text-foreground">Nº do Pedido *</Label>
+                      <Label className="text-xs font-bold text-foreground">Nº do Pedido *</Label>
                       <Input
                         value={orderNumber}
                         onChange={(e) => setOrderNumber(e.target.value)}
                         placeholder="Ex: 1042"
-                        className="h-9 rounded-xl text-xs bg-background"
+                        className="h-10 rounded-xl text-xs bg-background mt-1 font-mono"
                         required
                       />
                     </div>
                     <div>
-                      <Label className="text-xs font-medium text-foreground">Taxa da Entrega (R$)</Label>
+                      <Label className="text-xs font-bold text-foreground">Taxa da Entrega (R$)</Label>
                       <Input
                         value={feeReal}
                         onChange={(e) => setFeeReal(e.target.value)}
                         placeholder="10.00"
-                        className="h-9 rounded-xl text-xs bg-background"
+                        className="h-10 rounded-xl text-xs bg-background mt-1 font-mono"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <Label className="text-xs font-medium text-foreground">Endereço de Entrega *</Label>
+                    <Label className="text-xs font-bold text-foreground">Endereço de Entrega *</Label>
                     <Input
                       value={deliveryAddress}
                       onChange={(e) => setDeliveryAddress(e.target.value)}
                       placeholder="Rua, Número, Bairro"
-                      className="h-9 rounded-xl text-xs bg-background"
+                      className="h-10 rounded-xl text-xs bg-background mt-1"
                       required
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <Label className="text-xs font-medium text-foreground">Nome do Cliente *</Label>
+                      <Label className="text-xs font-bold text-foreground">Nome do Cliente *</Label>
                       <Input
                         value={recipientName}
                         onChange={(e) => setRecipientName(e.target.value)}
                         placeholder="Nome do cliente"
-                        className="h-9 rounded-xl text-xs bg-background"
+                        className="h-10 rounded-xl text-xs bg-background mt-1"
                         required
                       />
                     </div>
                     <div>
-                      <Label className="text-xs font-medium text-foreground">WhatsApp Cliente</Label>
+                      <Label className="text-xs font-bold text-foreground">WhatsApp Cliente</Label>
                       <Input
                         value={recipientPhone}
                         onChange={(e) => setRecipientPhone(e.target.value)}
                         placeholder="(49) 99999-9999"
-                        className="h-9 rounded-xl text-xs bg-background"
+                        className="h-10 rounded-xl text-xs bg-background mt-1"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <Label className="text-xs font-medium text-foreground">Nome do Entregador *</Label>
+                      <Label className="text-xs font-bold text-foreground">Nome do Entregador *</Label>
                       <Input
                         value={courierName}
                         onChange={(e) => setCourierName(e.target.value)}
                         placeholder="Motoboy / Motorista"
-                        className="h-9 rounded-xl text-xs bg-background"
+                        className="h-10 rounded-xl text-xs bg-background mt-1"
                         required
                       />
                     </div>
                     <div>
-                      <Label className="text-xs font-medium text-foreground">WhatsApp Entregador</Label>
+                      <Label className="text-xs font-bold text-foreground">WhatsApp Entregador</Label>
                       <Input
                         value={courierPhone}
                         onChange={(e) => setCourierPhone(e.target.value)}
                         placeholder="(49) 98888-8888"
-                        className="h-9 rounded-xl text-xs bg-background"
+                        className="h-10 rounded-xl text-xs bg-background mt-1"
                       />
                     </div>
                   </div>
 
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full h-10 rounded-xl bg-foreground text-background font-semibold text-xs hover:opacity-90 mt-2"
-                  >
-                    {isSubmitting ? (
-                      <div className="flex items-center gap-2">
-                        <Loader2 className="size-4 animate-spin" />
-                        <span>Gerando Despacho...</span>
-                      </div>
-                    ) : (
-                      <span>Criar Despacho & Link Mágico</span>
-                    )}
-                  </Button>
+                  <div className="pt-2">
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full h-11 rounded-xl bg-foreground text-background font-bold text-xs hover:opacity-90 cursor-pointer"
+                    >
+                      {isSubmitting ? (
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="size-4 animate-spin" />
+                          <span>Gerando Despacho...</span>
+                        </div>
+                      ) : (
+                        <span>Criar Despacho & Link Mágico</span>
+                      )}
+                    </Button>
+                  </div>
                 </form>
-              </DialogContent>
-            </Dialog>
+              </SheetContent>
+            </Sheet>
           </div>
 
           {dispatches.length === 0 ? (
@@ -412,41 +556,41 @@ function FrotaEntregasPage() {
               Configure as tarifas de saída, valor por KM e ajudantes que alimentam a precificação real do app.
             </p>
 
-            <Dialog open={isPriceModalOpen} onOpenChange={setIsPriceModalOpen}>
-              <DialogTrigger asChild>
-                <Button className="rounded-xl h-10 px-4 font-semibold text-xs bg-foreground text-background hover:opacity-90 gap-1.5">
+            <Sheet open={isPriceModalOpen} onOpenChange={setIsPriceModalOpen}>
+              <SheetTrigger asChild>
+                <Button className="rounded-xl h-10 px-4 font-semibold text-xs bg-foreground text-background hover:opacity-90 gap-1.5 cursor-pointer">
                   <Plus className="size-4" />
                   <span>Adicionar Tabela de Tarifa</span>
                 </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:rounded-2xl bg-card sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle className="text-base font-semibold text-foreground">
+              </SheetTrigger>
+              <SheetContent side="right" className="w-full sm:max-w-md flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border">
+                <SheetHeader className="p-6 pb-4 border-b border-border/60 bg-card">
+                  <SheetTitle className="text-base font-semibold text-foreground">
                     Nova Tabela de Tarifa de Mobilidade / Frete
-                  </DialogTitle>
-                  <DialogDescription className="text-xs text-muted-foreground">
+                  </SheetTitle>
+                  <SheetDescription className="text-xs text-muted-foreground mt-1">
                     Define o cálculo exato de saída, km rodado e ajudantes para o modal selecionado.
-                  </DialogDescription>
-                </DialogHeader>
+                  </SheetDescription>
+                </SheetHeader>
 
-                <form onSubmit={handleSavePriceTable} className="space-y-3 pt-2">
+                <form onSubmit={handleSavePriceTable} className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
                   <div>
-                    <Label className="text-xs font-medium text-foreground">Nome da Tabela</Label>
+                    <Label className="text-xs font-bold text-foreground">Nome da Tabela *</Label>
                     <Input
                       value={priceFormName}
                       onChange={(e) => setPriceFormName(e.target.value)}
                       placeholder="Ex: Tarifa Chapecó Centro"
-                      className="h-9 rounded-xl text-xs bg-background"
+                      className="h-10 rounded-xl text-xs bg-background mt-1"
                       required
                     />
                   </div>
 
                   <div>
-                    <Label className="text-xs font-medium text-foreground">Modalidade do Veículo</Label>
+                    <Label className="text-xs font-bold text-foreground">Modalidade do Veículo</Label>
                     <select
                       value={priceFormServiceType}
                       onChange={(e: any) => setPriceFormServiceType(e.target.value)}
-                      className="w-full h-9 rounded-xl text-xs bg-background  px-3 text-foreground"
+                      className="w-full h-10 rounded-xl text-xs bg-background border border-border px-3 text-foreground mt-1"
                     >
                       <option value="delivery_express">Entrega Flash (Moto / Bike)</option>
                       <option value="ride_moto">Moto Passageiro</option>
@@ -458,22 +602,22 @@ function FrotaEntregasPage() {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <Label className="text-xs font-medium text-foreground">Taxa de Partida (R$)</Label>
+                      <Label className="text-xs font-bold text-foreground">Taxa de Partida (R$) *</Label>
                       <Input
                         value={priceFormBaseFee}
                         onChange={(e) => setPriceFormBaseFee(e.target.value)}
                         placeholder="5.00"
-                        className="h-9 rounded-xl text-xs bg-background"
+                        className="h-10 rounded-xl text-xs bg-background mt-1"
                         required
                       />
                     </div>
                     <div>
-                      <Label className="text-xs font-medium text-foreground">Valor por KM (R$)</Label>
+                      <Label className="text-xs font-bold text-foreground">Valor por KM (R$) *</Label>
                       <Input
                         value={priceFormKmRate}
                         onChange={(e) => setPriceFormKmRate(e.target.value)}
                         placeholder="2.50"
-                        className="h-9 rounded-xl text-xs bg-background"
+                        className="h-10 rounded-xl text-xs bg-background mt-1"
                         required
                       />
                     </div>
@@ -481,51 +625,53 @@ function FrotaEntregasPage() {
 
                   <div className="grid grid-cols-3 gap-2">
                     <div>
-                      <Label className="text-xs font-medium text-foreground">Tarifa Mínima (R$)</Label>
+                      <Label className="text-xs font-bold text-foreground">Tarifa Mínima</Label>
                       <Input
                         value={priceFormMinFare}
                         onChange={(e) => setPriceFormMinFare(e.target.value)}
                         placeholder="10.00"
-                        className="h-9 rounded-xl text-xs bg-background"
+                        className="h-10 rounded-xl text-xs bg-background mt-1"
                       />
                     </div>
                     <div>
-                      <Label className="text-xs font-medium text-foreground">Por Minuto (R$)</Label>
+                      <Label className="text-xs font-bold text-foreground">Por Minuto</Label>
                       <Input
                         value={priceFormMinuteRate}
                         onChange={(e) => setPriceFormMinuteRate(e.target.value)}
                         placeholder="0.30"
-                        className="h-9 rounded-xl text-xs bg-background"
+                        className="h-10 rounded-xl text-xs bg-background mt-1"
                       />
                     </div>
                     <div>
-                      <Label className="text-xs font-medium text-foreground">Ajudante Mudança</Label>
+                      <Label className="text-xs font-bold text-foreground">Ajudante</Label>
                       <Input
                         value={priceFormHelperFee}
                         onChange={(e) => setPriceFormHelperFee(e.target.value)}
                         placeholder="50.00"
-                        className="h-9 rounded-xl text-xs bg-background"
+                        className="h-10 rounded-xl text-xs bg-background mt-1"
                       />
                     </div>
                   </div>
 
-                  <Button
-                    type="submit"
-                    disabled={isSavingPrice}
-                    className="w-full h-10 rounded-xl bg-foreground text-background font-semibold text-xs hover:opacity-90 mt-2"
-                  >
-                    {isSavingPrice ? (
-                      <div className="flex items-center gap-2">
-                        <Loader2 className="size-4 animate-spin" />
-                        <span>Salvando no Banco...</span>
-                      </div>
-                    ) : (
-                      <span>Salvar Tabela de Tarifas</span>
-                    )}
-                  </Button>
+                  <div className="pt-2">
+                    <Button
+                      type="submit"
+                      disabled={isSavingPrice}
+                      className="w-full h-11 rounded-xl bg-foreground text-background font-bold text-xs hover:opacity-90 cursor-pointer"
+                    >
+                      {isSavingPrice ? (
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="size-4 animate-spin" />
+                          <span>Salvando no Banco...</span>
+                        </div>
+                      ) : (
+                        <span>Salvar Tabela de Tarifas</span>
+                      )}
+                    </Button>
+                  </div>
                 </form>
-              </DialogContent>
-            </Dialog>
+              </SheetContent>
+            </Sheet>
           </div>
 
           {priceTables.length === 0 ? (

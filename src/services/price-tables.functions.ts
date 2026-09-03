@@ -391,22 +391,31 @@ export const resolveCustomerPrice = createServerFn({ method: "POST" })
         };
       }
     } else if (data.customerCpfCnpj) {
-      // Busca se o cliente tem tabela vinculada
+      // Busca se o cliente tem perfil cadastrado
       const cleanDoc = data.customerCpfCnpj.replace(/\D/g, "");
-      const { data: cust } = await supabase
-        .from("customers")
-        .select("price_table_id, price_tables(id, adjustment_type, adjustment_value)")
-        .eq("store_id", data.storeId)
-        .or(`document_number.eq.${cleanDoc},tax_id.eq.${cleanDoc}`)
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("id, tax_id, cpf")
+        .or(`tax_id.eq.${cleanDoc},cpf.eq.${cleanDoc}`)
         .maybeSingle();
 
-      if (cust && (cust as any).price_tables) {
-        const pt = (cust as any).price_tables;
-        activeTableId = pt.id;
-        tableAdjustment = {
-          type: pt.adjustment_type,
-          value: Number(pt.adjustment_value || 0),
-        };
+      if (prof) {
+        // Verifica se há tabela padrão da loja
+        const { data: defaultPt } = await supabase
+          .from("price_tables")
+          .select("id, adjustment_type, adjustment_value")
+          .eq("store_id", data.storeId)
+          .eq("is_default", true)
+          .eq("is_active", true)
+          .maybeSingle();
+
+        if (defaultPt) {
+          activeTableId = defaultPt.id;
+          tableAdjustment = {
+            type: defaultPt.adjustment_type,
+            value: Number(defaultPt.adjustment_value || 0),
+          };
+        }
       }
     }
 

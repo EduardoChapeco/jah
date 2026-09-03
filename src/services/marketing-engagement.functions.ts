@@ -76,7 +76,7 @@ export const listMatchTimeCampaigns = createServerFn({ method: "GET" }).handler(
     const db = getServerClient();
 
     const { data, error } = await db
-      .from("match_time_campaigns")
+      .from("ad_campaigns")
       .select("*")
       .eq("store_id", identity.store_id)
       .order("created_at", { ascending: false });
@@ -119,14 +119,14 @@ export const upsertMatchTimeCampaign = createServerFn({ method: "POST" })
       let result;
       if (input.id) {
         result = await db
-          .from("match_time_campaigns")
+          .from("ad_campaigns")
           .update(payload)
           .eq("id", input.id)
           .eq("store_id", identity.store_id)
           .select()
           .single();
       } else {
-        result = await db.from("match_time_campaigns").insert(payload).select().single();
+        result = await db.from("ad_campaigns").insert(payload).select().single();
       }
 
       if (result.error) throw result.error;

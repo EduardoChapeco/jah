@@ -245,19 +245,37 @@ function ConfirmationPage() {
 
                 <Button
                   size="lg"
-                  className="w-full sm:w-auto bg-success hover:bg-success text-white gap-2"
-                  onClick={() => {
+                  className="w-full sm:w-auto bg-success hover:bg-success text-white gap-2 cursor-pointer"
+                  onClick={async () => {
                     if (!whatsappPhone) {
                       toast.info("Telefone de atendimento não configurado no painel da loja.");
                       return;
                     }
-                    const message = encodeURIComponent(
-                      `Olá! Acabei de realizar o pedido #${order.public_token} no site no valor de ${formatMoney(total)}. Gostaria de combinar o pagamento e a entrega/retirada!`,
-                    );
-                    window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
+
+                    const { buildStructuredOrderWhatsAppMessage } = await import("@/lib/whatsapp");
+                    const structuredItems = (items || []).map((it: any) => ({
+                      name: it.product_title || it.title || "Produto",
+                      qty: it.qty || 1,
+                      unitPriceCents: it.unit_price_cents || it.price_cents || 0,
+                      selectedOptions: it.selected_options || [],
+                    }));
+
+                    const fullMessage = buildStructuredOrderWhatsAppMessage({
+                      orderToken: order.public_token,
+                      customerName: order.customer_snapshot?.name,
+                      items: structuredItems,
+                      subtotalCents: subtotal,
+                      shippingCents: shipping,
+                      discountCents: discount,
+                      totalCents: total,
+                      paymentMethodText: paymentMethod === "pix" ? "Pix" : "Manual / Combinar",
+                      deliveryMethodText: order.shipping_method || "Padrão",
+                    });
+
+                    window.open(`https://wa.me/${whatsappPhone}?text=${encodeURIComponent(fullMessage)}`, "_blank");
                   }}
                 >
-                  <MessageCircle className="h-5 w-5" /> Falar com Vendedora no WhatsApp
+                  <MessageCircle className="h-5 w-5" /> Enviar Pedido no WhatsApp
                 </Button>
               </div>
             ) : (

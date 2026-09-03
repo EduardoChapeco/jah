@@ -113,8 +113,8 @@ function WorkspacePromotionsPage() {
     <div className="space-y-6">
       {/* ── PageHeader Canônico ── */}
       <PageHeader
-        eyebrow="Vitrine & Divulgação"
-        title="Promoções & Cupons"
+        eyebrow="Marketing"
+        title="Promoções"
         actions={
           <Button
             onClick={() => setIsDialogOpen(true)}

@@ -24,14 +24,16 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  // Bypass cache for API calls, Supabase endpoints, Server Functions and non-GET requests
+  // Bypass cache for API calls (except PWA manifest), Supabase endpoints, Server Functions and non-GET requests
+  const isPwaManifest = url.pathname.startsWith("/api/pwa/manifest");
   if (
     event.request.method !== "GET" ||
-    url.pathname.startsWith("/api") ||
+    (url.pathname.startsWith("/api") && !isPwaManifest) ||
     url.hostname.includes("supabase.co") ||
     url.search.includes("_server") ||
     url.pathname.includes("_server") ||
-    url.pathname.startsWith("/admin")
+    url.pathname.startsWith("/admin") ||
+    url.pathname.startsWith("/workspace")
   ) {
     return;
   }

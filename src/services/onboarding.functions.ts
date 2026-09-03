@@ -546,51 +546,30 @@ export const provisionBusiness = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const db = getServerClient(); // Bypass RLS para provisionamento
 
-    // 0. Resolver identidade segura (ou fallback para usuário logado / perfil mestre)
+    // 0. Resolver identidade segura da sessão
     let userId: string | null = null;
     try {
-      const ssrClient = await getSSRClient();
-      const { data: authData } = await ssrClient.auth.getUser();
-      userId = authData?.user?.id || null;
+      const identity = await getServerIdentity();
+      userId = identity?.id || null;
     } catch {
       userId = null;
     }
 
     if (!userId) {
       try {
-        const identity = await getServerIdentity();
-        userId = identity?.id || null;
+        const ssrClient = getSSRClient();
+        const { data: authData } = await ssrClient.auth.getUser();
+        userId = authData?.user?.id || null;
       } catch {
         userId = null;
       }
     }
 
-    // Se ainda não tiver userId, busca o perfil padrão no banco ou cria um novo
     if (!userId) {
-      try {
-        const { data: defaultProfile } = await db
-          .from("profiles")
-          .select("id")
-          .limit(1)
-          .maybeSingle();
-
-        if (defaultProfile?.id) {
-          userId = defaultProfile.id;
-        } else {
-          const newId = crypto.randomUUID();
-          await db.from("profiles").insert({
-            id: newId,
-            full_name: data.name,
-            role: "owner",
-          });
-          userId = newId;
-        }
-      } catch {
-        userId = "d21869c6-6545-4a52-a383-10098ef180ec";
-      }
+      throw new Error("Sessão não autenticada. Faça login para cadastrar sua empresa.");
     }
 
-    // 0.1 Garantir existência de profile no banco sem sobrescrever o nome pessoal do usuário com o nome da loja
+    // 0.1 Garantir existência de profile no banco com role 'owner'
     const { data: existingProfile } = await db
       .from("profiles")
       .select("id, full_name")
@@ -657,6 +636,7 @@ export const provisionBusiness = createServerFn({ method: "POST" })
       address: data.address || (data.street ? `${data.street}, ${data.number || "S/N"}` : null),
       phone: data.phone || null,
       email: data.email || null,
+      logo_url: data.logoUrl || null,
       settings,
     };
 

@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { PageHeader } from "@/components/commerce/page-header";
 import { toast } from "sonner";
 import {
   listAgencyTravelQuotes,
@@ -92,7 +93,7 @@ export default function AgencyQuotesPage() {
       }),
     onSuccess: (res) => {
       toast.success("Lâmina criada! Abrindo Studio...");
-      navigate({ to: "/workspace/turismo/propostas/$id" as any, params: { id: res.id } as any });
+      navigate({ to: "/workspace/turismo/propostas/$id", params: { id: res.id } });
     },
     onError: (err: any) => toast.error(err?.message || "Erro ao criar proposta."),
   });
@@ -100,25 +101,20 @@ export default function AgencyQuotesPage() {
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* ── 1. Top Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-card border border-border/60">
-        <div className="space-y-1">
-          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary">
-            Turismo & Cotações
-          </span>
-          <h1 className="text-xl font-bold tracking-tight text-foreground">
-            Cotações de Viagem
-          </h1>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button asChild size="sm" className="rounded-xl text-xs font-bold bg-foreground text-background hover:bg-foreground/90 gap-1.5">
-            <Link to="/workspace/turismo/propostas">
-              <FileText size={16} weight="bold" />
-              <span>Ver Lâminas / Studio</span>
-            </Link>
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Turismo"
+        title="Cotações de Viagem"
+        actions={
+          <div className="flex items-center gap-2">
+            <Button asChild size="sm" className="rounded-xl text-xs font-bold bg-primary text-primary-foreground gap-1.5">
+              <Link to="/workspace/turismo/propostas">
+                <FileText size={16} weight="bold" />
+                <span>Ver Lâminas / Studio</span>
+              </Link>
+            </Button>
+          </div>
+        }
+      />
 
       {/* ── 2. Filtros de Status ── */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">

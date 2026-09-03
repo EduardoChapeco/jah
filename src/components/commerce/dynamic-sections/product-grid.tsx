@@ -8,101 +8,134 @@ import { cn } from "@/lib/utils";
 interface ProductGridProps {
   node_id?: string;
   block_type?: string;
-  // Flat content fields (spread by ExperienceRenderer from node.content)
   title?: string;
   subtitle?: string;
   collection_slug?: string;
   columns?: 2 | 3 | 4;
   design_tokens?: any;
+  layout_rules?: {
+    variant?: "grid" | "masonry" | "collage" | "slider" | "column" | string;
+    maxWidth?: string;
+    gap?: string;
+  };
   data_bindings?: any;
-  // Canonical dynamic data props from ExperienceRenderer
   resolvedProducts?: any[];
-  // Legacy compat
   resolvedData?: any;
   transientData?: any;
   isEditing?: boolean;
 }
 
-/**
- * ProductGrid — reads products from server-resolved resolvedProducts.
- * NEVER issues its own network requests. Honest empty state when no products.
- */
 export function ProductGrid({
   title,
   subtitle,
   columns = 4,
   design_tokens,
+  layout_rules,
   resolvedProducts,
   resolvedData,
   transientData,
   isEditing,
 }: ProductGridProps) {
-  // Canonical: resolvedProducts → legacy resolvedData → legacy transientData
   const products: any[] =
     resolvedProducts ??
     (resolvedData?.products || (Array.isArray(resolvedData) ? resolvedData : null)) ??
     transientData?.products ??
     [];
 
+  const variant = layout_rules?.variant || "grid";
+
   if (products.length === 0 && !isEditing) {
     return null;
   }
 
+  // 1. Variante Slider / Carrossel Horizontal
+  if (variant === "slider") {
+    return (
+      <div
+        className={cn("w-full py-8 @md:py-14 overflow-hidden", design_tokens?.className)}
+        style={{
+          backgroundColor: design_tokens?.backgroundColor,
+          color: design_tokens?.textColor,
+        }}
+      >
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 space-y-6">
+          <div className="flex items-end justify-between">
+            <div>
+              {title && (
+                <h2 className="text-2xl @md:text-3xl font-black tracking-tight text-foreground">{title}</h2>
+              )}
+              {subtitle && <p className="text-muted-foreground text-xs @md:text-sm mt-1">{subtitle}</p>}
+            </div>
+            <Button variant="ghost" size="sm" className="hidden @md:flex gap-1.5 text-xs font-bold" asChild>
+              <Link to="/mercado">
+                <span>Ver Todos</span>
+                <ArrowRight className="size-3.5" />
+              </Link>
+            </Button>
+          </div>
+
+          <div className="flex gap-4 overflow-x-auto scrollbar-none pb-4 snap-x snap-mandatory">
+            {products.map((product: any) => (
+              <div key={product.id} className="shrink-0 w-64 sm:w-72 snap-start">
+                <ProductCard product={product} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. Variante Grid Regular
   const colClass =
     (
       {
-        2: "grid-cols-2",
-        3: "grid-cols-2 @md:grid-cols-3",
-        4: "grid-cols-2 @md:grid-cols-3 @lg:grid-cols-4",
+        2: "grid-cols-1 sm:grid-cols-2",
+        3: "grid-cols-1 sm:grid-cols-2 @md:grid-cols-3",
+        4: "grid-cols-1 sm:grid-cols-2 @md:grid-cols-3 @lg:grid-cols-4",
       } as Record<number, string>
-    )[columns] ?? "grid-cols-2 @md:grid-cols-3 @lg:grid-cols-4";
+    )[columns] ?? "grid-cols-1 sm:grid-cols-2 @md:grid-cols-3 @lg:grid-cols-4";
 
   return (
     <div
-      className={cn("w-full py-12 @md:py-24 overflow-hidden", design_tokens?.className)}
+      className={cn("w-full py-8 @md:py-14 overflow-hidden", design_tokens?.className)}
       style={{
         backgroundColor: design_tokens?.backgroundColor,
         color: design_tokens?.textColor,
       }}
     >
-      <div className="mx-auto max-w-[1400px] px-4 @md:px-8">
-        <div className="flex items-end justify-between mb-8 @md:mb-12">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 space-y-6">
+        <div className="flex items-end justify-between">
           <div>
             {title && (
-              <h2 className="text-2xl @md:text-4xl font-bold tracking-tight mb-2">{title}</h2>
+              <h2 className="text-2xl @md:text-3xl font-black tracking-tight text-foreground">{title}</h2>
             )}
-            {subtitle && <p className="text-muted-foreground text-sm @md:text-lg">{subtitle}</p>}
+            {subtitle && <p className="text-muted-foreground text-xs @md:text-sm mt-1">{subtitle}</p>}
           </div>
-          <Button variant="ghost" className="hidden @md:flex gap-2 group" asChild>
+          <Button variant="ghost" size="sm" className="hidden @md:flex gap-1.5 text-xs font-bold" asChild>
             <Link to="/mercado">
-              Ver Todos
-              <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              <span>Ver Todos</span>
+              <ArrowRight className="size-3.5" />
             </Link>
           </Button>
         </div>
 
         {products.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center gap-4 text-muted-foreground border-0">
-            <ShoppingBag className="h-10 w-10 opacity-30" />
-            <div>
-              <p className="font-medium">Nenhum produto disponível</p>
-              <p className="text-sm mt-1">
-                Cadastre produtos ativos no painel para que apareçam aqui.
+          <div className="flex flex-col items-center justify-center py-16 text-center gap-3 text-muted-foreground border border-dashed border-border/80 rounded-3xl p-8 bg-muted/20">
+            <ShoppingBag className="size-10 text-muted-foreground/40" />
+            <div className="space-y-1">
+              <p className="font-bold text-foreground text-sm">Nenhum produto cadastrado nesta coleção</p>
+              <p className="text-xs text-muted-foreground">
+                Cadastre produtos ou vincule uma coleção ativa no painel lateral.
               </p>
             </div>
           </div>
         ) : (
-          <div className={cn("grid gap-4 @md:gap-6 @lg:gap-8", colClass)}>
+          <div className={cn("grid gap-4 sm:gap-6", colClass)}>
             {products.map((product: any) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
-        )}
-
-        {products.length > 0 && (
-          <Button variant="outline" className="w-full mt-8 @md:hidden" asChild>
-            <Link to="/mercado">Ver Todos</Link>
-          </Button>
         )}
       </div>
     </div>

@@ -19,6 +19,7 @@ import { getEnvelopeByToken, signContractEnvelope } from "@/services/contracts.f
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { SignatureCanvasPad } from "@/components/contracts/signature-canvas-pad";
 import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/assinar/$token")({
@@ -41,6 +42,7 @@ function SignContractPage() {
   const navigate = useNavigate();
   const { envelope, error } = Route.useLoaderData();
   const [consent, setConsent] = useState(false);
+  const [signatureImage, setSignatureImage] = useState("");
   const [isSignedLocal, setIsSignedLocal] = useState(envelope?.status === "signed");
 
   const signMutation = useMutation({
@@ -90,6 +92,7 @@ function SignContractPage() {
       data: {
         signingToken: envelope.signing_token,
         consent: true,
+        signatureImageBase64: signatureImage || undefined,
         userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "Browser",
       },
     });
@@ -158,8 +161,11 @@ function SignContractPage() {
 
         {/* Área de Ação e Consentimento */}
         {!isSignedLocal ? (
-          <div className="border border-primary/30 bg-card rounded-2xl p-6  space-y-4">
-            <div className="flex items-start space-x-3">
+          <div className="border border-primary/30 bg-card rounded-2xl p-6 space-y-5">
+            {/* Canvas Interativo de Assinatura */}
+            <SignatureCanvasPad onSave={setSignatureImage} />
+
+            <div className="flex items-start space-x-3 pt-2">
               <Checkbox
                 id="consent-check"
                 checked={consent}

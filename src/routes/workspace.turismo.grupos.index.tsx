@@ -17,32 +17,41 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
+import { PageHeader } from "@/components/commerce/page-header";
 import { toast } from "sonner";
 import {
   listAgencyGroupTours,
   createGroupTour,
   type GroupTourDTO,
 } from "@/services/group-tours.functions";
+import { getStoreSettings } from "@/services/store.functions";
+import { listVehicleLayouts } from "@/services/vehicle-layouts.functions";
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/turismo/grupos/")({
   head: () => ({ meta: [{ title: "Grupos Terrestres & Excursões | Workspace Wider" }] }),
   loader: async () => {
-    const tours = await listAgencyGroupTours().catch(() => []);
-    return { tours };
+    const store = await getStoreSettings().catch(() => null);
+    const storeId = store?.id || "";
+    const [tours, layouts] = await Promise.all([
+      listAgencyGroupTours().catch(() => []),
+      storeId ? listVehicleLayouts({ data: { store_id: storeId } }).catch(() => []) : [],
+    ]);
+    return { tours: tours || [], layouts: layouts || [] };
   },
   component: WorkspaceGroupToursIndexPage,
 });
 
 function WorkspaceGroupToursIndexPage() {
-  const { tours: initialTours } = Route.useLoaderData();
+  const { tours: initialTours, layouts = [] } = (Route.useLoaderData as any)();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
@@ -99,39 +108,28 @@ function WorkspaceGroupToursIndexPage() {
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* ── 1. HEADER DO WORKSPACE ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-card border border-border/80">
-        <div className="space-y-1">
+      <PageHeader
+        eyebrow="Turismo & Rodoviário"
+        title="Grupos Terrestres"
+        actions={
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-muted-foreground">
-              Operações Rodoviárias
-            </span>
-            <Badge variant="outline" className="text-[10px] font-mono font-bold">
-              {toursList.length} Viagens
-            </Badge>
-          </div>
-          <h1 className="text-xl font-bold tracking-tight text-foreground">
-            Grupos Terrestres & Ônibus
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            Gerencie mapa de assentos (2x2), alocação de passageiros, rooming list de hotéis e manifesto ANTT.
-          </p>
-        </div>
+            <Sheet open={isNewModalOpen} onOpenChange={setIsNewModalOpen}>
+              <SheetTrigger asChild>
+                <Button size="sm" className="rounded-xl text-xs font-bold bg-primary text-primary-foreground gap-1.5">
+                  <Plus className="size-4" />
+                  <span>Nova Excursão</span>
+                </Button>
+              </SheetTrigger>
 
-        <div className="flex items-center gap-2">
-          <Dialog open={isNewModalOpen} onOpenChange={setIsNewModalOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="rounded-xl text-xs font-bold bg-foreground text-background hover:bg-foreground/90 gap-1.5">
-                <Plus className="size-4" />
-                <span>Nova Excursão</span>
-              </Button>
-            </DialogTrigger>
-
-            <DialogContent className="sm:max-w-md sm:rounded-3xl p-6 bg-card border-border">
-              <DialogHeader className="space-y-1">
-                <DialogTitle className="text-base font-bold text-foreground">
-                  Cadastrar Viagem em Grupo Terrestre
-                </DialogTitle>
-              </DialogHeader>
+              <SheetContent side="right" className="w-full sm:max-w-lg flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border">
+                <SheetHeader className="p-6 pb-4 border-b border-border/60 bg-card">
+                  <SheetTitle className="text-base font-bold text-foreground">
+                    Cadastrar Viagem em Grupo Terrestre
+                  </SheetTitle>
+                  <SheetDescription className="text-xs text-muted-foreground mt-1">
+                    Configure as datas, cidades de embarque e capacidade do ônibus.
+                  </SheetDescription>
+                </SheetHeader>
 
               <form
                 onSubmit={(e) => {
@@ -142,7 +140,7 @@ function WorkspaceGroupToursIndexPage() {
                   }
                   createMutation.mutate();
                 }}
-                className="space-y-3.5 pt-2 text-xs"
+                className="flex-1 overflow-y-auto p-6 space-y-4 text-xs"
               >
                 <div className="space-y-1">
                   <Label className="text-xs font-bold">Título da Viagem *</Label>
@@ -208,10 +206,21 @@ function WorkspaceGroupToursIndexPage() {
                       onChange={(e) => setTotalSeats(Number(e.target.value))}
                       className="w-full h-10 rounded-xl bg-background border border-border px-2 text-xs"
                     >
-                      <option value={42}>42 Lugares (Leito Turismo)</option>
-                      <option value={46}>46 Lugares (Semi-Leito)</option>
-                      <option value={50}>50 Lugares (Executivo)</option>
-                      <option value={60}>60 Lugares (Double Decker)</option>
+                      {layouts.length > 0 && (
+                        <optgroup label="Modelos da Minha Frota">
+                          {layouts.map((l: any) => (
+                            <option key={l.id} value={l.total_capacity}>
+                              {l.name} ({l.total_capacity} Lugares)
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                      <optgroup label="Padrões Rodoviários">
+                        <option value={42}>42 Lugares (Leito Turismo)</option>
+                        <option value={46}>46 Lugares (Semi-Leito)</option>
+                        <option value={50}>50 Lugares (Executivo)</option>
+                        <option value={60}>60 Lugares (Double Decker)</option>
+                      </optgroup>
                     </select>
                   </div>
 
@@ -227,18 +236,21 @@ function WorkspaceGroupToursIndexPage() {
                   </div>
                 </div>
 
-                <Button
-                  type="submit"
-                  disabled={createMutation.isPending}
-                  className="w-full h-11 rounded-xl text-xs font-bold bg-foreground text-background mt-2"
-                >
-                  {createMutation.isPending ? "Cadastrando..." : "Cadastrar e Configurar Mapa"}
-                </Button>
+                <div className="pt-2">
+                  <Button
+                    type="submit"
+                    disabled={createMutation.isPending}
+                    className="w-full h-11 rounded-xl text-xs font-bold bg-foreground text-background"
+                  >
+                    {createMutation.isPending ? "Cadastrando..." : "Cadastrar e Configurar Mapa"}
+                  </Button>
+                </div>
               </form>
-            </DialogContent>
-          </Dialog>
+            </SheetContent>
+          </Sheet>
         </div>
-      </div>
+      }
+    />
 
       {/* ── 2. GRID DE VIAGENS EM GRUPO ── */}
       {toursList.length === 0 ? (

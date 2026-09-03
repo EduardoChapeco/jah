@@ -66,14 +66,39 @@ function StoreRouteError({ error }: { error: Error }) {
   }
 
   return (
-    <div className="mx-auto max-w-xl px-4 py-20">
-      <ErrorState
-        title="Página em Atualização"
-        description="Não foi possível concluir o carregamento desta página no momento. Tente atualizar a página."
-        onRetry={() => {
-          if (typeof window !== "undefined") window.location.reload();
-        }}
-      />
+    <div className="mx-auto max-w-md px-4 py-20 text-center space-y-5">
+      <div className="size-14 rounded-2xl bg-destructive/10 border border-destructive/20 flex items-center justify-center text-destructive mx-auto">
+        <span className="text-xl font-bold">!</span>
+      </div>
+      <div className="space-y-1.5">
+        <h2 className="text-lg font-bold text-foreground">Não foi possível carregar a página</h2>
+        <p className="text-xs text-muted-foreground">
+          Ocorreu uma instabilidade temporária ao carregar as informações desta seção.
+        </p>
+      </div>
+
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-2">
+        <button
+          onClick={() => {
+            if (typeof window !== "undefined") window.location.reload();
+          }}
+          className="w-full sm:w-auto h-10 px-5 rounded-xl text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer"
+        >
+          Tentar novamente
+        </button>
+        <a
+          href="/"
+          className="w-full sm:w-auto h-10 px-5 rounded-xl text-xs font-semibold border border-border hover:bg-muted flex items-center justify-center text-foreground transition-colors"
+        >
+          Voltar ao início
+        </a>
+        <a
+          href="/workspace"
+          className="w-full sm:w-auto h-10 px-5 rounded-xl text-xs font-semibold bg-muted hover:bg-muted/80 flex items-center justify-center text-foreground transition-colors"
+        >
+          Entrar no Workspace
+        </a>
+      </div>
     </div>
   );
 }
@@ -96,6 +121,7 @@ function StoreLayout() {
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://wider.com.br";
 
   // JSON-LD Structured Data (Organization + WebSite with SearchAction)
+  const contactPhone = brand?.support_whatsapp || storeData?.contactPhone || storeData?.phone;
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -105,10 +131,10 @@ function StoreLayout() {
         name: storeName,
         url: baseUrl,
         logo: logoUrl || `${baseUrl}/logo.png`,
-        contactPoint: (brand?.support_whatsapp || storeData?.contactPhone)
+        contactPoint: contactPhone
           ? {
               "@type": "ContactPoint",
-              telephone: brand?.support_whatsapp || storeData.contactPhone,
+              telephone: contactPhone,
               contactType: "customer service",
             }
           : undefined,

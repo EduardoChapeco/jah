@@ -646,12 +646,28 @@ export const getMomentsMap = createServerFn({ method: "GET" })
     const fetchLiveMoments = async () => {
       try {
         const res = await db
-          .from("live_moments")
-          .select("id, creator_name, creator_avatar, location_name, media_url, caption, is_live, captured_at, is_bill_split_open, table_size, participants_count")
+          .from("posts")
+          .select("id, author_profile_id, location_name, media_urls, content_text, created_at, metadata, profiles(full_name, avatar_url)")
+          .eq("post_type", "moment")
           .eq("status", "active")
-          .order("captured_at", { ascending: false })
+          .order("created_at", { ascending: false })
           .limit(30);
-        return res;
+
+        const mapped = (res.data || []).map((p: any) => ({
+          id: p.id,
+          creator_name: (p.profiles as any)?.full_name || p.metadata?.author_name || "Membro da Comunidade",
+          creator_avatar: (p.profiles as any)?.avatar_url || null,
+          location_name: p.location_name || "Cidade",
+          media_url: Array.isArray(p.media_urls) && p.media_urls[0] ? p.media_urls[0] : "",
+          caption: p.content_text,
+          is_live: Boolean(p.metadata?.is_live ?? true),
+          captured_at: p.created_at,
+          is_bill_split_open: Boolean(p.metadata?.is_bill_split_open),
+          table_size: p.metadata?.table_size || 6,
+          participants_count: 1,
+        }));
+
+        return { data: mapped };
       } catch {
         return { data: [] };
       }
@@ -829,15 +845,28 @@ export const getLiveMoments = createServerFn({ method: "GET" }).handler(async ()
   const db = getServerClient();
 
   try {
-    const { data: moments, error } = await db
-      .from("live_moments")
-      .select("id, creator_name, creator_avatar, location_name, media_url, caption, is_live, captured_at, is_bill_split_open, table_size, participants_count")
+    const { data: posts, error } = await db
+      .from("posts")
+      .select("id, author_profile_id, location_name, media_urls, content_text, created_at, metadata, profiles(full_name, avatar_url)")
+      .eq("post_type", "moment")
       .eq("status", "active")
-      .order("captured_at", { ascending: false })
+      .order("created_at", { ascending: false })
       .limit(20);
 
-    if (!error && moments && moments.length > 0) {
-      return moments as LiveMomentDTO[];
+    if (!error && posts && posts.length > 0) {
+      return posts.map((p: any) => ({
+        id: p.id,
+        creator_name: (p.profiles as any)?.full_name || p.metadata?.author_name || "Membro da Comunidade",
+        creator_avatar: (p.profiles as any)?.avatar_url || null,
+        location_name: p.location_name || "Cidade",
+        media_url: Array.isArray(p.media_urls) && p.media_urls[0] ? p.media_urls[0] : "",
+        caption: p.content_text,
+        is_live: Boolean(p.metadata?.is_live ?? true),
+        captured_at: p.created_at,
+        is_bill_split_open: Boolean(p.metadata?.is_bill_split_open),
+        table_size: p.metadata?.table_size || 6,
+        participants_count: 1,
+      })) as LiveMomentDTO[];
     }
   } catch {
     // Fallback silencioso para lista vazia
@@ -846,7 +875,6 @@ export const getLiveMoments = createServerFn({ method: "GET" }).handler(async ()
   return [] as LiveMomentDTO[];
 });
 
-/**
 /**
  * Publica um Momento Instantâneo / Ao Vivo da Vida Cotidiana no Mapa
  */
@@ -890,21 +918,6 @@ export const publishLiveMoment = createServerFn({ method: "POST" })
           author_name: authorName,
         },
         status: "active",
-      });
-
-      // 2. Gravar em live_moments para indexação rápida em tempo real
-      await db.from("live_moments").insert({
-        creator_id: authorId,
-        creator_name: authorName,
-        location_name: data.location_name,
-        media_url: data.media_url,
-        caption: data.caption,
-        is_live: true,
-        is_bill_split_open: data.is_bill_split_open,
-        table_size: data.table_size || 6,
-        participants_count: 1,
-        status: "active",
-        captured_at: new Date().toISOString(),
       });
     } catch (e: any) {
       console.warn("[moments] Erro ao persistir momento ao vivo:", e?.message || e);

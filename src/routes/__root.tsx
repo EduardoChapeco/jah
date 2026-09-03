@@ -241,6 +241,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
 import { Toaster } from "@/components/ui/sonner";
 import { CartProvider } from "@/lib/cart-context";
+import { initSecuritySentinel } from "@/lib/security-sentinel";
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
@@ -253,6 +254,12 @@ function RootComponent() {
         });
       });
     }
+  }, []);
+
+  // ── Sentinel de Segurança (passivo, não bloqueia UX) ──
+  useEffect(() => {
+    const cleanup = initSecuritySentinel();
+    return cleanup;
   }, []);
 
   return (

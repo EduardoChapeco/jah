@@ -259,6 +259,32 @@ function DeliveryCourierPage() {
           </div>
         </div>
 
+        {/* ── Itens do Pedido ── */}
+        {(delivery as any).items && (delivery as any).items.length > 0 && (
+          <div className="bg-card rounded-2xl p-4 border border-border/60 shadow-2xs space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-foreground">Itens da Entrega ({(delivery as any).items.length})</span>
+              {(delivery as any).total_cents > 0 && (
+                <span className="text-xs font-bold text-primary font-mono">
+                  Total {formatMoney((delivery as any).total_cents)}
+                </span>
+              )}
+            </div>
+            <div className="space-y-1.5 divide-y divide-border/40 text-xs">
+              {(delivery as any).items.map((it: any, idx: number) => (
+                <div key={idx} className="pt-1.5 first:pt-0 flex items-center justify-between">
+                  <span className="font-medium text-foreground">
+                    {it.qty}x {it.product_title}
+                  </span>
+                  <span className="font-mono text-muted-foreground">
+                    {formatMoney(it.total_cents || 0)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* ── Status de Coleta na Loja ── */}
         {!isDelivered && (
           <div className="bg-card rounded-2xl p-4 border border-border/60 shadow-2xs space-y-2">

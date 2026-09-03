@@ -167,29 +167,8 @@ function WorkspaceStoreHotpagesPage() {
   };
 
   return (
-    <div className="w-full space-y-6 pb-20">
-      {/* Top Banner Informativo se for Admin Master */}
-      {isPlatformAdmin && (
-        <div className="p-4 rounded-2xl bg-primary/10 border border-primary/30 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Shield className="size-5 text-primary shrink-0" />
-            <div className="text-xs">
-              <p className="font-bold text-foreground">Você é Administrador Master Global</p>
-              <p className="text-muted-foreground">
-                Para gerenciar os botões, categorias e sub-headers de todas as 25 vitrines públicas da cidade, use a Central Global.
-              </p>
-            </div>
-          </div>
-          <Button asChild size="sm" className="rounded-xl text-xs font-bold shrink-0">
-            <Link to="/admin-master/botoes">
-              <span>Central de Botões Master</span>
-              <ArrowRight className="size-3.5 ml-1" />
-            </Link>
-          </Button>
-        </div>
-      )}
-
-      {/* ── PageHeader Canônico ── */}
+    <div className="w-full max-w-6xl mx-auto space-y-6 pb-20">
+      {/* ── PageHeader Canônico Clean ── */}
       <PageHeader
         eyebrow="Vitrine & Divulgação"
         title="Destaques & Hotpages"

@@ -792,15 +792,93 @@ export function CheckoutPage() {
                     className="h-10 rounded-xl"
                   />
                 </div>
+
+                {/* ── Perguntas e Campos Customizados do Nicho / Loja ── */}
+                {storeProfile?.settings?.custom_checkout_fields &&
+                  Array.isArray(storeProfile.settings.custom_checkout_fields) &&
+                  storeProfile.settings.custom_checkout_fields.length > 0 && (
+                    <div className="sm:col-span-2 space-y-3 pt-3 border-t border-border/40">
+                      <div className="space-y-0.5">
+                        <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                          <Sparkles className="size-3.5 text-primary" /> Informações Complementares ({storeProfile.name})
+                        </Label>
+                        <p className="text-[11px] text-muted-foreground">
+                          Dados necessários para a emissão e processamento deste pedido.
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {storeProfile.settings.custom_checkout_fields.map((f: any) => {
+                          const fieldKey = f.label || f.id;
+                          return (
+                            <div
+                              key={f.id}
+                              className={cn(
+                                "space-y-1.5",
+                                f.type === "textarea" ? "sm:col-span-2" : ""
+                              )}
+                            >
+                              <Label className="text-xs font-semibold text-foreground">
+                                {f.label || "Pergunta da Loja"} {f.required && <span className="text-destructive">*</span>}
+                              </Label>
+
+                              {f.type === "textarea" ? (
+                                <textarea
+                                  value={customFieldValues[fieldKey] || ""}
+                                  onChange={(e) =>
+                                    setCustomFieldValues((prev) => ({
+                                      ...prev,
+                                      [fieldKey]: e.target.value,
+                                    }))
+                                  }
+                                  placeholder={f.placeholder || "Digite sua resposta..."}
+                                  rows={2}
+                                  required={f.required}
+                                  className="w-full rounded-xl border border-input bg-card p-2.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                                />
+                              ) : (
+                                <Input
+                                  type={f.type || "text"}
+                                  value={customFieldValues[fieldKey] || ""}
+                                  onChange={(e) =>
+                                    setCustomFieldValues((prev) => ({
+                                      ...prev,
+                                      [fieldKey]: e.target.value,
+                                    }))
+                                  }
+                                  placeholder={f.placeholder || "Digite sua resposta..."}
+                                  required={f.required}
+                                  className="h-10 rounded-xl text-xs"
+                                />
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                {/* Observações Gerais do Pedido */}
+                <div className="sm:col-span-2 space-y-1.5 pt-2">
+                  <Label className="text-xs font-semibold text-muted-foreground">
+                    Observações do Pedido (Opcional)
+                  </Label>
+                  <Input
+                    placeholder="Instruções especiais ou ponto de referência..."
+                    value={orderNotes}
+                    onChange={(e) => setOrderNotes(e.target.value)}
+                    className="h-10 rounded-xl text-xs"
+                  />
+                </div>
               </div>
 
-              <div className="pt-3  flex justify-end">
+              <div className="pt-3 flex justify-end">
                 <Button
                   onClick={handleAdvanceToDelivery}
                   disabled={!formData.customerName || !formData.customerEmail || !formData.customerPhone}
-                  className="rounded-xl px-6 h-10 font-bold text-xs  cursor-pointer active:scale-98 transition-all"
+                  className="rounded-xl px-6 h-10 font-bold text-xs cursor-pointer active:scale-98 transition-all"
                 >
-                  <span>Continuar para Entrega</span>
+                  <span>Continuar</span>
                   <ChevronRight size={14} className="ml-1" />
                 </Button>
               </div>

@@ -79,26 +79,18 @@ function NewCategoryPage() {
 
   return (
     <div className="space-y-6 max-w-2xl animate-in fade-in duration-200">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-3xl  bg-card ">
-        <div className="space-y-1">
-          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary">
-            Catálogo & Taxonomia
-          </span>
-          <h1 className="text-xl font-bold tracking-tight text-foreground">
-            Nova Categoria
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            Organize departamentos e subcategorias de produtos para facilitar a navegação.
-          </p>
-        </div>
-
-        <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-bold gap-1.5 shrink-0">
-          <Link to="/workspace/catalogo/categorias">
-            <ArrowLeft className="size-3.5" />
-            <span>Voltar</span>
-          </Link>
-        </Button>
-      </div>
+      <PageHeader
+        eyebrow="Catálogo"
+        title="Nova Categoria"
+        actions={
+          <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-bold gap-1.5 shrink-0">
+            <Link to="/workspace/catalogo/categorias">
+              <ArrowLeft className="size-3.5" />
+              <span>Voltar</span>
+            </Link>
+          </Button>
+        }
+      />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="bg-card rounded-2xl border border-border/60 p-6 space-y-5">

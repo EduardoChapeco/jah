@@ -425,3 +425,65 @@ Response: { success: boolean, order_id: string, new_status: string }
 Cadastra ou atualiza o código de rastreamento do envio no painel admin.
 Request: { orderId: string, trackingCode: string, carrierName?: string, trackingUrl?: string, newStatus?: 'shipped' | 'delivered' }
 Response: Order Object
+
+---
+
+## 12. Construtor Visual & Hotpages (BFF Contracts)
+
+### 12.1 Obter Documento Público de Experiência
+`GET /services/builder.functions/getPublicExperienceDocumentBySlug`
+- **Request:** `{ slug: string, document_type?: string, storeId?: string }`
+- **Response:** `{ status: "ok", data: { document: ExperienceDocument, tree: ExperienceNode[] } }`
+
+### 12.2 Criar Documento de Experiência / Hotpage
+`POST /services/builder.functions/createExperienceDocument`
+- **Request:** `{ title: string, slug: string, document_type: "storefront" | "biolink" | "campaign" | "seller_showcase", template_id?: string }`
+- **Response:** `{ success: boolean, documentId: string }`
+
+### 12.3 Salvar e Publicar Versão do Documento
+`POST /services/builder.functions/publishExperienceVersion`
+- **Request:** `{ documentId: string, change_log?: string }`
+- **Response:** `{ success: boolean, version: number }`
+
+---
+
+## 13. Turismo, Cotações & Assinatura Digital (BFF Contracts)
+
+### 13.1 Registrar Lead de Cotação de Viagem
+`POST /services/whatsapp-leads.functions/recordWhatsAppLead`
+- **Request:** `{ entity_type: "tourism" | "quote" | "store", phone_target: string, entity_title?: string, notes?: string, device_type?: "desktop" | "mobile" }`
+- **Response:** `{ success: boolean, leadId: string }`
+
+### 13.2 Assinatura Eletrônica de Contrato Turístico (SHA-256)
+`POST /services/travel-contract.functions/signTravelContract`
+- **Request:** `{ token: string, signerName: string, signerDocument: string, signatureImage?: string, ipAddress: string, userAgent: string }`
+- **Response:** `{ success: boolean, certificateSerial: string, message: string }`
+
+---
+
+## 14. Agendamentos & Pacotes de Serviços (BFF Contracts)
+
+### 14.1 Consultar Horários Disponíveis
+`GET /services/booking.functions/getAvailableBookingSlots`
+- **Request:** `{ storeId: string, serviceId: string, date: string, resourceId?: string }`
+- **Response:** `{ slots: Array<{ time: string, available: boolean, resourceId?: string }> }`
+
+### 14.2 Confirmar Agendamento de Serviço
+`POST /services/booking.functions/createBookingAppointment`
+- **Request:** `{ serviceId: string, scheduledDate: string, startTime: string, customerName: string, customerPhone: string, resourceId?: string }`
+- **Response:** `{ success: boolean, appointmentId: string, status: "confirmed" | "pending" }`
+
+---
+
+## 15. Ledger de Tokens & Observabilidade (BFF Contracts)
+
+### 15.1 Consultar Saldo da Carteira de Tokens
+`GET /services/tokens.functions/getStoreTokenWallet`
+- **Request:** `{ storeId: string }`
+- **Response:** `{ balance: number, locked: number, totalEarned: number, totalSpent: number }`
+
+### 15.2 Obter Logs de Sistema com Correlation ID
+`GET /services/admin-logs.functions/getSystemLogs`
+- **Request:** `{}` (Requer Platform Admin)
+- **Response:** `Array<{ id: string, route: string, error_message: string, stack_trace?: string, severity: string, created_at: string }>`
+

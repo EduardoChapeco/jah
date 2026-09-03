@@ -1,6 +1,20 @@
 import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
-import { Plus, Edit3, Trash2, Search, FileText } from "lucide-react";
-import { useState } from "react";
+import {
+  Plus,
+  Edit3,
+  Trash2,
+  Search,
+  FileText,
+  Copy,
+  ExternalLink,
+  Sparkles,
+  Layers,
+  Smartphone,
+  CheckCircle2,
+  Clock,
+  Archive,
+} from "lucide-react";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/commerce/page-header";
@@ -17,14 +31,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/state/states";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -34,9 +48,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { listAdminPages, createPage, deletePage } from "@/services/cms.functions";
+import { createExperienceDocument, duplicateExperienceDocument } from "@/services/builder.functions";
 
 export const Route = createFileRoute("/workspace/cms/paginas/")({
-  head: () => ({ meta: [{ title: "Páginas (CMS)" }] }),
+  head: () => ({ meta: [{ title: "Páginas & Landing Pages | Workspace Wider" }] }),
   loader: async () => {
     const res = await listAdminPages();
     return res || [];
@@ -44,18 +59,40 @@ export const Route = createFileRoute("/workspace/cms/paginas/")({
   component: CmsPagesPage,
 });
 
+const PAGE_TEMPLATES = [
+  { id: "blank", label: "Página em Branco", desc: "Comece do zero com blocos livres" },
+  { id: "landing_page", label: "Landing Page de Oferta", desc: "Hero, Cronômetro, Benefícios e CTA" },
+  { id: "classic_commerce", label: "Vitrine de Coleção", desc: "Carrossel de Banners, Produtos e Mosaicos" },
+  { id: "institutional_profile", label: "Quem Somos / Institucional", desc: "História da Marca, Timeline e Depoimentos" },
+  { id: "biolink_classic", label: "Link da Bio (Linktree)", desc: "Cards verticais para redes sociais" },
+];
+
 function CmsPagesPage() {
   const router = useRouter();
   const navigate = useNavigate();
   const pages = Route.useLoaderData();
 
+  const [search, setSearch] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDuplicating, setIsDuplicating] = useState<string | null>(null);
+
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
-    status: "draft" as "draft" | "published" | "archived",
+    template_id: "blank",
+    document_type: "campaign" as "storefront" | "biolink" | "campaign" | "seller_showcase",
   });
+
+  const filteredPages = useMemo(() => {
+    if (!search.trim()) return pages;
+    const term = search.toLowerCase();
+    return pages.filter(
+      (p: any) =>
+        p.title?.toLowerCase().includes(term) ||
+        p.slug?.toLowerCase().includes(term)
+    );
+  }, [pages, search]);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const title = e.target.value;
@@ -70,40 +107,62 @@ function CmsPagesPage() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title || !formData.slug) {
-      toast.error("Preencha título e slug");
+    if (!formData.title.trim() || !formData.slug.trim()) {
+      toast.error("Preencha título e slug da página.");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const newPage = await createPage({
+      // 1. Create document directly via builder engine
+      const res = await createExperienceDocument({
         data: {
           title: formData.title,
           slug: formData.slug,
-          status: formData.status,
+          document_type: formData.document_type,
+          template_id: formData.template_id,
         },
       });
+
       toast.success("Página criada com sucesso!");
       setIsCreateModalOpen(false);
       router.invalidate();
 
-      // Redirect to builder
-      if (newPage?.id) {
+      // 2. Redirect straight to Visual Page Builder
+      if (res?.data?.document?.id) {
         navigate({
           to: "/workspace/builder/$documentId/editor",
-          params: { documentId: newPage.id },
+          params: { documentId: res.data.document.id },
         });
       }
     } catch (error: any) {
-      toast.error(error.message || "Erro ao criar página");
+      toast.error(error.message || "Erro ao criar página.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleDuplicate = async (id: string) => {
+    setIsDuplicating(id);
+    try {
+      const res = await duplicateExperienceDocument({ data: { id } });
+      toast.success("Página duplicada com sucesso!");
+      router.invalidate();
+      if (res?.documentId) {
+        navigate({
+          to: "/workspace/builder/$documentId/editor",
+          params: { documentId: res.documentId },
+        });
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao duplicar página.");
+    } finally {
+      setIsDuplicating(null);
+    }
+  };
+
   const handleDelete = async (id: string, title: string) => {
-    if (!window.confirm(`Tem certeza que deseja excluir a página"${title}"?`)) return;
+    if (!window.confirm(`Tem certeza que deseja excluir a página "${title}"?`)) return;
     try {
       await deletePage({ data: { id } });
       toast.success("Página excluída.");
@@ -114,147 +173,224 @@ function CmsPagesPage() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div className="flex flex-col gap-6 max-w-6xl mx-auto w-full p-4 sm:p-6 pb-20">
       <PageHeader
-        title="Páginas (CMS)"
+        eyebrow="CMS"
+        title="Páginas"
         actions={
-          <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-            <DialogTrigger asChild>
-              <Button className="font-bold  ">
-                <Plus className="mr-2 h-4 w-4" />
-                Nova Página
+          <Sheet open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+            <SheetTrigger asChild>
+              <Button className="h-10 px-4 rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground cursor-pointer shadow-sm">
+                <Plus className="h-4 w-4" />
+                <span>Nova Página</span>
               </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <form onSubmit={handleCreate}>
-                <DialogHeader>
-                  <DialogTitle>Criar Nova Página</DialogTitle>
-                  <DialogDescription>
-                    Páginas institucionais, Landing Pages e políticas.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="title">Título</Label>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-full sm:max-w-md flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border">
+              <SheetHeader className="p-6 pb-4 border-b border-border/60 bg-card">
+                <SheetTitle className="text-base font-bold text-foreground">Nova Página</SheetTitle>
+              </SheetHeader>
+              <form onSubmit={handleCreate} className="flex-1 flex flex-col justify-between overflow-hidden">
+                <div className="p-6 space-y-4 overflow-y-auto">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="title" className="text-xs font-bold">Título da Página *</Label>
                     <Input
                       id="title"
                       value={formData.title}
                       onChange={handleTitleChange}
-                      placeholder="Ex: Sobre Nós"
+                      placeholder="Ex: Coleção Inverno 2026"
+                      className="h-10 rounded-xl text-xs"
                       required
                     />
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="slug">Slug (URL)</Label>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="slug" className="text-xs font-bold">Slug (URL amigável) *</Label>
                     <Input
                       id="slug"
                       value={formData.slug}
                       onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                      placeholder="Ex: sobre-nos"
+                      placeholder="Ex: colecao-inverno"
+                      className="h-10 rounded-xl text-xs font-mono"
                       required
                     />
+                    <p className="text-[11px] text-muted-foreground">
+                      Acesso: /paginas/{formData.slug || "slug-da-pagina"}
+                    </p>
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="status">Status Inicial</Label>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="template" className="text-xs font-bold">Modelo Inicial (Template)</Label>
                     <Select
-                      value={formData.status}
-                      onValueChange={(val: any) => setFormData({ ...formData, status: val })}
+                      value={formData.template_id}
+                      onValueChange={(val) => setFormData({ ...formData, template_id: val })}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="h-10 rounded-xl text-xs">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="draft">Rascunho</SelectItem>
-                        <SelectItem value="published">Publicado</SelectItem>
+                        {PAGE_TEMPLATES.map((t) => (
+                          <SelectItem key={t.id} value={t.id}>
+                            <div className="text-left">
+                              <span className="font-semibold text-foreground">{t.label}</span>
+                              <span className="block text-[10px] text-muted-foreground">{t.desc}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="type" className="text-xs font-bold">Finalidade da Página</Label>
+                    <Select
+                      value={formData.document_type}
+                      onValueChange={(val: any) => setFormData({ ...formData, document_type: val })}
+                    >
+                      <SelectTrigger className="h-10 rounded-xl text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="campaign">Campanha / Landing Page</SelectItem>
+                        <SelectItem value="storefront">Página Principal / Vitrine</SelectItem>
+                        <SelectItem value="biolink">Link da Bio / Perfil</SelectItem>
+                        <SelectItem value="seller_showcase">Vitrine de Vendedor</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
-                <DialogFooter>
+
+                <SheetFooter className="p-4 border-t border-border/60 bg-card flex flex-row items-center justify-end gap-2">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setIsCreateModalOpen(false)}
+                    className="h-10 rounded-xl text-xs font-bold"
                   >
                     Cancelar
                   </Button>
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? "Criando..." : "Criar e Editar"}
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="h-10 rounded-xl text-xs font-bold bg-primary text-primary-foreground gap-1.5 shadow-sm"
+                  >
+                    <Sparkles className="size-3.5" />
+                    <span>{isSubmitting ? "Criando..." : "Criar & Abrir no Builder"}</span>
                   </Button>
-                </DialogFooter>
+                </SheetFooter>
               </form>
-            </DialogContent>
-          </Dialog>
+            </SheetContent>
+          </Sheet>
         }
       />
 
-      <div className="flex-1 p-6">
-        <div className="space-y-6">
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar páginas..."
-                className="pl-9 bg-background "
-              />
-            </div>
+      <div className="space-y-4">
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar páginas por título ou slug..."
+              className="pl-9 h-10 rounded-xl text-xs bg-background"
+            />
           </div>
-
-          {pages.length === 0 ? (
-            <EmptyState title="Nenhuma página criada" />
-          ) : (
-            <div className="bg-surface-paper  rounded-xl  overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead>Título</TableHead>
-                    <TableHead>Slug</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pages.map((page: any) => (
-                    <TableRow key={page.id}>
-                      <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-muted-foreground" />
-                          {page.title}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">/{page.slug}</TableCell>
-                      <TableCell>
-                        <Badge variant={page.status === "published" ? "default" : "secondary"}>
-                          {page.status === "published" ? "Publicado" : "Rascunho"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="icon" asChild>
-                            <Link
-                              to="/workspace/builder/$documentId/editor"
-                              params={{ documentId: page.id }}
-                            >
-                              <Edit3 className="h-4 w-4" />
-                            </Link>
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive"
-                            onClick={() => handleDelete(page.id, page.title)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
         </div>
+
+        {filteredPages.length === 0 ? (
+          <EmptyState
+            title={search ? "Nenhuma página encontrada" : "Nenhuma página criada"}
+            description={
+              search
+                ? "Tente buscar por outro termo."
+                : "Crie sua primeira landing page ou página institucional usando o Construtor Visual."
+            }
+          />
+        ) : (
+          <div className="bg-card border border-border/80 rounded-2xl overflow-hidden shadow-xs">
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="text-xs font-bold">Título da Página</TableHead>
+                  <TableHead className="text-xs font-bold">URL Pública</TableHead>
+                  <TableHead className="text-xs font-bold">Status</TableHead>
+                  <TableHead className="text-right text-xs font-bold">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredPages.map((page: any) => (
+                  <TableRow key={page.id} className="hover:bg-muted/40 transition-colors">
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2.5">
+                        <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                          <FileText className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-foreground">{page.title}</p>
+                          <p className="text-[10px] text-muted-foreground font-mono">ID: {page.id?.slice(0, 8)}</p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Link
+                        to="/paginas/$slug"
+                        params={{ slug: page.slug }}
+                        target="_blank"
+                        className="text-xs text-muted-foreground hover:text-primary font-mono inline-flex items-center gap-1 hover:underline"
+                      >
+                        <span>/paginas/{page.slug}</span>
+                        <ExternalLink className="size-3" />
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={page.status === "published" ? "default" : "secondary"}
+                        className="text-[10px] font-semibold px-2 py-0.5 rounded-lg"
+                      >
+                        {page.status === "published" ? "Publicada" : "Rascunho"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end items-center gap-1.5">
+                        <Button
+                          asChild
+                          size="sm"
+                          className="h-8 px-3 rounded-lg text-xs font-bold bg-primary text-primary-foreground gap-1.5 cursor-pointer shadow-xs"
+                        >
+                          <Link
+                            to="/workspace/builder/$documentId/editor"
+                            params={{ documentId: page.id }}
+                          >
+                            <Sparkles className="size-3.5" />
+                            <span>Editar no Builder</span>
+                          </Link>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="size-8 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer"
+                          title="Duplicar página"
+                          disabled={isDuplicating === page.id}
+                          onClick={() => handleDuplicate(page.id)}
+                        >
+                          <Copy className="size-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-8 rounded-lg text-destructive hover:bg-destructive/10 cursor-pointer"
+                          title="Excluir página"
+                          onClick={() => handleDelete(page.id, page.title)}
+                        >
+                          <Trash2 className="size-3.5" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -168,8 +168,8 @@ function CmsStoriesPage() {
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
       <PageHeader
-        eyebrow="Marketing & Engajamento"
-        title="Stories, Ads & Collabs"
+        eyebrow="CMS"
+        title="Stories"
         actions={
           <Button onClick={handleOpenNew} className="rounded-xl font-bold gap-2">
             <Plus className="size-4" />

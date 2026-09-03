@@ -9,7 +9,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-import { requireAdmin } from "@/lib/server-access";
+import { requireAdmin, getServerIdentity } from "@/lib/server-access";
 import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
 
 // ---------------------------------------------------------------------------
@@ -2125,4 +2125,326 @@ export const quickUpdateOptionValue = createServerFn({ method: "POST" })
       );
     }
   });
+
+// ---------------------------------------------------------------------------
+// Multi-Store Catalog / Menu Replication Engine (Franquias & Filiais)
+// ---------------------------------------------------------------------------
+
+export const replicateCatalogToStores = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      target_store_ids: z.array(z.string().uuid()).min(1),
+      product_ids: z.array(z.string().uuid()).optional(),
+      replicate_categories: z.boolean().default(true),
+      replicate_option_groups: z.boolean().default(true),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    try {
+      await requireAdmin();
+      const db = getServerClient();
+      const { getServerIdentity } = await import("@/lib/server-access");
+      const { store_id } = await getServerIdentity();
+
+      if (!store_id) throw new Error("Nenhuma loja ativa selecionada.");
+
+      // Verify that source store and target stores share the same organization_id
+      const { data: sourceStore, error: sourceErr } = await db
+        .from("stores")
+        .select("id, organization_id, name")
+        .eq("id", store_id)
+        .single();
+
+      if (sourceErr || !sourceStore) {
+        throw new Error("Loja de origem não encontrada.");
+      }
+
+      const { data: targetStores, error: targetErr } = await db
+        .from("stores")
+        .select("id, organization_id, name")
+        .in("id", input.target_store_ids)
+        .eq("organization_id", sourceStore.organization_id);
+
+      if (targetErr || !targetStores || targetStores.length === 0) {
+        throw new Error("Nenhuma loja de destino válida encontrada dentro da mesma organização.");
+      }
+
+      // Fetch products to replicate
+      let prodQuery = db
+        .from("products")
+        .select("id, name, slug, description, price_cents, compare_at_price_cents, category_id, sku, is_active, status, image_url")
+        .eq("store_id", store_id);
+
+      if (input.product_ids && input.product_ids.length > 0) {
+        prodQuery = prodQuery.in("id", input.product_ids);
+      }
+
+      const { data: sourceProducts, error: prodErr } = await prodQuery;
+      if (prodErr) throw prodErr;
+
+      let replicatedCount = 0;
+
+      for (const target of targetStores) {
+        for (const prod of sourceProducts || []) {
+          // Check if product with same slug exists in target store
+          const { data: existingProd } = await db
+            .from("products")
+            .select("id")
+            .eq("store_id", target.id)
+            .eq("slug", prod.slug)
+            .maybeSingle();
+
+          if (existingProd) {
+            // Update existing product
+            await db
+              .from("products")
+              .update({
+                name: prod.name,
+                description: prod.description,
+                price_cents: prod.price_cents,
+                compare_at_price_cents: prod.compare_at_price_cents,
+                image_url: prod.image_url,
+                status: prod.status,
+                is_active: prod.is_active,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", existingProd.id);
+          } else {
+            // Insert product in target store
+            await db.from("products").insert({
+              organization_id: sourceStore.organization_id,
+              store_id: target.id,
+              name: prod.name,
+              slug: prod.slug,
+              description: prod.description,
+              price_cents: prod.price_cents,
+              compare_at_price_cents: prod.compare_at_price_cents,
+              image_url: prod.image_url,
+              status: prod.status,
+              is_active: prod.is_active,
+            });
+          }
+          replicatedCount++;
+        }
+      }
+
+      return {
+        success: true,
+        batch_id: `batch_${Date.now()}`,
+        replicated_products_count: replicatedCount,
+        target_stores_count: targetStores.length,
+        timestamp: new Date().toISOString(),
+      };
+    } catch (e: unknown) {
+      console.error("[admin-catalog] replicateCatalogToStores error:", e);
+      throw new Error(
+        (e instanceof Error ? e.message : String(e)) || "Erro ao replicar cardápio/catálogo entre lojas.",
+      );
+    }
+  });
+
+export const listStoreComplementGroups = createServerFn({ method: "GET" }).handler(async () => {
+  const identity = await getServerIdentity().catch(() => null);
+  const targetStoreId = identity?.store_id || null;
+  if (!targetStoreId) return [];
+
+  const db = getServerClient();
+  const { data, error } = await db
+    .from("store_complement_groups")
+    .select("*")
+    .eq("store_id", targetStoreId)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    console.error("[admin-catalog] Erro ao listar grupos de complementos:", error);
+    return [];
+  }
+  return data || [];
+});
+
+export const saveStoreComplementGroup = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string().uuid().optional(),
+      title: z.string().min(1, "Título obrigatório"),
+      description: z.string().optional().nullable(),
+      min_selection: z.number().int().nonnegative().default(0),
+      max_selection: z.number().int().positive().default(1),
+      is_required: z.boolean().default(false),
+      options: z.array(
+        z.object({
+          id: z.string().optional(),
+          name: z.string().min(1),
+          price_cents: z.number().int().nonnegative().default(0),
+          is_active: z.boolean().default(true),
+        }),
+      ),
+      is_active: z.boolean().default(true),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    if (!identity?.store_id) throw new Error("Não autenticado em loja");
+
+    const db = getServerClient();
+    const payload = {
+      store_id: identity.store_id,
+      title: data.title,
+      description: data.description,
+      min_selection: data.min_selection,
+      max_selection: data.max_selection,
+      is_required: data.is_required,
+      options: data.options.map((opt, idx) => ({
+        ...opt,
+        id: opt.id || `opt_${Date.now()}_${idx}`,
+      })),
+      is_active: data.is_active,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (data.id) {
+      const { data: updated, error } = await db
+        .from("store_complement_groups")
+        .update(payload)
+        .eq("id", data.id)
+        .select()
+        .single();
+      if (error) throw new Error(error.message);
+      return updated;
+    } else {
+      const { data: created, error } = await db
+        .from("store_complement_groups")
+        .insert(payload)
+        .select()
+        .single();
+      if (error) throw new Error(error.message);
+      return created;
+    }
+  });
+
+export const deleteStoreComplementGroup = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string().uuid() }))
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    if (!identity?.store_id) throw new Error("Não autenticado");
+
+    const db = getServerClient();
+    const { error } = await db
+      .from("store_complement_groups")
+      .delete()
+      .eq("id", data.id);
+
+    if (error) throw new Error(error.message);
+    return { success: true };
+  });
+
+export const batchCreateCatalogMenu = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      categories: z.array(
+        z.object({
+          name: z.string().min(1),
+          description: z.string().optional().nullable(),
+          products: z.array(
+            z.object({
+              title: z.string().min(1),
+              description: z.string().optional().nullable(),
+              price_cents: z.number().int().min(0),
+              image_url: z.string().optional().nullable(),
+              selling_unit: z.string().default("un"),
+            }),
+          ),
+        }),
+      ),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    await requireAdmin();
+    const { getServerIdentity } = await import("@/lib/server-access");
+    const identity = await getServerIdentity();
+    const db = getServerClient();
+
+    let createdCategoriesCount = 0;
+    let createdProductsCount = 0;
+
+    for (const cat of input.categories) {
+      const cleanCatName = cat.name.trim();
+      const catSlug =
+        cleanCatName
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "") || "categoria";
+
+      // 1. Busca se categoria já existe no store
+      let categoryId: string | null = null;
+      const { data: existingCat } = await db
+        .from("categories")
+        .select("id")
+        .eq("store_id", identity.store_id)
+        .eq("name", cleanCatName)
+        .maybeSingle();
+
+      if (existingCat) {
+        categoryId = existingCat.id;
+      } else {
+        const { data: newCat, error: catErr } = await db
+          .from("categories")
+          .insert({
+            store_id: identity.store_id,
+            name: cleanCatName,
+            slug: `${catSlug}-${Date.now().toString(36).slice(-4)}`,
+            status: "active",
+          })
+          .select("id")
+          .single();
+
+        if (!catErr && newCat) {
+          categoryId = newCat.id;
+          createdCategoriesCount++;
+        }
+      }
+
+      // 2. Insere os produtos dessa categoria
+      for (const prod of cat.products) {
+        const cleanTitle = prod.title.trim();
+        const prodSlug =
+          cleanTitle
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-+|-+$/g, "")
+            .slice(0, 50) + `-${Math.random().toString(36).slice(2, 6)}`;
+
+        try {
+          const insertedProduct = await _createProduct({
+            title: cleanTitle,
+            slug: prodSlug,
+            description: prod.description || null,
+            status: "published",
+            price_cents: prod.price_cents || 0,
+            category_ids: categoryId ? [categoryId] : [],
+            media_urls: prod.image_url ? [prod.image_url] : [],
+            attributes: {},
+          });
+
+          if (insertedProduct?.id) {
+            createdProductsCount++;
+          }
+        } catch (err) {
+          console.warn("[admin-catalog] Erro ao criar produto importado:", err);
+        }
+      }
+    }
+
+    return {
+      success: true,
+      categoriesCount: createdCategoriesCount,
+      productsCount: createdProductsCount,
+    };
+  });
+
+
 

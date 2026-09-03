@@ -29,6 +29,7 @@ import {
   Building2,
   ShieldCheck,
   UtensilsCrossed,
+  ChefHat,
   Coins,
   Zap,
   MessageSquare,
@@ -58,6 +59,9 @@ import {
   Gift,
   Globe,
   Bus,
+  Award,
+  Bot,
+  LifeBuoy,
 } from "lucide-react";
 
 export type NavItem = {
@@ -81,6 +85,8 @@ const GROUP_OVERVIEW: NavGroup = {
   icon: LayoutDashboard,
   items: [
     { path: "/workspace", label: "Visão Geral", icon: LayoutDashboard },
+    { path: "/workspace/tarefas", label: "Tarefas & Equipe", icon: ClipboardList },
+    { path: "/workspace/suporte", label: "Ajuda & Suporte", icon: LifeBuoy },
   ],
 };
 
@@ -102,7 +108,10 @@ const GROUP_GASTRO_ORDERS: NavGroup = {
   label: "Pedidos & Cozinha",
   icon: ClipboardList,
   items: [
-    { path: "/workspace/pedidos/gestor", label: "Gestor de Pedidos (KDS)", icon: ClipboardList },
+    { path: "/workspace/pedidos/gestor", label: "Gestor & SLAs (KDS)", icon: ClipboardList },
+    { path: "/workspace/pdv/comandas", label: "Salão & Mesas", icon: UtensilsCrossed },
+    { path: "/workspace/pdv/cozinha", label: "KDS Cozinha", icon: ChefHat },
+    { path: "/workspace/reservas", label: "Reservas de Mesas", icon: Calendar },
     { path: "/workspace/pedidos", label: "Histórico de Vendas", icon: ShoppingBag },
     { path: "/workspace/pdv", label: "Frente de Caixa (PDV)", icon: Store },
     { path: "/workspace/pedidos/frota", label: "Entregadores & Despacho", icon: Truck },
@@ -225,14 +234,42 @@ const GROUP_TURISMO: NavGroup = {
   label: "Turismo & Viagens",
   icon: Plane,
   items: [
-    { path: "/workspace/turismo/cotacoes", label: "Central de Cotações", icon: Plane },
+    { path: "/workspace/catalogo/produtos", label: "Pacotes & Roteiros", icon: Package },
+    { path: "/workspace/turismo/cotacoes", label: "Cotações & Leads de Viagem", icon: Plane },
+    { path: "/workspace/orcamentos", label: "Orçamentos Gerais", icon: FileText },
     { path: "/workspace/turismo/propostas", label: "Lâminas & Propostas (Studio)", icon: Sparkles },
     { path: "/workspace/turismo/contratos", label: "Contratos & Assinatura Digital", icon: FileText },
-    { path: "/workspace/turismo/grupos", label: "Grupos & Ônibus (ANTT)", icon: Bus },
+    { path: "/workspace/turismo/grupos", label: "Grupos & Excursões", icon: Users },
+    { path: "/workspace/turismo/frota", label: "Frota & Ônibus (Assentos 2D)", icon: Bus },
     { path: "/workspace/eventos", label: "Passeios & Ingressos", icon: Calendar },
-    { path: "/workspace/clientes", label: "Viajantes / CRM", icon: Users },
   ],
 };
+
+const GROUP_TURISMO_COMMERCIAL: NavGroup = {
+  id: "tourism-commercial",
+  label: "Passageiros & Vendas",
+  icon: Users,
+  items: [
+    { path: "/workspace/clientes", label: "Passageiros & Clientes (CRM)", icon: Users },
+    { path: "/workspace/atendimento", label: "Atendimento & WhatsApp", icon: MessageSquare },
+    { path: "/workspace/pedidos", label: "Emissões & Vendas", icon: ShoppingBag },
+  ],
+};
+
+const GROUP_TURISMO_MARKETING: NavGroup = {
+  id: "tourism-marketing",
+  label: "Vitrine & Divulgação",
+  icon: Megaphone,
+  items: [
+    { path: "/workspace/marketing/vitrine", label: "Vitrine de Pacotes (Builder)", icon: Sparkles },
+    { path: "/workspace/cms/paginas", label: "Roteiros & Landing Pages", icon: FileText },
+    { path: "/workspace/cms/bio", label: "Link da Bio da Agência", icon: Link2 },
+    { path: "/workspace/marketing/banners", label: "Banners & Destaques", icon: ImageIcon },
+    { path: "/workspace/marketing/promocoes", label: "Ofertas & Descontos", icon: Flame },
+    { path: "/workspace/marketing/anuncios", label: "Campanhas Publicitárias", icon: Megaphone },
+  ],
+};
+
 
 // 9. Empregos & Recrutamento
 const GROUP_JOBS: NavGroup = {
@@ -354,19 +391,33 @@ const GROUP_WHOLESALE: NavGroup = {
   ],
 };
 
-// Grupos Universais
+// Grupos Universais Corporativos
+const GROUP_COMMERCIAL_SALES: NavGroup = {
+  id: "commercial",
+  label: "Comercial & CRM",
+  icon: Users,
+  items: [
+    { path: "/workspace/clientes", label: "Leads & Clientes (CRM)", icon: Users },
+    { path: "/workspace/atendimento", label: "Atendimento & Chat", icon: MessageSquare },
+    { path: "/workspace/orcamentos", label: "Orçamentos & Propostas", icon: FileText },
+    { path: "/workspace/pdv", label: "Frente de Caixa (PDV)", icon: Store },
+    { path: "/workspace/pedidos", label: "Histórico de Vendas", icon: ShoppingBag },
+  ],
+};
+
 const GROUP_MARKETING_VITRINE: NavGroup = {
   id: "marketing",
   label: "Vitrine & Divulgação",
   icon: Megaphone,
   items: [
-    { path: "/workspace/marketing/vitrine", label: "Vitrine da Loja", icon: Eye },
-    { path: "/workspace/cms/bio", label: "Editor de Link da Bio", icon: Link2 },
-    { path: "/workspace/cms/paginas", label: "Páginas do Site", icon: FileText },
-    { path: "/workspace/estudio", label: "Estúdio de Design (Studio)", icon: Sparkles },
-    { path: "/workspace/marketing/banners", label: "Banners & Destaques", icon: ImageIcon },
-    { path: "/workspace/marketing/hotpages", label: "Destaques & Hotpages", icon: Layers },
+    { path: "/workspace/marketing/vitrine", label: "Vitrine Visual (Builder)", icon: Sparkles },
+    { path: "/workspace/cms/paginas", label: "Páginas & Landing Pages", icon: FileText },
+    { path: "/workspace/cms/bio", label: "Link da Bio & Perfil", icon: Link2 },
+    { path: "/workspace/estudio", label: "Estúdio Gráfico & Vídeo", icon: Sparkles },
+    { path: "/workspace/marketing/banners", label: "Banners & Topo", icon: ImageIcon },
+    { path: "/workspace/marketing/hotpages", label: "Páginas de Destaque (Hotpages)", icon: Layers },
     { path: "/workspace/marketing/promocoes", label: "Promoções & Cupons", icon: Flame },
+    { path: "/workspace/marketing/fidelidade", label: "Programa de Fidelidade", icon: Award },
     { path: "/workspace/marketing/gift-cards", label: "Vales-Presente", icon: Gift },
     { path: "/workspace/cms/stories", label: "Stories & Mídia", icon: ImageIcon },
     { path: "/workspace/marketing/anuncios", label: "Campanhas de Anúncios", icon: Megaphone },
@@ -375,15 +426,28 @@ const GROUP_MARKETING_VITRINE: NavGroup = {
 
 const GROUP_FINANCE_CLEAN: NavGroup = {
   id: "finance",
-  label: "Financeiro & RH",
+  label: "Financeiro",
   icon: Banknote,
   items: [
     { path: "/workspace/financeiro/caixa", label: "Fluxo de Caixa", icon: Banknote },
     { path: "/workspace/financeiro/pagamentos", label: "Pagamentos & Repasses", icon: DollarSign },
     { path: "/workspace/financeiro/recebiveis", label: "Recebíveis & Carnês", icon: Receipt },
-    { path: "/workspace/financeiro/funcionarios", label: "Folha & Vales (RH)", icon: Users },
+    { path: "/workspace/financeiro/funcionarios", label: "Folha & Salários", icon: Users },
   ],
 };
+
+const GROUP_TEAM_RH: NavGroup = {
+  id: "team-rh",
+  label: "Equipe & RH",
+  icon: Users,
+  items: [
+    { path: "/workspace/configuracoes/equipe", label: "Colaboradores & Acessos", icon: Users },
+    { path: "/workspace/financeiro/comissoes", label: "Comissões & Metas", icon: Sparkles },
+    { path: "/workspace/configuracoes/sessoes", label: "Sessões & Segurança", icon: ShieldCheck },
+  ],
+};
+
+import { getNicheSemantics } from "./niche-semantics";
 
 const GROUP_SETTINGS: NavGroup = {
   id: "settings",
@@ -391,9 +455,8 @@ const GROUP_SETTINGS: NavGroup = {
   icon: Settings,
   items: [
     { path: "/workspace/configuracoes", label: "Dados da Loja", icon: Settings },
-    { path: "/workspace/configuracoes/equipe", label: "Equipe & Vagas (RH)", icon: Users },
-    { path: "/workspace/configuracoes/dominios", label: "Domínios & DNS", icon: Globe },
-    { path: "/workspace/configuracoes/integracoes", label: "Integrações", icon: Link2 },
+    { path: "/workspace/configuracoes/inteligencia-artificial", label: "Inteligência Artificial (IAs)", icon: Bot },
+    { path: "/workspace/configuracoes/integracoes", label: "Integrações & Domínios", icon: Link2 },
   ],
 };
 
@@ -401,12 +464,13 @@ const GROUP_SETTINGS: NavGroup = {
 
 export function resolveWorkspaceNavigation(
   storeData: any,
-  options?: { isMasterMode?: boolean; additionalModules?: string[] }
+  options?: { isMasterMode?: boolean; additionalModules?: string[]; userRole?: string }
 ): NavGroup[] {
   // Se estiver no modo master/desenvolvedor, entrega todos os grupos
   if (options?.isMasterMode) {
     return [
       GROUP_OVERVIEW,
+      GROUP_TURISMO,
       GROUP_GASTRO_CATALOG,
       GROUP_GASTRO_ORDERS,
       GROUP_RETAIL_CATALOG,
@@ -417,7 +481,6 @@ export function resolveWorkspaceNavigation(
       GROUP_TECH_REPAIR,
       GROUP_LEGAL,
       GROUP_REAL_ESTATE,
-      GROUP_TURISMO,
       GROUP_JOBS,
       GROUP_EVENTS_TICKETS,
       GROUP_VEHICLES,
@@ -433,329 +496,221 @@ export function resolveWorkspaceNavigation(
     ];
   }
 
-  const storeName = (storeData?.name || storeData?.stores?.name || "").toLowerCase();
-  const segment = (
-    storeData?.segment ||
-    storeData?.type ||
-    storeData?.category ||
-    storeData?.stores?.segment ||
-    storeData?.stores?.type ||
-    storeData?.stores?.category ||
-    storeData?.settings?.segment ||
-    storeData?.settings?.type ||
-    storeData?.settings?.niche ||
-    storeData?.stores?.settings?.segment ||
-    storeData?.stores?.settings?.type ||
-    storeData?.stores?.settings?.niche ||
-    storeData?.description ||
-    storeName ||
-    ""
-  ).toLowerCase();
-
+  const semantics = getNicheSemantics(storeData);
   let rawGroups: NavGroup[] = [];
 
-  // 1. EMPREGOS & RECRUTAMENTO
-  if (
-    segment.includes("job") ||
-    segment.includes("emprego") ||
-    segment.includes("vaga") ||
-    segment.includes("rh") ||
-    segment.includes("recrut") ||
-    segment.includes("talento") ||
-    segment.includes("estagio")
-  ) {
-    rawGroups = [
-      GROUP_OVERVIEW,
-      GROUP_JOBS,
-      GROUP_MARKETING_VITRINE,
-      GROUP_FINANCE_CLEAN,
-      GROUP_SETTINGS,
-    ];
-  }
+  switch (semantics.nicheId) {
+    case "tourism":
+      rawGroups = [
+        GROUP_OVERVIEW,
+        GROUP_TURISMO,
+        GROUP_TURISMO_COMMERCIAL,
+        GROUP_TURISMO_MARKETING,
+        GROUP_FINANCE_CLEAN,
+        GROUP_TEAM_RH,
+        GROUP_SETTINGS,
+      ];
+      break;
 
-  // 2. EVENTOS, SHOWS & INGRESSOS
-  else if (
-    segment.includes("event") ||
-    segment.includes("show") ||
-    segment.includes("festa") ||
-    segment.includes("ingresso") ||
-    segment.includes("produtor") ||
-    segment.includes("balada") ||
-    segment.includes("teatro") ||
-    segment.includes("congresso")
-  ) {
-    rawGroups = [
-      GROUP_OVERVIEW,
-      GROUP_EVENTS_TICKETS,
-      GROUP_MARKETING_VITRINE,
-      GROUP_FINANCE_CLEAN,
-      GROUP_SETTINGS,
-    ];
-  }
+    case "gastronomy":
+      rawGroups = [
+        GROUP_OVERVIEW,
+        GROUP_GASTRO_CATALOG,
+        GROUP_GASTRO_ORDERS,
+        GROUP_COMMERCIAL_SALES,
+        GROUP_MARKETING_VITRINE,
+        GROUP_FINANCE_CLEAN,
+        GROUP_TEAM_RH,
+        GROUP_SETTINGS,
+      ];
+      break;
 
-  // 3. VEÍCULOS & CONCESSIONÁRIA
-  else if (
-    segment.includes("veicul") ||
-    segment.includes("carro") ||
-    segment.includes("moto") ||
-    segment.includes("automot") ||
-    segment.includes("concessionar") ||
-    segment.includes("garagem")
-  ) {
-    rawGroups = [
-      GROUP_OVERVIEW,
-      GROUP_VEHICLES,
-      GROUP_MARKETING_VITRINE,
-      GROUP_FINANCE_CLEAN,
-      GROUP_SETTINGS,
-    ];
-  }
+    case "services":
+      rawGroups = [
+        GROUP_OVERVIEW,
+        GROUP_SERVICES_AGENDA,
+        GROUP_SERVICES_CATALOG,
+        GROUP_COMMERCIAL_SALES,
+        GROUP_MARKETING_VITRINE,
+        GROUP_FINANCE_CLEAN,
+        GROUP_TEAM_RH,
+        GROUP_SETTINGS,
+      ];
+      break;
 
-  // 4. PET SHOP & VETERINÁRIA
-  else if (
-    segment.includes("pet") ||
-    segment.includes("veterin") ||
-    segment.includes("banho") ||
-    segment.includes("tosa") ||
-    segment.includes("agro") ||
-    segment.includes("racao")
-  ) {
-    rawGroups = [
-      GROUP_OVERVIEW,
-      GROUP_PET,
-      GROUP_MARKETING_VITRINE,
-      GROUP_FINANCE_CLEAN,
-      GROUP_SETTINGS,
-    ];
-  }
+    case "legal":
+      rawGroups = [
+        GROUP_OVERVIEW,
+        GROUP_LEGAL,
+        GROUP_COMMERCIAL_SALES,
+        GROUP_MARKETING_VITRINE,
+        GROUP_FINANCE_CLEAN,
+        GROUP_TEAM_RH,
+        GROUP_SETTINGS,
+      ];
+      break;
 
-  // 5. SUPERMERCADO, AÇOUGUE & HORTIFRÚTI
-  else if (
-    segment.includes("mercado") ||
-    segment.includes("supermercado") ||
-    segment.includes("hortifruti") ||
-    segment.includes("acougue") ||
-    segment.includes("mercearia") ||
-    segment.includes("emporio")
-  ) {
-    rawGroups = [
-      GROUP_OVERVIEW,
-      GROUP_SUPERMARKET,
-      GROUP_MARKETING_VITRINE,
-      GROUP_FINANCE_CLEAN,
-      GROUP_SETTINGS,
-    ];
-  }
+    case "jobs":
+      rawGroups = [
+        GROUP_OVERVIEW,
+        GROUP_JOBS,
+        GROUP_COMMERCIAL_SALES,
+        GROUP_MARKETING_VITRINE,
+        GROUP_FINANCE_CLEAN,
+        GROUP_TEAM_RH,
+        GROUP_SETTINGS,
+      ];
+      break;
 
-  // 6. FARMÁCIA & COSMÉTICOS
-  else if (
-    segment.includes("farma") ||
-    segment.includes("drogari") ||
-    segment.includes("medicament") ||
-    segment.includes("suplement")
-  ) {
-    rawGroups = [
-      GROUP_OVERVIEW,
-      GROUP_PHARMACY,
-      GROUP_MARKETING_VITRINE,
-      GROUP_FINANCE_CLEAN,
-      GROUP_SETTINGS,
-    ];
-  }
+    case "pharmacy":
+      rawGroups = [
+        GROUP_OVERVIEW,
+        GROUP_PHARMACY,
+        GROUP_COMMERCIAL_SALES,
+        GROUP_MARKETING_VITRINE,
+        GROUP_FINANCE_CLEAN,
+        GROUP_TEAM_RH,
+        GROUP_SETTINGS,
+      ];
+      break;
 
-  // 7. JORNALISMO & NOTÍCIAS
-  else if (
-    segment.includes("notici") ||
-    segment.includes("jornal") ||
-    segment.includes("redac") ||
-    segment.includes("midia") ||
-    segment.includes("portal") ||
-    segment.includes("revista")
-  ) {
-    rawGroups = [
-      GROUP_OVERVIEW,
-      GROUP_NEWS,
-      GROUP_MARKETING_VITRINE,
-      GROUP_FINANCE_CLEAN,
-      GROUP_SETTINGS,
-    ];
-  }
+    case "wholesale":
+      rawGroups = [
+        GROUP_OVERVIEW,
+        GROUP_WHOLESALE,
+        GROUP_COMMERCIAL_SALES,
+        GROUP_MARKETING_VITRINE,
+        GROUP_FINANCE_CLEAN,
+        GROUP_TEAM_RH,
+        GROUP_SETTINGS,
+      ];
+      break;
 
-  // 8. EDUCAÇÃO & CURSOS
-  else if (
-    segment.includes("curso") ||
-    segment.includes("educac") ||
-    segment.includes("escola") ||
-    segment.includes("aula") ||
-    segment.includes("workshop") ||
-    segment.includes("treinamento") ||
-    segment.includes("idioma")
-  ) {
-    rawGroups = [
-      GROUP_OVERVIEW,
-      GROUP_EDUCATION,
-      GROUP_MARKETING_VITRINE,
-      GROUP_FINANCE_CLEAN,
-      GROUP_SETTINGS,
-    ];
-  }
+    case "rental":
+      rawGroups = [
+        GROUP_OVERVIEW,
+        GROUP_RENTAL_EVENTS,
+        GROUP_COMMERCIAL_SALES,
+        GROUP_MARKETING_VITRINE,
+        GROUP_FINANCE_CLEAN,
+        GROUP_TEAM_RH,
+        GROUP_SETTINGS,
+      ];
+      break;
 
-  // 9. ATACADO, INDÚSTRIA & B2B
-  else if (
-    segment.includes("atacado") ||
-    segment.includes("distribuidora") ||
-    segment.includes("industria") ||
-    segment.includes("b2b") ||
-    segment.includes("fabrica")
-  ) {
-    rawGroups = [
-      GROUP_OVERVIEW,
-      GROUP_WHOLESALE,
-      GROUP_MARKETING_VITRINE,
-      GROUP_FINANCE_CLEAN,
-      GROUP_SETTINGS,
-    ];
-  }
+    case "tech_repair":
+      rawGroups = [
+        GROUP_OVERVIEW,
+        GROUP_TECH_REPAIR,
+        GROUP_COMMERCIAL_SALES,
+        GROUP_MARKETING_VITRINE,
+        GROUP_FINANCE_CLEAN,
+        GROUP_TEAM_RH,
+        GROUP_SETTINGS,
+      ];
+      break;
 
-  // 10. GASTRONOMIA & ALIMENTAÇÃO
-  else if (
-    segment.includes("gastro") ||
-    segment.includes("restauran") ||
-    segment.includes("lanchon") ||
-    segment.includes("bar") ||
-    segment.includes("caf") ||
-    segment.includes("pizza") ||
-    segment.includes("hamburg") ||
-    segment.includes("marmit") ||
-    segment.includes("doce") ||
-    segment.includes("padar") ||
-    segment.includes("comida") ||
-    segment.includes("aliment")
-  ) {
-    rawGroups = [
-      GROUP_OVERVIEW,
-      GROUP_GASTRO_CATALOG,
-      GROUP_GASTRO_ORDERS,
-      GROUP_MARKETING_VITRINE,
-      GROUP_FINANCE_CLEAN,
-      GROUP_SETTINGS,
-    ];
-  }
+    case "pet":
+      rawGroups = [
+        GROUP_OVERVIEW,
+        GROUP_PET,
+        GROUP_COMMERCIAL_SALES,
+        GROUP_MARKETING_VITRINE,
+        GROUP_FINANCE_CLEAN,
+        GROUP_TEAM_RH,
+        GROUP_SETTINGS,
+      ];
+      break;
 
-  // 11. SERVIÇOS, SAÚDE & BELEZA
-  else if (
-    segment.includes("servi") ||
-    segment.includes("belez") ||
-    segment.includes("barbea") ||
-    segment.includes("salao") ||
-    segment.includes("estet") ||
-    segment.includes("saud") ||
-    segment.includes("clini") ||
-    segment.includes("tatu") ||
-    segment.includes("terap") ||
-    segment.includes("massag") ||
-    segment.includes("person") ||
-    segment.includes("academia")
-  ) {
-    rawGroups = [
-      GROUP_OVERVIEW,
-      GROUP_SERVICES_AGENDA,
-      GROUP_SERVICES_CATALOG,
-      GROUP_MARKETING_VITRINE,
-      GROUP_FINANCE_CLEAN,
-      GROUP_SETTINGS,
-    ];
-  }
+    case "supermarket":
+      rawGroups = [
+        GROUP_OVERVIEW,
+        GROUP_SUPERMARKET,
+        GROUP_COMMERCIAL_SALES,
+        GROUP_MARKETING_VITRINE,
+        GROUP_FINANCE_CLEAN,
+        GROUP_TEAM_RH,
+        GROUP_SETTINGS,
+      ];
+      break;
 
-  // 12. LOCAÇÃO, EQUIPAMENTOS & ESTRUTURA
-  else if (
-    segment.includes("locac") ||
-    segment.includes("alug") ||
-    segment.includes("equipamento") ||
-    segment.includes("blaster") ||
-    segment.includes("som") ||
-    segment.includes("ilumin") ||
-    segment.includes("tenda")
-  ) {
-    rawGroups = [
-      GROUP_OVERVIEW,
-      GROUP_RENTAL_EVENTS,
-      GROUP_MARKETING_VITRINE,
-      GROUP_FINANCE_CLEAN,
-      GROUP_SETTINGS,
-    ];
-  }
+    case "events":
+      rawGroups = [
+        GROUP_OVERVIEW,
+        GROUP_EVENTS_TICKETS,
+        GROUP_COMMERCIAL_SALES,
+        GROUP_MARKETING_VITRINE,
+        GROUP_FINANCE_CLEAN,
+        GROUP_TEAM_RH,
+        GROUP_SETTINGS,
+      ];
+      break;
 
-  // 13. ASSISTÊNCIA TÉCNICA, CELULAR & MECÂNICA
-  else if (
-    segment.includes("celul") ||
-    segment.includes("assist") ||
-    segment.includes("repar") ||
-    segment.includes("consert") ||
-    segment.includes("mecan") ||
-    segment.includes("oficin") ||
-    segment.includes("auto") ||
-    segment.includes("eletron")
-  ) {
-    rawGroups = [
-      GROUP_OVERVIEW,
-      GROUP_TECH_REPAIR,
-      GROUP_MARKETING_VITRINE,
-      GROUP_FINANCE_CLEAN,
-      GROUP_SETTINGS,
-    ];
-  }
+    case "vehicles":
+      rawGroups = [
+        GROUP_OVERVIEW,
+        GROUP_VEHICLES,
+        GROUP_COMMERCIAL_SALES,
+        GROUP_MARKETING_VITRINE,
+        GROUP_FINANCE_CLEAN,
+        GROUP_TEAM_RH,
+        GROUP_SETTINGS,
+      ];
+      break;
 
-  // 14. ADVOCACIA & JURÍDICO
-  else if (segment.includes("advoc") || segment.includes("jurid") || segment.includes("direito")) {
-    rawGroups = [
-      GROUP_OVERVIEW,
-      GROUP_LEGAL,
-      GROUP_MARKETING_VITRINE,
-      GROUP_FINANCE_CLEAN,
-      GROUP_SETTINGS,
-    ];
-  }
+    case "real_estate":
+      rawGroups = [
+        GROUP_OVERVIEW,
+        GROUP_REAL_ESTATE,
+        GROUP_COMMERCIAL_SALES,
+        GROUP_MARKETING_VITRINE,
+        GROUP_FINANCE_CLEAN,
+        GROUP_TEAM_RH,
+        GROUP_SETTINGS,
+      ];
+      break;
 
-  // 15. IMOBILIÁRIA & IMÓVEIS
-  else if (segment.includes("imove") || segment.includes("imobili") || segment.includes("corret")) {
-    rawGroups = [
-      GROUP_OVERVIEW,
-      GROUP_REAL_ESTATE,
-      GROUP_MARKETING_VITRINE,
-      GROUP_FINANCE_CLEAN,
-      GROUP_SETTINGS,
-    ];
-  }
+    case "education":
+      rawGroups = [
+        GROUP_OVERVIEW,
+        GROUP_EDUCATION,
+        GROUP_COMMERCIAL_SALES,
+        GROUP_MARKETING_VITRINE,
+        GROUP_FINANCE_CLEAN,
+        GROUP_TEAM_RH,
+        GROUP_SETTINGS,
+      ];
+      break;
 
-  // 16. TURISMO & VIAGENS
-  else if (
-    segment.includes("turis") ||
-    segment.includes("hotel") ||
-    segment.includes("pousad") ||
-    segment.includes("viage") ||
-    segment.includes("guia")
-  ) {
-    rawGroups = [
-      GROUP_OVERVIEW,
-      GROUP_TURISMO,
-      GROUP_MARKETING_VITRINE,
-      GROUP_FINANCE_CLEAN,
-      GROUP_SETTINGS,
-    ];
-  } else {
-    // 17. PADRÃO: VAREJO & COMÉRCIO GERAL (Moda, Calçados, Presentes, etc.)
-    rawGroups = [
-      GROUP_OVERVIEW,
-      GROUP_RETAIL_CATALOG,
-      GROUP_RETAIL_SALES,
-      GROUP_MARKETING_VITRINE,
-      GROUP_FINANCE_CLEAN,
-      GROUP_SETTINGS,
-    ];
+    case "news":
+      rawGroups = [
+        GROUP_OVERVIEW,
+        GROUP_NEWS,
+        GROUP_COMMERCIAL_SALES,
+        GROUP_MARKETING_VITRINE,
+        GROUP_FINANCE_CLEAN,
+        GROUP_TEAM_RH,
+        GROUP_SETTINGS,
+      ];
+      break;
+
+    case "retail":
+    default:
+      rawGroups = [
+        GROUP_OVERVIEW,
+        GROUP_RETAIL_CATALOG,
+        GROUP_RETAIL_SALES,
+        GROUP_COMMERCIAL_SALES,
+        GROUP_MARKETING_VITRINE,
+        GROUP_FINANCE_CLEAN,
+        GROUP_TEAM_RH,
+        GROUP_SETTINGS,
+      ];
+      break;
   }
 
   // ── ENRIQUECIMENTO E FILTRAGEM MODULAR DINÂMICA ─────────────────────────────
+  let resolvedGroups = rawGroups;
   const enabledModules: string[] | undefined =
     storeData?.settings?.enabled_modules ||
     storeData?.enabled_modules;
@@ -825,15 +780,111 @@ export function resolveWorkspaceNavigation(
     if (enabledModules.includes("real_estate") && !finalGroups.some((g) => g.id === "real-estate")) {
       finalGroups.splice(finalGroups.length - 2, 0, GROUP_REAL_ESTATE);
     }
-    if (enabledModules.includes("tourism") && !finalGroups.some((g) => g.id === "turismo")) {
+    if (enabledModules.includes("tourism") && !finalGroups.some((g) => g.id === "tourism")) {
       finalGroups.splice(finalGroups.length - 2, 0, GROUP_TURISMO);
     }
     if (enabledModules.includes("education") && !finalGroups.some((g) => g.id === "education")) {
       finalGroups.splice(finalGroups.length - 2, 0, GROUP_EDUCATION);
     }
 
-    return finalGroups;
+    resolvedGroups = finalGroups;
   }
 
-  return rawGroups;
+  // ── GOVERNANÇA GRANULAR DE RBAC POR CARGO / FUNÇÃO ───────────────────────────
+  const userRole = (options?.userRole || "owner").toLowerCase();
+
+  // Proprietário(a) e Administrador Geral possuem acesso irrestrito
+  if (userRole === "owner" || userRole === "admin" || userRole === "proprietario") {
+    return resolvedGroups;
+  }
+
+  // Gerente / Manager: acesso a quase tudo, exceto configurações bancárias/críticas
+  if (userRole === "manager" || userRole === "gerente") {
+    return resolvedGroups;
+  }
+
+  // Operador de Caixa / Cashier: apenas PDV, Abertura/Fechamento de Caixa
+  if (userRole === "cashier" || userRole === "caixa") {
+    return [
+      GROUP_OVERVIEW,
+      {
+        id: "pos-cashier",
+        label: "Frente de Caixa (PDV)",
+        icon: ShoppingBag,
+        items: [
+          { path: "/workspace/pdv", label: "Abrir Frente de Caixa (PDV)", icon: ShoppingBag },
+          { path: "/workspace/pedidos", label: "Pedidos & Vendas do Dia", icon: ShoppingCart },
+          { path: "/workspace/financeiro/caixa", label: "Fluxo de Caixa & Turno", icon: Banknote },
+        ],
+      },
+    ];
+  }
+
+  // Vendedor(a) / Atendente / Seller: Catálogo, Pedidos, Orçamentos, PDV, Clientes
+  if (userRole === "seller" || userRole === "vendedor" || userRole === "atendente") {
+    return resolvedGroups
+      .filter((g) => g.id !== "settings" && g.id !== "marketing")
+      .map((g) => {
+        if (g.id === "finance") {
+          return {
+            ...g,
+            items: g.items.filter((i) => i.path.includes("caixa") || i.path.includes("pagamentos")),
+          };
+        }
+        return g;
+      });
+  }
+
+  // Cozinha / Operador / Estoquista: KDS / Separação de Pedidos e Estoque
+  if (userRole === "kitchen" || userRole === "operator" || userRole === "cozinha" || userRole === "estoquista") {
+    return [
+      GROUP_OVERVIEW,
+      {
+        id: "operations",
+        label: "Operações & Expedição",
+        icon: Boxes,
+        items: [
+          { path: "/workspace/pedidos/gestor", label: "Gestor de Pedidos / KDS", icon: Clock },
+          { path: "/workspace/pedidos", label: "Separação & Picking", icon: Package },
+          { path: "/workspace/estoque", label: "Estoque & Insumos", icon: Boxes },
+        ],
+      },
+    ];
+  }
+
+  // Especialista / Profissional: Agenda, Meus Clientes e Comandas
+  if (userRole === "specialist" || userRole === "profissional") {
+    return [
+      GROUP_OVERVIEW,
+      {
+        id: "specialist-agenda",
+        label: "Minha Agenda & Atendimentos",
+        icon: Calendar,
+        items: [
+          { path: "/workspace/agenda", label: "Minha Grade de Agendamentos", icon: Calendar },
+          { path: "/workspace/clientes", label: "Meus Clientes", icon: Users },
+          { path: "/workspace/pdv", label: "Lançar Comanda de Atendimento", icon: ShoppingBag },
+        ],
+      },
+    ];
+  }
+
+  // RH / Recrutador: Colaboradores, Vagas e Candidatos
+  if (userRole === "rh" || userRole === "recruiter") {
+    return [
+      GROUP_OVERVIEW,
+      {
+        id: "rh-module",
+        label: "RH & Recrutamento",
+        icon: Briefcase,
+        items: [
+          { path: "/workspace/configuracoes/equipe", label: "Colaboradores & Folha", icon: Users },
+          { path: "/workspace/empregos/candidatos", label: "Vagas & Triagem (ATS)", icon: Briefcase },
+          { path: "/workspace/clientes", label: "Banco de Talentos", icon: Users },
+        ],
+      },
+    ];
+  }
+
+  return resolvedGroups;
 }

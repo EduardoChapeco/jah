@@ -32,6 +32,7 @@ import {
   savePolicies,
 } from "@/services/store.functions";
 import { uploadStoreMedia } from "@/services/storage.functions";
+import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -52,6 +53,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { getNicheSemantics } from "@/lib/niche-semantics";
 
 export const Route = createFileRoute("/workspace/configuracoes/")({
   head: () => ({ meta: [{ title: "Configurações da Loja & Perfil Comercial | Workspace Wider" }] }),
@@ -135,6 +137,11 @@ export default function WorkspaceConfiguracoesPage() {
     store?.settings?.delivery_zones && store.settings.delivery_zones.length > 0
       ? store.settings.delivery_zones
       : CHAPECO_NEIGHBORHOODS,
+  );
+
+  // Modalidades de Atendimento (Delivery, Retirada, No Local)
+  const [orderTypes, setOrderTypes] = useState(
+    store?.settings?.order_types || { delivery: true, takeout: true, dine_in: true }
   );
 
   // Perguntas Customizadas de Checkout
@@ -242,6 +249,7 @@ export default function WorkspaceConfiguracoesPage() {
           holidayExceptions: holidayExceptions,
           emergencyPauseUntil: emergencyPauseUntil,
           delivery_matrix: deliveryConfig,
+          order_types: orderTypes,
         } as any,
       });
 
@@ -268,65 +276,69 @@ export default function WorkspaceConfiguracoesPage() {
     }
   };
 
+  const currentNiche = getNicheSemantics(segment);
+  const isPhysicalDeliveryNiche = [
+    "gastronomy",
+    "gastronomia",
+    "market",
+    "mercado",
+    "retail",
+    "varejo",
+    "moda",
+    "fashion",
+    "pharmacy",
+    "farmacia",
+    "pet",
+  ].includes(segment?.toLowerCase());
+  const hasDeliveryModule = enabledModules.includes("delivery") && isPhysicalDeliveryNiche;
+
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
+    <div className="space-y-6 animate-in fade-in duration-200 max-w-6xl mx-auto w-full pb-20">
       {/* ── 1. Header Minimalista & Direto ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold tracking-tight text-foreground">
-            Configurações
-          </h1>
-          <Badge variant="outline" className="text-xs bg-muted/50 text-foreground border-border font-medium">
-            {store?.name || "Minha Loja"}
-          </Badge>
-        </div>
+      <PageHeader
+        eyebrow={`Loja • ${currentNiche.name}`}
+        title="Configurações"
+        actions={
+          <div className="flex items-center gap-2">
+            <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-semibold gap-1.5 h-9">
+              <Link to="/workspace/configuracoes/sessoes">
+                <ShieldCheck className="size-3.5 text-primary" />
+                <span>Sessões</span>
+              </Link>
+            </Button>
 
-        <div className="flex items-center gap-2">
-          <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-semibold gap-1.5 h-9">
-            <Link to="/workspace/configuracoes/sessoes">
-              <ShieldCheck className="size-3.5 text-primary" />
-              <span>Sessões & Segurança</span>
-            </Link>
-          </Button>
+            <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-semibold gap-1.5 h-9">
+              <Link to="/workspace/configuracoes/equipe">
+                <Building2 className="size-3.5" />
+                <span>Equipe</span>
+              </Link>
+            </Button>
 
-          <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-semibold gap-1.5 h-9">
-            <Link to="/workspace/configuracoes/equipe">
-              <Building2 className="size-3.5" />
-              <span>Equipe & Permissões</span>
-            </Link>
-          </Button>
+            <Button
+              onClick={handleSaveAll}
+              disabled={isSaving}
+              size="sm"
+              className="rounded-xl text-xs font-bold gap-1.5 bg-foreground text-background hover:bg-foreground/90 h-9 cursor-pointer"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="size-3.5 animate-spin" />
+                  <span>Salvando...</span>
+                </>
+              ) : (
+                <>
+                  <Save className="size-3.5" />
+                  <span>Salvar</span>
+                </>
+              )}
+            </Button>
+          </div>
+        }
+      />
 
-          <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-semibold gap-1.5 h-9">
-            <Link to="/workspace/lojas">
-              <Store className="size-3.5" />
-              <span>Ver Lojas</span>
-            </Link>
-          </Button>
-
-          <Button
-            onClick={handleSaveAll}
-            disabled={isSaving}
-            size="sm"
-            className="rounded-xl text-xs font-bold gap-1.5 bg-foreground text-background hover:bg-foreground/90  h-9"
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="size-3.5 animate-spin" />
-                <span>Salvando...</span>
-              </>
-            ) : (
-              <>
-                <Save className="size-3.5" />
-                <span>Salvar Alterações</span>
-              </>
-            )}
-          </Button>
-        </div>
-      </div>
-
-      {/* ── 2. Abas de Governança ── */}
+      {/* ── 2. Abas de Governança Nichadas ── */}
       <Tabs defaultValue="geral" className="w-full space-y-6">
-        <TabsList className="grid grid-cols-2 sm:grid-cols-7 bg-muted/60 p-1 rounded-2xl">
+        <TabsList className={cn("grid bg-muted/60 p-1 rounded-2xl", hasDeliveryModule ? "grid-cols-2 sm:grid-cols-7" : "grid-cols-2 sm:grid-cols-6")}>
           <TabsTrigger value="geral" className="rounded-xl text-xs font-semibold">
             Marca & Vitrine
           </TabsTrigger>
@@ -336,9 +348,11 @@ export default function WorkspaceConfiguracoesPage() {
           <TabsTrigger value="contato" className="rounded-xl text-xs font-semibold">
             Contato & Endereço
           </TabsTrigger>
-          <TabsTrigger value="entrega" className="rounded-xl text-xs font-semibold">
-            Entrega & Bairros
-          </TabsTrigger>
+          {hasDeliveryModule && (
+            <TabsTrigger value="entrega" className="rounded-xl text-xs font-semibold">
+              Entrega & Bairros
+            </TabsTrigger>
+          )}
           <TabsTrigger value="horarios" className="rounded-xl text-xs font-semibold">
             Horários
           </TabsTrigger>
@@ -374,57 +388,63 @@ export default function WorkspaceConfiguracoesPage() {
               />
             </div>
 
-            {/* Logotipo */}
-            <div className="space-y-2">
-              <Label className="text-xs font-bold text-foreground">Logotipo Oficial</Label>
-              <div className="flex items-center gap-4">
-                <ImageUpload
-                  value={logoUrl}
-                  onChange={(url) => setLogoUrl(url)}
-                  onRemove={() => setLogoUrl("")}
-                  bucket="cms-media"
-                  aspectPreset="square"
-                  className="w-24 h-24 shrink-0"
-                  helperText="Quadrado (1:1)"
-                />
-                <div className="flex-1 space-y-1.5">
-                  <p className="text-xs font-bold text-foreground">Formato Quadrado (Recomendado 512x512px)</p>
-                  <p className="text-[11px] text-muted-foreground">
-                    Aparece no cabeçalho da loja, na sacola de compras, recibos do PDV e nas listagens de busca.
-                  </p>
+            {/* Grid de Identidade (Logotipo & Favicon) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+              {/* Logotipo */}
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-foreground">Logotipo Oficial</Label>
+                <div className="flex items-center gap-4">
+                  <ImageUpload
+                    value={logoUrl}
+                    onChange={(url) => setLogoUrl(url)}
+                    onRemove={() => setLogoUrl("")}
+                    bucket="cms-media"
+                    aspectPreset="square"
+                    variant="avatar"
+                    className="w-20 h-20 shrink-0"
+                  />
+                  <div className="flex-1 space-y-1">
+                    <p className="text-xs font-semibold text-foreground">Formato Quadrado (1:1)</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Exibido no cabeçalho da loja, sacola de compras e recibos.
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-foreground">Nome Comercial da Loja *</Label>
-                <Input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Ex: Wider Store"
-                  className="rounded-xl text-xs h-10 font-bold"
-                  required
-                />
-              </div>
-
-              <div className="space-y-1.5">
+              {/* Favicon */}
+              <div className="space-y-2">
                 <Label className="text-xs font-bold text-foreground">Favicon (Ícone de Aba)</Label>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4">
                   <ImageUpload
                     value={faviconUrl}
                     onChange={(url) => setFaviconUrl(url)}
                     onRemove={() => setFaviconUrl("")}
                     bucket="cms-media"
                     aspectPreset="square"
+                    variant="avatar"
                     className="w-16 h-16 shrink-0"
-                    helperText="Ícone 1:1"
                   />
-                  <p className="text-[11px] text-muted-foreground flex-1">
-                    Ícone que identifica sua loja na aba do navegador e no atalho móvel PWA.
-                  </p>
+                  <div className="flex-1 space-y-1">
+                    <p className="text-xs font-semibold text-foreground">Ícone da Aba (1:1)</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Identifica sua loja na aba do navegador e no app móvel.
+                    </p>
+                  </div>
                 </div>
               </div>
+            </div>
+
+            {/* Nome Comercial */}
+            <div className="space-y-1.5 pt-2">
+              <Label className="text-xs font-bold text-foreground">Nome Comercial da Loja *</Label>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Ex: Wider Store"
+                className="rounded-xl text-xs h-10 font-bold"
+                required
+              />
             </div>
 
             <div className="space-y-1.5">
@@ -436,6 +456,54 @@ export default function WorkspaceConfiguracoesPage() {
                 rows={3}
                 className="rounded-2xl text-xs resize-none"
               />
+            </div>
+
+            {/* Modalidades de Atendimento Oferecidas */}
+            <div className="p-5 rounded-2xl bg-muted/20 border border-border/80 space-y-3">
+              <div className="space-y-0.5">
+                <Label className="text-xs font-bold text-foreground">Modalidades de Atendimento</Label>
+                <p className="text-[11px] text-muted-foreground">
+                  Selecione as formas que os clientes podem comprar e receber do seu estabelecimento.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/70">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-foreground">Delivery</span>
+                    <p className="text-[10px] text-muted-foreground">Entrega no endereço</p>
+                  </div>
+                  <Switch
+                    checked={orderTypes.delivery}
+                    onCheckedChange={(c) => setOrderTypes({ ...orderTypes, delivery: c })}
+                    className="scale-75"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/70">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-foreground">Retirada</span>
+                    <p className="text-[10px] text-muted-foreground">Pegar no balcão</p>
+                  </div>
+                  <Switch
+                    checked={orderTypes.takeout}
+                    onCheckedChange={(c) => setOrderTypes({ ...orderTypes, takeout: c })}
+                    className="scale-75"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/70">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-foreground">No Local / Mesas</span>
+                    <p className="text-[10px] text-muted-foreground">Consumo presencial</p>
+                  </div>
+                  <Switch
+                    checked={orderTypes.dine_in}
+                    onCheckedChange={(c) => setOrderTypes({ ...orderTypes, dine_in: c })}
+                    className="scale-75"
+                  />
+                </div>
+              </div>
             </div>
           </Card>
 
@@ -549,13 +617,13 @@ export default function WorkspaceConfiguracoesPage() {
                   desc: "Indústrias e distribuidoras. Inclui tabelas de preço PJ, orçamentos em lote e faturamento.",
                 },
               ].map((n) => {
+                const activeSemantics = getNicheSemantics({ segment });
                 const isSelected =
-                  segment.toLowerCase().includes(n.id) ||
-                  (n.id === "gastronomy" && (segment.toLowerCase().includes("pizza") || segment.toLowerCase().includes("restauran"))) ||
-                  (n.id === "ecommerce" && (segment.toLowerCase().includes("moda") || segment.toLowerCase().includes("varejo"))) ||
-                  (n.id === "jobs" && (segment.toLowerCase().includes("vaga") || segment.toLowerCase().includes("rh"))) ||
-                  (n.id === "events" && (segment.toLowerCase().includes("show") || segment.toLowerCase().includes("ingresso"))) ||
-                  (n.id === "automotive" && (segment.toLowerCase().includes("carro") || segment.toLowerCase().includes("veicul")));
+                  activeSemantics.nicheId === n.id ||
+                  (n.id === "ecommerce" && activeSemantics.nicheId === "retail") ||
+                  (n.id === "automotive" && activeSemantics.nicheId === "vehicles") ||
+                  (n.id === "rental_events" && activeSemantics.nicheId === "rental") ||
+                  segment === n.id;
 
                 return (
                   <button
@@ -927,12 +995,17 @@ export default function WorkspaceConfiguracoesPage() {
 
         {/* ABA 5: Perguntas de Checkout Personalizadas */}
         <TabsContent value="checkout" className="space-y-6">
-          <Card className="p-6 rounded-3xl border-border bg-card space-y-6 ">
-            <div className="flex items-center justify-between gap-3  pb-3">
-              <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-                <ListChecks className="size-4 text-primary" />
-                <span>Campos de Checkout</span>
-              </h2>
+          <Card className="p-6 rounded-3xl border-border bg-card space-y-6">
+            <div className="flex items-center justify-between gap-3 pb-3 border-b border-border/40">
+              <div>
+                <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <ListChecks className="size-4 text-primary" />
+                  <span>Campos do Checkout ({currentNiche.name})</span>
+                </h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Perguntas adicionais que o cliente responde durante o fechamento do pedido.
+                </p>
+              </div>
 
               <Button
                 type="button"
@@ -950,21 +1023,110 @@ export default function WorkspaceConfiguracoesPage() {
                     },
                   ]);
                 }}
-                className="rounded-xl text-xs font-bold gap-1.5 shrink-0"
+                className="rounded-xl text-xs font-bold gap-1.5 shrink-0 bg-primary text-primary-foreground cursor-pointer"
               >
                 <Plus className="size-3.5" />
-                <span>Adicionar Pergunta</span>
+                <span>Adicionar Campo</span>
               </Button>
             </div>
 
+            {/* Presets Sugeridos do Nicho */}
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-muted-foreground">Sugestões Rápidas para {currentNiche.name}:</Label>
+              <div className="flex flex-wrap gap-2">
+                {segment === "tourism" ? (
+                  <>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="rounded-xl text-xs h-8"
+                      onClick={() => setCustomFields((p) => [...p, { id: `f_${Date.now()}`, label: "Documento / Passaporte do Titular", placeholder: "RG, CPF ou Passaporte", type: "text", required: true }])}
+                    >
+                      + Documento / Passaporte
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="rounded-xl text-xs h-8"
+                      onClick={() => setCustomFields((p) => [...p, { id: `f_${Date.now()}`, label: "Data de Nascimento dos Passageiros", placeholder: "Ex: Passageiro 1: 15/04/1990", type: "text", required: true }])}
+                    >
+                      + Data de Nascimento
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="rounded-xl text-xs h-8"
+                      onClick={() => setCustomFields((p) => [...p, { id: `f_${Date.now()}`, label: "Preferência de Assento / Acomodação", placeholder: "Ex: Janela, Quarto Casal", type: "text", required: false }])}
+                    >
+                      + Preferência de Assento
+                    </Button>
+                  </>
+                ) : isPhysicalDeliveryNiche ? (
+                  <>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="rounded-xl text-xs h-8"
+                      onClick={() => setCustomFields((p) => [...p, { id: `f_${Date.now()}`, label: "Observações / Alergias", placeholder: "Sem cebola, alergia a glúten...", type: "text", required: false }])}
+                    >
+                      + Observações / Alergias
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="rounded-xl text-xs h-8"
+                      onClick={() => setCustomFields((p) => [...p, { id: `f_${Date.now()}`, label: "Precisa de Troco?", placeholder: "Ex: Troco para R$ 50", type: "text", required: false }])}
+                    >
+                      + Troco em Dinheiro
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="rounded-xl text-xs h-8"
+                      onClick={() => setCustomFields((p) => [...p, { id: `f_${Date.now()}`, label: "Ponto de Referência", placeholder: "Próximo à praça central...", type: "text", required: false }])}
+                    >
+                      + Ponto de Referência
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="rounded-xl text-xs h-8"
+                      onClick={() => setCustomFields((p) => [...p, { id: `f_${Date.now()}`, label: "CPF na Nota Fiscal", placeholder: "000.000.000-00", type: "text", required: false }])}
+                    >
+                      + CPF na Nota
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="rounded-xl text-xs h-8"
+                      onClick={() => setCustomFields((p) => [...p, { id: `f_${Date.now()}`, label: "Instruções Especiais", placeholder: "Digite aqui suas orientações...", type: "textarea", required: false }])}
+                    >
+                      + Instruções Especiais
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+
             {customFields.length === 0 ? (
-              <div className="p-8 rounded-3xl border-0 bg-muted/20 text-center space-y-2">
+              <div className="py-8 text-center space-y-2 border border-dashed border-border/70 rounded-2xl bg-card/40">
                 <div className="size-10 rounded-2xl bg-muted text-muted-foreground flex items-center justify-center mx-auto">
                   <ListChecks className="size-5" />
                 </div>
                 <h3 className="text-sm font-bold text-foreground">Nenhum campo personalizado ativo</h3>
-                <p className="text-xs text-muted-foreground max-w-md mx-auto">
-                  Exemplos úteis: "Placa do Carro" (oficinas), "Nome para Gravação a Laser" (presentes), "Restrições de Alergia" (comidas) ou "Porte do Pet" (banho e tosa).
+                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                  Clique em um dos botões acima ou crie um campo personalizado para o checkout da sua loja.
                 </p>
               </div>
             ) : (

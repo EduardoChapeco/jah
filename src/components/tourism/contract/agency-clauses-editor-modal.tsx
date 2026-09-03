@@ -13,13 +13,13 @@ import {
   Loader2,
 } from "lucide-react";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -32,9 +32,9 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import {
-  getAgencyContractTemplate,
-  saveAgencyContractTemplate,
-  resetAgencyContractTemplate,
+  getAgencyTourismClauses as getAgencyContractTemplate,
+  saveAgencyTourismClauses as saveAgencyContractTemplate,
+  resetAgencyTourismClauses as resetAgencyContractTemplate,
   CANONICAL_TOURISM_CLAUSES,
   type ContractClauseDTO,
 } from "@/services/travel-contract.functions";
@@ -61,8 +61,9 @@ export function AgencyClausesEditorModal({
     setIsLoading(true);
     try {
       const res = await getAgencyContractTemplate();
-      setClauses(res.clauses || CANONICAL_TOURISM_CLAUSES);
-      setIsCustom(res.isCustom);
+      const loadedClauses = Array.isArray(res) && res.length > 0 ? res : CANONICAL_TOURISM_CLAUSES;
+      setClauses(loadedClauses);
+      setIsCustom(Array.isArray(res) && res.length > 0);
     } catch {
       toast.error("Erro ao carregar minuta da agência.");
       setClauses(CANONICAL_TOURISM_CLAUSES);
@@ -95,83 +96,98 @@ export function AgencyClausesEditorModal({
       ...prev,
       {
         number: prev.length + 1,
-        section: `CLÁUSULA ${prev.length + 1}ª - NOVA DISPOSIÇÃO`,
-        clause_text: "Descreva os termos específicos desta cláusula...",
-        is_mandatory: true,
+        section: "NOVA CLÁUSULA",
+        clause_text: "Descreva aqui os termos e condições aplicáveis...",
+        is_mandatory: false,
       },
     ]);
   };
 
-  // Excluir cláusula
+  // Remover cláusula
   const handleRemoveClause = (index: number) => {
-    if (clauses.length <= 1) {
-      toast.error("O contrato deve manter pelo menos uma cláusula.");
-      return;
-    }
     setClauses((prev) => {
-      const next = prev.filter((_, idx) => idx !== index);
-      return next.map((item, idx) => ({ ...item, number: idx + 1 }));
+      const next = prev.filter((_, i) => i !== index);
+      return next.map((c, i) => ({ ...c, number: i + 1 }));
     });
   };
 
-  // Mover cláusula para cima ou baixo
-  const handleMoveClause = (index: number, direction: "up" | "down") => {
-    const targetIdx = direction === "up" ? index - 1 : index + 1;
-    if (targetIdx < 0 || targetIdx >= clauses.length) return;
-
+  // Mover cláusula para cima
+  const handleMoveUp = (index: number) => {
+    if (index === 0) return;
     setClauses((prev) => {
       const next = [...prev];
-      const temp = next[index];
-      next[index] = next[targetIdx];
-      next[targetIdx] = temp;
-      return next.map((item, idx) => ({ ...item, number: idx + 1 }));
+      const temp = next[index - 1];
+      next[index - 1] = next[index];
+      next[index] = temp;
+      return next.map((c, i) => ({ ...c, number: i + 1 }));
     });
   };
 
-  // Parser Inteligente de Texto Colado (Minuta Própria da Agência)
+  // Mover cláusula para baixo
+  const handleMoveDown = (index: number) => {
+    setClauses((prev) => {
+      if (index >= prev.length - 1) return prev;
+      const next = [...prev];
+      const temp = next[index + 1];
+      next[index + 1] = next[index];
+      next[index] = temp;
+      return next.map((c, i) => ({ ...c, number: i + 1 }));
+    });
+  };
+
+  // Mover cláusula (up / down)
+  const handleMoveClause = (index: number, direction: "up" | "down") => {
+    if (direction === "up") {
+      handleMoveUp(index);
+    } else {
+      handleMoveDown(index);
+    }
+  };
+
+  // Importar Texto Livre com Regex de Detecção de Cláusulas
+
   const handleParseRawText = () => {
-    const text = rawTextImport.trim();
-    if (!text) {
-      toast.error("Cole o texto do seu contrato para importar.");
+    if (!rawTextImport.trim()) {
+      toast.error("Cole o texto do contrato para importar.");
       return;
     }
 
-    // Procura por divisões de cláusulas: "CLÁUSULA", "CLAUSULA", "Artigo", "1.", "2." etc.
-    const clauseRegex = /(?:(?:CL[AÁ]USULA\s+[0-9ªºa-z]+|ARTIGO\s+[0-9]+|[0-9]+\.)\s*[-–—:]*\s*([^\n\r]+)|([A-ZÇÃÕÉÊÁÀÍÓÚ\s]{4,}:))\s*[\n\r]+([\s\S]*?)(?=(?:CL[AÁ]USULA\s+[0-9ªºa-z]+|ARTIGO\s+[0-9]+|[0-9]+\.|\n\n[A-ZÇÃÕÉÊÁÀÍÓÚ\s]{4,}:|$))/gi;
-
+    const lines = rawTextImport.split("\n");
     const parsed: ContractClauseDTO[] = [];
-    let match;
-    let count = 1;
+    let currentSection = "CONDIÇÕES GERAIS";
+    let currentText = "";
 
-    while ((match = clauseRegex.exec(text)) !== null) {
-      const sectionTitle = (match[1] || match[2] || `CLÁUSULA ${count}ª`).trim();
-      const clauseBody = (match[3] || "").trim();
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+      if (!line) continue;
 
-      if (clauseBody.length > 5) {
-        parsed.push({
-          number: count,
-          section: sectionTitle.toUpperCase(),
-          clause_text: clauseBody,
-          is_mandatory: true,
-        });
-        count++;
+      const isHeader =
+        /^CL[AÁ]USULA\s+[0-9IVXLCDM]+/i.test(line) ||
+        /^[0-9]+\.\s+[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇ\s-]{4,}/i.test(line) ||
+        /^(DO OBJETO|DAS OBRIGAÇÕES|DO PREÇO|DO PAGAMENTO|DO CANCELAMENTO|DA DESISTÊNCIA|DAS REGRAS|DA BAGAGEM|DO FORO)/i.test(line);
+
+      if (isHeader) {
+        if (currentText.trim()) {
+          parsed.push({
+            number: parsed.length + 1,
+            section: currentSection,
+            clause_text: currentText.trim(),
+            is_mandatory: parsed.length < 3,
+          });
+          currentText = "";
+        }
+        currentSection = line.toUpperCase();
+      } else {
+        currentText += (currentText ? " " : "") + line;
       }
     }
 
-    // Fallback: se não encontrou o padrão por regex, divide por parágrafos duplos
-    if (parsed.length === 0) {
-      const paragraphs = text.split(/\n\s*\n/).filter((p) => p.trim().length > 10);
-      paragraphs.forEach((p, idx) => {
-        const lines = p.trim().split("\n");
-        const title = lines.length > 1 ? lines[0].trim() : `CLÁUSULA ${idx + 1}ª`;
-        const body = lines.length > 1 ? lines.slice(1).join("\n").trim() : lines[0].trim();
-
-        parsed.push({
-          number: idx + 1,
-          section: title.toUpperCase(),
-          clause_text: body,
-          is_mandatory: true,
-        });
+    if (currentText.trim()) {
+      parsed.push({
+        number: parsed.length + 1,
+        section: currentSection,
+        clause_text: currentText.trim(),
+        is_mandatory: parsed.length < 3,
       });
     }
 
@@ -195,7 +211,7 @@ export function AgencyClausesEditorModal({
       });
 
       if (res?.success) {
-        toast.success(`Minuta padrão salva com sucesso! (${res.count} cláusulas ativas)`);
+        toast.success(`Minuta padrão salva com sucesso! (${clauses.length} cláusulas ativas)`);
         setIsCustom(true);
         onSaved?.();
         onOpenChange(false);
@@ -227,15 +243,15 @@ export function AgencyClausesEditorModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden rounded-3xl">
-        <DialogHeader className="p-6 pb-4 border-b border-border/60 bg-card">
-          <div className="flex items-center justify-between">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="w-full sm:max-w-2xl lg:max-w-3xl flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border">
+        <SheetHeader className="p-6 pb-4 border-b border-border/60 bg-card">
+          <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <FileText className="size-5 text-primary" />
-              <DialogTitle className="text-lg font-bold text-foreground">
+              <SheetTitle className="text-lg font-bold text-foreground">
                 Minuta & Cláusulas Padrão da Agência
-              </DialogTitle>
+              </SheetTitle>
             </div>
             <Badge
               variant={isCustom ? "default" : "outline"}
@@ -244,10 +260,10 @@ export function AgencyClausesEditorModal({
               {isCustom ? "Minuta Personalizada Ativa" : "Padrão Embratur / CDC"}
             </Badge>
           </div>
-          <DialogDescription className="text-xs text-muted-foreground mt-1">
+          <SheetDescription className="text-xs text-muted-foreground mt-1">
             Defina as regras jurídicas, intermediação turística, no-show e cancelamentos que serão aplicados automaticamente em todos os novos contratos e propostas aprovadas.
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
 
         <Tabs value={activeTab} onValueChange={(v: any) => setActiveTab(v)} className="flex-1 flex flex-col overflow-hidden">
           <div className="px-6 pt-3 border-b border-border/40 bg-muted/20 flex items-center justify-between">
@@ -398,7 +414,7 @@ export function AgencyClausesEditorModal({
           </TabsContent>
         </Tabs>
 
-        <DialogFooter className="p-4 border-t border-border/60 bg-card flex flex-row items-center justify-between sm:justify-between">
+        <SheetFooter className="p-4 border-t border-border/60 bg-card flex flex-row items-center justify-between sm:justify-between">
           <div className="text-[11px] text-muted-foreground hidden sm:block">
             {clauses.length} {clauses.length === 1 ? "cláusula configurada" : "cláusulas configuradas"}
           </div>
@@ -422,8 +438,8 @@ export function AgencyClausesEditorModal({
               <span>{isSaving ? "Salvando..." : "Salvar como Minuta Padrão da Agência"}</span>
             </Button>
           </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

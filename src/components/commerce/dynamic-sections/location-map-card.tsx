@@ -1,0 +1,103 @@
+import * as React from "react";
+import { MapPin, Navigation, Clock, Phone } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+
+export interface LocationMapCardProps {
+  title?: string;
+  subtitle?: string;
+  address?: string;
+  cityState?: string;
+  zipCode?: string;
+  phone?: string;
+  workingHours?: string;
+  googleMapsUrl?: string;
+}
+
+export function LocationMapCardSection({
+  title = "Venha nos Visitar",
+  subtitle = "Ambiente acolhedor e atendimento exclusivo esperando por você.",
+  address = "Av. Brasil, 1420 - Sala 402, Centro",
+  cityState = "São Miguel do Oeste - SC",
+  zipCode = "CEP 89900-000",
+  phone = "(49) 3622-0000",
+  workingHours = "Segunda a Sexta das 08h30 às 18h30",
+  googleMapsUrl = "https://maps.google.com",
+}: LocationMapCardProps) {
+  return (
+    <section className="py-12 bg-background w-full">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center rounded-3xl border border-border/80 bg-card p-6 sm:p-10 shadow-2xs">
+          <div className="lg:col-span-6 space-y-5">
+            <div className="space-y-1.5">
+              <Badge variant="outline" className="text-[11px] font-mono text-muted-foreground border-border/80">
+                Localização
+              </Badge>
+              <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">{title}</h2>
+              {subtitle && <p className="text-xs sm:text-sm text-muted-foreground">{subtitle}</p>}
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-muted/40 border border-border/60">
+                <MapPin className="size-4 text-primary shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold text-foreground block text-sm">{address}</span>
+                  <span className="text-muted-foreground">{cityState} • {zipCode}</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/60 flex items-center gap-2.5">
+                  <Clock className="size-4 text-primary shrink-0" />
+                  <div>
+                    <span className="text-[10px] text-muted-foreground block font-mono">Horário</span>
+                    <span className="font-semibold text-foreground">{workingHours}</span>
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/60 flex items-center gap-2.5">
+                  <Phone className="size-4 text-primary shrink-0" />
+                  <div>
+                    <span className="text-[10px] text-muted-foreground block font-mono">Telefone</span>
+                    <span className="font-semibold text-foreground font-mono">{phone}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <Button
+                type="button"
+                size="lg"
+                onClick={() => window.open(googleMapsUrl, "_blank")}
+                className="rounded-xl font-bold text-xs bg-primary text-primary-foreground hover:bg-primary/90 shadow-xs cursor-pointer gap-2 h-11"
+              >
+                <Navigation className="size-4" />
+                <span>Abrir no Google Maps</span>
+              </Button>
+            </div>
+          </div>
+
+          <div className="lg:col-span-6 rounded-2xl overflow-hidden aspect-4/3 bg-muted border border-border/60 relative flex items-center justify-center">
+            <img
+              src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=800&q=80"
+              alt="Mapa"
+              className="size-full object-cover"
+            />
+            <div className="absolute inset-0 bg-background/20 backdrop-blur-2xs flex items-center justify-center">
+              <div className="p-4 rounded-2xl bg-background/95 border border-border shadow-xl flex items-center gap-3">
+                <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                  <MapPin className="size-5" />
+                </div>
+                <div>
+                  <p className="font-bold text-xs text-foreground">{address}</p>
+                  <p className="text-[11px] text-muted-foreground">{cityState}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}

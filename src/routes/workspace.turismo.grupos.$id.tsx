@@ -14,6 +14,10 @@ import {
   MapPin,
   Phone,
   ShieldCheck,
+  DollarSign,
+  Link2,
+  UserCheck,
+  Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +34,9 @@ import {
 } from "@/services/group-tours.functions";
 import { BusSeatMap } from "@/components/tourism/groups/bus-seat-map";
 import { RoomingListManager } from "@/components/tourism/groups/rooming-list-manager";
+import { GroupTourBudgetManager } from "@/components/tourism/groups/group-tour-budget";
+import { GroupTourCashLedger } from "@/components/tourism/groups/group-tour-cash-ledger";
+import { GenerateMagicLinkModal } from "@/components/tourism/groups/generate-magic-link-modal";
 import { exportElementAsPdf } from "@/lib/pdf-export";
 
 export const Route = createFileRoute("/workspace/turismo/grupos/$id")({
@@ -46,6 +53,7 @@ function WorkspaceGroupTourDetailPage() {
   const [tour, setTour] = useState<GroupTourDTO | null>(initialTour);
   const [isSaving, setIsSaving] = useState(false);
   const [isExportingManifest, setIsExportingManifest] = useState(false);
+  const [magicLinkModalOpen, setMagicLinkModalOpen] = useState(false);
 
   // Operacional do Ônibus
   const [busCompany, setBusCompany] = useState(tour?.bus_company_name || "");
@@ -123,7 +131,7 @@ function WorkspaceGroupTourDetailPage() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
+    <div className="w-full max-w-7xl mx-auto space-y-6 animate-in fade-in duration-200">
       {/* ── 1. TOP HEADER DA VIAGEM ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-card border border-border/80">
         <div className="flex items-center gap-3">
@@ -159,6 +167,32 @@ function WorkspaceGroupTourDetailPage() {
 
         <div className="flex items-center gap-2">
           <Button
+            asChild
+            size="sm"
+            variant="outline"
+            className="rounded-xl text-xs font-bold gap-1.5 h-9 cursor-pointer"
+          >
+            <Link
+              to={"/workspace/turismo/grupos/$id/embarque" as any}
+              params={{ id: tour.id } as any}
+            >
+              <UserCheck className="size-3.5 text-emerald-600" />
+              <span>Embarque</span>
+            </Link>
+          </Button>
+
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => setMagicLinkModalOpen(true)}
+            className="rounded-xl text-xs font-bold gap-1.5 h-9"
+          >
+            <Link2 className="size-3.5" />
+            <span>Link Mágico</span>
+          </Button>
+
+          <Button
             type="button"
             size="sm"
             variant="outline"
@@ -174,18 +208,26 @@ function WorkspaceGroupTourDetailPage() {
 
       {/* ── 2. ABAS DE GESTÃO DA VIAGEM ── */}
       <Tabs defaultValue="onibus" className="space-y-4">
-        <TabsList className="grid grid-cols-3 h-10 p-1 rounded-2xl bg-muted/40 max-w-md">
-          <TabsTrigger value="onibus" className="text-xs rounded-xl font-bold gap-1.5">
+        <TabsList className="grid grid-cols-2 sm:grid-cols-5 h-auto p-1 rounded-2xl bg-muted/40 max-w-2xl">
+          <TabsTrigger value="onibus" className="text-xs rounded-xl font-bold gap-1.5 py-2">
             <Bus className="size-3.5" />
             <span>Mapa do Ônibus</span>
           </TabsTrigger>
-          <TabsTrigger value="hoteis" className="text-xs rounded-xl font-bold gap-1.5">
+          <TabsTrigger value="hoteis" className="text-xs rounded-xl font-bold gap-1.5 py-2">
             <Building className="size-3.5" />
             <span>Rooming List</span>
           </TabsTrigger>
-          <TabsTrigger value="transporte" className="text-xs rounded-xl font-bold gap-1.5">
+          <TabsTrigger value="orcamento" className="text-xs rounded-xl font-bold gap-1.5 py-2">
+            <DollarSign className="size-3.5" />
+            <span>Orçamento</span>
+          </TabsTrigger>
+          <TabsTrigger value="caixa" className="text-xs rounded-xl font-bold gap-1.5 py-2">
+            <Wallet className="size-3.5" />
+            <span>Caixa da Viagem</span>
+          </TabsTrigger>
+          <TabsTrigger value="transporte" className="text-xs rounded-xl font-bold gap-1.5 py-2">
             <ShieldCheck className="size-3.5" />
-            <span>Operacional / Veículo</span>
+            <span>Veículo / ANTT</span>
           </TabsTrigger>
         </TabsList>
 
@@ -199,7 +241,22 @@ function WorkspaceGroupTourDetailPage() {
           <RoomingListManager rooms={tour.rooms} onRoomsChange={handleRoomsChange} />
         </TabsContent>
 
-        {/* ABA 3: DADOS OPERACIONAIS DO TRANSPORTE */}
+        {/* ABA 3: CUSTOS & FINANCEIRO */}
+        <TabsContent value="orcamento" className="space-y-4">
+          <GroupTourBudgetManager
+            tourId={tour.id}
+            tourPriceCents={tour.price_cents}
+            totalSeats={tour.total_seats}
+            passengersCount={occupiedSeats.length}
+          />
+        </TabsContent>
+
+        {/* ABA 4: CAIXA EM TRÂNSITO DA VIAGEM */}
+        <TabsContent value="caixa" className="space-y-4">
+          <GroupTourCashLedger tourId={tour.id} storeId={tour.store_id || ""} />
+        </TabsContent>
+
+        {/* ABA 5: DADOS OPERACIONAIS DO TRANSPORTE */}
         <TabsContent value="transporte" className="space-y-4">
           <div className="p-6 rounded-3xl bg-card border border-border/80 space-y-4 max-w-xl">
             <h3 className="text-sm font-bold text-foreground">
@@ -220,17 +277,17 @@ function WorkspaceGroupTourDetailPage() {
               <div className="space-y-1">
                 <Label className="text-xs font-bold">Placa do Ônibus</Label>
                 <Input
-                  placeholder="ABC-1234 ou ABC1D23"
+                  placeholder="ABC-1D23"
                   value={busPlate}
-                  onChange={(e) => setBusPlate(e.target.value.toUpperCase())}
-                  className="h-10 text-xs rounded-xl font-mono"
+                  onChange={(e) => setBusPlate(e.target.value)}
+                  className="h-10 text-xs rounded-xl font-mono uppercase"
                 />
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs font-bold">Nome do Motorista Titular</Label>
+                <Label className="text-xs font-bold">Nome do Motorista Principal</Label>
                 <Input
-                  placeholder="Nome do motorista"
+                  placeholder="Nome completo"
                   value={driverName}
                   onChange={(e) => setDriverName(e.target.value)}
                   className="h-10 text-xs rounded-xl"
@@ -318,6 +375,14 @@ function WorkspaceGroupTourDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* ── 4. MODAL DE GERAR LINK MÁGICO ── */}
+      <GenerateMagicLinkModal
+        open={magicLinkModalOpen}
+        onOpenChange={setMagicLinkModalOpen}
+        storeId={tour.store_id || ""}
+        tourId={tour.id}
+      />
     </div>
   );
 }

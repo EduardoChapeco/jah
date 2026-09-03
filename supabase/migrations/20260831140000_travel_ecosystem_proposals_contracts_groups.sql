@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS public.travel_proposals (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     store_id UUID REFERENCES public.stores(id) ON DELETE CASCADE,
     created_by_profile_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
-    quote_id UUID REFERENCES public.travel_quote_requests(id) ON DELETE SET NULL,
+    quote_id UUID REFERENCES public.travel_quotes(id) ON DELETE SET NULL,
     public_token TEXT UNIQUE NOT NULL,
     canvas_format TEXT NOT NULL DEFAULT 'a4-portrait',
     title TEXT NOT NULL,
@@ -56,7 +56,7 @@ CREATE POLICY "Agency manage own travel proposals"
     TO authenticated
     USING (
         store_id IN (
-            SELECT store_id FROM public.store_members WHERE profile_id = auth.uid()
+            SELECT store_id FROM public.workspace_members WHERE profile_id = auth.uid()
         )
         OR created_by_profile_id = auth.uid()
         OR EXISTS (
@@ -123,7 +123,7 @@ CREATE POLICY "Agency manage own travel contracts"
     TO authenticated
     USING (
         store_id IN (
-            SELECT store_id FROM public.store_members WHERE profile_id = auth.uid()
+            SELECT store_id FROM public.workspace_members WHERE profile_id = auth.uid()
         )
         OR created_by_profile_id = auth.uid()
         OR EXISTS (
@@ -179,10 +179,11 @@ CREATE POLICY "Agency manage own group tours"
     TO authenticated
     USING (
         store_id IN (
-            SELECT store_id FROM public.store_members WHERE profile_id = auth.uid()
+            SELECT store_id FROM public.workspace_members WHERE profile_id = auth.uid()
         )
         OR created_by_profile_id = auth.uid()
         OR EXISTS (
             SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('admin', 'superadmin', 'platform_admin')
         )
     );
+

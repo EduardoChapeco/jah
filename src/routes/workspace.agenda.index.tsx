@@ -25,6 +25,7 @@ import {
 } from "@/services/booking.functions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/commerce/page-header";
 import {
   Sheet,
   SheetContent,
@@ -224,27 +225,26 @@ function AdminAppointmentsPage() {
 
   return (
     <div className="space-y-6 h-full flex flex-col">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 ">
-        <div>
-          <h1 className="text-xl font-bold text-foreground">Agenda de Atendimentos</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link
-            to="/workspace/pacotes"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-card hover:bg-muted text-foreground  transition-all"
-          >
-            <Ticket className="size-3.5 text-primary" />
-            <span>Pacotes & Passes</span>
-          </Link>
-          <Link
-            to="/workspace/agenda/recursos"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-card hover:bg-muted text-foreground  transition-all"
-          >
-            <Users className="size-3.5" />
-            <span>Profissionais & Salas</span>
-          </Link>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Atendimentos"
+        title="Agenda"
+        actions={
+          <div className="flex items-center gap-2">
+            <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-bold gap-1.5">
+              <Link to="/workspace/pacotes">
+                <Ticket className="size-3.5 text-primary" />
+                <span>Pacotes & Passes</span>
+              </Link>
+            </Button>
+            <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-bold gap-1.5">
+              <Link to="/workspace/agenda/recursos">
+                <Users className="size-3.5" />
+                <span>Profissionais & Salas</span>
+              </Link>
+            </Button>
+          </div>
+        }
+      />
 
       <div className="flex items-center justify-between gap-2 p-3 bg-card rounded-2xl  ">
         <Button

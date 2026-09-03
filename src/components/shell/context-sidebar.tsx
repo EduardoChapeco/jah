@@ -1,10 +1,10 @@
+import { useState, useMemo } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { type ContextConfig } from "@/lib/navigation-registry";
 import { PublishSheet } from "@/components/commerce/publish-sheet";
 import {
   House,
   ChatCenteredText,
-  NewspaperClipping,
   Storefront,
   Tag,
   MapPin,
@@ -27,9 +27,13 @@ import {
   Bone,
   Hammer,
   Armchair,
-  Broom,
-  Books,
   FilmStrip,
+  CaretDown,
+  CaretRight,
+  ChatCircleDots,
+  Package,
+  Ticket,
+  ArrowSquareOut,
 } from "@phosphor-icons/react";
 
 export interface ContextSidebarProps {
@@ -37,56 +41,65 @@ export interface ContextSidebarProps {
   session?: any;
 }
 
-// ── 1. Módulos Principais de Descoberta (Explorar) ──
-const PRIMARY_DESTINATIONS = [
+// ── 1. Módulos Principais (1 Palavra Canônica) ──
+const MAIN_EXPLORER_ITEMS = [
   { to: "/", label: "Início", icon: House, exact: true },
   { to: "/mural", label: "Feed", icon: ChatCenteredText, exact: true },
-  { to: "/noticias", label: "Notícias", icon: NewspaperClipping },
-  { to: "/mercado", label: "Mercado", icon: Storefront, exact: true },
+  { to: "/mapa", label: "Moments", icon: Flame, exact: true },
+  { to: "/mobilidade", label: "Mobilidade", icon: CarProfile, exact: true },
   { to: "/classificados", label: "Classificados", icon: Tag, exact: true },
-  { to: "/mapa", label: "Moments", icon: MapPin, exact: true },
-  { to: "/agenda", label: "Agenda", icon: CalendarDots, exact: true },
-  { to: "/agendar", label: "Agendamentos", icon: Scissors, exact: true },
+];
+
+// ── 2. Sub-Marketplaces Verticais (1 Palavra Comercial) ──
+const SUB_MARKETPLACES = [
+  { to: "/gastronomia", label: "Comida", icon: ForkKnife },
+  { to: "/mercado", label: "Mercado", icon: ShoppingBag },
+  { to: "/farmacia", label: "Farmácia", icon: Heartbeat },
+  { to: "/bebidas", label: "Bebidas", icon: BeerBottle },
+  { to: "/acougue", label: "Carnes", icon: Flame },
+  { to: "/moda", label: "Moda", icon: TShirt },
+  { to: "/pet", label: "Pet", icon: Bone },
+  { to: "/eletronicos", label: "Tech", icon: Laptop },
+  { to: "/casa", label: "Casa", icon: Armchair },
+  { to: "/construcao", label: "Construção", icon: Hammer },
+  { to: "/servicos", label: "Serviços", icon: Briefcase },
+  { to: "/imoveis", label: "Imóveis", icon: Buildings },
+  { to: "/beleza", label: "Beleza", icon: Scissors },
+  { to: "/ofertas", label: "Ofertas", icon: Flame },
+];
+
+// ── 3. Serviços & Utilidades (1 Palavra) ──
+const UTILITY_ITEMS = [
+  { to: "/agendar", label: "Agendar", icon: Scissors, exact: true },
   { to: "/turismo", label: "Turismo", icon: AirplaneTilt, exact: true },
   { to: "/empregos", label: "Empregos", icon: Briefcase, exact: true },
-  { to: "/diretorio", label: "Guia & Diretório", icon: Compass, exact: true },
-  { to: "/mobilidade", label: "Mobilidade", icon: CarProfile, exact: true },
+  { to: "/diretorio", label: "Guia", icon: Compass, exact: true },
+  { to: "/agenda", label: "Agenda", icon: CalendarDots, exact: true },
+  { to: "/workspace/estudio", label: "Studio", icon: FilmStrip, exact: true },
 ];
 
-// ── 1.5. Estúdio & Criação Avançada (Vídeos & Artes) ──
-const CREATOR_DESTINATIONS = [
-  { to: "/workspace/estudio", label: "Studio 3.0 (Vídeos & Artes)", icon: FilmStrip, exact: true },
-];
-
-// ── 2. Categorias Master & Nichos de Alto Consumo (16 Verticais Canônicas) ──
-const CATEGORY_NICHES = [
-  { to: "/gastronomia", label: "Gastronomia & Delivery", icon: ForkKnife },
-  { to: "/mercado", label: "Mercado & Hortifrúti", icon: ShoppingBag },
-  { to: "/farmacia", label: "Farmácia & Saúde", icon: Heartbeat },
-  { to: "/bebidas", label: "Bebidas & Adega", icon: BeerBottle },
-  { to: "/acougue", label: "Açougue & Carnes", icon: Flame },
-  { to: "/moda", label: "Moda & Vestuário", icon: TShirt },
-  { to: "/eletronicos", label: "Eletrônicos & Tech", icon: Laptop },
-  { to: "/pet", label: "Pet Shop & Veterinária", icon: Bone },
-  { to: "/servicos", label: "Serviços Especializados", icon: Briefcase },
-  { to: "/imoveis", label: "Imóveis & Aluguel", icon: Buildings },
-  { to: "/construcao", label: "Construção & Casa", icon: Hammer },
-  { to: "/casa", label: "Móveis & Decoração", icon: Armchair },
-  { to: "/beleza", label: "Beleza & Estética", icon: Scissors },
-  { to: "/limpeza", label: "Limpeza & Higiene", icon: Broom },
-  { to: "/livros", label: "Livros & Papelaria", icon: Books },
-  { to: "/ofertas", label: "Ofertas Relâmpago", icon: Flame },
-];
-
-// ── 3. Painel Pessoal (Exibido apenas para autenticados) ──
-const USER_DESTINATIONS = [
-  { to: "/conta", label: "Minha Conta", icon: User, exact: true },
-  { to: "/conta/salvos", label: "Itens Salvos", icon: BookmarkSimple, exact: true },
+// ── 4. Painel Pessoal & Social (1 Palavra) ──
+const USER_NAV_ITEMS = [
+  { to: "/conta/conversas", label: "Conversas", icon: ChatCircleDots, exact: true },
+  { to: "/conta/salvos", label: "Salvos", icon: BookmarkSimple, exact: true },
+  { to: "/conta/pedidos", label: "Pedidos", icon: Package, exact: true },
+  { to: "/conta/pedidos?tab=ingressos", label: "Ingressos", icon: Ticket },
+  { to: "/conta/pacotes", label: "Agendamentos", icon: Scissors },
+  { to: "/conta/perfil", label: "Perfil", icon: User, exact: true },
 ];
 
 export function ContextSidebar({ config, session }: ContextSidebarProps) {
   const location = useLocation();
   const isAuthenticated = Boolean(session?.user || session?.id);
+  const memberships = (session?.memberships as any[]) || [];
+  const hasStore = memberships.length > 0;
+
+  // Detecta se a rota atual é um sub-marketplace
+  const isInsideMarketplace = useMemo(() => {
+    return SUB_MARKETPLACES.some((sub) => location.pathname.startsWith(sub.to));
+  }, [location.pathname]);
+
+  const [isMarketplacesOpen, setIsMarketplacesOpen] = useState(isInsideMarketplace);
 
   if (config?.showContextSidebar === false) {
     return null;
@@ -104,15 +117,15 @@ export function ContextSidebar({ config, session }: ContextSidebarProps) {
   };
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 shrink-0 h-full py-4 px-3 bg-background justify-between select-none overflow-y-auto scrollbar-none z-20">
+    <aside className="hidden lg:flex flex-col w-60 shrink-0 h-full py-3 px-2.5 bg-background justify-between select-none overflow-y-auto no-scrollbar z-20 border-r border-border/40">
       <div className="space-y-4">
-        {/* 1. Módulos Principais */}
-        <div className="space-y-1">
-          <span className="px-3 text-[10px] font-mono font-bold tracking-wider uppercase text-muted-foreground/70">
+        {/* ── 1. MÓDULOS PRINCIPAIS ── */}
+        <div className="space-y-0.5">
+          <span className="px-2.5 text-[10px] font-mono font-bold tracking-wider uppercase text-muted-foreground/70">
             Explorar
           </span>
-          <nav className="flex flex-col space-y-1 pt-1">
-            {PRIMARY_DESTINATIONS.map((item) => {
+          <nav className="flex flex-col space-y-0.5 pt-1">
+            {MAIN_EXPLORER_ITEMS.map((item) => {
               const Icon = item.icon;
               const active = isCurrentActive(item);
 
@@ -120,14 +133,96 @@ export function ContextSidebar({ config, session }: ContextSidebarProps) {
                 <Link
                   key={item.to}
                   to={item.to as any}
-                  className={`flex items-center gap-3 h-9 px-3 rounded-xl text-xs transition-all cursor-pointer group ${
+                  className={`flex items-center gap-2.5 h-8.5 px-2.5 rounded-xl text-xs transition-all cursor-pointer group ${
                     active
                       ? "bg-primary/10 text-primary font-bold shadow-2xs"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted/60 font-medium"
                   }`}
                 >
                   <Icon
-                    size={17}
+                    size={16}
+                    weight={active ? "fill" : "regular"}
+                    className={`shrink-0 transition-colors ${active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`}
+                  />
+                  <span className="truncate">{item.label}</span>
+                </Link>
+              );
+            })}
+
+            {/* ── MARKETPLACES (Hub Expansível com 14 Sub-Marketplaces) ── */}
+            <div className="pt-0.5">
+              <button
+                type="button"
+                onClick={() => setIsMarketplacesOpen((prev) => !prev)}
+                className={`w-full flex items-center justify-between h-8.5 px-2.5 rounded-xl text-xs transition-all cursor-pointer group ${
+                  isInsideMarketplace
+                    ? "bg-primary/10 text-primary font-bold"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60 font-medium"
+                }`}
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <Storefront
+                    size={16}
+                    weight={isInsideMarketplace ? "fill" : "regular"}
+                    className={isInsideMarketplace ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}
+                  />
+                  <span className="truncate">Marketplaces</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-md bg-muted/80 text-muted-foreground font-semibold">
+                    14
+                  </span>
+                  {isMarketplacesOpen ? (
+                    <CaretDown size={12} className="text-muted-foreground" />
+                  ) : (
+                    <CaretRight size={12} className="text-muted-foreground" />
+                  )}
+                </div>
+              </button>
+
+              {/* Sub-Marketplaces em Grid Compacto e Limpo */}
+              {isMarketplacesOpen && (
+                <div className="grid grid-cols-2 gap-1 p-1.5 my-1 rounded-2xl bg-muted/30 border border-border/40 animate-in fade-in slide-in-from-top-1 duration-150">
+                  {SUB_MARKETPLACES.map((sub) => {
+                    const SubIcon = sub.icon;
+                    const isSubActive = location.pathname.startsWith(sub.to);
+
+                    return (
+                      <Link
+                        key={sub.to}
+                        to={sub.to as any}
+                        className={`flex items-center gap-1.5 h-7 px-2 rounded-lg text-[11px] font-medium transition-all ${
+                          isSubActive
+                            ? "bg-foreground text-background font-bold shadow-2xs"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                        }`}
+                      >
+                        <SubIcon size={13} weight={isSubActive ? "fill" : "bold"} className="shrink-0" />
+                        <span className="truncate">{sub.label}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* ── DEMAIS SERVIÇOS & UTILIDADES ── */}
+            {UTILITY_ITEMS.map((item) => {
+              const Icon = item.icon;
+              const active = isCurrentActive(item);
+
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to as any}
+                  className={`flex items-center gap-2.5 h-8.5 px-2.5 rounded-xl text-xs transition-all cursor-pointer group ${
+                    active
+                      ? "bg-primary/10 text-primary font-bold shadow-2xs"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/60 font-medium"
+                  }`}
+                >
+                  <Icon
+                    size={16}
                     weight={active ? "fill" : "regular"}
                     className={`shrink-0 transition-colors ${active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`}
                   />
@@ -138,78 +233,31 @@ export function ContextSidebar({ config, session }: ContextSidebarProps) {
           </nav>
         </div>
 
-        {/* 1.5. Estúdio & Criação */}
-        <div className="space-y-1 pt-2">
-          <span className="px-3 text-[10px] font-mono font-bold tracking-wider uppercase text-muted-foreground/70">
-            Criação
-          </span>
-          <nav className="flex flex-col space-y-1 pt-1">
-            {CREATOR_DESTINATIONS.map((item) => {
-              const Icon = item.icon;
-              const active = isCurrentActive(item);
-
-              return (
-                <Link
-                  key={item.to}
-                  to={item.to as any}
-                  className={`flex items-center gap-3 h-9 px-3 rounded-xl text-xs transition-all cursor-pointer group ${
-                    active
-                      ? "bg-primary/10 text-primary font-bold shadow-2xs"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/60 font-medium"
-                  }`}
-                >
-                  <Icon
-                    size={17}
-                    weight={active ? "fill" : "regular"}
-                    className={`shrink-0 transition-colors ${active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`}
-                  />
-                  <span className="truncate">{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
-
-        {/* 2. Categorias Master & Nichos */}
-        <div className="space-y-1 pt-2">
-          <span className="px-3 text-[10px] font-mono font-bold tracking-wider uppercase text-muted-foreground/70">
-            Categorias
-          </span>
-          <nav className="flex flex-col space-y-1 pt-1">
-            {CATEGORY_NICHES.map((item) => {
-              const Icon = item.icon;
-              const active = isCurrentActive(item);
-
-              return (
-                <Link
-                  key={item.to}
-                  to={item.to as any}
-                  className={`flex items-center gap-3 h-9 px-3 rounded-xl text-xs transition-all cursor-pointer group ${
-                    active
-                      ? "bg-primary/10 text-primary font-bold shadow-2xs"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/60 font-medium"
-                  }`}
-                >
-                  <Icon
-                    size={17}
-                    weight={active ? "fill" : "regular"}
-                    className={`shrink-0 transition-colors ${active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`}
-                  />
-                  <span className="truncate">{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
-
-        {/* 3. Área Pessoal — Renderizada somente se autenticado */}
+        {/* ── 2. PAINEL PESSOAL & REDE SOCIAL ── */}
         {isAuthenticated && (
-          <div className="space-y-1 pt-2">
-            <span className="px-3 text-[10px] font-mono font-bold tracking-wider uppercase text-muted-foreground/70">
+          <div className="space-y-0.5 pt-1 border-t border-border/40">
+            <span className="px-2.5 text-[10px] font-mono font-bold tracking-wider uppercase text-muted-foreground/70">
               Pessoal
             </span>
-            <nav className="flex flex-col space-y-1 pt-1">
-              {USER_DESTINATIONS.map((item) => {
+
+            {/* Atalho para Minhas Empresas (Se for lojista/empreendedor) */}
+            {hasStore && (
+              <div className="pt-1 pb-0.5">
+                <Link
+                  to="/workspace"
+                  className="flex items-center justify-between h-8.5 px-2.5 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 font-bold text-xs transition-all group cursor-pointer"
+                >
+                  <div className="flex items-center gap-2">
+                    <Storefront size={15} weight="fill" />
+                    <span>Minhas Lojas</span>
+                  </div>
+                  <ArrowSquareOut size={13} className="text-primary/70 group-hover:translate-x-0.5 transition-transform" />
+                </Link>
+              </div>
+            )}
+
+            <nav className="flex flex-col space-y-0.5 pt-0.5">
+              {USER_NAV_ITEMS.map((item) => {
                 const Icon = item.icon;
                 const active = isCurrentActive(item);
 
@@ -217,14 +265,14 @@ export function ContextSidebar({ config, session }: ContextSidebarProps) {
                   <Link
                     key={item.to}
                     to={item.to as any}
-                    className={`flex items-center gap-3 h-9 px-3 rounded-xl text-xs transition-all cursor-pointer group ${
+                    className={`flex items-center gap-2.5 h-8.5 px-2.5 rounded-xl text-xs transition-all cursor-pointer group ${
                       active
                         ? "bg-primary/10 text-primary font-bold shadow-2xs"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted/60 font-medium"
                     }`}
                   >
                     <Icon
-                      size={17}
+                      size={16}
                       weight={active ? "fill" : "regular"}
                       className={`shrink-0 transition-colors ${active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`}
                     />
@@ -237,8 +285,8 @@ export function ContextSidebar({ config, session }: ContextSidebarProps) {
         )}
       </div>
 
-      {/* 4. Ação Principal Flutuante / Publicar */}
-      <div className="pt-3 mt-3">
+      {/* ── 3. BOTÃO DE CRIAR & PUBLICAR ── */}
+      <div className="pt-2">
         <PublishSheet />
       </div>
     </aside>

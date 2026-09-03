@@ -291,6 +291,17 @@ export function UnifiedNewProductPage() {
           category_ids: categoryIds,
           option_group_ids: selectedOptionGroupIds.length > 0 ? selectedOptionGroupIds : undefined,
           variants: variantsPayload,
+          attributes: {
+            food_specs: {
+              dietary_restrictions: foodSpecs.dietaryRestrictions,
+              beverage_tags: foodSpecs.beverageTags,
+              serves_count: foodSpecs.servesCount,
+              portion_weight: foodSpecs.portionWeight,
+              portion_unit: foodSpecs.portionUnit,
+              preparation_time_minutes: foodSpecs.preparationTimeMinutes,
+              pos_code: foodSpecs.posCode,
+            },
+          },
         },
       });
 
@@ -461,16 +472,18 @@ export function UnifiedNewProductPage() {
         {/* COLUNA ESQUERDA: FORMULÁRIO ERGONÔMICO (5 COLUNAS) */}
         <div className="lg:col-span-5 space-y-4">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-5 bg-muted/60 p-1 rounded-2xl h-10 mb-4">
+            <TabsList className={cn("grid bg-muted/60 p-1 rounded-2xl h-10 mb-4", nicheCtx.isFoodBusiness ? "grid-cols-5" : "grid-cols-4")}>
               <TabsTrigger value="basico" className="rounded-xl text-xs font-bold">
                 Básico
               </TabsTrigger>
               <TabsTrigger value="preco" className="rounded-xl text-xs font-bold">
                 Preço
               </TabsTrigger>
-              <TabsTrigger value="cardapio" className="rounded-xl text-xs font-bold">
-                Cardápio
-              </TabsTrigger>
+              {nicheCtx.isFoodBusiness && (
+                <TabsTrigger value="cardapio" className="rounded-xl text-xs font-bold">
+                  Cardápio
+                </TabsTrigger>
+              )}
               <TabsTrigger value="midias" className="rounded-xl text-xs font-bold">
                 Fotos
               </TabsTrigger>
@@ -599,7 +612,11 @@ export function UnifiedNewProductPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-muted-foreground">Tempo de Preparo (dias)</Label>
+                    <Label className="text-xs font-medium text-muted-foreground">
+                      {nicheCtx.isTourismBusiness
+                        ? "Duração da Viagem (dias)"
+                        : "Tempo de Produção / Preparo (dias)"}
+                    </Label>
                     <Input
                       type="number"
                       {...register("preparation_time_days", { valueAsNumber: true })}
@@ -775,15 +792,25 @@ export function UnifiedNewProductPage() {
                   </div>
                 )}
               </div>
-            </TabsContent>
 
-            {/* ── ABA: ESPECIFICAÇÕES GASTRONÔMICAS (PADRÃO IFOOD) ── */}
-            <TabsContent value="cardapio" className="space-y-4 m-0">
-              <ProductFoodSpecsCard
-                value={foodSpecs}
-                onChange={setFoodSpecs}
+              {/* Card de Adicionais & Modificadores (Grupos de Complementos Reutilizáveis) */}
+              <ProductModifiersCard
+                groups={optionGroups}
+                selectedGroupIds={selectedOptionGroupIds}
+                onSelectedGroupsChange={setSelectedOptionGroupIds}
+                onGroupsListChange={setOptionGroups}
               />
             </TabsContent>
+
+            {/* ── ABA: ESPECIFICAÇÕES GASTRONÔMICAS (EXCLUSIVO GASTRONOMIA) ── */}
+            {nicheCtx.isFoodBusiness && (
+              <TabsContent value="cardapio" className="space-y-4 m-0">
+                <ProductFoodSpecsCard
+                  value={foodSpecs}
+                  onChange={setFoodSpecs}
+                />
+              </TabsContent>
+            )}
 
             {/* ── ABA 3: FOTOS & MÍDIAS ── */}
             <TabsContent value="midias" className="space-y-4 m-0">

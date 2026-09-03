@@ -24,6 +24,8 @@ import { ImageUpload } from "@/components/ui/image-upload";
 import { updateStoreDetails } from "@/services/store.functions";
 import { toast } from "sonner";
 
+import { NICHE_SEMANTICS_REGISTRY } from "@/lib/niche-semantics";
+
 export interface QuickStoreData {
   id: string;
   name: string;
@@ -48,15 +50,11 @@ interface QuickStoreEditorDialogProps {
   onSuccess?: () => void;
 }
 
-const STORE_TYPES = [
-  { value: "ecommerce", label: "Loja Virtual / E-commerce" },
-  { value: "physical_store", label: "Loja Física / Varejo Local" },
-  { value: "food_service", label: "Alimentação / Restaurante / Bar" },
-  { value: "event_producer", label: "Produtora de Eventos / Espaço Cultural" },
-  { value: "creator", label: "Criador de Conteúdo / Artista" },
-  { value: "services", label: "Prestador de Serviços / Autônomo" },
-  { value: "coletivo", label: "Coletivo Cultural / Associação" },
-];
+const STORE_TYPES = Object.values(NICHE_SEMANTICS_REGISTRY).map((n) => ({
+  value: n.nicheId,
+  label: n.name,
+}));
+
 
 export function QuickStoreEditorDialog({
   open,

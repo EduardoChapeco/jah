@@ -26,10 +26,19 @@ export const Route = createFileRoute("/_store/paginas/$slug")({
   },
   head: ({ loaderData }) => {
     if (!loaderData || !loaderData.document) return { meta: [{ title: "Página não encontrada" }] };
+    const storeId = loaderData.document.store_id;
     return {
+      title: `${loaderData.document.title} — Wider`,
       meta: [
-        { title: `${loaderData.document.title} — Wider` },
         { name: "description", content: loaderData.document.title },
+        { name: "apple-mobile-web-app-capable", content: "yes" },
+        { name: "mobile-web-app-capable", content: "yes" },
+      ],
+      links: [
+        {
+          rel: "manifest",
+          href: storeId ? `/api/pwa/manifest.json?storeId=${storeId}` : "/manifest.json",
+        },
       ],
     };
   },

@@ -147,3 +147,82 @@ export async function trackAndOpenWhatsApp(params: TrackWhatsAppLeadParams) {
     window.open(waUrl, "_blank", "noopener,noreferrer");
   }
 }
+
+// ---------------------------------------------------------------------------
+// Formatador Canônico de Recibos / Despacho de Pedidos para WhatsApp
+// ---------------------------------------------------------------------------
+
+export interface StructuredOrderItem {
+  name: string;
+  qty: number;
+  unitPriceCents: number;
+  selectedOptions?: string[];
+}
+
+export interface StructuredOrderWhatsAppParams {
+  orderToken: string;
+  customerName?: string;
+  items: StructuredOrderItem[];
+  subtotalCents?: number;
+  shippingCents?: number;
+  tipCents?: number;
+  discountCents?: number;
+  totalCents: number;
+  paymentMethodText: string;
+  deliveryAddress?: string;
+  deliveryMethodText?: string;
+  tableNumber?: string;
+  storeName?: string;
+}
+
+export function buildStructuredOrderWhatsAppMessage(params: StructuredOrderWhatsAppParams): string {
+  const formatMoney = (cents: number) => {
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(cents / 100);
+  };
+
+  const lines: string[] = [];
+
+  // Cabeçalho
+  lines.push(`📦 *Novo Pedido #${params.orderToken.toUpperCase()}*`);
+  if (params.storeName) lines.push(`🏪 ${params.storeName}`);
+  if (params.customerName) lines.push(`👤 Cliente: ${params.customerName}`);
+  if (params.tableNumber) lines.push(`🪑 Mesa / Comanda: ${params.tableNumber}`);
+  if (params.deliveryMethodText) lines.push(`🚚 Tipo: ${params.deliveryMethodText}`);
+  lines.push("");
+
+  // Lista de Itens
+  lines.push("*Itens do Pedido:*");
+  for (const item of params.items) {
+    const itemTotal = item.qty * item.unitPriceCents;
+    lines.push(`• ${item.qty}x ${item.name} (${formatMoney(itemTotal)})`);
+    if (item.selectedOptions && item.selectedOptions.length > 0) {
+      lines.push(`  ↳ ${item.selectedOptions.join(", ")}`);
+    }
+  }
+  lines.push("");
+
+  // Detalhes Financeiros
+  if (params.shippingCents && params.shippingCents > 0) {
+    lines.push(`Entrega/Frete: ${formatMoney(params.shippingCents)}`);
+  }
+  if (params.tipCents && params.tipCents > 0) {
+    lines.push(`Taxa de Serviço: ${formatMoney(params.tipCents)}`);
+  }
+  if (params.discountCents && params.discountCents > 0) {
+    lines.push(`Desconto: -${formatMoney(params.discountCents)}`);
+  }
+
+  lines.push(`💳 *Método de Pagamento:* ${params.paymentMethodText}`);
+  lines.push(`💰 *Total:* ${formatMoney(params.totalCents)}`);
+
+  if (params.deliveryAddress) {
+    lines.push("");
+    lines.push(`📍 *Endereço de Entrega:* ${params.deliveryAddress}`);
+  }
+
+  return lines.join("\n");
+}
+

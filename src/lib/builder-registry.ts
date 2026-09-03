@@ -1412,4 +1412,498 @@ export const builderRegistry: Record<string, BlockManifest> = {
       data_bindings: { source: "latest_classifieds", limit: 12 },
     },
   },
+
+  food_menu_tabs: {
+    type: "food_menu_tabs",
+    version: "1.0.0",
+    name: "Cardápio Digital por Abas",
+    description: "Cardápio gastronômico organizado por categorias e itens com fotos e preços",
+    category: "commerce",
+    icon: "Utensils",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título do Cardápio", type: "text" },
+        { name: "subtitle", label: "Subtítulo", type: "text" },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "food_menu_tabs",
+      content: { title: "Cardápio do Restaurante", subtitle: "Ingredientes frescos selecionados diariamente." },
+    },
+  },
+
+  chef_special_banner: {
+    type: "chef_special_banner",
+    version: "1.0.0",
+    name: "Destaque do Prato do Chef",
+    description: "Lâmina especial para o prato estrela com lista de ingredientes e preparo",
+    category: "commerce",
+    icon: "Sparkles",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      dishName: z.string().optional(),
+      description: z.string().optional(),
+      priceCents: z.number().optional(),
+      prepTimeMinutes: z.number().optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título da Faixa", type: "text" },
+        { name: "dishName", label: "Nome do Prato", type: "text" },
+        { name: "description", label: "Descrição dos Ingredientes", type: "textarea" },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "chef_special_banner",
+      content: {
+        title: "Sugestão do Chef",
+        dishName: "Costela Prensada ao Demi-Glace",
+        description: "Cozida lentamente por 12 horas em baixa temperatura.",
+        priceCents: 9600,
+        prepTimeMinutes: 25,
+      },
+    },
+  },
+
+  restaurant_hours_delivery: {
+    type: "restaurant_hours_delivery",
+    version: "1.0.0",
+    name: "Horários de Cozinha & Entrega",
+    description: "Grade informativa de funcionamento, taxas de entrega e retirada",
+    category: "commerce",
+    icon: "Clock",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      deliveryRadiusKm: z.number().optional(),
+      estimatedTimeMin: z.string().optional(),
+      address: z.string().optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título da Seção", type: "text" },
+        { name: "estimatedTimeMin", label: "Tempo Estimado", type: "text" },
+        { name: "address", label: "Endereço de Retirada", type: "text" },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "restaurant_hours_delivery",
+      content: { title: "Horários de Atendimento & Entrega" },
+    },
+  },
+
+  table_booking_card: {
+    type: "table_booking_card",
+    version: "1.0.0",
+    name: "Formulário de Reserva de Mesa",
+    description: "Agendamento de mesa para restaurantes integrado com WhatsApp",
+    category: "commerce",
+    icon: "Users",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+      whatsappNumber: z.string().optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título do Formulário", type: "text" },
+        { name: "subtitle", label: "Subtítulo", type: "text" },
+        { name: "whatsappNumber", label: "WhatsApp de Recebimento", type: "text" },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "table_booking_card",
+      content: { title: "Reserve sua Mesa", subtitle: "Confirmação instantânea via WhatsApp." },
+    },
+  },
+
+  shop_the_look_hotspots: {
+    type: "shop_the_look_hotspots",
+    version: "1.0.0",
+    name: "Shop the Look (Hotspots)",
+    description: "Foto editorial com pontos interativos para comprar produtos",
+    category: "commerce",
+    icon: "ShoppingBag",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+      lookImageUrl: z.string().url().optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título", type: "text" },
+        { name: "subtitle", label: "Subtítulo", type: "text" },
+        { name: "lookImageUrl", label: "Imagem do Look", type: "image" },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "shop_the_look_hotspots",
+      content: { title: "Shop the Look", subtitle: "Clique nos pontos da foto para ver e comprar cada peça." },
+    },
+  },
+
+  size_guide_table: {
+    type: "size_guide_table",
+    version: "1.0.0",
+    name: "Guia de Medidas (Tabela)",
+    description: "Tabela clara de caimento com medidas de busto, cintura e quadril",
+    category: "content",
+    icon: "Ruler",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+      tip: z.string().optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título", type: "text" },
+        { name: "subtitle", label: "Subtítulo", type: "text" },
+        { name: "tip", label: "Dica de Medição", type: "text" },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "size_guide_table",
+      content: { title: "Guia de Medidas", subtitle: "Encontre o tamanho perfeito para seu caimento ideal." },
+    },
+  },
+
+  property_features_grid: {
+    type: "property_features_grid",
+    version: "1.0.0",
+    name: "Ficha Técnica do Imóvel",
+    description: "Ficha de características (m², dormitórios, suítes, vagas e lazer)",
+    category: "content",
+    icon: "Home",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título do Imóvel", type: "text" },
+        { name: "subtitle", label: "Subtítulo", type: "text" },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "property_features_grid",
+      content: { title: "Ficha Técnica do Imóvel", subtitle: "Detalhes estruturais e diferenciais de acabamento." },
+    },
+  },
+
+  specialist_team_grid: {
+    type: "specialist_team_grid",
+    version: "1.0.0",
+    name: "Corpo Clínico & Equipe",
+    description: "Grade de especialistas e médicos com CRM/CRO e botão de agendamento",
+    category: "content",
+    icon: "UserCheck",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título da Equipe", type: "text" },
+        { name: "subtitle", label: "Subtítulo", type: "text" },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "specialist_team_grid",
+      content: { title: "Corpo Clínico & Especialistas", subtitle: "Profissionais certificados com vasta experiência." },
+    },
+  },
+
+  biolink_profile_header: {
+    type: "biolink_profile_header",
+    version: "1.0.0",
+    name: "Perfil de Biolink com Selo",
+    description: "Avatar circular com selo verificado, nome, handle e biografia",
+    category: "social",
+    icon: "User",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      name: z.string().optional(),
+      handle: z.string().optional(),
+      bio: z.string().optional(),
+      isVerified: z.boolean().optional(),
+      avatarUrl: z.string().url().optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "name", label: "Nome", type: "text" },
+        { name: "handle", label: "Handle (@)", type: "text" },
+        { name: "bio", label: "Biografia", type: "textarea" },
+        { name: "avatarUrl", label: "Foto de Perfil", type: "image" },
+      ],
+    },
+    defaultProps: {
+      node_type: "element",
+      block_type: "biolink_profile_header",
+      content: { name: "Sua Marca & Co.", handle: "@suamarca", isVerified: true },
+    },
+  },
+
+  biolink_action_buttons: {
+    type: "biolink_action_buttons",
+    version: "1.0.0",
+    name: "Botões de Links em Pílula",
+    description: "Lista de botões táteis para links externos e catálogos",
+    category: "social",
+    icon: "Link",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({}),
+    inspector: { content: [] },
+    defaultProps: {
+      node_type: "element",
+      block_type: "biolink_action_buttons",
+      content: {},
+    },
+  },
+
+  biolink_pix_card: {
+    type: "biolink_pix_card",
+    version: "1.0.0",
+    name: "Chave Pix Copia e Cola",
+    description: "Card com chave Pix e botão de copiar com 1 clique",
+    category: "social",
+    icon: "QrCode",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      pixKey: z.string().optional(),
+      pixKeyType: z.string().optional(),
+      beneficiaryName: z.string().optional(),
+      bankName: z.string().optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "pixKey", label: "Chave Pix", type: "text" },
+        { name: "pixKeyType", label: "Tipo de Chave", type: "text" },
+        { name: "beneficiaryName", label: "Nome do Titular", type: "text" },
+        { name: "bankName", label: "Instituição Bancária", type: "text" },
+      ],
+    },
+    defaultProps: {
+      node_type: "element",
+      block_type: "biolink_pix_card",
+      content: { pixKey: "contato@suamarca.com.br", pixKeyType: "Chave E-mail", beneficiaryName: "Sua Loja LTDA" },
+    },
+  },
+
+  location_map_card: {
+    type: "location_map_card",
+    version: "1.0.0",
+    name: "Localização & Endereço com Mapa",
+    description: "Endereço físico com horários, telefone e rota no Google Maps",
+    category: "content",
+    icon: "MapPin",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      address: z.string().optional(),
+      cityState: z.string().optional(),
+      phone: z.string().optional(),
+      workingHours: z.string().optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título", type: "text" },
+        { name: "address", label: "Endereço", type: "text" },
+        { name: "cityState", label: "Cidade / Estado", type: "text" },
+        { name: "phone", label: "Telefone", type: "text" },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "location_map_card",
+      content: { title: "Venha nos Visitar", address: "Av. Brasil, 1420 - Centro", cityState: "São Miguel do Oeste - SC" },
+    },
+  },
+
+  newsletter_capture: {
+    type: "newsletter_capture",
+    version: "1.0.0",
+    name: "Captura de Leads & Novidades",
+    description: "Bloco minimalista com campo de e-mail/WhatsApp para captação",
+    category: "marketing",
+    icon: "Mail",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+      placeholder: z.string().optional(),
+      buttonLabel: z.string().optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título", type: "text" },
+        { name: "subtitle", label: "Subtítulo", type: "text" },
+        { name: "placeholder", label: "Texto do Campo", type: "text" },
+      ],
+    },
+    defaultProps: {
+      node_type: "element",
+      block_type: "newsletter_capture",
+      content: { title: "Fique por Dentro dos Lançamentos", subtitle: "Receba novidades exclusivas e cupons de desconto." },
+    },
+  },
+
+  tourism_destinations_carousel: {
+    type: "tourism_destinations_carousel",
+    version: "1.0.0",
+    name: "Carrossel de Destinos Populares",
+    description: "Cards visuais de destinos de turismo com preços a partir de",
+    category: "commerce",
+    icon: "Plane",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título", type: "text" },
+        { name: "subtitle", label: "Subtítulo", type: "text" },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "tourism_destinations_carousel",
+      content: { title: "Destinos Populares em Destaque", subtitle: "Pacotes completos com voos e hospedagem." },
+    },
+  },
+
+  food_menu_streamlined: {
+    type: "food_menu_streamlined",
+    version: "1.0.0",
+    name: "Cardápio Mobile-First com Barra Flutuante",
+    description: "Lista compacta de itens com miniaturas à direita, adição em 1 toque e barra inferior fixa",
+    category: "commerce",
+    icon: "Utensils",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      storeName: z.string().optional(),
+      openingHoursText: z.string().optional(),
+      isOpenNow: z.boolean().optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "storeName", label: "Nome do Estabelecimento", type: "text" },
+        { name: "openingHoursText", label: "Horário de Funcionamento", type: "text" },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "food_menu_streamlined",
+      content: { storeName: "Pizzas & Cucina Rocco", openingHoursText: "Aberto hoje das 18:00 às 23:30", isOpenNow: true },
+    },
+  },
+
+  curated_hits_rail: {
+    type: "curated_hits_rail",
+    version: "1.0.0",
+    name: "Trilho Top Mais Vendidos (Hits)",
+    description: "Carrossel de produtos com ranking numérico (#1, #2), badge de desconto e botão rápido",
+    category: "commerce",
+    icon: "Flame",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+      savingsText: z.string().optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título da Seção", type: "text" },
+        { name: "subtitle", label: "Subtítulo", type: "text" },
+        { name: "savingsText", label: "Texto do Economiômetro", type: "text" },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "curated_hits_rail",
+      content: { title: "Top Mais Pedidos da Região", subtitle: "Os favoritos dos clientes.", savingsText: "Economize até 25% este mês." },
+    },
+  },
+
+  table_order_comanda: {
+    type: "table_order_comanda",
+    version: "1.0.0",
+    name: "Comanda & QR Code de Mesa",
+    description: "Cartão de autoatendimento no salão com número de mesa e QR Code para pedidos",
+    category: "commerce",
+    icon: "QrCode",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      tableNumber: z.string().optional(),
+      storeName: z.string().optional(),
+      wifiName: z.string().optional(),
+      wifiPassword: z.string().optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "tableNumber", label: "Número da Mesa / Comanda", type: "text" },
+        { name: "storeName", label: "Nome do Restaurante", type: "text" },
+        { name: "wifiName", label: "Rede Wi-Fi", type: "text" },
+        { name: "wifiPassword", label: "Senha Wi-Fi", type: "text" },
+      ],
+    },
+    defaultProps: {
+      node_type: "element",
+      block_type: "table_order_comanda",
+      content: { tableNumber: "10", storeName: "Pizzas & Cucina Rocco", wifiName: "Rocco_Clientes_5G" },
+    },
+  },
 };

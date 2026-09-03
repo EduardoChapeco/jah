@@ -17,6 +17,7 @@ import {
   Filter,
   Layers,
   Palette,
+  Sparkles,
 } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
@@ -43,7 +44,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 import { EmptyState } from "@/components/state/states";
+import { CatalogComplementsTab } from "@/components/commerce/catalog-complements-tab";
+import { ImportCatalogModal } from "@/components/admin/catalog/import-catalog-modal";
 import {
   listAdminProducts,
   duplicateProduct,
@@ -55,6 +59,7 @@ import { getStoreSettings } from "@/services/store.functions";
 import { getNicheSemantics } from "@/lib/niche-semantics";
 import { getNicheCatalogContext } from "@/lib/catalog-niche-context";
 import { formatMoney } from "@/lib/money";
+import { cn } from "@/lib/utils";
 import type { AdminProductRow } from "@/types/catalog";
 
 export const Route = createFileRoute("/workspace/catalogo/produtos/")({
@@ -208,11 +213,29 @@ function AdminProductsPage() {
   );
 
   const [products, setProducts] = useState<AdminProductRow[]>(initialProducts);
+  const [mainTab, setMainTab] = useState<"products" | "complements">("products");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("active");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const navigate = useNavigate();
+
+  const handleToggleActive = async (product: AdminProductRow, active: boolean) => {
+    const newStatus: "published" | "draft" = active ? "published" : "draft";
+    setProducts((prev) =>
+      prev.map((p) => (p.id === product.id ? { ...p, status: newStatus } : p)),
+    );
+    try {
+      await toggleProductStatus({ data: { productId: product.id, status: newStatus } });
+      toast.success(active ? "Item ativado!" : "Item pausado no cardápio!");
+    } catch {
+      toast.error("Erro ao alterar status do item.");
+      setProducts((prev) =>
+        prev.map((p) => (p.id === product.id ? { ...p, status: product.status } : p)),
+      );
+    }
+  };
 
   // Filter products by search & status tab
   const filteredProducts = useMemo(() => {
@@ -410,6 +433,15 @@ function AdminProductsPage() {
         title={semantics.catalogTitle}
         actions={
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsImportModalOpen(true)}
+              className="rounded-xl font-bold text-xs gap-1.5 cursor-pointer"
+            >
+              <Sparkles className="size-3.5 text-primary" aria-hidden />
+              <span>Importar Cardápio (IA)</span>
+            </Button>
             <Button variant="outline" size="sm" onClick={handleExportJSON} className="rounded-xl font-bold text-xs gap-1.5 ">
               <Download className="size-3.5" aria-hidden />
               Exportar
@@ -424,8 +456,40 @@ function AdminProductsPage() {
         }
       />
 
-      {/* Toolbar & Filtros */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-card border border-border rounded-2xl px-4 py-3">
+      {/* Abas Principais do Catálogo (Estilo Diggy / Omnichannel) */}
+      <div className="flex items-center gap-2 border-b border-border/80 pb-2">
+        <button
+          type="button"
+          onClick={() => setMainTab("products")}
+          className={cn(
+            "px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer",
+            mainTab === "products"
+              ? "bg-primary text-primary-foreground shadow-2xs"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/40",
+          )}
+        >
+          {semantics.catalogTitle}
+        </button>
+        <button
+          type="button"
+          onClick={() => setMainTab("complements")}
+          className={cn(
+            "px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer",
+            mainTab === "complements"
+              ? "bg-primary text-primary-foreground shadow-2xs"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/40",
+          )}
+        >
+          Complementos & Adicionais
+        </button>
+      </div>
+
+      {mainTab === "complements" ? (
+        <CatalogComplementsTab />
+      ) : (
+        <>
+          {/* Toolbar & Filtros */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-card border border-border rounded-2xl px-4 py-3">
         <Tabs
           defaultValue="active"
           value={statusFilter}
@@ -442,7 +506,7 @@ function AdminProductsPage() {
               Rascunhos ({products.filter((p) => p.status === "draft").length})
             </TabsTrigger>
             <TabsTrigger value="archived" className="text-xs shrink-0">
-              Arquivo Morto ({products.filter((p) => p.status === "archived").length})
+              Arquivados ({products.filter((p) => p.status === "archived").length})
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -700,22 +764,30 @@ function AdminProductsPage() {
                       </TableCell>
 
                       <TableCell>
-                        <Badge
-                          variant={
-                            product.status === "published"
-                              ? "default"
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={product.status === "published"}
+                            onCheckedChange={(c) => handleToggleActive(product, c)}
+                            className="scale-75"
+                            aria-label={`Alternar status de ${product.title}`}
+                          />
+                          <Badge
+                            variant={
+                              product.status === "published"
+                                ? "default"
+                                : product.status === "archived"
+                                  ? "outline"
+                                  : "secondary"
+                            }
+                            className="text-[10px] font-bold"
+                          >
+                            {product.status === "published"
+                              ? "Ativo"
                               : product.status === "archived"
-                                ? "outline"
-                                : "secondary"
-                          }
-                          className="text-xs"
-                        >
-                          {product.status === "published"
-                            ? "Publicado"
-                            : product.status === "archived"
-                              ? "Arquivado"
-                              : "Rascunho"}
-                        </Badge>
+                                ? "Arquivado"
+                                : "Pausado"}
+                          </Badge>
+                        </div>
                       </TableCell>
 
                       <TableCell className="text-xs text-muted-foreground">
@@ -759,6 +831,18 @@ function AdminProductsPage() {
           </div>
         </Surface>
       )}
+        </>
+      )}
+
+      {/* ── MODAL DE IMPORTAÇÃO DE CARDÁPIO / CATÁLOGO (iFood & IA) ── */}
+      <ImportCatalogModal
+        open={isImportModalOpen}
+        onOpenChange={setIsImportModalOpen}
+        onSuccess={async () => {
+          const fresh = await listAdminProducts();
+          if (fresh) setProducts(fresh);
+        }}
+      />
     </div>
   );
 }

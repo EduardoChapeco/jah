@@ -211,17 +211,17 @@ function EditProductPage() {
     }
   };
 
-  // Especificações Gastronômicas & Padrão iFood
   const initialFoodSpecs: FoodSpecsData = useMemo(() => {
     const attrs = (product?.attributes as any) || {};
+    const specs = attrs.food_specs || attrs;
     return {
-      dietaryRestrictions: attrs.dietary_restrictions || [],
-      beverageTags: attrs.beverage_tags || [],
-      servesCount: attrs.serves_count || "1 pessoa",
-      portionWeight: attrs.portion_weight || "",
-      portionUnit: attrs.portion_unit || "g",
-      preparationTimeMinutes: product?.preparation_time_days || attrs.preparation_time_minutes || 15,
-      posCode: attrs.pos_code || product?.sku || "",
+      dietaryRestrictions: specs.dietary_restrictions || specs.dietaryRestrictions || [],
+      beverageTags: specs.beverage_tags || specs.beverageTags || [],
+      servesCount: specs.serves_count || specs.servesCount || "1 pessoa",
+      portionWeight: specs.portion_weight || specs.portionWeight || "",
+      portionUnit: specs.portion_unit || specs.portionUnit || "g",
+      preparationTimeMinutes: product?.preparation_time_days || specs.preparation_time_minutes || specs.preparationTimeMinutes || 15,
+      posCode: specs.pos_code || specs.posCode || product?.sku || "",
     };
   }, [product]);
 
@@ -391,11 +391,15 @@ function EditProductPage() {
         }
         sections={[
           { id: "geral", label: "Informações Básicas", icon: <Box className="size-4" /> },
-          { id: "especificacoes", label: "Cardápio & Restrições", icon: <Sparkles className="size-4" /> },
+          ...(nicheCtx.isFoodBusiness
+            ? [{ id: "especificacoes", label: "Cardápio & Restrições", icon: <Sparkles className="size-4" /> }]
+            : []),
           { id: "midias", label: "Galeria de Fotos", icon: <ImagePlus className="size-4" /> },
           { id: "variantes", label: nicheCtx.variationsSectionTitle, icon: <LayoutList className="size-4" /> },
           { id: "opcoes", label: "Adicionais & Opções", icon: <SlidersHorizontal className="size-4" /> },
-          { id: "ficha-tecnica", label: "Ficha Técnica & Insumos", icon: <Boxes className="size-4" /> },
+          ...(nicheCtx.isFoodBusiness
+            ? [{ id: "ficha-tecnica", label: "Ficha Técnica & Insumos", icon: <Boxes className="size-4" /> }]
+            : []),
         ]}
       >
         {/* ── SEÇÃO 1: INFORMAÇÕES BÁSICAS & COMERCIAIS ── */}
@@ -415,13 +419,15 @@ function EditProductPage() {
           />
         </div>
 
-        {/* ── SEÇÃO: ESPECIFICAÇÕES DO CARDÁPIO & RESTRIÇÕES (PADRÃO IFOOD) ── */}
-        <div id="especificacoes" className="scroll-mt-32 pt-12 border-t">
-          <ProductFoodSpecsCard
-            value={foodSpecs}
-            onChange={handleFoodSpecsChange}
-          />
-        </div>
+        {/* ── SEÇÃO: ESPECIFICAÇÕES DO CARDÁPIO & RESTRIÇÕES (EXCLUSIVO GASTRONOMIA) ── */}
+        {nicheCtx.isFoodBusiness && (
+          <div id="especificacoes" className="scroll-mt-32 pt-12 border-t">
+            <ProductFoodSpecsCard
+              value={foodSpecs}
+              onChange={handleFoodSpecsChange}
+            />
+          </div>
+        )}
 
         {/* ── SEÇÃO 2: GALERIA DE MÍDIAS & FOTOS ── */}
         <div id="midias" className="scroll-mt-32 pt-12 border-t">
@@ -456,7 +462,7 @@ function EditProductPage() {
               <SlidersHorizontal className="size-5 text-primary" /> Adicionais & Modificadores
             </h2>
             <p className="text-sm text-muted-foreground">
-              Grupos de complementos que o cliente escolhe ao adicionar ao carrinho (ex: ponto da carne, extras, bebidas).
+              Grupos de complementos que o cliente escolhe ao adicionar ao carrinho (ex: ponto da carne, extras, passeios opcionais).
             </p>
           </div>
           <ProductModifiersCard
@@ -467,15 +473,17 @@ function EditProductPage() {
           />
         </div>
 
-        {/* ── SEÇÃO 5: FICHA TÉCNICA & ESTOQUE COMPOSTO ── */}
-        <div id="ficha-tecnica" className="scroll-mt-32 pt-12 border-t">
-          <ProductBomCard
-            initialItems={bomItems}
-            productPriceCents={livePriceCents}
-            onApplyCostToProduct={handleApplyCostToProduct}
-            onItemsChange={handleBomItemsChange}
-          />
-        </div>
+        {/* ── SEÇÃO 5: FICHA TÉCNICA & ESTOQUE COMPOSTO (EXCLUSIVO GASTRONOMIA) ── */}
+        {nicheCtx.isFoodBusiness && (
+          <div id="ficha-tecnica" className="scroll-mt-32 pt-12 border-t">
+            <ProductBomCard
+              initialItems={bomItems}
+              productPriceCents={livePriceCents}
+              onApplyCostToProduct={handleApplyCostToProduct}
+              onItemsChange={handleBomItemsChange}
+            />
+          </div>
+        )}
       </ProductEditorLayout>
     </div>
   );
@@ -1034,13 +1042,25 @@ function GeneralForm({
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label>Prazo de Preparação (dias)</Label>
+              <Label>
+                {nicheCtx.isTourismBusiness
+                  ? "Duração da Viagem (dias)"
+                  : "Prazo de Preparação / Produção (dias)"}
+              </Label>
               <Input {...register("preparation_time_days")} type="number" placeholder="Ex: 0" />
             </div>
-            <div className="space-y-2">
-              <Label>Preparo Imediato / Lanches (minutos)</Label>
-              <Input {...register("preparation_time_minutes")} type="number" placeholder="Ex: 25" />
-            </div>
+            {nicheCtx.isFoodBusiness && (
+              <div className="space-y-2">
+                <Label>Preparo Imediato / Cozinha (minutos)</Label>
+                <Input {...register("preparation_time_minutes")} type="number" placeholder="Ex: 25" />
+              </div>
+            )}
+            {nicheCtx.isServiceBusiness && (
+              <div className="space-y-2">
+                <Label>Duração do Atendimento (minutos)</Label>
+                <Input {...register("preparation_time_minutes")} type="number" placeholder="Ex: 45" />
+              </div>
+            )}
             <div className="space-y-2">
               <Label>Origem de Envio</Label>
               <Select

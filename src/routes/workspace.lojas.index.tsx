@@ -18,6 +18,7 @@ import {
   ChevronRight,
   Filter,
 } from "lucide-react";
+import { PageHeader } from "@/components/commerce/page-header";
 import { getMyStoresList } from "@/services/store.functions";
 import { setTenantContext } from "@/services/identity.functions";
 import { Button } from "@/components/ui/button";
@@ -86,36 +87,20 @@ export default function WorkspaceLojasPage() {
   const totalProducts = stores.reduce((acc: number, s: any) => acc + (s.product_count || 0), 0);
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
+    <div className="w-full max-w-7xl mx-auto space-y-6 animate-in fade-in duration-200">
       {/* ── 1. Top Header com Ações Globais ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-3xl  bg-card ">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary">
-              Gestão de Negócios
-            </span>
-            <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/20">
-              {stores.length} {stores.length === 1 ? "Unidade" : "Unidades"}
-            </Badge>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Minhas Lojas & Espaços
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            Gerencie marcas, filiais, identidades visuais e alterne o contexto operacional em tempo real.
-          </p>
-        </div>
-
-        {/* Botão de Criação */}
-        <div className="flex items-center gap-2">
-          <Button asChild className="gap-2 rounded-xl text-xs font-bold  bg-primary text-primary-foreground">
+      <PageHeader
+        eyebrow="Gestão de Negócios"
+        title="Minhas Lojas"
+        actions={
+          <Button asChild className="gap-2 rounded-xl text-xs font-bold bg-primary text-primary-foreground">
             <Link to="/criar-negocio">
               <Plus className="size-4" />
-              Cadastrar Novo Negócio
+              Novo Negócio
             </Link>
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* ── 2. KPI Summary Cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

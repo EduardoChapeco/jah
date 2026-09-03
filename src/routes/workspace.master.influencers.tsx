@@ -78,8 +78,8 @@ function MasterInfluencersPage() {
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
       <PageHeader
-        eyebrow="Curadoria Global"
-        title="Gestão de Influenciadores & Embaixadores"
+        eyebrow="Curadoria"
+        title="Influenciadores"
       />
 
       {/* Barra de Filtros e Busca */}

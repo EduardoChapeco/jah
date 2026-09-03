@@ -265,8 +265,8 @@ function CashRegisterManagerPage() {
     <div className="space-y-6">
       {/* ── PageHeader Canônico ── */}
       <PageHeader
-        eyebrow="Financeiro & Tesouraria"
-        title="Fluxo de Caixa & Turnos"
+        eyebrow="Financeiro"
+        title="Fluxo de Caixa"
         actions={
           <div className="flex items-center gap-2">
             <Button

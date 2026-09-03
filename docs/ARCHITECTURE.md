@@ -135,8 +135,33 @@ O sistema é organizado em camadas estritamente unidirecionais. Nenhuma camada s
 - Toda policy de RLS filtra por esses campos; toda query de serviço/BFF recebe o tenant do contexto de sessão autenticada, nunca de parâmetro confiável vindo do cliente sem validação cruzada.
 - Identificadores internos usam UUID; nenhuma sequência numérica previsível é exposta como identificador público de entidade sensível.
 
-## 11. Escopos Híbridos e Interfaces Demonstrativas (Módulos Fantasmas)
+## 11. Arquitetura Canônica de Módulos Especializados
 
-- **Agendamento (Booking):** Atualmente, o sistema **não possui banco de dados, schemas, filas ou lógicas transacionais para Agendamento de Serviços (Appointments/Booking)** no Supabase ou em provedor externo (D1/Redis).
-- Todo e qualquer botão ou interface de "Agendar Horário" no Perfil da Loja (`store_contact`) atua estritamente como um **redirect ou call-to-action para o WhatsApp** da loja.
-- O registro desta limitação arquitetural impede que desenvolvedores busquem integrações complexas (conflito de horários, D1, calendário) onde existe apenas roteamento frontend. Se o escopo mudar, um módulo completo de _Availability & Booking_ deverá ser criado no banco.
+### 11.1 Agendamentos & Clínicas (Booking & Services)
+- O sistema possui arquitetura relacional e transacional nativa para gestão de agendas, recursos e pacotes de serviços:
+  - Tabelas: `booking_appointments`, `booking_resources`, `booking_services`, `service_packages`, `service_package_passes`.
+  - Módulos de Operação: `/workspace/agenda`, `/workspace/agenda/recursos`, `/workspace/agenda/servicos`, `/workspace/pacotes`.
+  - Consumo Público: `/_store/agendar`, `/_store/conta/agendamentos`, `/_store/conta/pacotes`.
+  - BFF: `src/services/booking.functions.ts` e `src/services/service-packages.functions.ts`.
+
+### 11.2 Turismo, Cotações & Contratos Digitais (Travel & Hospitality)
+- Ecossistema completo para agências de viagens e operadoras turísticas:
+  - Tabelas: `travel_proposals`, `travel_contracts`, `travel_contract_signatures`, `travel_groups`, `travel_quotes`, `whatsapp_leads`.
+  - Módulos de Operação: `/workspace/turismo/propostas`, `/workspace/turismo/contratos`, `/workspace/turismo/grupos`, `/workspace/turismo/cotacoes`.
+  - Consumo Público: `/_store/turismo`, `/_store/proposta/$token`, `/_store/contrato/$token`, `/verify/document/$code`.
+  - BFF: `src/services/tourism.functions.ts`, `src/services/travel-proposal.functions.ts`, `src/services/travel-contract.functions.ts`.
+
+### 11.3 Construtor Visual Universal & Hotpages (Visual Builder Engine)
+- Motor central de renderização de experiências e páginas personalizadas para qualquer nicho comercial:
+  - Tabelas: `cms_documents`, `cms_nodes`, `hotpages`.
+  - Módulos de Operação: `/workspace/marketing/vitrine`, `/workspace/marketing/hotpages`, `/workspace/builder/$documentId/editor`.
+  - Consumo Público: Renderizado dinamicamente via `ExperienceRenderer` em `/_store/index`, `/_store/ofertas`, `/_store/bio/$slug` e Landing Pages.
+  - BFF: `src/services/builder.functions.ts` e `src/services/hotpage.functions.ts`.
+
+### 11.4 Ledger Criptográfico de Tokens & Solvência
+- Arquitetura de carteiras de tokens e ledger imutável com prova matemática de solvência:
+  - Tabelas: `store_token_wallets`, `user_token_wallets`, `token_ledger_immutable`, `token_pricing_rules`.
+  - Módulos de Operação: `/workspace/tokens`, `/admin-master/tokens`.
+  - Consumo Público: `/_store/conta/tokens`.
+  - BFF: `src/services/tokens.functions.ts`.
+

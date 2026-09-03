@@ -30,6 +30,12 @@ import {
   Truck,
   ExternalLink,
   Package,
+  User,
+  MapPin,
+  Phone,
+  Mail,
+  MessageSquare,
+  Sparkles,
 } from "lucide-react";
 import {
   getOrderById,
@@ -121,6 +127,9 @@ function AdminOrderDetailPage() {
   }
 
   const date = formatDate(order.created_at);
+  const customer = order.customer_snapshot || {};
+  const customFields = order.custom_fields || {};
+  const hasCustomFields = Object.keys(customFields).length > 0;
 
   const handleSaveTracking = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -149,15 +158,17 @@ function AdminOrderDetailPage() {
 
   const handleSaveQuote = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!shippingQuoteCents) return;
+    const cents = Math.round(parseFloat(shippingQuoteCents.replace(",", ".")) * 100);
+    if (isNaN(cents) || cents < 0) {
+      toast.error("Informe um valor válido");
+      return;
+    }
     setIsSavingQuote(true);
     try {
-      const cents = Math.round(parseFloat(shippingQuoteCents.replace(",", ".")) * 100);
       await updateOrderShippingQuote({
         data: { orderId: order.id, shippingCents: cents },
       });
-      toast.success("Cotação enviada! Pedido atualizado para Aguardando Pagamento.");
-      setShippingQuoteCents("");
+      toast.success("Cotação enviada para o cliente!");
       router.invalidate();
     } catch (err: unknown) {
       toast.error((err instanceof Error ? err.message : String(err)) || "Erro ao salvar cotação");
@@ -166,17 +177,19 @@ function AdminOrderDetailPage() {
     }
   };
 
-  const handleStatusChange = async (newStatus: string) => {
+  const handleStatusChange = async (newStatus: any) => {
     setIsUpdating(true);
     try {
-      const res = await updateOrderStatus({
-        data: { orderId: order.id, status: newStatus as any },
+      await updateOrderStatus({
+        data: {
+          orderId: order.id,
+          status: newStatus,
+        },
       });
-      if (res.status !== "ok") throw new Error((res as any).message);
-      toast.success("Status atualizado!");
+      toast.success("Status do pedido atualizado!");
       router.invalidate();
-    } catch (e: unknown) {
-      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao atualizar");
+    } catch (err: unknown) {
+      toast.error((err instanceof Error ? err.message : String(err)) || "Erro ao atualizar status");
     } finally {
       setIsUpdating(false);
     }
@@ -185,12 +198,16 @@ function AdminOrderDetailPage() {
   const handleApprove = async (method: "cash" | "bank_transfer") => {
     setIsConfirming(true);
     try {
-      const res = await approvePayment({ data: { orderId: order.id, receivedMethod: method } });
-      if (res.status !== "success") throw new Error((res as any).message);
-      toast.success("Pagamento confirmado. O pedido está agora em separação!");
+      await approvePayment({
+        data: {
+          orderId: order.id,
+          receivedMethod: method,
+        },
+      });
+      toast.success("Pagamento aprovado!");
       router.invalidate();
-    } catch (e: unknown) {
-      toast.error((e instanceof Error ? e.message : String(e)) || "Erro ao aprovar");
+    } catch (err: unknown) {
+      toast.error((err instanceof Error ? err.message : String(err)) || "Erro ao aprovar pagamento");
     } finally {
       setIsConfirming(false);
     }
@@ -213,32 +230,33 @@ function AdminOrderDetailPage() {
     }
   };
 
-  // handleAtomicReturn was removed in favor of granular RmaRequestWizard
-
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-start">
+    <div className="space-y-6 max-w-6xl mx-auto w-full pb-20">
+      <div className="flex justify-between items-start flex-wrap gap-3">
         <PageHeader eyebrow="Vendas" title={`Pedido #${order.public_token}`} />
         <div className="flex items-center gap-2">
           {["draft", "awaiting_payment", "paid"].includes(order.status) && (
-            <Button variant="outline" onClick={() => setEditModalOpen(true)}>
+            <Button variant="outline" size="sm" className="rounded-xl text-xs font-semibold" onClick={() => setEditModalOpen(true)}>
               Editar Pedido
             </Button>
           )}
           <Button
             variant="outline"
+            size="sm"
+            className="rounded-xl text-xs font-semibold"
             onClick={() => window.open(`/workspace/pedidos/${order.id}/recibo`, "_blank")}
           >
-            <Printer className="mr-2 h-4 w-4" /> Imprimir Recibo
+            <Printer className="mr-1.5 h-3.5 w-3.5" /> Imprimir Recibo
           </Button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Items */}
+        {/* Left Column: Items, Customer Info, Custom Fields, Notes */}
         <div className="md:col-span-2 space-y-6">
-          <div className=" p-6 bg-card text-card-foreground ">
-            <h3 className="font-semibold text-lg mb-4 text-foreground">Itens do Pedido</h3>
+          {/* Itens do Pedido */}
+          <div className="p-6 bg-card text-card-foreground rounded-3xl border border-border/80">
+            <h3 className="font-bold text-base mb-4 text-foreground">Itens do Pedido</h3>
             <div className="space-y-4">
               {(order.order_items ?? []).map((item: any) => {
                 const options = item.selected_options ? Object.values(item.selected_options) : [];
@@ -246,10 +264,10 @@ function AdminOrderDetailPage() {
                 return (
                   <div
                     key={item.id}
-                    className="flex justify-between items-start  pb-4 last:border-0 last:pb-0"
+                    className="flex justify-between items-start pb-4 border-b border-border/40 last:border-0 last:pb-0"
                   >
                     <div>
-                      <p className="font-medium text-foreground flex items-center gap-2 flex-wrap">
+                      <p className="font-medium text-sm text-foreground flex items-center gap-2 flex-wrap">
                         <span className="text-primary font-bold mr-1">{item.qty}x</span>
                         {item.product_title}
                         {isBackorderItem && (
@@ -259,10 +277,10 @@ function AdminOrderDetailPage() {
                         )}
                       </p>
                       <p className="text-xs text-muted-foreground font-mono mt-0.5">
-                        SKU: {item.variant_sku}
+                        SKU: {item.variant_sku || "N/A"}
                       </p>
                       {options.length > 0 && (
-                        <div className="mt-2 ml-2 pl-2  space-y-0.5">
+                        <div className="mt-2 ml-2 pl-2 space-y-0.5 border-l-2 border-primary/30">
                           {options.map((opt: any, idx: number) => (
                             <div key={idx} className="text-xs text-muted-foreground flex gap-2">
                               <span>+ {opt.label}</span>
@@ -275,7 +293,7 @@ function AdminOrderDetailPage() {
                       )}
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-foreground">{formatMoney(item.total_cents)}</p>
+                      <p className="font-bold text-sm text-foreground">{formatMoney(item.total_cents)}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">
                         {formatMoney(item.unit_price_cents)} / un
                       </p>
@@ -285,6 +303,70 @@ function AdminOrderDetailPage() {
               })}
             </div>
           </div>
+
+          {/* Dados do Cliente & Contato */}
+          <div className="p-6 bg-card text-card-foreground rounded-3xl border border-border/80 space-y-4">
+            <h3 className="font-bold text-base text-foreground flex items-center gap-2">
+              <User className="size-4 text-primary" />
+              <span>Dados do Cliente</span>
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div className="space-y-1">
+                <span className="text-muted-foreground font-semibold">Nome Completo:</span>
+                <p className="font-bold text-foreground text-sm">{customer.name || customer.fullName || "Cliente Não Identificado"}</p>
+              </div>
+
+              <div className="space-y-1">
+                <span className="text-muted-foreground font-semibold">E-mail:</span>
+                <p className="font-medium text-foreground">{customer.email || "Não informado"}</p>
+              </div>
+
+              <div className="space-y-1">
+                <span className="text-muted-foreground font-semibold">Telefone / WhatsApp:</span>
+                <p className="font-medium text-foreground">{customer.phone || "Não informado"}</p>
+              </div>
+
+              {customer.document && (
+                <div className="space-y-1">
+                  <span className="text-muted-foreground font-semibold">CPF / CNPJ:</span>
+                  <p className="font-mono font-medium text-foreground">{customer.document}</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Informações Complementares / Campos de Nicho */}
+          {hasCustomFields && (
+            <div className="p-6 bg-card text-card-foreground rounded-3xl border border-border/80 space-y-4">
+              <h3 className="font-bold text-base text-foreground flex items-center gap-2">
+                <Sparkles className="size-4 text-primary" />
+                <span>Informações do Pedido / Nicho</span>
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                {Object.entries(customFields).map(([label, value]: [string, any]) => (
+                  <div key={label} className="space-y-1 p-3 rounded-2xl bg-muted/20 border border-border/40">
+                    <span className="text-muted-foreground font-semibold block">{label}:</span>
+                    <p className="font-bold text-foreground">{String(value)}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Observações do Pedido */}
+          {order.notes && (
+            <div className="p-6 bg-card text-card-foreground rounded-3xl border border-border/80 space-y-2">
+              <h3 className="font-bold text-base text-foreground flex items-center gap-2">
+                <MessageSquare className="size-4 text-primary" />
+                <span>Observações do Pedido</span>
+              </h3>
+              <p className="text-xs text-muted-foreground bg-muted/20 p-3 rounded-2xl border border-border/40">
+                {order.notes}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Sidebar */}

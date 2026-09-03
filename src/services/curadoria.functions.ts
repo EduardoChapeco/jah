@@ -174,7 +174,7 @@ export const createMysteryShopperAudit = createServerFn({ method: "POST" })
     if (auditorId) {
       const { data: p } = await db
         .from("profiles")
-        .select("id, name, email")
+        .select("id, full_name, avatar_url")
         .eq("id", auditorId)
         .maybeSingle();
       auditorProfile = p;

@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { ArrowLeft, Sparkles, Check, Tag } from "lucide-react";
 
+import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,9 +26,10 @@ export const Route = createFileRoute("/workspace/catalogo/colecoes/$id")({
   loader: async ({ params }): Promise<any> => {
     try {
       const res = await getCollectionById({ data: { id: params.id } });
-      return res || { id: params.id, name: "Coleção", slug: "colecao", status: "active" };
+      if (res && res.id) return res;
+      return null;
     } catch {
-      return { id: params.id, name: "Coleção", slug: "colecao", status: "active" };
+      return null;
     }
   },
   component: EditCollectionPage,
@@ -37,19 +39,32 @@ function EditCollectionPage() {
   const collection = Route.useLoaderData() as any;
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [coverUrl, setCoverUrl] = useState<string | null>(collection.cover_url || collection.image_url || null);
 
-  const existingRules = collection.rules || {};
+  if (!collection) {
+    return (
+      <div className="p-8 text-center space-y-3">
+        <h2 className="text-base font-bold text-foreground">Coleção não encontrada</h2>
+        <Button asChild variant="outline" size="sm">
+          <Link to="/workspace/catalogo/colecoes">Voltar para Coleções</Link>
+        </Button>
+      </div>
+    );
+  }
+
+  const initialRules = collection.rules || {};
   const [collectionType, setCollectionType] = useState<"manual" | "automated">(
-    existingRules.type === "automated" ? "automated" : "manual",
+    initialRules.type === "automated" ? "automated" : "manual",
   );
   const [minDiscountPercent, setMinDiscountPercent] = useState<number>(
-    existingRules.min_discount_percent ?? 20,
+    initialRules.min_discount_percent ?? 20,
   );
   const [onlyInStock, setOnlyInStock] = useState<boolean>(
-    existingRules.only_in_stock ?? true,
+    initialRules.only_in_stock ?? true,
   );
-  const [badgeText, setBadgeText] = useState<string>(existingRules.badge_text || "");
+  const [badgeText, setBadgeText] = useState<string>(
+    initialRules.badge_text || "",
+  );
+  const [coverUrl, setCoverUrl] = useState<string | null>(collection.cover_url || collection.image_url || null);
 
   const {
     register,
@@ -65,8 +80,6 @@ function EditCollectionPage() {
       status: collection.status || "active",
     },
   });
-
-  const collectionName = watch("name");
 
   const onSubmit = async (values: any) => {
     setIsSubmitting(true);
@@ -109,26 +122,18 @@ function EditCollectionPage() {
 
   return (
     <div className="space-y-6 max-w-4xl animate-in fade-in duration-200">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-border/60 bg-card">
-        <div className="space-y-1">
-          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary">
-            Catálogo & Coleções
-          </span>
-          <h1 className="text-xl font-bold tracking-tight text-foreground">
-            Editar Coleção: {collection.name}
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            Ajuste o nome, regras dinâmicas, selos e capa visual desta seleção.
-          </p>
-        </div>
-
-        <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-bold gap-1.5 shrink-0">
-          <Link to="/workspace/catalogo/colecoes">
-            <ArrowLeft className="size-3.5" />
-            <span>Voltar</span>
-          </Link>
-        </Button>
-      </div>
+      <PageHeader
+        eyebrow="Catálogo"
+        title={`Editar Coleção: ${collection.name}`}
+        actions={
+          <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-bold gap-1.5 shrink-0">
+            <Link to="/workspace/catalogo/colecoes">
+              <ArrowLeft className="size-3.5" />
+              <span>Voltar</span>
+            </Link>
+          </Button>
+        }
+      />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -335,7 +340,7 @@ function EditCollectionPage() {
 
               <div className="space-y-0.5">
                 <span className="text-xs font-bold text-foreground block truncate">
-                  {collectionName || "Nome da Coleção"}
+                  {watch("name") || "Nome da Coleção"}
                 </span>
                 <span className="text-[10px] text-muted-foreground font-mono">
                   {collectionType === "automated" ? "Regras Inteligentes Ativas" : "Curadoria Manual"}

@@ -3,22 +3,26 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft,
   Laptop,
+  Tablet,
   Smartphone,
-  Film,
   Undo2,
   Redo2,
   LayoutTemplate,
-  Settings2,
   ExternalLink,
   Save,
-  Check,
+  CheckCircle2,
+  Sparkles,
+  Eye,
+  Loader2,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 export interface BuilderTopBarProps {
   document: any;
   version: any;
-  viewport: "desktop" | "mobile" | "story" | string;
+  viewport: "desktop" | "tablet" | "mobile" | "story" | string;
   setViewport: (vp: any) => void;
   undo: () => void;
   redo: () => void;
@@ -50,141 +54,173 @@ export function BuilderTopBar({
 }: BuilderTopBarProps) {
   const navigate = useNavigate();
 
+  const handleExit = () => {
+    if (document?.document_type === "storefront") {
+      navigate({ to: "/workspace/marketing/vitrine" });
+    } else if (document?.document_type === "biolink") {
+      navigate({ to: "/workspace/cms/bio" });
+    } else {
+      navigate({ to: "/workspace/cms/paginas" });
+    }
+  };
+
+  const isStorefront = document?.document_type === "storefront";
+  const publicLink = previewUrl || (isStorefront ? "/perfil-da-loja" : `/paginas/${document?.slug || ""}`);
+
   return (
-    <header className="flex-none h-12 bg-[#1a1a1a] border-b border-white/10 flex items-center justify-between px-3 gap-3">
-      {/* Left: Back + Title */}
+    <header className="flex-none h-14 bg-card border-b border-border/80 flex items-center justify-between px-4 gap-4 select-none z-30 relative shadow-2xs">
+      {/* ── Esquerda: Voltar + Título & Status do Documento ── */}
       <div className="flex items-center gap-3 min-w-0">
-        <button
+        <Button
           type="button"
-          onClick={() => navigate({ to: "/workspace/cms/paginas", search: {} as any })}
-          className="flex items-center gap-1.5 text-white/60 hover:text-white text-xs transition-colors shrink-0"
+          variant="ghost"
+          size="sm"
+          onClick={handleExit}
+          className="h-9 px-3 rounded-xl text-xs font-semibold gap-1.5 text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer shrink-0"
         >
-          <ArrowLeft className="h-4 w-4" />
-          <span className="hidden sm:block">Sair</span>
-        </button>
-        <div className="h-4 w-px bg-white/10 hidden sm:block" />
+          <ArrowLeft className="size-4" />
+          <span className="hidden sm:inline">Voltar ao Painel</span>
+        </Button>
+
+        <div className="h-5 w-px bg-border/80 hidden sm:block shrink-0" />
+
         <div className="flex flex-col min-w-0">
-          <span className="text-white text-sm font-semibold truncate">
-            {document?.title ?? "Documento"}
-          </span>
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-warning shrink-0" />
-            <span className="text-white/40 text-[10px]">
-              Rascunho v{version?.version_number ?? 1}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold text-foreground truncate max-w-[180px] sm:max-w-[260px]">
+              {document?.title || (isStorefront ? "Vitrine Principal da Loja" : "Página sem Título")}
             </span>
+            <Badge
+              variant="outline"
+              className={cn(
+                "text-[10px] font-bold px-1.5 py-0 rounded-md",
+                version?.status === "published"
+                  ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                  : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+              )}
+            >
+              {version?.status === "published" ? "Publicada" : "Rascunho"} v{version?.version_number ?? 1}
+            </Badge>
           </div>
+          <span className="text-[10px] text-muted-foreground font-mono hidden sm:inline">
+            Slug: /{document?.slug || "home"}
+          </span>
         </div>
       </div>
 
-      {/* Center: Viewport */}
-      <div className="flex items-center bg-white/5 p-1 gap-1 rounded-xl">
+      {/* ── Centro: Seletor de Viewport / Responsividade (Apple HIG) ── */}
+      <div className="flex items-center bg-muted/60 p-1 rounded-xl border border-border/60">
         <button
           type="button"
           onClick={() => setViewport("desktop")}
-          title="Desktop (1440px)"
+          title="Modo Desktop (1440px)"
           className={cn(
-            "h-7 w-7 rounded-lg flex items-center justify-center transition-colors",
-            viewport === "desktop" ? "bg-white/15 text-white" : "text-white/40 hover:text-white/70",
+            "h-8 px-3 rounded-lg flex items-center gap-1.5 text-xs font-semibold transition-all cursor-pointer",
+            viewport === "desktop"
+              ? "bg-background text-foreground shadow-2xs font-bold"
+              : "text-muted-foreground hover:text-foreground"
           )}
         >
-          <Laptop className="h-4 w-4" />
+          <Laptop className="size-3.5" />
+          <span className="hidden md:inline">Desktop</span>
         </button>
+
         <button
           type="button"
           onClick={() => setViewport("mobile")}
-          title="Mobile (390px)"
+          title="Modo Mobile (390px)"
           className={cn(
-            "h-7 w-7 rounded-lg flex items-center justify-center transition-colors",
-            viewport === "mobile" ? "bg-white/15 text-white" : "text-white/40 hover:text-white/70",
+            "h-8 px-3 rounded-lg flex items-center gap-1.5 text-xs font-semibold transition-all cursor-pointer",
+            viewport === "mobile"
+              ? "bg-background text-foreground shadow-2xs font-bold"
+              : "text-muted-foreground hover:text-foreground"
           )}
         >
-          <Smartphone className="h-4 w-4" />
-        </button>
-        <button
-          type="button"
-          onClick={() => setViewport("story")}
-          title="Story / Zine 9:16 (360x640px)"
-          className={cn(
-            "h-7 w-7 rounded-lg flex items-center justify-center transition-colors",
-            viewport === "story" ? "bg-primary text-white" : "text-white/40 hover:text-white/70",
-          )}
-        >
-          <Film className="h-4 w-4" />
+          <Smartphone className="size-3.5" />
+          <span className="hidden md:inline">Mobile</span>
         </button>
       </div>
 
-      {/* Right: Actions */}
-      <div className="flex items-center gap-3">
-        {/* History Controls */}
-        <div className="flex items-center gap-1 mr-2 border-r border-white/10 pr-3">
+      {/* ── Direita: Histórico, Pré-visualização e Ações de Salvamento ── */}
+      <div className="flex items-center gap-2">
+        {/* Undo / Redo */}
+        <div className="flex items-center bg-muted/40 p-0.5 rounded-xl border border-border/40 hidden sm:flex">
           <button
             type="button"
             onClick={undo}
             disabled={!canUndo}
-            className="p-1.5 text-white/50 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors rounded hover:bg-white/10"
             title="Desfazer (Ctrl+Z)"
+            className="size-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
           >
-            <Undo2 className="h-4 w-4" />
+            <Undo2 className="size-4" />
           </button>
           <button
             type="button"
             onClick={redo}
             disabled={!canRedo}
-            className="p-1.5 text-white/50 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors rounded hover:bg-white/10"
-            title="Refazer (Ctrl+Shift+Z)"
+            title="Refazer (Ctrl+Y)"
+            className="size-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
           >
-            <Redo2 className="h-4 w-4" />
+            <Redo2 className="size-4" />
           </button>
         </div>
 
-        {(document?.slug === "home" || document?.document_type === "storefront") && (
-          <button
-            type="button"
-            onClick={() => setIsTemplateModalOpen(true)}
-            className="flex items-center gap-1.5 bg-warning/15 hover:bg-warning/25 text-warning text-xs px-3 py-1.5 border border-warning/30 rounded-xl transition-colors font-medium mr-1"
-          >
-            <LayoutTemplate className="h-3.5 w-3.5" />
-            Trocar Template (Temas)
-          </button>
-        )}
+        {/* Trocar Tema / Template */}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setIsTemplateModalOpen(true)}
+          className="h-9 px-3 rounded-xl text-xs font-semibold gap-1.5 hidden lg:inline-flex cursor-pointer"
+        >
+          <Sparkles className="size-3.5 text-primary" />
+          <span>Modelos</span>
+        </Button>
 
-        <Link
-          to="/workspace"
-          className="flex items-center gap-1.5 text-white/60 hover:text-white text-xs transition-colors hidden md:flex border-r border-white/10 pr-3 mr-1"
-          title="Logo, Favicon e Dados da Loja"
+        {/* Ver Loja Pública */}
+        <Button
+          asChild
+          variant="outline"
+          size="sm"
+          className="h-9 px-3 rounded-xl text-xs font-semibold gap-1.5 hidden md:inline-flex cursor-pointer"
         >
-          <Settings2 className="h-3.5 w-3.5" />
-          Loja
-        </Link>
-        {previewUrl && (
-          <a
-            href={previewUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-white/60 hover:text-white text-xs transition-colors hidden md:flex"
-          >
-            <ExternalLink className="h-3.5 w-3.5" />
-            Visualizar
+          <a href={publicLink} target="_blank" rel="noopener noreferrer">
+            <Eye className="size-3.5 text-muted-foreground" />
+            <span>Ver Online</span>
           </a>
-        )}
-        <button
+        </Button>
+
+        {/* Salvar Rascunho */}
+        <Button
           type="button"
+          variant="outline"
+          size="sm"
           onClick={handleSave}
-          disabled={isSaving}
-          className="flex items-center gap-1.5 bg-white/10 hover:bg-white/15 text-white text-xs px-3 py-1.5 transition-colors disabled:opacity-50"
+          disabled={isSaving || isPublishing}
+          className="h-9 px-3.5 rounded-xl text-xs font-bold gap-1.5 cursor-pointer"
         >
-          <Save className="h-3.5 w-3.5" />
-          {isSaving ? "Salvando..." : "Salvar"}
-        </button>
-        <button
+          {isSaving ? (
+            <Loader2 className="size-3.5 animate-spin" />
+          ) : (
+            <Save className="size-3.5" />
+          )}
+          <span>{isSaving ? "Salvando..." : "Salvar"}</span>
+        </Button>
+
+        {/* Publicar Vitrine */}
+        <Button
           type="button"
+          size="sm"
           onClick={handlePublish}
           disabled={isPublishing || isSaving}
-          className="flex items-center gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground text-xs px-3 py-1.5 transition-colors disabled:opacity-50 font-medium"
+          className="h-9 px-4 rounded-xl text-xs font-bold gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs cursor-pointer"
         >
-          <Check className="h-3.5 w-3.5" />
-          {isPublishing ? "Publicando..." : "Publicar"}
-        </button>
+          {isPublishing ? (
+            <Loader2 className="size-3.5 animate-spin" />
+          ) : (
+            <CheckCircle2 className="size-3.5" />
+          )}
+          <span>{isPublishing ? "Publicando..." : "Publicar"}</span>
+        </Button>
       </div>
     </header>
   );

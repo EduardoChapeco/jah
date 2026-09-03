@@ -94,25 +94,26 @@ export const getCustomer360 = createServerFn({ method: "GET" })
       .eq("customer_id", customerId)
       .order("created_at", { ascending: false });
 
-    const { data: addresses } = await supabase
-      .from("customer_addresses")
-      .select("*")
-      .eq("customer_id", customerId)
-      .eq("store_id", identity.store_id)
-      .order("is_default", { ascending: false });
+    const { data: customerProfile } = await supabase
+      .from("profiles")
+      .select("resume_data")
+      .eq("id", customerId)
+      .maybeSingle();
+
+    const addresses = (customerProfile?.resume_data as any)?.addresses || [];
 
     // 1. Busca Orçamentos do cliente
     const { data: quotations } = await supabase
-      .from("quotations")
-      .select("id, code, title, total_cents, status, created_at")
+      .from("quotes")
+      .select("id, quote_number, total_cents, status, created_at")
       .eq("customer_id", customerId)
       .order("created_at", { ascending: false });
 
     // 2. Busca Ingressos / Inscrições em Eventos
     const { data: tickets } = await supabase
-      .from("event_tickets")
+      .from("tickets")
       .select("id, event_id, status, created_at, events(title, date)")
-      .eq("customer_id", customerId)
+      .eq("owner_profile_id", customerId)
       .order("created_at", { ascending: false });
 
     // 3. Monta a Timeline 360 Unificada
@@ -169,7 +170,7 @@ export const getCustomer360 = createServerFn({ method: "GET" })
 
     // 5. Busca Prontuários Clínicos & Anamnese (Beleza / Saúde / Estética)
     const { data: clinicalRecords } = await supabase
-      .from("clinical_records")
+      .from("crm_clinical_records")
       .select("*")
       .eq("customer_id", customerId)
       .eq("store_id", identity.store_id)
@@ -237,14 +238,18 @@ export const addCustomerClinicalRecord = createServerFn({ method: "POST" })
     assertStoreAccess(identity, ["owner", "admin", "manager", "seller", "support"]);
 
     const { data, error } = await supabase
-      .from("clinical_records")
+      .from("crm_clinical_records")
       .insert({
         customer_id: input.customerId,
         store_id: identity.store_id,
-        service_title: input.serviceTitle,
-        professional_name: input.professionalName || (identity as any).name || (identity as any).email || "Especialista",
-        notes: input.notes,
-        allergies: input.allergies || null,
+        author_id: identity.id,
+        record_type: "anamnesis",
+        content: {
+          service_title: input.serviceTitle,
+          professional_name: input.professionalName || (identity as any).name || "Especialista",
+          notes: input.notes,
+          allergies: input.allergies || null,
+        },
         attachments: input.attachments || [],
       })
       .select()
@@ -634,36 +639,45 @@ export const upsertCustomerAddress = createServerFn({ method: "POST" })
 
       const { id, customer_id, is_default, ...addressFields } = input;
 
-      if (is_default) {
-        await supabase
-          .from("customer_addresses")
-          .update({ is_default: false })
-          .eq("customer_id", customer_id)
-          .eq("store_id", identity.store_id);
-      }
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("resume_data")
+        .eq("id", customer_id)
+        .maybeSingle();
 
-      const payload = {
-        store_id: identity.store_id,
-        customer_id,
-        is_default,
+      const existingResume = (prof?.resume_data as any) || {};
+      const existingAddresses: any[] = existingResume.addresses || [];
+
+      const newAddr = {
+        id: id || crypto.randomUUID(),
         ...addressFields,
+        is_default: Boolean(is_default),
+        created_at: new Date().toISOString(),
       };
 
-      let result;
+      let updatedAddresses: any[];
       if (id) {
-        result = await supabase
-          .from("customer_addresses")
-          .update(payload)
-          .eq("id", id)
-          .eq("store_id", identity.store_id)
-          .select()
-          .single();
+        updatedAddresses = existingAddresses.map((a) => (a.id === id ? { ...a, ...newAddr } : a));
       } else {
-        result = await supabase.from("customer_addresses").insert(payload).select().single();
+        updatedAddresses = [...existingAddresses, newAddr];
       }
 
-      if (result.error) throw result.error;
-      return result.data;
+      if (is_default) {
+        updatedAddresses = updatedAddresses.map((a) => ({
+          ...a,
+          is_default: a.id === newAddr.id,
+        }));
+      }
+
+      await supabase
+        .from("profiles")
+        .update({
+          resume_data: { ...existingResume, addresses: updatedAddresses },
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", customer_id);
+
+      return newAddr;
     } catch (e: unknown) {
       console.error("[crm] upsertCustomerAddress error:", e);
       throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao salvar endereço.");
@@ -683,14 +697,24 @@ export const deleteCustomerAddress = createServerFn({ method: "POST" })
       const identity = await getServerIdentity();
       assertStoreAccess(identity, ["owner", "admin", "manager", "seller"]);
 
-      const { error } = await supabase
-        .from("customer_addresses")
-        .delete()
-        .eq("id", addressId)
-        .eq("customer_id", customerId)
-        .eq("store_id", identity.store_id);
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("resume_data")
+        .eq("id", customerId)
+        .maybeSingle();
 
-      if (error) throw error;
+      const existingResume = (prof?.resume_data as any) || {};
+      const existingAddresses: any[] = existingResume.addresses || [];
+      const filtered = existingAddresses.filter((a) => a.id !== addressId);
+
+      await supabase
+        .from("profiles")
+        .update({
+          resume_data: { ...existingResume, addresses: filtered },
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", customerId);
+
       return { status: "success" as const };
     } catch (e: unknown) {
       console.error("[crm] deleteCustomerAddress error:", e);

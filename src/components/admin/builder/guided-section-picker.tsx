@@ -1,9 +1,10 @@
 import * as React from "react";
 import { useState } from "react";
-import { X, Search } from "lucide-react";
+import { X, Search, Plus, Sparkles, LayoutTemplate, ArrowRight } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { getAllTemplates, getTemplatesByCategory } from "@/lib/section-templates";
 import type { SectionTemplate } from "@/lib/builder-types";
@@ -15,10 +16,10 @@ export interface GuidedSectionPickerProps {
 }
 
 const CATEGORIES = [
-  { id: "all", label: "Todas" },
+  { id: "all", label: "Todas as Seções" },
   { id: "commerce", label: "Vitrine & Vendas" },
   { id: "content", label: "Conteúdo & Mídia" },
-  { id: "marketing", label: "Marketing & Engajamento" },
+  { id: "marketing", label: "Conversão & Prova Social" },
 ];
 
 export function GuidedSectionPicker({
@@ -41,87 +42,104 @@ export function GuidedSectionPicker({
   );
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4 md:p-8 animate-in fade-in">
-      <div className="bg-[#18181b] border border-white/10 w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden">
-        {/* Header */}
-        <div className="p-6 border-b border-white/10 flex items-center justify-between bg-[#121214]">
-          <div>
-            <h3 className="text-xl font-bold text-white">Adicionar Nova Seção</h3>
-            <p className="text-sm text-white/60 mt-1">
-              Escolha uma estrutura pré-montada. Você pode editar textos, cores e dados em seguida.
-            </p>
+    <div className="fixed inset-0 z-50 flex items-stretch select-none animate-in fade-in duration-200">
+      {/* Backdrop transparente / suave */}
+      <div
+        className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
+        onClick={onClose}
+      />
+
+      {/* Painel Lateral Deslizante (Wix Studio / Framer Add Elements Panel) */}
+      <div className="relative z-50 w-full max-w-xl bg-card border-r border-border shadow-2xl flex flex-col h-full overflow-hidden animate-in slide-in-from-left duration-300">
+        {/* Cabeçalho do Drawer */}
+        <div className="p-5 border-b border-border/70 flex items-center justify-between bg-muted/20">
+          <div className="flex items-center gap-2.5">
+            <div className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
+              <LayoutTemplate className="size-5" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-foreground">Catálogo de Seções Prontas</h3>
+              <p className="text-xs text-muted-foreground">
+                Clique para inserir uma seção completa com design profissional.
+              </p>
+            </div>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
-            className="p-2 text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+            className="size-8 rounded-xl text-muted-foreground hover:text-foreground cursor-pointer"
           >
-            <X className="w-5 h-5" />
-          </button>
+            <X className="size-4" />
+          </Button>
         </div>
 
-        {/* Filters & Search */}
-        <div className="p-4 border-b border-white/10 flex flex-col sm:flex-row gap-4 items-center justify-between bg-[#1a1a1a]">
-          <div className="flex gap-2 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0 hide-scrollbar">
+        {/* Busca e Categorias */}
+        <div className="p-4 border-b border-border/60 space-y-3 bg-muted/10">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar seção (ex: Banners, Carrossel, Shop the Look...)"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-10 pl-9 rounded-xl bg-background text-xs border-border/80"
+            />
+          </div>
+
+          <div className="flex gap-1.5 overflow-x-auto scrollbar-none pb-0.5">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.id}
+                type="button"
                 onClick={() => setActiveCategory(cat.id)}
                 className={cn(
-                  "px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
+                  "px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer",
                   activeCategory === cat.id
-                    ? "bg-white text-black"
-                    : "bg-white/5 text-white/60 hover:text-white hover:bg-white/10 border border-white/10",
+                    ? "bg-primary text-primary-foreground font-bold shadow-2xs"
+                    : "bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted"
                 )}
               >
                 {cat.label}
               </button>
             ))}
           </div>
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-            <Input
-              placeholder="Buscar seção..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-[#242427] border-white/10 text-white pl-9 h-9 text-xs focus-visible:ring-1 focus-visible:ring-white/30"
-            />
-          </div>
         </div>
 
-        {/* Templates Grid */}
-        <ScrollArea className="flex-1 p-6">
+        {/* Lista de Seções com Preview Visual */}
+        <ScrollArea className="flex-1 p-4">
           {filteredTemplates.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-white/40">
-              <p>Nenhuma seção encontrada.</p>
+            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground space-y-2 text-center">
+              <LayoutTemplate className="size-8 text-muted-foreground/40" />
+              <p className="text-xs font-semibold">Nenhuma seção encontrada com este termo.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pb-8">
               {filteredTemplates.map((template) => (
                 <div
                   key={template.id}
-                  className="bg-[#242427] border border-white/10 overflow-hidden flex flex-col hover:border-white/30 transition-all group cursor-pointer"
-                  onClick={() => onSelectTemplate(template)}
+                  onClick={() => {
+                    onSelectTemplate(template);
+                    onClose();
+                  }}
+                  className="group p-4 rounded-2xl bg-muted/30 hover:bg-muted/60 border border-border/60 hover:border-primary/50 transition-all cursor-pointer flex flex-col justify-between space-y-3"
                 >
-                  <div className="relative aspect-video bg-muted overflow-hidden">
-                    <img
-                      src={template.previewImageUrl}
-                      alt={template.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <Button
-                        variant="secondary"
-                        className="scale-90 group-hover:scale-100 transition-transform"
-                      >
-                        Usar Esta Seção
-                      </Button>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
+                        {template.name}
+                      </h4>
+                      <Badge variant="outline" className="text-[9px] px-1.5 py-0 font-medium">
+                        {template.category}
+                      </Badge>
                     </div>
-                  </div>
-                  <div className="p-4 flex-1 flex flex-col">
-                    <h4 className="font-bold text-white text-sm mb-1">{template.name}</h4>
-                    <p className="text-xs text-white/60 line-clamp-2 leading-relaxed">
+                    <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">
                       {template.description}
                     </p>
+                  </div>
+
+                  <div className="pt-2 border-t border-border/40 flex items-center justify-between text-[11px] font-semibold text-primary">
+                    <span>Inserir na Página</span>
+                    <Plus className="size-3.5 group-hover:translate-x-0.5 transition-transform" />
                   </div>
                 </div>
               ))}

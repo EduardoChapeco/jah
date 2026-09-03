@@ -13,10 +13,10 @@ export const listEmployeesBalance = createServerFn({ method: "GET" }).handler(as
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin", "manager", "finance"]);
 
-  // 1. Fetch all store staff profiles (assuming store_users joins profiles and roles)
+  // 1. Fetch all store staff profiles via workspace_members
   const { data: storeStaff, error: staffErr } = await supabase
-    .from("store_users")
-    .select("user_id, role, profiles(full_name, email)")
+    .from("workspace_members")
+    .select("profile_id, role, profiles(full_name)")
     .eq("store_id", identity.store_id);
 
   if (staffErr || !storeStaff) return [];
@@ -32,26 +32,25 @@ export const listEmployeesBalance = createServerFn({ method: "GET" }).handler(as
 
   // 3. Calculate dynamic balance per employee
   return storeStaff.map((staff) => {
-    const employeeRecords = records.filter((r) => r.employee_id === staff.user_id);
+    const employeeRecords = records.filter((r) => r.employee_id === staff.profile_id);
 
     let totalCredits = 0;
     let totalDebits = 0;
 
     employeeRecords.forEach((record) => {
-      // In a real scenario we might filter by date (e.g. current month)
       if (record.amount_cents > 0) {
         totalCredits += record.amount_cents;
       } else {
-        totalDebits += Math.abs(record.amount_cents); // Debits are usually negative, or we classify by type
+        totalDebits += Math.abs(record.amount_cents);
       }
     });
 
     return {
-      id: staff.user_id,
-      name: (staff.profiles as any)?.full_name || (staff.profiles as any)?.email || "Funcionário",
+      id: staff.profile_id,
+      name: (staff.profiles as any)?.full_name || "Colaborador",
       role: staff.role,
       balanceCents: totalCredits - totalDebits,
-      recentRecords: employeeRecords.slice(0, 5), // Send the last 5 records for the ledger preview
+      recentRecords: employeeRecords.slice(0, 5),
     };
   });
 });

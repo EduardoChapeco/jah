@@ -504,23 +504,23 @@ export const getUserTokenWallet = createServerFn({ method: "GET" })
 
   const { data: profile } = await db
     .from("profiles")
-    .select("id, full_name, email, role, avatar_url, preferences")
+    .select("id, full_name, role, avatar_url")
     .eq("id", identity.id)
     .single();
 
-  const preferences = profile?.preferences || {};
-  let userTokens = preferences.token_wallet;
+  // Wallet canônica: user_token_wallets
+  const { data: walletRow } = await db
+    .from("user_token_wallets")
+    .select("balance, lifetime_earned, lifetime_redeemed, created_at")
+    .eq("user_id", identity.id)
+    .maybeSingle();
 
-  if (!userTokens) {
-    userTokens = {
-      balance: 0, // Saldo inicial RIGOROSAMENTE ZERO (Sem tokens gratuitos da plataforma)
-      lifetime_earned: 0,
-      lifetime_redeemed: 0,
-      created_at: new Date().toISOString(),
-    };
-    preferences.token_wallet = userTokens;
-    await db.from("profiles").update({ preferences }).eq("id", identity.id);
-  }
+  const userTokens = walletRow || {
+    balance: 0,
+    lifetime_earned: 0,
+    lifetime_redeemed: 0,
+    created_at: new Date().toISOString(),
+  };
 
   // Buscar histórico de transações reais emitidas por lojas
   let query = db

@@ -1,7 +1,8 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, BellRing } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
 import { Badge } from "@/components/ui/badge";
@@ -16,9 +17,10 @@ import {
 } from "@/components/ui/table";
 import { EmptyState } from "@/components/state/states";
 import { getStockLevels, adjustStock } from "@/services/stock.functions";
+import { getWaitlistDemandCounts } from "@/services/waitlist.functions";
 
 export const Route = createFileRoute("/workspace/estoque/alertas")({
-  head: () => ({ meta: [{ title: "Alertas de Estoque" }] }),
+  head: () => ({ meta: [{ title: "Alertas de Estoque | Workspace Wider" }] }),
   loader: async () => {
     const res = await getStockLevels({ data: {} });
     // Filter for low stock (on_hand <= 5) or out of stock
@@ -31,6 +33,11 @@ function StockAlertsPage() {
   const variants = Route.useLoaderData();
   const router = useRouter();
   const [adjustingId, setAdjustingId] = useState<string | null>(null);
+
+  const { data: waitlistCounts = {} } = useQuery({
+    queryKey: ["waitlist-demand-counts"],
+    queryFn: () => getWaitlistDemandCounts(),
+  });
 
   const handleQuickRefill = async (variantId: string) => {
     setAdjustingId(variantId);
@@ -54,10 +61,10 @@ function StockAlertsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Alertas de Estoque" />
+      <PageHeader title="Alertas de Estoque & Fila de Espera" />
 
       {variants.length === 0 ? (
-        <EmptyState title="Nenhum alerta" />
+        <EmptyState title="Nenhum alerta de estoque crítico" />
       ) : (
         <div className="rounded-2xl border border-border/60 bg-card overflow-hidden">
           <Table>
@@ -67,12 +74,15 @@ function StockAlertsPage() {
                 <TableHead>SKU</TableHead>
                 <TableHead className="text-center">Em Mãos (Disponível)</TableHead>
                 <TableHead className="text-center">Status</TableHead>
+                <TableHead className="text-center">Fila de Espera</TableHead>
                 <TableHead className="text-right">Ação Rápida</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {variants.map((v: any) => {
                 const available = v.stock_on_hand;
+                const waitingCount = (waitlistCounts as any)[v.id] || (waitlistCounts as any)[v.product_id] || 0;
+
                 return (
                   <TableRow key={v.id}>
                     <TableCell className="font-medium">{v.products?.title || "—"}</TableCell>
@@ -89,6 +99,16 @@ function StockAlertsPage() {
                           <AlertTriangle className="h-3 w-3" />
                           Crítico
                         </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {waitingCount > 0 ? (
+                        <Badge variant="outline" className="gap-1 text-primary border-primary/40 font-bold">
+                          <BellRing className="size-3" />
+                          <span>{waitingCount} {waitingCount === 1 ? "cliente" : "clientes"}</span>
+                        </Badge>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
                       )}
                     </TableCell>
                     <TableCell className="text-right">
@@ -111,3 +131,4 @@ function StockAlertsPage() {
     </div>
   );
 }
+

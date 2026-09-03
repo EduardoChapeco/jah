@@ -60,8 +60,17 @@ function getClientIp(req: Request): string {
 export const getUserSession = createServerFn({ method: "GET" }).handler(async () => {
   try {
     const identity = await getServerIdentity();
+
+    // Se a identidade não tem user, não há sessão ativa.
+    const effectiveUserId = identity.id;
+    if (!effectiveUserId) {
+      return null;
+    }
+
     const adminDb = getServerClient();
 
+    // Busca o usuário do Supabase Auth apenas se necessário para dados de metadata
+    // (identity.server.ts já chamou getSSRClient().auth.getUser() internamente)
     const supabase = await getSSRClient();
     let user: any = null;
     try {
@@ -69,11 +78,6 @@ export const getUserSession = createServerFn({ method: "GET" }).handler(async ()
       user = authRes.data?.user || null;
     } catch {
       user = null;
-    }
-
-    const effectiveUserId = user?.id || identity.id;
-    if (!effectiveUserId) {
-      return null;
     }
 
     // 1. Busca perfil real no banco
@@ -132,16 +136,10 @@ export const checkIdentifierExists = createServerFn({ method: "POST" })
       const raw = identifier.trim();
 
       if (raw.includes("@")) {
-        // Formato de e-mail: consulta direta à tabela profiles para checagem instantânea
-        const { data: p } = await db
-          .from("profiles")
-          .select("id")
-          .ilike("email", raw.toLowerCase())
-          .limit(1)
-          .maybeSingle();
-
-        // Se encontrou no banco, existe. Se não, permite avançar para autenticar no Auth da Supabase
-        return { exists: true };
+        // Formato de e-mail: o e-mail reside em auth.users gerenciado pelo Supabase Auth.
+        // Retorna exists: true para prosseguir diretamente para a etapa de senha.
+        const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw);
+        return { exists: isEmailValid };
       }
 
       // CPF / telefone / @username → busca em profiles
@@ -628,7 +626,8 @@ export const getProfile = createServerFn({ method: "GET" }).handler(async () => 
     try {
       identity = await getServerIdentity();
     } catch {
-      identity = { id: "d21869c6-6545-4a52-a383-10098ef180ec", role: "platform_admin", store_id: null, memberships: [] };
+      // Não simular usuário em produção. Se falhar, retornar nulo e deixar o front tratar.
+      identity = null;
     }
 
     let user: any = null;
@@ -640,7 +639,9 @@ export const getProfile = createServerFn({ method: "GET" }).handler(async () => 
       user = null;
     }
 
-    const effectiveUserId = user?.id || identity?.id || "d21869c6-6545-4a52-a383-10098ef180ec";
+    const effectiveUserId = user?.id || identity?.id;
+    // Sem ID real, não há perfil para retornar
+    if (!effectiveUserId) return null;
 
     let profile: any = null;
     try {
@@ -660,7 +661,7 @@ export const getProfile = createServerFn({ method: "GET" }).handler(async () => 
       const adminDb = getServerClient();
       const { data: wsRows, error: wsErr } = await adminDb
         .from("workspace_members")
-        .select("store_id, role, stores(id, name, slug, is_active, settings)")
+        .select("store_id, role, stores(id, name, slug, is_active, settings, logo_url)")
         .eq("profile_id", effectiveUserId);
 
       if (wsErr) {
@@ -681,7 +682,7 @@ export const getProfile = createServerFn({ method: "GET" }).handler(async () => 
           role: m.role || "owner",
           name: storeObj.name || "Loja",
           slug: storeObj.slug || "",
-          logo_url: storeSettings.logoUrl || storeSettings.logo_url || null,
+          logo_url: storeObj.logo_url || storeSettings.logoUrl || storeSettings.logo_url || null,
           status: storeObj.is_active !== false ? "active" : "inactive",
         });
       }
@@ -689,8 +690,11 @@ export const getProfile = createServerFn({ method: "GET" }).handler(async () => 
       console.warn("[auth] Erro ao carregar memberships no getProfile:", e);
     }
 
-    const email = user?.email || user?.user_metadata?.email || "meuwider@gmail.com";
-    const fullName = profile?.full_name || user?.user_metadata?.full_name || "Eduardo Antônio Ramos";
+    const email = user?.email || user?.user_metadata?.email || profile?.email || "";
+    const fullName = profile?.full_name || user?.user_metadata?.full_name || "Usuário";
+
+    // Sem email real, perfil incompleto
+    if (!email && !profile?.full_name) return null;
 
     return {
       id: effectiveUserId,
@@ -719,31 +723,9 @@ export const getProfile = createServerFn({ method: "GET" }).handler(async () => 
       resume_data: profile?.resume_data ?? {},
     };
   } catch (e) {
-    console.error("[auth] Erro fatal em getProfile, retornando perfil padrão:", e);
-    return {
-      id: "d21869c6-6545-4a52-a383-10098ef180ec",
-      email: "master@wider.com.br",
-      fullName: "Eduardo Antônio Ramos",
-      phone: "",
-      role: "platform_admin",
-      username: "admin",
-      avatarUrl: null,
-      coverUrl: null,
-      bio: null,
-      occupation: null,
-      city: null,
-      state: null,
-      instagram: null,
-      website: null,
-      cpf: null,
-      birthDate: null,
-      gender: null,
-      newsletterOptIn: false,
-      featuredBannerUrl: null,
-      featuredBannerLink: null,
-      biolinks: [],
-      resume_data: {},
-    };
+    console.error("[auth] Erro fatal em getProfile:", e);
+    // Não retornar dados hardcoded em produção — retornar null e deixar o front tratar
+    return null;
   }
 });
 

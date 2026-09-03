@@ -247,8 +247,9 @@ export async function _getDashboardData(): Promise<DashboardMetrics> {
 
   // 4. New Customers (last 30d)
   const { count: newCustomers30d } = await db
-    .from("customers")
+    .from("customers_crm")
     .select("id", { count: "exact", head: true })
+    .eq("store_id", storeId)
     .gte("created_at", last30Days);
 
   // 5. Abandoned Carts (last 7d)

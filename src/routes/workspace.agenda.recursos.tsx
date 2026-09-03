@@ -30,8 +30,8 @@ function AdminResourcesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Configurações de Agendamento"
-        title="Gestão de Recursos"
+        eyebrow="Agenda"
+        title="Recursos"
         actions={
           <Button>
             <UserPlus className="mr-2 size-4" />

@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, isRedirect, redirect, Link } from "@tanstack/react-router";
+import { createFileRoute, Outlet, isRedirect, redirect, Link, useRouterState } from "@tanstack/react-router";
 import { getUserSession } from "@/services/auth.functions";
 import { WorkspaceShell } from "@/components/workspace/workspace-shell";
 import { Button } from "@/components/ui/button";
@@ -31,7 +31,7 @@ function WorkspaceErrorComponent({ error, reset }: { error: Error; reset: () => 
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 text-center">
-      <div className="max-w-md w-full bg-card  p-6 rounded-3xl  space-y-4">
+      <div className="max-w-md w-full bg-card p-6 rounded-3xl space-y-4">
         <div className="size-14 rounded-2xl bg-destructive/10 text-destructive flex items-center justify-center mx-auto">
           <AlertTriangle className="size-7" />
         </div>
@@ -66,7 +66,15 @@ function WorkspaceErrorComponent({ error, reset }: { error: Error; reset: () => 
 
 function WorkspaceLayout() {
   const loaderData = Route.useLoaderData() as any;
+  const routerState = useRouterState();
   const session = loaderData?.session;
+  const isBuilder = routerState.location.pathname.startsWith("/workspace/builder/");
+
+  // Fullscreen Immersion Mode para o Construtor Visual (Wix/Webflow/Framer style)
+  if (isBuilder) {
+    return <Outlet />;
+  }
+
   const hasStore = session?.memberships && session.memberships.length > 0;
 
   return (

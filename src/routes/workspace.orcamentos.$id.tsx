@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import {
@@ -14,6 +14,16 @@ import {
   Hash,
   Loader2,
   AlertCircle,
+  Sparkles,
+  Plane,
+  Building2,
+  FileCheck2,
+  ExternalLink,
+  Copy,
+  Download,
+  Share2,
+  Calendar,
+  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,13 +35,13 @@ import {
   approveQuote,
   addQuoteMessage,
   type QuoteItemDTO,
-  type QuoteMessageDTO,
 } from "@/services/quotes.functions";
+import { createContractFromProposal } from "@/services/travel-contract.functions";
 import { formatMoney } from "@/lib/money";
 import { formatRelativeTime } from "@/lib/datetime";
 
 export const Route = createFileRoute("/workspace/orcamentos/$id")({
-  head: () => ({ meta: [{ title: "Detalhe do Orçamento — Wider Workspace" }] }),
+  head: () => ({ meta: [{ title: "Detalhe do Orçamento — Travelos Wider" }] }),
   loader: async ({ params }) => {
     const data = await getQuoteDetail({ data: { quote_id: params.id } });
     return { quote: data };
@@ -39,16 +49,10 @@ export const Route = createFileRoute("/workspace/orcamentos/$id")({
   component: QuoteDetailPage,
 });
 
-const ITEM_TYPE_ICON: Record<string, any> = {
-  product_variant: Package,
-  service: Wrench,
-  rental_equipment: Box,
-  manual_item: Hash,
-};
-
 function QuoteDetailPage() {
   const { quote: initial } = Route.useLoaderData();
   const params = Route.useParams();
+  const navigate = useNavigate();
   const qc = useQueryClient();
 
   const { data: quote, isLoading } = useQuery({
@@ -60,6 +64,23 @@ function QuoteDetailPage() {
 
   const [messageText, setMessageText] = useState("");
   const [isInternal, setIsInternal] = useState(false);
+  const [isCreatingContract, setIsCreatingContract] = useState(false);
+
+  // Parse conditions JSON for Travelos data if present
+  const travelMeta = (() => {
+    if (!quote?.conditions) return null;
+    try {
+      if (typeof quote.conditions === "string" && quote.conditions.startsWith("{")) {
+        return JSON.parse(quote.conditions);
+      }
+      if (typeof quote.conditions === "object") {
+        return quote.conditions;
+      }
+    } catch {
+      return null;
+    }
+    return null;
+  })();
 
   const sendMessage = useMutation({
     mutationFn: () =>
@@ -95,6 +116,30 @@ function QuoteDetailPage() {
     onError: (e: any) => toast.error(e?.message ?? "Erro ao aprovar orçamento."),
   });
 
+  const handleGenerateContract = async () => {
+    setIsCreatingContract(true);
+    try {
+      const res = await createContractFromProposal({
+        data: { proposalId: quote.id },
+      });
+      if (res?.success) {
+        toast.success("Contrato oficial emitido com sucesso!");
+        navigate({ to: "/workspace/turismo/contratos" });
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao emitir contrato.");
+    } finally {
+      setIsCreatingContract(false);
+    }
+  };
+
+  const handleCopyPublicLink = () => {
+    const token = travelMeta?.public_token || quote?.id;
+    const url = `${window.location.origin}/proposta/${token}`;
+    navigator.clipboard.writeText(url);
+    toast.success("Link da proposta copiado para a área de transferência!");
+  };
+
   if (isLoading || !quote) {
     return (
       <div className="flex justify-center py-16">
@@ -108,278 +153,282 @@ function QuoteDetailPage() {
   const isTerminal = ["approved", "rejected", "expired", "converted"].includes(quote.status);
 
   return (
-    <div className="flex flex-col gap-6 max-w-4xl">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2">
-        <Link
-          to="/workspace/orcamentos"
-          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ChevronLeft className="size-4" />
-          Orçamentos
-        </Link>
-        <span className="text-muted-foreground">/</span>
-        <span className="text-sm font-medium">{quote.quote_number}</span>
-        <Badge variant={isTerminal ? "default" : "secondary"} className="ml-2 text-xs">
-          {quote.status}
-        </Badge>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
-        {/* Coluna principal */}
-        <div className="flex flex-col gap-4">
-          {/* Cabeçalho */}
-          <div className=" rounded-lg p-5 bg-background">
-            <div className="flex items-start justify-between gap-4 mb-4">
-              <div>
-                <h1 className="text-xl font-bold text-foreground">{quote.quote_number}</h1>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  {quote.customer_name ?? quote.customer_email ?? "Cliente não identificado"}
-                  {quote.customer_phone && ` · ${quote.customer_phone}`}
-                </p>
-                {quote.valid_until && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Válido até {new Date(quote.valid_until).toLocaleDateString("pt-BR")}
-                  </p>
-                )}
-              </div>
-              {/* Ações de status */}
-              {!isTerminal && (
-                <div className="flex gap-2 flex-wrap">
-                  {isDraft && (
-                    <Button
-                      size="sm"
-                      onClick={() => changeStatus.mutate("sent")}
-                      disabled={changeStatus.isPending}
-                    >
-                      <Send className="size-4 mr-1.5" />
-                      Enviar ao Cliente
-                    </Button>
-                  )}
-                  {isSent && (
-                    <>
-                      <Button
-                        size="sm"
-                        variant="default"
-                        onClick={() => handleApprove.mutate()}
-                        disabled={handleApprove.isPending}
-                      >
-                        <CheckCircle2 className="size-4 mr-1.5" />
-                        Aprovar
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-danger hover:text-danger hover:bg-danger/10 border-danger/30"
-                        onClick={() => changeStatus.mutate("rejected")}
-                        disabled={changeStatus.isPending}
-                      >
-                        <XCircle className="size-4 mr-1.5" />
-                        Recusar
-                      </Button>
-                    </>
-                  )}
-                </div>
-              )}
+    <div className="flex flex-col gap-6 max-w-6xl mx-auto w-full p-4 sm:p-6 pb-24">
+      {/* Breadcrumb & Ações Superiores */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <Button asChild variant="ghost" size="icon" className="rounded-xl size-9">
+            <Link to="/workspace/orcamentos">
+              <ChevronLeft className="size-4" />
+            </Link>
+          </Button>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-mono font-bold text-muted-foreground">{quote.quote_number}</span>
+              <Badge
+                variant={isTerminal ? "default" : "secondary"}
+                className="text-[10px] font-semibold px-2 py-0.5 rounded-lg"
+              >
+                {quote.status}
+              </Badge>
             </div>
-
-            {quote.conditions && (
-              <div className="p-3 bg-muted/40 rounded-xl text-sm text-muted-foreground">
-                <strong className="text-foreground text-xs uppercase tracking-wide">
-                  Condições:
-                </strong>
-                <p className="mt-1">{quote.conditions}</p>
-              </div>
-            )}
-          </div>
-
-          {/* Itens do orçamento */}
-          <div className=" rounded-lg overflow-hidden bg-background">
-            <div className="px-5 py-3  bg-muted/20">
-              <h2 className="text-sm font-semibold text-foreground">Itens</h2>
-            </div>
-            <div className="divide-y divide-border">
-              {quote.items.map((item: QuoteItemDTO) => {
-                const Icon = ITEM_TYPE_ICON[item.item_type] ?? Hash;
-                return (
-                  <div key={item.id} className="flex items-start gap-4 px-5 py-3">
-                    <div className="size-8 rounded-xl bg-muted flex items-center justify-center shrink-0">
-                      <Icon className="size-4 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
-                      {item.description && (
-                        <p className="text-xs text-muted-foreground mt-0.5">{item.description}</p>
-                      )}
-                      {item.scheduled_start && (
-                        <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
-                          <Clock className="size-3" />
-                          {new Date(item.scheduled_start).toLocaleString("pt-BR")}
-                          {item.duration_minutes && ` · ${item.duration_minutes} min`}
-                        </p>
-                      )}
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-sm font-semibold text-foreground">
-                        {formatMoney(item.total_cents)}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {item.quantity}× {formatMoney(item.unit_price_cents)}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            {/* Totais */}
-            <div className="px-5 py-3  bg-muted/20 space-y-1">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Subtotal</span>
-                <span className="font-medium">{formatMoney(quote.subtotal_cents)}</span>
-              </div>
-              {quote.discount_cents > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Desconto</span>
-                  <span className="font-medium text-success">
-                    −{formatMoney(quote.discount_cents)}
-                  </span>
-                </div>
-              )}
-              <Separator className="my-2" />
-              <div className="flex justify-between text-base font-bold">
-                <span>Total</span>
-                <span>{formatMoney(quote.total_cents)}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Chat de negociação */}
-          <div className=" rounded-lg overflow-hidden bg-background">
-            <div className="px-5 py-3  bg-muted/20 flex items-center gap-2">
-              <MessageSquare className="size-4 text-muted-foreground" />
-              <h2 className="text-sm font-semibold text-foreground">Histórico de Negociação</h2>
-            </div>
-            <div className="p-4 space-y-3 max-h-64 overflow-y-auto">
-              {quote.messages.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  Nenhuma mensagem ainda.
-                </p>
-              )}
-              {quote.messages.map((msg: QuoteMessageDTO) => (
-                <div
-                  key={msg.id}
-                  className={cn(
-                    "p-3 rounded-lg text-sm",
-                    msg.is_internal
-                      ? "bg-warning/10 border border-warning/20"
-                      : "bg-muted/30 ",
-                  )}
-                >
-                  {msg.is_internal && (
-                    <span className="text-xs font-medium text-warning block mb-1">
-                      Nota interna
-                    </span>
-                  )}
-                  <p className="text-foreground">{msg.body}</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {formatRelativeTime(msg.created_at)}
-                  </p>
-                </div>
-              ))}
-            </div>
-            {!isTerminal && (
-              <div className="p-4 ">
-                <textarea
-                  value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
-                  placeholder="Escreva uma mensagem..."
-                  rows={3}
-                  className="w-full p-3 text-sm bg-muted/30  rounded-xl outline-none focus:ring-2 focus:ring-primary/20 resize-none"
-                />
-                <div className="flex items-center justify-between mt-2">
-                  <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={isInternal}
-                      onChange={(e) => setIsInternal(e.target.checked)}
-                      className="rounded"
-                    />
-                    Nota interna (não visível ao cliente)
-                  </label>
-                  <Button
-                    size="sm"
-                    onClick={() => sendMessage.mutate()}
-                    disabled={!messageText.trim() || sendMessage.isPending}
-                  >
-                    Enviar
-                  </Button>
-                </div>
-              </div>
-            )}
+            <h1 className="text-xl font-bold text-foreground">
+              {travelMeta?.title || quote.internal_notes || "Orçamento & Proposta"}
+            </h1>
           </div>
         </div>
 
-        {/* Coluna lateral */}
-        <aside className="flex flex-col gap-4">
-          <div className=" rounded-lg p-4 bg-background">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-              Resumo
-            </h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Número</span>
-                <span className="font-mono font-medium">{quote.quote_number}</span>
+        <div className="flex items-center gap-2">
+          <Button
+            asChild
+            variant="outline"
+            className="h-10 rounded-xl text-xs font-bold gap-1.5 cursor-pointer shadow-xs"
+          >
+            <Link to="/workspace/turismo/propostas/$id" params={{ id: quote.id }}>
+              <Sparkles className="size-3.5 text-primary" />
+              <span>Studio Visual de Propostas</span>
+            </Link>
+          </Button>
+
+          <Button
+            onClick={handleCopyPublicLink}
+            variant="outline"
+            className="h-10 rounded-xl text-xs font-bold gap-1.5 cursor-pointer"
+          >
+            <Copy className="size-3.5" />
+            <span>Copiar Link do Cliente</span>
+          </Button>
+
+          <Button
+            onClick={handleGenerateContract}
+            disabled={isCreatingContract}
+            className="h-10 rounded-xl text-xs font-bold gap-1.5 bg-primary text-primary-foreground cursor-pointer shadow-sm"
+          >
+            <FileCheck2 className="size-3.5" />
+            <span>{isCreatingContract ? "Emitindo..." : "Gerar Contrato (SHA-256)"}</span>
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Coluna Principal (8 Cols) */}
+        <div className="lg:col-span-8 space-y-6">
+          {/* Cabeçalho de Dados do Cliente e Viagem */}
+          <div className="p-6 rounded-3xl bg-card border border-border/80 space-y-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground uppercase">Cliente Contratante</p>
+                <h3 className="text-lg font-bold text-foreground mt-0.5">
+                  {quote.customer_name ?? quote.customer_email ?? "Cliente não identificado"}
+                </h3>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                  {quote.customer_phone && <span className="font-mono">📱 {quote.customer_phone}</span>}
+                  {quote.customer_email && <span>✉️ {quote.customer_email}</span>}
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Status</span>
-                <Badge variant="secondary" className="text-xs">
-                  {quote.status}
-                </Badge>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Versão</span>
-                <span>v{quote.version}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Criado</span>
-                <span>{formatRelativeTime(quote.created_at)}</span>
-              </div>
-              {quote.approved_at && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Aprovado</span>
-                  <span>{new Date(quote.approved_at).toLocaleDateString("pt-BR")}</span>
+
+              {quote.valid_until && (
+                <div className="text-right">
+                  <p className="text-[11px] font-semibold text-muted-foreground uppercase">Validade</p>
+                  <p className="text-xs font-bold text-foreground font-mono mt-0.5">
+                    {new Date(quote.valid_until).toLocaleDateString("pt-BR")}
+                  </p>
                 </div>
               )}
-              {quote.converted_order_id && (
-                <div className="pt-2">
-                  <Link
-                    to="/workspace/pedidos/$id"
-                    params={{ id: quote.converted_order_id }}
-                    className="flex items-center justify-between p-2 bg-success/10 border border-success/20 rounded-xl text-xs text-success hover:bg-success/15 transition-colors"
+            </div>
+
+            {travelMeta?.destination_city && (
+              <div className="p-3.5 rounded-2xl bg-muted/50 border border-border/50 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
+                  <Plane className="size-4 text-primary" />
+                  <span className="font-bold text-foreground">{travelMeta.destination_city}</span>
+                </div>
+                <div className="text-muted-foreground">
+                  {travelMeta.adults_count || 1} adulto(s) · {travelMeta.children_count || 0} criança(s)
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Seção de Trechos Aéreos (se houver) */}
+          {Array.isArray(travelMeta?.flights) && travelMeta.flights.length > 0 && (
+            <div className="p-6 rounded-3xl bg-card border border-border/80 space-y-4">
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <Plane className="size-4 text-primary" />
+                <span>Malha Aérea Selecionada ({travelMeta.flights.length} trecho(s))</span>
+              </h3>
+
+              <div className="space-y-3">
+                {travelMeta.flights.map((f: any, i: number) => (
+                  <div key={i} className="p-4 rounded-2xl bg-background/70 border border-border/60 space-y-2 text-xs">
+                    <div className="flex items-center justify-between font-bold">
+                      <span className="text-foreground">{f.airline_name} ({f.flight_number || "Voo Regular"})</span>
+                      <Badge variant="secondary" className="text-[10px]">{f.cabin_class || "Econômica"}</Badge>
+                    </div>
+                    <div className="flex items-center justify-between text-muted-foreground">
+                      <span>{f.origin_iata} ({f.origin_city}) ➔ {f.destination_iata} ({f.destination_city})</span>
+                      <span className="font-mono font-bold text-foreground">{f.departure_time} - {f.arrival_time}</span>
+                    </div>
+                    {f.baggage_included && (
+                      <p className="text-[11px] text-muted-foreground">🧳 {f.baggage_included}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Seção de Hotéis (se houver) */}
+          {Array.isArray(travelMeta?.hotels) && travelMeta.hotels.length > 0 && (
+            <div className="p-6 rounded-3xl bg-card border border-border/80 space-y-4">
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <Building2 className="size-4 text-primary" />
+                <span>Acomodação & Hospedagem</span>
+              </h3>
+
+              <div className="space-y-3">
+                {travelMeta.hotels.map((h: any, i: number) => (
+                  <div key={i} className="p-4 rounded-2xl bg-background/70 border border-border/60 space-y-2 text-xs">
+                    <div className="flex items-center justify-between font-bold">
+                      <span className="text-foreground">{h.hotel_name}</span>
+                      <span className="text-amber-500">{"★".repeat(h.stars || 5)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-muted-foreground">
+                      <span>Quarto: {h.room_type}</span>
+                      <Badge variant="outline" className="text-[10px] font-semibold capitalize">
+                        {h.board_basis?.replace("_", " ") || "All Inclusive"}
+                      </Badge>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">🌙 {h.nights_count} noites de hospedagem</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Mensagens e Histórico de Negociação */}
+          <div className="p-6 rounded-3xl bg-card border border-border/80 space-y-4">
+            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+              <MessageSquare className="size-4 text-primary" />
+              <span>Histórico & Mensagens da Negociação</span>
+            </h3>
+
+            <div className="space-y-3">
+              {quote.messages?.length === 0 ? (
+                <p className="text-xs text-muted-foreground">Nenhuma mensagem registrada nesta negociação.</p>
+              ) : (
+                quote.messages?.map((msg: any) => (
+                  <div
+                    key={msg.id}
+                    className={`p-3.5 rounded-2xl text-xs space-y-1 ${
+                      msg.is_internal ? "bg-amber-500/10 border border-amber-500/20 text-amber-950 dark:text-amber-200" : "bg-muted/60"
+                    }`}
                   >
-                    <span>Ver Pedido Gerado</span>
-                    <ChevronLeft className="size-3 rotate-180" />
-                  </Link>
+                    <div className="flex items-center justify-between font-semibold">
+                      <span>{msg.is_internal ? "🔒 Nota Interna" : "Comunicação"}</span>
+                      <span className="text-[10px] text-muted-foreground">{formatRelativeTime(msg.created_at)}</span>
+                    </div>
+                    <p>{msg.body}</p>
+                  </div>
+                ))
+              )}
+
+              <div className="flex items-center gap-2 pt-2">
+                <input
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  placeholder="Adicionar nota interna ou mensagem..."
+                  className="flex-1 h-10 px-3.5 rounded-xl border border-border bg-background text-xs"
+                />
+                <Button
+                  onClick={() => sendMessage.mutate()}
+                  disabled={!messageText.trim() || sendMessage.isPending}
+                  size="sm"
+                  className="h-10 px-4 rounded-xl text-xs font-bold"
+                >
+                  <Send className="size-3.5" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Coluna Lateral Financeira & Ações (4 Cols) */}
+        <div className="lg:col-span-4 space-y-6">
+          <div className="p-6 rounded-3xl bg-card border border-border/80 space-y-4">
+            <h3 className="text-sm font-bold text-foreground">Resumo Financeiro</h3>
+
+            <div className="space-y-3 text-xs">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Subtotal:</span>
+                <span className="font-mono font-semibold">{formatMoney(quote.subtotal_cents || quote.total_cents)}</span>
+              </div>
+              {quote.discount_cents > 0 && (
+                <div className="flex justify-between text-emerald-600">
+                  <span>Desconto:</span>
+                  <span className="font-mono font-semibold">- {formatMoney(quote.discount_cents)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-base font-black pt-3 border-t border-border/60 text-foreground">
+                <span>Total:</span>
+                <span className="text-primary font-mono">{formatMoney(quote.total_cents)}</span>
+              </div>
+            </div>
+
+            {/* Ações de Fechamento de Venda */}
+            <div className="space-y-2 pt-4 border-t border-border/60">
+              {isDraft && (
+                <Button
+                  onClick={() => changeStatus.mutate("sent")}
+                  disabled={changeStatus.isPending}
+                  className="w-full h-10 rounded-xl text-xs font-bold bg-primary text-primary-foreground gap-2 cursor-pointer shadow-sm"
+                >
+                  <Send className="size-3.5" />
+                  <span>Marcar como Enviado</span>
+                </Button>
+              )}
+
+              {isSent && (
+                <div className="space-y-2">
+                  <Button
+                    onClick={() => handleApprove.mutate()}
+                    disabled={handleApprove.isPending}
+                    className="w-full h-10 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white gap-2 cursor-pointer"
+                  >
+                    <CheckCircle2 className="size-3.5" />
+                    <span>Aprovar & Fechar Venda</span>
+                  </Button>
+                  <Button
+                    onClick={() => changeStatus.mutate("rejected")}
+                    disabled={changeStatus.isPending}
+                    variant="outline"
+                    className="w-full h-10 rounded-xl text-xs font-bold text-destructive hover:bg-destructive/10 cursor-pointer"
+                  >
+                    <XCircle className="size-3.5" />
+                    <span>Marcar como Recusado</span>
+                  </Button>
                 </div>
               )}
             </div>
           </div>
 
-          {quote.internal_notes && (
-            <div className="border border-warning/20 bg-warning/5 rounded-lg p-4">
-              <h3 className="text-xs font-semibold text-warning uppercase tracking-wide mb-2">
-                Notas Internas
-              </h3>
-              <p className="text-sm text-foreground">{quote.internal_notes}</p>
+          <div className="p-5 rounded-3xl bg-muted/40 border border-border/60 space-y-3 text-xs">
+            <h4 className="font-bold text-foreground">Ações de Conversão Rápida</h4>
+            <div className="space-y-2">
+              <Button asChild variant="outline" className="w-full h-9 rounded-xl text-xs font-semibold justify-start gap-2">
+                <Link to="/workspace/turismo/propostas/$id" params={{ id: quote.id }}>
+                  <Sparkles className="size-3.5 text-primary" />
+                  <span>Exportar Lâmina (PDF/PNG)</span>
+                </Link>
+              </Button>
+              <Button onClick={handleCopyPublicLink} variant="outline" className="w-full h-9 rounded-xl text-xs font-semibold justify-start gap-2">
+                <Share2 className="size-3.5 text-primary" />
+                <span>Link Direto para o WhatsApp</span>
+              </Button>
             </div>
-          )}
-        </aside>
+          </div>
+        </div>
       </div>
     </div>
   );
-}
-
-// Helper importado localmente para evitar import circular
-function cn(...classes: (string | undefined | false | null)[]) {
-  return classes.filter(Boolean).join(" ");
 }

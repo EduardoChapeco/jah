@@ -439,8 +439,8 @@ export const getOrderDispatches = createServerFn({ method: "GET" })
     assertStoreAccess(identity, ["owner", "admin", "manager", "logistics"]);
 
     const { data, error } = await supabase
-      .from("delivery_dispatches")
-      .select("*, delivery_drivers(name, vehicle_type, phone)")
+      .from("shipments")
+      .select("*")
       .eq("order_id", orderId)
       .eq("store_id", identity.store_id)
       .order("created_at", { ascending: false });

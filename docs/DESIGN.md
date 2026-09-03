@@ -148,8 +148,33 @@ Inspirada nos aplicativos de alta retenção (*iFood, Instagram, Threads, WhatsA
 2. **Camada 2 (BFF & Contratos Atômicos):** Server Functions (`createServerFn`) com validação Zod e checagem de autoridade por sessão.
 3. **Camada 3 (UI de Ação Reativa):** Componente interativo (Modal/Sheet/Form) com estados de loading esqueleto, feedback real e validação.
 4. **Camada 4 (Superfície de Governança):** Painel operacional no Workspace ou Admin Master para consulta, auditoria e reversão.
-5. **Camada 5 (Higiene Visual Anti-AI Smell):** Silêncio visual absoluto — proibição total de caixas conversacionais ("Bem-vindo ao..."), ausência de spam de ícones decorativos e sem títulos prolixos óbvios.
-6. **Camada 6 (Ergonomia Cognitiva dos 3 Toques):** Qualquer objetivo central do usuário (Comprar, Agendar, Encontrar um local) DEVE ser concluído em no máximo **3 toques do polegar** (baseado nos estudos de usabilidade da Nielsen Norman Group e Google Search UX).
-7. **Camada 7 (Fluidez & Zero Layout Shift):** Touch targets mínimos de 44px, tipografia com `clamp()`, ausência de FOUC e prevenção estrita de "efeito sanfona" através de containers unificados (`max-w-6xl` ou `max-w-7xl`).
 
+---
 
+## 9. Padrões Canônicos de Estações Operacionais: KDS Cozinha (QSR) vs. Gestor de Balcão & Isolamento por Nicho
+
+### 9.1 KDS Cozinha (Kitchen Display System — Padrão Internacional QSR)
+- **Propósito:** Estação de bancada de produção gastronômica (Tablet ou Smart TV de Cozinha).
+- **Diretrizes Visuais & Funcionais:**
+  1. **Tipografia Gigante de Ingredientes (`text-xl` a `text-2xl font-black`):** Leitura instantânea a 2 metros de distância em bancada movimentada.
+  2. **Checklist Tátil por Item:** O cozinheiro pode marcar item a item com 1 toque na tela ou atalho físico.
+  3. **Caixas de Modificadores & Observações:** Alertas visuais destacados (`+ SEM CEBOLA`, `⚠️ ATENÇÃO: PONTO DA CARNE`).
+  4. **Controle de SLA Progressivo:** Alerta visual com cronômetro em tempo real (🟢 Verde < 10m, 🟡 Amarelo 10-20m, 🔴 Vermelho > 25m pulsante).
+  5. **Controles Físicos & Bump Bar (Hardware de Cozinha QSR):**
+     - **Espaço / Enter:** Bump do pedido mais urgente na fila.
+     - **Teclas 1 a 9:** Acesso e avanço direto por slot de pedido.
+     - **Tecla F:** Alterna modo Fullscreen (Tela Cheia).
+     - **Tecla S:** Alterna som de sino sonoro de novos pedidos.
+     - **Tecla R:** Força sincronização instantânea.
+  6. **Zero Poluição Financeira:** Nenhum valor monetário ou bandeira de cartão na cozinha — foco estrito na produção gastronômica.
+
+### 9.2 Gestor de Pedidos (Balcão, Recepção & Expedição)
+- **Propósito:** Frente de caixa, expedição de motoboys e atendimento de balcão.
+- **Diretrizes:** Visão 360° do cliente, dados de pagamento (Pix, Cartão, Dinheiro), endereço de entrega, integração com WhatsApp e impressão em bobina térmica de 80mm.
+
+### 9.3 Isolamento Semântico e Contextual por Nicho (Zero Contaminação)
+- Cada segmento comercial da plataforma possui vocabulário, entidades e navegação estritamente especializados e canônicos:
+  - **Turismo:** `Pacotes & Roteiros`, `Passageiros (CRM)`, `Cotações`, `Lâminas de Proposta`, `Contratos & ANTT`, `Passeios & Ingressos`. Não exibe "Frente de Caixa (PDV)" nem itens de varejo.
+  - **Gastronomia:** `Cardápio & Itens`, `KDS Cozinha`, `Mesas & Comandas`, `Adicionais & Insumos`, `Entregadores & Despacho`.
+  - **Varejo & Moda:** `Produtos & Variações`, `Grades (Cores/Tamanhos)`, `Estoque & Alertas`, `Trocas & Devoluções`.
+  - **Saúde & Beleza:** `Grade de Agendamentos`, `Profissionais & Salas`, `Catálogo de Procedimentos`, `Pacotes & Passes`.

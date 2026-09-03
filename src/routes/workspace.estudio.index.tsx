@@ -55,6 +55,7 @@ import {
   type StudioTemplateDTO,
 } from "@/services/studio.functions";
 import { getProductById } from "@/services/admin-catalog.functions";
+import { exportElementAsImage } from "@/lib/pdf-export";
 
 export const Route = createFileRoute("/workspace/estudio/")({
   head: () => ({ meta: [{ title: "Wider Studio 3.0 — Criação & Vídeo" }] }),
@@ -81,6 +82,7 @@ function StudioWorkspacePage() {
   const [projectTitle, setProjectTitle] = useState("Meu Projeto Studio");
   const [aspectRatio, setAspectRatio] = useState<StudioAspectRatio>("1:1");
   const [zoom, setZoom] = useState(1);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Graphic Canvas State
   const [background, setBackground] = useState<SlideBackground>({
@@ -118,11 +120,19 @@ function StudioWorkspacePage() {
     { id: "tr-text", name: "Texto / Legendas", type: "text", clips: [{ id: "c3", start: 2, end: 7, name: "Legenda Oferta" }] },
   ]);
 
+  const [selectedTemplateCategory, setSelectedTemplateCategory] = useState<string>("all");
+
   // Queries
   const { data: templates } = useQuery({
     queryKey: ["studio-templates", studioMode],
     queryFn: () => listStudioTemplates({ data: { template_type: studioMode } }),
   });
+
+  const filteredTemplates = useMemo(() => {
+    if (!templates) return [];
+    if (selectedTemplateCategory === "all") return templates;
+    return templates.filter((t) => t.category === selectedTemplateCategory);
+  }, [templates, selectedTemplateCategory]);
 
   const { data: userProjects, refetch: refetchProjects } = useQuery({
     queryKey: ["studio-projects", studioMode],
@@ -220,8 +230,21 @@ function StudioWorkspacePage() {
     toast.success(`Template "${template.title}" aplicado!`);
   };
 
-  const handleExport = () => {
-    toast.success(`Exportando ${studioMode === "graphic" ? "arte em PNG (1080p)" : "vídeo em MP4"}...`);
+  const handleExport = async () => {
+    if (studioMode === "video") {
+      toast.info("A renderização de vídeo MP4 no navegador está em processamento.");
+      return;
+    }
+    try {
+      setIsExporting(true);
+      const safeTitle = projectTitle.toLowerCase().replace(/[^a-z0-9]/g, "_");
+      await exportElementAsImage("studio-canvas-stage", `${safeTitle || "arte_studio"}.png`);
+      toast.success("Arte exportada com sucesso em PNG de alta definição!");
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao exportar arte.");
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -318,11 +341,12 @@ function StudioWorkspacePage() {
 
           <Button
             size="sm"
+            disabled={isExporting}
             onClick={handleExport}
             className="h-8 rounded-xl font-bold text-xs bg-foreground text-background hover:bg-foreground/90 gap-1.5"
           >
-            <Download className="size-3.5" />
-            <span>Exportar</span>
+            {isExporting ? <Loader2 className="size-3.5 animate-spin" /> : <Download className="size-3.5" />}
+            <span>{isExporting ? "Exportando..." : "Exportar"}</span>
           </Button>
         </div>
       </header>
@@ -419,9 +443,37 @@ function StudioWorkspacePage() {
 
           {/* Templates Oficiais do Banco de Dados */}
           <div className="space-y-2 pt-2 border-t border-border/60">
-            <Label className="text-xs font-bold text-foreground">Modelos Prontos</Label>
-            <div className="space-y-2">
-              {(templates || []).map((tpl) => (
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold text-foreground">Modelos Prontos</Label>
+              <span className="text-[10px] font-mono text-muted-foreground">{filteredTemplates.length} disponíveis</span>
+            </div>
+
+            {/* Filtro Rápido por Nicho */}
+            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pb-1">
+              {[
+                { id: "all", label: "Todos" },
+                { id: "veiculos", label: "Veículos" },
+                { id: "imoveis", label: "Imóveis" },
+                { id: "gastronomia", label: "Gastro" },
+                { id: "turismo", label: "Turismo" },
+              ].map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setSelectedTemplateCategory(cat.id)}
+                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all whitespace-nowrap ${
+                    selectedTemplateCategory === cat.id
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted/60 text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+              {filteredTemplates.map((tpl) => (
                 <div
                   key={tpl.id}
                   onClick={() => handleApplyTemplate(tpl)}

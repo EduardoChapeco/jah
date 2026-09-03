@@ -25,8 +25,8 @@ function SystemLogsPage() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto px-4 md:px-8 py-6">
       <PageHeader 
-        title="Auditoria de Erros do Sistema (BFF)" 
-        eyebrow="Monitoramento em tempo real de falhas tratadas pela camada Server-Side." 
+        eyebrow="Auditoria"
+        title="Logs do Sistema" 
       />
 
       <div className="grid grid-cols-1 gap-4">

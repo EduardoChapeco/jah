@@ -24,6 +24,7 @@ import {
 } from "@/services/admin-team.functions";
 import { listMyStoreJobs, createStoreJob } from "@/services/jobs.functions";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/commerce/page-header";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -283,59 +284,57 @@ export default function WorkspaceTeamPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* ── Top Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
-            <Users className="size-6 text-primary" />
-            <span>Equipe, Folha & Vagas de Trabalho</span>
-          </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Gerencie colaboradores, permissões de acesso, folha de vales e recrutamento de novos talentos.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            asChild
-            variant="outline"
-            className="h-10 rounded-xl font-bold text-xs gap-1.5 shadow-2xs"
-          >
-            <Link to="/workspace/financeiro/funcionarios">
-              <Wallet className="size-4 text-emerald-600 dark:text-emerald-400" />
-              <span>Folha & Vales</span>
-            </Link>
-          </Button>
-          <Button
-            asChild
-            variant="outline"
-            className="h-10 rounded-xl font-bold text-xs gap-1.5 shadow-2xs"
-          >
-            <Link to="/workspace/empregos/candidatos">
-              <Briefcase className="size-4 text-primary" />
-              <span>Triagem de Currículos (ATS)</span>
-            </Link>
-          </Button>
-          {activeTab === "members" ? (
+    <div className="space-y-6 max-w-6xl mx-auto w-full pb-20">
+      {/* ── PageHeader Canônico Clean ── */}
+      <PageHeader
+        eyebrow="RH & Gestão"
+        title="Equipe & Vagas"
+        actions={
+          <div className="flex items-center gap-2">
             <Button
-              onClick={() => setIsInviteOpen(true)}
-              className="h-10 rounded-xl font-bold text-xs gap-2 shadow-xs cursor-pointer bg-primary text-primary-foreground"
+              asChild
+              variant="outline"
+              size="sm"
+              className="h-9 rounded-xl font-semibold text-xs gap-1.5"
             >
-              <UserPlus className="size-4" />
-              <span>Convidar Colaborador</span>
+              <Link to="/workspace/financeiro/funcionarios">
+                <Wallet className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span>Folha</span>
+              </Link>
             </Button>
-          ) : (
             <Button
-              onClick={() => setIsJobOpen(true)}
-              className="h-10 rounded-xl font-bold text-xs gap-2 shadow-xs cursor-pointer bg-primary text-primary-foreground"
+              asChild
+              variant="outline"
+              size="sm"
+              className="h-9 rounded-xl font-semibold text-xs gap-1.5"
             >
-              <Plus className="size-4" />
-              <span>Publicar Vaga</span>
+              <Link to="/workspace/empregos/candidatos">
+                <Briefcase className="size-3.5 text-primary" />
+                <span>Candidatos</span>
+              </Link>
             </Button>
-          )}
-        </div>
-      </div>
+            {activeTab === "members" ? (
+              <Button
+                onClick={() => setIsInviteOpen(true)}
+                size="sm"
+                className="h-9 rounded-xl font-bold text-xs gap-1.5 shadow-xs cursor-pointer bg-primary text-primary-foreground"
+              >
+                <UserPlus className="size-3.5" />
+                <span>Convidar</span>
+              </Button>
+            ) : (
+              <Button
+                onClick={() => setIsJobOpen(true)}
+                size="sm"
+                className="h-9 rounded-xl font-bold text-xs gap-1.5 shadow-xs cursor-pointer bg-primary text-primary-foreground"
+              >
+                <Plus className="size-3.5" />
+                <span>Publicar Vaga</span>
+              </Button>
+            )}
+          </div>
+        }
+      />
 
       {/* ── Tabs de Navegação ── */}
       <Tabs value={activeTab} onValueChange={(v: any) => setActiveTab(v)} className="w-full">

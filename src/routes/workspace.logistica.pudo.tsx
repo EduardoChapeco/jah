@@ -43,13 +43,14 @@ export const Route = createFileRoute("/workspace/logistica/pudo")({
   head: () => ({ meta: [{ title: "Ponto de Retirada (PUDO) & Logística Reversa | Workspace" }] }),
   loader: async () => {
     const packages = await listStorePudoPackages().catch(() => []);
-    return packages || [];
+    const safePackages = packages || [];
+    return { packages: safePackages, defaultLocationId: safePackages[0]?.pudo_location_id ?? null };
   },
   component: WorkspacePudoLogisticsPage,
 });
 
 function WorkspacePudoLogisticsPage() {
-  const initialData = Route.useLoaderData();
+  const { packages: initialData, defaultLocationId } = Route.useLoaderData();
   const router = useRouter();
   const [packages, setPackages] = useState<PudoPackageDTO[]>(initialData);
   const [statusTab, setStatusTab] = useState<string>("all");
@@ -137,7 +138,13 @@ function WorkspacePudoLogisticsPage() {
     setIsProcessing(true);
     try {
       const locationId =
-        packages[0]?.pudo_location_id || "d0000000-0000-0000-0000-000000000001";
+        packages[0]?.pudo_location_id || defaultLocationId;
+
+      if (!locationId) {
+        toast.error("Nenhum ponto PUDO configurado para esta loja. Configure em Configurações de Logística.");
+        setIsProcessing(false);
+        return;
+      }
 
       const res = await checkInPudoPackage({
         data: {
@@ -199,8 +206,8 @@ function WorkspacePudoLogisticsPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <PageHeader
-          eyebrow="Rede de Logística Urbana"
-          title="Ponto de Retirada (PUDO) & Balcão"
+          eyebrow="Logística"
+          title="Ponto de Retirada (PUDO)"
         />
 
         <div className="flex items-center gap-2">

@@ -49,12 +49,13 @@ export function ServicePackagesRail({
   const buyMutation = useMutation({
     mutationFn: async () => {
       if (!selectedPackage) throw new Error("Selecione um pacote.");
+      if (!customerPhone.trim()) throw new Error("Informe seu WhatsApp/Telefone para vincular o pacote.");
       return await buyServicePackageDirect({
         data: {
           package_id: selectedPackage.id,
           payment_method: paymentMethod,
-          customer_name: customerName || "Cliente Wider",
-          customer_phone: customerPhone || "49999999999",
+          customer_name: customerName.trim() || "Cliente",
+          customer_phone: customerPhone.trim(),
         },
       });
     },

@@ -37,6 +37,9 @@ import {
   Plane,
   Bus,
   FileText,
+  ChefHat,
+  Armchair,
+  UtensilsCrossed,
 } from "lucide-react";
 import {
   Dialog,
@@ -109,6 +112,8 @@ const SECTOR_TOOL_GROUPS = [
       { title: "Gestor de Pedidos (KDS)", path: "/workspace/pedidos/gestor", icon: ClipboardList },
       { title: "Histórico de Vendas", path: "/workspace/pedidos", icon: ShoppingBag },
       { title: "Frente de Caixa (PDV)", path: "/workspace/pdv", icon: Store },
+      { title: "KDS Cozinha & Estações", path: "/workspace/pdv/cozinha", icon: ChefHat, badge: "Novo" },
+      { title: "Reservas & Mapa do Salão", path: "/workspace/reservas", icon: Armchair, badge: "Novo" },
       { title: "Entregadores & Frota", path: "/workspace/pedidos/frota", icon: Truck },
       { title: "Controle de Insumos & Estoque", path: "/workspace/estoque", icon: Boxes },
       { title: "Alertas de Reposição", path: "/workspace/estoque/alertas", icon: Flame },
@@ -160,6 +165,7 @@ const SECTOR_TOOL_GROUPS = [
       { title: "Visão Geral de Desempenho", path: "/workspace", icon: BarChart3 },
       { title: "DRE & Fechamento Financeiro", path: "/workspace/financeiro", icon: DollarSign },
       { title: "Relatório de Produtos Mais Vendidos", path: "/workspace/relatorios/produtos", icon: Package },
+      { title: "Relatórios de Gastronomia", path: "/workspace/relatorios/gastronomia", icon: UtensilsCrossed, badge: "Novo" },
       { title: "Comissões & Repasses", path: "/workspace/financeiro/repasses", icon: Coins },
     ],
   },

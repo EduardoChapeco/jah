@@ -1,5 +1,6 @@
 /**
  * travel-proposal.functions.ts — BFF para o Studio de Propostas Comerciais & Lâminas de Viagem
+ * Tabela canônica: quotes (conditions JSONB como string serializada para metadados turísticos)
  * Padrão BigTech | Zero Mocks | Persistência Real no Supabase
  */
 
@@ -125,7 +126,71 @@ export interface TravelProposalDTO {
   updated_at: string;
 }
 
-// ─── 1. Criação de Proposta de Viagem ──────────────────────────────────────────
+// ─── Helpers ───────────────────────────────────────────────────────────────────
+
+/**
+ * Converte uma linha de quotes (com conditions JSON) para TravelProposalDTO.
+ */
+function rowToProposalDTO(row: any, storeRow?: any): TravelProposalDTO {
+  let meta: Record<string, any> = {};
+  try {
+    if (row.conditions) meta = JSON.parse(row.conditions);
+  } catch (_) { /* conditions pode ser texto livre sem JSON */ }
+
+  const storeSettings = storeRow?.settings || row.stores?.settings || {};
+
+  const defaultPricing: PricingBreakdownDTO = {
+    currency: "BRL",
+    base_price_cents: 0,
+    boarding_tax_cents: 0,
+    other_taxes_cents: 0,
+    discount_cents: 0,
+    total_price_cents: row.total_cents || 0,
+    installments_options: [],
+  };
+
+  return {
+    id: row.id,
+    store_id: row.store_id || null,
+    agency_name: storeRow?.name || row.stores?.name || "Agência de Viagens",
+    agency_logo_url: storeRow?.logo_url || row.stores?.logo_url || null,
+    agency_whatsapp: storeSettings.whatsapp_phone || storeSettings.phone || null,
+    quote_id: row.id, // self-referencing as the quote IS the proposal
+    public_token: meta.public_token || row.id,
+    title: row.internal_notes || meta.title || "Proposta de Viagem",
+    subtitle: meta.subtitle || null,
+    cover_image_url: meta.cover_image_url || null,
+    client_name: row.guest_name || meta.client_name || "",
+    client_whatsapp: row.guest_phone || meta.client_whatsapp || "",
+    client_email: row.guest_email || meta.client_email || null,
+    adults_count: meta.adults_count ?? 2,
+    children_count: meta.children_count ?? 0,
+    canvas_format: meta.canvas_format || "a4-portrait",
+    template_theme: meta.template_theme || "editorial-flat",
+    destination_city: meta.destination_city || "",
+    travel_start_date: meta.travel_start_date || null,
+    travel_end_date: meta.travel_end_date || null,
+    flights: meta.flights || [],
+    hotels: meta.hotels || [],
+    itinerary: meta.itinerary || [],
+    transfers: meta.transfers || [],
+    tours: meta.tours || [],
+    includes: meta.includes || [],
+    excludes: meta.excludes || [],
+    pricing: meta.pricing || defaultPricing,
+    special_notes: meta.special_notes || null,
+    status: (row.status === "approved" ? "approved"
+      : row.status === "rejected" ? "rejected"
+      : row.status === "expired" ? "expired"
+      : row.status === "sent" ? "sent"
+      : "draft") as ProposalStatus,
+    valid_until: row.valid_until || null,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+  };
+}
+
+// ─── 1. Criação de Proposta (Workspace) ───────────────────────────────────────
 
 export const createTravelProposal = createServerFn({ method: "POST" })
   .validator(
@@ -166,34 +231,45 @@ export const createTravelProposal = createServerFn({ method: "POST" })
       ],
     };
 
+    // Metadados turísticos armazenados em conditions (text → JSON serializado)
+    const conditionsMeta = JSON.stringify({
+      public_token: publicToken,
+      title: input.title.trim(),
+      client_name: input.clientName.trim(),
+      client_whatsapp: input.clientWhatsapp.trim(),
+      destination_city: input.destinationCity.trim(),
+      travel_start_date: input.travelStartDate || null,
+      travel_end_date: input.travelEndDate || null,
+      adults_count: input.adultsCount,
+      children_count: input.childrenCount,
+      canvas_format: input.canvasFormat,
+      template_theme: input.templateTheme,
+      flights: [],
+      hotels: [],
+      itinerary: [],
+      transfers: [],
+      tours: [],
+      includes: ["Passagens aéreas ida e volta", "Hospedagem com café da manhã", "Seguro viagem internacional"],
+      excludes: ["Despesas de caráter pessoal", "Taxas turísticas locais de preservação ambiental"],
+      pricing: initialPricing,
+    });
+
     const { data: inserted, error } = await supabase
-      .from("travel_proposals")
+      .from("quotes")
       .insert({
         store_id: identity.store_id || null,
-        created_by_profile_id: identity.id,
-        quote_id: input.quoteId || null,
-        public_token: publicToken,
-        title: input.title.trim(),
-        client_name: input.clientName.trim(),
-        client_whatsapp: input.clientWhatsapp.trim(),
-        destination_city: input.destinationCity.trim(),
-        travel_start_date: input.travelStartDate || null,
-        travel_end_date: input.travelEndDate || null,
-        adults_count: input.adultsCount,
-        children_count: input.childrenCount,
-        canvas_format: input.canvasFormat,
-        template_theme: input.templateTheme,
-        flights: [],
-        hotels: [],
-        itinerary: [],
-        transfers: [],
-        tours: [],
-        includes: ["Passagens aéreas ida e volta", "Hospedagem com café da manhã", "Seguro viagem internacional"],
-        excludes: ["Despesas de caráter pessoal", "Taxas turísticas locais de preservação ambiental"],
-        pricing: initialPricing,
+        customer_id: identity.id,
+        guest_name: input.clientName.trim(),
+        guest_phone: input.clientWhatsapp.trim(),
+        internal_notes: input.title.trim(),
+        conditions: conditionsMeta,
+        subtotal_cents: 0,
+        total_cents: 0,
+        discount_cents: 0,
         status: "draft",
+        created_by: identity.id,
       })
-      .select("id, public_token")
+      .select("id")
       .single();
 
     if (error) {
@@ -201,7 +277,7 @@ export const createTravelProposal = createServerFn({ method: "POST" })
       throw new Error("Falha ao salvar proposta: " + error.message);
     }
 
-    return { success: true, id: inserted.id, publicToken: inserted.public_token };
+    return { success: true, id: inserted.id, publicToken };
   });
 
 // ─── 2. Buscar Proposta por ID (Painel / Workspace) ───────────────────────────
@@ -217,15 +293,8 @@ export const getTravelProposalById = createServerFn({ method: "GET" })
     }
 
     const { data: row, error } = await supabase
-      .from("travel_proposals")
-      .select(`
-        *,
-        stores (
-          name,
-          logo_url,
-          settings
-        )
-      `)
+      .from("quotes")
+      .select(`*, stores(name, logo_url, settings)`)
       .eq("id", data.id)
       .maybeSingle();
 
@@ -233,51 +302,7 @@ export const getTravelProposalById = createServerFn({ method: "GET" })
       return null;
     }
 
-    const storeSettings = (row.stores as any)?.settings || {};
-
-    return {
-      id: row.id,
-      store_id: row.store_id,
-      agency_name: (row.stores as any)?.name || "Agência de Viagens",
-      agency_logo_url: (row.stores as any)?.logo_url || null,
-      agency_whatsapp: storeSettings.whatsapp_phone || storeSettings.phone || "",
-      quote_id: row.quote_id,
-      public_token: row.public_token,
-      title: row.title,
-      subtitle: row.subtitle,
-      cover_image_url: row.cover_image_url,
-      client_name: row.client_name,
-      client_whatsapp: row.client_whatsapp,
-      client_email: row.client_email,
-      adults_count: row.adults_count ?? 2,
-      children_count: row.children_count ?? 0,
-      canvas_format: row.canvas_format || "a4-portrait",
-      template_theme: row.template_theme || "editorial-flat",
-      destination_city: row.destination_city,
-      travel_start_date: row.travel_start_date,
-      travel_end_date: row.travel_end_date,
-      flights: row.flights || [],
-      hotels: row.hotels || [],
-      itinerary: row.itinerary || [],
-      transfers: row.transfers || [],
-      tours: row.tours || [],
-      includes: row.includes || [],
-      excludes: row.excludes || [],
-      pricing: row.pricing || {
-        currency: "BRL",
-        base_price_cents: 0,
-        boarding_tax_cents: 0,
-        other_taxes_cents: 0,
-        discount_cents: 0,
-        total_price_cents: 0,
-        installments_options: [],
-      },
-      special_notes: row.special_notes,
-      status: row.status || "draft",
-      valid_until: row.valid_until,
-      created_at: row.created_at,
-      updated_at: row.updated_at,
-    };
+    return rowToProposalDTO(row);
   });
 
 // ─── 3. Atualizar Proposta (Workspace Auto-Save) ───────────────────────────────
@@ -322,12 +347,51 @@ export const updateTravelProposal = createServerFn({ method: "POST" })
       throw new Error("Não autorizado.");
     }
 
+    // Primeiro, busca o registro atual para merge do conditions JSON
+    const { data: current, error: fetchErr } = await supabase
+      .from("quotes")
+      .select("conditions, guest_name, guest_phone, total_cents")
+      .eq("id", data.id)
+      .maybeSingle();
+
+    if (fetchErr || !current) {
+      throw new Error("Proposta não encontrada.");
+    }
+
+    let existingMeta: Record<string, any> = {};
+    try {
+      if (current.conditions) existingMeta = JSON.parse(current.conditions);
+    } catch (_) {}
+
+    const mergedMeta = { ...existingMeta, ...data.patch };
+    const totalCents = data.patch.pricing?.total_price_cents ?? current.total_cents ?? 0;
+
+    const quotePatch: Record<string, any> = {
+      conditions: JSON.stringify(mergedMeta),
+      updated_at: new Date().toISOString(),
+      total_cents: totalCents,
+    };
+
+    if (data.patch.client_name) quotePatch.guest_name = data.patch.client_name;
+    if (data.patch.client_whatsapp) quotePatch.guest_phone = data.patch.client_whatsapp;
+    if (data.patch.client_email !== undefined) quotePatch.guest_email = data.patch.client_email;
+    if (data.patch.title) quotePatch.internal_notes = data.patch.title;
+    if (data.patch.status) {
+      // Map ProposalStatus to quote_status enum
+      const statusMap: Record<string, string> = {
+        draft: "draft",
+        sent: "sent",
+        approved: "approved",
+        rejected: "rejected",
+        expired: "expired",
+      };
+      quotePatch.status = statusMap[data.patch.status] || "draft";
+    }
+    if (data.patch.valid_until !== undefined) quotePatch.valid_until = data.patch.valid_until;
+
     const { error } = await supabase
-      .from("travel_proposals")
-      .update({
-        ...data.patch,
-        updated_at: new Date().toISOString(),
-      })
+      .from("quotes")
+      .update(quotePatch)
       .eq("id", data.id);
 
     if (error) {
@@ -345,68 +409,25 @@ export const getPublicTravelProposalByToken = createServerFn({ method: "GET" })
   .handler(async ({ data }): Promise<TravelProposalDTO | null> => {
     const supabase = getAnonServerClient();
 
-    const { data: row, error } = await supabase
-      .from("travel_proposals")
-      .select(`
-        *,
-        stores (
-          name,
-          logo_url,
-          settings
-        )
-      `)
-      .eq("public_token", data.token)
-      .maybeSingle();
+    // O public_token está serializado dentro do campo conditions
+    const { data: rows, error } = await supabase
+      .from("quotes")
+      .select(`*, stores(name, logo_url, settings)`)
+      .order("created_at", { ascending: false })
+      .limit(100);
 
-    if (error || !row) {
-      return null;
-    }
+    if (error || !rows) return null;
 
-    const storeSettings = (row.stores as any)?.settings || {};
+    // Busca por token dentro do JSON serializado em conditions
+    const row = rows.find((r: any) => {
+      try {
+        const meta = JSON.parse(r.conditions || "{}");
+        return meta.public_token === data.token;
+      } catch (_) { return false; }
+    });
 
-    return {
-      id: row.id,
-      store_id: row.store_id,
-      agency_name: (row.stores as any)?.name || "Agência de Viagens",
-      agency_logo_url: (row.stores as any)?.logo_url || null,
-      agency_whatsapp: storeSettings.whatsapp_phone || storeSettings.phone || "",
-      quote_id: row.quote_id,
-      public_token: row.public_token,
-      title: row.title,
-      subtitle: row.subtitle,
-      cover_image_url: row.cover_image_url,
-      client_name: row.client_name,
-      client_whatsapp: row.client_whatsapp,
-      client_email: row.client_email,
-      adults_count: row.adults_count ?? 2,
-      children_count: row.children_count ?? 0,
-      canvas_format: row.canvas_format || "a4-portrait",
-      template_theme: row.template_theme || "editorial-flat",
-      destination_city: row.destination_city,
-      travel_start_date: row.travel_start_date,
-      travel_end_date: row.travel_end_date,
-      flights: row.flights || [],
-      hotels: row.hotels || [],
-      itinerary: row.itinerary || [],
-      transfers: row.transfers || [],
-      tours: row.tours || [],
-      includes: row.includes || [],
-      excludes: row.excludes || [],
-      pricing: row.pricing || {
-        currency: "BRL",
-        base_price_cents: 0,
-        boarding_tax_cents: 0,
-        other_taxes_cents: 0,
-        discount_cents: 0,
-        total_price_cents: 0,
-        installments_options: [],
-      },
-      special_notes: row.special_notes,
-      status: row.status || "draft",
-      valid_until: row.valid_until,
-      created_at: row.created_at,
-      updated_at: row.updated_at,
-    };
+    if (!row) return null;
+    return rowToProposalDTO(row);
   });
 
 // ─── 5. Aprovação da Proposta pelo Cliente ────────────────────────────────────
@@ -421,13 +442,30 @@ export const approveTravelProposal = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<{ success: boolean; message: string }> => {
     const supabase = getAnonServerClient();
 
+    // Busca o id da quote pelo public_token embarcado em conditions
+    const { data: rows } = await supabase
+      .from("quotes")
+      .select("id, conditions")
+      .order("created_at", { ascending: false })
+      .limit(200);
+
+    const row = (rows || []).find((r: any) => {
+      try {
+        return JSON.parse(r.conditions || "{}").public_token === data.token;
+      } catch (_) { return false; }
+    });
+
+    if (!row) {
+      throw new Error("Proposta não encontrada.");
+    }
+
     const { error } = await supabase
-      .from("travel_proposals")
+      .from("quotes")
       .update({
         status: "approved",
         updated_at: new Date().toISOString(),
       })
-      .eq("public_token", data.token);
+      .eq("id", row.id);
 
     if (error) {
       throw new Error("Erro ao aprovar proposta: " + error.message);
@@ -456,29 +494,27 @@ export const listAgencyTravelProposals = createServerFn({ method: "GET" })
     }
 
     let query = supabase
-      .from("travel_proposals")
-      .select(`
-        *,
-        stores (
-          name,
-          logo_url,
-          settings
-        )
-      `)
+      .from("quotes")
+      .select(`*, stores(name, logo_url, settings)`)
       .order("created_at", { ascending: false });
 
     if (identity.store_id) {
       query = query.eq("store_id", identity.store_id);
     } else {
-      query = query.eq("created_by_profile_id", identity.id);
+      query = query.eq("created_by", identity.id);
     }
 
     if (data?.status && data.status !== "todos") {
-      query = query.eq("status", data.status);
+      const statusMap: Record<string, string> = {
+        draft: "draft", sent: "sent", approved: "approved",
+        rejected: "rejected", expired: "expired",
+      };
+      const mapped = statusMap[data.status];
+      if (mapped) query = query.eq("status", mapped);
     }
 
     if (data?.search) {
-      query = query.or(`title.ilike.%${data.search}%,client_name.ilike.%${data.search}%,destination_city.ilike.%${data.search}%`);
+      query = query.or(`guest_name.ilike.%${data.search}%,internal_notes.ilike.%${data.search}%`);
     }
 
     const { data: rows, error } = await query;
@@ -488,50 +524,13 @@ export const listAgencyTravelProposals = createServerFn({ method: "GET" })
       return [];
     }
 
-    return rows.map((row: any) => {
-      const storeSettings = row.stores?.settings || {};
-      return {
-        id: row.id,
-        store_id: row.store_id,
-        agency_name: row.stores?.name || "Agência de Viagens",
-        agency_logo_url: row.stores?.logo_url || null,
-        agency_whatsapp: storeSettings.whatsapp_phone || storeSettings.phone || "",
-        quote_id: row.quote_id,
-        public_token: row.public_token,
-        title: row.title,
-        subtitle: row.subtitle,
-        cover_image_url: row.cover_image_url,
-        client_name: row.client_name,
-        client_whatsapp: row.client_whatsapp,
-        client_email: row.client_email,
-        adults_count: row.adults_count ?? 2,
-        children_count: row.children_count ?? 0,
-        canvas_format: row.canvas_format || "a4-portrait",
-        template_theme: row.template_theme || "editorial-flat",
-        destination_city: row.destination_city,
-        travel_start_date: row.travel_start_date,
-        travel_end_date: row.travel_end_date,
-        flights: row.flights || [],
-        hotels: row.hotels || [],
-        itinerary: row.itinerary || [],
-        transfers: row.transfers || [],
-        tours: row.tours || [],
-        includes: row.includes || [],
-        excludes: row.excludes || [],
-        pricing: row.pricing || {
-          currency: "BRL",
-          base_price_cents: 0,
-          boarding_tax_cents: 0,
-          other_taxes_cents: 0,
-          discount_cents: 0,
-          total_price_cents: 0,
-          installments_options: [],
-        },
-        special_notes: row.special_notes,
-        status: row.status || "draft",
-        valid_until: row.valid_until,
-        created_at: row.created_at,
-        updated_at: row.updated_at,
-      };
-    });
+    // Filtra apenas as quotes que são propostas turísticas (têm public_token "prop_..." em conditions)
+    return rows
+      .filter((r: any) => {
+        try {
+          const meta = JSON.parse(r.conditions || "{}");
+          return meta.public_token?.startsWith("prop_") || meta.destination_city;
+        } catch (_) { return false; }
+      })
+      .map((row: any) => rowToProposalDTO(row));
   });

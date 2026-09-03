@@ -56,43 +56,73 @@ import { useCartContext } from "@/lib/cart-context";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+import { listHotpages } from "@/services/hotpage.functions";
+import { DynamicMediaChip } from "@/components/commerce/dynamic-media-chip";
+import { PWAInstallBanner } from "@/components/commerce/pwa-install-banner";
+import { ProductModifiersModal, type SelectedModifier } from "@/components/pos/product-modifiers-modal";
+
 export const Route = createFileRoute("/_store/perfil-da-loja")({
   validateSearch: (
     search: Record<string, unknown>
-  ): { storeId?: string; slug?: string; aba?: string; origem?: string } => {
+  ): { storeId?: string; slug?: string; aba?: string; origem?: string; mesa?: string } => {
     return {
       storeId: typeof search.storeId === "string" ? search.storeId : undefined,
       slug: typeof search.slug === "string" ? search.slug : undefined,
       aba: typeof search.aba === "string" ? search.aba : undefined,
       origem: typeof search.origem === "string" ? search.origem : undefined,
+      mesa: typeof search.mesa === "string" ? search.mesa : undefined,
     };
   },
-  head: ({ loaderData }: any) => ({
-    meta: [
-      {
-        title: loaderData?.profile?.name
-          ? `${loaderData.profile.name} — Loja & Cardápio Oficial | Wider`
-          : "Página Oficial da Loja | Wider",
-      },
-      {
-        name: "description",
-        content:
-          loaderData?.profile?.description ||
-          "Catálogo de produtos, cardápio, horários de funcionamento e canais oficiais de atendimento.",
-      },
-    ],
-  }),
+  head: ({ loaderData }: any) => {
+    const profile = loaderData?.profile;
+    const storeName = profile?.name || "Loja Oficial";
+    const storeLogo = profile?.settings?.logoUrl || profile?.settings?.logo_url || profile?.logoUrl || "/icons/icon-192x192.png";
+    const primaryColor = profile?.settings?.primaryColor || profile?.settings?.primary_color || "#09090b";
+
+    return {
+      title: profile?.name
+        ? `${profile.name} — Loja & Cardápio Oficial | Wider`
+        : "Página Oficial da Loja | Wider",
+      meta: [
+        {
+          name: "description",
+          content:
+            profile?.description ||
+            "Catálogo de produtos, cardápio, horários de funcionamento e canais oficiais de atendimento.",
+        },
+        { name: "theme-color", content: primaryColor },
+        { name: "apple-mobile-web-app-title", content: storeName },
+        { name: "apple-mobile-web-app-capable", content: "yes" },
+        { name: "mobile-web-app-capable", content: "yes" },
+        { property: "og:title", content: `${storeName} — Loja Oficial` },
+        { property: "og:image", content: storeLogo },
+      ],
+      links: [
+        {
+          rel: "manifest",
+          href: profile?.id
+            ? `/api/pwa/manifest.json?storeId=${profile.id}`
+            : "/manifest.json",
+        },
+        {
+          rel: "apple-touch-icon",
+          href: storeLogo,
+        },
+      ],
+    };
+  },
 
   loader: async ({ location }) => {
     const search = (location.search || {}) as any;
     const targetStore = search.storeId || search.slug;
-    const [profile, docRes, catalogRes, jobsRes] = await Promise.all([
+    const [profile, docRes, catalogRes, jobsRes, hotpagesRes] = await Promise.all([
       getPublicStoreProfile({ data: targetStore ? { storeId: targetStore } : undefined }).catch(() => null),
       getPublicExperienceDocumentBySlug({
         data: { slug: "home", document_type: "storefront", storeId: targetStore },
       }).catch(() => null),
       getStorePublicCatalog({ data: targetStore ? { storeId: targetStore } : undefined }).catch(() => null),
       listPublicJobs({ data: {} }).catch(() => null),
+      listHotpages({ data: { module: "home" } }).catch(() => []),
     ]);
 
     const rawJobs = Array.isArray(jobsRes) ? jobsRes : (jobsRes as any)?.jobs || [];
@@ -106,6 +136,7 @@ export const Route = createFileRoute("/_store/perfil-da-loja")({
       catalog: catalogRes?.products || [],
       categories: catalogRes?.categories || [],
       jobs: storeJobs,
+      hotpages: Array.isArray(hotpagesRes) ? hotpagesRes : [],
       builderTree:
         docRes?.status === "ok" && (docRes.data as any).tree?.length > 0
           ? (docRes.data as any).tree
@@ -117,9 +148,12 @@ export const Route = createFileRoute("/_store/perfil-da-loja")({
 });
 
 function StorePerfil() {
-  const { profile: data, catalog, categories, jobs, builderTree } = Route.useLoaderData();
+  const { profile: data, catalog, categories, jobs, hotpages = [], builderTree } = Route.useLoaderData();
   const search = Route.useSearch();
-  const { setCartData, setIsCartOpen } = useCartContext();
+  const { setCartData, setIsCartOpen, cart } = useCartContext();
+
+  const cartItemsCount = cart?.itemCount ?? cart?.items?.reduce((acc, item) => acc + (item.qty || 1), 0) ?? 0;
+  const cartTotalCents = cart?.subtotalCents || cart?.totalCents || 0;
 
   // Determinação da aba inicial com base na intenção de entrada (origem / aba)
   const initialTab = useMemo(() => {
@@ -140,6 +174,63 @@ function StorePerfil() {
   const [activeTab, setActiveTab] = useState<string>(initialTab);
   const [productSearch, setProductSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("todas");
+  const [selectedProductForModifiers, setSelectedProductForModifiers] = useState<any | null>(null);
+
+  const handleAddToCart = async (p: any) => {
+    if (p.optionGroups && p.optionGroups.length > 0) {
+      setSelectedProductForModifiers(p);
+      return;
+    }
+
+    try {
+      const res = await addToCart({
+        data: {
+          productId: p.id,
+          quantity: 1,
+        },
+      });
+      if (res?.cart) {
+        setCartData(res.cart as any, (res as any).globalCarts as any);
+      }
+      toast.success(`${p.title} adicionado à sacola!`);
+      setIsCartOpen(true);
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao adicionar produto.");
+    }
+  };
+
+  const handleConfirmModifiers = async (
+    prod: any,
+    _variant: any,
+    selectedMods: SelectedModifier[],
+  ) => {
+    try {
+      const optionsPayload: Record<string, string[]> = {};
+      selectedMods.forEach((m) => {
+        if (!optionsPayload[m.groupId]) {
+          optionsPayload[m.groupId] = [];
+        }
+        optionsPayload[m.groupId].push(m.title);
+      });
+
+      const res = await addToCart({
+        data: {
+          productId: prod.id,
+          quantity: 1,
+          options: optionsPayload,
+        },
+      });
+
+      if (res?.cart) {
+        setCartData(res.cart as any, (res as any).globalCarts as any);
+      }
+      toast.success(`${prod.title} adicionado à sacola!`);
+      setSelectedProductForModifiers(null);
+      setIsCartOpen(true);
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao adicionar produto.");
+    }
+  };
 
   if (!data || ("status" in data && data.status === "unconfigured")) {
     return (
@@ -175,6 +266,7 @@ function StorePerfil() {
   const openStatus = rawHours ? getOpenStatus(rawHours, holidayExceptions) : null;
   const weeklySchedule = normalizeWorkingHours(rawHours);
   const scheduleSummary = rawHours ? formatWeeklyScheduleSummary(weeklySchedule) : "Horários sob consulta";
+  const orderTypes = settings.order_types || { delivery: true, takeout: true, dine_in: true };
 
   // Semântica por Nicho
   const segment = (store.type || settings.segment || "loja").toLowerCase();
@@ -247,6 +339,50 @@ function StorePerfil() {
 
       {/* ── 2. CORPO INSTITUCIONAL PADRONIZADO (MAX 6XL CANÔNICO) ── */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6 pt-2">
+        {/* Banner de Autoatendimento em Mesa */}
+        {search.mesa && (
+          <div className="p-3.5 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="size-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
+                <UtensilsCrossed className="size-4" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-foreground">
+                  Atendimento na Mesa {search.mesa}
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  Seus pedidos serão preparados pela cozinha e servidos diretamente na sua mesa.
+                </p>
+              </div>
+            </div>
+            <Badge variant="outline" className="text-[10px] font-mono border-primary/30 text-primary font-bold">
+              Mesa Ativa
+            </Badge>
+          </div>
+        )}
+
+        {/* Banner de Loja Fechada com Captura de Intenção (Pedido Programado) */}
+        {openStatus && !openStatus.isOpenNow && (
+          <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/80 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="size-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                <Clock className="size-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-foreground truncate">
+                  Estabelecimento fechado no momento
+                </p>
+                <p className="text-[11px] text-muted-foreground truncate">
+                  Você pode montar sua sacola e programar seu pedido para quando o local abrir.
+                </p>
+              </div>
+            </div>
+            <Badge variant="outline" className="text-[10px] font-mono border-amber-500/30 text-amber-600 dark:text-amber-400 font-bold shrink-0">
+              Pedido Programado
+            </Badge>
+          </div>
+        )}
+
         {/* Identidade Visual & Cabeçalho */}
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-12 sm:-mt-16 relative z-10">
@@ -313,6 +449,21 @@ function StorePerfil() {
                   {settings.business_model === "home_office" && "Home Office"}
                   {settings.business_model === "service_at_client" && "Em Domicílio"}
                   {settings.business_model === "digital_only" && "100% Digital"}
+                </Badge>
+              )}
+              {orderTypes.delivery && (
+                <Badge variant="outline" className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/5">
+                  🛵 Delivery
+                </Badge>
+              )}
+              {orderTypes.takeout && (
+                <Badge variant="outline" className="text-[10px] font-bold text-blue-600 dark:text-blue-400 border-blue-500/30 bg-blue-500/5">
+                  🛍️ Retirada
+                </Badge>
+              )}
+              {orderTypes.dine_in && (
+                <Badge variant="outline" className="text-[10px] font-bold text-amber-600 dark:text-amber-400 border-amber-500/30 bg-amber-500/5">
+                  🍽️ No Local
                 </Badge>
               )}
             </div>
@@ -462,6 +613,25 @@ function StorePerfil() {
           {/* ── CONTEÚDO DA ABA 1: CATÁLOGO / CARDÁPIO ── */}
           {activeTab === "catalogo" && (
             <div className="space-y-6">
+              {/* Trilho de Destaques & Hotpages da Loja */}
+              {hotpages.length > 0 && (
+                <div className="flex gap-2.5 overflow-x-auto scrollbar-none pb-1 pt-1">
+                  {hotpages.map((h: any) => (
+                    <div key={h.id} className="shrink-0">
+                      <DynamicMediaChip
+                        label={h.title}
+                        badge={h.badge_label || undefined}
+                        bg_media_type={h.bg_media_type || undefined}
+                        bg_media_url={h.bg_media_url || undefined}
+                        bg_texture={h.bg_texture as any || undefined}
+                        bg_overlay_opacity={h.bg_overlay_opacity ?? undefined}
+                        to={h.target_route || undefined}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {/* Barra de Busca de Produtos */}
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
@@ -521,65 +691,101 @@ function StorePerfil() {
                   {filteredProducts.map((p: any) => (
                     <div
                       key={p.id}
-                      className="rounded-3xl bg-card p-4 space-y-3 flex flex-col justify-between group hover:bg-muted/20 transition-colors"
+                      className={cn(
+                        "rounded-3xl bg-card p-4 transition-all group hover:bg-muted/20 border border-border/40 sm:border-transparent",
+                        isGastronomy
+                          ? "flex flex-row items-center justify-between gap-3 sm:flex-col sm:items-stretch sm:justify-between"
+                          : "flex flex-col justify-between space-y-3"
+                      )}
                     >
-                      <div className="space-y-3">
-                        <div className="aspect-[4/3] rounded-2xl bg-muted/40 overflow-hidden relative">
-                          {p.coverUrl || p.images?.[0] ? (
-                            <img
-                              src={p.coverUrl || p.images[0]}
-                              alt={p.title}
-                              className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                          ) : (
-                            <div className="size-full flex items-center justify-center text-muted-foreground/40">
-                              <CatalogIcon className="size-8" />
+                      {isGastronomy ? (
+                        <>
+                          <div className="flex-1 min-w-0 space-y-1.5 sm:space-y-2">
+                            <h3 className="text-sm sm:text-base font-bold text-foreground leading-snug line-clamp-1 group-hover:text-primary transition-colors">
+                              {p.title}
+                            </h3>
+                            {p.description && (
+                              <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                                {p.description}
+                              </p>
+                            )}
+                            <div className="flex items-center gap-2 pt-1">
+                              <span className="font-extrabold text-sm sm:text-base text-foreground font-mono">
+                                {formatMoney(p.priceCents ? p.priceCents / 100 : p.price || 0)}
+                              </span>
                             </div>
-                          )}
-                        </div>
+                          </div>
 
-                        <div className="space-y-1">
-                          <h3 className="text-sm font-bold text-foreground leading-snug line-clamp-1 group-hover:text-primary transition-colors">
-                            {p.title}
-                          </h3>
-                          {p.description && (
-                            <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                              {p.description}
-                            </p>
-                          )}
-                        </div>
-                      </div>
+                          <div className="relative shrink-0 flex flex-col items-center gap-1.5 sm:order-first sm:mb-2">
+                            <div className="size-20 sm:size-auto sm:aspect-[4/3] rounded-2xl bg-muted/40 overflow-hidden relative">
+                              {p.coverUrl || p.images?.[0] ? (
+                                <img
+                                  src={p.coverUrl || p.images[0]}
+                                  alt={p.title}
+                                  className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                />
+                              ) : (
+                                <div className="size-full flex items-center justify-center text-muted-foreground/40">
+                                  <CatalogIcon className="size-6 sm:size-8" />
+                                </div>
+                              )}
+                            </div>
 
-                      <div className="flex items-center justify-between pt-2">
-                        <div className="font-extrabold text-sm sm:text-base text-foreground font-mono">
-                          {formatMoney(p.priceCents ? p.priceCents / 100 : p.price || 0)}
-                        </div>
+                            <Button
+                              size="sm"
+                              className="h-7.5 sm:h-8 px-3 sm:px-3.5 rounded-xl font-bold text-xs bg-primary text-primary-foreground gap-1 w-full cursor-pointer shadow-2xs"
+                              onClick={() => handleAddToCart(p)}
+                            >
+                              <Plus className="size-3" />
+                              <span>{p.optionGroups && p.optionGroups.length > 0 ? "Personalizar" : "Adicionar"}</span>
+                            </Button>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="space-y-3">
+                            <div className="aspect-[4/3] rounded-2xl bg-muted/40 overflow-hidden relative">
+                              {p.coverUrl || p.images?.[0] ? (
+                                <img
+                                  src={p.coverUrl || p.images[0]}
+                                  alt={p.title}
+                                  className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                />
+                              ) : (
+                                <div className="size-full flex items-center justify-center text-muted-foreground/40">
+                                  <CatalogIcon className="size-8" />
+                                </div>
+                              )}
+                            </div>
 
-                        <Button
-                          size="sm"
-                          className="h-8 px-3.5 rounded-xl font-bold text-xs bg-primary text-primary-foreground gap-1.5"
-                          onClick={async () => {
-                            try {
-                              const res = await addToCart({
-                                data: {
-                                  productId: p.id,
-                                  quantity: 1,
-                                },
-                              });
-                              if (res?.cart) {
-                                setCartData(res.cart as any, (res as any).globalCarts as any);
-                              }
-                              toast.success(`${p.title} adicionado à sacola!`);
-                              setIsCartOpen(true);
-                            } catch (err: any) {
-                              toast.error(err?.message || "Erro ao adicionar produto.");
-                            }
-                          }}
-                        >
-                          <Plus className="size-3.5" />
-                          <span>Adicionar</span>
-                        </Button>
-                      </div>
+                            <div className="space-y-1">
+                              <h3 className="text-sm font-bold text-foreground leading-snug line-clamp-1 group-hover:text-primary transition-colors">
+                                {p.title}
+                              </h3>
+                              {p.description && (
+                                <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                                  {p.description}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-2">
+                            <div className="font-extrabold text-sm sm:text-base text-foreground font-mono">
+                              {formatMoney(p.priceCents ? p.priceCents / 100 : p.price || 0)}
+                            </div>
+
+                            <Button
+                              size="sm"
+                              className="h-8 px-3.5 rounded-xl font-bold text-xs bg-primary text-primary-foreground gap-1.5 cursor-pointer"
+                              onClick={() => handleAddToCart(p)}
+                            >
+                              <Plus className="size-3.5" />
+                              <span>{p.optionGroups && p.optionGroups.length > 0 ? "Personalizar" : "Adicionar"}</span>
+                            </Button>
+                          </div>
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -718,38 +924,84 @@ function StorePerfil() {
       </div>
 
       {/* ── BARRA FIXA INFERIOR DE AÇÕES RÁPIDAS (MOBILE THUMB ZONE - 44px) ── */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 p-3 bg-background/90 backdrop-blur-xl border-t border-border/60 md:hidden flex items-center gap-2">
-        {store.phone && (
-          <Button
-            onClick={() =>
-              trackAndOpenWhatsApp({
-                phone: store.phone,
-                entityType: "store",
-                storeId: store.id,
-                entityTitle: store.name,
-                customMessage: `Olá, vi o perfil de ${store.name} no Wider e gostaria de falar com vocês!`,
-              })
-            }
-            className="flex-1 h-11 rounded-2xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-2 shadow-lg cursor-pointer"
-          >
-            <WhatsappLogo className="size-4" weight="bold" />
-            <span>Falar no WhatsApp</span>
-          </Button>
+      <div className="fixed bottom-0 left-0 right-0 z-40 p-3 bg-background/95 backdrop-blur-xl border-t border-border/60 md:hidden flex items-center justify-between gap-3 shadow-lg">
+        {cartItemsCount > 0 ? (
+          <div className="flex items-center justify-between w-full gap-3">
+            <div className="flex flex-col">
+              <span className="text-[10px] text-muted-foreground uppercase font-mono tracking-wider">
+                Total sem entrega
+              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-base font-black text-foreground font-mono">
+                  {formatMoney(cartTotalCents / 100)}
+                </span>
+                <span className="text-xs text-muted-foreground font-medium">
+                  • {cartItemsCount} {cartItemsCount === 1 ? "item" : "itens"}
+                </span>
+              </div>
+            </div>
+
+            <Button
+              onClick={() => setIsCartOpen(true)}
+              className="h-11 px-5 rounded-2xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-2 shadow-md cursor-pointer shrink-0"
+            >
+              <ShoppingBag className="size-4" />
+              <span>Ver Carrinho</span>
+            </Button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 w-full">
+            {store.phone && (
+              <Button
+                onClick={() =>
+                  trackAndOpenWhatsApp({
+                    phone: store.phone,
+                    entityType: "store",
+                    storeId: store.id,
+                    entityTitle: store.name,
+                    customMessage: `Olá, vi o perfil de ${store.name} no Wider e gostaria de falar com vocês!`,
+                  })
+                }
+                className="flex-1 h-11 rounded-2xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-2 shadow-sm cursor-pointer"
+              >
+                <WhatsappLogo className="size-4" weight="bold" />
+                <span>Falar no WhatsApp</span>
+              </Button>
+            )}
+            <Button
+              onClick={() => {
+                setActiveTab("catalogo");
+                if (typeof window !== "undefined") {
+                  window.scrollTo({ top: 320, behavior: "smooth" });
+                }
+              }}
+              variant="secondary"
+              className="h-11 px-4 rounded-2xl font-bold text-xs gap-1.5 cursor-pointer"
+            >
+              <CatalogIcon className="size-4" />
+              <span>{isGastronomy ? "Cardápio" : "Catálogo"}</span>
+            </Button>
+          </div>
         )}
-        <Button
-          onClick={() => {
-            setActiveTab("catalogo");
-            if (typeof window !== "undefined") {
-              window.scrollTo({ top: 320, behavior: "smooth" });
-            }
-          }}
-          variant="secondary"
-          className="h-11 px-4 rounded-2xl font-bold text-xs gap-1.5 cursor-pointer"
-        >
-          <CatalogIcon className="size-4" />
-          <span>{isGastronomy ? "Cardápio" : "Catálogo"}</span>
-        </Button>
       </div>
+
+      {/* ── BANNER PWA DE INSTALAÇÃO DO APP DA LOJA ── */}
+      <PWAInstallBanner
+        storeName={store.name}
+        storeLogoUrl={store.logoUrl}
+        storeId={store.id}
+      />
+
+      {/* Modal de Modificadores & Adicionais Gastronômicos */}
+      {selectedProductForModifiers && (
+        <ProductModifiersModal
+          open={Boolean(selectedProductForModifiers)}
+          onOpenChange={(open) => !open && setSelectedProductForModifiers(null)}
+          product={selectedProductForModifiers}
+          variant={null}
+          onConfirm={handleConfirmModifiers}
+        />
+      )}
     </div>
   );
 }

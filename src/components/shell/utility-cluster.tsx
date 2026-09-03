@@ -20,6 +20,9 @@ import {
   ArrowUpRight,
   ShieldAlert,
   Shield,
+  MessageSquare,
+  Ticket,
+  Calendar,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,7 +64,6 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
   const totalItemCount = globalCarts.reduce((acc, c) => acc + c.itemCount, 0);
 
   // ── Identity extraction: SEMPRE identidade pessoal do usuário, NUNCA nome da loja
-  // session.user é o objeto auth do Supabase; session pode ser o objeto legado
   const userMeta = session?.user?.user_metadata || {};
   const userName =
     userMeta?.full_name ||
@@ -95,15 +97,15 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
   };
 
   const handleSwitchStore = async (storeId: string) => {
-    if (storeId === activeStoreId || isSwitching) return;
+    if (isSwitching) return;
     setIsSwitching(true);
     try {
       if (typeof window !== "undefined") {
         window.document.cookie = `wider_active_tenant=${storeId}; path=/; max-age=31536000; SameSite=Lax`;
       }
       await setTenantContext({ data: { store_id: storeId } }).catch(() => null);
-      toast.success("Espaço de trabalho alternado com sucesso!");
-      window.location.reload();
+      toast.success("Acessando painel da empresa...");
+      window.location.href = "/workspace";
     } catch {
       toast.error("Erro ao alternar loja.");
       setIsSwitching(false);
@@ -124,10 +126,10 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
     <>
       <div
         className={`flex items-center gap-1 sm:gap-2 shrink-0 ${
-          embedded ? "" : "h-10 px-2 rounded-2xl bg-card  "
+          embedded ? "" : "h-10 px-2 rounded-2xl bg-card"
         }`}
       >
-        {/* 1. Busca Rápida — Visível apenas quando a barra de busca central estiver oculta */}
+        {/* 1. Busca Rápida (Mobile) */}
         <Button
           variant="ghost"
           size="icon"
@@ -138,7 +140,22 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
           <Search className="size-4" />
         </Button>
 
-        {/* 2. Sacola de Compras */}
+        {/* 2. Conversas / Chat Direto */}
+        {session && (
+          <Button
+            asChild
+            variant="ghost"
+            size="icon"
+            className="size-8 rounded-xl relative text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-all active:scale-95 cursor-pointer"
+            title="Atendimento & Suporte"
+          >
+            <Link to="/conta/suporte">
+              <MessageSquare className="size-4" />
+            </Link>
+          </Button>
+        )}
+
+        {/* 3. Sacola de Compras */}
         <Button
           variant="ghost"
           size="icon"
@@ -148,27 +165,27 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
         >
           <ShoppingBag className="size-4" />
           {totalItemCount > 0 && (
-            <span className="absolute -top-1 -right-1 size-4 bg-primary text-primary-foreground text-[9px] font-bold rounded-lg flex items-center justify-center  animate-scale-in">
+            <span className="absolute -top-1 -right-1 size-4 bg-primary text-primary-foreground text-[9px] font-bold rounded-lg flex items-center justify-center animate-scale-in">
               {totalItemCount}
             </span>
           )}
         </Button>
 
-        {/* 3. Notificações */}
+        {/* 4. Notificações */}
         <NotificationsPopover session={session} />
 
-        {/* 4. Alternador de Tema Dark/Light */}
+        {/* 5. Alternador de Tema Dark/Light */}
         <ThemeToggle className="size-8 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-all active:scale-95 cursor-pointer" />
 
         <div className="h-4 w-px bg-border/60 mx-0.5" />
 
-        {/* 5. Perfil / Auth Menu */}
+        {/* 6. Perfil / Auth Menu */}
         {session ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="size-8 shrink-0 rounded-xl overflow-hidden  focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all hover:scale-105 active:scale-95  cursor-pointer"
+                className="size-8 shrink-0 rounded-xl overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all hover:scale-105 active:scale-95 cursor-pointer"
                 aria-label="Menu de Perfil e Conta"
               >
                 <Avatar className="size-full rounded-none">
@@ -184,7 +201,7 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
               align="end"
               className="w-72 rounded-3xl p-2 bg-card space-y-1"
             >
-              {/* Header — Identidade Pessoal do Usuário (jamais mostrar nome da loja aqui) */}
+              {/* Header — Identidade Pessoal do Usuário */}
               <DropdownMenuLabel className="font-normal p-2.5 pb-2">
                 <div className="flex items-center gap-3">
                   <div className="size-10 rounded-2xl overflow-hidden bg-muted shrink-0 flex items-center justify-center">
@@ -199,7 +216,7 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
                     <p className="text-xs text-muted-foreground truncate font-mono">@{userHandle}</p>
                     {memberships.length > 0 && (
                       <span className="text-[10px] text-muted-foreground/70 font-medium">
-                        {memberships.length} {memberships.length === 1 ? "negócio" : "negócios"} ativos
+                        {memberships.length} {memberships.length === 1 ? "loja" : "lojas"} ativas
                       </span>
                     )}
                   </div>
@@ -208,32 +225,36 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
 
               <DropdownMenuSeparator className="my-1" />
 
-              {/* Ações da Conta Pessoal */}
+              {/* Ações da Conta Pessoal (1 Palavra / Rótulo Direto) */}
               <div className="space-y-0.5">
                 <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-bold text-foreground px-3 py-2 hover:bg-muted/60">
-                  <Link to="/membro/$id" params={{ id: userHandle && userHandle !== "membro" ? userHandle : (session.id || session.user?.id || "") }}>
+                  <Link to="/conta/perfil">
                     Meu Perfil
                   </Link>
                 </DropdownMenuItem>
 
                 <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-medium text-foreground/90 px-3 py-2 hover:bg-muted/60">
-                  <Link to="/conta/perfil">Editar Perfil</Link>
+                  <Link to="/conta/suporte">Atendimento</Link>
                 </DropdownMenuItem>
 
                 <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-medium text-foreground/90 px-3 py-2 hover:bg-muted/60">
-                  <Link to="/conta/pedidos">Meus Pedidos & Compras</Link>
+                  <Link to="/conta/salvos">Salvos</Link>
                 </DropdownMenuItem>
 
                 <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-medium text-foreground/90 px-3 py-2 hover:bg-muted/60">
-                  <Link to="/conta/classificados">Meus Desapegos & Anúncios</Link>
+                  <Link to="/conta/pedidos">Pedidos</Link>
                 </DropdownMenuItem>
 
                 <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-medium text-foreground/90 px-3 py-2 hover:bg-muted/60">
-                  <Link to="/conta/salvos">Itens Salvos</Link>
+                  <Link to="/conta/pedidos" search={{ tab: "ingressos" } as any}>Ingressos</Link>
                 </DropdownMenuItem>
 
                 <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-medium text-foreground/90 px-3 py-2 hover:bg-muted/60">
-                  <Link to="/conta">Configurações da Conta</Link>
+                  <Link to="/conta/pacotes">Agendamentos</Link>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem asChild className="rounded-xl cursor-pointer text-xs font-medium text-foreground/90 px-3 py-2 hover:bg-muted/60">
+                  <Link to="/conta/classificados">Meus Desapegos</Link>
                 </DropdownMenuItem>
               </div>
 
@@ -245,7 +266,7 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
                     <Link to="/admin-master">
                       <div className="flex items-center gap-2">
                         <Shield className="size-3.5" />
-                        <span>Painel Admin Master</span>
+                        <span>Admin Master</span>
                       </div>
                       <ArrowUpRight className="size-3.5" />
                     </Link>

@@ -416,6 +416,50 @@ Para preservar a neutralidade e o silêncio visual do sistema operacional sem pe
 
 ---
 
+### 3.4 Fluxo KDS Omnichannel em Tempo Real & Expedição de Frota
+
+**Rotas:** `/workspace/pedidos/gestor` e `/workspace/pedidos/frota`  
+**Atores:** Chefe de Cozinha, Operador de Caixa, Expedidor de Entregas, Gerente
+
+1. **Recepção Automática e Alerta Sonoro:**
+   - Novo pedido chega por qualquer canal (`storefront`, `ifood`, `whatsapp`, `pdv`, `table`).
+   - WebSocket Supabase Realtime escuta `orders` com filtro `store_id=eq.X`.
+   - Dispara chime sonoro via Web Audio API (`playOrderChime()`) com aviso sonoro para a equipe da cozinha/balcão.
+
+2. **Separação Imediata vs Agendada:**
+   - Subheader divide a fila em **"Agora (N)"** (pedidos de atendimento imediato) e **"Agendados (N)"** (programados para horários posteriores).
+   - Chips rápidos de filtragem omnichannel permitem isolar canais em picos de demanda (`iFood`, `WhatsApp`, `Cardápio Próprio`, `Delivery`, `Balcão/Mesa`).
+   - Campo de busca instantânea filtra clientes, comandas e ruas em tempo real.
+
+3. **Operação KDS em 4 Estágios com SLA Visual:**
+   - Cada card exibe badge de tempo decorrido com barra de SLA:
+     - **Verde (< 20 min):** Dentro do tempo operacional padrão.
+     - **Amarelo (20 a 30 min):** Atenção / Próximo ao limite.
+     - **Vermelho (> 30 min):** Atrasado / Prioridade máxima na chapa/cozinha.
+   - Ações de 1 toque no card:
+     - **Impressão Térmica 80mm:** Emite cupom fiscal/comanda de produção imediatamente sem abrir modal.
+     - **WhatsApp:** Abre chat com mensagem de status pré-formatada.
+     - **Avanço de Fila:** `paid` (Iniciar Preparo) ➔ `processing` (Marcar Pronto / Expedir) ➔ `shipped` (Finalizar).
+
+4. **Drawer Mobile com Thumb Zone (Ergonomia dos 3 Toques):**
+   - No celular, o operador navega entre 3 abas limpas:
+     - `Detalhes`: Decomposição de cada item, complementos, adicionais, observações e resumo financeiro.
+     - `Cliente & Entrega`: Dados de contato e endereço com botões rápidos de GPS (Google Maps e Waze).
+     - `Histórico & SLAs`: Linha do tempo com timestamps reais de criação, preparo, despacho e entrega.
+   - Rodapé fixo na zona do polegar (Thumb Zone com touch targets de 44px): Botão de impressão, WhatsApp e botão largo de avanço de status.
+
+5. **Expedição de Frota Sem Mocks:**
+   - Em `/workspace/pedidos/frota`, pedidos de delivery pendentes são listados diretamente de `orders` via `listPendingDeliveryOrders`.
+   - Expedidor clica em "Despachar" no pedido pronto ➔ modal auto-preenche com dados reais do cliente, endereço e taxa calculada.
+   - Seleção de entregador cadastrado na frota (`listCouriers`) ou geração de Link Mágico avulso.
+   - Ao confirmar despacho:
+     - `orders.status` transiciona atomicamente para `'shipped'` com `shipped_at = now()`.
+     - Link Mágico com PIN de 4 dígitos é enviado ao entregador.
+     - Na rota do entregador (`/_store/entrega/$token`), os itens reais da sacola são exibidos.
+     - Validação do PIN de 4 dígitos pelo entregador marca `orders.status = 'delivered'` e registra comprovante com foto e assinatura no banco.
+
+---
+
 ## Módulo 4 — Trocas e Devoluções
 
 ### 4.1 Fluxo do Cliente (Solicitar Troca)
@@ -1147,3 +1191,41 @@ Para evitar poluição visual e garantir uma experiência de compra instantânea
    - A cotação de frete por CEP/cubagem/peso é reservada **exclusivamente** para lojas e produtos do tipo e-commerce físico (`type: "ecommerce"`) onde a loja permite entregas para fora da sua cidade-sede.
 2. **Orçamentos e Fretes Especiais (Mudanças & Cargas)**:
    - Itens de grande porte ou serviços de logística sem preço fixo acionam o fluxo de orçamento prévio (`quote_request`), onde o prestador responde com o valor personalizado antes da confirmação.
+
+---
+
+## Módulo 23 — Operação Omnichannel de Salão (Mesas, Comandas, Garçom & Cozinha)
+
+### 23.1 Ciclo de Atendimento de Salão
+1. **Abertura de Mesa / Comanda:**
+   - O garçom ou operador abre a comanda via `/workspace/pdv/comandas` ou automaticamente na leitura do QR Code da mesa.
+   - Um registro de pedido é criado em `orders` com `origin_type = 'table'`, `table_identifier = 'Mesa XX'` e `status = 'pending'`.
+2. **Lançamento Rápido via Aplicativo Garçom (`QuickWaiterOrderModal`):**
+   - O garçom no smartphone seleciona a mesa e toca em *"Lançar Itens na Mesa"*.
+   - A interface tátil com categorias em chips permite adicionar produtos e complementos em no máximo **2 toques**.
+   - Ao tocar em *"Disparar para a Cozinha"*, o sistema executa `addItemsToTableComanda`:
+     - Insere os `order_items` atomicamente.
+     - Recalcula `subtotal_cents` e `total_cents`.
+     - Atualiza o status para `processing`, emitindo notificação sonora imediata no KDS (`workspace.pedidos.gestor` e `workspace.pdv.cozinha`).
+3. **Conexão Bidirecional com o PDV de Balcão:**
+   - Ao navegar do salão para o PDV (`/workspace/pdv?mesa=XX`), o terminal assume o modo `table`.
+   - O operador pode lançar itens adicionais sem exigir cobrança imediata via botão *"Enviar para a Cozinha (Mesa XX)"*, ou fechar a conta do balcão recebendo em múltiplos meios (`SplitPayment`).
+4. **Fechamento e Divisão de Conta:**
+   - Na tela de comandas, o garçom clica em *"Fechar Conta / Receber"*, escolhe o meio de pagamento e a divisão da conta (de 1x até 10x pagadores).
+   - O pedido evolui para `paid` / `completed`, e a mesa volta automaticamente ao status `free` (Verde).
+
+---
+
+## Módulo 24 — Importador Universal de Cardápios & Catálogos em Lote (iFood & IA)
+
+### 24.1 Fluxo de Importação Inteligente
+1. **Entrada de Dados:**
+   - O lojista cola o link público da sua loja (iFood, Anota AI, Goomer, site próprio) ou cola o texto/PDF bruto do cardápio em `/workspace/catalogo/produtos` através do modal `ImportCatalogModal`.
+2. **Raspagem & Sanitização Server-Side:**
+   - O BFF `importFullCatalogMenu` (em `api-orchestrator.functions.ts`) faz o fetch da página, remove scripts e tags pesadas e extrai o miolo contextual.
+3. **Estruturação Semântica via LLM Pool:**
+   - Utiliza a chave ativa do pool (Gemini 1.5 Flash ou fallback Groq LLaMA 3.1) para converter o texto em um DTO estruturado de categorias, títulos, descrições, preços em centavos BRL (`price_cents`) e fotos.
+4. **Auditoria & Confirmação:**
+   - O lojista visualiza a prévia organizada em categorias e cards de itens antes de qualquer gravação no banco.
+5. **Criação Atômica Multi-Tenant (`batchCreateCatalogMenu`):**
+   - O sistema cria/reutiliza as categorias na tabela `categories` e insere os produtos na tabela `products` do Supabase garantindo isolamento por `store_id` e semântica nativa.

@@ -64,7 +64,7 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
       if (storeIds.length > 0) {
         const { data: storesList, error: storesErr } = await serverClient
           .from("stores")
-          .select("id, name, slug, email, phone, cnpj, address, city, state, zip_code, settings")
+          .select("id, name, slug, email, phone, cnpj, address, city, state, zip_code, settings, logo_url")
           .in("id", storeIds);
 
         if (storesErr) {
@@ -83,7 +83,7 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
               role: m.role || "owner",
               name: s.name || "Minha Empresa",
               slug: s.slug || "loja",
-              logo_url: settings.logoUrl || settings.logo_url || null,
+              logo_url: s.logo_url || settings.logoUrl || settings.logo_url || null,
               segment: settings.segment || settings.type || settings.niche || null,
               type: settings.type || settings.segment || null,
               category: settings.category || settings.segment || null,
@@ -114,15 +114,16 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
     console.error("[identity.server] Falha ao verificar role no banco:", err);
   }
 
+  // isPlatformAdmin: derivado EXCLUSIVAMENTE do banco de dados.
+  // NUNCA use emails hardcoded aqui — isso viola RLS e multi-tenancy.
   const isPlatformAdmin =
     userProfileRole === "platform_admin" ||
     userProfileRole === "master" ||
-    userProfileRole === "superadmin" ||
-    userProfileRole === "admin" ||
-    user?.email?.toLowerCase() === "meuwider@gmail.com" ||
-    user?.email?.toLowerCase() === "master@wider.com.br";
+    userProfileRole === "superadmin";
 
-  // ── Passo 3: Auto-Heal — Se memberships está vazio ou é platform admin, busca lojas adicionais
+  // ── Passo 3: Auto-Heal — Garante memberships corretos
+  // Roda sempre que memberships estiver vazio (qualquer usuário), não apenas platform_admin.
+  // Também roda para platform_admin para garantir acesso completo.
   if (memberships.length === 0 || isPlatformAdmin) {
     try {
       let ownedStores: any[] = [];
@@ -130,21 +131,87 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
         // Platform admin tem acesso a todas as lojas do ecossistema
         const { data: allStores } = await serverClient
           .from("stores")
-          .select("id, name, slug, email, phone, cnpj, address, city, state, zip_code, settings")
+          .select("id, name, slug, email, phone, cnpj, address, city, state, zip_code, settings, logo_url")
           .order("created_at", { ascending: false })
           .limit(50);
         ownedStores = allStores || [];
       } else {
-        // Usuário comum: busca por email cadastrado na loja
-        const userEmail = user?.email?.toLowerCase() || "";
-        const { data: byEmail } = userEmail
-          ? await serverClient
-              .from("stores")
-              .select("id, name, slug, email, phone, cnpj, address, city, state, zip_code, settings")
-              .ilike("email", userEmail)
-          : { data: [] };
+        // Usuário comum sem memberships:
+        // 1. Tenta re-buscar via workspace_members com service_role (evita RLS anon)
+        try {
+          const { data: retryRows } = await serverClient
+            .from("workspace_members")
+            .select("store_id, role")
+            .eq("profile_id", user.id);
 
-        ownedStores = byEmail || [];
+          if (retryRows && retryRows.length > 0) {
+            const retryStoreIds = retryRows.map((r: any) => r.store_id).filter(Boolean);
+            const { data: retryStores } = await serverClient
+              .from("stores")
+              .select("id, name, slug, email, phone, cnpj, address, city, state, zip_code, settings, logo_url")
+              .in("id", retryStoreIds);
+
+            if (retryStores && retryStores.length > 0) {
+              const retryMap = new Map(retryRows.map((r: any) => [r.store_id, r.role]));
+              const existingIds = new Set(memberships.map((m) => m.store_id));
+              retryStores.forEach((s: any) => {
+                if (!existingIds.has(s.id)) {
+                  const settings = (s.settings as Record<string, any>) || {};
+                  memberships.push({
+                    store_id: s.id,
+                    role: retryMap.get(s.id) || "owner",
+                    name: s.name || "Minha Empresa",
+                    slug: s.slug || "loja",
+                    logo_url: s.logo_url || settings.logoUrl || settings.logo_url || null,
+                    segment: settings.segment || settings.type || null,
+                    type: settings.type || settings.segment || null,
+                    category: settings.category || settings.segment || null,
+                    city: s.city || null,
+                    state: s.state || null,
+                    settings: settings,
+                  });
+                  existingIds.add(s.id);
+                }
+              });
+            }
+
+            // Se o retry com service_role já resolveu, não precisa buscar por email
+            if (memberships.length > 0) {
+              ownedStores = [];
+            } else {
+              // 2. Fallback: busca por email cadastrado na loja
+              const userEmail = user?.email?.toLowerCase() || "";
+              const { data: byEmail } = userEmail
+                ? await serverClient
+                    .from("stores")
+                    .select("id, name, slug, email, phone, cnpj, address, city, state, zip_code, settings, logo_url")
+                    .ilike("email", userEmail)
+                : { data: [] };
+              ownedStores = byEmail || [];
+            }
+          } else {
+            // workspace_members vazio para este usuário — busca por email da loja
+            const userEmail = user?.email?.toLowerCase() || "";
+            const { data: byEmail } = userEmail
+              ? await serverClient
+                  .from("stores")
+                  .select("id, name, slug, email, phone, cnpj, address, city, state, zip_code, settings, logo_url")
+                  .ilike("email", userEmail)
+              : { data: [] };
+            ownedStores = byEmail || [];
+          }
+        } catch (retryErr) {
+          console.warn("[identity.server] Erro no retry de workspace_members:", retryErr);
+          // Último recurso: busca por email
+          const userEmail = user?.email?.toLowerCase() || "";
+          const { data: byEmail } = userEmail
+            ? await serverClient
+                .from("stores")
+                .select("id, name, slug, email, phone, cnpj, address, city, state, zip_code, settings, logo_url")
+                .ilike("email", userEmail)
+            : { data: [] };
+          ownedStores = byEmail || [];
+        }
       }
 
       if (ownedStores && ownedStores.length > 0) {
@@ -158,7 +225,7 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
               role: "owner",
               name: s.name || "Minha Empresa",
               slug: s.slug || "loja",
-              logo_url: settings.logoUrl || settings.logo_url || null,
+              logo_url: s.logo_url || settings.logoUrl || settings.logo_url || null,
               segment: settings.segment || settings.type || settings.niche || null,
               type: settings.type || settings.segment || null,
               category: settings.category || settings.segment || null,
@@ -171,7 +238,7 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
         memberships = [...memberships, ...additional];
       }
     } catch (e) {
-      console.warn("[identity.server] Erro no fallback de lojas:", e);
+      console.warn("[identity.server] Erro no auto-heal de lojas:", e);
     }
   }
 

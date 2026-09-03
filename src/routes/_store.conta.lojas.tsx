@@ -35,13 +35,12 @@ export default function ContaLojasPage() {
   const handleSelectStore = async (storeId: string, storeName: string) => {
     setSwitchingId(storeId);
     try {
-      await setTenantContext({ data: { store_id: storeId } });
       if (typeof window !== "undefined") {
         window.document.cookie = `wider_active_tenant=${storeId}; path=/; max-age=31536000; SameSite=Lax`;
-        toast.success(`Contexto alterado para ${storeName}`);
-        await router.invalidate();
-        router.navigate({ to: "/workspace" });
       }
+      await setTenantContext({ data: { store_id: storeId } });
+      toast.success(`Acessando painel de ${storeName}`);
+      window.location.href = "/workspace";
     } catch {
       toast.error("Erro ao alternar loja.");
       setSwitchingId(null);

@@ -533,10 +533,10 @@ export const startCustomerChatThread = createServerFn({ method: "POST" })
       if (user) {
         const { data: p } = await db
           .from("profiles")
-          .select("full_name, email")
+          .select("full_name, avatar_url")
           .eq("id", user.id)
-          .single();
-        profile = p;
+          .maybeSingle();
+        profile = p ? { ...p, email: user.email } : null;
       }
 
       // Procura thread aberta existente para a mesma loja e pedido

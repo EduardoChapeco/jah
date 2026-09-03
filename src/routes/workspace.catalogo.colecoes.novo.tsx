@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { ArrowLeft, Sparkles, Check, Tag } from "lucide-react";
 
+import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -101,26 +102,18 @@ function NewCollectionPage() {
 
   return (
     <div className="space-y-6 max-w-4xl animate-in fade-in duration-200">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-border/60 bg-card">
-        <div className="space-y-1">
-          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary">
-            Catálogo & Coleções
-          </span>
-          <h1 className="text-xl font-bold tracking-tight text-foreground">
-            Nova Coleção
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            Crie agrupamentos manuais ou coleções dinâmicas inteligentes por regras de desconto e estoque.
-          </p>
-        </div>
-
-        <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-bold gap-1.5 shrink-0">
-          <Link to="/workspace/catalogo/colecoes">
-            <ArrowLeft className="size-3.5" />
-            <span>Voltar</span>
-          </Link>
-        </Button>
-      </div>
+      <PageHeader
+        eyebrow="Catálogo"
+        title="Nova Coleção"
+        actions={
+          <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-bold gap-1.5 shrink-0">
+            <Link to="/workspace/catalogo/colecoes">
+              <ArrowLeft className="size-3.5" />
+              <span>Voltar</span>
+            </Link>
+          </Button>
+        }
+      />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

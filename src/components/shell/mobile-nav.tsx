@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, MapPin, ShoppingBag, User, LogIn } from "lucide-react";
+import { Home, MapPin, ShoppingBag, User, LogIn, MessageSquare } from "lucide-react";
 import { QuickCreateModal } from "@/components/commerce/quick-create-modal";
 import { useCartContext } from "@/lib/cart-context";
 
@@ -51,23 +51,35 @@ export function MobileNav({ session }: MobileNavProps) {
         <QuickCreateModal isAuthenticated={isAuthenticated} session={session} />
       </div>
 
-      {/* 4. Sacola de Compras */}
-      <button
-        type="button"
-        onClick={() => setIsCartOpen(true)}
-        className="relative flex flex-col items-center justify-center gap-0.5 min-h-[56px] flex-1 py-2 text-[10px] font-semibold transition-colors text-muted-foreground hover:text-foreground cursor-pointer"
-        aria-label="Abrir sacola de compras"
-      >
-        <div className="relative">
-          <ShoppingBag className="size-5" />
-          {totalItemCount > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 size-4 rounded-full bg-primary text-primary-foreground text-[9px] font-black flex items-center justify-center leading-none">
-              {totalItemCount > 9 ? "9+" : totalItemCount}
-            </span>
-          )}
-        </div>
-        <span>Sacola</span>
-      </button>
+      {/* 4. Conversas / Atendimento */}
+      {isAuthenticated ? (
+        <Link
+          to="/conta/suporte"
+          className={`flex flex-col items-center justify-center gap-0.5 min-h-[56px] flex-1 py-2 text-[10px] font-semibold transition-colors ${
+            location.pathname.startsWith("/conta/suporte") ? "text-primary" : "text-muted-foreground"
+          }`}
+        >
+          <MessageSquare className={`size-5 transition-transform ${location.pathname.startsWith("/conta/suporte") ? "scale-110" : ""}`} />
+          <span>Atendimento</span>
+        </Link>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setIsCartOpen(true)}
+          className="relative flex flex-col items-center justify-center gap-0.5 min-h-[56px] flex-1 py-2 text-[10px] font-semibold transition-colors text-muted-foreground hover:text-foreground cursor-pointer"
+          aria-label="Abrir sacola de compras"
+        >
+          <div className="relative">
+            <ShoppingBag className="size-5" />
+            {totalItemCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 size-4 rounded-full bg-primary text-primary-foreground text-[9px] font-black flex items-center justify-center leading-none">
+                {totalItemCount > 9 ? "9+" : totalItemCount}
+              </span>
+            )}
+          </div>
+          <span>Sacola</span>
+        </button>
+      )}
 
       {/* 5. Perfil / Entrar */}
       {isAuthenticated ? (

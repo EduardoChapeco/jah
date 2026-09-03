@@ -954,7 +954,17 @@ export const getStorePublicCatalog = createServerFn({ method: "GET" })
       const [productsRes, categoriesRes] = await Promise.all([
         db
           .from("products")
-          .select("id, title, slug, description, price_cents, compare_at_cents, status, product_media(url, alt, sort_order)")
+          .select(`
+            id, title, slug, description, price_cents, compare_at_cents, status,
+            product_media(url, alt, sort_order),
+            product_option_groups(
+              sort_order,
+              option_groups(
+                id, display_name, internal_name, description, selection_type, min_selections, max_selections, is_required,
+                option_values(id, label, description, price_modifier_cents, image_url, is_active, is_default)
+              )
+            )
+          `)
           .eq("store_id", storeId)
           .eq("status", "published")
           .order("created_at", { ascending: false })
@@ -970,6 +980,9 @@ export const getStorePublicCatalog = createServerFn({ method: "GET" })
         const media = Array.isArray(p.product_media)
           ? p.product_media.sort((a: any, b: any) => a.sort_order - b.sort_order)
           : [];
+        const optionGroups = (p.product_option_groups || [])
+          .map((pog: any) => pog.option_groups)
+          .filter(Boolean);
         return {
           id: p.id,
           title: p.title,
@@ -978,6 +991,7 @@ export const getStorePublicCatalog = createServerFn({ method: "GET" })
           priceCents: p.price_cents,
           compareAtCents: p.compare_at_cents,
           coverUrl: media[0]?.url || null,
+          optionGroups,
         };
       });
 

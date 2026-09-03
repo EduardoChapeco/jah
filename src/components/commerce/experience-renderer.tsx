@@ -34,6 +34,25 @@ import { BeforeAfterSlider } from "./dynamic-sections/before-after-slider";
 import { BookingCalendar } from "./dynamic-sections/booking-calendar";
 import { EventRail } from "./dynamic-sections/event-rail";
 import { CommunityFeed } from "./dynamic-sections/community-feed";
+import { TourismQuoteHero } from "./dynamic-sections/tourism-quote-hero";
+import { TourismServicesGrid } from "./dynamic-sections/tourism-services-grid";
+import { FlashSaleHero } from "./dynamic-sections/flash-sale-hero";
+import { ServicePricingTable } from "./dynamic-sections/service-pricing-table";
+import { FoodMenuTabsSection } from "./dynamic-sections/food-menu-tabs";
+import { ChefSpecialBannerSection } from "./dynamic-sections/chef-special-banner";
+import { RestaurantHoursDeliverySection } from "./dynamic-sections/restaurant-hours-delivery";
+import { TableBookingSection } from "./dynamic-sections/table-booking-card";
+import { ShopTheLookSection } from "./dynamic-sections/shop-the-look-hotspots";
+import { SizeGuideTableSection } from "./dynamic-sections/size-guide-table";
+import { PropertyFeaturesGridSection } from "./dynamic-sections/property-features-grid";
+import { SpecialistTeamGridSection } from "./dynamic-sections/specialist-team-grid";
+import { BiolinkProfileSection, BiolinkActionButtonsSection, BiolinkPixCardSection } from "./dynamic-sections/biolink-sections";
+import { LocationMapCardSection } from "./dynamic-sections/location-map-card";
+import { NewsletterCaptureSection } from "./dynamic-sections/newsletter-capture";
+import { TourismDestinationsCarouselSection } from "./dynamic-sections/tourism-destinations-carousel";
+import { FoodMenuStreamlinedSection } from "./dynamic-sections/food-menu-streamlined";
+import { CuratedHitsRailSection } from "./dynamic-sections/curated-hits-rail";
+import { TableOrderComandaSection } from "./dynamic-sections/table-order-comanda";
 import { TrackView } from "./analytics-provider";
 
 // ---------------------------------------------------------------------------
@@ -71,17 +90,57 @@ const componentMap: Record<string, React.FC<any>> = {
   booking_calendar: BookingCalendar,
   event_rail: EventRail,
   community_feed: CommunityFeed,
+  tourism_quote_hero: TourismQuoteHero,
+  tourism_services_grid: TourismServicesGrid,
+  tourism_destinations_carousel: TourismDestinationsCarouselSection,
+  flash_sale_hero: FlashSaleHero,
+  service_pricing_table: ServicePricingTable,
+  food_menu_tabs: FoodMenuTabsSection,
+  food_menu_streamlined: FoodMenuStreamlinedSection,
+  curated_hits_rail: CuratedHitsRailSection,
+  table_order_comanda: TableOrderComandaSection,
+  chef_special_banner: ChefSpecialBannerSection,
+  restaurant_hours_delivery: RestaurantHoursDeliverySection,
+  table_booking_card: TableBookingSection,
+  shop_the_look_hotspots: ShopTheLookSection,
+  size_guide_table: SizeGuideTableSection,
+  property_features_grid: PropertyFeaturesGridSection,
+  specialist_team_grid: SpecialistTeamGridSection,
+  biolink_profile_header: BiolinkProfileSection,
+  biolink_action_buttons: BiolinkActionButtonsSection,
+  biolink_pix_card: BiolinkPixCardSection,
+  location_map_card: LocationMapCardSection,
+  newsletter_capture: NewsletterCaptureSection,
 };
 
 // ---------------------------------------------------------------------------
 // Block types that receive real-time store profile data from transient_data
 // ---------------------------------------------------------------------------
-const STORE_PROFILE_BLOCKS = new Set(["store_profile_hero", "store_hours", "store_contact"]);
+const STORE_PROFILE_BLOCKS = new Set([
+  "store_profile_hero",
+  "store_hours",
+  "store_contact",
+  "restaurant_hours_delivery",
+  "table_booking_card",
+  "tourism_quote_hero",
+  "tourism_services_grid",
+  "property_features_grid",
+  "biolink_action_buttons",
+]);
 
 // ---------------------------------------------------------------------------
 // Block types that receive product arrays from transient_data.products
 // ---------------------------------------------------------------------------
-const PRODUCT_DATA_BLOCKS = new Set(["product_rail", "product_carousel", "product_grid"]);
+const PRODUCT_DATA_BLOCKS = new Set([
+  "product_rail",
+  "product_carousel",
+  "product_grid",
+  "curated_hits_rail",
+  "food_menu_streamlined",
+  "food_menu_tabs",
+  "chef_special_banner",
+  "service_pricing_table",
+]);
 
 // ---------------------------------------------------------------------------
 // Block types that receive review arrays from transient_data.reviews
@@ -400,13 +459,16 @@ function ExperienceNodeRenderer({
 
   // Props for store profile blocks: extract the correct sub-key
   let storeProfileProps: Record<string, any> = {};
-  if (STORE_PROFILE_BLOCKS.has(node.block_type) && nodeTransientData) {
+  if (STORE_PROFILE_BLOCKS.has(node.block_type)) {
+    const rawStore = nodeTransientData?.store_hero ?? nodeTransientData?.store ?? nodeTransientData ?? transientData?.store ?? null;
     if (node.block_type === "store_profile_hero") {
-      storeProfileProps = { storeData: nodeTransientData.store_hero ?? nodeTransientData };
-    } else if (node.block_type === "store_hours") {
-      storeProfileProps = { storeData: nodeTransientData.store_hours ?? nodeTransientData };
-    } else if (node.block_type === "store_contact") {
-      storeProfileProps = { storeData: nodeTransientData.store_contact ?? nodeTransientData };
+      storeProfileProps = { storeData: nodeTransientData?.store_hero ?? rawStore };
+    } else if (node.block_type === "store_hours" || node.block_type === "restaurant_hours_delivery") {
+      storeProfileProps = { storeData: nodeTransientData?.store_hours ?? rawStore };
+    } else if (node.block_type === "store_contact" || node.block_type === "table_booking_card") {
+      storeProfileProps = { storeData: nodeTransientData?.store_contact ?? rawStore };
+    } else {
+      storeProfileProps = { storeData: rawStore };
     }
   }
 
@@ -486,10 +548,15 @@ function ExperienceNodeRenderer({
         isEditing={isEditing}
         // ── Dynamic data ────────────────────────────────────────────────────
         resolvedProducts={resolvedProducts}
+        products={resolvedProducts}
         resolvedReviews={resolvedReviews}
+        reviews={resolvedReviews}
         resolvedEvents={resolvedEvents}
+        events={resolvedEvents}
         resolvedClassifieds={resolvedClassifieds}
+        classifieds={resolvedClassifieds}
         resolvedBanners={resolvedBanners}
+        banners={resolvedBanners}
         {...storeProfileProps}
       />
     </TrackView>,

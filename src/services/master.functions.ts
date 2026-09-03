@@ -551,10 +551,10 @@ export const getUser360Dossier = createServerFn({ method: "GET" })
     const [profileRes, ordersRes, ridesRes, appointmentsRes, quotesRes, termsRes, auditRes] =
       await Promise.all([
         db.from("profiles").select("*").eq("id", userId).single(),
-        db.from("orders").select("id, public_token, status, total_cents, created_at, shipping_address").eq("customer_id", userId),
-        db.from("mobility_requests").select("id, service_type, status, origin_address, destination_address, estimated_price_cents, created_at").eq("customer_id", userId),
+        db.from("orders").select("id, public_token, status, total_cents, created_at, shipping_address").eq("customer_id", userId).neq("origin_type", "mobility"),
+        db.from("orders").select("id, status, total_cents, items_snapshot, created_at, shipping_address").eq("customer_id", userId).eq("origin_type", "mobility"),
         db.from("booking_appointments").select("id, scheduled_at, status, created_at").eq("customer_id", userId),
-        db.from("quotations").select("id, code, title, total_cents, status, created_at").eq("customer_id", userId),
+        db.from("quotes").select("id, quote_number, total_cents, status, created_at").eq("customer_id", userId),
         db.from("legal_terms_acceptances").select("*").eq("user_id", userId),
         db.from("forensic_audit_events").select("*").eq("target_entity_id", userId).order("created_at", { ascending: false }).limit(50),
       ]);
@@ -1107,7 +1107,7 @@ export const getPlatformSystemHealth = createServerFn({ method: "GET" }).handler
     db.from("products").select("id", { count: "exact", head: true }),
     db.from("orders").select("id", { count: "exact", head: true }),
     db.from("platform_algorithm_parameters").select("*").maybeSingle(),
-    db.from("store_wallets").select("id", { count: "exact", head: true }),
+    db.from("store_token_wallets").select("id", { count: "exact", head: true }),
   ]);
 
   const algo = algorithmParams.data || {

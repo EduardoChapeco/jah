@@ -3,18 +3,28 @@ import { z } from "zod";
 import { getServerClient } from "@/lib/supabase";
 import { getIdentity } from "./identity.functions";
 
+export const ContractCategoryEnum = z.enum([
+  "real_estate_rental",
+  "real_estate_sale",
+  "vehicle_sale",
+  "vehicle_consignation",
+  "service_agreement",
+  "employment",
+  "general_deal",
+  "legal_retainer",
+  "tourism_package",
+  "medical_aesthetic_consent",
+]);
+
 export const createContract = createServerFn({ method: "POST" })
   .validator(
     z.object({
       dealId: z.string().uuid().optional(),
+      storeId: z.string().uuid().optional(),
+      entityType: z.string().optional(),
+      entityId: z.string().optional(),
       title: z.string().min(3),
-      category: z.enum([
-        "real_estate_rental",
-        "vehicle_sale",
-        "service_agreement",
-        "employment",
-        "general_deal",
-      ]),
+      category: ContractCategoryEnum,
       contentMarkdown: z.string().min(10),
       clauses: z.array(z.record(z.any())).optional().default([]),
       variables: z.record(z.any()).optional().default({}),
@@ -29,6 +39,9 @@ export const createContract = createServerFn({ method: "POST" })
       .from("contracts")
       .insert({
         deal_id: input.dealId,
+        store_id: input.storeId || (identity as any).store_id || null,
+        entity_type: input.entityType || null,
+        entity_id: input.entityId || null,
         creator_id: identity.id,
         title: input.title,
         category: input.category,
@@ -153,6 +166,7 @@ export const signContractEnvelope = createServerFn({ method: "POST" })
     z.object({
       signingToken: z.string(),
       consent: z.boolean(),
+      signatureImageBase64: z.string().optional(),
       ipAddress: z.string().optional(),
       userAgent: z.string().optional(),
     }),
@@ -189,6 +203,7 @@ export const signContractEnvelope = createServerFn({ method: "POST" })
         timestamp: new Date().toISOString(),
         signer_email: envelope.signer_email,
         document_hash: (envelope.contract_version as any)?.hash_sha256,
+        signature_image: input.signatureImageBase64 || null,
       },
     });
 
@@ -246,37 +261,46 @@ export const verifyDocumentPublic = createServerFn({ method: "GET" })
     let { data: contract, error } = await query.maybeSingle();
 
     if (!contract) {
-      // Tenta buscar em travel_contracts (Contratos de Turismo com SHA-256)
-      const { data: travelContract } = await supabase
-        .from("travel_contracts")
+      // Fallback: busca contratos turísticos na tabela canônica contracts (category='tourism')
+      // O public_token fica em verification_code; content_hash e certificate_serial ficam em metadata
+      const { data: tourismContract } = await supabase
+        .from("contracts")
         .select("*")
-        .or(`certificate_serial.eq.${codeOrHash},public_token.eq.${codeOrHash},content_hash.eq.${codeOrHash}`)
+        .eq("category", "tourism")
+        .or(`verification_code.eq.${codeOrHash}`)
         .maybeSingle();
 
-      if (travelContract) {
-        return {
-          isValid: true,
-          title: travelContract.contract_title,
-          category: "service_agreement",
-          status: travelContract.status === "signed" ? "sealed" : travelContract.status,
-          verificationCode: travelContract.certificate_serial || travelContract.public_token,
-          createdAt: travelContract.created_at,
-          sealedVersion: {
-            version_number: 1,
-            hash_sha256: travelContract.content_hash,
-            sealed_at: travelContract.signed_at,
-            is_sealed: Boolean(travelContract.signed_at),
-            envelopes: (travelContract.signatures as any[]) || [
-              {
-                signer_name: travelContract.client_name,
-                signer_role: "party",
-                status: travelContract.signed_at ? "signed" : "pending",
-                signed_at: travelContract.signed_at,
-                auth_level: "advanced",
-              },
-            ],
-          },
-        };
+      if (tourismContract) {
+        const meta = (tourismContract.metadata as Record<string, any>) || {};
+        const matchesCertificate = meta.certificate_serial === codeOrHash;
+        const matchesHash = meta.content_hash === codeOrHash;
+        const matchesToken = tourismContract.verification_code === codeOrHash;
+
+        if (matchesCertificate || matchesHash || matchesToken) {
+          return {
+            isValid: true,
+            title: tourismContract.title,
+            category: "service_agreement",
+            status: tourismContract.status === "signed" ? "sealed" : tourismContract.status,
+            verificationCode: meta.certificate_serial || tourismContract.verification_code,
+            createdAt: tourismContract.created_at,
+            sealedVersion: {
+              version_number: tourismContract.current_version || 1,
+              hash_sha256: meta.content_hash || null,
+              sealed_at: meta.signed_at || null,
+              is_sealed: Boolean(meta.signed_at),
+              envelopes: (meta.signatures as any[]) || [
+                {
+                  signer_name: meta.client_name || "Signatário",
+                  signer_role: "party",
+                  status: meta.signed_at ? "signed" : "pending",
+                  signed_at: meta.signed_at || null,
+                  auth_level: "advanced",
+                },
+              ],
+            },
+          };
+        }
       }
 
       throw new Error("Documento não encontrado ou sem registro de autenticidade.");

@@ -25,6 +25,8 @@ function ReceiptPrintPage() {
 
   const date = formatDateTime(order.created_at);
   const customer = order.customer_snapshot as any;
+  const customFields = (order as any).custom_fields || {};
+  const hasCustomFields = Object.keys(customFields).length > 0;
 
   return (
     <div className="bg-white text-black min-h-screen p-8 max-w-2xl mx-auto font-sans">
@@ -34,7 +36,7 @@ function ReceiptPrintPage() {
         <p className="text-sm font-medium mt-2">NÃO É DOCUMENTO FISCAL</p>
       </div>
 
-      <div className="flex justify-between items-start mb-8 text-sm">
+      <div className="flex justify-between items-start mb-6 text-sm">
         <div>
           <p>
             <strong>Pedido:</strong> #{order.public_token}
@@ -51,13 +53,34 @@ function ReceiptPrintPage() {
             <strong>Cliente:</strong> {customer?.name || "Consumidor Final"}
           </p>
           <p>{customer?.document || ""}</p>
+          <p>{customer?.phone || ""}</p>
           <p>
-            <strong>Entrega:</strong>
-            {""}
-            {order.shipping_method === "pickup" ? "Retirada na Loja" : "Envio"}
+            <strong>Entrega:</strong>{" "}
+            {order.shipping_method === "pickup" ? "Retirada na Loja" : "Envio no Endereço"}
           </p>
         </div>
       </div>
+
+      {/* Informações Customizadas do Nicho */}
+      {hasCustomFields && (
+        <div className="mb-6 p-3 border border-black/30 rounded text-xs space-y-1">
+          <p className="font-bold uppercase tracking-wider text-[10px]">Informações Complementares:</p>
+          {Object.entries(customFields).map(([k, v]: [string, any]) => (
+            <p key={k}>
+              <strong>{k}:</strong> {String(v)}
+            </p>
+          ))}
+        </div>
+      )}
+
+      {/* Observações */}
+      {(order as any).notes && (
+        <div className="mb-6 p-3 border border-black/30 rounded text-xs">
+          <p>
+            <strong>Observações:</strong> {(order as any).notes}
+          </p>
+        </div>
+      )}
 
       <table className="w-full text-sm mb-8 border-collapse">
         <thead>

@@ -141,8 +141,8 @@ function ServicesIndexPage() {
   return (
     <div className="space-y-6 max-w-6xl animate-in fade-in duration-200">
       <PageHeader
-        eyebrow="Agendamento & Horários"
-        title="Serviços & Procedimentos"
+        eyebrow="Agenda"
+        title="Serviços"
         actions={
           <Button onClick={handleOpenCreate} size="sm" className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground">
             <Plus className="size-3.5" />

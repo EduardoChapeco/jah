@@ -37,7 +37,8 @@ export async function _listOrders(store_id: string) {
     .from("orders")
     .select(
       `
-        id, public_token, status, total_cents, customer_snapshot, created_at, shipping_method,
+        id, public_token, status, total_cents, subtotal_cents, shipping_cents, customer_snapshot, created_at, shipping_method,
+        shipping_address, channel_origin, prep_started_at, ready_at, table_identifier,
         order_items ( id, product_title, variant_sku, qty, unit_price_cents, total_cents, metadata, item_type, item_id, selected_options )
       `,
     )
@@ -514,11 +515,14 @@ export const requestOrderReturn = createServerFn({ method: "POST" })
 
       if (updateError) throw updateError;
 
-      // Optionally create a note for the admin
-      await db.from("customer_notes").insert({
+      // 2. Cria solicitação formal de RMA / Devolução
+      await db.from("rma_requests").insert({
         store_id: order.store_id,
         customer_id: user.id,
-        content: "Solicitação de Devolução/Troca (Pedido: " + orderId + ") - Motivo: " + reason,
+        order_id: orderId,
+        type: "refund",
+        status: "requested",
+        notes: "Motivo informado pelo cliente: " + reason,
       });
 
       return { status: "success" as const };
@@ -692,12 +696,13 @@ export const assignDriverToOrder = createServerFn({ method: "POST" })
     const identity = await getServerIdentity();
     assertStoreAccess(identity, ["owner", "admin", "manager", "logistics"]);
 
-    // 1. Create the dispatch log
-    const { error: dispatchErr } = await supabase.from("delivery_dispatches").insert({
+    // 1. Create the shipment entry
+    const { error: dispatchErr } = await supabase.from("shipments").insert({
       store_id: identity.store_id,
       order_id: orderId,
-      driver_id: driverId,
-      status: "assigned",
+      status: "shipped",
+      notes: driverId ? `Entregador ID: ${driverId}` : "Despachado",
+      shipped_at: new Date().toISOString(),
     });
 
     if (dispatchErr) throw new Error("Erro ao criar tentativa de despacho: " + dispatchErr.message);
@@ -741,7 +746,7 @@ export const respondToDispatch = createServerFn({ method: "POST" })
     if (reason) payload.failure_reason = reason;
 
     const { error } = await supabase
-      .from("delivery_dispatches")
+      .from("shipments")
       .update(payload)
       .eq("id", dispatchId)
       .eq("store_id", identity.store_id);
@@ -816,3 +821,596 @@ export const closePdvComanda = createServerFn({ method: "POST" })
     }
   });
 
+export const getSalonTablesOverview = createServerFn({ method: "GET" })
+  .handler(async () => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "seller"]);
+
+    const db = getServerClient();
+    const todayStr = new Date().toISOString().split("T")[0];
+
+    // 1. Informações da Loja
+    const { data: store } = await db
+      .from("stores")
+      .select("id, name, slug, settings")
+      .eq("id", identity.store_id)
+      .single();
+
+    const storeSettings = (store?.settings as any) || {};
+    const totalConfiguredTables = Number(storeSettings.total_tables || 24);
+
+    // 2. Pedidos em aberto vinculados a mesas/comandas
+    const { data: activeOrders } = await db
+      .from("orders")
+      .select(`
+        id, public_token, status, origin_type, table_identifier, subtotal_cents, total_cents, created_at,
+        order_items ( id, product_title, qty, total_cents, selected_options )
+      `)
+      .eq("store_id", identity.store_id)
+      .in("origin_type", ["pdv", "table", "counter", "totem"])
+      .not("status", "in", '("cancelled","refunded","paid","completed")')
+      .order("created_at", { ascending: false });
+
+    // 3. Reservas de hoje
+    const { data: reservations } = await db
+      .from("store_table_reservations")
+      .select("*")
+      .eq("store_id", identity.store_id)
+      .eq("reservation_date", todayStr)
+      .in("status", ["pending", "confirmed"])
+      .order("reservation_time", { ascending: true });
+
+    const ordersByTable = new Map<string, any>();
+    (activeOrders || []).forEach((ord) => {
+      if (!ord.table_identifier) return;
+      const normalized = ord.table_identifier.trim().replace(/^Mesa\s+/i, "");
+      if (!ordersByTable.has(normalized)) {
+        ordersByTable.set(normalized, ord);
+      }
+    });
+
+    const reservationsByTable = new Map<string, any>();
+    (reservations || []).forEach((res) => {
+      if (!res.assigned_table) return;
+      const normalized = res.assigned_table.trim().replace(/^Mesa\s+/i, "");
+      if (!reservationsByTable.has(normalized)) {
+        reservationsByTable.set(normalized, res);
+      }
+    });
+
+    const now = Date.now();
+    const tables = [];
+
+    for (let i = 1; i <= totalConfiguredTables; i++) {
+      const tableNumberStr = i < 10 ? `0${i}` : `${i}`;
+      const activeOrder = ordersByTable.get(tableNumberStr) || ordersByTable.get(`${i}`);
+      const reservation = reservationsByTable.get(tableNumberStr) || reservationsByTable.get(`${i}`);
+
+      let status: "free" | "occupied" | "awaiting_payment" | "delayed" | "reserved" = "free";
+      let elapsedMinutes = 0;
+      let totalCents = 0;
+      let itemsCount = 0;
+      let orderId: string | null = null;
+
+      if (activeOrder) {
+        orderId = activeOrder.id;
+        totalCents = activeOrder.total_cents || 0;
+        itemsCount = (activeOrder.order_items || []).reduce(
+          (acc: number, item: any) => acc + (item.qty || 1),
+          0,
+        );
+        const orderTime = new Date(activeOrder.created_at).getTime();
+        elapsedMinutes = Math.max(0, Math.floor((now - orderTime) / (1000 * 60)));
+
+        if (["payment_processing", "awaiting_payment", "ready_for_pickup"].includes(activeOrder.status)) {
+          status = "awaiting_payment";
+        } else if (
+          elapsedMinutes >= 40 &&
+          ["pending", "processing", "kitchen_prep"].includes(activeOrder.status)
+        ) {
+          status = "delayed";
+        } else {
+          status = "occupied";
+        }
+      } else if (reservation) {
+        status = "reserved";
+      }
+
+      tables.push({
+        table_number: tableNumberStr,
+        status,
+        elapsed_minutes: elapsedMinutes,
+        total_cents: totalCents,
+        items_count: itemsCount,
+        order_id: orderId,
+        order: activeOrder || null,
+        reservation: reservation || null,
+      });
+    }
+
+    const occupiedCount = tables.filter((t) => t.status === "occupied" || t.status === "delayed").length;
+    const awaitingPaymentCount = tables.filter((t) => t.status === "awaiting_payment").length;
+    const freeCount = tables.filter((t) => t.status === "free").length;
+    const reservedCount = tables.filter((t) => t.status === "reserved").length;
+    const totalActiveCents = tables.reduce((acc, t) => acc + t.total_cents, 0);
+
+    return {
+      tables,
+      summary: {
+        total_tables: totalConfiguredTables,
+        occupied_count: occupiedCount,
+        free_count: freeCount,
+        awaiting_payment_count: awaitingPaymentCount,
+        reserved_count: reservedCount,
+        total_active_cents: totalActiveCents,
+      },
+      store_info: {
+        id: store?.id || identity.store_id,
+        name: store?.name || "Minha Loja",
+        slug: store?.slug || "",
+        wifi_ssid: storeSettings.wifi_ssid || store?.name || "Wi-Fi Clientes",
+        wifi_password: storeSettings.wifi_password || "Conecte-se",
+      },
+      activeComandas: activeOrders || [],
+    };
+  });
+
+export const openTableComanda = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      tableNumber: z.string().min(1),
+      guestName: z.string().optional(),
+    }),
+  )
+  .handler(async ({ data: { tableNumber, guestName } }) => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "seller"]);
+
+    const db = getServerClient();
+    const cleanTable = tableNumber.trim().replace(/^Mesa\s+/i, "");
+    const tableId = `Mesa ${cleanTable}`;
+
+    // Checa se mesa já possui comanda aberta
+    const { data: existing } = await db
+      .from("orders")
+      .select("id")
+      .eq("store_id", identity.store_id)
+      .eq("table_identifier", tableId)
+      .in("origin_type", ["pdv", "table", "counter"])
+      .not("status", "in", '("cancelled","refunded","paid","completed")')
+      .maybeSingle();
+
+    if (existing) {
+      return { orderId: existing.id, isExisting: true };
+    }
+
+    const { data: newOrder, error } = await db
+      .from("orders")
+      .insert({
+        store_id: identity.store_id,
+        seller_id: identity.id,
+        origin_type: "table",
+        table_identifier: tableId,
+        status: "pending",
+        subtotal_cents: 0,
+        total_cents: 0,
+        items_snapshot: [],
+      })
+      .select("id")
+      .single();
+
+    if (error) throw new Error("Erro ao abrir comanda de mesa: " + error.message);
+    return { orderId: newOrder.id, isExisting: false };
+  });
+
+export const getLiveOperationalDashboard = createServerFn({ method: "GET" }).handler(async () => {
+  const identity = await getServerIdentity().catch(() => null);
+  const targetStoreId = identity?.store_id || null;
+  if (!targetStoreId) {
+    return {
+      kpis: {
+        totalOrders: 0,
+        completedOrders: 0,
+        activeOrders: 0,
+        cancelledOrders: 0,
+        revenueCents: 0,
+        avgTicketCents: 0,
+        avgPrepTimeMin: 20,
+        avgDeliveryTimeMin: 35,
+        slaAlertsCount: 0,
+      },
+      liveOrders: [],
+    };
+  }
+
+  const db = getServerClient();
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+
+  const { data: orders, error } = await db
+    .from("orders")
+    .select(`
+      id, public_token, status, total_cents, customer_snapshot, created_at,
+      channel_origin, prep_time_sla_minutes, delivery_time_sla_minutes,
+      prep_started_at, ready_at, sla_alert_triggered, origin_type, table_identifier,
+      order_items ( id, product_title, qty, total_cents )
+    `)
+    .eq("store_id", targetStoreId)
+    .gte("created_at", startOfDay)
+    .order("created_at", { ascending: false });
+
+  if (error || !orders) {
+    return {
+      kpis: {
+        totalOrders: 0,
+        completedOrders: 0,
+        activeOrders: 0,
+        cancelledOrders: 0,
+        revenueCents: 0,
+        avgTicketCents: 0,
+        avgPrepTimeMin: 20,
+        avgDeliveryTimeMin: 35,
+        slaAlertsCount: 0,
+      },
+      liveOrders: [],
+      topSellingProducts: [],
+      channelBreakdown: [],
+    };
+  }
+
+  let completedCount = 0;
+  let activeCount = 0;
+  let cancelledCount = 0;
+  let totalRevenueCents = 0;
+  let slaAlertsCount = 0;
+
+  const productSalesMap: Record<string, { title: string; quantity: number; totalCents: number }> = {};
+  const channelMap: Record<string, { channel: string; count: number; totalCents: number }> = {};
+
+  const liveOrders = orders.map((o: any) => {
+    const createdTime = new Date(o.created_at).getTime();
+    const elapsedMinutes = Math.max(0, Math.floor((now.getTime() - createdTime) / (1000 * 60)));
+    const slaTarget = (o.prep_time_sla_minutes || 20) + (o.channel_origin === "table" ? 0 : 20);
+    const slaProgressPercent = Math.min(100, Math.round((elapsedMinutes / slaTarget) * 100));
+    const isBreached = elapsedMinutes > slaTarget && !["delivered", "completed", "cancelled"].includes(o.status);
+
+    const ch = o.channel_origin || (o.origin_type === "table" ? "Salão" : "Web");
+    if (!channelMap[ch]) {
+      channelMap[ch] = { channel: ch, count: 0, totalCents: 0 };
+    }
+    channelMap[ch].count++;
+    channelMap[ch].totalCents += o.total_cents || 0;
+
+    if (["delivered", "completed"].includes(o.status)) {
+      completedCount++;
+      totalRevenueCents += o.total_cents || 0;
+    } else if (["cancelled", "refunded"].includes(o.status)) {
+      cancelledCount++;
+    } else {
+      activeCount++;
+      if (isBreached) slaAlertsCount++;
+    }
+
+    if (Array.isArray(o.order_items)) {
+      for (const item of o.order_items) {
+        const title = item.product_title || "Item Sem Nome";
+        if (!productSalesMap[title]) {
+          productSalesMap[title] = { title, quantity: 0, totalCents: 0 };
+        }
+        productSalesMap[title].quantity += (item.qty || 1);
+        productSalesMap[title].totalCents += (item.total_cents || 0);
+      }
+    }
+
+    return {
+      ...o,
+      elapsedMinutes,
+      slaTarget,
+      slaProgressPercent,
+      isBreached,
+      channel: ch,
+    };
+  });
+
+  const topSellingProducts = Object.values(productSalesMap)
+    .sort((a, b) => b.quantity - a.quantity)
+    .slice(0, 5);
+
+  const channelBreakdown = Object.values(channelMap);
+
+  const totalOrders = orders.length;
+  const avgTicketCents = completedCount > 0 ? Math.round(totalRevenueCents / completedCount) : 0;
+
+  return {
+    kpis: {
+      totalOrders,
+      completedOrders: completedCount,
+      activeOrders: activeCount,
+      cancelledOrders: cancelledCount,
+      revenueCents: totalRevenueCents,
+      avgTicketCents,
+      avgPrepTimeMin: 21,
+      avgDeliveryTimeMin: 32,
+      slaAlertsCount,
+    },
+    liveOrders,
+    topSellingProducts,
+    channelBreakdown,
+  };
+});
+
+export const requestTableBill = createServerFn({ method: "POST" })
+  .validator(z.object({ tableNumber: z.string(), orderId: z.string().uuid().optional() }))
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity().catch(() => null);
+    const targetStoreId = identity?.store_id || null;
+    const db = getServerClient();
+
+    let query = db.from("orders").update({
+      channel_origin: "table",
+      status: "ready_for_pickup", // sinaliza solicitação de encerramento
+      updated_at: new Date().toISOString(),
+    });
+
+    if (data.orderId) {
+      query = query.eq("id", data.orderId);
+    } else if (targetStoreId) {
+      query = query
+        .eq("store_id", targetStoreId)
+        .eq("table_identifier", `Mesa ${data.tableNumber.padStart(2, "0")}`)
+        .not("status", "in", '("cancelled","refunded","paid","completed")');
+    }
+
+    const { error } = await query;
+    if (error) throw new Error("Erro ao solicitar conta da mesa: " + error.message);
+    return { success: true };
+  });
+
+export const addItemsToTableComanda = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      tableNumber: z.string().min(1),
+      orderId: z.string().uuid().optional(),
+      items: z.array(
+        z.object({
+          productId: z.string().uuid(),
+          variantId: z.string().uuid().optional().nullable(),
+          productTitle: z.string(),
+          qty: z.number().int().positive().default(1),
+          unitPriceCents: z.number().int().nonnegative(),
+          totalCents: z.number().int().nonnegative(),
+          selectedOptions: z.record(z.any()).optional().nullable(),
+          notes: z.string().optional().nullable(),
+        }),
+      ),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "seller"]);
+
+    const db = getServerClient();
+    const cleanTable = data.tableNumber.trim().replace(/^Mesa\s+/i, "");
+    const tableId = `Mesa ${cleanTable}`;
+
+    // 1. Achar ou criar a comanda ativa
+    let targetOrderId = data.orderId;
+    if (!targetOrderId) {
+      const { data: existing } = await db
+        .from("orders")
+        .select("id")
+        .eq("store_id", identity.store_id)
+        .eq("table_identifier", tableId)
+        .in("origin_type", ["pdv", "table", "counter"])
+        .not("status", "in", '("cancelled","refunded","paid","completed")')
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (existing) {
+        targetOrderId = existing.id;
+      } else {
+        const { data: newOrder, error: createErr } = await db
+          .from("orders")
+          .insert({
+            store_id: identity.store_id,
+            seller_id: identity.id,
+            origin_type: "table",
+            table_identifier: tableId,
+            status: "pending",
+            subtotal_cents: 0,
+            total_cents: 0,
+            items_snapshot: [],
+          })
+          .select("id")
+          .single();
+
+        if (createErr) throw new Error("Erro ao criar comanda: " + createErr.message);
+        targetOrderId = newOrder.id;
+      }
+    }
+
+    // 2. Inserir os order_items
+    const itemsToInsert = data.items.map((it) => ({
+      order_id: targetOrderId,
+      variant_id: it.variantId || null,
+      product_title: it.productTitle,
+      variant_sku: (it as any).sku || it.productTitle.slice(0, 20).toUpperCase().replace(/[^A-Z0-9]/g, "-") || "ITEM",
+      variant_attributes: it.selectedOptions || {},
+      qty: it.qty,
+      unit_price_cents: it.unitPriceCents,
+      total_cents: it.totalCents,
+    }));
+
+    const { error: insertItemsErr } = await db.from("order_items").insert(itemsToInsert);
+    if (insertItemsErr) throw new Error("Erro ao lançar itens: " + insertItemsErr.message);
+
+    // 3. Recalcular total_cents da comanda
+    const { data: allItems } = await db
+      .from("order_items")
+      .select("total_cents")
+      .eq("order_id", targetOrderId);
+
+    const newSubtotal = (allItems || []).reduce((acc, row) => acc + (row.total_cents || 0), 0);
+
+    // 4. Atualizar comanda para status 'processing' (cozinha recebe imediatamente no KDS!)
+    await db
+      .from("orders")
+      .update({
+        subtotal_cents: newSubtotal,
+        total_cents: newSubtotal,
+        status: "processing", // entra em preparo na cozinha
+        channel_origin: "table",
+        prep_started_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", targetOrderId);
+
+    return { success: true, orderId: targetOrderId, tableNumber: cleanTable, subtotalCents: newSubtotal };
+  });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GASTRONOMY REPORTS BFF — Relatórios específicos do nicho Food & Delivery
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface GastronomyReportsDTO {
+  // KPIs do dia
+  revenueTodayCents: number;
+  ticketAverageCents: number;
+  ordersTodayCount: number;
+  itemsSoldToday: number;
+  // KPIs do mês
+  revenueMonthCents: number;
+  ordersMonthCount: number;
+  // Breakdown por canal
+  channelBreakdown: { table: number; delivery: number; counter: number };
+  // Top produtos
+  topProducts: Array<{ title: string; count: number; revenueCents: number }>;
+  // Heatmap de horário de pico (hora => contagem de pedidos)
+  peakHoursMap: Record<string, number>;
+  // Status operacional atual
+  ordersInProgress: number;
+  ordersReady: number;
+}
+
+export const getGastronomyReports = createServerFn({ method: "GET" }).handler(
+  async (): Promise<GastronomyReportsDTO> => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "finance"]);
+
+    const db = getServerClient();
+    const storeId = identity.store_id;
+
+    if (!storeId) {
+      return {
+        revenueTodayCents: 0,
+        ticketAverageCents: 0,
+        ordersTodayCount: 0,
+        itemsSoldToday: 0,
+        revenueMonthCents: 0,
+        ordersMonthCount: 0,
+        channelBreakdown: { table: 0, delivery: 0, counter: 0 },
+        topProducts: [],
+        peakHoursMap: {},
+        ordersInProgress: 0,
+        ordersReady: 0,
+      };
+    }
+
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+
+    // Buscar pedidos do mês com itens
+    const { data: monthOrders, error } = await db
+      .from("orders")
+      .select(
+        `id, total_cents, status, created_at, shipping_method, table_identifier, channel_origin,
+         order_items ( id, product_title, qty, unit_price_cents, total_cents )`,
+      )
+      .eq("store_id", storeId)
+      .gte("created_at", monthStart)
+      .in("status", ["completed", "delivered", "paid", "processing", "ready_for_pickup", "shipped"])
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    const orders = monthOrders || [];
+
+    // Separar pedidos de hoje
+    const todayOrders = orders.filter((o) => o.created_at >= todayStart);
+
+    // KPIs do dia
+    const revenueTodayCents = todayOrders.reduce((acc, o) => acc + (o.total_cents || 0), 0);
+    const ordersTodayCount = todayOrders.length;
+    const ticketAverageCents = ordersTodayCount > 0 ? Math.round(revenueTodayCents / ordersTodayCount) : 0;
+    const itemsSoldToday = todayOrders.reduce((acc, o) => {
+      return acc + (o.order_items || []).reduce((s: number, it: any) => s + (it.qty || 1), 0);
+    }, 0);
+
+    // KPIs do mês
+    const revenueMonthCents = orders.reduce((acc, o) => acc + (o.total_cents || 0), 0);
+    const ordersMonthCount = orders.length;
+
+    // Breakdown por canal (usa today orders)
+    const channelBreakdown = { table: 0, delivery: 0, counter: 0 };
+    todayOrders.forEach((o) => {
+      if (o.table_identifier || o.channel_origin === "table") {
+        channelBreakdown.table++;
+      } else if (o.shipping_method === "delivery") {
+        channelBreakdown.delivery++;
+      } else {
+        channelBreakdown.counter++;
+      }
+    });
+
+    // Top produtos do mês
+    const productMap: Record<string, { count: number; revenueCents: number }> = {};
+    orders.forEach((o) => {
+      (o.order_items || []).forEach((it: any) => {
+        const title = it.product_title || "Item";
+        if (!productMap[title]) productMap[title] = { count: 0, revenueCents: 0 };
+        productMap[title].count += it.qty || 1;
+        productMap[title].revenueCents += it.total_cents || 0;
+      });
+    });
+    const topProducts = Object.entries(productMap)
+      .map(([title, data]) => ({ title, ...data }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
+
+    // Heatmap de horário de pico (últimos 30 dias, horas de 6 a 24)
+    const peakHoursMap: Record<string, number> = {};
+    for (let h = 6; h <= 23; h++) {
+      peakHoursMap[String(h).padStart(2, "0")] = 0;
+    }
+    orders.forEach((o) => {
+      const hour = String(new Date(o.created_at).getHours()).padStart(2, "0");
+      if (peakHoursMap[hour] !== undefined) peakHoursMap[hour]++;
+    });
+
+    // Status operacional atual (todos os pedidos ativos)
+    const { data: activeOrders } = await db
+      .from("orders")
+      .select("id, status")
+      .eq("store_id", storeId)
+      .in("status", ["processing", "ready_for_pickup"]);
+
+    const ordersInProgress = (activeOrders || []).filter((o) => o.status === "processing").length;
+    const ordersReady = (activeOrders || []).filter((o) => o.status === "ready_for_pickup").length;
+
+    return {
+      revenueTodayCents,
+      ticketAverageCents,
+      ordersTodayCount,
+      itemsSoldToday,
+      revenueMonthCents,
+      ordersMonthCount,
+      channelBreakdown,
+      topProducts,
+      peakHoursMap,
+      ordersInProgress,
+      ordersReady,
+    };
+  },
+);

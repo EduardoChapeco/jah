@@ -208,6 +208,7 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
 
   const activeModules = resolveWorkspaceNavigation(activeStore, {
     isMasterMode: isPlatformAdmin && isMasterAllVerticals,
+    userRole: activeStore?.role || session?.role,
   });
 
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
@@ -266,7 +267,7 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
       const res = await setTenantContext({ data: { store_id: storeId } }).catch(() => null);
       const storeName = res?.storeName || "Espaço";
       toast.success(`Espaço de trabalho alterado para ${storeName}`);
-      window.location.reload();
+      window.location.href = "/workspace";
     } catch {
       toast.error("Erro ao alternar loja.");
       setIsSwitching(false);
@@ -336,23 +337,6 @@ export function WorkspaceShell({ children, session }: { children: ReactNode; ses
           />
         );
       })}
-
-      {/* Botão de Atalho "Todas as Ferramentas" no Menu */}
-      <div className="pt-2 mt-2 border-t border-border/30">
-        <button
-          type="button"
-          onClick={() => setIsAllToolsOpen(true)}
-          className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold text-foreground bg-muted/40 hover:bg-muted transition-colors cursor-pointer"
-        >
-          <div className="flex items-center gap-2">
-            <Sliders className="size-4 text-primary" />
-            <span>Todas as Ferramentas</span>
-          </div>
-          <Badge variant="outline" className="text-[9px] font-mono font-bold px-1.5 py-0">
-            Hub
-          </Badge>
-        </button>
-      </div>
     </div>
   );
 

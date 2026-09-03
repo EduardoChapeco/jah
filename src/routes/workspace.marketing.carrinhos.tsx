@@ -88,12 +88,12 @@ function AbandonedCartsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Growth & Marketing"
-        title="Recuperação de Carrinhos"
+        eyebrow="Marketing"
+        title="Carrinhos Abandonados"
         actions={
-          <Button onClick={handleScan} disabled={isScanning} size="sm" variant="outline">
-            <RefreshCw className={`mr-2 size-4 ${isScanning ? "animate-spin" : ""}`} />
-            Vasculhar Carrinhos
+          <Button onClick={handleScan} disabled={isScanning} size="sm" variant="outline" className="rounded-xl font-semibold text-xs h-9">
+            <RefreshCw className={`mr-2 size-3.5 ${isScanning ? "animate-spin" : ""}`} />
+            Atualizar
           </Button>
         }
       />

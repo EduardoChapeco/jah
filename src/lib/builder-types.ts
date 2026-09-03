@@ -49,7 +49,34 @@ export type BlockType =
   | "ingredient_spotlight"
   | "before_after_slider"
   | "event_rail"
-  | "community_feed";
+  | "community_feed"
+  // Biolink blocks
+  | "biolink_profile_header"
+  | "biolink_action_buttons"
+  | "biolink_pix_card"
+  // Location & Contact blocks
+  | "location_map_card"
+  // Marketing & Capture blocks
+  | "newsletter_capture"
+  // Tourism blocks
+  | "tourism_quote_hero"
+  | "tourism_services_grid"
+  | "tourism_destinations_carousel"
+  // Food & Restaurant blocks
+  | "food_menu_streamlined"
+  | "food_menu_tabs"
+  | "chef_special_banner"
+  | "restaurant_hours_delivery"
+  | "table_booking_card"
+  | "table_order_comanda"
+  // Commerce blocks
+  | "curated_hits_rail"
+  | "shop_the_look_hotspots"
+  | "size_guide_table"
+  // Service & Professional blocks
+  | "specialist_team_grid"
+  | "service_pricing_table"
+  | "property_features_grid";
 export interface ResponsiveValue<T> {
   base: T;
   sm?: T;
