@@ -54,6 +54,11 @@ import {
 } from "@/services/classifieds.functions";
 import { createDealProposal } from "@/services/deals.functions";
 import { ContentActionsMenu } from "@/components/common/content-actions-menu";
+import {
+  resolveClassifiedNiche,
+  getSemanticBadges,
+  getSemanticCondition,
+} from "@/lib/classifieds/semantics";
 
 export const Route = createFileRoute("/_store/classificados/$id")({
   head: ({
@@ -83,13 +88,17 @@ export const Route = createFileRoute("/_store/classificados/$id")({
   },
   loader: async ({
     params,
-  }): Promise<{ classified: any; isOwner: boolean; canManage: boolean; viewerContext: string }> => {
-    const result = await getPublicClassifiedById({ data: params.id }).catch(() => null);
+  }): Promise<{ classified: any; isOwner: boolean; canManage: boolean; viewerContext: string; currentProfile: any }> => {
+    const [result, profileRes] = await Promise.all([
+      getPublicClassifiedById({ data: params.id }).catch(() => null),
+      getProfile().catch(() => null),
+    ]);
     return {
       classified: result?.classified || null,
       isOwner: result?.isOwner || false,
       canManage: result?.canManage || false,
       viewerContext: result?.viewerContext || "anonymous",
+      currentProfile: profileRes || null,
     };
   },
   component: ClassifiedDetailPage,
@@ -118,6 +127,382 @@ function ClassifiedDetailError({ error }: { error: Error }) {
           </Link>
         </Button>
       </div>
+
+      {/* Modal de Candidatura Inteligente (Padrão InfoJobs / LinkedIn) */}
+      <Dialog open={applyModalOpen} onOpenChange={setApplyModalOpen}>
+        <DialogContent className="max-w-xl rounded-2xl p-6 space-y-4">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+              <Briefcase className="size-5 text-primary" />
+              <span>Candidatura: {classified.title}</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Escolha a forma que deseja se apresentar para o recrutador desta oportunidade.
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Abas de Escolha de Envio */}
+          <div className="flex sm:grid sm:grid-cols-3 gap-1.5 p-1 bg-muted/40 rounded-xl overflow-x-auto no-scrollbar">
+            <button
+              type="button"
+              onClick={() => setApplyTab("perfil_wider")}
+              className={`py-2 px-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                applyTab === "perfil_wider"
+                  ? "bg-background text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              🌟 Perfil Wider (1-Clique)
+            </button>
+            <button
+              type="button"
+              onClick={() => setApplyTab("upload_cv")}
+              className={`py-2 px-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                applyTab === "upload_cv"
+                  ? "bg-background text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              📄 Anexar Currículo PDF
+            </button>
+            <button
+              type="button"
+              onClick={() => setApplyTab("whatsapp")}
+              className={`py-2 px-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                applyTab === "whatsapp"
+                  ? "bg-background text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              💬 Falar no WhatsApp
+            </button>
+          </div>
+
+          {/* Opção 1: Perfil Profissional Wider */}
+          {applyTab === "perfil_wider" && (
+            <div className="space-y-4 pt-2">
+              <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 space-y-3">
+                <div className="flex items-center gap-3">
+                  <Avatar className="size-12 border-2 border-primary/30">
+                    <AvatarImage src={currentProfile?.avatarUrl || ""} />
+                    <AvatarFallback className="font-bold text-xs">
+                      {(currentProfile?.fullName || "W")[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h4 className="text-sm font-bold text-foreground">
+                      {currentProfile?.fullName || "Seu Perfil Profissional"}
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      {currentProfile?.occupation || "Profissional Cadastrado no Wider"}
+                    </p>
+                    <span className="text-[10px] text-primary font-medium mt-0.5 block">
+                      ✓ Formação, experiências e competências serão enviadas automaticamente
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-primary/15">
+                  <div>
+                    <span className="text-[10px] text-muted-foreground block">Escolaridade</span>
+                    <span className="font-semibold text-foreground">
+                      {currentProfile?.resume_data?.educations?.[0]?.degree || "Nível Superior / Médio"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-muted-foreground block">Competências</span>
+                    <span className="font-semibold text-foreground">
+                      {Array.isArray(currentProfile?.resume_data?.skills)
+                        ? `${currentProfile.resume_data.skills.length} registradas`
+                        : "Cadastradas no perfil"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-foreground">
+                  Mensagem de Apresentação ao Recrutador (Opcional)
+                </Label>
+                <Textarea
+                  value={coverNote}
+                  onChange={(e) => setCoverNote(e.target.value)}
+                  placeholder="Explique brevemente por que você se interessou por esta vaga..."
+                  className="rounded-xl text-xs h-20 bg-background"
+                />
+              </div>
+
+              <Button
+                size="lg"
+                disabled={isSubmittingApp}
+                onClick={async () => {
+                  setIsSubmittingApp(true);
+                  try {
+                    const resumeSnapshot = currentProfile?.resume_data || {};
+                    await applyToClassifiedJob({
+                      data: {
+                        classified_id: classified.id,
+                        candidate_name: currentProfile?.fullName || currentProfile?.full_name || "Candidato Wider",
+                        candidate_email: currentProfile?.email || undefined,
+                        candidate_phone: currentProfile?.phone || undefined,
+                        education_level: resumeSnapshot.educations?.[0]?.degree || candidateEducation || "superior_completo",
+                        experience_years: candidateExperience || "1_a_2_anos",
+                        candidate_role: currentProfile?.occupation || resumeSnapshot.headline || "Profissional",
+                        resume_snapshot: {
+                          profile_id: currentProfile?.id,
+                          fullName: currentProfile?.fullName,
+                          avatarUrl: currentProfile?.avatarUrl,
+                          occupation: currentProfile?.occupation,
+                          city: currentProfile?.city,
+                          state: currentProfile?.state,
+                          headline: resumeSnapshot.headline,
+                          summary: resumeSnapshot.summary,
+                          experiences: resumeSnapshot.experiences,
+                          educations: resumeSnapshot.educations,
+                          skills: resumeSnapshot.skills,
+                          certifications: resumeSnapshot.certifications,
+                        },
+                        cover_note: coverNote,
+                      },
+                    });
+                    toast.success("Candidatura enviada com sucesso! O recrutador foi notificado.");
+                    setApplyModalOpen(false);
+                  } catch (err: any) {
+                    toast.error(err.message || "Falha ao enviar candidatura.");
+                  } finally {
+                    setIsSubmittingApp(false);
+                  }
+                }}
+                className="w-full rounded-xl font-bold text-xs h-11 bg-primary text-primary-foreground gap-2 cursor-pointer"
+              >
+                {isSubmittingApp ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+                <span>Confirmar Envio do Meu Perfil Profissional</span>
+              </Button>
+            </div>
+          )}
+
+          {/* Opção 2: Upload de Currículo PDF */}
+          {applyTab === "upload_cv" && (
+            <div className="space-y-3 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-foreground">Seu Nome Completo *</Label>
+                  <Input
+                    value={candidateName}
+                    onChange={(e) => setCandidateName(e.target.value)}
+                    placeholder="Nome completo"
+                    className="h-9 rounded-xl text-xs bg-background"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-foreground">Seu WhatsApp *</Label>
+                  <Input
+                    value={candidatePhone}
+                    onChange={(e) => setCandidatePhone(e.target.value)}
+                    placeholder="(49) 99999-9999"
+                    className="h-9 rounded-xl text-xs bg-background font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-foreground">Sua Escolaridade *</Label>
+                  <Select value={candidateEducation} onValueChange={setCandidateEducation}>
+                    <SelectTrigger className="h-9 rounded-xl text-xs bg-background">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CANONICAL_EDUCATION_LEVELS.map((edu) => (
+                        <SelectItem key={edu.value} value={edu.value}>
+                          {edu.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-foreground">Tempo de Experiência *</Label>
+                  <Select value={candidateExperience} onValueChange={setCandidateExperience}>
+                    <SelectTrigger className="h-9 rounded-xl text-xs bg-background">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CANONICAL_EXPERIENCE_LEVELS.map((exp) => (
+                        <SelectItem key={exp.value} value={exp.value}>
+                          {exp.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-medium text-foreground">Link do Currículo (PDF/Drive/LinkedIn)</Label>
+                <Input
+                  value={cvFileUrl}
+                  onChange={(e) => setCvFileUrl(e.target.value)}
+                  placeholder="https://drive.google.com/... ou link direto do PDF"
+                  className="h-9 rounded-xl text-xs bg-background"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-medium text-foreground">Mensagem Adicional</Label>
+                <Textarea
+                  value={coverNote}
+                  onChange={(e) => setCoverNote(e.target.value)}
+                  placeholder="Mensagem para o recrutador..."
+                  className="rounded-xl text-xs h-16 bg-background"
+                />
+              </div>
+
+              <Button
+                size="lg"
+                disabled={isSubmittingApp}
+                onClick={async () => {
+                  if (!candidateName.trim()) {
+                    toast.error("Informe seu nome completo.");
+                    return;
+                  }
+                  setIsSubmittingApp(true);
+                  try {
+                    await applyToClassifiedJob({
+                      data: {
+                        classified_id: classified.id,
+                        candidate_name: candidateName.trim(),
+                        candidate_email: candidateEmail.trim() || undefined,
+                        candidate_phone: candidatePhone.trim() || undefined,
+                        education_level: candidateEducation,
+                        experience_years: candidateExperience,
+                        candidate_role: candidateRole.trim() || undefined,
+                        resume_url: cvFileUrl.trim() || undefined,
+                        cover_note: coverNote,
+                      },
+                    });
+                    toast.success("Currículo anexado e enviado com sucesso!");
+                    setApplyModalOpen(false);
+                  } catch (err: any) {
+                    toast.error(err.message || "Falha ao enviar candidatura.");
+                  } finally {
+                    setIsSubmittingApp(false);
+                  }
+                }}
+                className="w-full rounded-xl font-bold text-xs h-11 bg-primary text-primary-foreground gap-2 cursor-pointer"
+              >
+                {isSubmittingApp ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
+                <span>Enviar Currículo para Triagem</span>
+              </Button>
+            </div>
+          )}
+
+          {/* Opção 3: WhatsApp */}
+          {applyTab === "whatsapp" && (
+            <div className="space-y-4 pt-2 text-center">
+              <div className="size-14 rounded-2xl bg-emerald-500/15 text-emerald-600 flex items-center justify-center mx-auto">
+                <MessageCircle className="size-7" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-foreground">Contato Direto com o Recrutador</h4>
+                <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
+                  Você será redirecionado para o WhatsApp oficial com uma mensagem pré-formatada informando a vaga desejada.
+                </p>
+              </div>
+
+              <Button
+                size="lg"
+                onClick={() => {
+                  const targetPhone = classified.contact_whatsapp || classified.whatsapp || classified.profiles?.phone;
+                  if (!targetPhone) {
+                    toast.error("WhatsApp de contato não informado pelo anunciante.");
+                    return;
+                  }
+                  const text = `Olá! Vi a oportunidade de "${classified.title}" no portal Wider e gostaria de enviar meu currículo para participar do processo seletivo.`;
+                  trackAndOpenWhatsApp(targetPhone, text, {
+                    classifiedId: classified.id,
+                    classifiedTitle: classified.title,
+                    action: "job_application_contact",
+                  });
+                  setApplyModalOpen(false);
+                }}
+                className="w-full rounded-xl font-bold text-xs h-11 bg-emerald-600 hover:bg-emerald-700 text-white gap-2 cursor-pointer"
+              >
+                <MessageCircle className="size-4" />
+                <span>Iniciar Conversa no WhatsApp</span>
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Gestão de Candidatos para o Anunciante Proprietário */}
+      <Dialog open={candidatesListOpen} onOpenChange={setCandidatesListOpen}>
+        <DialogContent className="max-w-2xl rounded-2xl p-6 space-y-4">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+              <Users className="size-5 text-primary" />
+              <span>Candidatos Inscritos: {classified.title}</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Acompanhe os talentos que se candidataram com perfil digital ou currículo anexado.
+            </DialogDescription>
+          </DialogHeader>
+
+          {isLoadingCandidates ? (
+            <div className="py-12 text-center text-xs text-muted-foreground flex flex-col items-center gap-2">
+              <Loader2 className="size-6 animate-spin text-primary" />
+              <span>Carregando candidaturas...</span>
+            </div>
+          ) : candidatesList.length === 0 ? (
+            <div className="py-12 text-center text-xs text-muted-foreground space-y-2">
+              <Users className="size-8 mx-auto text-muted-foreground/60" />
+              <p className="font-semibold text-foreground">Nenhuma candidatura recebida ainda</p>
+              <p>Assim que os candidatos aplicarem, seus dados e escolaridades aparecerão aqui.</p>
+            </div>
+          ) : (
+            <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+              {candidatesList.map((app) => (
+                <div key={app.id} className="p-3.5 rounded-xl border border-border/80 bg-card space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-xs font-bold text-foreground">{app.candidate_name}</h4>
+                      <p className="text-[11px] text-muted-foreground font-mono">
+                        {app.candidate_phone || app.candidate_email || "Contato cadastrado"}
+                      </p>
+                    </div>
+                    <Badge variant="secondary" className="text-[10px] font-medium bg-primary/10 text-primary">
+                      {getEducationLabel(app.education_level)}
+                    </Badge>
+                  </div>
+
+                  {app.cover_note && (
+                    <p className="text-xs text-foreground/80 bg-muted/30 p-2.5 rounded-lg italic">
+                      "{app.cover_note}"
+                    </p>
+                  )}
+
+                  <div className="flex items-center justify-between pt-1 text-[11px] text-muted-foreground">
+                    <span>Experiência: <strong>{getExperienceLabel(app.experience_years)}</strong></span>
+                    {app.resume_url && (
+                      <a
+                        href={app.resume_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-primary font-bold hover:underline flex items-center gap-1"
+                      >
+                        <FileText className="size-3" />
+                        <span>Ver Currículo Anexo</span>
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
@@ -163,7 +548,7 @@ function isVideoUrl(url?: string | null): boolean {
 function ClassifiedDetailPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { classified, isOwner, canManage, viewerContext } = Route.useLoaderData();
+  const { classified, isOwner, canManage, viewerContext, currentProfile } = Route.useLoaderData();
 
   const [activeImage, setActiveImage] = useState(0);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
@@ -193,6 +578,22 @@ function ClassifiedDetailPage() {
   const [bookingGuests, setBookingGuests] = useState(1);
   const [isBooking, setIsBooking] = useState(false);
   const [isBuyingDirect, setIsBuyingDirect] = useState(false);
+
+  // Job Candidacy State (Microfase 78B — BigTech InfoJobs & LinkedIn Style)
+  const [applyModalOpen, setApplyModalOpen] = useState(false);
+  const [applyTab, setApplyTab] = useState<"perfil_wider" | "upload_cv" | "whatsapp">("perfil_wider");
+  const [coverNote, setCoverNote] = useState("");
+  const [candidateName, setCandidateName] = useState(currentProfile?.fullName || currentProfile?.full_name || "");
+  const [candidateEmail, setCandidateEmail] = useState(currentProfile?.email || "");
+  const [candidatePhone, setCandidatePhone] = useState(currentProfile?.phone || "");
+  const [candidateEducation, setCandidateEducation] = useState("superior_completo");
+  const [candidateExperience, setCandidateExperience] = useState("1_a_2_anos");
+  const [candidateRole, setCandidateRole] = useState(currentProfile?.occupation || "");
+  const [cvFileUrl, setCvFileUrl] = useState("");
+  const [isSubmittingApp, setIsSubmittingApp] = useState(false);
+  const [candidatesListOpen, setCandidatesListOpen] = useState(false);
+  const [candidatesList, setCandidatesList] = useState<any[]>([]);
+  const [isLoadingCandidates, setIsLoadingCandidates] = useState(false);
 
   const nightsCount = useMemo(() => {
     if (!checkInDate || !checkOutDate) return 1;
@@ -370,6 +771,10 @@ function ClassifiedDetailPage() {
     variant: "outline",
   };
 
+  const niche = useMemo(() => resolveClassifiedNiche(classified), [classified]);
+  const semanticBadges = useMemo(() => getSemanticBadges(classified), [classified]);
+  const semanticCondition = useMemo(() => getSemanticCondition(classified), [classified]);
+
   return (
     <div className="w-full space-y-6">
       {/* ── Barra Superior de Navegação & Ações Perfeitas ── */}
@@ -385,8 +790,9 @@ function ClassifiedDetailPage() {
 
           <span className="text-muted-foreground/40 text-xs">/</span>
 
-          <Badge variant="outline" className="text-xs font-semibold">
-            {CATEGORY_LABELS[classified.category] || classified.category}
+          <Badge variant="outline" className="text-xs font-semibold gap-1">
+            <niche.icon className="size-3 text-primary" />
+            <span>{niche.shortLabel}</span>
           </Badge>
 
           <Badge
@@ -599,14 +1005,16 @@ function ClassifiedDetailPage() {
               {classified.content}
             </div>
 
-            {/* Atributos Gerais */}
+            {/* Atributos Gerais Semânticos */}
             <div className=" pt-4 grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
-              <div>
-                <span className="text-muted-foreground block mb-0.5">Condição</span>
-                <span className="font-semibold text-foreground">
-                  {CONDITION_LABELS[classified.condition] || "Não informada"}
-                </span>
-              </div>
+              {semanticCondition && (
+                <div>
+                  <span className="text-muted-foreground block mb-0.5">{semanticCondition.label}</span>
+                  <span className="font-semibold text-foreground">
+                    {semanticCondition.value}
+                  </span>
+                </div>
+              )}
               <div>
                 <span className="text-muted-foreground block mb-0.5">Negociação</span>
                 <span className="font-semibold text-foreground">
@@ -668,6 +1076,366 @@ function ClassifiedDetailPage() {
                       <span className="font-bold">{classified.attributes.fuel_type}</span>
                     </div>
                   )}
+                </div>
+              </div>
+            )}
+
+            {/* ─── Ficha Técnica: Desapego & Bens Físicos ─── */}
+            {classified.category === "sale" && classified.attributes?.desapego_subcategory && (
+              <div className="pt-4 space-y-4">
+                <h3 className="text-xs font-medium text-muted-foreground">
+                  Especificações do Item
+                </h3>
+
+                {/* Smartphone */}
+                {classified.attributes.desapego_subcategory === "smartphones" && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs bg-muted/30 p-4 rounded-2xl">
+                    {classified.attributes.brand && (
+                      <div>
+                        <span className="text-muted-foreground block text-[10px]">Marca</span>
+                        <span className="font-semibold">{classified.attributes.brand}</span>
+                      </div>
+                    )}
+                    {classified.attributes.model && (
+                      <div>
+                        <span className="text-muted-foreground block text-[10px]">Modelo</span>
+                        <span className="font-semibold">{classified.attributes.model}</span>
+                      </div>
+                    )}
+                    {classified.attributes.storage && (
+                      <div>
+                        <span className="text-muted-foreground block text-[10px]">Armazenamento</span>
+                        <span className="font-semibold">{classified.attributes.storage}</span>
+                      </div>
+                    )}
+                    {classified.attributes.battery_health && (
+                      <div>
+                        <span className="text-muted-foreground block text-[10px]">Saúde da Bateria</span>
+                        <span className="font-semibold">{classified.attributes.battery_health}%</span>
+                      </div>
+                    )}
+                    {classified.attributes.condition && (
+                      <div>
+                        <span className="text-muted-foreground block text-[10px]">Estado</span>
+                        <span className="font-semibold capitalize">{classified.attributes.condition.replace(/_/g, " ")}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Computador / Notebook */}
+                {classified.attributes.desapego_subcategory === "computadores" && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs bg-muted/30 p-4 rounded-2xl">
+                    {classified.attributes.computer_type && (
+                      <div>
+                        <span className="text-muted-foreground block text-[10px]">Tipo</span>
+                        <span className="font-semibold">{classified.attributes.computer_type}</span>
+                      </div>
+                    )}
+                    {classified.attributes.brand && (
+                      <div>
+                        <span className="text-muted-foreground block text-[10px]">Marca</span>
+                        <span className="font-semibold">{classified.attributes.brand}</span>
+                      </div>
+                    )}
+                    {classified.attributes.processor && (
+                      <div>
+                        <span className="text-muted-foreground block text-[10px]">Processador</span>
+                        <span className="font-semibold">{classified.attributes.processor}</span>
+                      </div>
+                    )}
+                    {classified.attributes.ram && (
+                      <div>
+                        <span className="text-muted-foreground block text-[10px]">Memória RAM</span>
+                        <span className="font-semibold">{classified.attributes.ram}</span>
+                      </div>
+                    )}
+                    {classified.attributes.storage && (
+                      <div>
+                        <span className="text-muted-foreground block text-[10px]">Armazenamento</span>
+                        <span className="font-semibold">{classified.attributes.storage}</span>
+                      </div>
+                    )}
+                    {classified.attributes.condition && (
+                      <div>
+                        <span className="text-muted-foreground block text-[10px]">Estado</span>
+                        <span className="font-semibold capitalize">{classified.attributes.condition.replace(/_/g, " ")}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Eletrodoméstico */}
+                {classified.attributes.desapego_subcategory === "eletrodomesticos" && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs bg-muted/30 p-4 rounded-2xl">
+                    {classified.attributes.appliance_type && (
+                      <div>
+                        <span className="text-muted-foreground block text-[10px]">Tipo</span>
+                        <span className="font-semibold">{classified.attributes.appliance_type}</span>
+                      </div>
+                    )}
+                    {classified.attributes.brand && (
+                      <div>
+                        <span className="text-muted-foreground block text-[10px]">Marca</span>
+                        <span className="font-semibold">{classified.attributes.brand}</span>
+                      </div>
+                    )}
+                    {classified.attributes.voltage && (
+                      <div>
+                        <span className="text-muted-foreground block text-[10px]">Voltagem</span>
+                        <span className="font-semibold">{classified.attributes.voltage}</span>
+                      </div>
+                    )}
+                    {classified.attributes.condition && (
+                      <div>
+                        <span className="text-muted-foreground block text-[10px]">Estado</span>
+                        <span className="font-semibold capitalize">{classified.attributes.condition.replace(/_/g, " ")}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Games & Consoles */}
+                {classified.attributes.desapego_subcategory === "games_consoles" && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs bg-muted/30 p-4 rounded-2xl">
+                    {classified.attributes.console && (
+                      <div>
+                        <span className="text-muted-foreground block text-[10px]">Console</span>
+                        <span className="font-semibold">{classified.attributes.console}</span>
+                      </div>
+                    )}
+                    {classified.attributes.condition && (
+                      <div>
+                        <span className="text-muted-foreground block text-[10px]">Estado</span>
+                        <span className="font-semibold capitalize">{classified.attributes.condition.replace(/_/g, " ")}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Móveis & Decoração */}
+                {classified.attributes.desapego_subcategory === "moveis" && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs bg-muted/30 p-4 rounded-2xl">
+                    {classified.attributes.room && (
+                      <div>
+                        <span className="text-muted-foreground block text-[10px]">Ambiente</span>
+                        <span className="font-semibold">{classified.attributes.room}</span>
+                      </div>
+                    )}
+                    {classified.attributes.material && (
+                      <div>
+                        <span className="text-muted-foreground block text-[10px]">Material</span>
+                        <span className="font-semibold">{classified.attributes.material}</span>
+                      </div>
+                    )}
+                    {classified.attributes.condition && (
+                      <div>
+                        <span className="text-muted-foreground block text-[10px]">Estado</span>
+                        <span className="font-semibold capitalize">{classified.attributes.condition.replace(/_/g, " ")}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Brechó & Moda */}
+                {classified.attributes.desapego_subcategory === "moda_brecho" && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs bg-muted/30 p-4 rounded-2xl">
+                    {classified.attributes.fashion_category && (
+                      <div>
+                        <span className="text-muted-foreground block text-[10px]">Categoria</span>
+                        <span className="font-semibold">{classified.attributes.fashion_category}</span>
+                      </div>
+                    )}
+                    {classified.attributes.gender && (
+                      <div>
+                        <span className="text-muted-foreground block text-[10px]">Gênero</span>
+                        <span className="font-semibold">{classified.attributes.gender}</span>
+                      </div>
+                    )}
+                    {classified.attributes.size && (
+                      <div>
+                        <span className="text-muted-foreground block text-[10px]">Tamanho</span>
+                        <span className="font-semibold">{classified.attributes.size}</span>
+                      </div>
+                    )}
+                    {classified.attributes.brand && (
+                      <div>
+                        <span className="text-muted-foreground block text-[10px]">Marca</span>
+                        <span className="font-semibold">{classified.attributes.brand}</span>
+                      </div>
+                    )}
+                    {classified.attributes.condition && (
+                      <div>
+                        <span className="text-muted-foreground block text-[10px]">Estado</span>
+                        <span className="font-semibold capitalize">{classified.attributes.condition.replace(/_/g, " ")}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Acessórios inclusos (smartphone) */}
+                {Array.isArray(classified.attributes.accessories) && classified.attributes.accessories.length > 0 && (
+                  <div className="space-y-1.5">
+                    <span className="text-[11px] text-muted-foreground">Incluso no Item</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {classified.attributes.accessories.map((acc: string, i: number) => (
+                        <span key={i} className="text-xs px-2.5 py-1 rounded-lg bg-muted text-foreground font-medium">
+                          ✓ {acc}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Garantia */}
+                {classified.attributes.warranty && (
+                  <p className="text-xs text-muted-foreground">
+                    <span className="font-medium text-foreground">Garantia / Procedência:</span> {classified.attributes.warranty}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* ─── Ficha Técnica: Veículo — Cor + Opcionais + Procedência ─── */}
+            {classified.category === "vehicle" && classified.attributes && (classified.attributes.color || (Array.isArray(classified.attributes.features) && classified.attributes.features.length > 0)) && (
+              <div className="pt-2 space-y-3">
+                {classified.attributes.color && (
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-muted-foreground">Cor:</span>
+                    <span className="font-semibold">{classified.attributes.color}</span>
+                  </div>
+                )}
+                {Array.isArray(classified.attributes.features) && classified.attributes.features.length > 0 && (
+                  <div className="space-y-1.5">
+                    <span className="text-[11px] text-muted-foreground">Opcionais & Diferenciais</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {classified.attributes.features.map((feat: string, i: number) => (
+                        <span key={i} className="text-xs px-2 py-0.5 rounded-lg bg-muted text-foreground font-medium">
+                          {feat}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {Array.isArray(classified.attributes.provenance) && classified.attributes.provenance.length > 0 && (
+                  <div className="space-y-1.5">
+                    <span className="text-[11px] text-muted-foreground">Procedência & Documentação</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {classified.attributes.provenance.map((prov: string, i: number) => (
+                        <span key={i} className="text-xs px-2 py-0.5 rounded-lg bg-primary/10 text-primary font-medium">
+                          ✓ {prov}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Ficha Técnica de Vaga de Emprego & Oportunidade (Microfase 78B — BigTech InfoJobs & LinkedIn Style) */}
+            {(classified.category === "job" || classified.attributes?.niche === "vaga") && (
+              <div className=" pt-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Briefcase className="size-4 text-primary" />
+                    <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                      Requisitos & Detalhes da Vaga
+                    </h3>
+                  </div>
+                  <Badge variant="outline" className="text-[10px] uppercase font-mono font-bold text-primary border-primary/30">
+                    {classified.attributes?.role || classified.title}
+                  </Badge>
+                </div>
+
+                {/* Grade de 4 parâmetros mensuráveis */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-muted/30 p-4 rounded-2xl text-center">
+                  <div>
+                    <span className="text-muted-foreground block text-[10px] mb-0.5">Escolaridade Mínima</span>
+                    <span className="font-bold text-foreground">
+                      {getEducationLabel(classified.attributes?.min_education)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground block text-[10px] mb-0.5">Experiência Mínima</span>
+                    <span className="font-bold text-foreground">
+                      {getExperienceLabel(classified.attributes?.experience_level)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground block text-[10px] mb-0.5">Regime</span>
+                    <span className="font-bold text-foreground">
+                      {getRegimeLabel(classified.attributes?.regime)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground block text-[10px] mb-0.5">Modelo</span>
+                    <span className="font-bold text-foreground">
+                      {getWorkplaceModelLabel(classified.attributes?.work_model)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Benefícios Oferecidos */}
+                {Array.isArray(classified.attributes?.benefits) && classified.attributes.benefits.length > 0 && (
+                  <div className="space-y-2 pt-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
+                      Benefícios & Vantagens Oferecidas
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {classified.attributes.benefits.map((ben: string, idx: number) => (
+                        <Badge key={idx} variant="secondary" className="text-xs font-semibold px-2.5 py-1 rounded-lg gap-1.5 bg-primary/10 text-primary border-primary/20">
+                          <CheckCircle2 className="size-3 text-primary" />
+                          <span>{ben}</span>
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Habilidades & Competências Exigidas */}
+                {Array.isArray(classified.attributes?.skills) && classified.attributes.skills.length > 0 && (
+                  <div className="space-y-2 pt-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
+                      Competências & Habilidades Desejadas
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {classified.attributes.skills.map((skill: string, idx: number) => (
+                        <Badge key={idx} variant="outline" className="text-xs font-medium px-2.5 py-1 rounded-lg">
+                          {skill}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Widget de Mensuração e Estatísticas de Candidatos (Estilo InfoJobs / LinkedIn) */}
+                <div className="mt-4 p-4 rounded-2xl bg-primary/5 border border-primary/20 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="size-4 text-primary" />
+                      <span className="text-xs font-bold text-foreground">Mensuração & Análise de Aderência</span>
+                    </div>
+                    <Badge variant="secondary" className="text-[10px] font-mono text-primary">
+                      Padrão InfoJobs / LinkedIn
+                    </Badge>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    Esta oportunidade mensura candidatos por competências e escolaridade canônica. Candidatos com formação equivalente ou superior têm alta prioridade de triagem.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-center">
+                    <div className="bg-background/80 p-2.5 rounded-xl border border-border/60">
+                      <span className="text-[10px] text-muted-foreground block">Status do Processo</span>
+                      <span className="text-xs font-bold text-emerald-600">Inscrições Abertas</span>
+                    </div>
+                    <div className="bg-background/80 p-2.5 rounded-xl border border-border/60">
+                      <span className="text-[10px] text-muted-foreground block">Canal Recomendado</span>
+                      <span className="text-xs font-bold text-primary">Perfil Profissional</span>
+                    </div>
+                    <div className="bg-background/80 p-2.5 rounded-xl border border-border/60">
+                      <span className="text-[10px] text-muted-foreground block">Triagem Média</span>
+                      <span className="text-xs font-bold text-foreground">Em até 48h</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -743,7 +1511,7 @@ function ClassifiedDetailPage() {
           </div>
 
           {/* Localização Aproximada */}
-          <div className=" bg-card rounded-3xl p-6 space-y-2 ">
+          <div className=" bg-card rounded-2xl p-6 space-y-2 ">
             <div className="flex items-center gap-2">
               <MapPin className="size-4 text-primary" />
               <h2 className="text-sm font-bold text-foreground">Localização Aproximada</h2>
@@ -815,44 +1583,21 @@ function ClassifiedDetailPage() {
                 </p>
               )}
 
-              {/* Badges de Modalidade & Pagamento */}
+              {/* Badges Semânticos do Nicho */}
               <div className="flex flex-wrap gap-1.5 pt-2.5">
-                {(classified.attributes?.delivery_mode === "both" || !classified.attributes?.delivery_mode) && (
-                  <Badge variant="outline" className="text-[10px] font-medium gap-1 bg-muted/40">
-                    <Truck className="size-3 text-primary" />
-                    <span>Retirada & Entrega Local</span>
-                  </Badge>
-                )}
-                {classified.attributes?.delivery_mode === "local_delivery" && (
-                  <Badge variant="outline" className="text-[10px] font-medium gap-1 bg-muted/40">
-                    <Truck className="size-3 text-primary" />
-                    <span>Entrega Wider Express</span>
-                  </Badge>
-                )}
-                {classified.attributes?.delivery_mode === "pickup" && (
-                  <Badge variant="outline" className="text-[10px] font-medium gap-1 bg-muted/40">
-                    <Package className="size-3 text-primary" />
-                    <span>Somente Retirada</span>
-                  </Badge>
-                )}
-                {classified.attributes?.delivery_mode === "shipping" && (
-                  <Badge variant="outline" className="text-[10px] font-medium gap-1 bg-muted/40">
-                    <Truck className="size-3 text-primary" />
-                    <span>Envio Nacional</span>
-                  </Badge>
-                )}
-                {classified.attributes?.accepts_pix !== false && (
-                  <Badge variant="secondary" className="text-[10px] font-medium gap-1">
-                    <QrCode className="size-3 text-emerald-600" />
-                    <span>PIX</span>
-                  </Badge>
-                )}
-                {classified.attributes?.accepts_trade && (
-                  <Badge variant="secondary" className="text-[10px] font-medium gap-1">
-                    <RefreshCw className="size-3 text-amber-600" />
-                    <span>Aceita Troca</span>
-                  </Badge>
-                )}
+                {semanticBadges.map((badge, idx) => {
+                  const Icon = badge.icon;
+                  return (
+                    <Badge
+                      key={idx}
+                      variant={badge.variant || "outline"}
+                      className="text-[10px] font-medium gap-1 bg-muted/40"
+                    >
+                      <Icon className="size-3 text-primary" />
+                      <span>{badge.label}</span>
+                    </Badge>
+                  );
+                })}
               </div>
 
               {classified.negotiable && (
@@ -862,8 +1607,8 @@ function ClassifiedDetailPage() {
               )}
             </div>
 
-            {/* Simulador de Frete & Logística Wider Express */}
-            {(classified.attributes?.delivery_mode !== "pickup" && classified.category !== "real_estate") && (
+            {/* Simulador de Frete & Logística Wider Express (Exclusivo para produtos físicos/desapegos) */}
+            {niche.showDeliveryBadges && classified.attributes?.delivery_mode !== "pickup" && (
               <div className="border border-primary/20 rounded-2xl p-4 bg-primary/5 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5 text-xs font-bold text-foreground">
@@ -922,7 +1667,30 @@ function ClassifiedDetailPage() {
                     Como anunciante, você pode editar informações, pausar o anúncio e acompanhar as
                     propostas e reservas recebidas.
                   </p>
-                  <div className="grid grid-cols-2 gap-2 pt-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                    {(classified.category === "job" || classified.attributes?.niche === "vaga") && (
+                      <div className="col-span-2 pb-1">
+                        <Button
+                          size="sm"
+                          onClick={async () => {
+                            setCandidatesListOpen(true);
+                            setIsLoadingCandidates(true);
+                            try {
+                              const apps = await listClassifiedJobApplications({ data: classified.id });
+                              setCandidatesList(apps || []);
+                            } catch (err) {
+                              toast.error("Erro ao carregar lista de candidatos.");
+                            } finally {
+                              setIsLoadingCandidates(false);
+                            }
+                          }}
+                          className="w-full rounded-xl text-xs font-bold h-9 bg-primary text-primary-foreground gap-2"
+                        >
+                          <Users className="size-3.5" />
+                          <span>Gerenciar Candidatos Inscritos</span>
+                        </Button>
+                      </div>
+                    )}
                     <Button
                       asChild
                       variant="outline"
@@ -948,6 +1716,38 @@ function ClassifiedDetailPage() {
                       </Link>
                     </Button>
                   </div>
+                </div>
+              ) : (classified.category === "job" || classified.attributes?.niche === "vaga") ? (
+                /* Bloco Especial de Candidatura à Vaga */
+                <div className="space-y-3">
+                  <Button
+                    size="lg"
+                    onClick={() => setApplyModalOpen(true)}
+                    className="w-full h-12 rounded-xl font-bold bg-primary text-primary-foreground gap-2 text-sm shadow-md hover:bg-primary/90 transition-all cursor-pointer"
+                  >
+                    <Briefcase className="size-5" />
+                    <span>Candidatar-se à Vaga</span>
+                  </Button>
+
+                  {(classified.contact_whatsapp || classified.whatsapp || classified.profiles?.phone) && (
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={() => {
+                        const targetPhone = classified.contact_whatsapp || classified.whatsapp || classified.profiles?.phone;
+                        const text = `Olá! Vi a oportunidade de "${classified.title}" no portal Wider e gostaria de me candidatar.`;
+                        trackAndOpenWhatsApp(targetPhone, text, {
+                          classifiedId: classified.id,
+                          classifiedTitle: classified.title,
+                          action: "job_quick_whatsapp",
+                        });
+                      }}
+                      className="w-full h-11 rounded-xl font-semibold text-xs gap-2 border-emerald-600/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10 cursor-pointer"
+                    >
+                      <MessageCircle className="size-4 text-emerald-600" />
+                      <span>Falar com o Recrutador via WhatsApp</span>
+                    </Button>
+                  )}
                 </div>
               ) : classified.deal_type === "temporada" ? (
                 /* Bloco de Reserva Direta de Hospedagem / Diárias */
@@ -1000,7 +1800,7 @@ function ClassifiedDetailPage() {
                           </DialogHeader>
 
                           <div className="space-y-4 py-2">
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                               <div className="space-y-1.5">
                                 <label className="text-xs font-semibold text-foreground">
                                   Check-in *
@@ -1188,8 +1988,8 @@ function ClassifiedDetailPage() {
               ) : (
                 /* Bloco de Compra / Negociação para Venda, Aluguel e Outros Itens */
                 <div className="space-y-3">
-                  {/* Botão de Compra Imediata pelo Preço Anunciado */}
-                  {classified.price_cents && classified.price_cents > 0 ? (
+                  {/* Botão Primário Semântico adaptado ao nicho */}
+                  {niche.id === "goods" && classified.price_cents && classified.price_cents > 0 ? (
                     <Button
                       onClick={handleDirectBuy}
                       disabled={isBuyingDirect}
@@ -1199,16 +1999,28 @@ function ClassifiedDetailPage() {
                       {isBuyingDirect ? (
                         <>
                           <Loader2 className="size-5 animate-spin" />
-                          <span>Processando Compra...</span>
+                          <span>Processando Compra Segura...</span>
                         </>
                       ) : (
                         <>
-                          <Check className="size-5" />
-                          <span>Comprar por {formatMoney(classified.price_cents)}</span>
+                          <ShieldCheck className="size-5" />
+                          <span>Comprar com Garantia por {formatMoney(classified.price_cents)}</span>
                         </>
                       )}
                     </Button>
-                  ) : null}
+                  ) : (
+                    <Dialog open={proposalOpen} onOpenChange={setProposalOpen}>
+                      <DialogTrigger asChild>
+                        <Button
+                          size="lg"
+                          className="w-full h-12 rounded-xl font-bold bg-primary text-primary-foreground gap-2 text-sm"
+                        >
+                          <niche.icon className="size-5" />
+                          <span>{niche.primaryActionLabel}</span>
+                        </Button>
+                      </DialogTrigger>
+                    </Dialog>
+                  )}
 
                   {/* Botão Fazer Proposta / Negociar */}
                   <Dialog open={proposalOpen} onOpenChange={setProposalOpen}>
@@ -1273,7 +2085,7 @@ function ClassifiedDetailPage() {
                               />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                               <div className="space-y-1.5">
                                 <label className="text-xs font-semibold text-foreground">
                                   Forma de Pagamento

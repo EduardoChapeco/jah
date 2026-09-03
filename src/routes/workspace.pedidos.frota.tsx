@@ -381,7 +381,7 @@ function FrotaEntregasPage() {
                     </div>
                   )}
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <Label className="text-xs font-bold text-foreground">Nº do Pedido *</Label>
                       <Input
@@ -414,7 +414,7 @@ function FrotaEntregasPage() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <Label className="text-xs font-bold text-foreground">Nome do Cliente *</Label>
                       <Input
@@ -436,7 +436,7 @@ function FrotaEntregasPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <Label className="text-xs font-bold text-foreground">Nome do Entregador *</Label>
                       <Input
@@ -507,7 +507,7 @@ function FrotaEntregasPage() {
                     </Badge>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 bg-muted/40 p-2.5 rounded-xl text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-muted/40 p-2.5 rounded-xl text-xs">
                     <div>
                       <span className="text-[10px] text-muted-foreground">Entregador</span>
                       <p className="font-semibold text-foreground truncate">{d.courier_name}</p>
@@ -600,7 +600,7 @@ function FrotaEntregasPage() {
                     </select>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <Label className="text-xs font-bold text-foreground">Taxa de Partida (R$) *</Label>
                       <Input
@@ -623,7 +623,7 @@ function FrotaEntregasPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <div>
                       <Label className="text-xs font-bold text-foreground">Tarifa Mínima</Label>
                       <Input
@@ -705,7 +705,7 @@ function FrotaEntregasPage() {
                     </Button>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 bg-muted/40 p-2.5 rounded-xl text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-muted/40 p-2.5 rounded-xl text-xs">
                     <div>
                       <span className="text-[10px] text-muted-foreground">Taxa Partida</span>
                       <p className="font-semibold text-foreground">{formatMoney(tbl.base_fee_cents)}</p>

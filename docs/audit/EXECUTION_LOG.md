@@ -160,3 +160,26 @@
 3. **Contenção de Bordas Apple HIG**:
    - Moderadas todas as 11 ocorrências de `rounded-3xl` em `workspace.orcamentos.novo.tsx` para `rounded-2xl`.
 4. **Compilação e Validação**: Build de produção Vite + Nitro concluído com sucesso com código de saída 0 em 7.51s.
+
+## Ciclo 76 — Microfase 76D
+
+- **Data/Hora:** 2026-09-03T16:04:00-03:00
+- **Módulo:** Detalhe de Classificados, Contratos Digitais e Logística de Frota (Mobile-First)
+- **Commit Base:** `5488af3`
+- **Status:** `MICROFASE COMPROVADA EM RUNTIME E COMMITADA`
+
+### Diagnóstico Forense & Causa Raiz
+1. Em `_store.classificados.$id.tsx`, as abas superiores de navegação entre detalhes, vendedor e mapa utilizavam `grid-cols-3` rígido em container compacto, comprimindo os botões em celulares pequenos. Adicionalmente, modais de contraproposta e seções de ficha técnica comprimiam inputs e seletores em `grid-cols-2`.
+2. Em `workspace.turismo.contratos.index.tsx`, o formulário modal de emissão de novos contratos turísticos operava com 4 grids de 2 colunas incondicionais, comprimindo valores, datas e parcelamento em telas mobile.
+3. Em `workspace.pedidos.frota.tsx`, a gestão operacional de rotas de ônibus, passageiros e paradas utilizava 7 grids de 2 e 3 colunas rígidas, prejudicando o uso em campo por despachantes e motoristas usando smartphones.
+
+### Ações Executadas
+1. **Página de Classificados Ultra-Responsiva**:
+   - Em `_store.classificados.$id.tsx`, a navegação superior foi convertida para `flex sm:grid sm:grid-cols-3 gap-1.5 overflow-x-auto no-scrollbar`.
+   - Todos os modais de envio de propostas e fichas técnicas foram convertidos para `grid-cols-1 sm:grid-cols-2 gap-3` e `grid-cols-1 sm:grid-cols-3 gap-2`.
+   - Moderados os `rounded-3xl` para `rounded-2xl`.
+2. **Contratos Digitais Fluido no Mobile**:
+   - Em `workspace.turismo.contratos.index.tsx`, os 4 blocos do modal de contrato foram convertidos para `grid-cols-1 sm:grid-cols-2 gap-2`.
+3. **Logística de Frota e Passageiros Mobile-Ready**:
+   - Em `workspace.pedidos.frota.tsx`, convertidos os formulários de itinerário e passageiros para `grid-cols-1 sm:grid-cols-2 gap-3` e `grid-cols-1 sm:grid-cols-3 gap-2`.
+4. **Compilação e Validação**: Build de produção Vite + Nitro concluído com sucesso com código de saída 0 em 6.02s.

@@ -166,7 +166,7 @@ function WorkspaceContractsIndexPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div className="space-y-1">
                     <Label className="text-xs font-bold">Nome do Contratante *</Label>
                     <Input
@@ -189,7 +189,7 @@ function WorkspaceContractsIndexPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div className="space-y-1">
                     <Label className="text-xs font-bold">WhatsApp / Telefone *</Label>
                     <Input
@@ -212,7 +212,7 @@ function WorkspaceContractsIndexPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div className="space-y-1">
                     <Label className="text-xs font-bold">Data Início</Label>
                     <Input
@@ -245,7 +245,7 @@ function WorkspaceContractsIndexPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div className="space-y-1">
                     <Label className="text-xs font-bold">Valor Total (Centavos BRL) *</Label>
                     <Input
