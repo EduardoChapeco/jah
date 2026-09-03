@@ -65,3 +65,29 @@
 4. Criação da suíte de testes unitários `src/services/group-tours.functions.test.ts` com 100% de aprovação no Vitest.
 5. Validação em runtime real contra o banco PostgreSQL do Supabase, comprovando gravação e leitura de excursão de 46 lugares, alocação de poltrona, vínculo operacional com ônibus e motorista, e inserção de custos operacionais.
 6. Build de produção completo Vite + Nitro Worker para Cloudflare Pages com código de saída 0.
+
+## Ciclo 75 — Microfase 75C
+
+- **Data/Hora:** 2026-09-03T12:34:00-03:00
+- **Módulo:** Frota, Ônibus & Designer 2D Multi-Deck (Workspace & Supabase)
+- **Commit Base:** `7186520`
+- **Status:** `MICROFASE COMPROVADA EM RUNTIME E COMMITADA`
+
+### Diagnóstico Forense & Causa Raiz
+1. O editor 2D de veículos (`src/routes/workspace.turismo.frota.$id.tsx`) operava como canvas preliminar rígido e não suportava modelos Double Decker de dois pisos com escadas e pisos diferenciados (Leito Cama VIP no piso 1 e Semi-Leito no piso 2).
+2. `generateDefaultBusSeatMap` gerava apenas mapas monocamada (Single Deck) sem suporte a `is_double_decker`, rejeitando a geração do piso superior e escadas.
+3. Não havia mecanismo rápido para aplicar presets do padrão de mercado rodoviário brasileiro (46L Executivo, 42L Semi-Leito, 60L Double Decker G8, 28L Micro-ônibus).
+4. O editor não permitia configurar propriedades avançadas de assento individualmente (PCD / Acessibilidade, Bloqueio para Staff, e número/label personalizado).
+
+### Ações Executadas
+1. Atualização do motor de assentos em `src/services/vehicle-layouts.functions.ts` para gerar layouts Double Decker com 4 fileiras de Leito Cama VIP no piso 1, escadas de transição e 12 fileiras de Semi-Leito no piso 2.
+2. Atualização de `createVehicleLayout` para propagar `is_double_decker` e cálculo dinâmico de capacidade real de assentos no banco `public.vehicle_layouts`.
+3. Reestruturação do editor 2D `src/routes/workspace.turismo.frota.$id.tsx` no padrão Apple HIG:
+   - Seletor de categorias de poltronas com cores semânticas (Executivo, Semi-Leito, Leito, Leito Cama, Convencional);
+   - Alternância fluida de pisos para modelos Double Decker;
+   - Modal de Presets Rápidos de Frota;
+   - Modal de Configuração Individual da Poltrona via Shift+Clique;
+   - Chassi de veículo desenhado com para-brisa dianteiro, traseira e touch targets ergonômicos >= 44px.
+4. Criação da suíte de testes unitários `src/services/vehicle-layouts.functions.test.ts` com 100% de aprovação no Vitest.
+5. Validação em runtime real contra o banco PostgreSQL do Supabase, comprovando criação e leitura de modelo Double Decker Marcopolo Paradiso G8 1800 DD de 60 lugares e marcação de poltrona PCD.
+6. Build de produção completo Vite + Nitro Worker para Cloudflare Pages com código de saída 0.

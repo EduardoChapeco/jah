@@ -102,6 +102,18 @@
   - Build de produção compila? **SIM** (Cloudflare Pages bundle exit code 0).
 - **Classificação Final:** `COMPROVADO EM RUNTIME`
 
+
+### Alegação 9: "Editor 2D de Frota & Ônibus Multi-Deck com Presets e Categorias Apple-Grade"
+
+- **Prometido:** Designer 2D de modelos de veículos e ônibus rodoviários com suporte a múltiplos andares (Double Decker), ferramentas de desenho (WC, porta, motorista, guia, escada), categorias de assentos (leito cama, executivo, etc.) e persistência na tabela `public.vehicle_layouts`.
+- **O Que Foi Codificado:** Expansão de `generateDefaultBusSeatMap` e mutações em `src/services/vehicle-layouts.functions.ts`; interface de chassi 2D enriquecida com presets e propriedades em `src/routes/workspace.turismo.frota.$id.tsx`; suíte de testes unitários `src/services/vehicle-layouts.functions.test.ts`.
+- **Análise dos 20 Pontos**:
+  - Persiste no banco remoto? **SIM** (`public.vehicle_layouts` testada ao vivo).
+  - Sobrevive ao reload F5? **SIM** (Layout e mapa de assentos recuperados do Supabase).
+  - Teste positivo? **SIM** (`src/services/vehicle-layouts.functions.test.ts` aprovado no Vitest).
+  - Build de produção compila? **SIM** (Cloudflare Pages bundle exit code 0).
+- **Classificação Final:** `COMPROVADO EM RUNTIME`
+
 ## Tabela de Resumo de Alegações Auditadas
 
 | Alegação Histórica                   | Status Prometido | Status Real Auditado | Ação Necessária                               |

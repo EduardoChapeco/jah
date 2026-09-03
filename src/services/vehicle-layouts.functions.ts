@@ -70,15 +70,74 @@ export const UpdateVehicleLayoutSchema = z.object({
   seat_map: z.array(SeatCellSchema).optional(),
 });
 
-// Helper para gerar mapa padrão de ônibus 44/46 lugares
-export function generateDefaultBusSeatMap(rows = 12, cols = 5): SeatCell[] {
+// Helper para gerar mapa padrão de ônibus (Single Deck ou Double Decker DD 1800)
+export function generateDefaultBusSeatMap(rows = 12, cols = 5, isDoubleDecker = false): SeatCell[] {
   const map: SeatCell[] = [];
   let seatNumber = 1;
 
+  if (isDoubleDecker) {
+    // ─── PISO 1 (INFERIOR - LEITO CAMA VIP) ───
+    const deck1Rows = 4;
+    for (let r = 0; r < deck1Rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (r === 0) {
+          if (c === 0) map.push({ r, c, type: "driver", label: "Motorista", deck: 1 });
+          else if (c === 1) map.push({ r, c, type: "guide", label: "Guia", deck: 1 });
+          else if (c === 2) map.push({ r, c, type: "aisle", label: "", deck: 1 });
+          else if (c === cols - 1) map.push({ r, c, type: "door", label: "Porta", deck: 1 });
+          else map.push({ r, c, type: "empty", label: "", deck: 1 });
+        } else if (r === deck1Rows - 1 && c === cols - 1) {
+          map.push({ r, c, type: "wc", label: "WC", deck: 1 });
+        } else if (r === deck1Rows - 1 && c === 0) {
+          map.push({ r, c, type: "stairs", label: "Escada", deck: 1 });
+        } else if (c === 2) {
+          map.push({ r, c, type: "aisle", label: "", deck: 1 });
+        } else {
+          const label = String(seatNumber).padStart(2, "0");
+          map.push({
+            r,
+            c,
+            type: "seat",
+            label,
+            deck: 1,
+            category: "leito_cama",
+            status: "available",
+          });
+          seatNumber++;
+        }
+      }
+    }
+
+    // ─── PISO 2 (SUPERIOR - PANORÂMICO SEMI-LEITO) ───
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (r === rows - 1 && c === 0) {
+          map.push({ r, c, type: "stairs", label: "Escada", deck: 2 });
+        } else if (c === 2) {
+          map.push({ r, c, type: "aisle", label: "", deck: 2 });
+        } else {
+          const label = String(seatNumber).padStart(2, "0");
+          map.push({
+            r,
+            c,
+            type: "seat",
+            label,
+            deck: 2,
+            category: "semi_leito",
+            status: "available",
+          });
+          seatNumber++;
+        }
+      }
+    }
+
+    return map;
+  }
+
+  // ─── PISO ÚNICO (CONVENCIONAL / EXECUTIVO) ───
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       if (r === 0) {
-        // Primeira fileira: motorista à esquerda, porta à direita, guia ao lado
         if (c === 0) {
           map.push({ r, c, type: "driver", label: "Motorista", deck: 1 });
         } else if (c === 1) {
@@ -91,13 +150,10 @@ export function generateDefaultBusSeatMap(rows = 12, cols = 5): SeatCell[] {
           map.push({ r, c, type: "empty", label: "", deck: 1 });
         }
       } else if (r === rows - 1 && c === cols - 1) {
-        // Última fileira no canto: banheiro
         map.push({ r, c, type: "wc", label: "WC", deck: 1 });
       } else if (c === 2) {
-        // Corredor central
         map.push({ r, c, type: "aisle", label: "", deck: 1 });
       } else {
-        // Poltrona convencional
         const label = String(seatNumber).padStart(2, "0");
         map.push({
           r,
@@ -162,10 +218,11 @@ export const createVehicleLayout = createServerFn({ method: "POST" })
     assertStoreAccess(identity);
 
     const db = getServerClient();
+    const targetStoreId = data.store_id || identity.store_id;
     const seatMap =
       data.seat_map && data.seat_map.length > 0
         ? data.seat_map
-        : generateDefaultBusSeatMap(data.rows, data.cols);
+        : generateDefaultBusSeatMap(data.rows, data.cols, data.is_double_decker);
 
     // Contar total de poltronas reais no mapa
     const capacity = seatMap.filter((cell) => cell.type === "seat").length || data.total_capacity;
@@ -173,7 +230,7 @@ export const createVehicleLayout = createServerFn({ method: "POST" })
     const { data: created, error } = await db
       .from("vehicle_layouts")
       .insert({
-        store_id: data.store_id,
+        store_id: targetStoreId,
         created_by_profile_id: identity.id,
         name: data.name.trim(),
         vehicle_type: data.vehicle_type,
