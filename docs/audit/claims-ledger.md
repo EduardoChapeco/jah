@@ -90,6 +90,18 @@
   - Build de produção compila? **SIM** (Cloudflare Pages bundle exit code 0).
 - **Classificação Final:** `COMPROVADO EM RUNTIME`
 
+
+### Alegação 8: "Fundação de Turismo & Excursões Terrestres Integrada com Mapa de Ônibus e Persistência Real"
+
+- **Prometido:** Criação, listagem e gestão de excursões terrestres com mapa de 46 assentos, alocação de passageiros, custos de viagem e eliminação de tela vazia/falso sucesso.
+- **O Que Foi Codificado:** Migração remota `20260903140000_tourism_core_schema.sql` aplicada no Supabase; refatoração completa do BFF `src/services/group-tours.functions.ts`; integração reativa no frontend `src/routes/workspace.turismo.grupos.index.tsx`; suíte de testes unitários `src/services/group-tours.functions.test.ts`.
+- **Análise dos 20 Pontos**:
+  - Persiste no banco remoto? **SIM** (`public.tourism_experiences` e `public.group_tour_costs` testados ao vivo).
+  - Sobrevive ao reload F5? **SIM** (Registro recuperado por query `store_id` em runtime).
+  - Teste positivo? **SIM** (`src/services/group-tours.functions.test.ts` aprovado no Vitest).
+  - Build de produção compila? **SIM** (Cloudflare Pages bundle exit code 0).
+- **Classificação Final:** `COMPROVADO EM RUNTIME`
+
 ## Tabela de Resumo de Alegações Auditadas
 
 | Alegação Histórica                   | Status Prometido | Status Real Auditado | Ação Necessária                               |

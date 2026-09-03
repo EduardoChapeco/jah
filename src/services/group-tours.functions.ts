@@ -80,6 +80,10 @@ export function generateDefaultBusSeats(totalSeats: number = 46): BusSeatDTO[] {
           column: col,
           floor: 1,
           status: "free",
+          passenger_name: null,
+          passenger_document: null,
+          passenger_phone: null,
+          boarding_point: null,
         });
         currentSeat++;
       }
@@ -122,23 +126,23 @@ export const createGroupTour = createServerFn({ method: "POST" })
         store_id: identity.store_id || null,
         author_profile_id: identity.id,
         title: input.title.trim(),
-        subtitle: `${input.departureCity} -> ${input.destination} (${input.departureDate})`,
+        subtitle: `${input.departureCity} ➔ ${input.destination} (${input.departureDate})`,
         category: "group_tour",
+        destination: input.destination.trim(),
+        departure_city: input.departureCity.trim(),
+        departure_date: new Date(input.departureDate).toISOString(),
+        departure_time: input.departureTime,
+        return_date: new Date(input.returnDate).toISOString(),
+        return_time: input.returnTime,
         location: input.destination.trim(),
         price_cents: input.priceCents,
+        total_seats: input.totalSeats,
+        seats: defaultSeats,
+        rooms: [],
         included_items: input.includedItems,
-        description: JSON.stringify({
-          departure_city: input.departureCity,
-          departure_date: input.departureDate,
-          departure_time: input.departureTime,
-          return_date: input.returnDate,
-          return_time: input.returnTime,
-          total_seats: input.totalSeats,
-          seats: defaultSeats,
-          rooms: [],
-          notes: input.notes?.trim() || null,
-        }),
-        status: "published",
+        notes: input.notes?.trim() || null,
+        status: "open",
+        description: input.notes?.trim() || `Excursão terrestre de ${input.departureCity} para ${input.destination}`,
       })
       .select("id")
       .single();
@@ -184,23 +188,23 @@ export const getGroupTourById = createServerFn({ method: "GET" })
       id: row.id,
       store_id: row.store_id,
       title: row.title,
-      destination: row.location || meta.destination || "Destino",
-      departure_city: meta.departure_city || "Origem",
-      departure_date: meta.departure_date || row.created_at?.split("T")[0],
-      departure_time: meta.departure_time || "06:00",
-      return_date: meta.return_date || meta.departure_date || row.created_at?.split("T")[0],
-      return_time: meta.return_time || "20:00",
-      bus_company_name: meta.bus_company_name,
-      bus_plate: meta.bus_plate,
-      driver_name: meta.driver_name,
-      driver_phone: meta.driver_phone,
-      total_seats: meta.total_seats || 46,
-      seats: meta.seats || generateDefaultBusSeats(meta.total_seats || 46),
-      rooms: meta.rooms || [],
-      price_cents: row.price_cents || 0,
+      destination: row.destination || row.location || meta.destination || "Destino",
+      departure_city: row.departure_city || meta.departure_city || "Origem",
+      departure_date: row.departure_date ? new Date(row.departure_date).toISOString().split("T")[0] : (meta.departure_date || row.created_at?.split("T")[0]),
+      departure_time: row.departure_time || meta.departure_time || "06:00",
+      return_date: row.return_date ? new Date(row.return_date).toISOString().split("T")[0] : (meta.return_date || meta.departure_date || row.created_at?.split("T")[0]),
+      return_time: row.return_time || meta.return_time || "20:00",
+      bus_company_name: row.bus_company_name || meta.bus_company_name || "",
+      bus_plate: row.bus_plate || meta.bus_plate || "",
+      driver_name: row.driver_name || meta.driver_name || "",
+      driver_phone: row.driver_phone || meta.driver_phone || "",
+      total_seats: row.total_seats || meta.total_seats || 46,
+      seats: (Array.isArray(row.seats) && row.seats.length > 0 ? row.seats : (meta.seats || generateDefaultBusSeats(row.total_seats || 46))),
+      rooms: (Array.isArray(row.rooms) ? row.rooms : (meta.rooms || [])),
+      price_cents: Number(row.price_cents) || 0,
       included_items: row.included_items || [],
-      status: row.status || "open",
-      notes: meta.notes,
+      status: (row.status === "published" ? "open" : row.status) || "open",
+      notes: row.notes || meta.notes || null,
       created_at: row.created_at,
       updated_at: row.updated_at,
     };
@@ -229,30 +233,15 @@ export const updateGroupTourAllocations = createServerFn({ method: "POST" })
       throw new Error("Não autorizado.");
     }
 
-    const { data: current } = await supabase
-      .from("tourism_experiences")
-      .select("description")
-      .eq("id", data.id)
-      .maybeSingle();
-
-    let meta: any = {};
-    try {
-      meta = typeof current?.description === "string" && current.description.startsWith("{") ? JSON.parse(current.description) : {};
-    } catch {
-      meta = {};
-    }
-
-    if (data.seats) meta.seats = data.seats;
-    if (data.rooms) meta.rooms = data.rooms;
-    if (data.busCompanyName !== undefined) meta.bus_company_name = data.busCompanyName;
-    if (data.busPlate !== undefined) meta.bus_plate = data.busPlate;
-    if (data.driverName !== undefined) meta.driver_name = data.driverName;
-    if (data.driverPhone !== undefined) meta.driver_phone = data.driverPhone;
-
     const patch: any = {
-      description: JSON.stringify(meta),
       updated_at: new Date().toISOString(),
     };
+    if (data.seats) patch.seats = data.seats;
+    if (data.rooms) patch.rooms = data.rooms;
+    if (data.busCompanyName !== undefined) patch.bus_company_name = data.busCompanyName;
+    if (data.busPlate !== undefined) patch.bus_plate = data.busPlate;
+    if (data.driverName !== undefined) patch.driver_name = data.driverName;
+    if (data.driverPhone !== undefined) patch.driver_phone = data.driverPhone;
     if (data.status) patch.status = data.status;
 
     const { error } = await supabase
@@ -300,7 +289,11 @@ export const listAgencyGroupTours = createServerFn({ method: "GET" })
     }
 
     if (data?.status && data.status !== "all") {
-      query = query.eq("status", data.status);
+      if (data.status === "open") {
+        query = query.in("status", ["open", "published"]);
+      } else {
+        query = query.eq("status", data.status);
+      }
     }
 
     if (data?.search) {
@@ -309,34 +302,45 @@ export const listAgencyGroupTours = createServerFn({ method: "GET" })
 
     const { data: rows, error } = await query;
 
-    if (error || !rows) {
+    if (error) {
+      console.error("[group-tours.functions] Erro ao listar excursões:", error);
       return [];
     }
+    if (!rows) return [];
 
-    return rows.map((row: any) => ({
-      id: row.id,
-      store_id: row.store_id,
-      title: row.title,
-      destination: row.destination,
-      departure_city: row.departure_city,
-      departure_date: row.departure_date,
-      departure_time: row.departure_time,
-      return_date: row.return_date,
-      return_time: row.return_time,
-      bus_company_name: row.bus_company_name,
-      bus_plate: row.bus_plate,
-      driver_name: row.driver_name,
-      driver_phone: row.driver_phone,
-      total_seats: row.total_seats || 46,
-      seats: row.seats || generateDefaultBusSeats(row.total_seats || 46),
-      rooms: row.rooms || [],
-      price_cents: row.price_cents || 0,
-      included_items: row.included_items || [],
-      status: row.status || "open",
-      notes: row.notes,
-      created_at: row.created_at,
-      updated_at: row.updated_at,
-    }));
+    return rows.map((row: any) => {
+      let meta: any = {};
+      try {
+        meta = typeof row.description === "string" && row.description.startsWith("{") ? JSON.parse(row.description) : {};
+      } catch {
+        meta = {};
+      }
+
+      return {
+        id: row.id,
+        store_id: row.store_id,
+        title: row.title,
+        destination: row.destination || row.location || meta.destination || "Destino",
+        departure_city: row.departure_city || meta.departure_city || "Origem",
+        departure_date: row.departure_date ? new Date(row.departure_date).toISOString().split("T")[0] : (meta.departure_date || row.created_at?.split("T")[0]),
+        departure_time: row.departure_time || meta.departure_time || "06:00",
+        return_date: row.return_date ? new Date(row.return_date).toISOString().split("T")[0] : (meta.return_date || meta.departure_date || row.created_at?.split("T")[0]),
+        return_time: row.return_time || meta.return_time || "20:00",
+        bus_company_name: row.bus_company_name || meta.bus_company_name || "",
+        bus_plate: row.bus_plate || meta.bus_plate || "",
+        driver_name: row.driver_name || meta.driver_name || "",
+        driver_phone: row.driver_phone || meta.driver_phone || "",
+        total_seats: row.total_seats || meta.total_seats || 46,
+        seats: (Array.isArray(row.seats) && row.seats.length > 0 ? row.seats : (meta.seats || generateDefaultBusSeats(row.total_seats || 46))),
+        rooms: (Array.isArray(row.rooms) ? row.rooms : (meta.rooms || [])),
+        price_cents: Number(row.price_cents) || 0,
+        included_items: row.included_items || [],
+        status: (row.status === "published" ? "open" : row.status) || "open",
+        notes: row.notes || meta.notes || null,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+      };
+    });
   });
 
 // ─── 5. Gestão Financeira de Custos da Excursão & Break-even ───────────────────

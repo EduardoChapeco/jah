@@ -44,3 +44,24 @@
 5. Criação de suíte de testes unitários `src/services/events.functions.test.ts` com 100% de aprovação no Vitest.
 6. Validação em runtime real com script PostgreSQL direto contra o cluster Supabase, comprovando gravação e leitura de evento e lote de ingressos com sucesso.
 7. Build de produção completo Vite + Nitro Worker para Cloudflare Pages com código de saída 0.
+
+## Ciclo 75 — Microfase 75B
+
+- **Data/Hora:** 2026-09-03T12:28:00-03:00
+- **Módulo:** Turismo, Excursões & Grupos Terrestres (Workspace & Supabase)
+- **Commit Base:** `afb2c5c`
+- **Status:** `MICROFASE COMPROVADA EM RUNTIME E COMMITADA`
+
+### Diagnóstico Forense & Causa Raiz
+1. As tabelas `public.tourism_experiences`, `public.vehicle_layouts` e `public.group_tour_costs` nunca haviam sido criadas no cluster remoto do Supabase, fazendo com que qualquer mutação de excursão/grupo falhasse com erro 42P01.
+2. Em `src/services/group-tours.functions.ts`, `listAgencyGroupTours` engolia o erro silenciosamente (`if (error || !rows) return []`), retornando array vazio e exibindo EmptyState permanente ("Nenhum grupo cadastrado").
+3. `createGroupTour` serializava campos essenciais (`departure_city`, `destination`, `seats`) apenas como string JSON em `description`, enquanto a listagem buscava colunas de primeira classe inexistentes no banco, gerando propriedades `undefined`.
+4. Em `src/services/group-tours.functions.ts`, `generateDefaultBusSeats` gerava assentos com tipagem numérica solta, status não canônico e ausência de inicialização explícita de campos de passageiro.
+
+### Ações Executadas
+1. Criação e aplicação física da migração `supabase/migrations/20260903140000_tourism_core_schema.sql` no Supabase remoto, criando `vehicle_layouts`, `tourism_experiences` (com 35 colunas canônicas) e `group_tour_costs`, com índices de performance e RLS restritivo com helper `is_store_staff(store_id)`.
+2. Refatoração de `createGroupTour`, `getGroupTourById`, `listAgencyGroupTours` e `updateGroupTourAllocations` em `src/services/group-tours.functions.ts` para operar com colunas de primeira classe e fallback retrocompatível de JSON.
+3. Invalidação reativa de cache via TanStack Query (`queryClient.invalidateQueries({ queryKey: ["agency-group-tours"] })`) e limpeza de estado do formulário em `src/routes/workspace.turismo.grupos.index.tsx`.
+4. Criação da suíte de testes unitários `src/services/group-tours.functions.test.ts` com 100% de aprovação no Vitest.
+5. Validação em runtime real contra o banco PostgreSQL do Supabase, comprovando gravação e leitura de excursão de 46 lugares, alocação de poltrona, vínculo operacional com ônibus e motorista, e inserção de custos operacionais.
+6. Build de produção completo Vite + Nitro Worker para Cloudflare Pages com código de saída 0.

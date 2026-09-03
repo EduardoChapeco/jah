@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Bus,
   Plus,
@@ -98,6 +98,12 @@ function WorkspaceGroupToursIndexPage() {
     onSuccess: (res) => {
       toast.success("Excursão cadastrada com sucesso!");
       setIsNewModalOpen(false);
+      setTitle("");
+      setDestination("");
+      setDepartureDate("");
+      setReturnDate("");
+      setPriceCents(0);
+      queryClient.invalidateQueries({ queryKey: ["agency-group-tours"] });
       navigate({ to: "/workspace/turismo/grupos/$id" as any, params: { id: res.id } as any });
     },
     onError: (err: any) => toast.error(err?.message || "Erro ao cadastrar grupo."),
