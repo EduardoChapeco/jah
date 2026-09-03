@@ -8,6 +8,7 @@ export const eventSchema = z.object({
   id: z.string().uuid(),
   store_id: z.string().uuid(),
   title: z.string().min(1, "O título é obrigatório"),
+  category: z.string().default("shows"),
   description: z.string().nullable().optional(),
   event_date: z.string().datetime(),
   end_date: z.string().datetime().nullable().optional(),
@@ -38,7 +39,8 @@ export const upsertEventSchema = eventSchema
   .extend({
     id: z.string().uuid().optional(),
     title: z.string().min(1, "O título é obrigatório"),
-    event_date: z.string().datetime({ message: "Data do evento é obrigatória" }),
+    category: z.string().default("shows"),
+    event_date: z.string().min(1, "Data do evento é obrigatória"),
     status: z.enum(["draft", "published", "cancelled"]).default("draft"),
   });
 

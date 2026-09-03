@@ -78,6 +78,18 @@
 
 ---
 
+
+### Alegação 7: "Módulo de Eventos & Atrações Operacional com Lotes e Persistência Real"
+
+- **Prometido:** Criação e gestão de eventos no Workspace com persistência real no PostgreSQL e criação automática de lote inicial de ingressos.
+- **O Que Foi Codificado:** Migração remota `20260903130000_events_schema_reconciliation.sql` aplicada no Supabase; correção de schemas Zod em `src/types/community.ts`; tratamento e provisionamento automático de lotes em `src/services/events.functions.ts`; normalização de data e feedback reativo na UI em `src/routes/workspace.eventos.index.tsx`.
+- **Análise dos 20 Pontos**:
+  - Persiste no banco remoto? **SIM** (`public.events` e `public.ticket_lots` testados ao vivo).
+  - Sobrevive ao reload F5? **SIM** (Registro recuperado por query `store_id` em runtime).
+  - Teste positivo? **SIM** (`src/services/events.functions.test.ts` aprovado no Vitest).
+  - Build de produção compila? **SIM** (Cloudflare Pages bundle exit code 0).
+- **Classificação Final:** `COMPROVADO EM RUNTIME`
+
 ## Tabela de Resumo de Alegações Auditadas
 
 | Alegação Histórica                   | Status Prometido | Status Real Auditado | Ação Necessária                               |

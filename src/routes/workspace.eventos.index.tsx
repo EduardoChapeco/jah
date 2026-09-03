@@ -70,16 +70,21 @@ function WorkspaceEventosPage() {
 
     setIsSaving(true);
     try {
+      // Normalização robusta para data ISO compatível
+      const normalizedDate = form.event_date.includes("Z") || form.event_date.includes("+")
+        ? form.event_date
+        : new Date(form.event_date).toISOString();
+
       await upsertEvent({
         data: {
-          title: form.title,
-          description: form.description,
-          event_date: form.event_date,
-          location: form.location,
-          cover_image: form.cover_image || undefined,
-          category: form.category,
+          title: form.title.trim(),
+          description: form.description.trim() || null,
+          event_date: normalizedDate,
+          location: form.location.trim() || null,
+          cover_image: form.cover_image || null,
+          category: form.category || "shows",
           status: "published",
-        } as any,
+        },
       });
 
       toast.success("Evento criado com sucesso!");

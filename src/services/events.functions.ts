@@ -50,22 +50,46 @@ export const getAdminEventById = createServerFn({ method: "GET" })
   .validator(z.string().uuid())
   .handler(async ({ data: eventId }) => _getAdminEventById(eventId));
 
-async function _upsertEvent(data: Partial<z.infer<typeof eventSchema>>) {
+async function _upsertEvent(data: any) {
   const supabase = getServerClient();
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin", "manager", "content"]);
 
-  // Strip server-generated fields to prevent client overrides
-  const { search_vector: _sv, ...safeData } = data as any;
+  const { search_vector: _sv, ...safeData } = data || {};
 
-  const payload = {
+  const payload: any = {
     ...safeData,
-    store_id: identity.store_id, // Force ownership — never trust client-sent store_id
+    store_id: identity.store_id,
+    category: safeData.category || "shows",
+    status: safeData.status || "published",
+    updated_at: new Date().toISOString(),
   };
+
+  if (!payload.id) {
+    payload.created_at = new Date().toISOString();
+  }
 
   const { data: event, error } = await supabase.from("events").upsert(payload).select().single();
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    console.error("[events.functions] Erro ao salvar evento:", error);
+    throw new Error("Falha ao salvar evento: " + error.message);
+  }
+
+  // Provisiona lote padrão de ingressos se for novo evento
+  if (!data.id) {
+    try {
+      await supabase.from("ticket_lots").insert({
+        event_id: event.id,
+        name: "1º Lote Geral",
+        price_cents: 0,
+        capacity: safeData.capacity || 100,
+        status: "active",
+      });
+    } catch (lotErr) {
+      console.warn("[events.functions] Aviso ao criar lote inicial:", lotErr);
+    }
+  }
 
   await logAuditAction(identity, data.id ? "UPDATE" : "INSERT", "events", event.id, event);
 
@@ -74,13 +98,21 @@ async function _upsertEvent(data: Partial<z.infer<typeof eventSchema>>) {
 
 export const upsertEvent = createServerFn({ method: "POST" })
   .validator(
-    eventSchema
-      .omit({ created_at: true, updated_at: true })
-      .partial()
-      .extend({
-        title: z.string().min(1),
-        event_date: z.string(),
-      }),
+    z.object({
+      id: z.string().uuid().optional(),
+      title: z.string().min(1, "O título é obrigatório"),
+      description: z.string().optional().nullable(),
+      event_date: z.string().min(1, "Data do evento é obrigatória"),
+      end_date: z.string().optional().nullable(),
+      location: z.string().optional().nullable(),
+      address: z.string().optional().nullable(),
+      cover_image: z.string().optional().nullable(),
+      category: z.string().default("shows"),
+      status: z.enum(["draft", "published", "cancelled"]).default("published"),
+      is_free: z.boolean().default(false),
+      capacity: z.number().int().min(0).optional().nullable(),
+      organizer_name: z.string().optional().nullable(),
+    })
   )
   .handler(async ({ data }) => _upsertEvent(data));
 

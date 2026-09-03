@@ -1,11 +1,11 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -170,22 +170,25 @@ export function QuickWaiterOrderModal({
   });
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl w-full p-0 gap-0 overflow-hidden rounded-2xl bg-card border border-border max-h-[90vh] flex flex-col">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="right"
+        className="sm:max-w-2xl md:max-w-3xl w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 gap-0 overflow-hidden bg-card flex flex-col"
+      >
         {/* Header */}
-        <DialogHeader className="p-4 sm:p-5 border-b border-border/80 bg-muted/20">
+        <SheetHeader className="p-4 sm:p-5 border-b border-border/80 bg-muted/20 text-left">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
                 <UtensilsCrossed className="size-4" />
               </div>
               <div>
-                <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
+                <SheetTitle className="text-base font-bold text-foreground flex items-center gap-2">
                   <span>Comanda Rápida — Mesa {tableNumber}</span>
                   <Badge variant="outline" className="text-[10px] font-mono">
                     Salão & Cozinha
                   </Badge>
-                </DialogTitle>
+                </SheetTitle>
                 <p className="text-xs text-muted-foreground">
                   Lançamento tátil de pedidos com disparo instantâneo para produção
                 </p>
@@ -238,7 +241,7 @@ export function QuickWaiterOrderModal({
               </div>
             )}
           </div>
-        </DialogHeader>
+        </SheetHeader>
 
         {/* Lista de Produtos */}
         <ScrollArea className="flex-1 p-4 max-h-[50vh]">
@@ -360,7 +363,7 @@ export function QuickWaiterOrderModal({
             </Button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
