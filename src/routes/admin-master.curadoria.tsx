@@ -194,7 +194,7 @@ function CuradoriaAdminPage() {
       </div>
 
       {/* Grid de Métricas Limpo */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="p-4 rounded-xl border border-border/60 bg-card">
           <span className="text-xs text-muted-foreground font-medium block">Lojas Monitoradas</span>
           <div className="text-2xl font-bold tracking-tight text-foreground mt-1">{stores.length}</div>
@@ -226,7 +226,7 @@ function CuradoriaAdminPage() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 max-w-xs h-8">
+        <TabsList className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto no-scrollbar scrollbar-none p-1 rounded-xl h-10">
           <TabsTrigger value="lojas" className="text-xs">Lojas ({stores.length})</TabsTrigger>
           <TabsTrigger value="missoes" className="text-xs">Missões ({audits.length})</TabsTrigger>
           <TabsTrigger value="apoio" className="text-xs">Apoio</TabsTrigger>

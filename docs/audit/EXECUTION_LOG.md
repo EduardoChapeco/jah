@@ -271,3 +271,24 @@
 3. **Gestão de Destinos com Escala Apple HIG**:
    - Em `workspace.turismo.destinos.tsx`, os formulários de destino foram convertidos para `grid-cols-1 sm:grid-cols-2 gap-3` e as bordas moderadas de `rounded-3xl` para `rounded-2xl`.
 4. **Compilação e Validação**: Build de produção Vite + Nitro concluído com sucesso.
+
+## Ciclo 78 — Microfase 78B
+
+- **Data/Hora:** 2026-09-03T16:26:00-03:00
+- **Módulo:** Tokens de API e Curadoria Master (Mobile-First)
+- **Commit Base:** `a0a89f3`
+- **Status:** `MICROFASE COMPROVADA EM RUNTIME E COMMITADA`
+
+### Diagnóstico Forense & Causa Raiz
+1. Em `workspace.tokens.tsx`, as abas de navegação utilizavam `grid grid-cols-3 max-w-md h-8` rígido que comprimia os títulos em telas menores de 480px, e o seletor de escopos no modal continha 2 colunas rígidas.
+2. Em `admin-master.tokens.tsx`, os cards de métricas de tokens globais e o `TabsList` forçavam 3 colunas em contêiner estreito de 32px de altura.
+3. Em `admin-master.curadoria.tsx`, a alternância entre lojas pendentes, aprovadas e rejeitadas impunha `grid-cols-3` rígido em um container `max-w-xs`.
+
+### Ações Executadas
+1. **Tokens do Workspace Fluido no Mobile**:
+   - Em `workspace.tokens.tsx`, convertidas as métricas para `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`, o seletor de abas para carrossel elástico com altura ergonômica (`h-10`), e escopos em `grid-cols-1 sm:grid-cols-2`.
+2. **Tokens Master & Infraestrutura**:
+   - Em `admin-master.tokens.tsx`, convertidas as métricas e abas para padrão móvel adaptativo.
+3. **Curadoria de Lojas e Produtos**:
+   - Em `admin-master.curadoria.tsx`, adaptadas as métricas e abas de aprovação para carrossel deslizável sem compressão de títulos.
+4. **Compilação e Validação**: Build de produção Vite + Nitro concluído com sucesso.

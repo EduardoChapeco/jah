@@ -175,7 +175,7 @@ function AdminTokensPage() {
       </div>
 
       {/* Grid de Métricas */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="p-4 rounded-xl border border-border/60 bg-card">
           <span className="text-xs text-muted-foreground font-medium block">Em Circulação</span>
           <div className="text-2xl font-bold tracking-tight text-foreground mt-1">
@@ -211,7 +211,7 @@ function AdminTokensPage() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 max-w-sm h-8">
+        <TabsList className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto no-scrollbar scrollbar-none p-1 rounded-xl h-10">
           <TabsTrigger value="carteiras" className="text-xs">Carteiras ({dataStats.stores.length})</TabsTrigger>
           <TabsTrigger value="conciliacao" className="text-xs">Solvência</TabsTrigger>
           <TabsTrigger value="seguranca" className="text-xs">Auditoria</TabsTrigger>

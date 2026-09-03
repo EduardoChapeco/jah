@@ -208,7 +208,7 @@ export default function WorkspaceTokensPage() {
       </div>
 
       {/* Grid de Métricas Dual-Pocket */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="p-4 rounded-xl border border-border/60 bg-card">
           <span className="text-xs text-muted-foreground font-medium block">Saldo Total</span>
           <div className="text-2xl font-bold tracking-tight text-foreground mt-1">
@@ -244,7 +244,7 @@ export default function WorkspaceTokensPage() {
 
       {/* Tabs de Governança de Tokens */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 max-w-md h-8">
+        <TabsList className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto no-scrollbar scrollbar-none p-1 rounded-xl h-10">
           <TabsTrigger value="visao_geral" className="text-xs">Visão Geral & Pacotes</TabsTrigger>
           <TabsTrigger value="calculadora" className="text-xs">Comparativo de Economia</TabsTrigger>
           <TabsTrigger value="faturamento" className="text-xs">Faturamento & Limites</TabsTrigger>
@@ -553,7 +553,7 @@ export default function WorkspaceTokensPage() {
 
           <div className="space-y-3 py-2 text-xs">
             <span className="text-muted-foreground font-medium block">Forma de Pagamento</span>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => setPaymentMethod("pix")}
