@@ -113,29 +113,35 @@ function CustomerAgendaPage() {
   const apptList = appointments || [];
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
-      {/* ── 1. Top Navigation & Minimalist Header ── */}
-      <div className="flex items-center justify-between pt-2">
+    <div className="w-full max-w-5xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
+      {/* ── 1. Top Header Unificado ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-5 pt-2">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <Link
               to="/conta"
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors font-medium"
             >
               Minha Conta
             </Link>
             <span className="text-xs text-muted-foreground">/</span>
-            <span className="text-xs font-semibold text-foreground">Agenda</span>
+            <Badge variant="outline" className="text-[10px] font-mono uppercase font-bold tracking-wider">
+              Agenda
+            </Badge>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Minha Agenda
+            Minha Agenda & Agendamentos
           </h1>
+          <p className="text-xs text-muted-foreground">
+            Consulte horários marcados, profissionais de beleza, consultas e serviços agendados.
+          </p>
         </div>
 
         <Button
           asChild
           size="sm"
-          className="rounded-xl text-xs font-semibold h-9 px-4 cursor-pointer"
+          variant="outline"
+          className="rounded-xl text-xs font-semibold h-9 px-4 cursor-pointer self-start sm:self-auto"
         >
           <Link to="/agendar">Novo Agendamento</Link>
         </Button>

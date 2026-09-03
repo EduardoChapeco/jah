@@ -13,19 +13,15 @@ import {
   ShieldCheck,
   ChevronRight,
   Filter,
+  Link as LinkIcon,
+  Paperclip,
+  Copy,
 } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import {
   Sheet,
   SheetContent,
@@ -83,12 +79,17 @@ function WorkspaceSupportPage() {
   const [tickets, setTickets] = useState<SupportTicketItem[]>(initialTickets || []);
   const [statusFilter, setStatusFilter] = useState("all");
 
-  // Novo Ticket Modal
+  // Novo Ticket Sheet
   const [newModalOpen, setNewModalOpen] = useState(false);
   const [subject, setSubject] = useState("");
   const [category, setCategory] = useState<TicketCategory>("other");
   const [priority, setPriority] = useState<TicketPriority>("normal");
   const [message, setMessage] = useState("");
+  const [linkType, setLinkType] = useState<"none" | "tour" | "order" | "customer">("none");
+  const [linkRef, setLinkRef] = useState("");
+  const [customerName, setCustomerName] = useState("");
+  const [attachmentUrl, setAttachmentUrl] = useState("");
+  const [slaMinutes, setSlaMinutes] = useState(1440);
   const [submitting, setSubmitting] = useState(false);
 
   // Detalhe / Thread Drawer
@@ -135,6 +136,12 @@ function WorkspaceSupportPage() {
           category,
           priority,
           initial_message: message.trim(),
+          customer_name: customerName.trim() || undefined,
+          order_id: linkType === "order" && linkRef.trim() ? linkRef.trim() : undefined,
+          tour_id: linkType === "tour" && linkRef.trim() ? linkRef.trim() : undefined,
+          customer_id: linkType === "customer" && linkRef.trim() ? linkRef.trim() : undefined,
+          attachment_url: attachmentUrl.trim() || undefined,
+          sla_minutes: slaMinutes,
         },
       });
 
@@ -142,6 +149,10 @@ function WorkspaceSupportPage() {
       setNewModalOpen(false);
       setSubject("");
       setMessage("");
+      setLinkType("none");
+      setLinkRef("");
+      setCustomerName("");
+      setAttachmentUrl("");
       reloadTickets();
     } catch (err: any) {
       toast.error(err?.message || "Erro ao abrir chamado");
@@ -338,104 +349,220 @@ function WorkspaceSupportPage() {
         </div>
       </div>
 
-      {/* ── 4. Modal de Novo Chamado ── */}
-      <Dialog open={newModalOpen} onOpenChange={setNewModalOpen}>
-        <DialogContent className="sm:max-w-md rounded-2xl border-border/70 bg-card p-5 space-y-4">
-          <DialogHeader>
-            <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
+      {/* ── 4. Sheet Lateral de Novo Chamado (Eliminando Dialog Popup) ── */}
+      <Sheet open={newModalOpen} onOpenChange={setNewModalOpen}>
+        <SheetContent
+          side="right"
+          className="sm:max-w-xl md:max-w-2xl w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 overflow-y-auto bg-card flex flex-col h-full"
+        >
+          <SheetHeader className="px-6 py-4 border-b border-border/60 bg-muted/20">
+            <SheetTitle className="text-base font-bold text-foreground flex items-center gap-2">
               <LifeBuoy className="size-4 text-primary" />
               Novo Chamado de Suporte
-            </DialogTitle>
-          </DialogHeader>
+            </SheetTitle>
+          </SheetHeader>
 
-          <form onSubmit={handleCreateTicket} className="space-y-3.5">
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-foreground">Categoria *</label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value as TicketCategory)}
-                className="w-full h-10 px-3 rounded-xl border border-input bg-background text-xs font-semibold text-foreground focus:outline-none"
+          <form onSubmit={handleCreateTicket} className="flex-1 flex flex-col justify-between p-0">
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+              {/* Categoria e Prioridade */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-foreground">Categoria *</label>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value as TicketCategory)}
+                    className="w-full h-10 px-3 rounded-xl border border-input bg-background text-xs font-semibold text-foreground focus:outline-none"
+                  >
+                    <option value="tourism">Módulo Turismo / Excursões</option>
+                    <option value="finance">Financeiro & Pagamentos</option>
+                    <option value="system_bug">Bug / Erro Visual ou de Operação</option>
+                    <option value="integration">Integrações & Domínio Próprio</option>
+                    <option value="account">Acesso & Usuários</option>
+                    <option value="other">Outras Dúvidas</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-foreground">Prioridade *</label>
+                  <select
+                    value={priority}
+                    onChange={(e) => setPriority(e.target.value as TicketPriority)}
+                    className="w-full h-10 px-3 rounded-xl border border-input bg-background text-xs text-foreground focus:outline-none"
+                  >
+                    <option value="low">Baixa</option>
+                    <option value="normal">Normal (24h)</option>
+                    <option value="high">Alta (Bloqueia operação - 4h)</option>
+                    <option value="urgent">Urgente / SEV-1 (2h)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Assunto */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-foreground">Assunto *</label>
+                <Input
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  placeholder="Ex: Dúvida sobre emissão de manifesto ANTT ou erro em reserva"
+                  className="h-10 text-xs rounded-xl"
+                  required
+                  autoFocus
+                />
+              </div>
+
+              {/* Vínculo Polimórfico (Multi-Nicho / Contexto) */}
+              <div className="p-4 rounded-xl border border-border/70 bg-muted/10 space-y-3">
+                <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  <LinkIcon className="size-3.5 text-primary" />
+                  Vínculo com Operação / Entidade (Opcional)
+                </span>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-muted-foreground">Tipo de Vínculo</label>
+                    <select
+                      value={linkType}
+                      onChange={(e) => setLinkType(e.target.value as any)}
+                      className="w-full h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none"
+                    >
+                      <option value="none">Nenhum (Dúvida Geral)</option>
+                      <option value="tour">Pacote de Viagem / Excursão</option>
+                      <option value="order">Pedido de Compra</option>
+                      <option value="customer">Passageiro / Cliente</option>
+                    </select>
+                  </div>
+
+                  {linkType !== "none" && (
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-semibold text-muted-foreground">ID / Referência do Vínculo</label>
+                      <Input
+                        value={linkRef}
+                        onChange={(e) => setLinkRef(e.target.value)}
+                        placeholder="UUID ou Código da entidade"
+                        className="h-9 text-xs rounded-lg font-mono"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-muted-foreground">Nome do Passageiro / Cliente</label>
+                    <Input
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      placeholder="Ex: João da Silva"
+                      className="h-9 text-xs rounded-lg"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-muted-foreground">SLA Máximo Desejado</label>
+                    <select
+                      value={slaMinutes}
+                      onChange={(e) => setSlaMinutes(Number(e.target.value))}
+                      className="w-full h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none"
+                    >
+                      <option value={120}>2 Horas (SEV-1 Emergencial)</option>
+                      <option value={240}>4 Horas (Operação Crítica)</option>
+                      <option value={1440}>24 Horas (Padrão)</option>
+                      <option value={2880}>48 Horas (Baixa Severidade)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Anexos / Evidência */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-foreground flex items-center gap-1">
+                  <Paperclip className="size-3.5 text-muted-foreground" /> Link de Anexo / Evidência (Opcional)
+                </label>
+                <Input
+                  value={attachmentUrl}
+                  onChange={(e) => setAttachmentUrl(e.target.value)}
+                  placeholder="https://storage... (link para imagem ou documento de log)"
+                  className="h-10 text-xs rounded-xl"
+                />
+              </div>
+
+              {/* Mensagem Detalhada */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-foreground">Mensagem Detalhada *</label>
+                <textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Descreva o que aconteceu ou o que precisa de suporte de forma clara..."
+                  className="w-full h-32 p-3 rounded-xl border border-input bg-background text-xs text-foreground focus:outline-none resize-none leading-relaxed"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="px-6 py-4 border-t border-border/60 bg-muted/20 flex items-center justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setNewModalOpen(false)}
+                className="h-10 px-4 rounded-xl text-xs font-semibold cursor-pointer"
               >
-                <option value="tourism">Módulo Turismo / Excursões</option>
-                <option value="finance">Financeiro & Pagamentos</option>
-                <option value="system_bug">Bug / Erro Visual ou de Operação</option>
-                <option value="integration">Integrações & Domínio Próprio</option>
-                <option value="account">Acesso & Usuários</option>
-                <option value="other">Outras Dúvidas</option>
-              </select>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-foreground">Assunto *</label>
-              <Input
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                placeholder="Ex: Dúvida sobre emissão de manifesto ANTT"
-                className="h-10 text-xs rounded-xl"
-                required
-                autoFocus
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-foreground">Prioridade</label>
-              <select
-                value={priority}
-                onChange={(e) => setPriority(e.target.value as TicketPriority)}
-                className="w-full h-10 px-3 rounded-xl border border-input bg-background text-xs text-foreground focus:outline-none"
-              >
-                <option value="low">Baixa</option>
-                <option value="normal">Normal</option>
-                <option value="high">Alta (Bloqueia operação)</option>
-                <option value="urgent">Urgente</option>
-              </select>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-foreground">Mensagem Detalhada *</label>
-              <textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Descreva o que aconteceu ou o que precisa de suporte..."
-                className="w-full h-28 p-3 rounded-xl border border-input bg-background text-xs text-foreground focus:outline-none resize-none"
-                required
-              />
-            </div>
-
-            <DialogFooter className="pt-2">
+                Cancelar
+              </Button>
               <Button
                 type="submit"
                 disabled={submitting || !subject.trim() || !message.trim()}
-                className="w-full h-10 rounded-xl text-xs font-bold cursor-pointer"
+                className="h-10 px-5 rounded-xl text-xs font-bold cursor-pointer"
               >
                 {submitting ? "Abrindo chamado..." : "Enviar Solicitação"}
               </Button>
-            </DialogFooter>
+            </div>
           </form>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
 
       {/* ── 5. Drawer de Thread de Atendimento ── */}
       <Sheet open={Boolean(selectedTicketId)} onOpenChange={(open) => !open && setSelectedTicketId(null)}>
-        <SheetContent className="sm:max-w-lg w-full flex flex-col p-6 space-y-4 bg-card border-border/80">
-          <SheetHeader className="pb-3 border-b border-border/60">
+        <SheetContent
+          side="right"
+          className="sm:max-w-xl md:max-w-2xl w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 flex flex-col h-full bg-card"
+        >
+          <SheetHeader className="px-6 py-4 border-b border-border/60 bg-muted/20">
             <SheetTitle className="text-base font-bold text-foreground flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="font-mono text-xs text-primary">
-                  #{activeTicket?.ticket_number}
+                <span className="font-mono text-xs text-primary font-bold">
+                  {activeTicket?.ticket_code || `#${activeTicket?.ticket_number}`}
                 </span>
                 <span className="truncate max-w-xs">{activeTicket?.subject}</span>
               </div>
-            </SheetTitle>
 
-            {activeTicket && (
-              <div className="flex items-center justify-between pt-2 text-xs">
+              {activeTicket && (
                 <Badge
                   variant="outline"
                   className={`text-[10px] ${STATUS_LABELS[activeTicket.status]?.className}`}
                 >
                   {STATUS_LABELS[activeTicket.status]?.label}
                 </Badge>
+              )}
+            </SheetTitle>
+
+            {activeTicket && (
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 text-xs">
+                <div className="flex items-center gap-2 text-muted-foreground font-mono text-[11px]">
+                  <span>{CATEGORY_LABELS[activeTicket.category]}</span>
+                  {activeTicket.customer_name && (
+                    <>
+                      <span>•</span>
+                      <span>Cliente: {activeTicket.customer_name}</span>
+                    </>
+                  )}
+                  {activeTicket.sla_due_at && (
+                    <>
+                      <span>•</span>
+                      <span className="text-amber-600 dark:text-amber-400 font-semibold">
+                        SLA: {new Date(activeTicket.sla_due_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    </>
+                  )}
+                </div>
 
                 {activeTicket.status !== "resolved" && (
                   <Button
@@ -443,7 +570,7 @@ function WorkspaceSupportPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleUpdateStatus("resolved")}
-                    className="h-7 px-2 text-[11px] font-semibold gap-1 text-emerald-600 hover:text-emerald-700 cursor-pointer"
+                    className="h-7 px-2.5 text-[11px] font-semibold gap-1 text-emerald-600 hover:text-emerald-700 cursor-pointer"
                   >
                     <CheckCircle2 className="size-3" /> Marcar como Resolvido
                   </Button>
@@ -453,7 +580,7 @@ function WorkspaceSupportPage() {
           </SheetHeader>
 
           {/* Histórico de Mensagens */}
-          <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+          <div className="flex-1 overflow-y-auto p-6 space-y-3">
             {threadMessages.map((m) => (
               <div
                 key={m.id}
@@ -464,20 +591,32 @@ function WorkspaceSupportPage() {
                 }`}
               >
                 <div className="flex items-center justify-between text-[10px] text-muted-foreground font-mono">
-                  <span>{m.is_staff_reply ? "Equipe de Suporte" : "Você (Operador)"}</span>
-                  <span>{new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  <span>{m.is_staff_reply ? "Equipe de Suporte Wider" : "Você (Operador)"}</span>
+                  <span>{new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
                 </div>
                 <p className="whitespace-pre-wrap leading-relaxed">{m.message}</p>
+                {m.attachment_url && (
+                  <div className="pt-1">
+                    <a
+                      href={m.attachment_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11px] text-primary underline hover:text-primary/80 flex items-center gap-1"
+                    >
+                      <Paperclip className="size-3" /> Ver Anexo
+                    </a>
+                  </div>
+                )}
               </div>
             ))}
           </div>
 
           {/* Input de Resposta */}
-          <form onSubmit={handleSendReply} className="pt-2 border-t border-border/60 flex items-center gap-2">
+          <form onSubmit={handleSendReply} className="p-4 border-t border-border/60 bg-muted/10 flex items-center gap-2">
             <Input
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
-              placeholder="Digite uma mensagem..."
+              placeholder="Digite sua resposta ou atualização..."
               className="h-11 rounded-xl text-xs flex-1"
             />
             <Button
@@ -493,3 +632,4 @@ function WorkspaceSupportPage() {
     </div>
   );
 }
+

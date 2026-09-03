@@ -57,7 +57,7 @@ export const BUSINESS_SEGMENTS: BusinessSegment[] = [
     iconBg: "bg-amber-500/15",
     iconColor: "text-amber-500",
     gradient: "from-amber-950/90 via-black/60 to-black/90",
-    coverImage: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80",
+    coverImage: "",
   },
   {
     id: "marmitaria",
@@ -72,7 +72,7 @@ export const BUSINESS_SEGMENTS: BusinessSegment[] = [
     iconBg: "bg-orange-500/15",
     iconColor: "text-orange-500",
     gradient: "from-orange-950/90 via-black/60 to-black/90",
-    coverImage: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80",
+    coverImage: "",
   },
   {
     id: "doces_padaria",
@@ -87,7 +87,7 @@ export const BUSINESS_SEGMENTS: BusinessSegment[] = [
     iconBg: "bg-pink-500/15",
     iconColor: "text-pink-500",
     gradient: "from-pink-950/90 via-black/60 to-black/90",
-    coverImage: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=800&q=80",
+    coverImage: "",
   },
 
   // ── 2. VAREJO & COMÉRCIO ──
@@ -104,7 +104,7 @@ export const BUSINESS_SEGMENTS: BusinessSegment[] = [
     iconBg: "bg-sky-500/15",
     iconColor: "text-sky-500",
     gradient: "from-sky-950/90 via-black/60 to-black/90",
-    coverImage: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80",
+    coverImage: "",
   },
   {
     id: "mercado",
@@ -119,7 +119,7 @@ export const BUSINESS_SEGMENTS: BusinessSegment[] = [
     iconBg: "bg-emerald-500/15",
     iconColor: "text-emerald-500",
     gradient: "from-emerald-950/90 via-black/60 to-black/90",
-    coverImage: "https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=800&q=80",
+    coverImage: "",
   },
   {
     id: "pharmacy",
@@ -134,7 +134,7 @@ export const BUSINESS_SEGMENTS: BusinessSegment[] = [
     iconBg: "bg-rose-500/15",
     iconColor: "text-rose-500",
     gradient: "from-rose-950/90 via-black/60 to-black/90",
-    coverImage: "https://images.unsplash.com/photo-1586015555751-63bb77f4322a?auto=format&fit=crop&w=800&q=80",
+    coverImage: "",
   },
   {
     id: "pet",
@@ -149,7 +149,7 @@ export const BUSINESS_SEGMENTS: BusinessSegment[] = [
     iconBg: "bg-amber-600/15",
     iconColor: "text-amber-600",
     gradient: "from-amber-950/90 via-black/60 to-black/90",
-    coverImage: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=800&q=80",
+    coverImage: "",
   },
   {
     id: "electronics",
@@ -164,7 +164,7 @@ export const BUSINESS_SEGMENTS: BusinessSegment[] = [
     iconBg: "bg-blue-500/15",
     iconColor: "text-blue-500",
     gradient: "from-blue-950/90 via-black/60 to-black/90",
-    coverImage: "https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&w=800&q=80",
+    coverImage: "",
   },
   {
     id: "home_decor",
@@ -179,7 +179,7 @@ export const BUSINESS_SEGMENTS: BusinessSegment[] = [
     iconBg: "bg-teal-500/15",
     iconColor: "text-teal-500",
     gradient: "from-teal-950/90 via-black/60 to-black/90",
-    coverImage: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80",
+    coverImage: "",
   },
 
   // ── 3. SERVIÇOS, SAÚDE & BELEZA ──
@@ -196,7 +196,7 @@ export const BUSINESS_SEGMENTS: BusinessSegment[] = [
     iconBg: "bg-purple-500/15",
     iconColor: "text-purple-500",
     gradient: "from-purple-950/90 via-black/60 to-black/90",
-    coverImage: "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=800&q=80",
+    coverImage: "",
   },
   {
     id: "creator",
@@ -211,7 +211,7 @@ export const BUSINESS_SEGMENTS: BusinessSegment[] = [
     iconBg: "bg-cyan-500/15",
     iconColor: "text-cyan-500",
     gradient: "from-cyan-950/90 via-black/60 to-black/90",
-    coverImage: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80",
+    coverImage: "",
   },
   {
     id: "automotive",
@@ -226,7 +226,7 @@ export const BUSINESS_SEGMENTS: BusinessSegment[] = [
     iconBg: "bg-red-500/15",
     iconColor: "text-red-500",
     gradient: "from-red-950/90 via-black/60 to-black/90",
-    coverImage: "https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?auto=format&fit=crop&w=800&q=80",
+    coverImage: "",
   },
   {
     id: "fitness",
@@ -241,7 +241,7 @@ export const BUSINESS_SEGMENTS: BusinessSegment[] = [
     iconBg: "bg-emerald-600/15",
     iconColor: "text-emerald-600",
     gradient: "from-emerald-950/90 via-black/60 to-black/90",
-    coverImage: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80",
+    coverImage: "",
   },
 
   // ── 4. EVENTOS, CULTURA & EXPERIÊNCIAS ──
@@ -258,7 +258,7 @@ export const BUSINESS_SEGMENTS: BusinessSegment[] = [
     iconBg: "bg-fuchsia-500/15",
     iconColor: "text-fuchsia-500",
     gradient: "from-fuchsia-950/90 via-black/60 to-black/90",
-    coverImage: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80",
+    coverImage: "",
   },
   {
     id: "rental_events",
@@ -273,7 +273,7 @@ export const BUSINESS_SEGMENTS: BusinessSegment[] = [
     iconBg: "bg-indigo-500/15",
     iconColor: "text-indigo-500",
     gradient: "from-indigo-950/90 via-black/60 to-black/90",
-    coverImage: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80",
+    coverImage: "",
   },
   {
     id: "jobs",
@@ -288,7 +288,7 @@ export const BUSINESS_SEGMENTS: BusinessSegment[] = [
     iconBg: "bg-amber-500/15",
     iconColor: "text-amber-500",
     gradient: "from-amber-950/90 via-black/60 to-black/90",
-    coverImage: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=800&q=80",
+    coverImage: "",
   },
   {
     id: "legal",
@@ -303,7 +303,7 @@ export const BUSINESS_SEGMENTS: BusinessSegment[] = [
     iconBg: "bg-slate-500/15",
     iconColor: "text-slate-400",
     gradient: "from-slate-950/90 via-black/60 to-black/90",
-    coverImage: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80",
+    coverImage: "",
   },
   {
     id: "real_estate",
@@ -318,7 +318,7 @@ export const BUSINESS_SEGMENTS: BusinessSegment[] = [
     iconBg: "bg-emerald-500/15",
     iconColor: "text-emerald-500",
     gradient: "from-emerald-950/90 via-black/60 to-black/90",
-    coverImage: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80",
+    coverImage: "",
   },
   {
     id: "news",
@@ -333,7 +333,7 @@ export const BUSINESS_SEGMENTS: BusinessSegment[] = [
     iconBg: "bg-blue-500/15",
     iconColor: "text-blue-500",
     gradient: "from-blue-950/90 via-black/60 to-black/90",
-    coverImage: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=800&q=80",
+    coverImage: "",
   },
   {
     id: "education",
@@ -348,7 +348,7 @@ export const BUSINESS_SEGMENTS: BusinessSegment[] = [
     iconBg: "bg-teal-500/15",
     iconColor: "text-teal-500",
     gradient: "from-teal-950/90 via-black/60 to-black/90",
-    coverImage: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=800&q=80",
+    coverImage: "",
   },
   {
     id: "wholesale",
@@ -363,7 +363,7 @@ export const BUSINESS_SEGMENTS: BusinessSegment[] = [
     iconBg: "bg-amber-600/15",
     iconColor: "text-amber-600",
     gradient: "from-amber-950/90 via-black/60 to-black/90",
-    coverImage: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80",
+    coverImage: "",
   },
   {
     id: "tourism",
@@ -378,7 +378,7 @@ export const BUSINESS_SEGMENTS: BusinessSegment[] = [
     iconBg: "bg-lime-500/15",
     iconColor: "text-lime-500",
     gradient: "from-lime-950/90 via-black/60 to-black/90",
-    coverImage: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80",
+    coverImage: "",
   },
   {
     id: "collective",
@@ -393,6 +393,6 @@ export const BUSINESS_SEGMENTS: BusinessSegment[] = [
     iconBg: "bg-indigo-500/15",
     iconColor: "text-indigo-500",
     gradient: "from-indigo-950/90 via-black/60 to-black/90",
-    coverImage: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&w=800&q=80",
+    coverImage: "",
   },
 ];

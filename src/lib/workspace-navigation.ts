@@ -20,6 +20,7 @@ import {
   Sparkles,
   Megaphone,
   Flame,
+  Kanban,
   Newspaper,
   Plus,
   Sliders,
@@ -144,7 +145,8 @@ const GROUP_RETAIL_SALES: NavGroup = {
     { path: "/workspace/pdv", label: "Frente de Caixa (PDV)", icon: Store },
     { path: "/workspace/pedidos/trocas", label: "Trocas & Devoluções", icon: ArrowRightLeft },
     { path: "/workspace/logistica/tabelas", label: "Fretes & Entregas", icon: Truck },
-    { path: "/workspace/clientes", label: "Clientes / CRM", icon: Users },
+    { path: "/workspace/clientes", label: "Carteira de Clientes", icon: Users },
+    { path: "/workspace/comercial", label: "Funil Comercial (Kanban)", icon: Kanban },
     { path: "/workspace/orcamentos", label: "Orçamentos", icon: FileText },
   ],
 };
@@ -235,6 +237,8 @@ const GROUP_TURISMO: NavGroup = {
   icon: Plane,
   items: [
     { path: "/workspace/catalogo/produtos", label: "Pacotes & Roteiros", icon: Package },
+    { path: "/workspace/turismo/destinos", label: "Banco de Destinos", icon: MapPin },
+    { path: "/workspace/turismo/hoteis", label: "Banco de Hotéis & Resorts", icon: Building2 },
     { path: "/workspace/turismo/cotacoes", label: "Cotações & Leads de Viagem", icon: Plane },
     { path: "/workspace/orcamentos", label: "Orçamentos Gerais", icon: FileText },
     { path: "/workspace/turismo/propostas", label: "Lâminas & Propostas (Studio)", icon: Sparkles },
@@ -250,7 +254,8 @@ const GROUP_TURISMO_COMMERCIAL: NavGroup = {
   label: "Passageiros & Vendas",
   icon: Users,
   items: [
-    { path: "/workspace/clientes", label: "Passageiros & Clientes (CRM)", icon: Users },
+    { path: "/workspace/clientes", label: "Carteira de Clientes & Passageiros", icon: Users },
+    { path: "/workspace/comercial", label: "Funil Comercial (Kanban)", icon: Kanban },
     { path: "/workspace/atendimento", label: "Atendimento & WhatsApp", icon: MessageSquare },
     { path: "/workspace/pedidos", label: "Emissões & Vendas", icon: ShoppingBag },
   ],
@@ -397,7 +402,8 @@ const GROUP_COMMERCIAL_SALES: NavGroup = {
   label: "Comercial & CRM",
   icon: Users,
   items: [
-    { path: "/workspace/clientes", label: "Leads & Clientes (CRM)", icon: Users },
+    { path: "/workspace/clientes", label: "Carteira de Clientes 360°", icon: Users },
+    { path: "/workspace/comercial", label: "Funil de Vendas (Kanban)", icon: Kanban },
     { path: "/workspace/atendimento", label: "Atendimento & Chat", icon: MessageSquare },
     { path: "/workspace/orcamentos", label: "Orçamentos & Propostas", icon: FileText },
     { path: "/workspace/pdv", label: "Frente de Caixa (PDV)", icon: Store },

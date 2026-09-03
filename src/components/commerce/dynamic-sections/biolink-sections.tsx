@@ -14,7 +14,7 @@ export interface BiolinkProfileProps {
 }
 
 export function BiolinkProfileSection({
-  avatarUrl = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80",
+  avatarUrl = "",
   name = "Studio Maria & Co.",
   handle = "@studiomaria",
   bio = "Arquitetura de interiores, consultoria e projetos autorais. Transformando espaços em refúgios.",

@@ -11,7 +11,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Banners rotativos de ponta a ponta com botões de ação e transição suave.",
     category: "commerce",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -42,8 +42,8 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
           autoPlay: true,
           interval: 5,
           banners: [
-            { image_url: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80" },
-            { image_url: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1200&q=80" },
+            { image_url: "" },
+            { image_url: "" },
           ],
           showOverlay: true,
           overlayOpacity: "medium",
@@ -59,7 +59,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Layout editorial com imagem de alta resolução e bloco de texto com CTA.",
     category: "commerce",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -91,7 +91,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
           subtitle: "Peças desenvolvidas com tecidos nobres e acabamento impecável.",
           buttonText: "Explorar Coleção",
           buttonLink: "/produtos",
-          imageUrl: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=800&q=80",
+          imageUrl: "",
           imagePosition: "right",
         },
       },
@@ -104,7 +104,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Barra compacta para avisos de frete grátis, cupons ou comunicados urgentes.",
     category: "marketing",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -133,7 +133,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Exibição dos produtos do catálogo em grid responsivo com cards e preços.",
     category: "commerce",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -177,7 +177,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Trilho horizontal de produtos com scroll suave por toque.",
     category: "commerce",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1472851294608-062f824d29cc?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -221,7 +221,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Formulário de cotação de viagens em tempo real com captura de leads no WhatsApp.",
     category: "commerce",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -252,7 +252,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
           title: "Sua Próxima Viagem Inesquecível Começa Aqui",
           subtitle: "Roteiros exclusivos, cruzeiros, passagens aéreas e pacotes completos com assessoria VIP.",
           badge: "Agência Especializada em Turismo",
-          bgImageUrl: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?q=80&w=1600&auto=format&fit=crop",
+          bgImageUrl: "",
         },
       },
     ],
@@ -264,7 +264,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Matriz com os 8 principais serviços de agência de turismo com ação direta.",
     category: "commerce",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -305,7 +305,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Cards visuais de destinos nacionais e internacionais com preços a partir de.",
     category: "commerce",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -347,7 +347,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Lista compacta com miniaturas à direita, adição em 1 toque e barra flutuante de sacola.",
     category: "commerce",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -375,7 +375,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Carrossel de produtos mais vendidos com ranking numérico (#1, #2), desconto e botão rápido.",
     category: "commerce",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -403,7 +403,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Cartão de autoatendimento no salão com número de mesa e QR Code para pedidos diretos.",
     category: "commerce",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -431,7 +431,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Cardápio completo organizado por categorias (Entradas, Principais, Bebidas, Sobremesas).",
     category: "commerce",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -458,7 +458,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Lâmina visual para o prato estrela com lista de ingredientes e tempo de preparo.",
     category: "commerce",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -488,7 +488,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Grade informativa de funcionamento, taxas de entrega e retirada no balcão.",
     category: "commerce",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -514,7 +514,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Agendamento de mesa com data, horário e pessoas com confirmação no WhatsApp.",
     category: "commerce",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -542,7 +542,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Foto editorial com pontos clicáveis para ver e comprar as peças do look.",
     category: "commerce",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -569,7 +569,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Tabela clara de caimento com medidas de busto, cintura e quadril.",
     category: "content",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -597,7 +597,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Grade de especialistas com registro profissional (CRM/CRO) e especialidades.",
     category: "content",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -624,7 +624,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Tabela comparativa de pacotes e planos multi-sessão para clínicas e salões.",
     category: "content",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -666,7 +666,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Ficha estrutural com metragem (m²), dormitórios, suítes, vagas e botão de visita.",
     category: "content",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -694,7 +694,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Foto de perfil circular com selo de verificação, @handle e biografia.",
     category: "social",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -723,7 +723,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Lista de botões táteis para links externos, WhatsApp e catálogo.",
     category: "social",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -753,7 +753,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Card com chave Pix e botão de copiar com 1 clique para pagamentos rápidos.",
     category: "social",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -783,7 +783,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Grid moderno assimétrico estilo Apple para links e coleções.",
     category: "content",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -823,7 +823,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Grade responsiva para fotos, portfólio e fotos de clientes.",
     category: "content",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -853,9 +853,9 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
         content: {
           title: "Nossa Galeria",
           images: [
-            { url: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?auto=format&fit=crop&w=600&q=80", alt: "Foto 1" },
-            { url: "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=600&q=80", alt: "Foto 2" },
-            { url: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80", alt: "Foto 3" },
+            { url: "", alt: "Foto 1" },
+            { url: "", alt: "Foto 2" },
+            { url: "", alt: "Foto 3" },
           ],
         },
       },
@@ -868,7 +868,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Slider tátil interativo para comparar resultados estéticos ou reformas.",
     category: "content",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -883,8 +883,8 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
         parent_id: genId("section"),
         content: {
           title: "Resultados Reais",
-          beforeImageUrl: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=80",
-          afterImageUrl: "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=800&q=80",
+          beforeImageUrl: "",
+          afterImageUrl: "",
         },
       },
     ],
@@ -896,7 +896,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Endereço físico com horários, telefone e rota no Google Maps.",
     category: "content",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -924,7 +924,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Bloco minimalista com campo de e-mail/WhatsApp para captação de clientes.",
     category: "marketing",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -951,7 +951,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Lista expansível de dúvidas mais comuns sobre prazos e trocas.",
     category: "marketing",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1516382772719-7554907104b2?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -995,7 +995,7 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
     description: "Depoimentos reais com fotos, notas e estrelas para gerar credibilidade.",
     category: "marketing",
     previewImageUrl:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
+      "",
     nodes: [
       {
         id: genId("section"),
@@ -1029,8 +1029,436 @@ export const sectionTemplates: Record<string, SectionTemplate> = {
       },
     ],
   },
-};
 
-export const getAllTemplates = () => Object.values(sectionTemplates);
-export const getTemplatesByCategory = (category: string) =>
-  getAllTemplates().filter((t) => t.category === category);
+  // ── 31. OFERTA RELÂMPAGO (FLASH SALE) ──
+  flash_sale_hero: {
+    id: "flash_sale_hero",
+    name: "Oferta Relâmpago com Cronômetro",
+    description: "Faixa de alta urgência com contador regressivo, badge de desconto e botão rápido.",
+    category: "commerce",
+    previewImageUrl: "",
+    nodes: [
+      { id: genId("section"), node_type: "section", block_type: "section", parent_id: null },
+      {
+        id: genId("container"),
+        node_type: "container",
+        block_type: "container",
+        parent_id: genId("section"),
+        layout_rules: { maxWidth: "6xl", paddingY: "md" },
+      },
+      {
+        id: genId("flash"),
+        node_type: "composition",
+        block_type: "flash_sale_hero",
+        parent_id: genId("container"),
+        content: {
+          title: "Semana do Consumidor — Até 50% OFF",
+          subtitle: "Ofertas exclusivas com frete grátis por tempo limitado.",
+          discountBadge: "50% OFF",
+          buttonText: "Garantir Desconto",
+          targetDate: "2026-12-31T23:59:59",
+        },
+      },
+    ],
+  },
+
+  // ── 32. GRADE DE CATEGORIAS ──
+  category_cards_grid: {
+    id: "category_cards_grid",
+    name: "Grade de Categorias em Destaque",
+    description: "Navegação visual pelas principais categorias da loja com fotos e contagem de itens.",
+    category: "commerce",
+    previewImageUrl: "",
+    nodes: [
+      { id: genId("section"), node_type: "section", block_type: "section", parent_id: null },
+      {
+        id: genId("container"),
+        node_type: "container",
+        block_type: "container",
+        parent_id: genId("section"),
+        layout_rules: { maxWidth: "6xl", paddingY: "lg" },
+      },
+      {
+        id: genId("catgrid"),
+        node_type: "composition",
+        block_type: "category_cards_grid",
+        parent_id: genId("container"),
+        content: {
+          title: "Compre por Categoria",
+          subtitle: "Encontre tudo o que você precisa em poucos cliques.",
+        },
+      },
+    ],
+  },
+
+  // ── 33. BANNER DE COLEÇÃO EM DESTAQUE ──
+  featured_collection_banner: {
+    id: "featured_collection_banner",
+    name: "Banner de Coleção em Destaque",
+    description: "Chamada em split com foto grande, texto institucional e botão direto.",
+    category: "commerce",
+    previewImageUrl: "",
+    nodes: [
+      { id: genId("section"), node_type: "section", block_type: "section", parent_id: null },
+      {
+        id: genId("container"),
+        node_type: "container",
+        block_type: "container",
+        parent_id: genId("section"),
+        layout_rules: { maxWidth: "6xl", paddingY: "lg" },
+      },
+      {
+        id: genId("banner"),
+        node_type: "composition",
+        block_type: "featured_collection_banner",
+        parent_id: genId("container"),
+        content: {
+          title: "Coleção Elegance 2026",
+          subtitle: "Cortes refinados e sofisticação para todos os momentos.",
+          buttonText: "Explorar Coleção",
+          buttonLink: "#produtos",
+          imageUrl: "",
+        },
+      },
+    ],
+  },
+
+  // ── 34. ROTEIRO DIA A DIA DE VIAGENS ──
+  tourism_itinerary_timeline: {
+    id: "tourism_itinerary_timeline",
+    name: "Roteiro Dia a Dia (Timeline)",
+    description: "Linha do tempo numerada com programação diária, passeios e dicas do destino.",
+    category: "content",
+    previewImageUrl: "",
+    nodes: [
+      { id: genId("section"), node_type: "section", block_type: "section", parent_id: null },
+      {
+        id: genId("container"),
+        node_type: "container",
+        block_type: "container",
+        parent_id: genId("section"),
+        layout_rules: { maxWidth: "5xl", paddingY: "lg" },
+      },
+      {
+        id: genId("timeline"),
+        node_type: "composition",
+        block_type: "timeline_history",
+        parent_id: genId("container"),
+        content: {
+          title: "Roteiro Completo da Viagem",
+          subtitle: "Confira o planejamento dia a dia da sua expedição.",
+          events: [
+            { year: "Dia 1", title: "Chegada e Check-in no Resort", description: "Recepção de boas-vindas com coquetel e jantar livre." },
+            { year: "Dia 2", title: "Passeio pelas Praias e Falésias", description: "Tour privativo com guia bilíngue e almoço típico incluído." },
+            { year: "Dia 3", title: "Dia Livre para Lazer ou Mergulho", description: "Aproveite a estrutura do resort ou explore os recifes naturais." },
+          ],
+        },
+      },
+    ],
+  },
+
+  // ── 35. GUIA DO VIAJANTE & DICAS ──
+  tourism_traveler_info: {
+    id: "tourism_traveler_info",
+    name: "Guia do Viajante & Informações Úteis",
+    description: "Cards com orientações de bagagem, clima, melhor época e documentação.",
+    category: "content",
+    previewImageUrl: "",
+    nodes: [
+      { id: genId("section"), node_type: "section", block_type: "section", parent_id: null },
+      {
+        id: genId("container"),
+        node_type: "container",
+        block_type: "container",
+        parent_id: genId("section"),
+        layout_rules: { maxWidth: "6xl", paddingY: "md" },
+      },
+      {
+        id: genId("infocards"),
+        node_type: "composition",
+        block_type: "info_cards",
+        parent_id: genId("container"),
+        content: {
+          cards: [
+            { title: "Melhor Época", description: "Sol garantido de setembro a março com brisa suave." },
+            { title: "Documentação", description: "RG com emissão recente ou passaporte válido." },
+            { title: "Bagagem Incluída", description: "1 mala de mão até 10kg + bolsa ou mochila pessoal." },
+          ],
+        },
+      },
+    ],
+  },
+
+  // ── 36. LOOKBOOK MASONRY ──
+  lookbook_masonry: {
+    id: "lookbook_masonry",
+    name: "Vitrine Lookbook Estilo Editorial",
+    description: "Mosaico editorial de fotos com looks e combinações de produtos.",
+    category: "media",
+    previewImageUrl: "",
+    nodes: [
+      { id: genId("section"), node_type: "section", block_type: "section", parent_id: null },
+      {
+        id: genId("container"),
+        node_type: "container",
+        block_type: "container",
+        parent_id: genId("section"),
+        layout_rules: { maxWidth: "6xl", paddingY: "md" },
+      },
+      {
+        id: genId("gallery"),
+        node_type: "composition",
+        block_type: "gallery_grid",
+        parent_id: genId("container"),
+        content: {
+          title: "Lookbook Editorial",
+          images: [
+            "",
+            "",
+            "",
+          ],
+        },
+      },
+    ],
+  },
+
+  // ── 37. CATÁLOGO DE PROCEDIMENTOS & SERVIÇOS ──
+  service_catalog_list: {
+    id: "service_catalog_list",
+    name: "Catálogo de Serviços & Preços",
+    description: "Tabela comparativa com valores, duração e botões de agendamento rápido.",
+    category: "commerce",
+    previewImageUrl: "",
+    nodes: [
+      { id: genId("section"), node_type: "section", block_type: "section", parent_id: null },
+      {
+        id: genId("container"),
+        node_type: "container",
+        block_type: "container",
+        parent_id: genId("section"),
+        layout_rules: { maxWidth: "6xl", paddingY: "md" },
+      },
+      {
+        id: genId("pricing"),
+        node_type: "composition",
+        block_type: "service_pricing_table",
+        parent_id: genId("container"),
+        content: {
+          title: "Menu de Procedimentos",
+          subtitle: "Cuidado personalizado com profissionais especializados.",
+        },
+      },
+    ],
+  },
+
+  // ── 38. AGENDAMENTO ONLINE (CALENDAR) ──
+  booking_calendar: {
+    id: "booking_calendar",
+    name: "Agendamento de Horários Online",
+    description: "Calendário interativo para seleção de data, horário e profissional.",
+    category: "forms",
+    previewImageUrl: "",
+    nodes: [
+      { id: genId("section"), node_type: "section", block_type: "section", parent_id: null },
+      {
+        id: genId("container"),
+        node_type: "container",
+        block_type: "container",
+        parent_id: genId("section"),
+        layout_rules: { maxWidth: "4xl", paddingY: "md" },
+      },
+      {
+        id: genId("cal"),
+        node_type: "composition",
+        block_type: "booking_calendar",
+        parent_id: genId("container"),
+        content: {
+          title: "Agende Seu Horário",
+          subtitle: "Escolha o melhor dia e confirme pelo WhatsApp em instantes.",
+        },
+      },
+    ],
+  },
+
+  // ── 39. AGENDAMENTO DE VISITA PARA IMÓVEIS ──
+  property_schedule_visit: {
+    id: "property_schedule_visit",
+    name: "Agendamento de Visita ao Imóvel",
+    description: "Formulário rápido para agendar visita presencial com corretor.",
+    category: "forms",
+    previewImageUrl: "",
+    nodes: [
+      { id: genId("section"), node_type: "section", block_type: "section", parent_id: null },
+      {
+        id: genId("container"),
+        node_type: "container",
+        block_type: "container",
+        parent_id: genId("section"),
+        layout_rules: { maxWidth: "4xl", paddingY: "md" },
+      },
+      {
+        id: genId("form"),
+        node_type: "composition",
+        block_type: "contact_form",
+        parent_id: genId("container"),
+        content: {
+          title: "Agende uma Visita sem Compromisso",
+          subtitle: "Nossos corretores entrarão em contato para confirmar o melhor horário.",
+          buttonText: "Solicitar Visita",
+        },
+      },
+    ],
+  },
+
+  // ── 40. TOUR VIRTUAL / VÍDEO DO IMÓVEL ──
+  property_virtual_tour: {
+    id: "property_virtual_tour",
+    name: "Tour Virtual / Vídeo do Imóvel",
+    description: "Apresentação em vídeo ou tour 360° para encantar compradores.",
+    category: "media",
+    previewImageUrl: "",
+    nodes: [
+      { id: genId("section"), node_type: "section", block_type: "section", parent_id: null },
+      {
+        id: genId("container"),
+        node_type: "container",
+        block_type: "container",
+        parent_id: genId("section"),
+        layout_rules: { maxWidth: "5xl", paddingY: "md" },
+      },
+      {
+        id: genId("video"),
+        node_type: "composition",
+        block_type: "video_section",
+        parent_id: genId("container"),
+        content: {
+          title: "Conheça Todos os Detalhes",
+          video_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        },
+      },
+    ],
+  },
+
+  // ── 41. PRODUTO EM DESTAQUE NA BIO ──
+  biolink_featured_product: {
+    id: "biolink_featured_product",
+    name: "Produto em Destaque (Link da Bio)",
+    description: "Card compacto de produto prioritário para converter tráfego de redes sociais.",
+    category: "commerce",
+    previewImageUrl: "",
+    nodes: [
+      { id: genId("section"), node_type: "section", block_type: "section", parent_id: null },
+      {
+        id: genId("container"),
+        node_type: "container",
+        block_type: "container",
+        parent_id: genId("section"),
+        layout_rules: { maxWidth: "sm", paddingY: "sm" },
+      },
+      {
+        id: genId("prod"),
+        node_type: "composition",
+        block_type: "product_rail",
+        parent_id: genId("container"),
+        content: {
+          title: "Destaque da Semana",
+        },
+      },
+    ],
+  },
+
+  // ── 42. CONTADOR REGRESSIVO ──
+  countdown_timer: {
+    id: "countdown_timer",
+    name: "Cronômetro Regressivo",
+    description: "Bloco de contagem regressiva para lançamentos, queimas de estoque e campanhas.",
+    category: "marketing",
+    previewImageUrl: "",
+    nodes: [
+      { id: genId("section"), node_type: "section", block_type: "section", parent_id: null },
+      {
+        id: genId("container"),
+        node_type: "container",
+        block_type: "container",
+        parent_id: genId("section"),
+        layout_rules: { maxWidth: "4xl", paddingY: "md" },
+      },
+      {
+        id: genId("timer"),
+        node_type: "composition",
+        block_type: "countdown_timer",
+        parent_id: genId("container"),
+        content: {
+          title: "Oportunidade por Tempo Limitado",
+          target_date: "2026-12-31T23:59:59",
+        },
+      },
+    ],
+  },
+
+  // ── 43. ANÉIS DE STORIES (INSTAGRAM STYLE) ──
+  stories_ring: {
+    id: "stories_ring",
+    name: "Destaques & Stories Interativos",
+    description: "Círculos de stories clicáveis no topo da vitrine com fotos e vídeos curtos.",
+    category: "social",
+    previewImageUrl: "",
+    nodes: [
+      { id: genId("section"), node_type: "section", block_type: "section", parent_id: null },
+      {
+        id: genId("container"),
+        node_type: "container",
+        block_type: "container",
+        parent_id: genId("section"),
+        layout_rules: { maxWidth: "6xl", paddingY: "sm" },
+      },
+      {
+        id: genId("stories"),
+        node_type: "composition",
+        block_type: "stories_ring",
+        parent_id: genId("container"),
+        content: {
+          stories: [
+            { title: "Novidades", image_url: "" },
+            { title: "Promoções", image_url: "" },
+            { title: "Bastidores", image_url: "" },
+          ],
+        },
+      },
+    ],
+  },
+
+  // ── 44. PASSO A PASSO / COMO FUNCIONA ──
+  routine_steps: {
+    id: "routine_steps",
+    name: "Passo a Passo / Como Funciona",
+    description: "Guia sequencial 1, 2, 3 explicando o processo de compra ou atendimento.",
+    category: "content",
+    previewImageUrl: "",
+    nodes: [
+      { id: genId("section"), node_type: "section", block_type: "section", parent_id: null },
+      {
+        id: genId("container"),
+        node_type: "container",
+        block_type: "container",
+        parent_id: genId("section"),
+        layout_rules: { maxWidth: "6xl", paddingY: "lg" },
+      },
+      {
+        id: genId("steps"),
+        node_type: "composition",
+        block_type: "routine_steps",
+        parent_id: genId("container"),
+        content: {
+          title: "Como Funciona Sua Compra",
+          steps: [
+            { step: "1", title: "Escolha seus Produtos", description: "Navegue pelo catálogo e adicione ao carrinho." },
+            { step: "2", title: "Pagamento Rápido", description: "Pague com Pix instantâneo ou Cartão até 12x." },
+            { step: "3", title: "Entrega com Rastreio", description: "Receba em sua casa com segurança total." },
+          ],
+        },
+      },
+    ],
+  },
+
+};

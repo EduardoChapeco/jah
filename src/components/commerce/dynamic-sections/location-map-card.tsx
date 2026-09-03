@@ -80,7 +80,7 @@ export function LocationMapCardSection({
 
           <div className="lg:col-span-6 rounded-2xl overflow-hidden aspect-4/3 bg-muted border border-border/60 relative flex items-center justify-center">
             <img
-              src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=800&q=80"
+              src=""
               alt="Mapa"
               className="size-full object-cover"
             />

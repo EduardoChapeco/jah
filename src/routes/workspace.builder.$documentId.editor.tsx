@@ -7,7 +7,7 @@ import {
   saveBuilderNodes,
   publishBuilderVersion,
 } from "@/services/builder.functions";
-import { listCategories, listCollections } from "@/services/admin-catalog.functions";
+import { listCategories, listCollections, listAdminProducts } from "@/services/admin-catalog.functions";
 import { BuilderTopBar } from "@/components/admin/builder/builder-top-bar";
 import { BuilderDockedRail, type DockedRailActivePanel } from "@/components/admin/builder/builder-docked-rail";
 import { BuilderAddPanel3Col } from "@/components/admin/builder/builder-add-panel-3col";
@@ -22,16 +22,22 @@ import { builderRegistry } from "@/lib/builder-registry";
 export const Route = createFileRoute("/workspace/builder/$documentId/editor")({
   head: () => ({ meta: [{ title: "Construtor Visual de Páginas — Wix Studio Standard" }] }),
   loader: async ({ params }) => {
-    const [docData, categories, collections] = await Promise.all([
+    const [docData, categories, collections, productsRes] = await Promise.all([
       getExperienceDocument({ data: { id: params.documentId } }),
-      listCategories(),
-      listCollections(),
+      listCategories().catch(() => []),
+      listCollections().catch(() => []),
+      listAdminProducts().catch(() => []),
     ]);
+
+    const realProducts = Array.isArray(productsRes) 
+      ? productsRes 
+      : ((productsRes as any)?.products || (productsRes as any)?.data || []);
 
     return {
       ...docData.data,
       categories: categories || [],
       collections: collections || [],
+      products: realProducts,
     };
   },
   component: BuilderEditorPage,
@@ -44,6 +50,112 @@ function BuilderEditorPage() {
   const [document] = useState(initialData.document);
   const [version, setVersion] = useState(initialData.version);
   const [nodes, setNodes] = useState<any[]>(initialData.nodes || []);
+
+  // Dados Dinâmicos em Tempo Real (Live Data Binding + Fallbacks de Alta Qualidade)
+  const transientData = React.useMemo(() => {
+    const realProducts = (initialData as any).products || [];
+    const products =
+      realProducts.length > 0
+        ? realProducts
+        : [
+            {
+              id: "demo-p1",
+              title: "Jaqueta Bomber Heritage Edição Especial",
+              slug: "jaqueta-bomber-heritage",
+              price_cents: 38900,
+              compare_at_cents: 45900,
+              media: [
+                {
+                  url: "",
+                  alt: "Jaqueta Bomber",
+                },
+              ],
+              variants: [{ stock_on_hand: 15 }],
+            },
+            {
+              id: "demo-p2",
+              title: "Camisa Linho Pura Alfaiataria",
+              slug: "camisa-linho-alfaiataria",
+              price_cents: 24900,
+              compare_at_cents: 29900,
+              media: [
+                {
+                  url: "",
+                  alt: "Camisa Linho",
+                },
+              ],
+              variants: [{ stock_on_hand: 22 }],
+            },
+            {
+              id: "demo-p3",
+              title: "Tênis Minimalist Leather Casual",
+              slug: "tenis-minimalist-leather",
+              price_cents: 42900,
+              compare_at_cents: null,
+              media: [
+                {
+                  url: "",
+                  alt: "Tênis Minimalist",
+                },
+              ],
+              variants: [{ stock_on_hand: 18 }],
+            },
+            {
+              id: "demo-p4",
+              title: "Mochila Executiva Couro Legítimo",
+              slug: "mochila-executiva-couro",
+              price_cents: 49900,
+              compare_at_cents: 59900,
+              media: [
+                {
+                  url: "",
+                  alt: "Mochila Executiva",
+                },
+              ],
+              variants: [{ stock_on_hand: 8 }],
+            },
+          ];
+
+    return {
+      products,
+      collections: (initialData as any).collections || [],
+      categories: (initialData as any).categories || [],
+      store: (initialData as any).store || {
+        name: document?.title || "Sua Vitrine Conceito",
+        description: "Experiência de compras com qualidade, design e atendimento premium.",
+      },
+      store_hero: {
+        name: document?.title || "Sua Vitrine Conceito",
+        description: "Experiência de compras com qualidade, design e atendimento premium.",
+        cover_url:
+          "",
+      },
+      store_contact: {
+        name: document?.title || "Sua Vitrine Conceito",
+        phone: "(11) 99999-8888",
+        whatsapp: "5511999998888",
+        address: "Av. Paulista, 1000",
+        city: "São Paulo",
+        state: "SP",
+      },
+      store_hours: {
+        is_open: true,
+        status_text: "Aberto agora até às 20:00",
+      },
+      banners: [
+        {
+          title: "Nova Coleção Exclusiva",
+          subtitle: "Design contemporâneo e tecidos de alto padrão.",
+          image_url:
+            "",
+          mobile_image_url:
+            "",
+          link: "#",
+          button_text: "Explorar Coleção",
+        },
+      ],
+    };
+  }, [initialData, document]);
 
   // History State
   const [history, setHistory] = useState<any[][]>([initialData.nodes || []]);
@@ -207,8 +319,13 @@ function BuilderEditorPage() {
     pushHistory(newNodes);
   };
 
-  // Inserção de Seção Completa (Template)
+  // Inserção de Seção Completa (Template) com Mapeamento Canônico de Nós
   const handleSelectTemplate = (template: SectionTemplate) => {
+    if (!template || !Array.isArray(template.nodes) || template.nodes.length === 0) {
+      toast.error("Modelo de seção inválido ou vazio.");
+      return;
+    }
+
     const idMap = new Map<string, string>();
     template.nodes.forEach((n) => {
       if (n.id) idMap.set(n.id, crypto.randomUUID());
@@ -224,7 +341,12 @@ function BuilderEditorPage() {
       return {
         ...n,
         id: newId,
+        version_id: version?.id,
         parent_id: newParentId,
+        content: n.content ? { ...n.content } : {},
+        design_tokens: n.design_tokens ? { ...n.design_tokens } : {},
+        layout_rules: n.layout_rules ? { ...n.layout_rules } : {},
+        data_bindings: n.data_bindings ? { ...n.data_bindings } : {},
         sort_order: newParentId === null ? highestSortOrder + 1 : n.sort_order || 0,
       };
     });
@@ -429,7 +551,7 @@ function BuilderEditorPage() {
           />
         )}
 
-        {/* Canvas de Edição Central com Floating Action Bar */}
+        {/* Canvas de Edição Central Studio com Live Data Binding */}
         <BuilderCanvas
           viewport={viewport}
           nodesCount={nodes.length}
@@ -443,6 +565,7 @@ function BuilderEditorPage() {
           onDeleteNode={deleteNode}
           onMoveNode={(id, dir) => moveNode(id, dir)}
           pageSlug={document?.slug || "vitrine"}
+          transientData={transientData}
         />
 
         {/* Painel Inspetor à Direita (Editor X Standard - Imagem 4) */}

@@ -315,11 +315,7 @@ function BiolinkPage() {
 
             // Bloco Especial: Galeria do Espaço Físico / Nossa Loja
             if (block.type === "store_gallery") {
-              const galleryImages = block.images || [
-                "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&auto=format&fit=crop&q=80",
-                "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=600&auto=format&fit=crop&q=80",
-                "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&auto=format&fit=crop&q=80",
-              ];
+              const galleryImages: string[] = block.images || [];
               return (
                 <div key={block.id || index} className="w-full space-y-2 text-center pt-2">
                   <div className="space-y-0.5">
@@ -328,15 +324,22 @@ function BiolinkPage() {
                       {block.label || "Um espaço pensado para você sonhar"}
                     </h3>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 h-44 rounded-2xl overflow-hidden border border-border/60">
-                    <div className="h-full">
-                      <img src={galleryImages[0]} alt="Fachada da Agência" className="size-full object-cover" />
+                  {galleryImages.length >= 1 ? (
+                    <div className="grid grid-cols-2 gap-2 h-44 rounded-2xl overflow-hidden border border-border/60">
+                      <div className="h-full">
+                        <img src={galleryImages[0]} alt="Fachada da Agência" className="size-full object-cover" />
+                      </div>
+                      <div className="grid grid-rows-2 gap-2 h-full">
+                        {galleryImages[1] && <img src={galleryImages[1]} alt="Lounge de Atendimento" className="size-full object-cover" />}
+                        {galleryImages[2] && <img src={galleryImages[2]} alt="Detalhes da Loja" className="size-full object-cover" />}
+                      </div>
                     </div>
-                    <div className="grid grid-rows-2 gap-2 h-full">
-                      <img src={galleryImages[1]} alt="Lounge de Atendimento" className="size-full object-cover" />
-                      <img src={galleryImages[2]} alt="Detalhes da Loja" className="size-full object-cover" />
+                  ) : (
+                    <div className="h-44 rounded-2xl border border-dashed border-border/60 flex flex-col items-center justify-center gap-1.5 text-muted-foreground">
+                      <span className="text-xs">Nenhuma foto cadastrada</span>
+                      <span className="text-[10px]">Adicione fotos da loja pelo painel administrativo</span>
                     </div>
-                  </div>
+                  )}
                 </div>
               );
             }
@@ -426,6 +429,36 @@ function BiolinkPage() {
               const cleanNumber = targetUrl.replace(/\D/g, "");
               const message = block.subtitle ? encodeURIComponent(block.subtitle) : "";
               targetUrl = `https://wa.me/${cleanNumber}${message ? `?text=${message}` : ""}`;
+            }
+
+            // Se for Mini-Banner com Imagem de Fundo (16:9 Fiel)
+            if (block.imageUrl) {
+              return (
+                <a
+                  key={block.id || index}
+                  href={targetUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full aspect-[16/9] rounded-2xl overflow-hidden border border-border/60 shadow-xs relative group select-none hover:border-border transition-all"
+                >
+                  <img
+                    src={block.imageUrl}
+                    alt={block.label || "Banner"}
+                    className="size-full object-cover group-hover:scale-102 transition-transform duration-300"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent flex flex-col justify-end p-3.5">
+                    <span className="text-xs font-bold text-white drop-shadow-sm truncate flex items-center justify-between gap-2">
+                      <span>{block.label}</span>
+                      <ExternalLink className="size-3.5 text-white/80 shrink-0" />
+                    </span>
+                    {block.subtitle && (
+                      <span className="text-[10px] text-white/80 truncate drop-shadow-sm">
+                        {block.subtitle}
+                      </span>
+                    )}
+                  </div>
+                </a>
+              );
             }
 
             return (

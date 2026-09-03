@@ -10,7 +10,7 @@ export type AspectRatioPreset = "square" | "classified" | "widescreen" | "banner
 const PRESET_ASPECT_RATIOS: Record<AspectRatioPreset, number | undefined> = {
   square: 1, // 1:1 (Produtos, Logos, Avatars)
   classified: 4 / 3, // 4:3 (Classificados, Carros, Imóveis)
-  widescreen: 16 / 10, // 16:10 ou 16:9 (Turismo, Notícias, Capas)
+  widescreen: 16 / 9, // 16:9 (Panorâmico moderno, Banners delicados de Bio/Destaque)
   cover: 3 / 1, // 3:1 (Capa de Perfil de Membro — IDÊNTICO ao aspect-[3/1] da tela)
   banner: 21 / 9, // 21:9 (Top Banners Hero de Loja)
   header: 4 / 1, // 4:1 (Banners Panorâmicos de Topo)
@@ -156,7 +156,7 @@ export function ImageUpload({
       case "classified":
         return "4:3 (Classificados)";
       case "widescreen":
-        return "16:10 (Panorâmico)";
+        return "16:9 (Panorâmico)";
       case "cover":
         return "3:1 (Capa de Perfil)";
       case "banner":
@@ -245,9 +245,9 @@ export function ImageUpload({
 
   // ── 2. VARIANTE BANNER / COVER / HEADER PANORÂMICO (LARGURA TOTAL DA COLUNA) ──
   // O aspect ratio do preview CSS DEVE ser idêntico ao aspect ratio do cropper.
-  if (variant === "banner" || aspectPreset === "banner" || aspectPreset === "cover" || aspectPreset === "header") {
+  if (variant === "banner" || aspectPreset === "banner" || aspectPreset === "cover" || aspectPreset === "header" || aspectPreset === "widescreen") {
     // Monta o aspect CSS como string para o style inline — garante pixel-perfect com o cropper
-    const previewAspect = effectiveAspect ? `${effectiveAspect}` : "21/9";
+    const previewAspect = effectiveAspect ? `${effectiveAspect}` : "16/9";
     const previewStyle: React.CSSProperties = { aspectRatio: previewAspect, maxHeight: "14rem" };
 
     return (
@@ -337,11 +337,17 @@ export function ImageUpload({
     );
   }
 
-  // ── 3. VARIANTE PADRÃO (CARD MODERNO COM PRESET INTELIGENTE) ──
+  const defaultStyle: React.CSSProperties = {
+    aspectRatio: effectiveAspect ? `${effectiveAspect}` : "4/3",
+  };
+
   return (
     <div className={cn("space-y-2 select-none", className)}>
       {value ? (
-        <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-border/80 bg-muted/30 group shadow-xs">
+        <div
+          className="relative rounded-2xl overflow-hidden border border-border/80 bg-muted/30 group shadow-xs"
+          style={defaultStyle}
+        >
           <img
             src={value}
             alt="Upload"
@@ -378,8 +384,9 @@ export function ImageUpload({
       ) : (
         <div
           onClick={() => inputRef.current?.click()}
+          style={defaultStyle}
           className={cn(
-            "aspect-[4/3] border-2 border-dashed border-border/80 rounded-2xl flex flex-col items-center justify-center p-4 text-center cursor-pointer transition-all bg-muted/40 hover:bg-muted/70 hover:border-foreground/30",
+            "border-2 border-dashed border-border/80 rounded-2xl flex flex-col items-center justify-center p-4 text-center cursor-pointer transition-all bg-muted/40 hover:bg-muted/70 hover:border-foreground/30",
             isUploading && "pointer-events-none opacity-60",
           )}
         >

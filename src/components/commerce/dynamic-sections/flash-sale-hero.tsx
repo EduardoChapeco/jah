@@ -24,7 +24,7 @@ export const FlashSaleHero: React.FC<FlashSaleHeroProps> = ({
   couponCode = "RELAMPAGO50",
   endDate = new Date(Date.now() + 1000 * 60 * 60 * 24 * 3).toISOString(), // 3 dias
   targetLink = "#produtos",
-  bgImageUrl = "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1600&auto=format&fit=crop",
+  bgImageUrl = "",
 }) => {
   const [copied, setCopied] = useState(false);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });

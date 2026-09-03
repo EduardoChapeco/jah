@@ -39,7 +39,7 @@ export function ImageCropperDialog({
   onCropCompleteAction,
   onCropComplete: onCropCompleteProp,
 }: ImageCropperDialogProps) {
-  const effectiveAspect = cropShape === "round" ? 1 : (initialAspect ?? aspectRatio ?? 1090 / 144);
+  const effectiveAspect = cropShape === "round" ? 1 : (initialAspect ?? aspectRatio ?? 16 / 9);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
@@ -66,7 +66,7 @@ export function ImageCropperDialog({
         0,
         { horizontal: false, vertical: false },
         "image/png",
-        cropShape === "round" ? 400 : 1090,
+        cropShape === "round" ? 400 : 0,
       );
 
       if (onCropCompleteProp) {

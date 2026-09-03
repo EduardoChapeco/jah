@@ -15,10 +15,20 @@ export interface SupportTicketItem {
   id: string;
   store_id: string;
   ticket_number: number;
+  ticket_code?: string;
   subject: string;
   category: TicketCategory;
   priority: TicketPriority;
   status: TicketStatus;
+  customer_id?: string | null;
+  customer_name?: string | null;
+  order_id?: string | null;
+  booking_id?: string | null;
+  tour_id?: string | null;
+  attachment_urls?: string[];
+  sla_due_at?: string | null;
+  sla_minutes?: number;
+  timer_spent_seconds?: number;
   created_at: string;
   updated_at: string;
 }
@@ -40,6 +50,13 @@ export const CreateSupportTicketSchema = z.object({
   priority: z.enum(["low", "normal", "high", "urgent"]).default("normal"),
   initial_message: z.string().min(5, "Descreva o problema em detalhes"),
   attachment_url: z.string().optional().nullable(),
+  attachment_urls: z.array(z.string()).default([]),
+  customer_id: z.string().uuid().optional().nullable(),
+  customer_name: z.string().optional().nullable(),
+  order_id: z.string().uuid().optional().nullable(),
+  booking_id: z.string().uuid().optional().nullable(),
+  tour_id: z.string().uuid().optional().nullable(),
+  sla_minutes: z.number().int().min(15).default(1440),
 });
 
 export const AddTicketMessageSchema = z.object({
@@ -119,16 +136,28 @@ export const createSupportTicket = createServerFn({ method: "POST" })
 
     const db = getServerClient();
 
-    // 1. Criar Ticket
+    // 1. Criar Ticket com Código Único e SLA
+    const ticketCode = `TKT-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    const slaDueAt = new Date(Date.now() + (data.sla_minutes || 1440) * 60 * 1000).toISOString();
+
     const { data: ticket, error: tErr } = await db
       .from("operator_support_tickets")
       .insert({
         store_id: data.store_id,
         created_by_profile_id: identity.id,
+        ticket_code: ticketCode,
         subject: data.subject.trim(),
         category: data.category,
         priority: data.priority,
         status: "open",
+        customer_id: data.customer_id || null,
+        customer_name: data.customer_name?.trim() || null,
+        order_id: data.order_id || null,
+        booking_id: data.booking_id || null,
+        tour_id: data.tour_id || null,
+        attachment_urls: data.attachment_urls || (data.attachment_url ? [data.attachment_url] : []),
+        sla_due_at: slaDueAt,
+        sla_minutes: data.sla_minutes || 1440,
       })
       .select()
       .single();
@@ -143,7 +172,7 @@ export const createSupportTicket = createServerFn({ method: "POST" })
         sender_profile_id: identity.id,
         is_staff_reply: false,
         message: data.initial_message.trim(),
-        attachment_url: data.attachment_url || null,
+        attachment_url: data.attachment_url || (data.attachment_urls?.[0] ?? null),
       });
 
     if (mErr) throw mErr;

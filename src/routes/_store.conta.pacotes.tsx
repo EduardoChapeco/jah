@@ -101,26 +101,31 @@ function CustomerPassesPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-20">
-      {/* ── 1. Top Navigation & Minimalist Header ── */}
-      <div className="flex items-center justify-between pt-2">
+    <div className="w-full max-w-5xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
+      {/* ── 1. Top Header Unificado ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-5 pt-2">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <Link
               to="/conta"
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors font-medium"
             >
               Minha Conta
             </Link>
             <span className="text-xs text-muted-foreground">/</span>
-            <span className="text-xs font-semibold text-foreground">Pacotes & Sessões</span>
+            <Badge variant="outline" className="text-[10px] font-mono uppercase font-bold tracking-wider">
+              Pacotes
+            </Badge>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Meus Pacotes
+            Meus Pacotes & Sessões
           </h1>
+          <p className="text-xs text-muted-foreground">
+            Gerencie seus créditos de aulas, treinos, estética e serviços pré-pagos na comunidade.
+          </p>
         </div>
 
-        <Button asChild size="sm" className="rounded-xl text-xs font-semibold h-9 px-4 cursor-pointer">
+        <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-semibold h-9 px-4 cursor-pointer self-start sm:self-auto">
           <Link to="/servicos">Explorar Pacotes</Link>
         </Button>
       </div>

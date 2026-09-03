@@ -643,3 +643,108 @@ export const listAgencyTravelQuotes = createServerFn({ method: "GET" })
       created_at: r.created_at,
     }));
   });
+
+export const createAgencyTravelQuoteSchema = z.object({
+  contact_name: z.string().min(2, "Nome do cliente é obrigatório"),
+  contact_whatsapp: z.string().min(8, "WhatsApp do cliente é obrigatório"),
+  contact_email: z.string().optional().nullable(),
+  origin_city: z.string().default("Chapecó"),
+  origin_iata: z.string().optional().nullable(),
+  destination_city: z.string().min(2, "Destino é obrigatório"),
+  destination_iata: z.string().optional().nullable(),
+  departure_date: z.string().optional().nullable(),
+  return_date: z.string().optional().nullable(),
+  adults_count: z.number().int().min(1).default(2),
+  children_count: z.number().int().min(0).default(0),
+  rooms_count: z.number().int().min(1).default(1),
+  trip_type: z.enum(["air_package", "hotel_only", "cruise", "bus", "visa_assistance"]).default("air_package"),
+  budget_tier: z.enum(["economy", "standard", "premium", "luxury"]).default("standard"),
+  special_notes: z.string().optional().nullable(),
+  agency_notes: z.string().optional().nullable(),
+  quote_amount_cents: z.number().int().nonnegative().optional().nullable(),
+  status: z.enum(["new", "analyzing", "quoted", "won", "lost"]).default("new"),
+});
+
+export const createAgencyTravelQuote = createServerFn({ method: "POST" })
+  .validator(createAgencyTravelQuoteSchema)
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const { data: inserted, error } = await supabase
+      .from("travel_quotes")
+      .insert({
+        origin_city: data.origin_city,
+        origin_iata: data.origin_iata || null,
+        destination_city: data.destination_city,
+        destination_iata: data.destination_iata || null,
+        departure_date: data.departure_date || null,
+        return_date: data.return_date || null,
+        rooms_count: data.rooms_count,
+        adults_count: data.adults_count,
+        children_count: data.children_count,
+        trip_type: data.trip_type,
+        contact_name: data.contact_name,
+        contact_whatsapp: data.contact_whatsapp,
+        contact_email: data.contact_email || null,
+        budget_tier: data.budget_tier,
+        special_notes: data.special_notes || null,
+        agency_notes: data.agency_notes || null,
+        quote_amount_cents: data.quote_amount_cents || null,
+        status: data.status,
+      })
+      .select("id")
+      .single();
+
+    if (error) {
+      console.error("[tourism.functions] Erro ao cadastrar cotação manual:", error);
+      throw new Error(error.message || "Erro ao cadastrar cotação.");
+    }
+
+    return { id: inserted.id };
+  });
+
+export const updateAgencyTravelQuoteSchema = z.object({
+  id: z.string().uuid(),
+  status: z.enum(["new", "analyzing", "quoted", "won", "lost"]).optional(),
+  agency_notes: z.string().optional().nullable(),
+  quote_amount_cents: z.number().int().nonnegative().optional().nullable(),
+  departure_date: z.string().optional().nullable(),
+  return_date: z.string().optional().nullable(),
+  adults_count: z.number().int().optional(),
+  children_count: z.number().int().optional(),
+});
+
+export const updateAgencyTravelQuote = createServerFn({ method: "POST" })
+  .validator(updateAgencyTravelQuoteSchema)
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const { id, ...patch } = data;
+
+    const { error } = await supabase
+      .from("travel_quotes")
+      .update({
+        ...patch,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+
+    if (error) {
+      console.error("[tourism.functions] Erro ao atualizar cotação:", error);
+      throw new Error(error.message || "Erro ao atualizar cotação.");
+    }
+
+    return { success: true };
+  });
+
+export const deleteAgencyTravelQuote = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string().uuid() }))
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const { error } = await supabase.from("travel_quotes").delete().eq("id", data.id);
+
+    if (error) {
+      console.error("[tourism.functions] Erro ao deletar cotação:", error);
+      throw new Error(error.message || "Erro ao deletar cotação.");
+    }
+
+    return { success: true };
+  });

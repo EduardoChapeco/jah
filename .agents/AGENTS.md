@@ -94,6 +94,18 @@ Antes de escrever qualquer linha de código, você DEVE ativar a skill `bigtech-
 13. **Proibição de AI-Smell e Botões Conversacionais Prolixos (Skill `anti-ai-design`).**
     É terminantemente PROIBIDO criar botões com visual artificial de "Card Conversacional" com título + subtítulo + ícone em caixinha colorida tentando explicar o óbvio (ex: card com "Acessar Portal Comercial / Gestores, admins e equipes de loja"). Um designer humano sênior (Apple, Stripe, Linear, iFood) usa ações diretas: `<Button variant="outline">Entrar no Workspace</Button>`. Elimine caixas de instrução redundante embaixo de inputs e cabeçalhos prolixos. A interface deve ser silenciosa, limpa, objetiva e elegante.
 
+14. **🚨 SISTEMA DE PENALIZAÇÃO, AUDITORIA ANTI-QUEBRA & TOLERÂNCIA ZERO (SEV-1 / SEV-2) (VINCULANTE).**
+    O Conselho Executivo e qualquer IA que atue neste projeto operam sob regime de responsabilidade estrita de engenharia (SRE / BigTech Standards). Qualquer falha que quebre a experiência do usuário aciona penalização imediata:
+    - **Infração SEV-1 (Tela Quebrada / Error Boundary Catastrófico / Crash de Loader):**
+      - *Causa típica:* Loader sem `try/catch`, `.catch()` ausente, ou query PostgREST com foreign key inexistente (`profiles!fk`).
+      - *Penalidade Imediata:* **Bloqueio Total de Novas Features.** O agente fica PROIBIDO de implementar qualquer nova tela ou funcionalidade até que a tela quebrada seja identificada via Root Cause Analysis (RCA), corrigida, blindada e testada no navegador real com gravação de vídeo.
+      - *Regra Inviolável (Zero-Crash Loader Mandate):* Nenhum loader de rota TanStack Router pode jamais dar `throw` não tratado. Todo loader DEVE conter fallback gracioso defensivo para estados sem dados ou falhas de rede.
+    - **Infração SEV-2 (Feature Simples, Casca Vazia ou Mock sem Persistência):**
+      - *Causa típica:* Botão com `toast()` falso, dados estáticos fingindo persistência, ou ausência de uma das 7 camadas de completude.
+      - *Penalidade Imediata:* **Rejeição Sumária no Verification Gate.** O conselho é obrigado a reprocessar a demanda desde a Camada 1 (Migration) até a Camada 7 (Fluidez) antes de apresentar a entrega ao usuário.
+    - **Regra do Error Boundary Transparente (No-Blackbox Mandate):**
+      - O `WorkspaceErrorComponent` NUNCA deve ser uma "caixa preta" opaca que apenas diz "Ajustando Workspace". Ele DEVE exibir o erro técnico real (`error.message`) em caixa de diagnóstico para auditoria instantânea.
+
 ## Fase Atual de Desenvolvimento
 
 Estamos solidificando a **Fase 1** (Zines, Ferramentas de Apresentação, Multi-tenant) e transicionando o núcleo canônico do Builder e do CMS. Siga as orientações de Fases do `MASTER_PLAN.md` e do `ROADMAP.md` rigidamente.

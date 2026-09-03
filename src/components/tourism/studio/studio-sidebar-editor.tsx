@@ -1,5 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import type { TravelProposalDTO, FlightSegmentDTO, HotelOptionDTO, ItineraryDayDTO } from "@/services/travel-proposal.functions";
+import { listHotelsBank } from "@/services/travel-catalog.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +16,7 @@ import {
   DollarSign,
   Info,
   CheckCircle,
+  Sparkles,
 } from "lucide-react";
 
 interface StudioSidebarEditorProps {
@@ -22,6 +25,32 @@ interface StudioSidebarEditorProps {
 }
 
 export function StudioSidebarEditor({ proposal, onChange }: StudioSidebarEditorProps) {
+  const { data: hotelsBank } = useQuery({
+    queryKey: ["hotels-bank-studio"],
+    queryFn: () => listHotelsBank().catch(() => []),
+  });
+
+  const handleImportHotelFromBank = (hotelId: string) => {
+    const hotel = (hotelsBank || []).find((h: any) => h.id === hotelId);
+    if (!hotel) return;
+
+    const newHotel: HotelOptionDTO = {
+      id: "ht_" + Math.random().toString(36).substring(2, 7),
+      hotel_name: hotel.name,
+      stars: hotel.stars || 4,
+      room_type: "Apartamento Superior",
+      board_basis: (hotel.regime_options?.[0] as any) || "all_inclusive",
+      checkin_date: proposal.travel_start_date || "2026-10-10",
+      checkout_date: proposal.travel_end_date || "2026-10-15",
+      nights_count: 5,
+      amenities: hotel.badges?.length > 0 ? hotel.badges : ["Piscina", "Wi-Fi", "Ar Condicionado"],
+    };
+
+    onChange({
+      hotels: [...proposal.hotels, newHotel],
+      cover_image_url: proposal.cover_image_url || hotel.cover_photo_url || "",
+    });
+  };
   // Helpers para manipulação de listas
   const handleAddFlight = () => {
     const newFlight: FlightSegmentDTO = {
@@ -184,7 +213,7 @@ export function StudioSidebarEditor({ proposal, onChange }: StudioSidebarEditorP
             <Input
               value={proposal.cover_image_url || ""}
               onChange={(e) => onChange({ cover_image_url: e.target.value })}
-              placeholder="https://images.unsplash.com/..."
+              placeholder=""
               className="h-9 text-xs rounded-xl"
             />
           </div>
@@ -304,9 +333,36 @@ export function StudioSidebarEditor({ proposal, onChange }: StudioSidebarEditorP
               onClick={handleAddHotel}
               className="h-8 text-xs rounded-xl gap-1"
             >
-              <Plus className="size-3.5" /> Adicionar Hotel
+              <Plus className="size-3.5" /> Adicionar Manual
             </Button>
           </div>
+
+          {/* Seletor Rápido: Importar do Banco de Hotéis */}
+          {hotelsBank && hotelsBank.length > 0 && (
+            <div className="p-2.5 rounded-xl bg-primary/5 border border-primary/20 space-y-1.5">
+              <div className="flex items-center gap-1.5 text-primary text-[11px] font-bold">
+                <Sparkles className="size-3.5" />
+                <span>Importar do Banco de Hotéis</span>
+              </div>
+              <select
+                onChange={(e) => {
+                  if (e.target.value) {
+                    handleImportHotelFromBank(e.target.value);
+                    e.target.value = "";
+                  }
+                }}
+                defaultValue=""
+                className="w-full h-8 text-xs rounded-lg bg-background border border-border px-2 text-foreground"
+              >
+                <option value="" disabled>Escolha um hotel/resort cadastrado...</option>
+                {hotelsBank.map((hb: any) => (
+                  <option key={hb.id} value={hb.id}>
+                    {hb.name} ({hb.stars}★ - {hb.regime_options?.[0] || "Padrão"})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {proposal.hotels.map((h) => (
             <div key={h.id} className="p-3 rounded-xl bg-muted/40 border border-border/40 space-y-2">

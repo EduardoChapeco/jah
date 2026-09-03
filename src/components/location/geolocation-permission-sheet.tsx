@@ -75,44 +75,56 @@ export function GeolocationPermissionSheet() {
       document.cookie = "wider_geo_granted=true; path=/; max-age=31536000; SameSite=Lax";
     }
 
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude, longitude } = pos.coords;
-        try {
-          const resolved = await resolveGeoCoordinates(latitude, longitude);
+    const onSheetPosSuccess = async (pos: GeolocationPosition) => {
+      const { latitude, longitude } = pos.coords;
+      try {
+        const resolved = await resolveGeoCoordinates(latitude, longitude);
 
-          const newLoc: LocationState = {
-            city: resolved.city,
-            state: resolved.state,
-            lat: latitude,
-            lng: longitude,
-            address: resolved.address,
-            source: "gps",
-          };
+        const newLoc: LocationState = {
+          city: resolved.city,
+          state: resolved.state,
+          lat: latitude,
+          lng: longitude,
+          address: resolved.address,
+          source: "gps",
+        };
 
-          updateLocation(newLoc);
-          toast.success(`Localização ativada: ${resolved.city}${resolved.state ? ` - ${resolved.state}` : ""}`);
-        } catch {
-          const fallbackLoc: LocationState = {
-            city: "Minha Localização",
-            state: "",
-            lat: latitude,
-            lng: longitude,
-            source: "gps",
-          };
-          updateLocation(fallbackLoc);
-          toast.success("Localização GPS sincronizada com sucesso!");
-        } finally {
-          setIsVerifying(false);
-          setOpen(false);
+        updateLocation(newLoc);
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("wider_geo_permission_dismissed");
+          localStorage.setItem("wider_geo_permission_granted", "true");
         }
-      },
-      (err) => {
+        toast.success(`Localização ativada: ${resolved.city}${resolved.state ? ` - ${resolved.state}` : ""}`);
+      } catch {
+        const fallbackLoc: LocationState = {
+          city: "Minha Localização",
+          state: "",
+          lat: latitude,
+          lng: longitude,
+          source: "gps",
+        };
+        updateLocation(fallbackLoc);
+        toast.success("Localização GPS sincronizada com sucesso!");
+      } finally {
         setIsVerifying(false);
-        toast.info("Permissão de GPS negada. Você pode escolher sua cidade a qualquer momento no topo.");
-        handleDismiss();
+        setOpen(false);
+      }
+    };
+
+    navigator.geolocation.getCurrentPosition(
+      onSheetPosSuccess,
+      () => {
+        navigator.geolocation.getCurrentPosition(
+          onSheetPosSuccess,
+          (err) => {
+            setIsVerifying(false);
+            toast.info("Não foi possível obter coordenadas de GPS no momento. Você pode escolher sua cidade no menu superior.");
+            setOpen(false);
+          },
+          { timeout: 15000, enableHighAccuracy: true }
+        );
       },
-      { timeout: 8000, enableHighAccuracy: true },
+      { timeout: 15000, enableHighAccuracy: true, maximumAge: 60000 }
     );
   };
 

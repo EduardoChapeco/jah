@@ -79,7 +79,7 @@ const DEFAULT_HERO_MODULES = [
     slug: "mobilidade",
     to: "/mobilidade",
     title: "Mobilidade & MotoLink",
-    defaultCover: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1000&q=80",
+    defaultCover: "",
   },
 ];
 

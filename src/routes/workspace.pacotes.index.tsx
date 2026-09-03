@@ -24,12 +24,11 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import {
   Select,
   SelectContent,
@@ -236,148 +235,153 @@ function WorkspacePackagesPage() {
         </div>
       )}
 
-      {/* ── Modal de Criação / Edição de Pacote ── */}
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-lg sm:rounded-3xl sm:p-6">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold">
-              {editingPkg?.id ? "Editar Pacote de Aulas" : "Novo Pacote de Aulas / Serviços"}
-            </DialogTitle>
-          </DialogHeader>
+      {/* ── Sheet Lateral de Criação / Edição de Pacote (Eliminando Dialog Popup) ── */}
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetContent
+          side="right"
+          className="sm:max-w-xl md:max-w-2xl w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 overflow-y-auto bg-card flex flex-col justify-between"
+        >
+          <div className="p-6 space-y-4">
+            <SheetHeader className="pb-3 border-b border-border/60">
+              <SheetTitle className="text-base font-bold text-foreground">
+                {editingPkg?.id ? "Editar Pacote de Aulas / Serviços" : "Novo Pacote de Aulas / Serviços"}
+              </SheetTitle>
+            </SheetHeader>
 
-          {editingPkg && (
-            <div className="space-y-4 py-2">
-              <div className="space-y-1.5">
-                <Label className="text-xs">Serviço Vinculado *</Label>
-                <Select
-                  value={editingPkg.service_id}
-                  onValueChange={(val) => setEditingPkg({ ...editingPkg, service_id: val })}
-                >
-                  <SelectTrigger className="rounded-xl h-10 text-xs">
-                    <SelectValue placeholder="Selecione o serviço..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {services.map((s: any) => (
-                      <SelectItem key={s.id} value={s.id} className="text-xs">
-                        {s.title} ({s.duration_minutes} min)
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs">Título do Pacote *</Label>
-                <Input
-                  placeholder="ex: Combo 10 Aulas de Pilates, Plano Mensal 2x/Semana"
-                  value={editingPkg.title || ""}
-                  onChange={(e) => setEditingPkg({ ...editingPkg, title: e.target.value })}
-                  className="rounded-xl h-10 text-xs"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs">Descrição / Benefícios</Label>
-                <Input
-                  placeholder="ex: Válido para horários matutinos e noturnos com reposição de até 2 aulas."
-                  value={editingPkg.description || ""}
-                  onChange={(e) => setEditingPkg({ ...editingPkg, description: e.target.value })}
-                  className="rounded-xl h-10 text-xs"
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
+            {editingPkg && (
+              <div className="space-y-4 py-2">
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Qtd. de Aulas / Créditos *</Label>
+                  <Label className="text-xs font-semibold">Serviço Vinculado *</Label>
+                  <Select
+                    value={editingPkg.service_id}
+                    onValueChange={(val) => setEditingPkg({ ...editingPkg, service_id: val })}
+                  >
+                    <SelectTrigger className="rounded-xl h-10 text-xs">
+                      <SelectValue placeholder="Selecione o serviço..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {services.map((s: any) => (
+                        <SelectItem key={s.id} value={s.id} className="text-xs">
+                          {s.title} ({s.duration_minutes} min)
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold">Título do Pacote *</Label>
                   <Input
-                    type="number"
-                    min={1}
-                    value={editingPkg.total_credits || 1}
-                    onChange={(e) =>
-                      setEditingPkg({ ...editingPkg, total_credits: Number(e.target.value) })
-                    }
-                    className="rounded-xl h-10 text-xs font-mono"
+                    placeholder="ex: Combo 10 Aulas de Pilates, Plano Mensal 2x/Semana"
+                    value={editingPkg.title || ""}
+                    onChange={(e) => setEditingPkg({ ...editingPkg, title: e.target.value })}
+                    className="rounded-xl h-10 text-xs"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Preço Total (R$) *</Label>
-                  <CurrencyField
-                    value={editingPkg.price_cents}
-                    onChange={(cents) =>
-                      setEditingPkg({
-                        ...editingPkg,
-                        price_cents: cents ?? 0,
-                      })
-                    }
-                    placeholder="0,00"
-                    allowZero={false}
-                    className="rounded-xl h-10 text-xs font-mono font-bold"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Validade (Dias) *</Label>
+                  <Label className="text-xs font-semibold">Descrição / Benefícios</Label>
                   <Input
-                    type="number"
-                    min={1}
-                    value={editingPkg.validity_days || 30}
-                    onChange={(e) =>
-                      setEditingPkg({ ...editingPkg, validity_days: Number(e.target.value) })
-                    }
-                    className="rounded-xl h-10 text-xs font-mono"
+                    placeholder="ex: Válido para horários matutinos e noturnos com reposição de até 2 aulas."
+                    value={editingPkg.description || ""}
+                    onChange={(e) => setEditingPkg({ ...editingPkg, description: e.target.value })}
+                    className="rounded-xl h-10 text-xs"
                   />
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold">Qtd. de Aulas / Créditos *</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={editingPkg.total_credits || 1}
+                      onChange={(e) =>
+                        setEditingPkg({ ...editingPkg, total_credits: Number(e.target.value) })
+                      }
+                      className="rounded-xl h-10 text-xs font-mono"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold">Preço Total (R$) *</Label>
+                    <CurrencyField
+                      value={editingPkg.price_cents}
+                      onChange={(cents) =>
+                        setEditingPkg({
+                          ...editingPkg,
+                          price_cents: cents ?? 0,
+                        })
+                      }
+                      placeholder="0,00"
+                      allowZero={false}
+                      className="rounded-xl h-10 text-xs font-mono font-bold"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold">Validade (Dias) *</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={editingPkg.validity_days || 30}
+                      onChange={(e) =>
+                        setEditingPkg({ ...editingPkg, validity_days: Number(e.target.value) })
+                      }
+                      className="rounded-xl h-10 text-xs font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-muted/20 border border-border/60 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="text-xs font-bold block">Assinatura Recorrente</Label>
+                      <span className="text-[10px] text-muted-foreground">
+                        Renovação automática mensal
+                      </span>
+                    </div>
+                    <Switch
+                      checked={editingPkg.is_recurring}
+                      onCheckedChange={(val) => setEditingPkg({ ...editingPkg, is_recurring: val })}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-border/40">
+                    <div>
+                      <Label className="text-xs font-bold block">Status Ativo</Label>
+                      <span className="text-[10px] text-muted-foreground">
+                        Disponível para compra pública
+                      </span>
+                    </div>
+                    <Switch
+                      checked={editingPkg.is_active}
+                      onCheckedChange={(val) => setEditingPkg({ ...editingPkg, is_active: val })}
+                    />
+                  </div>
                 </div>
               </div>
+            )}
+          </div>
 
-              <div className="p-3 rounded-2xl  bg-muted/20 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label className="text-xs font-bold block">Assinatura Recorrente</Label>
-                    <span className="text-[10px] text-muted-foreground">
-                      Renovação automática mensal
-                    </span>
-                  </div>
-                  <Switch
-                    checked={editingPkg.is_recurring}
-                    onCheckedChange={(val) => setEditingPkg({ ...editingPkg, is_recurring: val })}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between pt-2 ">
-                  <div>
-                    <Label className="text-xs font-bold block">Status Ativo</Label>
-                    <span className="text-[10px] text-muted-foreground">
-                      Disponível para compra pública
-                    </span>
-                  </div>
-                  <Switch
-                    checked={editingPkg.is_active}
-                    onCheckedChange={(val) => setEditingPkg({ ...editingPkg, is_active: val })}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          <DialogFooter className="gap-2 pt-3 ">
+          <div className="p-6 border-t border-border/60 bg-muted/20 flex items-center justify-end gap-2">
             <Button
               variant="outline"
               onClick={() => setIsOpen(false)}
-              className="rounded-xl text-xs font-bold border-border"
+              className="rounded-xl text-xs font-bold border-border h-10 px-4 cursor-pointer"
             >
               Cancelar
             </Button>
             <Button
               disabled={saveMutation.isPending}
               onClick={() => saveMutation.mutate(editingPkg)}
-              className="rounded-xl text-xs font-bold bg-foreground text-background hover:bg-foreground/90"
+              className="rounded-xl text-xs font-bold bg-foreground text-background hover:bg-foreground/90 h-10 px-5 cursor-pointer"
             >
               {saveMutation.isPending ? "Salvando..." : "Salvar Pacote"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

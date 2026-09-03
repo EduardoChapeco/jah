@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -121,23 +121,26 @@ export function ProductModifiersModal({
   if (!product) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg sm:rounded-2xl sm:p-6 p-5 max-h-[90vh] flex flex-col justify-between">
-        <DialogHeader className="space-y-1">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="right"
+        className="sm:max-w-lg md:max-w-xl w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 overflow-hidden bg-card flex flex-col"
+      >
+        <SheetHeader className="p-4 sm:p-5 border-b border-border/80 bg-muted/20 text-left space-y-1">
           <div className="flex items-center gap-2">
             <div className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
               <Utensils className="size-4" />
             </div>
             <div>
-              <DialogTitle className="text-base font-bold text-foreground">
+              <SheetTitle className="text-base font-bold text-foreground">
                 {product.title || product.name}
-              </DialogTitle>
-              <DialogDescription className="text-xs text-muted-foreground">
+              </SheetTitle>
+              <SheetDescription className="text-xs text-muted-foreground">
                 Personalize adicionais e observações da cozinha
-              </DialogDescription>
+              </SheetDescription>
             </div>
           </div>
-        </DialogHeader>
+        </SheetHeader>
 
         {isLoading ? (
           <div className="py-12 flex flex-col items-center justify-center gap-2 text-muted-foreground">
@@ -236,7 +239,7 @@ export function ProductModifiersModal({
           </div>
         )}
 
-        <div className="pt-3  flex items-center justify-between gap-3">
+        <div className="p-4 border-t border-border/80 bg-card flex items-center justify-between gap-3 shrink-0">
           <div className="space-y-0.5">
             <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">
               Total Unitário
@@ -261,14 +264,14 @@ export function ProductModifiersModal({
               type="button"
               onClick={handleConfirm}
               disabled={!isValid || isLoading}
-              className="rounded-xl text-xs font-bold gap-1.5 bg-primary text-primary-foreground"
+              className="h-11 px-5 rounded-xl text-xs font-bold gap-1.5 bg-primary text-primary-foreground"
             >
               <Plus className="size-3.5" />
               <span>Adicionar ao Pedido</span>
             </Button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

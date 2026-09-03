@@ -83,8 +83,8 @@ const USER_NAV_ITEMS = [
   { to: "/conta/conversas", label: "Conversas", icon: ChatCircleDots, exact: true },
   { to: "/conta/salvos", label: "Salvos", icon: BookmarkSimple, exact: true },
   { to: "/conta/pedidos", label: "Pedidos", icon: Package, exact: true },
-  { to: "/conta/pedidos?tab=ingressos", label: "Ingressos", icon: Ticket },
-  { to: "/conta/pacotes", label: "Agendamentos", icon: Scissors },
+  { to: "/conta/ingressos", label: "Ingressos", icon: Ticket, exact: true },
+  { to: "/conta/agendamentos", label: "Agendamentos", icon: Scissors, exact: true },
   { to: "/conta/perfil", label: "Perfil", icon: User, exact: true },
 ];
 

@@ -770,7 +770,7 @@ export const listAgencyTravelContracts = createServerFn({ method: "GET" })
 
     const { data: rows, error } = await query;
 
-    if (error || !rows) return [];
+    if (error) throw new Error(`[travel-contract:listContracts] Falha ao consultar travel_contracts: ${error?.message}`);
 
     // Busca versões em lote
     const contractIds = rows.map((r: any) => r.id);

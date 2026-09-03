@@ -24,7 +24,7 @@ export const TourismQuoteHero: React.FC<TourismQuoteHeroProps> = ({
   title = "Sua Próxima Viagem Inesquecível Começa Aqui",
   subtitle = "Roteiros exclusivos, cruzeiros, passagens aéreas e pacotes completos com assessoria VIP.",
   badge = "✈️ Agência Boutique de Turismo",
-  bgImageUrl = "https://images.unsplash.com/photo-1488646953014-85cb44e25828?q=80&w=1600&auto=format&fit=crop",
+  bgImageUrl = "",
   destinationPresets = ["Beto Carrero", "Gramado & Canela", "Mendoza & Vinhos", "Nordeste All Inclusive", "Cruzeiro Costa"],
   whatsappPhone,
   storeData,

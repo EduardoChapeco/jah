@@ -1,3 +1,4 @@
+import { DocumentsPanel } from "@/components/crm/DocumentsPanel";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -329,26 +330,33 @@ function CustomerDetailPage() {
 
       {/* ── 2. Abas de Detalhamento 360° ── */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-2 sm:grid-cols-5 h-10 w-full mb-6">
-          <TabsTrigger value="timeline" className="text-xs font-semibold gap-1.5">
+        <TabsList className="flex flex-wrap sm:flex-nowrap h-auto sm:h-10 w-full gap-1 mb-6 p-1 bg-muted/50 rounded-2xl">
+          <TabsTrigger value="timeline" className="text-xs font-semibold gap-1.5 flex-1 rounded-xl">
             <History className="size-3.5" />
-            Timeline & Pedidos
+            <span>Timeline</span>
           </TabsTrigger>
-          <TabsTrigger value="addresses" className="text-xs font-semibold gap-1.5">
+          <TabsTrigger value="documents" className="text-xs font-semibold gap-1.5 flex-1 rounded-xl">
+            <FileText className="size-3.5 text-primary" />
+            <span>Documentos ({data.documents?.length || 0})</span>
+            {data.documents?.some((d: any) => d.expiryStatus === 'expired') && (
+              <span className="size-2 rounded-full bg-rose-500 animate-pulse" />
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="commercial" className="text-xs font-semibold gap-1.5 flex-1 rounded-xl">
+            <TrendingUp className="size-3.5 text-emerald-500" />
+            <span>Oportunidades ({data.commercialLeads?.length || 0})</span>
+          </TabsTrigger>
+          <TabsTrigger value="addresses" className="text-xs font-semibold gap-1.5 flex-1 rounded-xl">
             <MapPin className="size-3.5" />
-            Endereços ({data.addresses.length})
+            <span>Endereços ({data.addresses?.length || 0})</span>
           </TabsTrigger>
-          <TabsTrigger value="credits" className="text-xs font-semibold gap-1.5">
+          <TabsTrigger value="credits" className="text-xs font-semibold gap-1.5 flex-1 rounded-xl">
             <Gift className="size-3.5" />
-            Créditos & Saldos
+            <span>Créditos ({formatMoney(data.totalCreditCents || 0)})</span>
           </TabsTrigger>
-          <TabsTrigger value="clinical" className="text-xs font-semibold gap-1.5">
-            <HeartPulse className="size-3.5" />
-            Anamnese ({data.clinicalRecords.length})
-          </TabsTrigger>
-          <TabsTrigger value="crm" className="text-xs font-semibold gap-1.5">
+          <TabsTrigger value="crm" className="text-xs font-semibold gap-1.5 flex-1 rounded-xl">
             <Tag className="size-3.5" />
-            Notas & Tags
+            <span>Notas & Tags</span>
           </TabsTrigger>
         </TabsList>
 

@@ -976,9 +976,9 @@ export const DEFAULT_LOGISTICS_PRESENTATION: LogisticsPresentationSettings = {
   subtitle: "Conecte-se aos entregadores autônomos da sua cidade sem intermediários e com zero taxa de frete.",
   badge: "Zero Taxa de Intermediação",
   disclaimer: "A Wider é uma infraestrutura tecnológica aberta. Não intermediamos pagamentos de fretes nem cobramos comissão entre entregadores e empresas. A relação comercial e operacional é direta e independente entre as partes.",
-  image_desktop_url: "https://images.unsplash.com/photo-1616401784845-180882ba9ba8?auto=format&fit=crop&w=1600&q=80",
-  image_tablet_url: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=1000&q=80",
-  image_mobile_url: "https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=600&q=80",
+  image_desktop_url: null,
+  image_tablet_url: null,
+  image_mobile_url: null,
   motolink_name: "MotoLink",
   features: [
     {

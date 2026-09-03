@@ -16,6 +16,8 @@ import {
   Filter,
   Check,
   Trash2,
+  Download,
+  Printer,
 } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
@@ -196,6 +198,44 @@ function GroupTourBoardingPage() {
     });
   }, [overview?.reservedSeats, checkinMap, statusFilter, searchQuery, selectedPointFilter]);
 
+  const handleExportCsv = () => {
+    const list = overview?.reservedSeats || [];
+    if (list.length === 0) {
+      toast.error("Nenhum passageiro na lista de embarque.");
+      return;
+    }
+
+    const headers = ["Poltrona", "Passageiro", "Documento", "Telefone", "Local de Embarque", "Status Embarque"];
+    const rows = list.map((s: any) => {
+      const checkin = checkinMap.get(s.seat_number);
+      const statusText =
+        checkin?.status === "checked_in"
+          ? "Embarcado"
+          : checkin?.status === "no_show"
+            ? "Não Compareceu"
+            : "Aguardando";
+      return [
+        s.seat_number,
+        `"${s.passenger_name || ""}"`,
+        `"${s.passenger_document || ""}"`,
+        `"${s.passenger_phone || ""}"`,
+        `"${s.boarding_point || "Padrão"}"`,
+        statusText,
+      ].join(",");
+    });
+
+    const csvContent = "\uFEFF" + [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `lista_embarque_${tour.destination.toLowerCase().replace(/\s+/g, "_")}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("Planilha de embarque exportada com sucesso!");
+  };
+
   return (
     <div className="w-full space-y-6 max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 pb-24">
       {/* ── 1. Top Bar & Ações ── */}
@@ -222,13 +262,35 @@ function GroupTourBoardingPage() {
           </div>
         </div>
 
-        <Button
-          type="button"
-          onClick={() => setPointModalOpen(true)}
-          className="h-10 px-4 rounded-xl text-xs font-bold gap-2 cursor-pointer shadow-xs"
-        >
-          <Plus className="size-3.5" /> Pontos de Parada
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleExportCsv}
+            className="h-10 px-3 rounded-xl text-xs font-bold gap-1.5 cursor-pointer"
+          >
+            <Download className="size-3.5" /> Planilha CSV
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => window.print()}
+            className="h-10 px-3 rounded-xl text-xs font-bold gap-1.5 cursor-pointer hidden sm:inline-flex"
+          >
+            <Printer className="size-3.5" /> Imprimir
+          </Button>
+
+          <Button
+            type="button"
+            onClick={() => setPointModalOpen(true)}
+            className="h-10 px-4 rounded-xl text-xs font-bold gap-2 cursor-pointer shadow-xs"
+          >
+            <Plus className="size-3.5" /> Pontos de Parada
+          </Button>
+        </div>
       </div>
 
       {/* ── 2. Cards de Métricas de Embarque ── */}

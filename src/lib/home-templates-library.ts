@@ -20,7 +20,7 @@ export const HOME_TEMPLATES_LIBRARY: Record<string, HomeTemplatePreset> = {
     description:
       "Design de alta moda com Hero Split, Shop The Look interativo, Bento Grid e feed do Instagram.",
     thumbnail:
-      "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=600",
+      null,
     tags: ["Moda", "Editorial", "Shop The Look", "Bento Grid"],
     nodesFactory: (uid) => {
       const s1 = uid();
@@ -72,13 +72,13 @@ export const HOME_TEMPLATES_LIBRARY: Record<string, HomeTemplatePreset> = {
               {
                 title: "Coleção Outono/Inverno High Style",
                 image_url:
-                  "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=2000",
+                  null,
                 link: "/produtos",
               },
               {
                 title: "Tendências Urbanas Exclusivas",
                 image_url:
-                  "https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&q=80&w=2000",
+                  null,
                 link: "/produtos",
               },
             ],
@@ -117,7 +117,7 @@ export const HOME_TEMPLATES_LIBRARY: Record<string, HomeTemplatePreset> = {
             title: "Shop The Look — Outono",
             subtitle: "Clique nas marcações da imagem para comprar a combinação completa",
             image_url:
-              "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=1600",
+              null,
             hotspots: [
               {
                 id: "h1",
@@ -211,7 +211,7 @@ export const HOME_TEMPLATES_LIBRARY: Record<string, HomeTemplatePreset> = {
     description:
       "Ideal para cosméticos, produtos naturais e cuidados pessoais, com rotina em passos, ingredientes e antes/depois.",
     thumbnail:
-      "https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&q=80&w=600",
+      null,
     tags: ["Beleza", "Cosméticos", "Rotina", "Antes/Depois"],
     nodesFactory: (uid) => {
       const s1 = uid();
@@ -259,7 +259,7 @@ export const HOME_TEMPLATES_LIBRARY: Record<string, HomeTemplatePreset> = {
               "Fórmulas dermatologicamente testadas, veganas e livres de crueldade animal.",
             button_text: "Conhecer Linha",
             image_url:
-              "https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&q=80&w=1200",
+              null,
             image_position: "right",
           },
         },
@@ -370,9 +370,9 @@ export const HOME_TEMPLATES_LIBRARY: Record<string, HomeTemplatePreset> = {
             title: "Resultados Comprovados",
             subtitle: "Arraste para comparar o efeito após 14 dias de uso diário",
             before_image:
-              "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800",
+              null,
             after_image:
-              "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&q=80&w=800",
+              null,
             before_label: "Dia 1",
             after_label: "Dia 14",
           },
@@ -420,7 +420,7 @@ export const HOME_TEMPLATES_LIBRARY: Record<string, HomeTemplatePreset> = {
     category: "conversion",
     description: "Foco total em vendas diretas, ofertas com temporizador, prova social e escassez.",
     thumbnail:
-      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=600",
+      null,
     tags: ["Oferta", "Conversão", "Countdown", "Garantia"],
     nodesFactory: (uid) => {
       const s1 = uid();
@@ -563,7 +563,7 @@ export const HOME_TEMPLATES_LIBRARY: Record<string, HomeTemplatePreset> = {
     description:
       "Visual moderno dark mode com carrosséis cinematográficos e bento grids para marcas urbanas.",
     thumbnail:
-      "https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?auto=format&fit=crop&q=80&w=600",
+      null,
     tags: ["Dark Mode", "Streetwear", "Bento Grid", "Urbano"],
     nodesFactory: (uid) => {
       const s1 = uid();
@@ -611,7 +611,7 @@ export const HOME_TEMPLATES_LIBRARY: Record<string, HomeTemplatePreset> = {
               {
                 title: "STREET DROP 01",
                 image_url:
-                  "https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?auto=format&fit=crop&q=80&w=2000",
+                  null,
                 link: "/produtos",
               },
             ],
@@ -670,7 +670,7 @@ export const HOME_TEMPLATES_LIBRARY: Record<string, HomeTemplatePreset> = {
     description:
       "Estrutura tradicional completa com banner rotativo, categorias, ofertas e depoimentos.",
     thumbnail:
-      "https://images.unsplash.com/photo-1556906781-9a412961c28c?auto=format&fit=crop&q=80&w=600",
+      null,
     tags: ["Clássico", "Vitrines", "Confiança", "Versátil"],
     nodesFactory: (uid) => {
       const s1 = uid();
@@ -716,7 +716,7 @@ export const HOME_TEMPLATES_LIBRARY: Record<string, HomeTemplatePreset> = {
               {
                 title: "Confira Nossas Novidades",
                 image_url:
-                  "https://images.unsplash.com/photo-1556906781-9a412961c28c?auto=format&fit=crop&q=80&w=2000",
+                  null,
                 link: "/produtos",
               },
             ],
@@ -814,7 +814,7 @@ export const HOME_TEMPLATES_LIBRARY: Record<string, HomeTemplatePreset> = {
     description:
       "Layout vertical otimizado para celulares com botões de ação direta, WhatsApp, carrossel de produtos e horários.",
     thumbnail:
-      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=600",
+      null,
     tags: ["Biolink", "Linktree", "WhatsApp", "Mobile", "Conversão"],
     nodesFactory: (uid) => {
       const s1 = uid();

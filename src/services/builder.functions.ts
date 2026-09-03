@@ -543,7 +543,16 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
     z.object({
       title: z.string().min(1).max(200),
       slug: z.string().regex(/^[a-z0-9-]+$/),
-      document_type: z.enum(["storefront", "biolink", "pwa", "campaign", "seller_showcase"]),
+      document_type: z.enum([
+        "storefront",
+        "biolink",
+        "pwa",
+        "campaign",
+        "seller_showcase",
+        "landing_page",
+        "custom",
+        "institutional",
+      ]),
       template_id: z.string().optional(),
     }),
   )
@@ -680,7 +689,7 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
                 autoPlay: true,
                 interval: 5,
                 banners: [
-                  { image_url: "https://images.unsplash.com/photo-1542291026-7eec264c27ff" },
+                  { image_url: "" },
                 ],
               },
             },
@@ -751,7 +760,7 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
                 autoPlay: true,
                 interval: 5,
                 banners: [
-                  { image_url: "https://images.unsplash.com/photo-1483985988355-763728e1935b" },
+                  { image_url: "" },
                 ],
               },
             },
@@ -777,7 +786,7 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
                 items: [
                   {
                     title: "Verão",
-                    image: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446",
+                    image: "",
                     col_span: 2,
                   },
                 ],
@@ -2759,3 +2768,80 @@ export const duplicateExperienceDocument = createServerFn({ method: "POST" })
     return { documentId: newDoc.id };
   });
 
+
+
+// ---------------------------------------------------------------------------
+// Document Management & Duplication (Microfase 76B)
+// ---------------------------------------------------------------------------
+
+export const deleteExperienceDocument = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string().uuid() }))
+  .handler(async ({ data: input }) => {
+    try {
+      await requireAdmin();
+      const { getServerIdentity } = await import("@/lib/server-access");
+      const identity = await getServerIdentity();
+      if (!identity.store_id) throw new Error("No store found");
+
+      const db = getServerClient();
+
+      // Delete document (cascade removes versions and nodes)
+      const { error } = await db
+        .from("experience_documents")
+        .delete()
+        .eq("id", input.id)
+        .eq("store_id", identity.store_id);
+
+      if (error) throw error;
+      return { status: "success" as const };
+    } catch (e: unknown) {
+      console.error("[builder.functions] deleteExperienceDocument error:", e);
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao excluir documento.");
+    }
+  });
+
+export const setActiveStorefrontDocument = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string().uuid() }))
+  .handler(async ({ data: input }) => {
+    try {
+      await requireAdmin();
+      const { getServerIdentity } = await import("@/lib/server-access");
+      const identity = await getServerIdentity();
+      if (!identity.store_id) throw new Error("No store found");
+
+      const db = getServerClient();
+
+      // 1. Get the target document to know its type
+      const { data: targetDoc, error: findError } = await db
+        .from("experience_documents")
+        .select("id, document_type")
+        .eq("id", input.id)
+        .eq("store_id", identity.store_id)
+        .single();
+
+      if (findError || !targetDoc) throw new Error("Documento não encontrado.");
+
+      // 2. If it is a storefront or biolink, ensure only this one is active for that type
+      if (targetDoc.document_type === "storefront" || targetDoc.document_type === "biolink") {
+        await db
+          .from("experience_documents")
+          .update({ is_active: false })
+          .eq("store_id", identity.store_id)
+          .eq("document_type", targetDoc.document_type);
+      }
+
+      // 3. Mark the target as active
+      const { error: updateError } = await db
+        .from("experience_documents")
+        .update({ is_active: true })
+        .eq("id", input.id)
+        .eq("store_id", identity.store_id);
+
+      if (updateError) throw updateError;
+
+      return { status: "success" as const };
+    } catch (e: unknown) {
+      console.error("[builder.functions] setActiveStorefrontDocument error:", e);
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao ativar documento.");
+    }
+  });

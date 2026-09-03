@@ -532,7 +532,7 @@ export const syncDefaultHotpages = createServerFn({ method: "POST" }).handler(
       {
         slug: "home-classificados",
         title: "Classificados & Autos",
-        cover_image_url: "https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=1000&q=80",
+        cover_image_url: null,
         target_route: "/classificados",
         template_type: "hero_module" as const,
         module: "home" as const,
@@ -544,7 +544,7 @@ export const syncDefaultHotpages = createServerFn({ method: "POST" }).handler(
       {
         slug: "home-mercado",
         title: "Supermercado & Feira",
-        cover_image_url: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=1000&q=80",
+        cover_image_url: null,
         target_route: "/mercado",
         template_type: "hero_module" as const,
         module: "home" as const,
@@ -556,7 +556,7 @@ export const syncDefaultHotpages = createServerFn({ method: "POST" }).handler(
       {
         slug: "home-gastronomia",
         title: "Gastronomia & Delivery",
-        cover_image_url: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1000&q=80",
+        cover_image_url: null,
         target_route: "/gastronomia",
         template_type: "hero_module" as const,
         module: "home" as const,
@@ -568,7 +568,7 @@ export const syncDefaultHotpages = createServerFn({ method: "POST" }).handler(
       {
         slug: "home-empregos",
         title: "Vagas & Carreiras",
-        cover_image_url: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1000&q=80",
+        cover_image_url: null,
         target_route: "/empregos",
         template_type: "hero_module" as const,
         module: "home" as const,
@@ -580,7 +580,7 @@ export const syncDefaultHotpages = createServerFn({ method: "POST" }).handler(
       {
         slug: "home-agenda",
         title: "Agenda & Eventos Culturais",
-        cover_image_url: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1000&q=80",
+        cover_image_url: null,
         target_route: "/agenda",
         template_type: "hero_module" as const,
         module: "home" as const,
@@ -592,7 +592,7 @@ export const syncDefaultHotpages = createServerFn({ method: "POST" }).handler(
       {
         slug: "home-turismo",
         title: "Turismo & Hospedagem",
-        cover_image_url: "https://images.unsplash.com/photo-1501555088652-021faa106b9b?w=1000&q=80",
+        cover_image_url: null,
         target_route: "/turismo",
         template_type: "hero_module" as const,
         module: "home" as const,
@@ -604,7 +604,7 @@ export const syncDefaultHotpages = createServerFn({ method: "POST" }).handler(
       {
         slug: "home-noticias",
         title: "Notícias & Jornalismo",
-        cover_image_url: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1000&q=80",
+        cover_image_url: null,
         target_route: "/noticias",
         template_type: "hero_module" as const,
         module: "home" as const,
@@ -616,7 +616,7 @@ export const syncDefaultHotpages = createServerFn({ method: "POST" }).handler(
       {
         slug: "home-mobilidade",
         title: "Mobilidade & MotoLink",
-        cover_image_url: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1000&q=80",
+        cover_image_url: null,
         target_route: "/mobilidade",
         template_type: "hero_module" as const,
         module: "home" as const,
@@ -768,7 +768,7 @@ export const syncDefaultHotpages = createServerFn({ method: "POST" }).handler(
         title: "Ofertas Relâmpago",
         badge_label: "OFERTAS",
         hero_stat_badge: "ATÉ 60% OFF",
-        cover_image_url: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1000&q=80",
+        cover_image_url: null,
         target_route: "/ofertas",
         template_type: "editorial_card" as const,
         module: "home" as const,
@@ -782,7 +782,7 @@ export const syncDefaultHotpages = createServerFn({ method: "POST" }).handler(
         title: "Almoço Rápido & Pratos Executivos",
         badge_label: "SABOR",
         hero_stat_badge: "DELIVERY",
-        cover_image_url: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1000&q=80",
+        cover_image_url: null,
         target_route: "/gastronomia",
         template_type: "editorial_card" as const,
         module: "home" as const,
@@ -796,7 +796,7 @@ export const syncDefaultHotpages = createServerFn({ method: "POST" }).handler(
         title: "Supermercado em 15 Minutos",
         badge_label: "ESSENCIAL",
         hero_stat_badge: "EXPRESS",
-        cover_image_url: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=1000&q=80",
+        cover_image_url: null,
         target_route: "/mercado",
         template_type: "editorial_card" as const,
         module: "home" as const,

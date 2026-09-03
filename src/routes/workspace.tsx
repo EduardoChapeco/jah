@@ -31,7 +31,7 @@ function WorkspaceErrorComponent({ error, reset }: { error: Error; reset: () => 
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 text-center">
-      <div className="max-w-md w-full bg-card p-6 rounded-3xl space-y-4">
+      <div className="max-w-md w-full bg-card p-6 sm:p-8 rounded-3xl border border-border/80 space-y-4 shadow-sm">
         <div className="size-14 rounded-2xl bg-destructive/10 text-destructive flex items-center justify-center mx-auto">
           <AlertTriangle className="size-7" />
         </div>
@@ -41,6 +41,14 @@ function WorkspaceErrorComponent({ error, reset }: { error: Error; reset: () => 
             Ocorreu uma instabilidade momentânea ao carregar os dados deste espaço de trabalho.
           </p>
         </div>
+
+        {error?.message && (
+          <div className="p-3 bg-muted/40 rounded-2xl border border-border/60 text-left text-[11px] font-mono text-muted-foreground space-y-1 max-h-32 overflow-y-auto no-scrollbar">
+            <span className="font-bold text-destructive block">Diagnóstico de Falha:</span>
+            <span className="break-all">{error.message}</span>
+          </div>
+        )}
+
         <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-2">
           <Button
             onClick={() => {
@@ -53,9 +61,9 @@ function WorkspaceErrorComponent({ error, reset }: { error: Error; reset: () => 
             <span>Recarregar Painel</span>
           </Button>
           <Button asChild variant="outline" className="w-full sm:w-auto rounded-xl text-xs font-bold gap-1.5">
-            <Link to="/">
+            <Link to="/workspace">
               <ArrowLeft className="size-3.5" />
-              <span>Voltar ao Início</span>
+              <span>Painel Geral</span>
             </Link>
           </Button>
         </div>
@@ -69,9 +77,10 @@ function WorkspaceLayout() {
   const routerState = useRouterState();
   const session = loaderData?.session;
   const isBuilder = routerState.location.pathname.startsWith("/workspace/builder/");
+  const isStudio = routerState.location.pathname.startsWith("/workspace/estudio");
 
-  // Fullscreen Immersion Mode para o Construtor Visual (Wix/Webflow/Framer style)
-  if (isBuilder) {
+  // Fullscreen Immersion Mode para o Construtor Visual (Wix/Framer) e Estúdio (Canva/Figma)
+  if (isBuilder || isStudio) {
     return <Outlet />;
   }
 

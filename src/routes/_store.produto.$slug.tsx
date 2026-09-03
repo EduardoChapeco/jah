@@ -37,6 +37,7 @@ import { EmptyState, ErrorState } from "@/components/state/states";
 import { PriceDisplay } from "@/components/commerce/price-display";
 import { getProductBySlug } from "@/services/product.functions";
 import type { ProductDetailDTO, ProductMediaDTO, VariantDTO } from "@/types/catalog";
+import { TravelPackageDetailView } from "@/components/commerce/travel/travel-package-detail-view";
 import { calculateShipping } from "@/services/shipping.functions";
 import { formatMoney } from "@/lib/money";
 import { getPublicExperienceDocumentBySlug } from "@/services/builder.functions";
@@ -290,6 +291,36 @@ function ProductPage() {
           }
         />
       </div>
+    );
+  }
+
+  const isTravelPackage = Boolean(
+    product.attributes?.travel ||
+    product.category?.slug?.includes("turismo") ||
+    product.category?.slug?.includes("viag") ||
+    product.category?.name?.toLowerCase().includes("turismo") ||
+    product.category?.name?.toLowerCase().includes("viagem") ||
+    product.category?.name?.toLowerCase().includes("resort")
+  );
+
+  if (isTravelPackage) {
+    return (
+      <TravelPackageDetailView
+        packageData={product.attributes?.travel}
+        productTitle={product.title}
+        priceCents={product.priceCents || 0}
+        compareAtCents={product.compareAtCents}
+        coverImageUrl={
+          product.media?.find((m: any) => m.mediaType === "image")?.url ||
+          product.media?.[0]?.url ||
+          null
+        }
+        mediaUrls={
+          product.media?.filter((m: any) => m.mediaType === "image")?.map((m: any) => m.url) || []
+        }
+        storeName={product.store?.name || "Excelência Tour"}
+        storePhone={product.store?.phone || "49991448651"}
+      />
     );
   }
 
@@ -603,6 +634,60 @@ function ProductContent({
   }, [selectedVariant, product.priceCents, product.optionGroups, selectedOptions]);
 
   const currentThumbnailUrl = activeMedia?.url || coverImage?.url || null;
+
+  const isTravelProduct = Boolean(
+    (product as any)?.attributes?.travel ||
+    (product as any)?.metadata?.travel ||
+    (product as any)?.metadata?.travel_package ||
+    (product as any)?.product_type?.slug === "pacote-viagem" ||
+    (product as any)?.product_type?.slug === "turismo" ||
+    (product as any)?.store?.segment === "tourism_agency" ||
+    (product as any)?.store?.type === "tourism_agency" ||
+    (product as any)?.store?.settings?.segment === "tourism_agency" ||
+    product.categories?.some((c: any) =>
+      c.slug?.includes("viagem") || c.slug?.includes("turismo") || c.name?.toLowerCase().includes("pacote")
+    )
+  );
+
+  if (isTravelProduct) {
+    const travelData =
+      (product as any)?.attributes?.travel ||
+      (product as any)?.metadata?.travel_package ||
+      (product as any)?.metadata?.travel ||
+      {};
+    const mediaUrls = product.media?.map((m: any) => m.url) || [];
+
+    return (
+      <div className="w-full">
+        {/* Breadcrumb */}
+        <nav
+          aria-label="Navegação estrutural"
+          className="mb-4 flex items-center gap-2 text-xs text-muted-foreground font-medium px-4"
+        >
+          <Link to="/" className="hover:text-foreground">
+            Início
+          </Link>
+          <ChevronRight className="size-3" aria-hidden />
+          <Link to="/mercado" className="hover:text-foreground">
+            Turismo & Viagens
+          </Link>
+          <ChevronRight className="size-3" aria-hidden />
+          <span className="text-foreground font-bold truncate max-w-[250px]">{product.title}</span>
+        </nav>
+
+        <TravelPackageDetailView
+          packageData={travelData}
+          productTitle={product.title}
+          priceCents={product.priceCents || 0}
+          compareAtCents={product.compareAtCents}
+          coverImageUrl={currentThumbnailUrl}
+          mediaUrls={mediaUrls}
+          storeName={(product as any)?.store?.name}
+          storePhone={storePhone}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full space-y-8">

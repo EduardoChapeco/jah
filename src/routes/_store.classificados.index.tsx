@@ -43,6 +43,7 @@ import { listHotpages } from "@/services/hotpage.functions";
 import { getPublicClassifieds } from "@/services/classifieds.functions";
 import { CANONICAL_CITIES } from "@/lib/constants/cities";
 import { resolveNicheDepartments } from "@/lib/niche-helpers";
+import { resolveClassifiedNiche } from "@/lib/classifieds/semantics";
 
 function isVideoUrl(url?: string | null): boolean {
   if (!url) return false;
@@ -302,6 +303,7 @@ function ClassifiedsMasterPage() {
             const img = item.images?.[0];
             const isTemporada = item.deal_type === "temporada";
             const isAluguel = item.deal_type === "aluguel";
+            const itemNiche = resolveClassifiedNiche(item);
 
             return (
               <Link
@@ -325,12 +327,10 @@ function ClassifiedsMasterPage() {
                     </div>
                   )}
                   <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 flex-wrap z-10">
-                    {item.deal_type && (
-                      <Badge className="bg-background/95 backdrop-blur-md text-foreground font-mono text-[9px] uppercase font-bold  px-1.5 py-0.5 rounded-md ">
-                        {isTemporada ? "Temporada" : isAluguel ? "Aluguel" : "Venda"}
-                      </Badge>
-                    )}
-                    {item.attributes?.delivery_mode && (
+                    <Badge className="bg-background/95 backdrop-blur-md text-foreground font-mono text-[9px] uppercase font-bold  px-1.5 py-0.5 rounded-md ">
+                      {itemNiche.shortLabel}
+                    </Badge>
+                    {itemNiche.showDeliveryBadges && item.attributes?.delivery_mode && (
                       <Badge className="bg-emerald-600 text-white text-[9px] font-mono px-1.5 py-0.5 rounded-md ">
                         Entrega Wider
                       </Badge>
@@ -408,6 +408,7 @@ function ClassifiedsMasterPage() {
                   const img = item.images?.[0];
                   const isTemporada = item.deal_type === "temporada";
                   const isAluguel = item.deal_type === "aluguel";
+                  const itemNiche = resolveClassifiedNiche(item);
 
                   return (
                     <div
@@ -435,12 +436,10 @@ function ClassifiedsMasterPage() {
                           )}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                           <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
-                            {item.deal_type && (
-                              <Badge className="bg-background/90 text-foreground backdrop-blur-md text-[10px] font-bold px-2 py-0.5 rounded-lg uppercase font-mono">
-                                {isTemporada ? "Temporada" : isAluguel ? "Aluguel" : "Venda"}
-                              </Badge>
-                            )}
-                            {item.attributes?.delivery_mode && (
+                            <Badge className="bg-background/90 text-foreground backdrop-blur-md text-[10px] font-bold px-2 py-0.5 rounded-lg uppercase font-mono">
+                              {itemNiche.shortLabel}
+                            </Badge>
+                            {itemNiche.showDeliveryBadges && item.attributes?.delivery_mode && (
                               <Badge className="bg-emerald-600/90 text-white text-[9px] font-mono px-2 py-0.5 rounded-lg">
                                 Entrega Wider
                               </Badge>

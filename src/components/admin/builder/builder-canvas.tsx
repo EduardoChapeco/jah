@@ -1,11 +1,11 @@
 import * as React from "react";
-import { Plus, LayoutTemplate, Lock } from "lucide-react";
+import { Plus, LayoutTemplate, Layers, Monitor, Smartphone, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ExperienceRenderer } from "@/components/commerce/experience-renderer";
 import { BuilderFloatingActionBar } from "./builder-floating-action-bar";
 
-export type ViewportMode = "desktop" | "mobile" | "story";
+export type ViewportMode = "desktop" | "tablet" | "mobile" | "story";
 
 export interface BuilderCanvasProps {
   viewport: ViewportMode | string;
@@ -20,6 +20,7 @@ export interface BuilderCanvasProps {
   onDeleteNode?: (nodeId: string) => void;
   onMoveNode?: (nodeId: string, dir: -1 | 1) => void;
   pageSlug?: string;
+  transientData?: any;
 }
 
 export function BuilderCanvas({
@@ -35,6 +36,7 @@ export function BuilderCanvas({
   onDeleteNode,
   onMoveNode,
   pageSlug = "vitrine",
+  transientData,
 }: BuilderCanvasProps) {
   // Encontra o nó selecionado para alimentar a Floating Action Bar
   const findNodeById = (id: string, list: any[]): any | null => {
@@ -52,12 +54,12 @@ export function BuilderCanvas({
 
   return (
     <main
-      className="flex-1 overflow-y-auto bg-muted/30 flex flex-col items-center select-none relative px-3 sm:px-6 py-4 scrollbar-none no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+      className="flex-1 overflow-y-auto bg-muted/20 dark:bg-muted/10 flex flex-col items-center select-none relative p-0 sm:px-6 sm:py-6 scrollbar-none no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
       onClick={() => setSelectedNodeId(null)}
     >
-      {/* ── Barra de Ações Flutuante (Floating Action Bar - Editor X Standard) ── */}
+      {/* ── Barra de Ações Flutuante (Floating Action Bar - Studio Standard) ── */}
       {selectedNode && (
-        <div className="sticky top-2 z-30 flex justify-center w-full pointer-events-auto mb-3">
+        <div className="sticky top-3 z-30 flex justify-center w-full pointer-events-auto mb-3">
           <BuilderFloatingActionBar
             selectedNode={selectedNode}
             onEditContent={() => onEditContent?.()}
@@ -70,59 +72,49 @@ export function BuilderCanvas({
         </div>
       )}
 
-      {/* ── 1. FRAME DE VISUALIZAÇÃO REAL: DESKTOP (JANELA DE NAVEGADOR PROFISSIONAL) ── */}
+      {/* ── 1. FRAME DE VISUALIZAÇÃO STUDIO: DESKTOP (EDGE-TO-EDGE REAL) ── */}
       {viewport === "desktop" && (
         <div
-          className="w-full max-w-[1360px] min-h-[calc(100vh-130px)] bg-card border border-border/80 rounded-xl shadow-2xl overflow-hidden flex flex-col mb-10 transition-all"
+          className="w-full max-w-[1440px] min-h-[calc(100vh-100px)] bg-background border border-border/60 rounded-none shadow-none overflow-hidden flex flex-col mb-16 transition-all"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Chrome / Top Bar da Janela do Navegador */}
-          <div className="h-10 px-4 bg-muted/60 dark:bg-muted/30 border-b border-border/70 flex items-center justify-between select-none shrink-0">
-            {/* Semáforo de Controle de Janela (Mac / Browser Style) */}
-            <div className="flex items-center gap-2 w-24">
-              <span className="size-3 rounded-full bg-[#ff5f56] border border-black/10 inline-block shadow-2xs" />
-              <span className="size-3 rounded-full bg-[#ffbd2e] border border-black/10 inline-block shadow-2xs" />
-              <span className="size-3 rounded-full bg-[#27c93f] border border-black/10 inline-block shadow-2xs" />
+          {/* Régua de Precisão Superior Studio (Sem Mac dots, sem cartoonismo) */}
+          <div className="h-8 px-4 bg-muted/40 dark:bg-muted/20 border-b border-border/60 flex items-center justify-between select-none shrink-0 text-[11px] font-mono text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <Monitor className="size-3.5 text-primary/70" />
+              <span className="font-sans font-semibold text-foreground/80">Desktop Canvas</span>
+              <span className="text-[10px] px-1.5 py-0.2 bg-muted rounded">1440px</span>
             </div>
 
-            {/* Barra de Endereços / URL da Loja */}
-            <div className="flex-1 max-w-sm mx-auto flex items-center justify-center">
-              <div className="w-full bg-background/90 border border-border/70 rounded-lg px-3 py-1 text-[11px] font-mono text-muted-foreground flex items-center justify-center gap-1.5 shadow-2xs">
-                <Lock className="size-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                <span className="truncate font-sans font-medium text-foreground/80">
-                  wider.app/{pageSlug || "vitrine"}
-                </span>
-              </div>
+            <div className="text-[10px] text-muted-foreground font-sans truncate max-w-xs">
+              /{pageSlug || "vitrine"} · {nodesCount} bloco(s)
             </div>
 
-            {/* Resolução do Viewport */}
-            <div className="flex items-center justify-end gap-1.5 w-24">
-              <span className="px-2 py-0.5 rounded-md bg-background/80 border border-border/60 text-[10px] font-mono text-muted-foreground">
-                1440 × 900
-              </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px]">100% Escala</span>
             </div>
           </div>
 
-          {/* Viewport Retangular Reto Real (Zero Bordas Curvas no Conteúdo da Página) */}
+          {/* Viewport Retangular Reto 1:1 com a Web Real */}
           <div className="@container flex-1 overflow-y-auto overflow-x-hidden w-full h-full flex flex-col bg-background scrollbar-none no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {nodesCount === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center min-h-[440px] text-muted-foreground gap-4 p-8 text-center">
-                <div className="size-16 rounded-2xl bg-muted/60 flex items-center justify-center border border-border/60">
-                  <LayoutTemplate className="size-8 text-primary" />
+              <div className="flex-1 flex flex-col items-center justify-center min-h-[460px] text-muted-foreground gap-3 p-8 text-center animate-in fade-in duration-200">
+                <div className="size-12 rounded-xl bg-muted/50 flex items-center justify-center border border-border/50 text-muted-foreground/70">
+                  <LayoutTemplate className="size-6" />
                 </div>
-                <div className="max-w-xs space-y-1">
-                  <p className="font-bold text-foreground text-sm">Sua vitrine está pronta para ser montada</p>
-                  <p className="text-xs text-muted-foreground">
-                    Escolha uma seção pré-configurada ou monte seus blocos visualmente.
+                <div className="max-w-sm space-y-1">
+                  <p className="font-semibold text-foreground text-sm tracking-tight">Sua página está vazia</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Clique abaixo para inserir uma seção pré-configurada ou adicione blocos pelo menu lateral.
                   </p>
                 </div>
                 <Button
                   onClick={onAddSection}
-                  size="lg"
-                  className="rounded-xl font-bold text-xs gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs cursor-pointer"
+                  size="sm"
+                  className="mt-2 h-9 px-4 rounded-xl font-semibold text-xs gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs cursor-pointer"
                 >
-                  <Plus className="size-4" />
-                  <span>Adicionar Primeira Seção</span>
+                  <Plus className="size-3.5" />
+                  <span>Adicionar Seção</span>
                 </Button>
               </div>
             ) : (
@@ -130,17 +122,18 @@ export function BuilderCanvas({
                 <ExperienceRenderer
                   nodes={treeNodes}
                   isEditing
+                  transientData={transientData}
                   selectedNodeId={selectedNodeId}
                   onSelectNode={(id: string) => setSelectedNodeId(id)}
                 />
 
                 {/* Botão de Adicionar Seção no Final da Página */}
-                <div className="py-12 flex justify-center w-full mt-auto bg-muted/10 border-t border-dashed border-border/80">
+                <div className="py-12 flex justify-center w-full mt-auto bg-muted/5 border-t border-dashed border-border/60">
                   <Button
                     onClick={onAddSection}
                     variant="outline"
                     size="sm"
-                    className="rounded-xl text-xs font-bold gap-2 bg-background hover:bg-muted border-border/80 cursor-pointer shadow-2xs"
+                    className="rounded-xl text-xs font-semibold gap-2 bg-background hover:bg-muted border-border/80 cursor-pointer shadow-2xs"
                   >
                     <Plus className="size-3.5 text-primary" />
                     <span>Adicionar Nova Seção</span>
@@ -152,31 +145,33 @@ export function BuilderCanvas({
         </div>
       )}
 
-      {/* ── 2. FRAME DE VISUALIZAÇÃO REAL: MOBILE (SMARTPHONE MOCKUP) ── */}
+      {/* ── 2. FRAME DE VISUALIZAÇÃO STUDIO: MOBILE (VIEWPORT PRECISO 390PX) ── */}
       {viewport === "mobile" && (
         <div
-          className="w-[390px] h-[820px] rounded-[48px] border-[10px] border-neutral-900 dark:border-neutral-800 shadow-2xl bg-background overflow-hidden flex flex-col my-4 relative shrink-0 transition-all"
+          className="w-[390px] min-h-[844px] bg-background border border-border/70 rounded-none shadow-none overflow-hidden flex flex-col my-4 relative shrink-0 transition-all"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Dynamic Island / Alto-Falante */}
-          <div className="h-7 bg-neutral-900 dark:bg-neutral-800 flex items-center justify-center pt-1 shrink-0 z-20 select-none">
-            <div className="w-24 h-4 bg-black rounded-full flex items-center justify-end px-2">
-              <div className="size-2 rounded-full bg-neutral-800" />
+          {/* Régua de Precisão Mobile */}
+          <div className="h-7 px-3 bg-muted/40 dark:bg-muted/20 border-b border-border/60 flex items-center justify-between select-none shrink-0 text-[10px] font-mono text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <Smartphone className="size-3 text-primary/70" />
+              <span className="font-sans font-semibold text-foreground/80">Mobile Viewport</span>
             </div>
+            <span>390 × 844 px</span>
           </div>
 
           {/* Viewport Interno Mobile */}
           <div className="@container flex-1 overflow-y-auto overflow-x-hidden w-full flex flex-col bg-background scrollbar-none no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {nodesCount === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center min-h-[380px] text-muted-foreground gap-3 p-6 text-center">
-                <LayoutTemplate className="size-8 text-primary" />
-                <p className="font-bold text-foreground text-xs">Página sem seções</p>
+              <div className="flex-1 flex flex-col items-center justify-center min-h-[400px] text-muted-foreground gap-3 p-6 text-center animate-in fade-in duration-200">
+                <LayoutTemplate className="size-7 text-muted-foreground/60" />
+                <p className="font-semibold text-foreground text-xs">Página sem seções</p>
                 <Button
                   onClick={onAddSection}
                   size="sm"
-                  className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground"
+                  className="h-8 px-3 rounded-lg font-semibold text-xs gap-1.5 bg-primary text-primary-foreground"
                 >
-                  <Plus className="size-3.5" />
+                  <Plus className="size-3" />
                   <span>Adicionar Seção</span>
                 </Button>
               </div>
@@ -185,59 +180,50 @@ export function BuilderCanvas({
                 <ExperienceRenderer
                   nodes={treeNodes}
                   isEditing
+                  transientData={transientData}
                   selectedNodeId={selectedNodeId}
                   onSelectNode={(id: string) => setSelectedNodeId(id)}
                 />
 
-                <div className="py-8 flex justify-center w-full mt-auto bg-muted/10 border-t border-dashed border-border/80">
+                <div className="py-8 flex justify-center w-full mt-auto bg-muted/5 border-t border-dashed border-border/60">
                   <Button
                     onClick={onAddSection}
                     variant="outline"
                     size="sm"
-                    className="rounded-xl text-xs font-bold gap-1.5 bg-background"
+                    className="rounded-xl text-xs font-semibold gap-1.5 bg-background"
                   >
-                    <Plus className="size-3.5 text-primary" />
+                    <Plus className="size-3 text-primary" />
                     <span>Adicionar Seção</span>
                   </Button>
                 </div>
               </div>
             )}
           </div>
-
-          {/* Home Indicator Bar */}
-          <div className="h-5 bg-background flex items-center justify-center pb-1 shrink-0 z-20 select-none">
-            <div className="w-28 h-1 bg-foreground/30 rounded-full" />
-          </div>
         </div>
       )}
 
-      {/* ── 3. FRAME DE VISUALIZAÇÃO REAL: STORY / ZINE (9:16) ── */}
+      {/* ── 3. FRAME DE VISUALIZAÇÃO STUDIO: STORY (9:16 VERTICAL CANVAS) ── */}
       {viewport === "story" && (
         <div
-          className="w-[360px] h-[640px] rounded-[36px] border-[8px] border-neutral-900 dark:border-neutral-800 shadow-2xl bg-background overflow-hidden flex flex-col my-4 relative shrink-0 transition-all"
+          className="w-[360px] min-h-[640px] bg-background border border-border/70 rounded-none shadow-none overflow-hidden flex flex-col my-4 relative shrink-0 transition-all"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Top Story Progress Bars */}
-          <div className="h-6 bg-neutral-900 flex items-center px-4 gap-1.5 pt-1.5 shrink-0 z-20 select-none">
-            <div className="h-1 flex-1 bg-white/40 rounded-full overflow-hidden">
-              <div className="h-full bg-white w-2/3" />
-            </div>
-            <div className="h-1 flex-1 bg-white/20 rounded-full" />
-            <div className="h-1 flex-1 bg-white/20 rounded-full" />
+          <div className="h-7 px-3 bg-muted/40 dark:bg-muted/20 border-b border-border/60 flex items-center justify-between select-none shrink-0 text-[10px] font-mono text-muted-foreground">
+            <span className="font-sans font-semibold text-foreground/80">Vertical (9:16)</span>
+            <span>360 × 640 px</span>
           </div>
 
-          {/* Viewport Interno Story */}
           <div className="@container flex-1 overflow-y-auto overflow-x-hidden w-full flex flex-col bg-background scrollbar-none no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {nodesCount === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center min-h-[300px] text-muted-foreground gap-3 p-6 text-center">
-                <LayoutTemplate className="size-8 text-primary" />
-                <p className="font-bold text-foreground text-xs">Story sem blocos</p>
+              <div className="flex-1 flex flex-col items-center justify-center min-h-[320px] text-muted-foreground gap-3 p-6 text-center animate-in fade-in duration-200">
+                <LayoutTemplate className="size-7 text-muted-foreground/60" />
+                <p className="font-semibold text-foreground text-xs">Sem blocos</p>
                 <Button
                   onClick={onAddSection}
                   size="sm"
-                  className="rounded-xl font-bold text-xs gap-1.5 bg-primary text-primary-foreground"
+                  className="h-8 px-3 rounded-lg font-semibold text-xs gap-1.5 bg-primary text-primary-foreground"
                 >
-                  <Plus className="size-3.5" />
+                  <Plus className="size-3" />
                   <span>Adicionar Bloco</span>
                 </Button>
               </div>
@@ -246,6 +232,7 @@ export function BuilderCanvas({
                 <ExperienceRenderer
                   nodes={treeNodes}
                   isEditing
+                  transientData={transientData}
                   selectedNodeId={selectedNodeId}
                   onSelectNode={(id: string) => setSelectedNodeId(id)}
                 />

@@ -70,15 +70,33 @@ function SavedItemsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* ── Header ─────────────────────────────────────────────── */}
-      <div className=" pb-4 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="font-mono text-[10px] uppercase font-bold px-2.5 py-0.5">
-            Salvos
-          </Badge>
-          <span className="text-xs text-muted-foreground font-mono">Itens Salvos & Favoritos</span>
+    <div className="w-full max-w-5xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
+      {/* ── 1. Top Header Unificado ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-5 pt-2">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Link
+              to="/conta"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors font-medium"
+            >
+              Minha Conta
+            </Link>
+            <span className="text-xs text-muted-foreground">/</span>
+            <Badge variant="outline" className="text-[10px] font-mono uppercase font-bold tracking-wider">
+              Salvos
+            </Badge>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            Itens Salvos & Favoritos
+          </h1>
+          <p className="text-xs text-muted-foreground">
+            Acompanhe produtos, anúncios de classificados e eventos que você marcou para rever depois.
+          </p>
         </div>
+
+        <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-semibold h-9 px-4 cursor-pointer self-start sm:self-auto">
+          <Link to="/mercado">Explorar Mercado</Link>
+        </Button>
       </div>
 
       {/* ── Tabs de Filtro por Categoria ────────────────────────── */}

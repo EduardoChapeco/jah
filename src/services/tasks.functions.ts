@@ -34,8 +34,13 @@ export const CreateTaskInputSchema = z.object({
   assigned_to_profile_id: z.string().uuid().optional().nullable(),
   context_type: TaskContextTypeEnum.default("general"),
   context_id: z.string().optional().nullable(),
+  context_label: z.string().optional().nullable(),
   tags: z.array(z.string()).default([]),
   is_my_day: z.boolean().default(false),
+  estimated_minutes: z.number().int().default(0),
+  recurrence: z.enum(["none", "daily", "weekly", "monthly", "weekdays"]).default("none"),
+  custom_fields: z.record(z.any()).default({}),
+  kanban_column_id: z.string().default("todo"),
   checklists: z.array(z.string()).optional(),
 });
 
@@ -59,8 +64,16 @@ export const UpdateTaskInputSchema = z.object({
   priority: TaskPriorityEnum.optional(),
   due_date: z.string().optional().nullable(),
   assigned_to_profile_id: z.string().uuid().optional().nullable(),
+  context_type: TaskContextTypeEnum.optional(),
+  context_id: z.string().optional().nullable(),
+  context_label: z.string().optional().nullable(),
   tags: z.array(z.string()).optional(),
   is_my_day: z.boolean().optional(),
+  timer_seconds: z.number().int().optional(),
+  estimated_minutes: z.number().int().optional(),
+  recurrence: z.enum(["none", "daily", "weekly", "monthly", "weekdays"]).optional(),
+  custom_fields: z.record(z.any()).optional(),
+  kanban_column_id: z.string().optional(),
 });
 
 export const ChecklistActionSchema = z.object({
@@ -82,7 +95,7 @@ export const AddCommentSchema = z.object({
 // ---------------------------------------------------------------------------
 
 export const listWorkspaceTasks = createServerFn({ method: "GET" })
-  .validator((d: { store_id: string; view?: string; search?: string }) => d)
+  .validator((d: { store_id: string; view?: string; search?: string; tag?: string }) => d)
   .handler(async ({ data }) => {
     const identity = await getServerIdentity();
     assertStoreAccess(identity);
@@ -91,9 +104,10 @@ export const listWorkspaceTasks = createServerFn({ method: "GET" })
     let query = db
       .from("workspace_tasks")
       .select(`
-        id, store_id, title, description, priority, status, due_date, completed_at,
-        context_type, context_id, tags, is_my_day, sort_order, created_at, updated_at,
-        assigned_to_profile_id,
+        id, store_id, task_code, title, description, priority, status, due_date, completed_at,
+        context_type, context_id, context_label, tags, is_my_day, sort_order, created_at, updated_at,
+        assigned_to_profile_id, timer_seconds, timer_started_at, is_timer_running, estimated_minutes,
+        recurrence, custom_fields, kanban_column_id,
         workspace_task_checklists ( id, title, is_completed, sort_order ),
         workspace_task_comments ( id )
       `)
@@ -108,6 +122,10 @@ export const listWorkspaceTasks = createServerFn({ method: "GET" })
 
     if (data.search && data.search.trim()) {
       query = query.ilike("title", `%${data.search.trim()}%`);
+    }
+
+    if (data.tag && data.tag.trim()) {
+      query = query.contains("tags", [data.tag.trim()]);
     }
 
     const { data: tasks, error } = await query;
@@ -144,11 +162,13 @@ export const createWorkspaceTask = createServerFn({ method: "POST" })
     assertStoreAccess(identity);
 
     const db = getServerClient();
+    const taskCode = `TSK-${Math.floor(1000 + Math.random() * 9000)}`;
 
     const { data: created, error } = await db
       .from("workspace_tasks")
       .insert({
         store_id: data.store_id,
+        task_code: taskCode,
         created_by_profile_id: identity.id,
         assigned_to_profile_id: data.assigned_to_profile_id || null,
         title: data.title,
@@ -158,8 +178,13 @@ export const createWorkspaceTask = createServerFn({ method: "POST" })
         due_date: data.due_date ? new Date(data.due_date).toISOString() : null,
         context_type: data.context_type,
         context_id: data.context_id || null,
+        context_label: data.context_label || null,
         tags: data.tags,
         is_my_day: data.is_my_day,
+        estimated_minutes: data.estimated_minutes ?? 0,
+        recurrence: data.recurrence ?? "none",
+        custom_fields: data.custom_fields ?? {},
+        kanban_column_id: data.kanban_column_id ?? (data.status || "todo"),
       })
       .select()
       .single();
@@ -197,6 +222,7 @@ export const updateTaskStatus = createServerFn({ method: "POST" })
       .from("workspace_tasks")
       .update({
         status: data.status,
+        kanban_column_id: data.status,
         completed_at,
         updated_at: new Date().toISOString(),
       })
@@ -251,8 +277,16 @@ export const updateWorkspaceTask = createServerFn({ method: "POST" })
     if (data.assigned_to_profile_id !== undefined) {
       updatePayload.assigned_to_profile_id = data.assigned_to_profile_id;
     }
+    if (data.context_type !== undefined) updatePayload.context_type = data.context_type;
+    if (data.context_id !== undefined) updatePayload.context_id = data.context_id;
+    if (data.context_label !== undefined) updatePayload.context_label = data.context_label;
     if (data.tags !== undefined) updatePayload.tags = data.tags;
     if (data.is_my_day !== undefined) updatePayload.is_my_day = data.is_my_day;
+    if (data.timer_seconds !== undefined) updatePayload.timer_seconds = data.timer_seconds;
+    if (data.estimated_minutes !== undefined) updatePayload.estimated_minutes = data.estimated_minutes;
+    if (data.recurrence !== undefined) updatePayload.recurrence = data.recurrence;
+    if (data.custom_fields !== undefined) updatePayload.custom_fields = data.custom_fields;
+    if (data.kanban_column_id !== undefined) updatePayload.kanban_column_id = data.kanban_column_id;
 
     const { data: updated, error } = await db
       .from("workspace_tasks")
@@ -391,4 +425,165 @@ export const getDailyTaskDigest = createServerFn({ method: "GET" })
       overdueCount,
       totalCount: all.length,
     };
+  });
+
+// ---------------------------------------------------------------------------
+// Timer Control Functions
+// ---------------------------------------------------------------------------
+
+export const startTaskTimer = createServerFn({ method: "POST" })
+  .validator(z.object({ store_id: z.string().uuid(), task_id: z.string().uuid() }))
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity);
+
+    const db = getServerClient();
+    const { data: updated, error } = await db
+      .from("workspace_tasks")
+      .update({
+        is_timer_running: true,
+        timer_started_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", data.task_id)
+      .eq("store_id", data.store_id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return updated;
+  });
+
+export const stopTaskTimer = createServerFn({ method: "POST" })
+  .validator(z.object({ store_id: z.string().uuid(), task_id: z.string().uuid() }))
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity);
+
+    const db = getServerClient();
+    const { data: current, error: fErr } = await db
+      .from("workspace_tasks")
+      .select("timer_seconds, timer_started_at, is_timer_running")
+      .eq("id", data.task_id)
+      .eq("store_id", data.store_id)
+      .single();
+
+    if (fErr || !current) throw new Error("Tarefa não encontrada.");
+
+    let additionalSeconds = 0;
+    if (current.is_timer_running && current.timer_started_at) {
+      const diffMs = Date.now() - new Date(current.timer_started_at).getTime();
+      additionalSeconds = Math.max(0, Math.floor(diffMs / 1000));
+    }
+
+    const totalSeconds = (current.timer_seconds || 0) + additionalSeconds;
+
+    const { data: updated, error } = await db
+      .from("workspace_tasks")
+      .update({
+        timer_seconds: totalSeconds,
+        is_timer_running: false,
+        timer_started_at: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", data.task_id)
+      .eq("store_id", data.store_id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return updated;
+  });
+
+export const resetTaskTimer = createServerFn({ method: "POST" })
+  .validator(z.object({ store_id: z.string().uuid(), task_id: z.string().uuid() }))
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity);
+
+    const db = getServerClient();
+    const { data: updated, error } = await db
+      .from("workspace_tasks")
+      .update({
+        timer_seconds: 0,
+        is_timer_running: false,
+        timer_started_at: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", data.task_id)
+      .eq("store_id", data.store_id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return updated;
+  });
+
+// ---------------------------------------------------------------------------
+// Kanban Column Management
+// ---------------------------------------------------------------------------
+
+export const listTaskColumns = createServerFn({ method: "GET" })
+  .validator((d: { store_id: string }) => d)
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity);
+
+    const db = getServerClient();
+    const { data: columns, error } = await db
+      .from("workspace_task_columns")
+      .select("*")
+      .eq("store_id", data.store_id)
+      .order("sort_order", { ascending: true });
+
+    if (error) throw error;
+
+    if (!columns || columns.length === 0) {
+      return [
+        { id: "col-todo", store_id: data.store_id, column_key: "todo", name: "A Fazer", color: "#64748b", sort_order: 0, limit_wip: 0, is_done_column: false },
+        { id: "col-in_progress", store_id: data.store_id, column_key: "in_progress", name: "Em Andamento", color: "#3b82f6", sort_order: 1, limit_wip: 0, is_done_column: false },
+        { id: "col-review", store_id: data.store_id, column_key: "review", name: "Revisão / Bloqueado", color: "#f59e0b", sort_order: 2, limit_wip: 0, is_done_column: false },
+        { id: "col-done", store_id: data.store_id, column_key: "done", name: "Concluído", color: "#10b981", sort_order: 3, limit_wip: 0, is_done_column: true },
+      ];
+    }
+    return columns;
+  });
+
+export const saveTaskColumns = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      store_id: z.string().uuid(),
+      columns: z.array(
+        z.object({
+          name: z.string().min(1),
+          column_key: z.string().min(1),
+          color: z.string().default("#6366f1"),
+          sort_order: z.number().default(0),
+          limit_wip: z.number().default(0),
+          is_done_column: z.boolean().default(false),
+        })
+      ),
+    })
+  )
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity);
+
+    const db = getServerClient();
+    for (const col of data.columns) {
+      await db.from("workspace_task_columns").upsert(
+        {
+          store_id: data.store_id,
+          name: col.name,
+          column_key: col.column_key,
+          color: col.color,
+          sort_order: col.sort_order,
+          limit_wip: col.limit_wip,
+          is_done_column: col.is_done_column,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "store_id, column_key" }
+      );
+    }
+    return { success: true };
   });

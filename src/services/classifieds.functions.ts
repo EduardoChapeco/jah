@@ -237,6 +237,17 @@ const upsertClassifiedInput = z.object({
     "donation",
     "event",
   ]),
+  deal_type: z.enum(["venda", "aluguel", "temporada", "servico"]).optional(),
+  property_type: z.string().nullable().optional(),
+  bedrooms: z.number().int().optional(),
+  bathrooms: z.number().int().optional(),
+  suites: z.number().int().optional(),
+  parking_spots: z.number().int().optional(),
+  area_sqm: z.number().int().optional(),
+  amenities: z.array(z.string()).optional(),
+  max_guests: z.number().int().optional(),
+  cleaning_fee_cents: z.number().int().optional(),
+  rental_period: z.string().optional(),
   content: z.string().min(10, "Descrição deve ter no mínimo 10 caracteres"),
   price_cents: z.number().int().min(0).nullable().optional(),
   images: z.array(z.string()).optional().default([]),
@@ -270,6 +281,17 @@ export const upsertClassified = createServerFn({ method: "POST" })
       title: rest.title,
       content: rest.content,
       category: rest.category,
+      deal_type: rest.deal_type || rest.attributes?.deal_type || (rest.category === "real_estate" ? "venda" : "venda"),
+      property_type: rest.property_type || rest.attributes?.property_type || null,
+      bedrooms: rest.bedrooms ?? rest.attributes?.bedrooms ?? null,
+      bathrooms: rest.bathrooms ?? rest.attributes?.bathrooms ?? null,
+      suites: rest.suites ?? rest.attributes?.suites ?? null,
+      parking_spots: rest.parking_spots ?? rest.attributes?.parking_spots ?? null,
+      area_sqm: rest.area_sqm ?? rest.attributes?.area_sqm ?? null,
+      amenities: Array.isArray(rest.amenities) ? rest.amenities : Array.isArray(rest.attributes?.amenities) ? rest.attributes.amenities : [],
+      max_guests: rest.max_guests ?? rest.attributes?.max_guests ?? 1,
+      cleaning_fee_cents: rest.cleaning_fee_cents ?? rest.attributes?.cleaning_fee_cents ?? 0,
+      rental_period: rest.rental_period || rest.attributes?.rental_period || (rest.deal_type === "temporada" ? "diaria" : "mensal"),
       price_cents: rest.price_cents ?? null,
       contact_whatsapp: rest.contact_whatsapp || rest.whatsapp || null,
       location_name: rest.location_name || null,
@@ -335,4 +357,76 @@ export const deleteClassified = createServerFn({ method: "POST" })
     }
 
     return { success: true };
+  });
+
+
+// ---------------------------------------------------------------------------
+// CANDIDATURAS A VAGAS DE CLASSIFICADOS (100% Real no Supabase)
+// ---------------------------------------------------------------------------
+
+export const applyToClassifiedJob = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      classified_id: z.string().uuid(),
+      candidate_name: z.string().min(2, "Nome do candidato é obrigatório"),
+      candidate_email: z.string().email().optional(),
+      candidate_phone: z.string().optional(),
+      education_level: z.string().optional(),
+      experience_years: z.string().optional(),
+      candidate_role: z.string().optional(),
+      resume_url: z.string().optional(),
+      resume_snapshot: z.record(z.any()).optional(),
+      cover_note: z.string().optional(),
+    })
+  )
+  .handler(async ({ data: input }) => {
+    const supabase = getServerClient();
+    const identity = await getIdentity().catch(() => null);
+
+    const { data, error } = await supabase
+      .from("classified_applications")
+      .insert({
+        classified_id: input.classified_id,
+        candidate_profile_id: identity?.id || null,
+        candidate_name: input.candidate_name,
+        candidate_email: input.candidate_email || identity?.email || null,
+        candidate_phone: input.candidate_phone || null,
+        education_level: input.education_level || null,
+        experience_years: input.experience_years || null,
+        candidate_role: input.candidate_role || null,
+        resume_url: input.resume_url || null,
+        resume_snapshot: input.resume_snapshot || {},
+        cover_note: input.cover_note || null,
+        status: "pending",
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("[classifieds] Erro ao aplicar para vaga:", error);
+      throw new Error(error.message || "Falha ao enviar candidatura.");
+    }
+
+    return data;
+  });
+
+export const listClassifiedJobApplications = createServerFn({ method: "GET" })
+  .validator(z.string().uuid())
+  .handler(async ({ data: classified_id }) => {
+    const supabase = getServerClient();
+    const identity = await getIdentity();
+    if (!identity?.id) throw new Error("Unauthorized");
+
+    const { data: apps, error } = await supabase
+      .from("classified_applications")
+      .select("*")
+      .eq("classified_id", classified_id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("[classifieds] Erro ao listar candidaturas:", error);
+      return [];
+    }
+
+    return apps || [];
   });

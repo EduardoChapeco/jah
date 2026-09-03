@@ -1143,7 +1143,7 @@ export const builderRegistry: Record<string, BlockManifest> = {
         title: "Shop the Look",
         subtitle: "Clique nos marcadores para ver os produtos",
         image_url:
-          "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=1600",
+          "",
         hotspots: [
           {
             id: "h1",
@@ -1331,9 +1331,9 @@ export const builderRegistry: Record<string, BlockManifest> = {
         title: "Resultados Reais",
         subtitle: "Arraste a barra central para comparar a transformação",
         before_image:
-          "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800",
+          "",
         after_image:
-          "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&q=80&w=800",
+          "",
         before_label: "Antes",
         after_label: "Depois de 14 Dias",
       },
@@ -1906,4 +1906,312 @@ export const builderRegistry: Record<string, BlockManifest> = {
       content: { tableNumber: "10", storeName: "Pizzas & Cucina Rocco", wifiName: "Rocco_Clientes_5G" },
     },
   },
+
+  // ── Bloco: hero_banner (Alias para hero_carousel) ──
+  hero_banner: {
+    type: "hero_banner",
+    version: "1.0.0",
+    name: "Banner Principal (Hero)",
+    description: "Banner promocional de abertura com foto, título, subtítulo e botão de chamada",
+    category: "commerce",
+    icon: "ImageIcon",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+      buttonText: z.string().optional(),
+      buttonLink: z.string().optional(),
+      imageUrl: z.string().optional(),
+      autoPlay: z.boolean().optional(),
+      interval: z.number().optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título Principal", type: "text" },
+        { name: "subtitle", label: "Subtítulo / Descrição", type: "textarea" },
+        { name: "imageUrl", label: "Imagem de Fundo / Banner", type: "image" },
+        { name: "buttonText", label: "Texto do Botão", type: "text" },
+        { name: "buttonLink", label: "Link do Botão", type: "text" },
+        { name: "autoPlay", label: "Rotação Automática", type: "boolean" },
+        { name: "interval", label: "Intervalo (Segundos)", type: "number" },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "hero_banner",
+      content: {
+        title: "Nova Coleção de Temporada",
+        subtitle: "Descubra as novidades exclusivas que acabaram de chegar na nossa vitrine.",
+        buttonText: "Explorar Coleção",
+        buttonLink: "#produtos",
+        imageUrl: "",
+        autoPlay: true,
+        interval: 5,
+      },
+    },
+  },
+
+  // ── Bloco: tourism_quote_hero ──
+  tourism_quote_hero: {
+    type: "tourism_quote_hero",
+    version: "1.0.0",
+    name: "Cotação de Viagem & Pacotes",
+    description: "Banner imersivo de viagens com buscador de pacotes, aéreos e chamada WhatsApp",
+    category: "commerce",
+    icon: "Plane",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+      badgeText: z.string().optional(),
+      imageUrl: z.string().optional(),
+      whatsappNumber: z.string().optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título da Chamada", type: "text" },
+        { name: "subtitle", label: "Subtítulo / Benefícios", type: "textarea" },
+        { name: "badgeText", label: "Badge de Destaque", type: "text" },
+        { name: "imageUrl", label: "Foto do Destino / Hero", type: "image" },
+        { name: "whatsappNumber", label: "WhatsApp para Cotações", type: "text" },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "tourism_quote_hero",
+      content: {
+        title: "Sua Próxima Viagem Inesquecível Começa Aqui",
+        subtitle: "Pacotes completos com aéreo, hospedagem e passeios exclusivos com suporte 24h.",
+        badgeText: "Cotação Personalizada",
+        imageUrl: "",
+      },
+    },
+  },
+
+  // ── Bloco: tourism_services_grid ──
+  tourism_services_grid: {
+    type: "tourism_services_grid",
+    version: "1.0.0",
+    name: "Grade de Serviços Turísticos",
+    description: "Cards com diferenciais de agência (Passagens, Cruzeiros, Resorts, Roteiros)",
+    category: "commerce",
+    icon: "Compass",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título da Seção", type: "text" },
+        { name: "subtitle", label: "Subtítulo", type: "textarea" },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "tourism_services_grid",
+      content: {
+        title: "Tudo Para Sua Viagem Perfeita",
+        subtitle: "Assessoria completa do embarque ao retorno com consultores especializados.",
+      },
+    },
+  },
+
+
+
+  // ── Bloco: flash_sale_hero ──
+  flash_sale_hero: {
+    type: "flash_sale_hero",
+    version: "1.0.0",
+    name: "Oferta Relâmpago com Cronômetro",
+    description: "Faixa de urgência com contador regressivo e botão de ação rápida",
+    category: "commerce",
+    icon: "Flame",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+      discountBadge: z.string().optional(),
+      buttonText: z.string().optional(),
+      targetDate: z.string().optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título da Promoção", type: "text" },
+        { name: "subtitle", label: "Descrição da Oferta", type: "textarea" },
+        { name: "discountBadge", label: "Badge de Desconto (ex: 40% OFF)", type: "text" },
+        { name: "buttonText", label: "Texto do Botão", type: "text" },
+        { name: "targetDate", label: "Data Limite (ISO ou YYYY-MM-DD)", type: "text" },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "flash_sale_hero",
+      content: {
+        title: "Queima de Estoque Exclusiva",
+        subtitle: "Descontos especiais válidos apenas enquanto durarem os estoques promocionais.",
+        discountBadge: "ATÉ 50% OFF",
+        buttonText: "Aproveitar Agora",
+        targetDate: "2026-12-31T23:59:59",
+      },
+    },
+  },
+
+  // ── Bloco: service_pricing_table ──
+  service_pricing_table: {
+    type: "service_pricing_table",
+    version: "1.0.0",
+    name: "Tabela de Preços & Planos",
+    description: "Comparativo de planos, serviços ou passes com lista de benefícios e botão de contratação",
+    category: "commerce",
+    icon: "CreditCard",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título da Tabela", type: "text" },
+        { name: "subtitle", label: "Subtítulo explicativo", type: "textarea" },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "service_pricing_table",
+      content: {
+        title: "Planos & Assinaturas Sob Medida",
+        subtitle: "Escolha a melhor opção para sua rotina e economize com pacotes recorrentes.",
+      },
+    },
+  },
+
+  // ── Bloco: category_cards_grid ──
+  category_cards_grid: {
+    type: "category_cards_grid",
+    version: "1.0.0",
+    name: "Grade de Categorias",
+    description: "Cards visuais com foto e nome das principais categorias da loja",
+    category: "commerce",
+    icon: "Grid",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título da Grade", type: "text" },
+        { name: "subtitle", label: "Subtítulo", type: "text" },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "category_cards_grid",
+      content: {
+        title: "Navegue por Categorias",
+        subtitle: "Encontre exatamente o que você procura.",
+      },
+    },
+  },
+
+  // ── Bloco: featured_collection_banner ──
+  featured_collection_banner: {
+    type: "featured_collection_banner",
+    version: "1.0.0",
+    name: "Banner de Coleção em Destaque",
+    description: "Chamada em split com foto grande, texto institucional e botão direto para coleção",
+    category: "commerce",
+    icon: "Sparkles",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+      buttonText: z.string().optional(),
+      buttonLink: z.string().optional(),
+      imageUrl: z.string().optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título da Coleção", type: "text" },
+        { name: "subtitle", label: "Descrição / Manifesto", type: "textarea" },
+        { name: "buttonText", label: "Texto do Botão", type: "text" },
+        { name: "buttonLink", label: "Link da Coleção", type: "text" },
+        { name: "imageUrl", label: "Imagem de Destaque", type: "image" },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "featured_collection_banner",
+      content: {
+        title: "Coleção Essentials 2026",
+        subtitle: "Peças atemporais desenvolvidas com matérias-primas nobres para durar gerações.",
+        buttonText: "Ver Todos os Produtos",
+        buttonLink: "#colecao",
+        imageUrl: "",
+      },
+    },
+  },
+
+
+  // ── Bloco: tourism_itinerary_timeline ──
+  tourism_itinerary_timeline: {
+    type: "tourism_itinerary_timeline",
+    version: "1.0.0",
+    name: "Roteiro Dia a Dia (Timeline)",
+    description: "Linha do tempo com programação detalhada do roteiro da viagem",
+    category: "content",
+    icon: "Calendar",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+      events: z.array(z.any()).optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título do Roteiro", type: "text" },
+        { name: "subtitle", label: "Subtítulo", type: "textarea" },
+        {
+          name: "events",
+          label: "Dias da Programação",
+          type: "array",
+          arrayFields: [
+            { name: "year", label: "Dia / Período (ex: Dia 1)", type: "text" },
+            { name: "title", label: "Título da Atividade", type: "text" },
+            { name: "description", label: "Detalhes do Passeio", type: "textarea" },
+          ],
+        },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "tourism_itinerary_timeline",
+      content: {
+        title: "Roteiro Completo da Viagem",
+        subtitle: "Confira o que preparamos dia a dia para você.",
+        events: [
+          { year: "Dia 1", title: "Embarque e Check-in", description: "Recepção no hotel e noite livre." },
+          { year: "Dia 2", title: "City Tour Histórico", description: "Visita aos principais pontos com guia." },
+        ],
+      },
+    },
+  },
+
 };

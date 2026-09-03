@@ -58,6 +58,21 @@ import { TrackView } from "./analytics-provider";
 // ---------------------------------------------------------------------------
 // Block type → React component mapping
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Block type aliases to guarantee compatibility with legacy or variant blocks
+// ---------------------------------------------------------------------------
+const BLOCK_TYPE_ALIASES: Record<string, string> = {
+  hero_banner: "hero_carousel",
+  featured_collection_banner: "split_banner",
+  category_cards_grid: "gallery_grid",
+  tourism_itinerary_timeline: "timeline_history",
+  service_catalog_list: "service_pricing_table",
+  property_schedule_visit: "contact_form",
+  property_virtual_tour: "video_section",
+  biolink_featured_product: "product_rail",
+};
+
 const componentMap: Record<string, React.FC<any>> = {
   hero_carousel: HeroCarousel,
   hero_banner: HeroCarousel,
@@ -257,19 +272,21 @@ function ExperienceNodeRenderer({
   selectedNodeId,
   onSelectNode,
 }: ExperienceNodeRendererProps) {
-  const manifest = builderRegistry[node.block_type];
-
-  if (!manifest) {
-    if (isEditing) {
-      return (
-        <div className="p-4 border border-dashed border-destructive/40 bg-destructive/10 text-destructive rounded-xl text-sm">
-          Bloco não suportado: {node.block_type}
-        </div>
-      );
-    }
-    console.warn(`[Builder] Block type "${node.block_type}" not found in registry.`);
-    return null;
-  }
+  const effectiveType = BLOCK_TYPE_ALIASES[node.block_type] || node.block_type;
+  const manifest = builderRegistry[node.block_type] || builderRegistry[effectiveType] || {
+    type: node.block_type as any,
+    version: "1.0.0",
+    name: node.block_type.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
+    description: "Bloco dinâmico de vitrine",
+    category: "content",
+    icon: "Square",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: "all",
+    allowedChildTypes: "all",
+    contentSchema: null as any,
+    inspector: { content: [] },
+    defaultProps: {},
+  };
 
   // ── Interactive editing wrapper ────────────────────────────────────────────
   const wrapInteractive = (children: React.ReactNode, className: string = "") => {
@@ -434,7 +451,7 @@ function ExperienceNodeRenderer({
   }
 
   // ── Leaf/Composition component ─────────────────────────────────────────────
-  const Component = componentMap[node.block_type];
+  const Component = componentMap[node.block_type] || componentMap[effectiveType];
   if (!Component) {
     if (isEditing) {
       return (

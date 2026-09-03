@@ -48,6 +48,7 @@ import {
   Award,
   Store,
 } from "lucide-react";
+import { ProfessionalResumeEditor, ResumeDataDTO } from "@/components/profile/professional-resume-editor";
 
 export const Route = createFileRoute("/_store/conta/perfil")({
   head: () => ({ meta: [{ title: "Meu Perfil | Wider" }] }),
@@ -113,14 +114,35 @@ function ProfilePage() {
     Array.isArray(profile?.biolinks) ? profile.biolinks : []
   );
 
-  // Perfil Profissional / Currículo (LinkedIn Style)
-  const [resumeData, setResumeData] = useState({
+  // Perfil Profissional / Currículo (Gupy / InfoJobs / LinkedIn Enterprise Style)
+  const [resumeData, setResumeData] = useState<ResumeDataDTO>({
     headline: initialResume?.headline || "",
     summary: initialResume?.summary || "",
-    hiringStatus: (initialResume?.hiringStatus as "none" | "open_to_work" | "hiring") || "none",
-    skillsString: Array.isArray(initialResume?.skills) ? initialResume.skills.join(", ") : "",
-    experiences: Array.isArray(initialResume?.experiences) ? initialResume.experiences : [] as any[],
-    education: Array.isArray(initialResume?.education) ? initialResume.education : [] as any[],
+    hiringStatus: (initialResume?.hiringStatus as any) || "open_to_work",
+    skills: Array.isArray(initialResume?.skills)
+      ? initialResume.skills
+      : typeof initialResume?.skillsString === "string"
+        ? initialResume.skillsString.split(",").map((s: string) => s.trim()).filter(Boolean)
+        : [],
+    availability: initialResume?.availability || {},
+    experiences: Array.isArray(initialResume?.experiences) ? initialResume.experiences : [],
+    educations: Array.isArray(initialResume?.educations)
+      ? initialResume.educations
+      : Array.isArray(initialResume?.education)
+        ? initialResume.education.map((e: any) => ({
+            id: e.id || `edu_${Date.now()}`,
+            school: e.institution || e.school || "",
+            degree: e.degree || "",
+            start_date: e.startDate || e.start_date || "",
+            end_date: e.year || e.endDate || e.end_date || "",
+            description: e.description || "",
+          }))
+        : [],
+    certifications: Array.isArray(initialResume?.certifications) ? initialResume.certifications : [],
+    projects: Array.isArray(initialResume?.projects) ? initialResume.projects : [],
+    volunteering: Array.isArray(initialResume?.volunteering) ? initialResume.volunteering : [],
+    causes: Array.isArray(initialResume?.causes) ? initialResume.causes : [],
+    languages: Array.isArray(initialResume?.languages) ? initialResume.languages : [],
   });
 
   const set = <K extends keyof typeof formData>(key: K, value: (typeof formData)[K]) =>
@@ -178,10 +200,16 @@ function ProfilePage() {
   };
 
   // Funções de Biolinks
-  const addBiolink = () => {
+  const addBiolink = (isBanner: boolean = false) => {
     setBiolinks((prev) => [
       ...prev,
-      { id: `link_${Date.now()}`, label: "Meu Link", url: "https://", isHighlight: false },
+      {
+        id: `link_${Date.now()}`,
+        label: isBanner ? "Meu Banner de Ação" : "Meu Link",
+        url: "https://",
+        imageUrl: isBanner ? "" : undefined,
+        isHighlight: false,
+      },
     ]);
   };
 
@@ -197,72 +225,6 @@ function ProfilePage() {
     setBiolinks((prev) => prev.filter((_, i) => i !== idx));
   };
 
-  // Funções de Experiência Profissional
-  const addExperience = () => {
-    setResumeData((prev) => ({
-      ...prev,
-      experiences: [
-        ...prev.experiences,
-        {
-          id: `exp_${Date.now()}`,
-          title: "Cargo / Especialidade",
-          company: "Empresa / Autônomo",
-          location: "Chapecó, SC",
-          startDate: "2024",
-          endDate: "Atual",
-          isCurrent: true,
-          description: "",
-        },
-      ],
-    }));
-  };
-
-  const updateExperience = (idx: number, field: string, value: any) => {
-    setResumeData((prev) => {
-      const nextExp = [...prev.experiences];
-      nextExp[idx] = { ...nextExp[idx], [field]: value };
-      return { ...prev, experiences: nextExp };
-    });
-  };
-
-  const removeExperience = (idx: number) => {
-    setResumeData((prev) => ({
-      ...prev,
-      experiences: prev.experiences.filter((_: any, i: number) => i !== idx),
-    }));
-  };
-
-  // Funções de Formação
-  const addEducation = () => {
-    setResumeData((prev) => ({
-      ...prev,
-      education: [
-        ...prev.education,
-        {
-          id: `edu_${Date.now()}`,
-          degree: "Curso / Graduação",
-          institution: "Instituição de Ensino",
-          year: "2023",
-        },
-      ],
-    }));
-  };
-
-  const updateEducation = (idx: number, field: string, value: any) => {
-    setResumeData((prev) => {
-      const nextEdu = [...prev.education];
-      nextEdu[idx] = { ...nextEdu[idx], [field]: value };
-      return { ...prev, education: nextEdu };
-    });
-  };
-
-  const removeEducation = (idx: number) => {
-    setResumeData((prev) => ({
-      ...prev,
-      education: prev.education.filter((_: any, i: number) => i !== idx),
-    }));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
@@ -273,11 +235,6 @@ function ProfilePage() {
     }
     setIsSubmitting(true);
     try {
-      const skillsArray = resumeData.skillsString
-        .split(",")
-        .map((s: string) => s.trim())
-        .filter(Boolean);
-
       await updateProfile({
         data: {
           fullName: formData.fullName.trim(),
@@ -297,12 +254,20 @@ function ProfilePage() {
           newsletterOptIn: formData.newsletterOptIn,
           biolinks: biolinks.length > 0 ? biolinks : undefined,
           resumeData: {
-            headline: resumeData.headline.trim() || undefined,
-            summary: resumeData.summary.trim() || undefined,
+            ...resumeData,
+            headline: resumeData.headline?.trim() || undefined,
+            summary: resumeData.summary?.trim() || undefined,
             hiringStatus: resumeData.hiringStatus,
-            skills: skillsArray,
+            skills: resumeData.skills || [],
+            availability: resumeData.availability,
             experiences: resumeData.experiences,
-            education: resumeData.education,
+            educations: resumeData.educations,
+            education: resumeData.educations, // retrocompatibilidade
+            certifications: resumeData.certifications,
+            projects: resumeData.projects,
+            volunteering: resumeData.volunteering,
+            causes: resumeData.causes,
+            languages: resumeData.languages,
           },
           featuredBannerUrl: formData.featuredBannerUrl.trim() || undefined,
           featuredBannerLink: formData.featuredBannerLink.trim() || undefined,
@@ -334,29 +299,42 @@ function ProfilePage() {
   };
 
   return (
-    <div className="w-full space-y-6 pb-6 animate-in fade-in duration-200">
-      {/* ── Top Header Limpo ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 ">
+    <div className="w-full max-w-5xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
+      {/* ── 1. Top Header Unificado ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-5 pt-2">
         <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
-            Editar Perfil
+          <div className="flex items-center gap-2">
+            <Link
+              to="/conta"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors font-medium"
+            >
+              Minha Conta
+            </Link>
+            <span className="text-xs text-muted-foreground">/</span>
+            
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            Meu Perfil & Preferências
           </h1>
-          
+          <p className="text-xs text-muted-foreground">
+            Gerencie suas informações pessoais, bio pública, currículo profissional e links sociais.
+          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 shrink-0">
           <Button
             asChild
             size="sm"
-            className="rounded-xl text-xs font-bold gap-1.5 bg-primary text-primary-foreground cursor-pointer"
+            variant="outline"
+            className="rounded-xl text-xs font-semibold h-9 px-4 cursor-pointer"
           >
             <Link
               to="/membro/$id"
               params={{ id: formData.username || profile.username || profile.id }}
               target="_blank"
             >
-              <ExternalLink className="size-3.5" />
-              <span>Ver Meu Perfil (@{formData.username || "perfil"})</span>
+              <ExternalLink className="size-3.5 mr-1.5" />
+              <span>Ver Perfil Público</span>
             </Link>
           </Button>
 
@@ -364,7 +342,7 @@ function ProfilePage() {
             type="button"
             variant="outline"
             size="sm"
-            className="rounded-xl text-xs font-bold gap-1.5 cursor-pointer"
+            className="rounded-xl text-xs font-semibold h-9 px-3 cursor-pointer"
             onClick={() => {
               if (typeof navigator !== "undefined" && navigator.clipboard) {
                 const handle = formData.username || profile.username;
@@ -376,7 +354,7 @@ function ProfilePage() {
               }
             }}
           >
-            <LinkIcon className="size-3.5" />
+            <LinkIcon className="size-3.5 mr-1.5" />
             <span>Copiar Link</span>
           </Button>
         </div>
@@ -589,316 +567,218 @@ function ProfilePage() {
             </div>
           </TabsContent>
 
-          {/* ── ABA 2: Perfil Profissional (LinkedIn Style) ── */}
+          {/* ── ABA 2: Perfil Profissional (Gupy / InfoJobs / LinkedIn Style) ── */}
           <TabsContent value="profissional" className="space-y-6">
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 ">
-                <div>
-                  <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <Briefcase className="size-4 text-primary" />
-                    <span>Currículo & Status de Carreira</span>
-                  </h2>
-                  
-                </div>
-
-                {/* Selo Profissional */}
-                <Select
-                  value={resumeData.hiringStatus}
-                  onValueChange={(v: any) => setResumeData({ ...resumeData, hiringStatus: v })}
-                >
-                  <SelectTrigger className="w-full sm:w-56 h-9 rounded-xl text-xs font-bold">
-                    <SelectValue placeholder="Status Profissional" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Sem Selo Ativo</SelectItem>
-                    <SelectItem value="open_to_work">🟢 #OpenToWork (Buscando Vagas)</SelectItem>
-                    <SelectItem value="hiring">🔵 #Contratando (Empresa/Líder)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-muted-foreground">Título Profissional (Headline)</Label>
-                <Input
-                  value={resumeData.headline}
-                  onChange={(e) => setResumeData({ ...resumeData, headline: e.target.value })}
-                  placeholder="Ex: Engenheiro de Software Full Stack | React & Node.js"
-                  className="h-10 rounded-xl text-xs"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-muted-foreground">Resumo / Sobre Mim</Label>
-                <Textarea
-                  value={resumeData.summary}
-                  onChange={(e) => setResumeData({ ...resumeData, summary: e.target.value })}
-                  placeholder="Descreva sua trajetória profissional, principais conquistas e objetivos..."
-                  className="rounded-xl text-xs min-h-[90px] resize-none"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-muted-foreground">Habilidades & Especialidades (separadas por vírgula)</Label>
-                <Input
-                  value={resumeData.skillsString}
-                  onChange={(e) => setResumeData({ ...resumeData, skillsString: e.target.value })}
-                  placeholder="Ex: Gestão de Projetos, Liderança, Atendimento, Excel, Vendas"
-                  className="h-10 rounded-xl text-xs"
-                />
-              </div>
-
-              {/* Experiências Profissionais */}
-              <div className="space-y-3 pt-3 ">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                    <Building2 className="size-3.5 text-primary" />
-                    <span>Experiências Profissionais</span>
-                  </Label>
-                  <Button type="button" size="sm" variant="outline" onClick={addExperience} className="rounded-xl text-xs font-bold gap-1 h-8">
-                    <Plus className="size-3" />
-                    <span>Adicionar Experiência</span>
-                  </Button>
-                </div>
-
-                {resumeData.experiences.map((exp: any, idx: number) => (
-                  <div key={exp.id || idx} className="p-4 rounded-2xl  bg-muted/20 space-y-3 relative">
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => removeExperience(idx)}
-                      className="absolute top-3 right-3 size-7 text-destructive hover:bg-destructive/10 rounded-lg"
-                    >
-                      <Trash2 className="size-3.5" />
-                    </Button>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pr-8">
-                      <div className="space-y-1">
-                        <Label className="text-[11px] font-bold text-muted-foreground">Cargo *</Label>
-                        <Input
-                          value={exp.title}
-                          onChange={(e) => updateExperience(idx, "title", e.target.value)}
-                          placeholder="Cargo"
-                          className="h-8 rounded-lg text-xs"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-[11px] font-bold text-muted-foreground">Empresa *</Label>
-                        <Input
-                          value={exp.company}
-                          onChange={(e) => updateExperience(idx, "company", e.target.value)}
-                          placeholder="Empresa"
-                          className="h-8 rounded-lg text-xs"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <div className="space-y-1">
-                        <Label className="text-[11px] font-bold text-muted-foreground">Período Início</Label>
-                        <Input
-                          value={exp.startDate}
-                          onChange={(e) => updateExperience(idx, "startDate", e.target.value)}
-                          placeholder="2022"
-                          className="h-8 rounded-lg text-xs font-mono"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-[11px] font-bold text-muted-foreground">Período Fim</Label>
-                        <Input
-                          value={exp.endDate}
-                          onChange={(e) => updateExperience(idx, "endDate", e.target.value)}
-                          placeholder="Atual"
-                          className="h-8 rounded-lg text-xs font-mono"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-[11px] font-bold text-muted-foreground">Local</Label>
-                        <Input
-                          value={exp.location}
-                          onChange={(e) => updateExperience(idx, "location", e.target.value)}
-                          placeholder="Cidade, UF"
-                          className="h-8 rounded-lg text-xs"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Formação Acadêmica */}
-              <div className="space-y-3 pt-3 ">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                    <GraduationCap className="size-3.5 text-primary" />
-                    <span>Formação Acadêmica</span>
-                  </Label>
-                  <Button type="button" size="sm" variant="outline" onClick={addEducation} className="rounded-xl text-xs font-bold gap-1 h-8">
-                    <Plus className="size-3" />
-                    <span>Adicionar Formação</span>
-                  </Button>
-                </div>
-
-                {resumeData.education.map((edu: any, idx: number) => (
-                  <div key={edu.id || idx} className="p-4 rounded-2xl  bg-muted/20 space-y-3 relative">
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => removeEducation(idx)}
-                      className="absolute top-3 right-3 size-7 text-destructive hover:bg-destructive/10 rounded-lg"
-                    >
-                      <Trash2 className="size-3.5" />
-                    </Button>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pr-8">
-                      <div className="space-y-1 sm:col-span-1">
-                        <Label className="text-[11px] font-bold text-muted-foreground">Curso / Graduação *</Label>
-                        <Input
-                          value={edu.degree}
-                          onChange={(e) => updateEducation(idx, "degree", e.target.value)}
-                          placeholder="Curso"
-                          className="h-8 rounded-lg text-xs"
-                        />
-                      </div>
-                      <div className="space-y-1 sm:col-span-1">
-                        <Label className="text-[11px] font-bold text-muted-foreground">Instituição *</Label>
-                        <Input
-                          value={edu.institution}
-                          onChange={(e) => updateEducation(idx, "institution", e.target.value)}
-                          placeholder="Instituição"
-                          className="h-8 rounded-lg text-xs"
-                        />
-                      </div>
-                      <div className="space-y-1 sm:col-span-1">
-                        <Label className="text-[11px] font-bold text-muted-foreground">Ano de Conclusão</Label>
-                        <Input
-                          value={edu.year}
-                          onChange={(e) => updateEducation(idx, "year", e.target.value)}
-                          placeholder="2024"
-                          className="h-8 rounded-lg text-xs font-mono"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <ProfessionalResumeEditor
+              resumeData={resumeData}
+              avatarUrl={formData.avatarUrl || profile.avatarUrl || profile.avatar_url}
+              fullName={formData.fullName || profile.full_name}
+              onChange={(updated) => setResumeData(updated)}
+            />
           </TabsContent>
 
           {/* ── ABA 3: Biolinks & Mini-Banners ── */}
           <TabsContent value="biolinks" className="space-y-6">
             <div className="space-y-6">
-              <div className="flex items-center justify-between pb-2 border-b border-border/40">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/40">
                 <div>
                   <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
                     <LinkIcon className="size-4 text-primary" />
                     <span>Botões de Ação & Links na Bio</span>
                   </h2>
                   <p className="text-xs text-muted-foreground">
-                    Crie botões personalizados para o seu perfil (com ou sem imagem de fundo).
+                    Crie botões normais de link (sem imagem) ou mini-banners gráficos delicados (com imagem 16:9).
                   </p>
                 </div>
 
-                <Button type="button" size="sm" variant="outline" onClick={addBiolink} className="rounded-xl text-xs font-bold gap-1 cursor-pointer">
-                  <Plus className="size-3.5" />
-                  <span>Novo Botão de Ação</span>
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => addBiolink(false)}
+                    className="rounded-xl text-xs font-semibold gap-1.5 cursor-pointer h-9"
+                  >
+                    <Plus className="size-3.5" />
+                    <span>+ Botão Normal</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => addBiolink(true)}
+                    className="rounded-xl text-xs font-semibold gap-1.5 cursor-pointer h-9"
+                  >
+                    <ImageIcon className="size-3.5" />
+                    <span>+ Mini-Banner</span>
+                  </Button>
+                </div>
               </div>
 
               {biolinks.length === 0 ? (
-                <div className="border-0 p-8 text-center rounded-2xl bg-muted/20 space-y-2">
+                <div className="border border-dashed border-border/70 p-8 text-center rounded-2xl bg-muted/20 space-y-3">
                   <p className="text-xs text-muted-foreground">
-                    Você ainda não adicionou botões de ação. Clique em "Novo Botão de Ação" acima para criar.
+                    Você ainda não adicionou links ou banners na bio. Escolha uma das opções acima para começar.
                   </p>
+                  <div className="flex items-center justify-center gap-2 pt-1">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => addBiolink(false)}
+                      className="rounded-xl text-xs font-semibold"
+                    >
+                      Criar Botão de Link
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => addBiolink(true)}
+                      className="rounded-xl text-xs font-semibold"
+                    >
+                      Criar Mini-Banner
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {biolinks.map((link, idx) => (
-                    <div key={link.id || idx} className="p-4 rounded-2xl border border-border/60 bg-muted/20 space-y-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-bold text-foreground">Botão #{idx + 1}</span>
-                        <Button
-                          type="button"
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => removeBiolink(idx)}
-                          className="size-7 text-destructive hover:bg-destructive/10 rounded-lg"
-                        >
-                          <Trash2 className="size-3.5" />
-                        </Button>
-                      </div>
+                  {biolinks.map((link, idx) => {
+                    const isBanner = link.imageUrl !== undefined && link.imageUrl !== null;
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                          <Label className="text-[11px] font-semibold text-muted-foreground">Título do Botão</Label>
-                          <Input
-                            value={link.label || (link as any).title || ""}
-                            onChange={(e) => updateBiolink(idx, "label", e.target.value)}
-                            placeholder="Ex: Falar no WhatsApp, Cardápio, Catálogo"
-                            className="h-9 rounded-xl text-xs font-bold"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-[11px] font-semibold text-muted-foreground">Link de Destino (URL)</Label>
-                          <Input
-                            value={link.url}
-                            onChange={(e) => updateBiolink(idx, "url", e.target.value)}
-                            placeholder="https://wa.me/... ou https://..."
-                            className="h-9 rounded-xl text-xs font-mono"
-                          />
-                        </div>
-                      </div>
+                    return (
+                      <div
+                        key={link.id || idx}
+                        className="p-4 rounded-2xl border border-border/60 bg-muted/20 space-y-3 shadow-2xs"
+                      >
+                        <div className="flex items-center justify-between gap-2 border-b border-border/40 pb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-foreground">
+                              Item #{idx + 1}
+                            </span>
+                            <Badge variant="outline" className="text-[10px] font-mono">
+                              {isBanner ? "Mini-Banner Gráfico" : "Botão Normal"}
+                            </Badge>
+                          </div>
 
-                      {/* Capa / Background Opcional do Botão */}
-                      <div className="pt-1">
-                        <Label className="text-[11px] font-semibold text-muted-foreground block pb-1">
-                          Capa de Fundo do Botão (Opcional - transforma em Mini-Banner de Ação)
-                        </Label>
-                        <div className="flex items-center gap-3">
-                          <Input
-                            value={link.imageUrl || ""}
-                            onChange={(e) => updateBiolink(idx, "imageUrl", e.target.value)}
-                            placeholder="URL da imagem ou cole o link da foto..."
-                            className="h-8 rounded-xl text-xs flex-1"
-                          />
-                          {link.imageUrl && (
-                            <div className="size-8 rounded-lg overflow-hidden border border-border shrink-0 bg-muted">
-                              <img src={link.imageUrl} alt="Preview" className="size-full object-cover" />
+                          <div className="flex items-center gap-1.5">
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                if (isBanner) {
+                                  updateBiolink(idx, "imageUrl", undefined);
+                                } else {
+                                  updateBiolink(idx, "imageUrl", "");
+                                }
+                              }}
+                              className="text-[11px] h-7 px-2 text-muted-foreground hover:text-foreground rounded-lg cursor-pointer"
+                            >
+                              {isBanner ? "Converter para Botão Normal" : "Transformar em Banner"}
+                            </Button>
+
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => removeBiolink(idx)}
+                              className="size-7 text-destructive hover:bg-destructive/10 rounded-lg cursor-pointer"
+                              title="Remover"
+                            >
+                              <Trash2 className="size-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <Label className="text-[11px] font-semibold text-muted-foreground">
+                              {isBanner ? "Título do Banner (opcional)" : "Texto do Botão"}
+                            </Label>
+                            <Input
+                              value={link.label || (link as any).title || ""}
+                              onChange={(e) => updateBiolink(idx, "label", e.target.value)}
+                              placeholder={isBanner ? "Ex: Conheça nosso serviço" : "Ex: Falar no WhatsApp"}
+                              className="h-9 rounded-xl text-xs font-semibold"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-[11px] font-semibold text-muted-foreground">
+                              Link de Destino (URL)
+                            </Label>
+                            <Input
+                              value={link.url}
+                              onChange={(e) => updateBiolink(idx, "url", e.target.value)}
+                              placeholder="https://wa.me/... ou https://..."
+                              className="h-9 rounded-xl text-xs font-mono"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Upload de Imagem dedicado se for Banner */}
+                        {isBanner && (
+                          <div className="pt-2 border-t border-border/30 space-y-1.5">
+                            <Label className="text-[11px] font-semibold text-muted-foreground">
+                              Imagem do Mini-Banner (Enquadramento 16:9 Fiel)
+                            </Label>
+                            <div className="max-w-[320px]">
+                              <ImageUpload
+                                value={link.imageUrl || null}
+                                onChange={(url) => updateBiolink(idx, "imageUrl", url)}
+                                onRemove={() => updateBiolink(idx, "imageUrl", "")}
+                                aspectPreset="widescreen"
+                                bucket="cms-media"
+                                helperText="Formato 16:9 delicado e proporcional"
+                              />
                             </div>
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
 
-              {/* Mini-Banner em Destaque */}
-              <div className="space-y-3 pt-4 border-t border-border/40">
+              {/* Mini-Banner em Destaque Principal */}
+              <div className="space-y-3 pt-6 border-t border-border/40">
                 <div>
-                  <h3 className="text-xs font-bold text-foreground">Mini-Banner de Destaque / Evento</h3>
-                  <p className="text-[11px] text-muted-foreground">Banner panorâmico exibido em destaque abaixo da bio.</p>
+                  <h3 className="text-xs font-bold text-foreground">
+                    Mini-Banner de Destaque / Parceiro Oficial
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground">
+                    Banner de destaque exibido de forma delicada e proporcional (16:9) abaixo da bio.
+                  </p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
-                  <div className="space-y-1">
-                    <Label className="text-[11px] font-bold text-muted-foreground">Imagem do Banner</Label>
-                    <ImageUpload
-                      value={formData.featuredBannerUrl}
-                      onChange={(url) => set("featuredBannerUrl", url)}
-                      aspectPreset="widescreen"
-                      bucket="cms-media"
-                      helperText="Formato 16:9 ou panorâmico"
-                    />
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] font-bold text-muted-foreground">
+                      Imagem do Banner (16:9)
+                    </Label>
+                    <div className="max-w-[320px]">
+                      <ImageUpload
+                        value={formData.featuredBannerUrl}
+                        onChange={(url) => set("featuredBannerUrl", url)}
+                        onRemove={() => set("featuredBannerUrl", "")}
+                        aspectPreset="widescreen"
+                        bucket="cms-media"
+                        helperText="Enquadramento 16:9 fiel ao perfil"
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <Label className="text-[11px] font-bold text-muted-foreground">Link de Destino</Label>
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] font-bold text-muted-foreground">
+                      Link de Destino
+                    </Label>
                     <Input
                       value={formData.featuredBannerLink}
                       onChange={(e) => set("featuredBannerLink", e.target.value)}
-                      placeholder="https://..."
-                      className="h-10 rounded-xl text-xs"
+                      placeholder="https://excelenciatour.com ou https://..."
+                      className="h-10 rounded-xl text-xs font-mono"
                     />
+                    <p className="text-[10px] text-muted-foreground">
+                      URL aberta quando o visitante clicar no banner de destaque.
+                    </p>
                   </div>
                 </div>
               </div>
