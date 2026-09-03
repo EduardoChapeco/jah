@@ -114,7 +114,7 @@ function CmsNavigationPage() {
       <div className="flex-1 p-6 flex justify-center">
         <div className="w-full max-w-3xl space-y-6">
           <div className="bg-surface-paper   rounded-xl p-6 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Nome do Menu</Label>
                 <Input
@@ -154,7 +154,7 @@ function CmsNavigationPage() {
                     className="flex items-center gap-3 p-3 bg-surface-paper   rounded-xl"
                   >
                     <GripVertical className="h-5 w-5 text-muted-foreground cursor-move" />
-                    <div className="grid grid-cols-2 gap-3 flex-1">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1">
                       <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">Rótulo</Label>
                         <Input

@@ -200,7 +200,7 @@ function CalendarioEditorialPage() {
 
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold">Tipo de Publicação</Label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {Object.entries(TYPE_CONFIG).map(([key, cfg]) => {
                     const Icon = cfg.icon;
                     return (
@@ -223,7 +223,7 @@ function CalendarioEditorialPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold">Data de Disparo *</Label>
                   <Input

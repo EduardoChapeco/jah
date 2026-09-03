@@ -229,3 +229,24 @@
 3. **Atendimento Omnichannel Padrão WhatsApp/Telegram**:
    - Em `workspace.atendimento.index.tsx`, implementada alternância adaptativa de Master-Detail: em smartphones, exibe a lista de conversas OU o chat ativo com botão explícito de retorno (`ArrowLeft`), garantindo 100% de largura para digitação e leitura.
 4. **Compilação e Validação**: Build de produção Vite + Nitro concluído com sucesso com código de saída 0 em 5.25s.
+
+## Ciclo 77 — Microfase 77C
+
+- **Data/Hora:** 2026-09-03T16:19:00-03:00
+- **Módulo:** Agendamentos de Serviços, Calendário Editorial e Navegação da Vitrine (Mobile-First)
+- **Commit Base:** `57304dc`
+- **Status:** `MICROFASE COMPROVADA EM RUNTIME E COMMITADA`
+
+### Diagnóstico Forense & Causa Raiz
+1. Em `workspace.agenda.servicos.index.tsx`, o formulário modal de cadastro e edição de serviços (duração, preço, público-alvo, comissão) utilizava 2 grids rígidos (`grid-cols-2`), espremendo seletores de tempo e moeda em celulares.
+2. Em `workspace.cms.calendario.tsx`, o modal de agendamento de posts e eventos utilizava 2 colunas incondicionais para botões de tipo de mídia (Post, Story, Carrossel, Vídeo) e campos de data/horário de disparo.
+3. Em `workspace.cms.navegacao.tsx`, o editor de menus e links de rodapé/cabeçalho da vitrine operava com 2 grids rígidos para Nome/Handle e Rótulo/URL.
+
+### Ações Executadas
+1. **Agendamento de Serviços Responsivo**:
+   - Em `workspace.agenda.servicos.index.tsx`, os 2 blocos do formulário foram convertidos para `grid-cols-1 sm:grid-cols-2 gap-3`.
+2. **Calendário Editorial & Conteúdo Mobile-Ready**:
+   - Em `workspace.cms.calendario.tsx`, os seletores de publicação e campos de data/hora foram convertidos para `grid-cols-1 sm:grid-cols-2 gap-2` e `grid-cols-1 sm:grid-cols-2 gap-3`.
+3. **Editor de Menus e Links sem Truncamento**:
+   - Em `workspace.cms.navegacao.tsx`, os campos de configuração do menu e itens de link foram adaptados para coluna única mobile (`grid-cols-1 sm:grid-cols-2`).
+4. **Compilação e Validação**: Build de produção Vite + Nitro concluído com sucesso.
