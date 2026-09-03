@@ -429,7 +429,7 @@ function AdminMasterIntegracoesPage() {
           </div>
 
           {pools.length === 0 ? (
-            <div className="p-12 text-center border border-dashed border-border rounded-3xl space-y-3 bg-muted/10">
+            <div className="p-12 text-center border border-dashed border-border rounded-2xl space-y-3 bg-muted/10">
               <Zap className="size-8 text-muted-foreground mx-auto" />
               <p className="text-sm font-bold text-foreground">Nenhuma chave cadastrada na pool</p>
               <p className="text-xs text-muted-foreground max-w-sm mx-auto">
@@ -441,7 +441,7 @@ function AdminMasterIntegracoesPage() {
               {pools.map((key) => (
                 <div
                   key={key.id}
-                  className="p-5 rounded-3xl bg-card border border-border/70 space-y-3 shadow-2xs group"
+                  className="p-5 rounded-2xl bg-card border border-border/70 space-y-3 shadow-2xs group"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -509,7 +509,7 @@ function AdminMasterIntegracoesPage() {
             {prompts.map((prompt) => (
               <div
                 key={prompt.id}
-                className="p-5 rounded-3xl bg-card border border-border/70 space-y-3 shadow-2xs"
+                className="p-5 rounded-2xl bg-card border border-border/70 space-y-3 shadow-2xs"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -547,7 +547,7 @@ function AdminMasterIntegracoesPage() {
       {/* ── ABA 3: MAPAS (OSM vs GOOGLE) ── */}
       {activeTab === "maps" && (
         <form onSubmit={handleSave} className="space-y-6">
-          <div className="p-6 rounded-3xl bg-card border border-border/70 space-y-6">
+          <div className="p-6 rounded-2xl bg-card border border-border/70 space-y-6">
             <div className="flex items-center justify-between pb-4 border-b border-border/40">
               <div>
                 <h3 className="text-sm font-bold text-foreground">Provedor de Mapas Ativo</h3>
@@ -601,7 +601,7 @@ function AdminMasterIntegracoesPage() {
       {/* ── ABA 4: PAGAMENTOS (ASAAS & STRIPE) ── */}
       {activeTab === "payments" && (
         <form onSubmit={handleSave} className="space-y-6">
-          <div className="p-6 rounded-3xl bg-card border border-border/70 space-y-6">
+          <div className="p-6 rounded-2xl bg-card border border-border/70 space-y-6">
             <div>
               <h3 className="text-sm font-bold text-foreground">Gateways de Pagamento (PIX & Cartão)</h3>
               <p className="text-xs text-muted-foreground mt-0.5">
@@ -648,7 +648,7 @@ function AdminMasterIntegracoesPage() {
       {/* ── ABA 5: E-MAIL & WHATSAPP ── */}
       {activeTab === "comms" && (
         <form onSubmit={handleSave} className="space-y-6">
-          <div className="p-6 rounded-3xl bg-card border border-border/70 space-y-6">
+          <div className="p-6 rounded-2xl bg-card border border-border/70 space-y-6">
             <div>
               <h3 className="text-sm font-bold text-foreground">Comunicação & Mensageria</h3>
               <p className="text-xs text-muted-foreground mt-0.5">
@@ -681,7 +681,7 @@ function AdminMasterIntegracoesPage() {
       {/* ── ABA 6: WEBHOOKS ── */}
       {activeTab === "webhooks" && (
         <form onSubmit={handleSave} className="space-y-6">
-          <div className="p-6 rounded-3xl bg-card border border-border/70 space-y-6">
+          <div className="p-6 rounded-2xl bg-card border border-border/70 space-y-6">
             <div>
               <h3 className="text-sm font-bold text-foreground">Segurança de Webhooks (HMAC SHA-256)</h3>
               <p className="text-xs text-muted-foreground mt-0.5">
@@ -713,7 +713,7 @@ function AdminMasterIntegracoesPage() {
 
       {/* Modal: Adicionar Chave à Pool */}
       <Dialog open={isNewKeyModalOpen} onOpenChange={setIsNewKeyModalOpen}>
-        <DialogContent className="sm:max-w-md sm:rounded-3xl">
+        <DialogContent className="sm:max-w-md sm:rounded-2xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold">Adicionar Chave à Pool</DialogTitle>
             <DialogDescription className="text-xs">
@@ -761,7 +761,7 @@ function AdminMasterIntegracoesPage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold">Prioridade (1 = Alta)</Label>
                 <Input
@@ -799,7 +799,7 @@ function AdminMasterIntegracoesPage() {
 
       {/* Modal: Editar Prompt Master */}
       <Dialog open={isPromptModalOpen} onOpenChange={setIsPromptModalOpen}>
-        <DialogContent className="sm:max-w-2xl sm:rounded-3xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl sm:rounded-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold">
               {editingPrompt ? "Editar Prompt Master" : "Novo Prompt Master de IA"}
@@ -810,7 +810,7 @@ function AdminMasterIntegracoesPage() {
           </DialogHeader>
 
           <div className="space-y-4 py-2">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold">Slug Identificador</Label>
                 <Input
@@ -862,7 +862,7 @@ function AdminMasterIntegracoesPage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold">Modelo LLM</Label>
                 <Input

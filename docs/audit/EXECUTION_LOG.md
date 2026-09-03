@@ -183,3 +183,27 @@
 3. **Logística de Frota e Passageiros Mobile-Ready**:
    - Em `workspace.pedidos.frota.tsx`, convertidos os formulários de itinerário e passageiros para `grid-cols-1 sm:grid-cols-2 gap-3` e `grid-cols-1 sm:grid-cols-3 gap-2`.
 4. **Compilação e Validação**: Build de produção Vite + Nitro concluído com sucesso com código de saída 0 em 6.02s.
+
+## Ciclo 76 — Microfase 76E
+
+- **Data/Hora:** 2026-09-03T16:07:00-03:00
+- **Módulo:** Painel Administrativo Master, Hubs e Vitrines (Mobile-First, Apple HIG & Limpeza)
+- **Commit Base:** `bc7876f`
+- **Status:** `MICROFASE COMPROVADA EM RUNTIME E COMMITADA`
+
+### Diagnóstico Forense & Causa Raiz
+1. Em `admin-master.integracoes.tsx`, os modais de cadastro de chaves de API e webhooks continham 3 grids rígidos (`grid-cols-2`), espremendo inputs de prioridade e limites por minuto em telas mobile. Continha 9 ocorrências de `rounded-3xl` que geravam cartões bulbosos.
+2. Em `admin-master.hubs.tsx`, o formulário modal de cadastro e parametrização de cidades polo utilizava `grid-cols-2` em campos de taxa, raio de cobertura e geolocalização.
+3. Em `admin-master.vitrines.tsx`, os seletores de slots de vitrines utilizavam grids rígidos e ícones decorativos genéricos (`Sparkles`), gerando ruído visual contrário à diretriz de silêncio operacional Apple HIG.
+
+### Ações Executadas
+1. **Integrações & Webhooks Responsivos**:
+   - Em `admin-master.integracoes.tsx`, os 3 grids de formulários foram convertidos para `grid-cols-1 sm:grid-cols-2 gap-3`.
+   - Moderadas todas as 9 ocorrências de `rounded-3xl` para `rounded-2xl`.
+2. **Parametrização de Hubs Locais Mobile-Ready**:
+   - Em `admin-master.hubs.tsx`, os campos de cidade, raio de cobertura e comissionamento convertidos para `grid-cols-1 sm:grid-cols-2 gap-3`.
+   - Moderada a classe `sm:rounded-3xl` para `sm:rounded-2xl`.
+3. **Vitrines & Curadoria com Silêncio Visual**:
+   - Em `admin-master.vitrines.tsx`, convertidos os seletores de vitrine para `grid-cols-1 sm:grid-cols-2 gap-3`.
+   - Eliminados ícones decorativos de sparkles em favor de ícones semânticos limpos (`Tag` e `Sliders`).
+4. **Compilação e Validação**: Build de produção Vite + Nitro concluído com sucesso com código de saída 0 em 5.66s.

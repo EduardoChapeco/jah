@@ -68,13 +68,13 @@ export const Route = createFileRoute("/admin-master/vitrines")({
 
 const SECTION_TYPE_OPTIONS: Array<{ id: SurfaceSectionType; label: string; icon: any }> = [
   { id: "product_rail", label: "Trilho de Produtos (Carrossel)", icon: Tag },
-  { id: "flash_deal_rail", label: "Trilho de Ofertas Relâmpago", icon: Sparkles },
+  { id: "flash_deal_rail", label: "Trilho de Ofertas Relâmpago", icon: Tag },
   { id: "store_rail", label: "Trilho de Lojas & Estabelecimentos", icon: Store },
   { id: "grid_4col", label: "Grade de 4 Colunas (Grid)", icon: Grid },
   { id: "bento_grid", label: "Bento Grid (1 Destaque + 2 Médios)", icon: Layout },
   { id: "banner_single_21_9", label: "Banner Único Panorâmico (21:9)", icon: Layout },
   { id: "banner_duo_16_9", label: "Banners Duplos Lado a Lado (16:9)", icon: Grid },
-  { id: "custom_buttons_rail", label: "Trilho de Botões / Atalhos Customizados", icon: Sparkles },
+  { id: "custom_buttons_rail", label: "Trilho de Botões / Atalhos Customizados", icon: Sliders },
 ];
 
 const DATA_SOURCE_OPTIONS: Array<{ id: SurfaceDataSource; label: string }> = [
@@ -442,7 +442,7 @@ function AdminMasterVitrinesPage() {
                   <p className="relative z-10 text-xs font-bold text-white truncate">{title || "Banner Panorâmico"}</p>
                 </div>
               ) : type === "banner_duo_16_9" ? (
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div className="aspect-16/9 rounded-xl bg-card border border-border/80 flex items-end p-2 relative overflow-hidden">
                     <span className="text-[9px] font-bold text-white z-10">Banner 1 (16:9)</span>
                   </div>
@@ -508,7 +508,7 @@ function AdminMasterVitrinesPage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold">Tipo de Seção</Label>
                 <Select
@@ -576,7 +576,7 @@ function AdminMasterVitrinesPage() {
               </Select>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold">Layout / Grid</Label>
                 <Select value={layoutVariant} onValueChange={(v: any) => setLayoutVariant(v)}>

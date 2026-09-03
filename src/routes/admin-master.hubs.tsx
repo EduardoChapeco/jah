@@ -419,7 +419,7 @@ function AdminMasterHubsPage() {
 
       {/* ── Modal de Criação / Edição de Categoria Global ── */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto sm:rounded-3xl">
+        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto sm:rounded-2xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold">
               {editingHub?.id ? "Editar Categoria Global" : "Nova Categoria Global"}
@@ -428,7 +428,7 @@ function AdminMasterHubsPage() {
 
           {editingHub && (
             <div className="space-y-4 py-2">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label className="text-xs">Módulo da Plataforma *</Label>
                   <Select
@@ -459,7 +459,7 @@ function AdminMasterHubsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label className="text-xs">Título de Exibição *</Label>
                   <Input
@@ -573,7 +573,7 @@ function AdminMasterHubsPage() {
               </div>
 
               {/* Ordem e Opções de Exibição */}
-              <div className="grid grid-cols-2 gap-3 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                 <div className="space-y-1.5">
                   <Label className="text-xs">Ordem de Exibição</Label>
                   <Input
