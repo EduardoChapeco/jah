@@ -91,3 +91,24 @@
 4. Criação da suíte de testes unitários `src/services/vehicle-layouts.functions.test.ts` com 100% de aprovação no Vitest.
 5. Validação em runtime real contra o banco PostgreSQL do Supabase, comprovando criação e leitura de modelo Double Decker Marcopolo Paradiso G8 1800 DD de 60 lugares e marcação de poltrona PCD.
 6. Build de produção completo Vite + Nitro Worker para Cloudflare Pages com código de saída 0.
+
+## Ciclo 76 — Microfase 76A
+
+- **Data/Hora:** 2026-09-03T15:50:00-03:00
+- **Módulo:** Design System, Tipografia Inter, Apple HIG & Responsividade Mobile
+- **Commit Base:** `742853c`
+- **Status:** `MICROFASE COMPROVADA EM RUNTIME E COMMITADA`
+
+### Diagnóstico Forense & Causa Raiz
+1. O design system possuía tokens de border-radius superinflados (`--radius-2xl: 32px`, `--radius-xl: 24px`, utilitários squircle orgânicos com 32px), criando bolhas visuais excessivamente arredondadas contrárias ao padrão Apple HIG.
+2. A tipografia corporal e de títulos utilizava pilhas de fontes genéricas e a família brutalista `font-zine` (Space Grotesk / Oswald em caixa alta estridente), em vez de uma fonte legível, neutra e variável adotada por ferramentas de alto padrão (Figma, Cursor, Linear).
+3. No header mobile (`utility-cluster.tsx`), o botão de alternância de tema Dark/Light ocupava espaço horizontal desnecessário na barra superior, comprimindo o pill de localização e o logotipo em aparelhos móveis.
+4. Em formulários complexos como `_store.conta.classificados.novo.tsx` e `travel-package-detail-view.tsx`, diversas seções utilizavam grids rígidos de 2 colunas (`grid-cols-2`) em vez de grids responsivos (`grid-cols-1 sm:grid-cols-2`), espremendo campos para menos de 140px em telas de 320px a 390px e truncando rótulos.
+
+### Ações Executadas
+1. **Fonte Inter Variável Canônica**: Injetado o carregamento do Google Fonts para a fonte `Inter` (100 a 900 com optical sizing `14..32` e suporte completo a itálicos e semibold) em `src/styles.css`, unificando `--font-sans`, `--font-display`, `--font-editorial` e `--font-zine`.
+2. **Bordas Contidas Padrão Apple HIG**: Redefinidos os tokens de raio no `src/styles.css` para a escala limpa da Apple (`--radius-xs: 4px`, `--radius-sm: 6px`, `--radius-md: 8px`, `--radius-lg: 12px`, `--radius-xl: 14px`, `--radius-2xl: 16px`, `--radius-3xl: 20px`, `--radius: 0.625rem`), moderando os utilitários de squircle contínuos.
+3. **Ergonomia do Header Mobile**: Ocultado o botão `ThemeToggle` em resoluções mobile (`hidden sm:inline-flex`) em `src/components/shell/utility-cluster.tsx`, garantindo folga para o logo e o seletor de localização.
+4. **Quebra de Linha Natural em Formulários**: Convertidos todos os grids rígidos de formulários em `_store.conta.classificados.novo.tsx` para `grid-cols-1 sm:grid-cols-2 gap-3`, assegurando largura integral (100%) em smartphones.
+5. **Responsividade da Vitrine**: Em `travel-package-detail-view.tsx`, ajustados os cards de franquia de bagagem e transfer para `grid-cols-1 sm:grid-cols-2` e adicionada a classe de safe-area `pb-safe` na barra fixa inferior de reservas.
+6. **Compilação e Validação**: Build de produção Vite + TanStack Start + Nitro concluído com sucesso com código de saída 0 em 6.51s.

@@ -43,7 +43,7 @@ import { formatMoney } from "@/lib/money";
 export const Route = createFileRoute("/workspace/empregos/candidatos")({
   head: () => ({ meta: [{ title: "Gestão de Candidaturas & RH | Workspace" }] }),
   loader: async () => {
-    const apps = await listStoreJobApplications().catch(() => []);
+    const apps = await listStoreJobApplications();
     return apps || [];
   },
   component: WorkspaceCandidatesPage,
@@ -339,6 +339,53 @@ function WorkspaceCandidatesPage() {
                   <p className="text-xs text-muted-foreground bg-muted/40 p-2.5 rounded-xl line-clamp-3 leading-relaxed">
                     "{app.cover_letter}"
                   </p>
+                )}
+
+                {/* Inteligência Salarial & Histórico do Empregador Anterior */}
+                {(app.previous_company_name || app.salary_expectation_cents || app.reason_for_leaving) && (
+                  <div className="p-3 rounded-xl bg-muted/30 border border-border/50 text-xs space-y-1.5">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+                      Perfil Profissional & Histórico
+                    </span>
+
+                    {app.previous_company_name && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Última Empresa:</span>
+                        <span className="font-bold text-foreground">{app.previous_company_name}</span>
+                      </div>
+                    )}
+
+                    {app.salary_expectation_cents && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Pretensão:</span>
+                        <span className="font-bold text-emerald-600 font-mono">
+                          {formatMoney(app.salary_expectation_cents)}
+                        </span>
+                      </div>
+                    )}
+
+                    {app.reason_for_leaving && (
+                      <div className="pt-1 text-[11px] text-muted-foreground border-t border-border/40">
+                        <span className="font-medium text-foreground block">Motivo da Saída:</span>
+                        <span>"{app.reason_for_leaving}"</span>
+                      </div>
+                    )}
+
+                    {app.previous_company_rating && (
+                      <div className="pt-1 text-[11px] border-t border-border/40 flex items-center justify-between">
+                        <span className="text-muted-foreground">Avaliação da Empresa:</span>
+                        <span className="text-amber-500 font-bold">
+                          {"★".repeat(app.previous_company_rating)}{"☆".repeat(5 - app.previous_company_rating)}
+                        </span>
+                      </div>
+                    )}
+
+                    {app.previous_company_feedback && (
+                      <p className="text-[11px] text-muted-foreground italic">
+                        "{app.previous_company_feedback}"
+                      </p>
+                    )}
+                  </div>
                 )}
 
                 {/* Detalhes de Entrevista / Contratação */}

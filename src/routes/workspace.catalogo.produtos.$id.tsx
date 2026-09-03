@@ -30,7 +30,12 @@ import {
   Tag,
   DollarSign,
   Boxes,
+  Plane,
 } from "lucide-react";
+
+import { TravelPackageForm } from "@/components/commerce/travel/travel-package-form";
+import { TravelPackageDetailView } from "@/components/commerce/travel/travel-package-detail-view";
+import type { TravelPackageData } from "@/types/travel-package";
 
 import { ProductEditorLayout } from "@/components/admin/product-editor/product-editor-layout";
 import { VariantOptionsBuilder } from "@/components/admin/product-editor/variant-options-builder";
@@ -252,6 +257,60 @@ function EditProductPage() {
     }
   };
 
+  const isTourismStore =
+    Boolean(nicheCtx.isTourismBusiness) ||
+    store?.segment === "tourism_agency" ||
+    store?.type === "tourism_agency" ||
+    store?.settings?.segment === "tourism_agency" ||
+    Boolean((product?.attributes as any)?.travel);
+
+  const [isTravelPackageMode, setIsTravelPackageMode] = useState<boolean>(
+    Boolean((product?.attributes as any)?.travel) || isTourismStore
+  );
+
+  const initialTravelData: Partial<TravelPackageData> = useMemo(() => {
+    const saved = (product?.attributes as any)?.travel;
+    if (saved) return saved;
+    return {
+      destination: {
+        name: "",
+        region: "",
+        country: "Brasil",
+        flight_summary: "",
+      },
+      resort: {
+        name: "",
+        meal_plan: "Café da Manhã",
+        duration_text: "",
+        guests_text: "",
+        badges: [],
+        bio_bullets: [],
+      },
+      inclusions: [],
+      itinerary_days: [],
+    };
+  }, [product]);
+
+  const [travelData, setTravelData] = useState<Partial<TravelPackageData>>(initialTravelData);
+
+  const handleTravelDataChange = async (newTravel: Partial<TravelPackageData>) => {
+    setTravelData(newTravel);
+    try {
+      await updateProduct({
+        data: {
+          id: product.id,
+          is_physical: isTravelPackageMode ? false : undefined,
+          attributes: {
+            ...(product.attributes || {}),
+            travel: newTravel,
+          },
+        },
+      });
+    } catch (e) {
+      console.warn("[EditProductPage] Falha ao atualizar dados de viagem:", e);
+    }
+  };
+
   const handleApplyCostToProduct = async (calculatedCostCents: number) => {
     setLiveCostCents(calculatedCostCents);
     try {
@@ -309,6 +368,21 @@ function EditProductPage() {
 
       <ProductEditorLayout
         preview={
+          isTravelPackageMode ? (
+            <div className="w-full max-w-[380px] rounded-3xl border border-border/80 bg-background overflow-hidden shadow-md max-h-[750px] overflow-y-auto no-scrollbar">
+              <TravelPackageDetailView
+                packageData={travelData}
+                productTitle={liveTitle || travelData.destination?.name || "Pacote de Viagem"}
+                priceCents={livePriceCents}
+                compareAtCents={liveCompareCents}
+                coverImageUrl={coverImage}
+                mediaUrls={(product.product_media || []).map((m: any) => m.url)}
+                storeName={store?.name}
+                storePhone={store?.phone || store?.settings?.whatsapp}
+                isInteractivePreview={true}
+              />
+            </div>
+          ) : (
           <div className="space-y-4">
             {/* Mockup Fiel de Celular (The Truthful Preview) */}
             <div className="w-full max-w-[340px] rounded-[2.5rem] border-[4px] border-border bg-background overflow-hidden relative h-[680px] flex flex-col">
@@ -388,8 +462,12 @@ function EditProductPage() {
               </div>
             )}
           </div>
+        )
         }
         sections={[
+          ...(isTravelPackageMode
+            ? [{ id: "turismo", label: "Pacote de Viagem & Roteiro", icon: <Plane className="size-4" /> }]
+            : []),
           { id: "geral", label: "Informações Básicas", icon: <Box className="size-4" /> },
           ...(nicheCtx.isFoodBusiness
             ? [{ id: "especificacoes", label: "Cardápio & Restrições", icon: <Sparkles className="size-4" /> }]
@@ -402,6 +480,57 @@ function EditProductPage() {
             : []),
         ]}
       >
+        {/* ── SELETOR DE MODO PARA AGÊNCIAS DE TURISMO ── */}
+        {isTourismStore && (
+          <div className="p-3.5 rounded-2xl bg-card border border-border/70 flex items-center justify-between gap-3 shadow-2xs mb-6">
+            <div className="flex items-center gap-2.5">
+              <div className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                <Plane className="size-4" />
+              </div>
+              <div>
+                <span className="text-xs font-bold text-foreground">Modo de Publicação</span>
+                <p className="text-[10px] text-muted-foreground">
+                  {isTravelPackageMode
+                    ? "Pacote Turístico / Roteiro Completo (sem frete físico, com itinerário e inclusões)"
+                    : "Produto Físico / Souvenir / Mala (com frete e logística tradicional)"}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5 shrink-0">
+              <Button
+                type="button"
+                size="sm"
+                variant={isTravelPackageMode ? "default" : "outline"}
+                onClick={() => setIsTravelPackageMode(true)}
+                className="rounded-xl text-xs font-semibold h-8 cursor-pointer"
+              >
+                Pacote Turístico
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={!isTravelPackageMode ? "default" : "outline"}
+                onClick={() => setIsTravelPackageMode(false)}
+                className="rounded-xl text-xs font-semibold h-8 cursor-pointer"
+              >
+                Produto Físico
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* ── SEÇÃO: PACOTE DE VIAGEM & ROTEIRO ── */}
+        {isTravelPackageMode && (
+          <div id="turismo" className="scroll-mt-32 mb-8">
+            <TravelPackageForm
+              value={travelData}
+              onChange={handleTravelDataChange}
+              priceCents={livePriceCents}
+            />
+          </div>
+        )}
+
         {/* ── SEÇÃO 1: INFORMAÇÕES BÁSICAS & COMERCIAIS ── */}
         <div id="geral" className="scroll-mt-32">
           <GeneralForm
@@ -474,7 +603,7 @@ function EditProductPage() {
         </div>
 
         {/* ── SEÇÃO 5: FICHA TÉCNICA & ESTOQUE COMPOSTO (EXCLUSIVO GASTRONOMIA) ── */}
-        {nicheCtx.isFoodBusiness && (
+        {(nicheCtx.isFoodBusiness || bomItems.length > 0 || true) && (
           <div id="ficha-tecnica" className="scroll-mt-32 pt-12 border-t">
             <ProductBomCard
               initialItems={bomItems}

@@ -151,6 +151,13 @@ export const applyToJob = createServerFn({ method: "POST" })
       candidatePhone: z.string().min(8, "Telefone inválido"),
       resumeUrl: z.string().url("URL de currículo/LinkedIn inválida").optional().or(z.literal("")),
       coverLetter: z.string().max(2000).optional(),
+      // Inteligência Salarial & Avaliação do Empregador Anterior (estilo InfoJobs)
+      lastSalaryCents: z.number().int().min(0).optional().nullable(),
+      salaryExpectationCents: z.number().int().min(0).optional().nullable(),
+      previousCompanyName: z.string().optional().nullable(),
+      reasonForLeaving: z.string().optional().nullable(),
+      previousCompanyRating: z.number().int().min(1).max(5).optional().nullable(),
+      previousCompanyFeedback: z.string().optional().nullable(),
     }),
   )
   .handler(async ({ data }) => {
@@ -178,6 +185,12 @@ export const applyToJob = createServerFn({ method: "POST" })
         resume_url: data.resumeUrl && data.resumeUrl.trim() ? data.resumeUrl.trim() : null,
         cover_letter: data.coverLetter?.trim() || null,
         status: "pending",
+        last_salary_cents: data.lastSalaryCents || null,
+        salary_expectation_cents: data.salaryExpectationCents || null,
+        previous_company_name: data.previousCompanyName?.trim() || null,
+        reason_for_leaving: data.reasonForLeaving?.trim() || null,
+        previous_company_rating: data.previousCompanyRating || null,
+        previous_company_feedback: data.previousCompanyFeedback?.trim() || null,
       })
       .select("id, created_at")
       .single();
@@ -216,8 +229,8 @@ export const listStoreJobApplications = createServerFn({ method: "GET" })
     const { data: rows, error } = await query;
 
     if (error) {
-      console.error("Erro ao buscar candidaturas do lojista:", error);
-      return [];
+      console.error("[jobs:listStoreJobApplications] Erro ao buscar candidaturas do lojista:", error);
+      throw new Error(`[jobs:listStoreJobApplications] Falha ao consultar job_applications: ${error.message}`);
     }
 
     return (rows || []).map((row: any) => ({
@@ -237,6 +250,12 @@ export const listStoreJobApplications = createServerFn({ method: "GET" })
       interview_meeting_url: row.interview_meeting_url || "",
       hired_role: row.hired_role || null,
       hired_salary_cents: row.hired_salary_cents ? Number(row.hired_salary_cents) : null,
+      last_salary_cents: row.last_salary_cents ? Number(row.last_salary_cents) : null,
+      salary_expectation_cents: row.salary_expectation_cents ? Number(row.salary_expectation_cents) : null,
+      previous_company_name: row.previous_company_name || null,
+      reason_for_leaving: row.reason_for_leaving || null,
+      previous_company_rating: row.previous_company_rating || null,
+      previous_company_feedback: row.previous_company_feedback || null,
       created_at: row.created_at,
     }));
   });
@@ -482,3 +501,94 @@ export const listMyStoreJobs = createServerFn({ method: "GET" }).handler(async (
 });
 
 
+
+export interface EmployerProfileInsightsDTO {
+  company_name: string;
+  total_reviews: number;
+  average_rating: number;
+  average_salary_cents: number | null;
+  salary_samples_count: number;
+  common_exit_reasons: string[];
+  recent_feedback: Array<{
+    rating: number;
+    feedback?: string | null;
+    reason_for_leaving?: string | null;
+    date: string;
+  }>;
+}
+
+export const getEmployerProfileInsights = createServerFn({ method: "GET" })
+  .validator(z.object({ companyName: z.string().min(2) }))
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const cleanCompany = data.companyName.trim();
+
+    // 1. Consultar avaliações de ex-funcionários em job_applications
+    const { data: jobApps, error: jobErr } = await supabase
+      .from("job_applications")
+      .select("previous_company_rating, previous_company_feedback, reason_for_leaving, last_salary_cents, created_at")
+      .ilike("previous_company_name", `%${cleanCompany}%`)
+      .not("previous_company_rating", "is", null);
+
+    if (jobErr) {
+      console.error("[jobs] Erro ao buscar insights do empregador:", jobErr);
+    }
+
+    // 2. Consultar avaliações em classified_applications
+    const { data: classApps } = await supabase
+      .from("classified_applications")
+      .select("previous_company_rating, previous_company_feedback, reason_for_leaving, last_salary_cents, created_at")
+      .ilike("previous_company_name", `%${cleanCompany}%`)
+      .not("previous_company_rating", "is", null);
+
+    const allReviews = [...(jobApps || []), ...(classApps || [])];
+
+    if (allReviews.length === 0) {
+      return {
+        company_name: cleanCompany,
+        total_reviews: 0,
+        average_rating: 0,
+        average_salary_cents: null,
+        salary_samples_count: 0,
+        common_exit_reasons: [],
+        recent_feedback: [],
+      } as EmployerProfileInsightsDTO;
+    }
+
+    const totalReviews = allReviews.length;
+    const avgRating =
+      allReviews.reduce((sum, r) => sum + (r.previous_company_rating || 0), 0) / totalReviews;
+
+    const salaryEntries = allReviews.filter((r) => r.last_salary_cents && r.last_salary_cents > 0);
+    const avgSalaryCents =
+      salaryEntries.length > 0
+        ? Math.round(
+            salaryEntries.reduce((sum, r) => sum + Number(r.last_salary_cents), 0) /
+              salaryEntries.length
+          )
+        : null;
+
+    const exitReasons = allReviews
+      .map((r) => r.reason_for_leaving?.trim())
+      .filter((r): r is string => Boolean(r && r.length > 3));
+
+    const feedbackList = allReviews
+      .filter((r) => r.previous_company_feedback || r.reason_for_leaving)
+      .slice(0, 10)
+      .map((r) => ({
+        rating: r.previous_company_rating || 5,
+        feedback: r.previous_company_feedback || null,
+        reason_for_leaving: r.reason_for_leaving || null,
+        date: r.created_at,
+      }));
+
+    return {
+      company_name: cleanCompany,
+      total_reviews: totalReviews,
+      average_rating: Math.round(avgRating * 10) / 10,
+      average_salary_cents: avgSalaryCents,
+      salary_samples_count: salaryEntries.length,
+      common_exit_reasons: Array.from(new Set(exitReasons)).slice(0, 5),
+      recent_feedback: feedbackList,
+    } as EmployerProfileInsightsDTO;
+  });

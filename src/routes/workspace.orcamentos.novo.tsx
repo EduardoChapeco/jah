@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/select";
 import { CurrencyField } from "@/components/ui/currency-field";
 import { PageHeader } from "@/components/commerce/page-header";
+import { ImageUpload } from "@/components/ui/image-upload";
 import {
   createTravelProposal,
   updateTravelProposal,
@@ -86,8 +87,8 @@ function NovoOrcamentoTravelosPage() {
 
   // 1. Dados Principais da Proposta / Cliente
   const [proposalData, setProposalData] = useState({
-    title: "Viagem dos Sonhos",
-    subtitle: "Roteiro personalizado e exclusivo sob medida",
+    title: "",
+    subtitle: "",
     clientName: "",
     clientWhatsapp: "",
     clientEmail: "",
@@ -96,73 +97,29 @@ function NovoOrcamentoTravelosPage() {
     travelEndDate: "",
     adultsCount: 2,
     childrenCount: 0,
-    coverImageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=1600",
+    coverImageUrl: "",
   });
 
   // 2. Trechos Aéreos (Flight Segments)
-  const [flights, setFlights] = useState<FlightSegmentDTO[]>([
-    {
-      id: crypto.randomUUID(),
-      type: "outbound",
-      airline_name: "LATAM Airlines",
-      airline_code: "LA",
-      flight_number: "LA3200",
-      origin_iata: "GRU",
-      origin_city: "São Paulo",
-      destination_iata: "CUN",
-      destination_city: "Cancún",
-      departure_time: "08:30",
-      arrival_time: "14:45",
-      baggage_included: "1x 23kg despachada + 1x 10kg mão",
-      cabin_class: "Econômica",
-      stops_count: 0,
-    },
-  ]);
+  // 2. Trechos Aéreos (Flight Segments) — inicia vazio, gestor adiciona
+  const [flights, setFlights] = useState<FlightSegmentDTO[]>([]);
 
   // 3. Hotéis e Resorts
-  const [hotels, setHotels] = useState<HotelOptionDTO[]>([
-    {
-      id: crypto.randomUUID(),
-      hotel_name: "Resort & Spa 5 Estrelas",
-      stars: 5,
-      room_type: "Apartamento Luxo Vista Mar",
-      board_basis: "all_inclusive",
-      checkin_date: "",
-      checkout_date: "",
-      nights_count: 7,
-      image_url: "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&q=80&w=800",
-      amenities: ["Wi-Fi", "Piscinas", "Restaurantes Temáticos", "Spa"],
-    },
-  ]);
+  // 3. Hotéis e Resorts — inicia vazio, gestor adiciona
+  const [hotels, setHotels] = useState<HotelOptionDTO[]>([]);
 
   // 4. Roteiro Dia a Dia (Itinerário)
-  const [itinerary, setItinerary] = useState<ItineraryDayDTO[]>([
-    {
-      id: crypto.randomUUID(),
-      day_number: 1,
-      title: "Chegada ao Destino & Check-in",
-      description: "Recepção VIP no aeroporto, traslado privativo até o resort e dia livre para relaxar.",
-      included_meals: ["Jantar de Boas-Vindas"],
-      image_url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=800",
-    },
-    {
-      id: crypto.randomUUID(),
-      day_number: 2,
-      title: "Passeio Náutico & Mergulho nas Ilhas",
-      description: "Saída de catamarã para mergulho em águas cristalinas com almoço a bordo incluso.",
-      included_meals: ["Café da Manhã", "Almoço"],
-      image_url: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&q=80&w=800",
-    },
-  ]);
+  // 4. Roteiro Dia a Dia — inicia vazio, gestor adiciona
+  const [itinerary, setItinerary] = useState<ItineraryDayDTO[]>([]);
 
   // 5. Precificação & Condições Financeiras (Integer Cents)
   const [currency, setCurrency] = useState<"BRL" | "USD" | "EUR">("BRL");
-  const [exchangeRate, setExchangeRate] = useState<number>(5.65);
-  const [costPerPersonCents, setCostPerPersonCents] = useState<number>(450000); // R$ 4.500,00
-  const [markupPercent, setMarkupPercent] = useState<number>(15); // 15% margem
-  const [boardingTaxCents, setBoardingTaxCents] = useState<number>(35000); // R$ 350,00 taxas
+  const [exchangeRate, setExchangeRate] = useState<number>(0);
+  const [costPerPersonCents, setCostPerPersonCents] = useState<number>(0);
+  const [markupPercent, setMarkupPercent] = useState<number>(0);
+  const [boardingTaxCents, setBoardingTaxCents] = useState<number>(0);
   const [discountCents, setDiscountCents] = useState<number>(0);
-  const [maxInstallments, setMaxInstallments] = useState<number>(10);
+  const [maxInstallments, setMaxInstallments] = useState<number>(1);
   const [validUntilDays, setValidUntilDays] = useState<number>(3);
 
   // Cálculos Automáticos
@@ -465,6 +422,17 @@ function NovoOrcamentoTravelosPage() {
                     className="h-10 rounded-xl text-xs"
                   />
                 </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold">Foto de Capa da Proposta de Viagem</Label>
+                  <ImageUpload
+                    value={proposalData.coverImageUrl}
+                    onChange={(url) => setProposalData({ ...proposalData, coverImageUrl: url })}
+                    onRemove={() => setProposalData({ ...proposalData, coverImageUrl: "" })}
+                    bucket="cms-media"
+                    aspectPreset="widescreen"
+                    helperText="Foto panorâmica de capa da proposta que o cliente verá (16:9)"
+                  />
+                </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-bold">Data de Ida</Label>
@@ -750,15 +718,13 @@ function NovoOrcamentoTravelosPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label className="text-[11px] font-bold">Foto de Capa do Hotel (URL)</Label>
-                  <Input
-                    value={hotel.image_url || ""}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setHotels((prev) => prev.map((h) => (h.id === hotel.id ? { ...h, image_url: val } : h)));
-                    }}
-                    placeholder="https://images.unsplash.com/..."
-                    className="h-9 rounded-xl text-xs font-mono"
+                  <Label className="text-[11px] font-bold">Foto de Capa do Hotel</Label>
+                  <ImageUpload
+                    value={hotel.image_url}
+                    onChange={(url) => setHotels((prev) => prev.map((h) => (h.id === hotel.id ? { ...h, image_url: url } : h)))}
+                    onRemove={() => setHotels((prev) => prev.map((h) => (h.id === hotel.id ? { ...h, image_url: "" } : h)))}
+                    bucket="cms-media"
+                    aspectPreset="widescreen"
                   />
                 </div>
                 <div className="space-y-1">
@@ -825,15 +791,13 @@ function NovoOrcamentoTravelosPage() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[11px] font-bold">Foto de Destaque da Atração (URL)</Label>
-                    <Input
-                      value={day.image_url || ""}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setItinerary((prev) => prev.map((d) => (d.id === day.id ? { ...d, image_url: val } : d)));
-                      }}
-                      placeholder="https://..."
-                      className="h-9 rounded-xl text-xs font-mono"
+                    <Label className="text-[11px] font-bold">Foto de Destaque da Atração</Label>
+                    <ImageUpload
+                      value={day.image_url}
+                      onChange={(url) => setItinerary((prev) => prev.map((d) => (d.id === day.id ? { ...d, image_url: url } : d)))}
+                      onRemove={() => setItinerary((prev) => prev.map((d) => (d.id === day.id ? { ...d, image_url: "" } : d)))}
+                      bucket="cms-media"
+                      aspectPreset="widescreen"
                     />
                   </div>
                 </div>

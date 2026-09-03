@@ -41,7 +41,7 @@ import {
   SheetTrigger,
   SheetDescription,
 } from "@/components/ui/sheet";
-import { getPublicJobById, applyToJob, type JobItemDTO } from "@/services/jobs.functions";
+import { getPublicJobById, applyToJob, getEmployerProfileInsights, type JobItemDTO, type EmployerProfileInsightsDTO } from "@/services/jobs.functions";
 import { getUserSession } from "@/services/auth.functions";
 import { formatDate } from "@/lib/datetime";
 import { toast } from "sonner";
@@ -68,13 +68,21 @@ export const Route = createFileRoute("/_store/empregos/$id")({
       getPublicJobById({ data: { jobId: params.id } }).catch(() => null),
       getUserSession().catch(() => null),
     ]);
-    return { job, session };
+
+    let employerInsights: EmployerProfileInsightsDTO | null = null;
+    if (job?.company_name) {
+      employerInsights = await getEmployerProfileInsights({
+        data: { companyName: job.company_name },
+      }).catch(() => null);
+    }
+
+    return { job, session, employerInsights };
   },
   component: JobDetailPage,
 });
 
 function JobDetailPage() {
-  const { job, session } = Route.useLoaderData() as any;
+  const { job, session, employerInsights } = Route.useLoaderData() as any;
   const [isApplyOpen, setIsApplyOpen] = useState(false);
   const [candidateName, setCandidateName] = useState(session?.user_metadata?.full_name || "");
   const [candidateEmail, setCandidateEmail] = useState(session?.email || "");
@@ -82,6 +90,13 @@ function JobDetailPage() {
   const [resumeUrl, setResumeUrl] = useState("");
   const [coverLetter, setCoverLetter] = useState("");
   const [hasApplied, setHasApplied] = useState(false);
+
+  // Inteligência Salarial & Feedback do Empregador Anterior
+  const [salaryExpectationStr, setSalaryExpectationStr] = useState("");
+  const [previousCompanyName, setPreviousCompanyName] = useState("");
+  const [reasonForLeaving, setReasonForLeaving] = useState("");
+  const [previousCompanyRating, setPreviousCompanyRating] = useState<number>(0);
+  const [previousCompanyFeedback, setPreviousCompanyFeedback] = useState("");
 
   const applyMutation = useMutation({
     mutationFn: () =>
@@ -93,6 +108,11 @@ function JobDetailPage() {
           candidatePhone,
           resumeUrl: resumeUrl || undefined,
           coverLetter: coverLetter || undefined,
+          salaryExpectationCents: salaryExpectationStr ? Math.round(parseFloat(salaryExpectationStr.replace(/[^0-9,.]/g, '').replace(',', '.')) * 100) : null,
+          previousCompanyName: previousCompanyName || null,
+          reasonForLeaving: reasonForLeaving || null,
+          previousCompanyRating: previousCompanyRating > 0 ? previousCompanyRating : null,
+          previousCompanyFeedback: previousCompanyFeedback || null,
         },
       }),
     onSuccess: () => {
@@ -290,6 +310,43 @@ function JobDetailPage() {
 
         {/* ── 4. Coluna Lateral de Ação / Candidatura ── */}
         <aside className="space-y-5">
+          {/* Card de Avaliações do Empregador (Estilo InfoJobs / Glassdoor) */}
+          {employerInsights && employerInsights.total_reviews > 0 && (
+            <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Perfil do Empregador
+                </span>
+                <span className="text-xs font-bold text-amber-500 flex items-center gap-1">
+                  ★ {employerInsights.average_rating} ({employerInsights.total_reviews})
+                </span>
+              </div>
+
+              <div className="space-y-1">
+                <h4 className="text-xs font-bold text-foreground">Como é trabalhar na {job.company_name}?</h4>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Avaliado por {employerInsights.total_reviews} profissional(is) que já trabalharam nesta organização.
+                </p>
+              </div>
+
+              {employerInsights.average_salary_cents && (
+                <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs">
+                  <span className="text-muted-foreground block text-[10px]">Média Salarial Declarada:</span>
+                  <span className="font-bold text-emerald-700 font-mono text-sm">
+                    R$ {(employerInsights.average_salary_cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+              )}
+
+              {employerInsights.recent_feedback.length > 0 && employerInsights.recent_feedback[0].feedback && (
+                <div className="p-2.5 rounded-xl bg-muted/40 text-[11px] text-muted-foreground space-y-1">
+                  <span className="font-semibold text-foreground block">Opinião de Ex-Colaborador:</span>
+                  <p className="italic leading-snug">"{employerInsights.recent_feedback[0].feedback}"</p>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="sticky top-20 rounded-2xl border border-border/60 bg-card p-6 space-y-5">
             <div className="space-y-1">
               <h3 className="text-sm font-bold text-foreground">Candidate-se a esta vaga</h3>
@@ -415,6 +472,69 @@ function JobDetailPage() {
                         onChange={(e) => setCoverLetter(e.target.value)}
                         className="rounded-xl min-h-[90px] text-xs bg-background resize-none"
                       />
+                    </div>
+
+                    {/* Bloco de Inteligência Salarial & Histórico */}
+                    <div className="p-3.5 rounded-2xl bg-muted/30 border border-border/60 space-y-3">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                        <Briefcase size={13} weight="bold" className="text-primary" />
+                        Histórico Profissional & Pretensão
+                      </span>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-semibold text-muted-foreground">Pretensão Salarial (R$)</label>
+                          <Input
+                            placeholder="Ex: 3.500,00"
+                            value={salaryExpectationStr}
+                            onChange={(e) => setSalaryExpectationStr(e.target.value)}
+                            className="rounded-xl h-9 text-xs bg-background font-mono"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-semibold text-muted-foreground">Última Empresa Onde Trabalhou</label>
+                          <Input
+                            placeholder="Ex: Supermercado Central"
+                            value={previousCompanyName}
+                            onChange={(e) => setPreviousCompanyName(e.target.value)}
+                            className="rounded-xl h-9 text-xs bg-background"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-semibold text-muted-foreground">Por que você saiu da empresa anterior?</label>
+                        <Input
+                          placeholder="Ex: Mudança de cidade, busca de crescimento, fim de contrato..."
+                          value={reasonForLeaving}
+                          onChange={(e) => setReasonForLeaving(e.target.value)}
+                          className="rounded-xl h-9 text-xs bg-background"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5 pt-1">
+                        <div className="flex items-center justify-between">
+                          <label className="text-[11px] font-semibold text-muted-foreground">Como você avalia sua última empresa?</label>
+                          <div className="flex items-center gap-1">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <button
+                                key={star}
+                                type="button"
+                                onClick={() => setPreviousCompanyRating(star)}
+                                className="text-amber-500 hover:scale-125 transition-transform cursor-pointer text-sm"
+                              >
+                                {previousCompanyRating >= star ? "★" : "☆"}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <Input
+                          placeholder="O que você mais gostava no ambiente e liderança?"
+                          value={previousCompanyFeedback}
+                          onChange={(e) => setPreviousCompanyFeedback(e.target.value)}
+                          className="rounded-xl h-9 text-xs bg-background"
+                        />
+                      </div>
                     </div>
 
                     <Button

@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
@@ -15,13 +16,15 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
-  /* ── Radius scale — Organic Pill-Squircle System ───────── */
-  --radius-sm: 10px; /* antes 6px  — chips, badges internos */
-  --radius-md: 14px; /* antes 8px  — inputs, selects, controls */
-  --radius-lg: 18px; /* antes 12px — cards gerais, modais */
-  --radius-xl: 24px; /* antes 16px — botões, sheets, popovers */
-  --radius-2xl: 32px; /* antes 24px — cards squircle, overlays */
-  --radius-full: 9999px; /* pill puro — mantido */
+  /* ── Radius scale — Apple HIG Contained Squircle System ── */
+  --radius-xs: 4px;
+  --radius-sm: 6px;   /* chips, tags e badges compactos */
+  --radius-md: 8px;   /* inputs, selects, segmented controls */
+  --radius-lg: 12px;  /* cards de conteúdo, botões principais */
+  --radius-xl: 14px;  /* modais, popovers e floating bars */
+  --radius-2xl: 16px; /* containers mestres, sheets e painéis */
+  --radius-3xl: 20px; /* superfícies de destaque */
+  --radius-full: 9999px; /* pill puro */
 
   /* ── Shadows — Reduzidas, design flat focado em linhas ─── */
   --shadow-sm: none;
@@ -30,13 +33,13 @@
   --shadow-popover: none;
 
   /* ── Typography Canônica ─────────────────────────────── */
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
   /* ── Typography Zine / Pública ───────────────────────── */
-  --font-editorial: "Fraunces", "Oswald", serif;
-  --font-zine: "Space Grotesk", "Oswald", sans-serif;
+  --font-editorial: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-zine: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
   /* ── App Shell Geometry & Layout Tokens ─────────────────── */
   --global-rail-width: 68px;
@@ -52,14 +55,14 @@
   --content-media-max: 1200px;
 
   /* ── Organic Geometry & Squircle Family Tokens ────────── */
-  --shape-soft: 16px;
-  --shape-squircle: 28px;
-  --shape-organic-tl: 32px;
-  --shape-organic-tr: 24px;
-  --shape-organic-br: 28px;
-  --shape-organic-bl: 22px;
-  --shape-media: 24px;
-  --shape-action: 20px;
+  --shape-soft: 12px;
+  --shape-squircle: 16px;
+  --shape-organic-tl: 16px;
+  --shape-organic-tr: 16px;
+  --shape-organic-br: 16px;
+  --shape-organic-bl: 16px;
+  --shape-media: 14px;
+  --shape-action: 12px;
 
   --radius-shape-soft: var(--shape-soft);
   --radius-shape-squircle: var(--shape-squircle);
@@ -124,7 +127,7 @@
  * ===========================================================================*/
 :root {
   color-scheme: light dark;
-  --radius: 0.75rem; /* 12px default para componentes que usam border-radius cru */
+  --radius: 0.625rem; /* 10px padrão Apple HIG */
 
   /* ── Semânticos Light ────────────────────────────────────────────────── */
   --background: oklch(0.99 0 0); /* Quase totalmente branco */
@@ -465,7 +468,7 @@
 
 /* ── Organic Squircle Utilities (Continuous Curvature & Pillow Tiles) ──── */
 @utility squircle-soft {
-  border-radius: 16px 16px 16px 16px / 18px 18px 18px 18px;
+  border-radius: 12px;
   transition:
     transform var(--duration-fast) cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow var(--duration-fast) cubic-bezier(0.16, 1, 0.3, 1),
@@ -473,7 +476,7 @@
 }
 
 @utility squircle {
-  border-radius: 28px 28px 28px 28px / 32px 32px 32px 32px;
+  border-radius: 14px;
   transition:
     transform var(--duration-fast) cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow var(--duration-fast) cubic-bezier(0.16, 1, 0.3, 1),
@@ -481,7 +484,7 @@
 }
 
 @utility squircle-organic {
-  border-radius: 32px 24px 28px 22px / 26px 32px 22px 28px;
+  border-radius: 14px;
   transition:
     transform var(--duration-fast) cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow var(--duration-fast) cubic-bezier(0.16, 1, 0.3, 1),
@@ -489,14 +492,14 @@
 }
 
 @utility squircle-media {
-  border-radius: 24px 24px 24px 24px / 26px 26px 26px 26px;
+  border-radius: 12px;
   overflow: hidden;
   isolation: isolate;
   transform: translateZ(0);
 }
 
 @utility squircle-action {
-  border-radius: 20px 20px 20px 20px / 22px 22px 22px 22px;
+  border-radius: 12px;
   transition:
     transform var(--duration-fast) cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow var(--duration-fast) cubic-bezier(0.16, 1, 0.3, 1),

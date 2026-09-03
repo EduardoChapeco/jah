@@ -39,6 +39,22 @@ export const CANONICAL_CITIES: CityRecord[] = [
   { id: "xanxere-sc", name: "Xanxerê", state: "SC", label: "Xanxerê - SC", region: "Oeste SC", lat: -26.8747, lng: -52.4036 },
   { id: "concordia-sc", name: "Concórdia", state: "SC", label: "Concórdia - SC", region: "Oeste SC", lat: -27.2341, lng: -52.0264 },
   { id: "sao-miguel-do-oeste-sc", name: "São Miguel do Oeste", state: "SC", label: "São Miguel do Oeste - SC", region: "Extremo Oeste SC", lat: -26.7264, lng: -53.5186 },
+  { id: "descanso-sc", name: "Descanso", state: "SC", label: "Descanso - SC", region: "Extremo Oeste SC", lat: -26.8267, lng: -53.5042 },
+  { id: "guaraciaba-sc", name: "Guaraciaba", state: "SC", label: "Guaraciaba - SC", region: "Extremo Oeste SC", lat: -26.5986, lng: -53.5208 },
+  { id: "sao-jose-do-cedro-sc", name: "São José do Cedro", state: "SC", label: "São José do Cedro - SC", region: "Extremo Oeste SC", lat: -26.4681, lng: -53.5008 },
+  { id: "dionisio-cerqueira-sc", name: "Dionísio Cerqueira", state: "SC", label: "Dionísio Cerqueira - SC", region: "Extremo Oeste SC", lat: -26.2558, lng: -53.6372 },
+  { id: "ipora-do-oeste-sc", name: "Iporã do Oeste", state: "SC", label: "Iporã do Oeste - SC", region: "Extremo Oeste SC", lat: -26.9881, lng: -53.5358 },
+  { id: "mondai-sc", name: "Mondaí", state: "SC", label: "Mondaí - SC", region: "Extremo Oeste SC", lat: -27.1061, lng: -53.4008 },
+  { id: "paraiso-sc", name: "Paraíso", state: "SC", label: "Paraíso - SC", region: "Extremo Oeste SC", lat: -26.6189, lng: -53.6719 },
+  { id: "bandeirante-sc", name: "Bandeirante", state: "SC", label: "Bandeirante - SC", region: "Extremo Oeste SC", lat: -26.7681, lng: -53.6408 },
+  { id: "belmonte-sc", name: "Belmonte", state: "SC", label: "Belmonte - SC", region: "Extremo Oeste SC", lat: -26.8406, lng: -53.5786 },
+  { id: "anchieta-sc", name: "Anchieta", state: "SC", label: "Anchieta - SC", region: "Extremo Oeste SC", lat: -26.3689, lng: -53.3325 },
+  { id: "romelandia-sc", name: "Romelândia", state: "SC", label: "Romelândia - SC", region: "Extremo Oeste SC", lat: -26.5083, lng: -53.3139 },
+  { id: "palma-sola-sc", name: "Palma Sola", state: "SC", label: "Palma Sola - SC", region: "Extremo Oeste SC", lat: -26.3475, lng: -53.2806 },
+  { id: "tunapolis-sc", name: "Tunápolis", state: "SC", label: "Tunápolis - SC", region: "Extremo Oeste SC", lat: -26.9722, lng: -53.6389 },
+  { id: "santa-helena-sc", name: "Santa Helena", state: "SC", label: "Santa Helena - SC", region: "Extremo Oeste SC", lat: -26.9389, lng: -53.6083 },
+  { id: "sao-joao-do-oeste-sc", name: "São João do Oeste", state: "SC", label: "São João do Oeste - SC", region: "Extremo Oeste SC", lat: -27.0861, lng: -53.5972 },
+  { id: "riqueza-sc", name: "Riqueza", state: "SC", label: "Riqueza - SC", region: "Extremo Oeste SC", lat: -27.0667, lng: -53.3167 },
   { id: "joacaba-sc", name: "Joaçaba", state: "SC", label: "Joaçaba - SC", region: "Meio-Oeste SC", lat: -27.1772, lng: -51.5039 },
   { id: "pinhalzinho-sc", name: "Pinhalzinho", state: "SC", label: "Pinhalzinho - SC", region: "Oeste SC", lat: -26.8458, lng: -52.9933 },
   { id: "maravilha-sc", name: "Maravilha", state: "SC", label: "Maravilha - SC", region: "Oeste SC", lat: -26.7622, lng: -53.1764 },
@@ -174,20 +190,32 @@ export function findCityByLabel(label: string): CityRecord | undefined {
   );
 }
 
-export function findClosestCanonicalCity(lat: number, lng: number): CityRecord | undefined {
+export function calculateHaversineDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Raio da Terra em km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+export function findClosestCanonicalCity(
+  lat: number,
+  lng: number
+): (CityRecord & { distanceKm: number }) | undefined {
   if (typeof lat !== "number" || typeof lng !== "number" || isNaN(lat) || isNaN(lng)) return undefined;
 
-  let closest: CityRecord | undefined = undefined;
-  let minDistanceSq = Infinity;
+  let closest: (CityRecord & { distanceKm: number }) | undefined = undefined;
+  let minDistanceKm = Infinity;
 
   for (const city of CANONICAL_CITIES) {
     if (typeof city.lat === "number" && typeof city.lng === "number") {
-      const dLat = city.lat - lat;
-      const dLng = city.lng - lng;
-      const distSq = dLat * dLat + dLng * dLng;
-      if (distSq < minDistanceSq) {
-        minDistanceSq = distSq;
-        closest = city;
+      const distKm = calculateHaversineDistanceKm(lat, lng, city.lat, city.lng);
+      if (distKm < minDistanceKm) {
+        minDistanceKm = distKm;
+        closest = { ...city, distanceKm: Math.round(distKm * 10) / 10 };
       }
     }
   }

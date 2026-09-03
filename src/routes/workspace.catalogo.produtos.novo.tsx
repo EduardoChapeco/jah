@@ -18,7 +18,12 @@ import {
   ShieldCheck,
   Loader2,
   Box,
+  Plane,
 } from "lucide-react";
+
+import { TravelPackageForm } from "@/components/commerce/travel/travel-package-form";
+import { TravelPackageDetailView } from "@/components/commerce/travel/travel-package-detail-view";
+import type { TravelPackageData } from "@/types/travel-package";
 
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
@@ -56,11 +61,13 @@ import {
 } from "@/components/ui/dialog";
 import {
   createProduct,
+  createCategory,
   listCategories,
   listProductTypes,
   listOptionGroups,
 } from "@/services/admin-catalog.functions";
 import { ProductModifiersCard } from "@/components/admin/catalog/product-modifiers-card";
+import { ProductBomCard, type BomItem } from "@/components/admin/catalog/product-bom-card";
 import {
   ProductFoodSpecsCard,
   type FoodSpecsData,
@@ -113,6 +120,37 @@ export function UnifiedNewProductPage() {
   const { categories, productTypes, optionGroupsList, store } = Route.useLoaderData();
   const navigate = useNavigate();
 
+  const [categoriesList, setCategoriesList] = useState<any[]>(categories || []);
+  const [isQuickCategoryOpen, setIsQuickCategoryOpen] = useState(false);
+  const [quickCategoryName, setQuickCategoryName] = useState("");
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+
+  const handleQuickCreateCategory = async () => {
+    if (!quickCategoryName.trim()) {
+      toast.error("Informe o nome da categoria / tipo de destino.");
+      return;
+    }
+    setIsCreatingCategory(true);
+    try {
+      const slug = slugify(quickCategoryName.trim());
+      const newCat = await createCategory({
+        data: {
+          name: quickCategoryName.trim(),
+          slug,
+        },
+      });
+      setCategoriesList((prev) => [...prev, newCat]);
+      setValue("category_id", newCat.id);
+      setIsQuickCategoryOpen(false);
+      setQuickCategoryName("");
+      toast.success(`${nicheCtx.categoryLabel} "${newCat.name}" cadastrada com sucesso!`);
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao criar categoria.");
+    } finally {
+      setIsCreatingCategory(false);
+    }
+  };
+
   const nicheCtx = getNicheCatalogContext(
     store?.segment || store?.type || store?.settings?.segment || (store as any)?.category
   );
@@ -129,6 +167,7 @@ export function UnifiedNewProductPage() {
   const [selectedOptionGroupIds, setSelectedOptionGroupIds] = useState<string[]>([]);
 
   // Especificações Gastronômicas & Padrão iFood
+  const [bomItems, setBomItems] = useState<BomItem[]>([]);
   const [foodSpecs, setFoodSpecs] = useState<FoodSpecsData>({
     dietaryRestrictions: [],
     beverageTags: [],
@@ -136,6 +175,33 @@ export function UnifiedNewProductPage() {
     portionWeight: "",
     portionUnit: "g",
     preparationTimeMinutes: 15,
+  });
+
+  const isTourismStore =
+    Boolean(nicheCtx.isTourismBusiness) ||
+    store?.segment === "tourism_agency" ||
+    store?.type === "tourism_agency" ||
+    store?.settings?.segment === "tourism_agency";
+
+  const [isTravelPackageMode, setIsTravelPackageMode] = useState<boolean>(isTourismStore);
+
+  const [travelData, setTravelData] = useState<Partial<TravelPackageData>>({
+    destination: {
+      name: "",
+      region: "",
+      country: "Brasil",
+      flight_summary: "",
+    },
+    resort: {
+      name: "",
+      meal_plan: "Café da Manhã",
+      duration_text: "",
+      guests_text: "",
+      badges: [],
+      bio_bullets: [],
+    },
+    inclusions: [],
+    itinerary_days: [],
   });
 
   // Modal: Importador Inteligente por URL
@@ -278,11 +344,11 @@ export function UnifiedNewProductPage() {
           compare_at_cents: data.compare_at_cents > 0 ? data.compare_at_cents : null,
           cost_cents: data.cost_cents > 0 ? data.cost_cents : null,
           type_id: data.type_id || null,
-          is_physical: data.is_physical,
-          weight_kg: data.weight_kg ? Number(data.weight_kg) : null,
-          width_cm: data.width_cm ? Number(data.width_cm) : null,
-          height_cm: data.height_cm ? Number(data.height_cm) : null,
-          length_cm: data.length_cm ? Number(data.length_cm) : null,
+          is_physical: isTravelPackageMode ? false : data.is_physical,
+          weight_kg: isTravelPackageMode ? null : data.weight_kg ? Number(data.weight_kg) : null,
+          width_cm: isTravelPackageMode ? null : data.width_cm ? Number(data.width_cm) : null,
+          height_cm: isTravelPackageMode ? null : data.height_cm ? Number(data.height_cm) : null,
+          length_cm: isTravelPackageMode ? null : data.length_cm ? Number(data.length_cm) : null,
           preparation_time_days: data.preparation_time_days
             ? Number(data.preparation_time_days)
             : null,
@@ -292,6 +358,8 @@ export function UnifiedNewProductPage() {
           option_group_ids: selectedOptionGroupIds.length > 0 ? selectedOptionGroupIds : undefined,
           variants: variantsPayload,
           attributes: {
+            ...(isTravelPackageMode ? { travel: travelData } : {}),
+            bill_of_materials: bomItems,
             food_specs: {
               dietary_restrictions: foodSpecs.dietaryRestrictions,
               beverage_tags: foodSpecs.beverageTags,
@@ -392,6 +460,54 @@ export function UnifiedNewProductPage() {
         }
       />
 
+      {/* ── Dialog: Cadastro Rápido de Categoria / Tipo de Destino ── */}
+      <Dialog open={isQuickCategoryOpen} onOpenChange={setIsQuickCategoryOpen}>
+        <DialogContent className="sm:max-w-md rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-sm font-bold">
+              Nova {nicheCtx.categoryLabel}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Cadastre rapidamente uma nova categoria ou tipo de destino diretamente no catálogo.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="space-y-1">
+              <Label className="text-xs font-medium">Nome</Label>
+              <Input
+                value={quickCategoryName}
+                onChange={(e) => setQuickCategoryName(e.target.value)}
+                placeholder="Ex: Resorts All Inclusive, Ecoturismo, Nordeste, Internacional"
+                className="h-10 text-xs rounded-xl bg-background"
+                disabled={isCreatingCategory}
+                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleQuickCreateCategory())}
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsQuickCategoryOpen(false)}
+              disabled={isCreatingCategory}
+              className="rounded-xl text-xs"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleQuickCreateCategory}
+              disabled={isCreatingCategory || !quickCategoryName.trim()}
+              className="rounded-xl text-xs font-bold bg-primary text-primary-foreground"
+            >
+              {isCreatingCategory ? "Criando..." : "Salvar & Selecionar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* ── Sheet Lateral: Importador Inteligente por URL ── */}
       <Sheet open={isImportModalOpen} onOpenChange={setIsImportModalOpen}>
         <SheetContent side="right" className="sm:max-w-md w-full flex flex-col p-0 gap-0 overflow-hidden bg-card border-l border-border">
@@ -472,7 +588,7 @@ export function UnifiedNewProductPage() {
         {/* COLUNA ESQUERDA: FORMULÁRIO ERGONÔMICO (5 COLUNAS) */}
         <div className="lg:col-span-5 space-y-4">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className={cn("grid bg-muted/60 p-1 rounded-2xl h-10 mb-4", nicheCtx.isFoodBusiness ? "grid-cols-5" : "grid-cols-4")}>
+            <TabsList className={cn("grid bg-muted/60 p-1 rounded-2xl h-10 mb-4", nicheCtx.isFoodBusiness ? "grid-cols-6" : "grid-cols-5")}>
               <TabsTrigger value="basico" className="rounded-xl text-xs font-bold">
                 Básico
               </TabsTrigger>
@@ -487,13 +603,71 @@ export function UnifiedNewProductPage() {
               <TabsTrigger value="midias" className="rounded-xl text-xs font-bold">
                 Fotos
               </TabsTrigger>
+              <TabsTrigger value="insumos" className="rounded-xl text-xs font-bold">
+                Insumos / BOM
+              </TabsTrigger>
               <TabsTrigger value="opcoes" className="rounded-xl text-xs font-bold">
                 Opções
               </TabsTrigger>
             </TabsList>
 
+            {/* ── SELETOR DE MODO PARA AGÊNCIAS DE TURISMO ── */}
+            {isTourismStore && (
+              <div className="p-3.5 rounded-2xl bg-card border border-border/70 flex items-center justify-between gap-3 shadow-2xs">
+                <div className="flex items-center gap-2.5">
+                  <div className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <Plane className="size-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-foreground">Modo de Publicação</span>
+                    <p className="text-[10px] text-muted-foreground">
+                      {isTravelPackageMode
+                        ? "Pacote Turístico / Roteiro Completo (sem frete físico, com itinerário e inclusões)"
+                        : "Produto Físico / Souvenir / Mala (com frete e logística tradicional)"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={isTravelPackageMode ? "default" : "outline"}
+                    onClick={() => {
+                      setIsTravelPackageMode(true);
+                      setValue("is_physical", false);
+                    }}
+                    className="rounded-xl text-xs font-semibold h-8 cursor-pointer"
+                  >
+                    Pacote Turístico
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={!isTravelPackageMode ? "default" : "outline"}
+                    onClick={() => {
+                      setIsTravelPackageMode(false);
+                      setValue("is_physical", true);
+                    }}
+                    className="rounded-xl text-xs font-semibold h-8 cursor-pointer"
+                  >
+                    Produto Físico
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {/* ── ABA 1: INFORMAÇÕES BÁSICAS ── */}
             <TabsContent value="basico" className="space-y-4 m-0">
+              {/* Formulário Especializado de Pacotes de Viagem */}
+              {isTravelPackageMode && (
+                <TravelPackageForm
+                  value={travelData}
+                  onChange={setTravelData}
+                  priceCents={formValues.price_cents}
+                />
+              )}
+
               <div className="bg-card rounded-2xl p-5 space-y-4 border border-border/60">
                 <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
                   <Tag className="size-4 text-primary" />
@@ -512,7 +686,16 @@ export function UnifiedNewProductPage() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-foreground">{nicheCtx.categoryLabel}</Label>
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-medium text-foreground">{nicheCtx.categoryLabel}</Label>
+                      <button
+                        type="button"
+                        onClick={() => setIsQuickCategoryOpen(true)}
+                        className="text-[11px] text-primary hover:underline font-semibold cursor-pointer"
+                      >
+                        + Criar Rápido
+                      </button>
+                    </div>
                     <Select
                       value={formValues.category_id}
                       onValueChange={(val) => setValue("category_id", val)}
@@ -521,7 +704,7 @@ export function UnifiedNewProductPage() {
                         <SelectValue placeholder="Selecione..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {categories.map((cat: any) => (
+                        {categoriesList.map((cat: any) => (
                           <SelectItem key={cat.id} value={cat.id}>
                             {cat.name}
                           </SelectItem>
@@ -592,40 +775,68 @@ export function UnifiedNewProductPage() {
                 </div>
               </div>
 
-              {/* Logística & Frete */}
-              <div className="bg-card rounded-2xl p-5 space-y-4 border border-border/60">
-                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
-                  <Truck className="size-4 text-primary" />
-                  <span>Logística & Frete</span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-muted-foreground">Peso (kg)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      {...register("weight_kg", { valueAsNumber: true })}
-                      placeholder="0.5"
-                      className="h-10 rounded-xl text-xs bg-background font-mono"
-                    />
+              {/* Logística & Frete (Apenas para produtos físicos) */}
+              {!isTravelPackageMode && (
+                <div className="bg-card rounded-2xl p-5 space-y-4 border border-border/60">
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
+                    <Truck className="size-4 text-primary" />
+                    <span>Logística & Frete</span>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-muted-foreground">
-                      {nicheCtx.isTourismBusiness
-                        ? "Duração da Viagem (dias)"
-                        : "Tempo de Produção / Preparo (dias)"}
-                    </Label>
-                    <Input
-                      type="number"
-                      {...register("preparation_time_days", { valueAsNumber: true })}
-                      placeholder="0"
-                      className="h-10 rounded-xl text-xs bg-background font-mono"
-                    />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium text-foreground">Peso (kg)</Label>
+                      <Input
+                        {...register("weight_kg")}
+                        type="number"
+                        step="0.01"
+                        placeholder="0.5"
+                        className="h-10 rounded-xl text-xs bg-background font-mono"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium text-foreground">Prazo de Envio (dias)</Label>
+                      <Input
+                        {...register("preparation_time_days")}
+                        type="number"
+                        placeholder="1"
+                        className="h-10 rounded-xl text-xs bg-background font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium text-foreground">Largura (cm)</Label>
+                      <Input
+                        {...register("width_cm")}
+                        type="number"
+                        placeholder="15"
+                        className="h-10 rounded-xl text-xs bg-background font-mono"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium text-foreground">Altura (cm)</Label>
+                      <Input
+                        {...register("height_cm")}
+                        type="number"
+                        placeholder="10"
+                        className="h-10 rounded-xl text-xs bg-background font-mono"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium text-foreground">Comprimento (cm)</Label>
+                      <Input
+                        {...register("length_cm")}
+                        type="number"
+                        placeholder="20"
+                        className="h-10 rounded-xl text-xs bg-background font-mono"
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </TabsContent>
 
             {/* ── ABA 2: PREÇO & ESTOQUE ── */}
@@ -838,6 +1049,19 @@ export function UnifiedNewProductPage() {
               </div>
             </TabsContent>
 
+            {/* ── ABA: FICHA TÉCNICA, INSUMOS & PRODUTO COMPOSTO (BOM) ── */}
+            <TabsContent value="insumos" className="space-y-4 m-0">
+              <ProductBomCard
+                initialItems={bomItems}
+                productPriceCents={livePriceCents}
+                onApplyCostToProduct={(calculatedCostCents) => {
+                  setValue("cost_cents", calculatedCostCents);
+                  toast.success(`Custo calculado de ${(calculatedCostCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} aplicado ao produto!`);
+                }}
+                onItemsChange={setBomItems}
+              />
+            </TabsContent>
+
             {/* ── ABA 4: ADICIONAIS & MODIFICADORES ── */}
             <TabsContent value="opcoes" className="space-y-4 m-0">
               <ProductModifiersCard
@@ -852,13 +1076,13 @@ export function UnifiedNewProductPage() {
 
         {/* COLUNA DIREITA: PREVIEW REAL DA VITRINE (7 COLUNAS STICKY) */}
         <div className="lg:col-span-7 lg:sticky lg:top-24">
-          <div className="bg-card rounded-3xl overflow-hidden border border-border/80">
+          <div className="bg-card rounded-3xl overflow-hidden border border-border/80 shadow-md">
             {/* Header do Mockup */}
             <div className="bg-muted/40 px-5 py-3 border-b flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Eye className="size-4 text-primary" />
                 <span className="text-xs font-bold text-foreground">
-                  Preview Real da Vitrine (Página do Produto)
+                  Preview Real da Vitrine ({isTravelPackageMode ? "Página de Viagem / Pacote" : "Página do Produto"})
                 </span>
               </div>
               <Badge variant="secondary" className="text-[10px] font-mono">
@@ -866,8 +1090,24 @@ export function UnifiedNewProductPage() {
               </Badge>
             </div>
 
-            {/* Corpo do Mockup Fiel ao E-commerce */}
-            <div className="p-6 space-y-6">
+            {/* Renderização Condicional: Pacote de Viagem vs E-commerce Comum */}
+            {isTravelPackageMode ? (
+              <div className="max-h-[80vh] overflow-y-auto no-scrollbar">
+                <TravelPackageDetailView
+                  packageData={travelData}
+                  productTitle={formValues.title || travelData.destination?.name || "Pacote de Viagem"}
+                  priceCents={formValues.price_cents || 425000}
+                  compareAtCents={formValues.compare_at_cents}
+                  coverImageUrl={images[0]}
+                  mediaUrls={images}
+                  storeName={store?.name}
+                  storePhone={store?.phone || store?.settings?.whatsapp}
+                  isInteractivePreview={true}
+                />
+              </div>
+            ) : (
+              /* Corpo do Mockup Fiel ao E-commerce */
+              <div className="p-6 space-y-6">
               {/* Galeria de Fotos */}
               <div className="space-y-3">
                 <div className="aspect-[4/3] rounded-2xl bg-muted/40 overflow-hidden relative border flex items-center justify-center">
@@ -1072,85 +1312,91 @@ export function UnifiedNewProductPage() {
                 </div>
               )}
             </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* ── MODAL: NOVA DIMENSÃO / PROPRIEDADE DE VARIAÇÃO ── */}
-      <Dialog open={isAddDimensionOpen} onOpenChange={setIsAddDimensionOpen}>
-        <DialogContent className="sm:max-w-md sm:rounded-3xl sm:p-6 p-5">
-          <DialogHeader className="pb-2">
-            <DialogTitle className="text-base font-bold flex items-center gap-2">
-              <Box className="size-4 text-primary" />
-              <span>{nicheCtx.addDimensionDialogTitle}</span>
-            </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground">
-              {nicheCtx.addDimensionDialogDesc}
-            </DialogDescription>
-          </DialogHeader>
+      {/* ── SHEET LATERAL: NOVA DIMENSÃO / PROPRIEDADE DE VARIAÇÃO (ELIMINANDO DIALOG POPUP) ── */}
+      <Sheet open={isAddDimensionOpen} onOpenChange={setIsAddDimensionOpen}>
+        <SheetContent
+          side="right"
+          className="sm:max-w-md w-full max-sm:!h-[100dvh] max-sm:!inset-0 max-sm:!rounded-none border-l p-0 overflow-y-auto bg-card flex flex-col justify-between"
+        >
+          <div className="p-6 space-y-4">
+            <SheetHeader className="pb-2 text-left">
+              <SheetTitle className="text-base font-bold flex items-center gap-2">
+                <Box className="size-4 text-primary" />
+                <span>{nicheCtx.addDimensionDialogTitle}</span>
+              </SheetTitle>
+              <SheetDescription className="text-xs text-muted-foreground">
+                {nicheCtx.addDimensionDialogDesc}
+              </SheetDescription>
+            </SheetHeader>
 
-          {/* Chips de Sugestão Rápida para o Nicho */}
-          {nicheCtx.suggestedDimensionChips && nicheCtx.suggestedDimensionChips.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1.5 pt-1">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground mr-1">
-                Sugestões:
-              </span>
-              {nicheCtx.suggestedDimensionChips.map((chip) => (
-                <button
-                  key={chip.name}
-                  type="button"
-                  onClick={() => {
-                    setNewDimensionName(chip.name);
-                    if (!newDimensionValue) setNewDimensionValue(chip.firstValue);
+            {/* Chips de Sugestão Rápida para o Nicho */}
+            {nicheCtx.suggestedDimensionChips && nicheCtx.suggestedDimensionChips.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground mr-1">
+                  Sugestões:
+                </span>
+                {nicheCtx.suggestedDimensionChips.map((chip) => (
+                  <button
+                    key={chip.name}
+                    type="button"
+                    onClick={() => {
+                      setNewDimensionName(chip.name);
+                      if (!newDimensionValue) setNewDimensionValue(chip.firstValue);
+                    }}
+                    className="text-[11px] px-2.5 py-1 rounded-lg border border-border/70 bg-muted/40 hover:bg-primary/10 hover:border-primary/50 text-foreground transition-all cursor-pointer font-medium"
+                  >
+                    + {chip.name}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <div className="space-y-4 py-2">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-foreground">
+                  {nicheCtx.dimensionNameLabel} *
+                </Label>
+                <Input
+                  value={newDimensionName}
+                  onChange={(e) => setNewDimensionName(e.target.value)}
+                  placeholder={nicheCtx.dimensionNamePlaceholder}
+                  className="h-10 rounded-xl text-xs bg-background"
+                  autoFocus
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-foreground">
+                  {nicheCtx.dimensionValueLabel} *
+                </Label>
+                <Input
+                  value={newDimensionValue}
+                  onChange={(e) => setNewDimensionValue(e.target.value)}
+                  placeholder={nicheCtx.dimensionValuePlaceholder}
+                  className="h-10 rounded-xl text-xs bg-background"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleAddDimensionSubmit();
                   }}
-                  className="text-[11px] px-2.5 py-1 rounded-lg border border-border/70 bg-muted/40 hover:bg-primary/10 hover:border-primary/50 text-foreground transition-all cursor-pointer font-medium"
-                >
-                  + {chip.name}
-                </button>
-              ))}
-            </div>
-          )}
-
-          <div className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-foreground">
-                {nicheCtx.dimensionNameLabel} *
-              </Label>
-              <Input
-                value={newDimensionName}
-                onChange={(e) => setNewDimensionName(e.target.value)}
-                placeholder={nicheCtx.dimensionNamePlaceholder}
-                className="h-10 rounded-xl text-xs bg-background"
-                autoFocus
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-foreground">
-                {nicheCtx.dimensionValueLabel} *
-              </Label>
-              <Input
-                value={newDimensionValue}
-                onChange={(e) => setNewDimensionValue(e.target.value)}
-                placeholder={nicheCtx.dimensionValuePlaceholder}
-                className="h-10 rounded-xl text-xs bg-background"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleAddDimensionSubmit();
-                }}
-              />
-              <p className="text-[11px] text-muted-foreground">
-                Você poderá adicionar mais opções na tabela de grade a seguir.
-              </p>
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Você poderá adicionar mais opções na tabela de grade a seguir.
+                </p>
+              </div>
             </div>
           </div>
 
-          <DialogFooter className="pt-2 gap-2">
+          <div className="p-6 border-t border-border/60 bg-muted/20 flex items-center justify-end gap-2">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setIsAddDimensionOpen(false)}
-              className="rounded-xl text-xs font-semibold"
+              className="rounded-xl text-xs font-semibold cursor-pointer h-10 px-4"
             >
               Cancelar
             </Button>
@@ -1158,14 +1404,15 @@ export function UnifiedNewProductPage() {
               type="button"
               size="sm"
               onClick={handleAddDimensionSubmit}
-              className="rounded-xl text-xs font-bold bg-primary text-primary-foreground gap-1.5"
+              disabled={!newDimensionName.trim() || !newDimensionValue.trim()}
+              className="rounded-xl text-xs font-bold bg-primary text-primary-foreground gap-1.5 cursor-pointer h-10 px-5"
             >
               <Plus className="size-3.5" />
               <span>Adicionar à Grade</span>
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

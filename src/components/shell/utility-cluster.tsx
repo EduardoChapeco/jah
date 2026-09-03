@@ -175,7 +175,7 @@ export function UtilityCluster({ session, embedded = false }: UtilityClusterProp
         <NotificationsPopover session={session} />
 
         {/* 5. Alternador de Tema Dark/Light */}
-        <ThemeToggle className="size-8 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-all active:scale-95 cursor-pointer" />
+        <ThemeToggle className="hidden sm:inline-flex size-8 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-all active:scale-95 cursor-pointer" />
 
         <div className="h-4 w-px bg-border/60 mx-0.5" />
 

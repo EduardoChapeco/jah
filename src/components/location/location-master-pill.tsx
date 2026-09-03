@@ -61,10 +61,20 @@ export async function resolveGeoCoordinates(
   lat: number,
   lng: number
 ): Promise<{ city: string; state: string; address: string }> {
-  // 1. Provedor Primário: BigDataCloud Client API (ultra-rápido, suporte nativo pt-BR, sem rate limit do OSM)
+  // 1. Provedor Canônico Imediato (0ms, offline-first, imune a bloqueios de rede/CORS)
+  const closest = findClosestCanonicalCity(lat, lng);
+  if (closest && closest.distanceKm !== undefined && closest.distanceKm <= 120) {
+    return {
+      city: closest.name,
+      state: closest.state,
+      address: closest.label,
+    };
+  }
+
+  // 2. Provedor Primário Web: BigDataCloud Client API (suporte nativo pt-BR)
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 2500);
+    const timer = setTimeout(() => controller.abort(), 4000);
     const res = await fetch(
       `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=pt`,
       { signal: controller.signal }
@@ -83,35 +93,29 @@ export async function resolveGeoCoordinates(
     // fallback
   }
 
-  // 2. Provedor Secundário: OpenStreetMap Nominatim
+  // 3. Fallback Nominatim (OpenStreetMap)
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 2500);
+    const timer = setTimeout(() => controller.abort(), 4000);
     const res = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
-      { headers: { "User-Agent": "WiderPlatform/1.0" }, signal: controller.signal }
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10&addressdetails=1`,
+      { signal: controller.signal, headers: { "Accept-Language": "pt-BR,pt;q=0.9" } }
     );
     clearTimeout(timer);
     if (res.ok) {
       const data = await res.json();
-      const city =
-        data.address?.city ||
-        data.address?.town ||
-        data.address?.municipality ||
-        data.address?.village ||
-        "";
-      const state = data.address?.state_code || data.address?.state || "";
+      const addr = data.address || {};
+      const city = addr.city || addr.town || addr.municipality || addr.village || addr.county || "";
+      const state = addr.state || "";
       if (city) {
-        const fullAddr = data.display_name || `${city}${state ? ` - ${state}` : ""}`;
-        return { city, state, address: fullAddr };
+        return { city, state, address: `${city}${state ? ` - ${state}` : ""}` };
       }
     }
   } catch {
     // fallback
   }
 
-  // 3. Provedor Determinístico: Cálculo de distância mínima euclidiana na base canônica (0ms, offline-first)
-  const closest = findClosestCanonicalCity(lat, lng);
+  // 4. Se nenhuma API externa respondeu, usa a cidade canônica mais próxima existente no banco
   if (closest) {
     return {
       city: closest.name,
@@ -133,11 +137,58 @@ export function useMasterLocation() {
   useEffect(() => {
     const stored = getStoredLocation();
     if (
-      stored.city !== GLOBAL_DEFAULT_LOCATION.city ||
-      stored.state !== GLOBAL_DEFAULT_LOCATION.state ||
-      stored.source !== GLOBAL_DEFAULT_LOCATION.source
+      stored.city &&
+      stored.city !== GLOBAL_DEFAULT_LOCATION.city &&
+      stored.source !== "default"
     ) {
       setLocation(stored);
+    }
+
+    // Auto-detectar de forma resiliente: se o navegador já possui permissão concedida ou se o usuário
+    // já autorizou no Wider, sincronizar as coordenadas reais imediatamente e NUNCA deixar travado em "Global"
+    if (typeof window !== "undefined" && typeof navigator !== "undefined" && navigator.geolocation) {
+      const isGrantedLocally = localStorage.getItem("wider_geo_permission_granted") === "true";
+      const isCurrentlyGlobal = !location || location.city === "Global" || location.source === "default";
+
+      const executeGpsSync = () => {
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
+            try {
+              const resolved = await resolveGeoCoordinates(pos.coords.latitude, pos.coords.longitude);
+              const autoLoc: LocationState = {
+                city: resolved.city,
+                state: resolved.state,
+                lat: pos.coords.latitude,
+                lng: pos.coords.longitude,
+                address: resolved.address,
+                source: "gps",
+              };
+              setLocation(autoLoc);
+              localStorage.setItem("wider_master_location", JSON.stringify(autoLoc));
+              localStorage.removeItem("wider_geo_permission_dismissed");
+              localStorage.setItem("wider_geo_permission_granted", "true");
+              window.dispatchEvent(new CustomEvent("wider:location-updated", { detail: autoLoc }));
+            } catch {
+              // ignore
+            }
+          },
+          () => {},
+          { timeout: 10000, enableHighAccuracy: true, maximumAge: 300000 }
+        );
+      };
+
+      if (isGrantedLocally && isCurrentlyGlobal) {
+        executeGpsSync();
+      } else if (navigator.permissions && navigator.permissions.query) {
+        navigator.permissions
+          .query({ name: "geolocation" })
+          .then((permissionStatus) => {
+            if (permissionStatus.state === "granted" && isCurrentlyGlobal) {
+              executeGpsSync();
+            }
+          })
+          .catch(() => {});
+      }
     }
 
     const handleUpdate = (e: any) => {
@@ -194,45 +245,56 @@ export function LocationMasterPill({ className = "" }: { className?: string }) {
     setIsLocating(true);
     toast.info("Obtendo sua localização via GPS...");
 
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude, longitude } = pos.coords;
-        try {
-          const resolved = await resolveGeoCoordinates(latitude, longitude);
+    const onPosSuccess = async (pos: GeolocationPosition) => {
+      const { latitude, longitude } = pos.coords;
+      try {
+        const resolved = await resolveGeoCoordinates(latitude, longitude);
 
-          const newLoc: LocationState = {
-            city: resolved.city,
-            state: resolved.state,
-            lat: latitude,
-            lng: longitude,
-            address: resolved.address,
-            source: "gps",
-          };
+        const newLoc: LocationState = {
+          city: resolved.city,
+          state: resolved.state,
+          lat: latitude,
+          lng: longitude,
+          address: resolved.address,
+          source: "gps",
+        };
 
-          updateLocation(newLoc);
-          if (typeof window !== "undefined") {
-            localStorage.setItem("wider_geo_permission_granted", "true");
-          }
-          toast.success(`Localização ativada: ${resolved.city}${resolved.state ? ` - ${resolved.state}` : ""}`);
-        } catch (e) {
-          const fallbackLoc: LocationState = {
-            city: "Minha Localização",
-            state: "",
-            lat: latitude,
-            lng: longitude,
-            source: "gps",
-          };
-          updateLocation(fallbackLoc);
-          toast.success("GPS sincronizado com sucesso!");
-        } finally {
-          setIsLocating(false);
+        updateLocation(newLoc);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("wider_geo_permission_granted", "true");
+          document.cookie = "wider_geo_granted=true; path=/; max-age=31536000; SameSite=Lax";
         }
-      },
-      (err) => {
+        toast.success(`Localização ativada: ${resolved.city}${resolved.state ? ` - ${resolved.state}` : ""}`);
+      } catch (e) {
+        const fallbackLoc: LocationState = {
+          city: "Minha Localização",
+          state: "",
+          lat: latitude,
+          lng: longitude,
+          source: "gps",
+        };
+        updateLocation(fallbackLoc);
+        toast.success("GPS sincronizado com sucesso!");
+      } finally {
         setIsLocating(false);
-        toast.error("Permissão de GPS negada ou indisponível. Selecione manualmente.");
+      }
+    };
+
+    // Tenta primeiro em modo rápido (WiFi/Rede Desktop, sem timeout de satélite)
+    navigator.geolocation.getCurrentPosition(
+      onPosSuccess,
+      () => {
+        // Fallback para alta precisão (mobile GPS)
+        navigator.geolocation.getCurrentPosition(
+          onPosSuccess,
+          (err) => {
+            setIsLocating(false);
+            toast.error("Não foi possível obter coordenadas GPS no momento. Você pode escolher sua cidade na lista.");
+          },
+          { timeout: 15000, enableHighAccuracy: true }
+        );
       },
-      { timeout: 8000, enableHighAccuracy: true },
+      { timeout: 15000, enableHighAccuracy: true, maximumAge: 60000 }
     );
   };
 
@@ -569,7 +631,7 @@ export function LocationPickerModal({
               <div
                 className="absolute inset-0 size-full opacity-60 bg-cover bg-center pointer-events-none"
                 style={{
-                  backgroundImage: `url('https://images.unsplash.com/photo-1524661135-423995f22d0b?w=1400&auto=format&fit=crop&q=80')`,
+                  backgroundImage: `url('')`,
                 }}
               />
               <div className="absolute inset-0 bg-radial from-transparent via-background/40 to-background/90 pointer-events-none" />
