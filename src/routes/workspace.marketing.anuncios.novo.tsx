@@ -406,7 +406,7 @@ function NovoAnuncioPage() {
             </div>
 
             {/* Orçamentos */}
-            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border/40">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-border/40">
               <div className="space-y-1.5">
                 <Label htmlFor="ad-daily" className="text-xs font-semibold">
                   Orçamento Diário (R$)
@@ -465,7 +465,7 @@ function NovoAnuncioPage() {
               <h3 className="text-xs font-bold text-foreground">Estimativa de Performance</h3>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="p-3 rounded-xl bg-muted/40 space-y-0.5">
                 <span className="text-[10px] text-muted-foreground uppercase font-bold">
                   Alcance Diário

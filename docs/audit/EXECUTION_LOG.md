@@ -292,3 +292,24 @@
 3. **Curadoria de Lojas e Produtos**:
    - Em `admin-master.curadoria.tsx`, adaptadas as métricas e abas de aprovação para carrossel deslizável sem compressão de títulos.
 4. **Compilação e Validação**: Build de produção Vite + Nitro concluído com sucesso.
+
+## Ciclo 78 — Microfase 78C
+
+- **Data/Hora:** 2026-09-03T16:29:00-03:00
+- **Módulo:** Gestão de Eventos, Promoções e Anúncios Patrocinados (Mobile-First)
+- **Commit Base:** `526ee75`
+- **Status:** `MICROFASE COMPROVADA EM RUNTIME E COMMITADA`
+
+### Diagnóstico Forense & Causa Raiz
+1. Em `workspace.eventos.$id.tsx`, o componente `TabsList` forçava 5 colunas em uma linha (`grid-cols-5`), provocando truncamento severo dos títulos de abas ("Visão Geral", "Ingressos", "Lotes", "Check-in", "Configurações") em smartphones. O modal de novo lote operava com `grid-cols-2`.
+2. Em `workspace.marketing.promocoes.tsx`, os modais de criação de cupons utilizavam 2 grids rígidos para valores de desconto, pedido mínimo e período de validade.
+3. Em `workspace.marketing.anuncios.novo.tsx`, o formulário de configuração de anúncios patrocinados continha 2 grids rígidos em orçamento diário e datas de veiculação.
+
+### Ações Executadas
+1. **Gestão de Eventos & Ingressos Mobile-Ready**:
+   - Em `workspace.eventos.$id.tsx`, o `TabsList` de 5 abas foi convertido para carrossel horizontal elástico deslizável (`overflow-x-auto no-scrollbar`), e os campos de preço/quantidade de ingressos em `grid-cols-1 sm:grid-cols-2 gap-3`.
+2. **Promoções & Cupons sem Truncamento**:
+   - Em `workspace.marketing.promocoes.tsx`, os modais de desconto e validade foram convertidos para `grid-cols-1 sm:grid-cols-2 gap-3`.
+3. **Anúncios Patrocinados Responsivos**:
+   - Em `workspace.marketing.anuncios.novo.tsx`, os formulários de orçamento diário e datas de veiculação adaptados para coluna única mobile.
+4. **Compilação e Validação**: Build de produção Vite + Nitro concluído com sucesso.

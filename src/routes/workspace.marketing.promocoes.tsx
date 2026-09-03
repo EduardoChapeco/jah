@@ -195,7 +195,7 @@ function WorkspacePromotionsPage() {
 
             {(type === "flash_offer" || type === "percentage_discount") && (
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <label className="font-semibold text-xs text-foreground">Desconto (%)</label>
                     <Input
@@ -233,7 +233,7 @@ function WorkspacePromotionsPage() {
             )}
 
             {type === "buy_x_get_y" && (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <label className="font-semibold text-xs text-foreground">Compre Quantidade</label>
                   <Input

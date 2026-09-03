@@ -303,7 +303,7 @@ function SubPainelEventoPage() {
       </div>
 
       {/* KPI Cards do Evento */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="bg-card rounded-2xl p-4 border border-border/60">
           <span className="text-xs font-semibold text-muted-foreground">Ingressos Vendidos</span>
           <div className="text-2xl font-bold text-foreground mt-1">
@@ -339,7 +339,7 @@ function SubPainelEventoPage() {
 
       {/* Abas do Sub-Painel Recursivo */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-5 h-10 w-full max-w-2xl mb-6">
+        <TabsList className="flex items-center gap-1.5 w-full overflow-x-auto no-scrollbar scrollbar-none p-1 rounded-xl h-11 mb-6">
           <TabsTrigger value="ingressos" className="text-xs font-semibold gap-1.5">
             <Ticket className="size-3.5" />
             Lotes ({lots.length})
@@ -660,7 +660,7 @@ function SubPainelEventoPage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="lot-price">Valor (R$) *</Label>
                 <CurrencyField
