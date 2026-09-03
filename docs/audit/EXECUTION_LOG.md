@@ -136,3 +136,27 @@
    - Em `_store.membro.$id.tsx`, convertidos os campos emparelhados de data dos modais de experiência, educação e certificação para `grid-cols-1 sm:grid-cols-2 gap-3`.
    - Moderados os 10 `rounded-3xl` para `rounded-2xl` no avatar e seções do perfil.
 4. **Compilação e Validação**: Build de produção Vite + Nitro concluído com sucesso com código de saída 0 em 6.09s.
+
+## Ciclo 76 — Microfase 76C
+
+- **Data/Hora:** 2026-09-03T16:01:00-03:00
+- **Módulo:** Formulários Mestres de Catálogo, Propostas e Cotações do Workspace (Mobile-First)
+- **Commit Base:** `724bcf5`
+- **Status:** `MICROFASE COMPROVADA EM RUNTIME E COMMITADA`
+
+### Diagnóstico Forense & Causa Raiz
+1. Em `workspace.catalogo.produtos.novo.tsx`, o componente `TabsList` forçava 5 ou 6 colunas simultâneas (`grid-cols-5` / `grid-cols-6`) em um container de altura fixa de 40px, provocando sobreposição e truncamento das abas "Precificação", "Dimensões" e "Insumos" em smartphones. Além disso, 7 grids internos de precificação, dimensões e estoque utilizavam `grid-cols-2` rígido.
+2. Em `workspace.orcamentos.novo.tsx`, o seletor mestre de abas utilizava `grid grid-cols-5 w-full`, espremendo os 5 passos da proposta de viagem para menos de 65px de largura em telas mobile de 360px. Vários blocos de formulário e cartões continham 11 ocorrências de `rounded-3xl` e grids de 2 colunas rígidos.
+3. Em `workspace.turismo.cotacoes.tsx`, os 5 diálogos modais de criação/edição de cotação de turismo comprimiam seletores de aeroportos, datas e passageiros em `grid-cols-2`, cortando rótulos em dispositivos móveis.
+
+### Ações Executadas
+1. **Abas Elásticas com Rolagem Horizontal Invisível**:
+   - Em `workspace.catalogo.produtos.novo.tsx`, o `TabsList` foi convertido para `flex items-center gap-1 overflow-x-auto no-scrollbar scrollbar-none`, com triggers configurados com `whitespace-nowrap shrink-0 px-3`.
+   - Em `workspace.orcamentos.novo.tsx`, o `TabsList` de 5 etapas foi convertido para `flex items-center gap-1.5 w-full overflow-x-auto no-scrollbar scrollbar-none`, com triggers em `whitespace-nowrap shrink-0 px-3.5 h-10`.
+2. **Empilhamento Responsivo de Formulários Operacionais**:
+   - Em `workspace.catalogo.produtos.novo.tsx`, todos os grids de dimensões, preços e estoque foram migrados para `grid-cols-1 sm:grid-cols-2 gap-3` e `grid-cols-1 sm:grid-cols-3 gap-3`.
+   - Em `workspace.orcamentos.novo.tsx`, campos de dados de cliente, hotéis, voos e lâmina financeira convertidos para `grid-cols-1 sm:grid-cols-2 gap-3`.
+   - Em `workspace.turismo.cotacoes.tsx`, todos os 5 modais de cotação atualizados para `grid-cols-1 sm:grid-cols-2 gap-2`.
+3. **Contenção de Bordas Apple HIG**:
+   - Moderadas todas as 11 ocorrências de `rounded-3xl` em `workspace.orcamentos.novo.tsx` para `rounded-2xl`.
+4. **Compilação e Validação**: Build de produção Vite + Nitro concluído com sucesso com código de saída 0 em 7.51s.

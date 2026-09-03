@@ -329,24 +329,24 @@ function NovoOrcamentoTravelosPage() {
 
       {/* Abas do Construtor Travelos */}
       <Tabs value={activeTab} onValueChange={(v: any) => setActiveTab(v)} className="w-full space-y-6">
-        <TabsList className="grid grid-cols-5 w-full h-12 p-1 bg-muted/60 rounded-2xl">
-          <TabsTrigger value="geral" className="rounded-xl font-bold text-xs gap-1.5">
+        <TabsList className="flex items-center gap-1.5 w-full overflow-x-auto no-scrollbar scrollbar-none p-1 bg-muted/60 rounded-2xl h-12">
+          <TabsTrigger value="geral" className="rounded-xl font-bold text-xs gap-1.5 whitespace-nowrap shrink-0 px-3.5 h-10">
             <User className="size-3.5" />
             <span>1. Cliente & Destino</span>
           </TabsTrigger>
-          <TabsTrigger value="voos" className="rounded-xl font-bold text-xs gap-1.5">
+          <TabsTrigger value="voos" className="rounded-xl font-bold text-xs gap-1.5 whitespace-nowrap shrink-0 px-3.5 h-10">
             <Plane className="size-3.5" />
             <span>2. Aéreo & Voos ({flights.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="hospedagem" className="rounded-xl font-bold text-xs gap-1.5">
+          <TabsTrigger value="hospedagem" className="rounded-xl font-bold text-xs gap-1.5 whitespace-nowrap shrink-0 px-3.5 h-10">
             <Building2 className="size-3.5" />
             <span>3. Hotéis ({hotels.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="roteiro" className="rounded-xl font-bold text-xs gap-1.5">
+          <TabsTrigger value="roteiro" className="rounded-xl font-bold text-xs gap-1.5 whitespace-nowrap shrink-0 px-3.5 h-10">
             <Compass className="size-3.5" />
             <span>4. Roteiro Dia a Dia ({itinerary.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="financeiro" className="rounded-xl font-bold text-xs gap-1.5">
+          <TabsTrigger value="financeiro" className="rounded-xl font-bold text-xs gap-1.5 whitespace-nowrap shrink-0 px-3.5 h-10">
             <DollarSign className="size-3.5" />
             <span>5. Financeiro & Lâmina</span>
           </TabsTrigger>
@@ -356,7 +356,7 @@ function NovoOrcamentoTravelosPage() {
         <TabsContent value="geral" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Bloco Cliente */}
-            <div className="p-6 rounded-3xl bg-card border border-border/80 space-y-4">
+            <div className="p-6 rounded-2xl bg-card border border-border/80 space-y-4">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <User className="size-4 text-primary" />
                 <span>Passageiro Principal / Contratante</span>
@@ -372,7 +372,7 @@ function NovoOrcamentoTravelosPage() {
                     required
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-bold">WhatsApp / Celular *</Label>
                     <Input
@@ -398,7 +398,7 @@ function NovoOrcamentoTravelosPage() {
             </div>
 
             {/* Bloco Destino e Datas */}
-            <div className="p-6 rounded-3xl bg-card border border-border/80 space-y-4">
+            <div className="p-6 rounded-2xl bg-card border border-border/80 space-y-4">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <MapPin className="size-4 text-primary" />
                 <span>Destino & Configuração da Viagem</span>
@@ -433,7 +433,7 @@ function NovoOrcamentoTravelosPage() {
                     helperText="Foto panorâmica de capa da proposta que o cliente verá (16:9)"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-bold">Data de Ida</Label>
                     <Input
@@ -453,7 +453,7 @@ function NovoOrcamentoTravelosPage() {
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3 pt-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-bold">Adultos (Pagantes)</Label>
                     <Input
@@ -494,7 +494,7 @@ function NovoOrcamentoTravelosPage() {
           </div>
 
           {flights.map((flight, idx) => (
-            <div key={flight.id} className="p-5 rounded-3xl bg-card border border-border/80 space-y-4">
+            <div key={flight.id} className="p-5 rounded-2xl bg-card border border-border/80 space-y-4">
               <div className="flex items-center justify-between border-b border-border/60 pb-3">
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary" className="text-xs font-bold px-2 py-0.5 rounded-lg">
@@ -648,7 +648,7 @@ function NovoOrcamentoTravelosPage() {
           </div>
 
           {hotels.map((hotel, idx) => (
-            <div key={hotel.id} className="p-5 rounded-3xl bg-card border border-border/80 space-y-4">
+            <div key={hotel.id} className="p-5 rounded-2xl bg-card border border-border/80 space-y-4">
               <div className="flex items-center justify-between border-b border-border/60 pb-3">
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary" className="text-xs font-bold px-2 py-0.5 rounded-lg">
@@ -760,7 +760,7 @@ function NovoOrcamentoTravelosPage() {
 
           <div className="space-y-3">
             {itinerary.map((day, idx) => (
-              <div key={day.id} className="p-5 rounded-3xl bg-card border border-border/80 space-y-3">
+              <div key={day.id} className="p-5 rounded-2xl bg-card border border-border/80 space-y-3">
                 <div className="flex items-center justify-between border-b border-border/60 pb-2.5">
                   <Badge variant="outline" className="text-xs font-bold px-2 py-0.5 rounded-lg border-primary/30 text-primary bg-primary/10">
                     Dia {idx + 1}
@@ -823,14 +823,14 @@ function NovoOrcamentoTravelosPage() {
         <TabsContent value="financeiro" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Bloco de Valores e Margem */}
-            <div className="p-6 rounded-3xl bg-card border border-border/80 space-y-4">
+            <div className="p-6 rounded-2xl bg-card border border-border/80 space-y-4">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <DollarSign className="size-4 text-emerald-600" />
                 <span>Composição de Custos & Margem de Lucro</span>
               </h3>
 
               <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-bold">Moeda Base</Label>
                     <Select value={currency} onValueChange={(val: any) => setCurrency(val)}>
@@ -858,7 +858,7 @@ function NovoOrcamentoTravelosPage() {
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-bold">Custo / Pessoa (R$)</Label>
                     <Input
@@ -879,7 +879,7 @@ function NovoOrcamentoTravelosPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-bold">Taxas de Embarque / Pessoa</Label>
                     <Input
@@ -922,7 +922,7 @@ function NovoOrcamentoTravelosPage() {
             </div>
 
             {/* Inclusos e Condições */}
-            <div className="p-6 rounded-3xl bg-card border border-border/80 space-y-4">
+            <div className="p-6 rounded-2xl bg-card border border-border/80 space-y-4">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <FileCheck2 className="size-4 text-primary" />
                 <span>Itens Inclusos & Termos</span>
@@ -1127,7 +1127,7 @@ function NovoOrcamentoComercialUniversalPage() {
         {/* Coluna Esquerda: Dados do Cliente + Tabela de Itens (8 Cols) */}
         <div className="lg:col-span-8 space-y-6">
           {/* Card 1: Identificação do Cliente */}
-          <div className="p-6 rounded-3xl bg-card border border-border/80 space-y-4">
+          <div className="p-6 rounded-2xl bg-card border border-border/80 space-y-4">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
               <User className="size-4 text-primary" />
               <span>Destinatário / Cliente</span>
@@ -1167,7 +1167,7 @@ function NovoOrcamentoComercialUniversalPage() {
           </div>
 
           {/* Card 2: Itens do Orçamento */}
-          <div className="p-6 rounded-3xl bg-card border border-border/80 space-y-4">
+          <div className="p-6 rounded-2xl bg-card border border-border/80 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
                 <Package className="size-4 text-primary" />
@@ -1278,7 +1278,7 @@ function NovoOrcamentoComercialUniversalPage() {
           </div>
 
           {/* Card 3: Condições Comerciais & Observações */}
-          <div className="p-6 rounded-3xl bg-card border border-border/80 space-y-4">
+          <div className="p-6 rounded-2xl bg-card border border-border/80 space-y-4">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
               <FileCheck2 className="size-4 text-primary" />
               <span>Condições Comerciais & Termos</span>
@@ -1310,7 +1310,7 @@ function NovoOrcamentoComercialUniversalPage() {
 
         {/* Coluna Direita: Resumo Financeiro & Validade (4 Cols Sticky) */}
         <div className="lg:col-span-4 space-y-4 lg:sticky lg:top-20">
-          <div className="p-6 rounded-3xl bg-card border border-border/80 space-y-4">
+          <div className="p-6 rounded-2xl bg-card border border-border/80 space-y-4">
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
               <DollarSign className="size-4 text-primary" />
               <span>Balanço da Proposta</span>

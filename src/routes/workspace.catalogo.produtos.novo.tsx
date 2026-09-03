@@ -588,25 +588,25 @@ export function UnifiedNewProductPage() {
         {/* COLUNA ESQUERDA: FORMULÁRIO ERGONÔMICO (5 COLUNAS) */}
         <div className="lg:col-span-5 space-y-4">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className={cn("grid bg-muted/60 p-1 rounded-2xl h-10 mb-4", nicheCtx.isFoodBusiness ? "grid-cols-6" : "grid-cols-5")}>
-              <TabsTrigger value="basico" className="rounded-xl text-xs font-bold">
+            <TabsList className="flex items-center gap-1 overflow-x-auto no-scrollbar scrollbar-none bg-muted/60 p-1 rounded-2xl h-10 mb-4">
+              <TabsTrigger value="basico" className="rounded-xl text-xs font-bold whitespace-nowrap shrink-0 px-3">
                 Básico
               </TabsTrigger>
-              <TabsTrigger value="preco" className="rounded-xl text-xs font-bold">
+              <TabsTrigger value="preco" className="rounded-xl text-xs font-bold whitespace-nowrap shrink-0 px-3">
                 Preço
               </TabsTrigger>
               {nicheCtx.isFoodBusiness && (
-                <TabsTrigger value="cardapio" className="rounded-xl text-xs font-bold">
+                <TabsTrigger value="cardapio" className="rounded-xl text-xs font-bold whitespace-nowrap shrink-0 px-3">
                   Cardápio
                 </TabsTrigger>
               )}
-              <TabsTrigger value="midias" className="rounded-xl text-xs font-bold">
+              <TabsTrigger value="midias" className="rounded-xl text-xs font-bold whitespace-nowrap shrink-0 px-3">
                 Fotos
               </TabsTrigger>
-              <TabsTrigger value="insumos" className="rounded-xl text-xs font-bold">
+              <TabsTrigger value="insumos" className="rounded-xl text-xs font-bold whitespace-nowrap shrink-0 px-3">
                 Insumos / BOM
               </TabsTrigger>
-              <TabsTrigger value="opcoes" className="rounded-xl text-xs font-bold">
+              <TabsTrigger value="opcoes" className="rounded-xl text-xs font-bold whitespace-nowrap shrink-0 px-3">
                 Opções
               </TabsTrigger>
             </TabsList>
@@ -684,7 +684,7 @@ export function UnifiedNewProductPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
                       <Label className="text-xs font-medium text-foreground">{nicheCtx.categoryLabel}</Label>
@@ -723,7 +723,7 @@ export function UnifiedNewProductPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium text-foreground">Slug URL</Label>
                     <Input
@@ -783,7 +783,7 @@ export function UnifiedNewProductPage() {
                     <span>Logística & Frete</span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1.5">
                       <Label className="text-xs font-medium text-foreground">Peso (kg)</Label>
                       <Input
@@ -806,7 +806,7 @@ export function UnifiedNewProductPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="space-y-1.5">
                       <Label className="text-xs font-medium text-foreground">Largura (cm)</Label>
                       <Input
@@ -847,7 +847,7 @@ export function UnifiedNewProductPage() {
                   <span>Precificação & Margens</span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium text-foreground">Preço de Venda (R$) *</Label>
                     <Controller
@@ -879,7 +879,7 @@ export function UnifiedNewProductPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium text-muted-foreground">Preço de Custo (R$)</Label>
                     <Controller
@@ -913,7 +913,7 @@ export function UnifiedNewProductPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium text-foreground">Estoque Inicial</Label>
                     <Input
@@ -1076,7 +1076,7 @@ export function UnifiedNewProductPage() {
 
         {/* COLUNA DIREITA: PREVIEW REAL DA VITRINE (7 COLUNAS STICKY) */}
         <div className="lg:col-span-7 lg:sticky lg:top-24">
-          <div className="bg-card rounded-3xl overflow-hidden border border-border/80 shadow-md">
+          <div className="bg-card rounded-2xl overflow-hidden border border-border/80 shadow-md">
             {/* Header do Mockup */}
             <div className="bg-muted/40 px-5 py-3 border-b flex items-center justify-between">
               <div className="flex items-center gap-2">
