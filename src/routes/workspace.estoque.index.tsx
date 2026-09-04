@@ -45,7 +45,7 @@ import { getStockLevels, adjustStock } from "@/services/stock.functions";
 import { StockAuditDialog } from "@/components/admin/stock-audit-dialog";
 
 export const Route = createFileRoute("/workspace/estoque/")({
-  head: () => ({ meta: [{ title: "Estoque Operacional" }] }),
+  head: () => ({ meta: [{ title: "Estoque Operacional | Workspace JAH Master OS" }] }),
   loader: async () => {
     const res = await getStockLevels({ data: {} }).catch(() => []);
     return res || [];

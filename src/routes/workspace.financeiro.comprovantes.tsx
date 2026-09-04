@@ -35,7 +35,7 @@ import { EmptyState } from "@/components/state/states";
 import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/workspace/financeiro/comprovantes")({
-  head: () => ({ meta: [{ title: "Comprovantes" }] }),
+  head: () => ({ meta: [{ title: "Comprovantes | Workspace JAH Master OS" }] }),
   loader: async () => {
     const res = await listPendingManualPayments();
     return res;

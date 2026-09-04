@@ -28,7 +28,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/workspace/moderacao/kyc")({
-  head: () => ({ meta: [{ title: "Auditoria KYC" }] }),
+  head: () => ({ meta: [{ title: "Auditoria KYC | Workspace JAH Master OS" }] }),
   loader: async () => {
     try {
       const verifications = await listKycVerificationsForAdmin({ data: { status: "under_review" } });

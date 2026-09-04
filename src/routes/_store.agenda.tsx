@@ -70,7 +70,7 @@ const MONTH_NAMES = [
 export const Route = createFileRoute("/_store/agenda")({
   head: () => ({
     meta: [
-      { title: "Agenda Cultural & Shows — Wider" },
+      { title: "Agenda Cultural & Shows" },
       {
         name: "description",
         content: "Descubra os principais shows, festivais gastronômicos, feiras e workshops da cidade filtrados por dia.",

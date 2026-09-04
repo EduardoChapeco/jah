@@ -46,7 +46,7 @@ import {
 } from "@/services/tokens.functions";
 
 export const Route = createFileRoute("/workspace/tokens")({
-  head: () => ({ meta: [{ title: "Tokens & Aceleração | Wider Workspace" }] }),
+  head: () => ({ meta: [{ title: "Tokens & Aceleração | Workspace JAH Master OS" }] }),
   loader: async () => {
     try {
       const [wallet, growth, economy] = await Promise.all([

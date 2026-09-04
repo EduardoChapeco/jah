@@ -17,7 +17,7 @@ import { getUserSession } from "@/services/auth.functions";
 export const Route = createFileRoute("/_store/mural")({
   head: () => ({
     meta: [
-      { title: "Feed da Comunidade — Wider" },
+      { title: "Feed da Comunidade" },
       {
         name: "description",
         content: "Explore vivências, fotos, moments da rua e novidades de quem você segue na comunidade.",

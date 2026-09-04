@@ -30,7 +30,7 @@ import { formatMoney } from "@/lib/money";
 import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/_store/conta/negociacoes")({
-  head: () => ({ meta: [{ title: "Minhas Negociações & Reservas — Wider" }] }),
+  head: () => ({ meta: [{ title: "Minhas Negociações & Reservas | JAH Master OS" }] }),
   component: NegociacoesPage,
 });
 

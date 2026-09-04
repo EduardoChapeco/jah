@@ -27,7 +27,7 @@ import { formatDateTime } from "@/lib/datetime";
 import { ErrorState } from "@/components/state/states";
 
 export const Route = createFileRoute("/admin-master/denuncias")({
-  head: () => ({ meta: [{ title: "Trust & Safety — Central de Denúncias" }] }),
+  head: () => ({ meta: [{ title: "Trust & Safety — Central de Denúncias | Admin JAH Master OS" }] }),
   loader: async () => {
     try {
       const reports = await listModerationReports({ data: { status: "all" } }).catch(() => []);

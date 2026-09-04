@@ -40,7 +40,7 @@ import { PageHeader } from "@/components/commerce/page-header";
 import { EmptyState } from "@/components/state/states";
 
 export const Route = createFileRoute("/workspace/noticias/")({
-  head: () => ({ meta: [{ title: "Redação & Gestão de Notícias | Wider Workspace" }] }),
+  head: () => ({ meta: [{ title: "Redação & Gestão de Notícias | Workspace JAH Master OS" }] }),
   loader: async () => {
     const [articles, tips, mined] = await Promise.all([
       listWorkspaceArticles().catch(() => []),

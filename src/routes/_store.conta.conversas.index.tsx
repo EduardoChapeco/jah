@@ -7,7 +7,7 @@ import { listCustomerChatThreads } from "@/services/chat.functions";
 import { formatRelativeTime } from "@/lib/datetime";
 
 export const Route = createFileRoute("/_store/conta/conversas/")({
-  head: () => ({ meta: [{ title: "Minhas Conversas & Atendimento — Wider" }] }),
+  head: () => ({ meta: [{ title: "Minhas Conversas & Atendimento | JAH Master OS" }] }),
   loader: async () => {
     return (await listCustomerChatThreads().catch(() => [])) || [];
   },

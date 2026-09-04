@@ -34,7 +34,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_store/conta/viagens")({
   head: () => ({
     meta: [
-      { title: "Minhas Viagens & Vouchers — Wider" },
+      { title: "Minhas Viagens & Vouchers | JAH Master OS" },
       { name: "description", content: "Consulte seus vouchers, reservas de turismo e passeios confirmados." },
     ],
   }),

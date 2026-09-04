@@ -25,7 +25,7 @@ import { toast } from "sonner";
 import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/workspace/configuracoes/fretes/cotacoes")({
-  head: () => ({ meta: [{ title: "Cotações de Frete" }] }),
+  head: () => ({ meta: [{ title: "Cotações de Frete | Workspace JAH Master OS" }] }),
   loader: async () => {
     const [zonesRes, pendingRes] = await Promise.all([
       listShippingZones(),

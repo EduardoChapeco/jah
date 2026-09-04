@@ -22,7 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/workspace/eventos/$id/checkin")({
-  head: () => ({ meta: [{ title: "Portaria / Check-in de Ingressos — Wider" }] }),
+  head: () => ({ meta: [{ title: "Portaria & Check-in de Ingressos | Workspace JAH Master OS" }] }),
   loader: async ({ params }) => {
     try {
       const event = await getEventWithLots({ data: { eventId: (params as any).id } });

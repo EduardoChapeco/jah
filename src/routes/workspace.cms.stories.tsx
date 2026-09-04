@@ -45,7 +45,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/workspace/cms/stories")({
-  head: () => ({ meta: [{ title: "Stories & Collabs (CMS)" }] }),
+  head: () => ({ meta: [{ title: "Stories & Collabs (CMS) | Workspace JAH Master OS" }] }),
   loader: async () => {
     const [storiesRes, collabsRes] = await Promise.all([
       listAdminStories().catch(() => []),

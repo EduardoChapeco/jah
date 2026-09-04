@@ -9,7 +9,7 @@ import { listContracts } from "@/services/contracts.functions";
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/contratos/")({
-  head: () => ({ meta: [{ title: "Meus Contratos" }] }),
+  head: () => ({ meta: [{ title: "Meus Contratos | Workspace JAH Master OS" }] }),
   loader: async () => {
     const contracts = await listContracts().catch(() => []);
     return { contracts };

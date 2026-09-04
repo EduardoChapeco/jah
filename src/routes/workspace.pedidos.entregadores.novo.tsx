@@ -26,7 +26,7 @@ import { toast } from "sonner";
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/pedidos/entregadores/novo")({
-  head: () => ({ meta: [{ title: "Novo Entregador — Wider Workspace" }] }),
+  head: () => ({ meta: [{ title: "Novo Entregador | Workspace JAH Master OS" }] }),
   component: NovoEntregadorPage,
 });
 

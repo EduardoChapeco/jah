@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/configuracoes/parceiros")({
-  head: () => ({ meta: [{ title: "Configurações de Parceiros — Wider Workspace" }] }),
+  head: () => ({ meta: [{ title: "Configurações de Parceiros | Workspace JAH Master OS" }] }),
   loader: async () => {
     const profile = await getMyCommissionProfile();
     return { initialProfile: profile };

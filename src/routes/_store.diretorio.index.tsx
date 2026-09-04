@@ -50,7 +50,7 @@ const DIRECTORY_CATEGORIES: FilterChipOption[] = [
 export const Route = createFileRoute("/_store/diretorio/")({
   head: () => ({
     meta: [
-      { title: "Guia & Diretório de Empresas e Serviços — Wider" },
+      { title: "Guia & Diretório de Empresas e Serviços" },
       {
         name: "description",
         content:

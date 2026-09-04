@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_store/conta/creditos")({
-  head: () => ({ meta: [{ title: "Meus Créditos" }] }),
+  head: () => ({ meta: [{ title: "Meus Créditos | JAH Master OS" }] }),
   loader: async () => {
     return (
       (await getCustomerCredits().catch(() => ({

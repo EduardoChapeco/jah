@@ -46,7 +46,7 @@ import { Surface } from "@/components/ui/surface";
 import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/_store/conta/pagamentos")({
-  head: () => ({ meta: [{ title: "Central de Pagamentos & Parcelas" }] }),
+  head: () => ({ meta: [{ title: "Central de Pagamentos & Parcelas | JAH Master OS" }] }),
   loader: async () => {
     const [plans, orders, receivables] = await Promise.all([
       getCustomerInstallments().catch(() => []),

@@ -54,7 +54,7 @@ import { NicheOperationalGuard } from "@/components/workspace/niche-operational-
 import { getStoreSettings } from "@/services/store.functions";
 
 export const Route = createFileRoute("/workspace/pedidos/gestor")({
-  head: () => ({ meta: [{ title: "KDS - Gestor de Pedidos em Tempo Real" }] }),
+  head: () => ({ meta: [{ title: "KDS - Gestor de Pedidos em Tempo Real | Workspace JAH Master OS" }] }),
   loader: async () => {
     const { getUserSession } = await import("@/services/auth.functions");
     const [session, res, store] = await Promise.all([

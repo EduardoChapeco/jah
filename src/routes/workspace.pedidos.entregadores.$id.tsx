@@ -36,7 +36,7 @@ import { EmptyState } from "@/components/state/states";
 
 export const Route = createFileRoute("/workspace/pedidos/entregadores/$id")({
   head: () => ({
-    meta: [{ title: "Detalhe do Entregador — Wider Workspace" }],
+    meta: [{ title: "Detalhe do Entregador | Workspace JAH Master OS" }],
   }),
   loader: async ({ params }) => {
     const couriers = await listCouriers({ data: {} }).catch(() => []);

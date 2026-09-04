@@ -16,7 +16,7 @@ import { EmptyState } from "@/components/state/states";
 import { getStockMovements } from "@/services/stock.functions";
 
 export const Route = createFileRoute("/workspace/estoque/movimentos")({
-  head: () => ({ meta: [{ title: "Movimentos de estoque" }] }),
+  head: () => ({ meta: [{ title: "Movimentos de estoque | Workspace JAH Master OS" }] }),
   loader: async () => {
     return (await getStockMovements({ data: { limit: 100 } })) || [];
   },

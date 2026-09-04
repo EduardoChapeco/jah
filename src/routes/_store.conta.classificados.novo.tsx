@@ -69,7 +69,7 @@ const ClassifiedSearchSchema = z.object({
 
 export const Route = createFileRoute("/_store/conta/classificados/novo")({
   validateSearch: ClassifiedSearchSchema,
-  head: () => ({ meta: [{ title: "Criar Classificado — Wider" }] }),
+  head: () => ({ meta: [{ title: "Criar Classificado | JAH Master OS" }] }),
   component: NovoClassificadoPage,
 });
 

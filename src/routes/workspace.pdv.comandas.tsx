@@ -45,7 +45,7 @@ import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/pdv/comandas")({
-  head: () => ({ meta: [{ title: "Salão & Comandas | PDV" }] }),
+  head: () => ({ meta: [{ title: "Salão & Comandas | PDV | Workspace JAH Master OS" }] }),
   loader: async () => {
     try {
       const [tables, store] = await Promise.all([

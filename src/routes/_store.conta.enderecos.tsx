@@ -21,7 +21,7 @@ import {
 import { CitySelect } from "@/components/ui/city-select";
 
 export const Route = createFileRoute("/_store/conta/enderecos")({
-  head: () => ({ meta: [{ title: "Meus Endereços" }] }),
+  head: () => ({ meta: [{ title: "Meus Endereços | JAH Master OS" }] }),
   loader: async () => {
     return (await getCustomerAddresses().catch(() => [])) || [];
   },

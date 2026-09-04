@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/workspace/financeiro/recebiveis")({
-  head: () => ({ meta: [{ title: "Contas a Receber" }] }),
+  head: () => ({ meta: [{ title: "Contas a Receber | Workspace JAH Master OS" }] }),
   loader: async () => {
     try {
       const receivables = await listUserReceivables();

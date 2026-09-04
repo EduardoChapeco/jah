@@ -33,7 +33,7 @@ import { listAdminEvents, upsertEvent } from "@/services/events.functions";
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/eventos/")({
-  head: () => ({ meta: [{ title: "Gestão de Eventos & Produtora — Wider" }] }),
+  head: () => ({ meta: [{ title: "Gestão de Eventos & Produtora | Workspace JAH Master OS" }] }),
   loader: async () => {
     try {
       const events = await listAdminEvents();

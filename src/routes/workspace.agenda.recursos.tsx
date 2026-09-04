@@ -10,7 +10,7 @@ import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/state/states";
 
 export const Route = createFileRoute("/workspace/agenda/recursos")({
-  head: () => ({ meta: [{ title: "Gestão de Recursos" }] }),
+  head: () => ({ meta: [{ title: "Gestão de Recursos | Workspace JAH Master OS" }] }),
   component: AdminResourcesPage,
 });
 

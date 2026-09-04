@@ -22,7 +22,7 @@ import {
 
 export const Route = createFileRoute("/_store/conta/mobilidade")({
   head: () => ({
-    meta: [{ title: "Minhas Corridas & Mudanças — Wider" }],
+    meta: [{ title: "Minhas Corridas & Mudanças | JAH Master OS" }],
   }),
   loader: async () => {
     const requests = await listCustomerMobilityRequests().catch(() => []);

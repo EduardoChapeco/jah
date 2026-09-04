@@ -36,7 +36,7 @@ import {
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/agenda/servicos/")({
-  head: () => ({ meta: [{ title: "Serviços & Procedimentos — Wider Workspace" }] }),
+  head: () => ({ meta: [{ title: "Serviços & Procedimentos | Workspace JAH Master OS" }] }),
   component: ServicesIndexPage,
 });
 

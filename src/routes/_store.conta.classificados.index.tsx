@@ -26,7 +26,7 @@ function isVideoUrl(url?: string | null): boolean {
 }
 
 export const Route = createFileRoute("/_store/conta/classificados/")({
-  head: () => ({ meta: [{ title: "Meus Anúncios — Wider" }] }),
+  head: () => ({ meta: [{ title: "Meus Anúncios | JAH Master OS" }] }),
   component: ClassificadosIndex,
 });
 

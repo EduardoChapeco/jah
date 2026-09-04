@@ -27,7 +27,7 @@ import { processUrlWithAI } from "@/services/mining.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/workspace/noticias/novo")({
-  head: () => ({ meta: [{ title: "Nova Matéria | Redação Wider" }] }),
+  head: () => ({ meta: [{ title: "Nova Matéria | Redação JAH | Workspace JAH Master OS" }] }),
   component: WorkspaceNovaMateriaPage,
 });
 

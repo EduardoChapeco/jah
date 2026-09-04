@@ -26,7 +26,7 @@ import { uploadPaymentReceipt } from "@/services/payment.functions";
 import { getDeliveryProofsByOrderId, type DeliveryProof } from "@/services/dispatch.functions";
 
 export const Route = createFileRoute("/_store/conta/pedidos/$id")({
-  head: () => ({ meta: [{ title: "Detalhes do Pedido" }] }),
+  head: () => ({ meta: [{ title: "Detalhes do Pedido | JAH Master OS" }] }),
   loader: async ({ params }) => {
     const [orderRes, instrRes, proofs] = await Promise.all([
       getCustomerOrder({ data: { orderId: params.id } }),

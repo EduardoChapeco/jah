@@ -43,7 +43,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_store/mobilidade")({
   head: () => ({
     meta: [
-      { title: "Solicitar Corrida & Entregas — Wider Mobility" },
+      { title: "Solicitar Corrida & Entregas | JAH Master OS" },
       {
         name: "description",
         content:

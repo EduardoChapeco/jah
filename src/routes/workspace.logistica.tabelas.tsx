@@ -25,7 +25,7 @@ import {
 
 export const Route = createFileRoute("/workspace/logistica/tabelas")({
   head: () => ({
-    meta: [{ title: "Tabelas de Preço de Frete & KM | Wider Workspace" }],
+    meta: [{ title: "Tabelas de Preço de Frete & KM | Workspace JAH Master OS" }],
   }),
   loader: async () => {
     try {

@@ -8,7 +8,7 @@ import { RefreshCw, Package, Truck, FileText } from "lucide-react";
 import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/_store/conta/trocas")({
-  head: () => ({ meta: [{ title: "Trocas e Devoluções" }] }),
+  head: () => ({ meta: [{ title: "Trocas e Devoluções | JAH Master OS" }] }),
   loader: async () => {
     return (await listCustomerRmas().catch(() => [])) || [];
   },

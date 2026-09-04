@@ -23,7 +23,7 @@ import {
 
 export const Route = createFileRoute("/_store/conta/candidaturas")({
   head: () => ({
-    meta: [{ title: "Minhas Candidaturas & Processos Seletivos — Wider" }],
+    meta: [{ title: "Minhas Candidaturas & Processos Seletivos | JAH Master OS" }],
   }),
   loader: async () => {
     const applications = await listMyJobApplications().catch(() => []);

@@ -12,7 +12,7 @@ import { formatDate } from "@/lib/datetime";
 // ---------------------------------------------------------------------------
 
 export const Route = createFileRoute("/_store/conta/avaliacoes")({
-  head: () => ({ meta: [{ title: "Minhas Avaliações" }] }),
+  head: () => ({ meta: [{ title: "Minhas Avaliações | JAH Master OS" }] }),
   loader: async () => {
     return (await listCustomerReviews().catch(() => [])) || [];
   },

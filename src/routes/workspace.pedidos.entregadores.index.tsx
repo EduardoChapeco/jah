@@ -28,7 +28,7 @@ import { formatMoney } from "@/lib/money";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/workspace/pedidos/entregadores/")({
-  head: () => ({ meta: [{ title: "Entregadores — Wider Workspace" }] }),
+  head: () => ({ meta: [{ title: "Entregadores | Workspace JAH Master OS" }] }),
   loader: async () => {
     const data = await listCouriers({ data: {} });
     return { initialData: data };

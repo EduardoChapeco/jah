@@ -25,7 +25,7 @@ import { formatMoney } from "@/lib/money";
 import { formatDateTime } from "@/lib/datetime";
 
 export const Route = createFileRoute("/workspace/marketing/carrinhos")({
-  head: () => ({ meta: [{ title: "Carrinhos Abandonados" }] }),
+  head: () => ({ meta: [{ title: "Carrinhos Abandonados | Workspace JAH Master OS" }] }),
   loader: async () => {
     return await listAbandonedCarts();
   },

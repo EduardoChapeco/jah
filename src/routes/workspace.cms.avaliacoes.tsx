@@ -19,7 +19,7 @@ import { listReviews, updateReviewStatus } from "@/services/cms.functions";
 import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/workspace/cms/avaliacoes")({
-  head: () => ({ meta: [{ title: "Avaliações (CMS)" }] }),
+  head: () => ({ meta: [{ title: "Avaliações & Moderação | Workspace JAH Master OS" }] }),
   loader: async () => {
     const res = await listReviews();
     return res || [];

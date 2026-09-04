@@ -7,7 +7,7 @@ import { formatDate } from "@/lib/datetime";
 import { listCustomerOrders } from "@/services/order.functions";
 
 export const Route = createFileRoute("/_store/conta/ingressos")({
-  head: () => ({ meta: [{ title: "Meus Ingressos & Eventos — Wider" }] }),
+  head: () => ({ meta: [{ title: "Meus Ingressos & Eventos | JAH Master OS" }] }),
   loader: async () => {
     const orders = (await listCustomerOrders().catch(() => [])) || [];
     // Filtra itens de ingresso ou eventos

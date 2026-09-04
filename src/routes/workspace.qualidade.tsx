@@ -35,7 +35,7 @@ import {
 } from "@/services/curadoria.functions";
 
 export const Route = createFileRoute("/workspace/qualidade")({
-  head: () => ({ meta: [{ title: "Qualidade & Curadoria | Wider Workspace" }] }),
+  head: () => ({ meta: [{ title: "Qualidade & Curadoria | Workspace JAH Master OS" }] }),
   loader: async () => {
     try {
       const audits = await getStoreMysteryAudits();

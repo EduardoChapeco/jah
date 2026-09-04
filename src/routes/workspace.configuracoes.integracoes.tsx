@@ -29,7 +29,7 @@ import {
 } from "@/services/secret-vault.functions";
 
 export const Route = createFileRoute("/workspace/configuracoes/integracoes")({
-  head: () => ({ meta: [{ title: "Integrações & APIs" }] }),
+  head: () => ({ meta: [{ title: "Integrações & APIs | Workspace JAH Master OS" }] }),
   loader: async () => {
     const [integrations, secrets] = await Promise.all([
       listIntegrationSettings().catch(() => []),

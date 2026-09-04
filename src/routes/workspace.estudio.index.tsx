@@ -58,7 +58,7 @@ import { getProductById } from "@/services/admin-catalog.functions";
 import { exportElementAsImage } from "@/lib/pdf-export";
 
 export const Route = createFileRoute("/workspace/estudio/")({
-  head: () => ({ meta: [{ title: "Wider Studio 3.0 — Criação & Vídeo" }] }),
+  head: () => ({ meta: [{ title: "JAH Studio — Criação & Vídeo | Workspace JAH Master OS" }] }),
   validateSearch: (search: Record<string, unknown>) => {
     return {
       projectId: search.projectId as string | undefined,

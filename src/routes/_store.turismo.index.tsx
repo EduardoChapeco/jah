@@ -38,7 +38,7 @@ import { resolveNicheDepartments } from "@/lib/niche-helpers";
 export const Route = createFileRoute("/_store/turismo/")({
   head: () => ({
     meta: [
-      { title: "Turismo, Viagens & Lazer Regional — Wider" },
+      { title: "Turismo, Viagens & Lazer Regional" },
       {
         name: "description",
         content:

@@ -49,7 +49,7 @@ const JOB_CATEGORY_CHIPS: FilterChipOption[] = [
 export const Route = createFileRoute("/_store/empregos/")({
   head: () => ({
     meta: [
-      { title: "Vagas de Emprego, Carreiras & Estágios — Wider" },
+      { title: "Vagas de Emprego, Carreiras & Estágios" },
       {
         name: "description",
         content:

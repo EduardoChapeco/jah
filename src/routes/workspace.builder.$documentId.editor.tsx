@@ -24,7 +24,7 @@ import type { SectionTemplate } from "@/lib/builder-types";
 import { builderRegistry } from "@/lib/builder-registry";
 
 export const Route = createFileRoute("/workspace/builder/$documentId/editor")({
-  head: () => ({ meta: [{ title: "Construtor Visual de Páginas — Wix Studio Standard" }] }),
+  head: () => ({ meta: [{ title: "Editor Visual de Páginas | Workspace JAH Master OS" }] }),
   loader: async ({ params }) => {
     const [docData, categories, collections, productsRes] = await Promise.all([
       getExperienceDocument({ data: { id: params.documentId } }),

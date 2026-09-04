@@ -40,7 +40,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_store/mapa")({
   head: () => ({
     meta: [
-      { title: "Mapa Interativo da Cidade — Wider" },
+      { title: "Mapa Interativo da Cidade" },
       {
         name: "description",
         content: "Descubra lugares, eventos, vibes e moments ao vivo na sua região.",

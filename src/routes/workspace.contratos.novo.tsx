@@ -17,7 +17,7 @@ import {
 import { createContract } from "@/services/contracts.functions";
 
 export const Route = createFileRoute("/workspace/contratos/novo")({
-  head: () => ({ meta: [{ title: "Novo Contrato" }] }),
+  head: () => ({ meta: [{ title: "Novo Contrato | Workspace JAH Master OS" }] }),
   component: NovoContratoPage,
 });
 

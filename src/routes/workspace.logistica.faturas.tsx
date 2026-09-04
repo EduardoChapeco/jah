@@ -26,7 +26,7 @@ import {
 
 export const Route = createFileRoute("/workspace/logistica/faturas")({
   head: () => ({
-    meta: [{ title: "Faturas & Repasses de Frota | Wider Workspace" }],
+    meta: [{ title: "Faturas & Repasses de Frota | Workspace JAH Master OS" }],
   }),
   component: WorkspaceLogisticsInvoicesPage,
 });

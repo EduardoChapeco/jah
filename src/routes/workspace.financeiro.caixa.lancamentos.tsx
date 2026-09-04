@@ -40,7 +40,7 @@ import { formatDateTime } from "@/lib/datetime";
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/financeiro/caixa/lancamentos")({
-  head: () => ({ meta: [{ title: "Lançamentos de Caixa" }] }),
+  head: () => ({ meta: [{ title: "Lançamentos de Caixa | Workspace JAH Master OS" }] }),
   loader: () => getActiveRegister(),
   component: CaixaLancamentosPage,
 });

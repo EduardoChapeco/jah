@@ -7,7 +7,7 @@ import { listCustomerOrders } from "@/services/order.functions";
 import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/_store/conta/pedidos/")({
-  head: () => ({ meta: [{ title: "Meus Pedidos" }] }),
+  head: () => ({ meta: [{ title: "Meus Pedidos | JAH Master OS" }] }),
   loader: async () => {
     return (await listCustomerOrders().catch(() => [])) || [];
   },

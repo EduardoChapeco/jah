@@ -53,7 +53,7 @@ function isVideoUrl(url?: string | null): boolean {
 export const Route = createFileRoute("/_store/classificados/")({
   head: () => ({
     meta: [
-      { title: "Classificados, Imóveis & Hospedagem — Wider" },
+      { title: "Classificados, Imóveis & Hospedagem" },
       {
         name: "description",
         content:

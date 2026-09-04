@@ -12,7 +12,7 @@ import { getNavigationMenus, upsertNavigationMenu } from "@/services/cms.functio
 import { Card, CardContent } from "@/components/ui/card";
 
 export const Route = createFileRoute("/workspace/cms/navegacao")({
-  head: () => ({ meta: [{ title: "Menus de Navegação" }] }),
+  head: () => ({ meta: [{ title: "Menus de Navegação | Workspace JAH Master OS" }] }),
   loader: async () => {
     const res = await getNavigationMenus();
     return res || [];

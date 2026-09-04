@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/select";
 
 export const Route = createFileRoute("/_store/entrega/$token")({
-  head: () => ({ meta: [{ title: "Painel do Entregador | Wider Delivery" }] }),
+  head: () => ({ meta: [{ title: "Painel do Entregador | JAH Master OS" }] }),
   loader: async ({ params }) => {
     return await getDeliveryByToken({ data: { token: params.token } });
   },

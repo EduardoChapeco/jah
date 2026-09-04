@@ -23,7 +23,7 @@ import { SignatureCanvasPad } from "@/components/contracts/signature-canvas-pad"
 import { formatDate } from "@/lib/datetime";
 
 export const Route = createFileRoute("/assinar/$token")({
-  head: () => ({ meta: [{ title: "Assinatura Eletrônica de Documento — Wider" }] }),
+  head: () => ({ meta: [{ title: "Assinatura Eletrônica de Documento | JAH Master OS" }] }),
   loader: async ({ params }) => {
     try {
       const envelope = await getEnvelopeByToken({ data: params.token });

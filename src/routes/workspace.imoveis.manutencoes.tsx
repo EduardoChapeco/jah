@@ -39,7 +39,7 @@ import {
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/workspace/imoveis/manutencoes")({
-  head: () => ({ meta: [{ title: "Manutenções & Reparos de Imóveis" }] }),
+  head: () => ({ meta: [{ title: "Manutenções & Reparos de Imóveis | Workspace JAH Master OS" }] }),
   loader: () => listPropertyMaintenanceRequests(),
   component: PropertyMaintenanceDashboard,
 });
