@@ -280,7 +280,7 @@ export const verifyDocumentPublic = createServerFn({ method: "GET" })
           return {
             isValid: true,
             title: tourismContract.title,
-            category: "service_agreement",
+            category: "tourism",
             status: tourismContract.status === "signed" ? "sealed" : tourismContract.status,
             verificationCode: meta.certificate_serial || tourismContract.verification_code,
             createdAt: tourismContract.created_at,

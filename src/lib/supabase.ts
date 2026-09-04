@@ -177,3 +177,14 @@ export function isSupabaseConfigured(): boolean {
     throw e;
   }
 }
+
+/**
+ * Universal lazy proxy for convenience imports: import { supabase } from "@/lib/supabase".
+ */
+export const supabase: SupabaseClient = new Proxy({} as any, {
+  get(_target, prop) {
+    const client = typeof window !== "undefined" ? getBrowserClient() : getServerClient();
+    const val = (client as any)[prop];
+    return typeof val === "function" ? val.bind(client) : val;
+  },
+});

@@ -236,3 +236,131 @@ export const updateSupportTicketStatus = createServerFn({ method: "POST" })
     if (error) throw error;
     return updated;
   });
+
+// ---------------------------------------------------------------------------
+// SUPERVISÃO, HANDOVER & GESTÃO DE SLAS DE SUPORTE
+// ---------------------------------------------------------------------------
+
+export const handoverSupportTicket = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      ticket_id: z.string().uuid(),
+      target_operator_id: z.string().uuid(),
+      reason: z.string().min(5, "Motivo da transferência é obrigatório."),
+      internal_note: z.string().optional(),
+    })
+  )
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "support"]);
+    const db = getServerClient();
+
+    // 1. Atualizar operador responsável
+    const { data: updated, error } = await db
+      .from("operator_support_tickets")
+      .update({
+        assigned_to: data.target_operator_id,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", data.ticket_id)
+      .select()
+      .single();
+
+    if (error) throw new Error("Erro ao transferir chamado: " + error.message);
+
+    // 2. Registrar mensagem de sistema / nota interna
+    await db.from("operator_ticket_messages").insert({
+      ticket_id: data.ticket_id,
+      sender_profile_id: identity.id,
+      is_staff_reply: true,
+      message: `[TRANSFERÊNCIA DE ATENDIMENTO] Transferido por ${identity.name || "Supervisor"}. Motivo: ${data.reason}${data.internal_note ? ` | Nota: ${data.internal_note}` : ""}`,
+    });
+
+    return { status: "success", ticket: updated };
+  });
+
+export const escalateTicketSla = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      ticket_id: z.string().uuid(),
+      escalation_reason: z.string().min(3),
+    })
+  )
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "support"]);
+    const db = getServerClient();
+
+    const { data: updated, error } = await db
+      .from("operator_support_tickets")
+      .update({
+        priority: "urgent",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", data.ticket_id)
+      .select()
+      .single();
+
+    if (error) throw new Error("Erro ao escalar SLA do chamado: " + error.message);
+
+    await db.from("operator_ticket_messages").insert({
+      ticket_id: data.ticket_id,
+      sender_profile_id: identity.id,
+      is_staff_reply: true,
+      message: `[ALERTA DE ESCALAÇÃO DE SLA] Prioridade elevada para URGENTE. Motivo: ${data.escalation_reason}`,
+    });
+
+    return { status: "success", ticket: updated };
+  });
+
+export const listSupervisionDashboardMetrics = createServerFn({ method: "GET" })
+  .validator(z.object({ store_id: z.string().uuid() }))
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager"]);
+    const db = getServerClient();
+
+    const { data: tickets, error } = await db
+      .from("operator_support_tickets")
+      .select("id, status, priority, sla_due_at, created_at, updated_at")
+      .eq("store_id", data.store_id);
+
+    if (error) throw new Error("Erro ao calcular métricas de supervisão: " + error.message);
+
+    const all = tickets || [];
+    const openTickets = all.filter((t: any) => t.status === "open" || t.status === "in_progress");
+    const now = Date.now();
+
+    let withinSla = 0;
+    let nearBreachSla = 0; // Menos de 60 min para estourar
+    let breachedSla = 0;
+
+    for (const t of openTickets as any[]) {
+      if (!t.sla_due_at) {
+        withinSla++;
+        continue;
+      }
+      const due = new Date(t.sla_due_at).getTime();
+      const diffMinutes = Math.floor((due - now) / 60000);
+
+      if (diffMinutes < 0) {
+        breachedSla++;
+      } else if (diffMinutes <= 60) {
+        nearBreachSla++;
+      } else {
+        withinSla++;
+      }
+    }
+
+    return {
+      totalTickets: all.length,
+      activeTicketsCount: openTickets.length,
+      resolvedTicketsCount: all.filter((t: any) => t.status === "resolved" || t.status === "closed").length,
+      slaStatus: {
+        withinSla,
+        nearBreachSla,
+        breachedSla,
+        complianceRatePct: openTickets.length > 0 ? Math.round((withinSla / openTickets.length) * 100) : 100,
+      },
+    };
+  });

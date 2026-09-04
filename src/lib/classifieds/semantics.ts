@@ -7,32 +7,7 @@
  * 3. Cada nicho possui vocabulário, badges, fichas técnicas e CTAs contextuais dedicados.
  */
 
-import {
-  Home,
-  Building,
-  Key,
-  Car,
-  Tag,
-  Wrench,
-  Tractor,
-  Calendar,
-  Clock,
-  MapPin,
-  CheckCircle2,
-  ShieldCheck,
-  Package,
-  Truck,
-  Sparkles,
-  RefreshCw,
-  CreditCard,
-  QrCode,
-  FileCheck,
-  MessageCircle,
-  Phone,
-  Flame,
-  UserCheck,
-  Lock,
-} from "lucide-react";
+import { Home, Building, Key, Car, Tag, Wrench, Tractor, Calendar, Clock, MapPin, CheckCircle2, ShieldCheck, Package, Truck, Layers, RefreshCw, CreditCard, QrCode, FileCheck, MessageCircle, Phone, Flame, UserCheck, Lock } from 'lucide-react';
 
 export type ClassifiedNicheId =
   | "hospitality_stay"      // Hospedagem & Temporada (Chalés, Cabanas, Pousadas, Studios)
@@ -263,9 +238,9 @@ export function getSemanticBadges(classified: any): Array<{ label: string; icon:
   // Nicho: Imóvel (Venda ou Aluguel)
   if (niche.id === "real_estate_sale" || niche.id === "real_estate_rent") {
     if (attrs.furnished === "sim" || attrs.furnished === "completo") {
-      badges.push({ label: "100% Mobiliado", icon: Sparkles, variant: "outline" });
+      badges.push({ label: "100% Mobiliado", icon: Layers, variant: "outline" });
     } else if (attrs.furnished === "semi") {
-      badges.push({ label: "Semi-mobiliado", icon: Sparkles, variant: "outline" });
+      badges.push({ label: "Semi-mobiliado", icon: Layers, variant: "outline" });
     }
 
     if (attrs.accepts_financing) {

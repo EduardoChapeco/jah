@@ -110,4 +110,10 @@ const cleanRoutesJson = {
 fs.writeFileSync(routesJsonPath, JSON.stringify(cleanRoutesJson, null, 2));
 console.log("Successfully generated optimized dist/_routes.json for Cloudflare Pages.");
 
+// 3. Remove .wrangler build cache to avoid stale wrangler.json references
+const wranglerDeployDir = path.join(process.cwd(), ".wrangler");
+if (fs.existsSync(wranglerDeployDir)) {
+  fs.rmSync(wranglerDeployDir, { recursive: true, force: true });
+}
+
 

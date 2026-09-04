@@ -407,6 +407,34 @@ export const applyToClassifiedJob = createServerFn({ method: "POST" })
       throw new Error(error.message || "Falha ao enviar candidatura.");
     }
 
+    // Conexão Sistêmica: Se o classificado pertence a uma loja/empresa, gera Lead no Funil Comercial
+    const { data: item } = await supabase
+      .from("classified_items")
+      .select("id, title, store_id")
+      .eq("id", input.classified_id)
+      .maybeSingle();
+
+    if (item?.store_id) {
+      await supabase
+        .from("leads_crm")
+        .insert({
+          store_id: item.store_id,
+          full_name: input.candidate_name.trim(),
+          email: input.candidate_email || null,
+          phone: input.candidate_phone || null,
+          title: `Candidatura: ${item.title}`,
+          destination: `Classificado: ${item.title}`,
+          source: "site",
+          lead_source_detail: "Classificados / Vagas",
+          status: "new",
+          tags: ["Classificados", "Candidato", input.candidate_role || item.title],
+          notes: `Candidatura a vaga via classificados. Cargo pretendido: ${input.candidate_role || "Não informado"}. Experiência: ${input.experience_years || "Não informada"}. Escolaridade: ${input.education_level || "Não informada"}. Nota: ${input.cover_note || "Nenhuma"}.`,
+        })
+        .catch((err) => {
+          console.warn("[classifieds] Failed to sync to leads_crm:", err);
+        });
+    }
+
     return data;
   });
 

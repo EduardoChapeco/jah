@@ -43,7 +43,7 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
     return {
       id: null,
       role: "customer",
-      store_id: activeStoreId || "fc28a389-8bed-4d2d-a3ee-169bb5779293",
+      store_id: activeStoreId || "c6ccd3b2-aa54-42a2-b0fe-251daa5b97f7",
       memberships: [],
     };
   }

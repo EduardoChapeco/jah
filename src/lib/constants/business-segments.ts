@@ -1,22 +1,5 @@
 import React from "react";
-import {
-  Utensils,
-  ShoppingBag,
-  Store,
-  Scissors,
-  Pill,
-  Dog,
-  Ticket,
-  Smartphone,
-  Briefcase,
-  Building2,
-  Car,
-  Home,
-  Palette,
-  Dumbbell,
-  Compass,
-  Sparkles,
-} from "lucide-react";
+import { Utensils, ShoppingBag, Store, Scissors, Pill, Dog, Ticket, Smartphone, Briefcase, Building2, Car, Home, Palette, Dumbbell, Compass, Layers } from 'lucide-react';
 
 export interface BusinessSegment {
   id: string;
@@ -83,7 +66,7 @@ export const BUSINESS_SEGMENTS: BusinessSegment[] = [
     fullDesc: "Gestão de encomendas antecipadas com data de entrega, montagem de caixas de doces personalizadas e venda no balcão.",
     badge: "Encomendas & Balcão",
     modules: ["Agendamento de Encomendas", "Montagem de Caixas", "Controle de Insumos"],
-    icon: Sparkles,
+    icon: Layers,
     iconBg: "bg-pink-500/15",
     iconColor: "text-pink-500",
     gradient: "from-pink-950/90 via-black/60 to-black/90",

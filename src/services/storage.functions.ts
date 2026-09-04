@@ -14,13 +14,19 @@ const ALLOWED_MIME_TYPES = new Set([
   "video/webm",
   "video/quicktime",
   "application/pdf",
+  "text/plain",
+  "text/csv",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/zip",
+  "application/octet-stream",
 ]);
 
 function validateMimeType(contentType: string) {
   const cleanType = contentType.toLowerCase().split(";")[0].trim();
   if (!ALLOWED_MIME_TYPES.has(cleanType)) {
     throw new Error(
-      `Tipo de arquivo não permitido (${contentType}). Apenas imagens (JPEG, PNG, WebP, GIF, SVG), vídeos (MP4, WebM) e PDFs são aceitos.`
+      `Tipo de arquivo não permitido (${contentType}). Aceitos: imagens, vídeos, PDFs, documentos (DOC/DOCX) e textos/logs.`
     );
   }
 }

@@ -102,20 +102,20 @@ export const DataBindingSchema = z
   .catchall(z.unknown());
 
 export const ExperienceNodeSchema = z.object({
-  id: z.string().uuid().or(z.string()), // Accept both for now as some UI generators use non-uuids initially
+  id: z.string().min(1),
   version_id: z.string().uuid().optional(),
   parent_id: z.string().nullable().optional(),
   node_type: z.enum(["section", "container", "element", "composition"]),
   block_type: z.string(),
   layout_variant: z.string().nullable().optional(),
-  content: z.record(z.unknown()).default({}),
-  design_tokens: z.record(z.unknown()).default({}),
-  layout_rules: z.record(z.unknown()).default({}),
-  responsive_overrides: z.record(z.unknown()).default({}),
-  data_bindings: DataBindingSchema.default({}),
-  action_bindings: z.record(z.unknown()).default({}),
-  sort_order: z.number().default(0),
-  is_hidden: z.boolean().default(false),
+  content: z.record(z.unknown()).nullish().transform((v) => v ?? {}),
+  design_tokens: z.record(z.unknown()).nullish().transform((v) => v ?? {}),
+  layout_rules: z.record(z.unknown()).nullish().transform((v) => v ?? {}),
+  responsive_overrides: z.record(z.unknown()).nullish().transform((v) => v ?? {}),
+  data_bindings: DataBindingSchema.nullish().transform((v) => v ?? {}),
+  action_bindings: z.record(z.unknown()).nullish().transform((v) => v ?? {}),
+  sort_order: z.number().nullish().transform((v) => v ?? 0),
+  is_hidden: z.boolean().nullish().transform((v) => v ?? false),
   children: z.array(z.unknown()).optional(),
 });
 

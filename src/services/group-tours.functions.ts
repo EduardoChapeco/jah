@@ -59,6 +59,11 @@ export interface GroupTourDTO {
   included_items: string[];
   status: GroupTourStatus;
   notes?: string | null;
+  cover_image_url?: string | null;
+  boarding_points?: Array<{ city: string; time: string; location: string }> | null;
+  payment_conditions?: string | null;
+  vehicle_layout_id?: string | null;
+  vehicle_layout_name?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -104,10 +109,27 @@ export const createGroupTour = createServerFn({ method: "POST" })
       departureTime: z.string().default("06:00"),
       returnDate: z.string().min(1, "Data de retorno obrigatória"),
       returnTime: z.string().default("20:00"),
-      totalSeats: z.number().int().min(10).max(60).default(46),
+      totalSeats: z.number().int().min(10).max(100).default(46),
       priceCents: z.number().int().min(0).default(0),
       includedItems: z.array(z.string()).default([]),
       notes: z.string().optional(),
+      coverImageUrl: z.string().optional(),
+      vehicleLayoutId: z.string().optional(),
+      vehicleLayoutName: z.string().optional(),
+      boardingPoints: z
+        .array(
+          z.object({
+            city: z.string(),
+            time: z.string(),
+            location: z.string(),
+          })
+        )
+        .default([]),
+      paymentConditions: z.string().optional(),
+      busCompanyName: z.string().optional(),
+      busPlate: z.string().optional(),
+      driverName: z.string().optional(),
+      driverPhone: z.string().optional(),
     })
   )
   .handler(async ({ data: input }): Promise<{ success: boolean; id: string }> => {
@@ -118,7 +140,60 @@ export const createGroupTour = createServerFn({ method: "POST" })
       throw new Error("Não autorizado.");
     }
 
-    const defaultSeats = generateDefaultBusSeats(input.totalSeats);
+    let finalSeats = generateDefaultBusSeats(input.totalSeats);
+    let finalTotalSeats = input.totalSeats;
+
+    // Se um veículo da frota foi selecionado, importar o mapa de poltronas real dele!
+    if (input.vehicleLayoutId) {
+      const { data: vLayout } = await supabase
+        .from("vehicle_layouts")
+        .select("id, name, seat_map, total_capacity, is_double_decker")
+        .eq("id", input.vehicleLayoutId)
+        .maybeSingle();
+
+      if (vLayout && Array.isArray(vLayout.seat_map) && vLayout.seat_map.length > 0) {
+        const mappedSeats: BusSeatDTO[] = [];
+        let count = 0;
+        vLayout.seat_map.forEach((cell: any) => {
+          if (cell.type === "seat") {
+            count++;
+            const seatNum = parseInt(String(cell.label).replace(/\D/g, ""), 10) || count;
+            const colLetter: "A" | "B" | "C" | "D" =
+              cell.c === 0 ? "A" : cell.c === 1 ? "B" : cell.c === 3 ? "C" : "D";
+
+            mappedSeats.push({
+              seat_number: seatNum,
+              row: (cell.r ?? 0) + 1,
+              column: colLetter,
+              floor: (cell.deck === 2 ? 2 : 1) as 1 | 2,
+              status: cell.status === "blocked" ? "blocked" : "free",
+              passenger_name: null,
+              passenger_document: null,
+              passenger_phone: null,
+              boarding_point: null,
+            });
+          }
+        });
+
+        if (mappedSeats.length > 0) {
+          finalSeats = mappedSeats;
+          finalTotalSeats = mappedSeats.length;
+        }
+      }
+    }
+
+    const metaPayload = {
+      cover_image_url: input.coverImageUrl || null,
+      vehicle_layout_id: input.vehicleLayoutId || null,
+      vehicle_layout_name: input.vehicleLayoutName || null,
+      boarding_points: input.boardingPoints || [],
+      payment_conditions: input.paymentConditions || null,
+      bus_company_name: input.busCompanyName || null,
+      bus_plate: input.busPlate || null,
+      driver_name: input.driverName || null,
+      driver_phone: input.driverPhone || null,
+      notes: input.notes || null,
+    };
 
     const { data: inserted, error } = await supabase
       .from("tourism_experiences")
@@ -136,13 +211,13 @@ export const createGroupTour = createServerFn({ method: "POST" })
         return_time: input.returnTime,
         location: input.destination.trim(),
         price_cents: input.priceCents,
-        total_seats: input.totalSeats,
-        seats: defaultSeats,
+        total_seats: finalTotalSeats,
+        seats: finalSeats,
         rooms: [],
         included_items: input.includedItems,
         notes: input.notes?.trim() || null,
         status: "open",
-        description: input.notes?.trim() || `Excursão terrestre de ${input.departureCity} para ${input.destination}`,
+        description: JSON.stringify(metaPayload),
       })
       .select("id")
       .single();
@@ -205,6 +280,11 @@ export const getGroupTourById = createServerFn({ method: "GET" })
       included_items: row.included_items || [],
       status: (row.status === "published" ? "open" : row.status) || "open",
       notes: row.notes || meta.notes || null,
+      cover_image_url: meta.cover_image_url || null,
+      boarding_points: meta.boarding_points || [],
+      payment_conditions: meta.payment_conditions || null,
+      vehicle_layout_id: meta.vehicle_layout_id || null,
+      vehicle_layout_name: meta.vehicle_layout_name || null,
       created_at: row.created_at,
       updated_at: row.updated_at,
     };
@@ -337,6 +417,11 @@ export const listAgencyGroupTours = createServerFn({ method: "GET" })
         included_items: row.included_items || [],
         status: (row.status === "published" ? "open" : row.status) || "open",
         notes: row.notes || meta.notes || null,
+        cover_image_url: meta.cover_image_url || null,
+        boarding_points: meta.boarding_points || [],
+        payment_conditions: meta.payment_conditions || null,
+        vehicle_layout_id: meta.vehicle_layout_id || null,
+        vehicle_layout_name: meta.vehicle_layout_name || null,
         created_at: row.created_at,
         updated_at: row.updated_at,
       };
@@ -453,4 +538,22 @@ export const getGroupTourBudgetSummary = createServerFn({ method: "GET" })
       breakEvenPax,
       itemCount: allCosts.length,
     };
+  });
+
+// ─── 6. Excluir Excursão / Viagem em Grupo ────────────────────────────────────
+
+export const deleteGroupTour = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string().min(1) }))
+  .handler(async ({ data }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    if (!identity?.id) throw new Error("Não autorizado.");
+
+    let query = supabase.from("tourism_experiences").delete().eq("id", data.id);
+    if (identity.store_id) query = query.eq("store_id", identity.store_id);
+    else query = query.eq("author_profile_id", identity.id);
+
+    const { error } = await query;
+    if (error) throw new Error("Erro ao excluir excursão: " + error.message);
+    return { success: true };
   });

@@ -802,3 +802,30 @@ export const listAgencyTravelContracts = createServerFn({ method: "GET" })
       })
       .map((row: any) => rowToContractDTO(row, versionMap.get(row.id), null));
   });
+
+// ─── 7. Exclusão de Contrato de Viagem ────────────────────────────────────────
+
+export const deleteTravelContract = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string().uuid() }))
+  .handler(async ({ data }): Promise<{ success: boolean }> => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+
+    if (!identity?.id) throw new Error("Não autorizado.");
+
+    // Remove versões associadas primeiro
+    await supabase.from("contract_versions").delete().eq("contract_id", data.id);
+
+    // Remove o contrato
+    const { error } = await supabase
+      .from("contracts")
+      .delete()
+      .eq("id", data.id);
+
+    if (error) {
+      throw new Error(`Erro ao excluir contrato: ${error.message}`);
+    }
+
+    return { success: true };
+  });
+

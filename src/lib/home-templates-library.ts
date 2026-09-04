@@ -878,4 +878,102 @@ export const HOME_TEMPLATES_LIBRARY: Record<string, HomeTemplatePreset> = {
       ];
     },
   },
+  retail_omnichannel: {
+    id: "retail_omnichannel",
+    slug: "retail-omnichannel",
+    name: "Varejo & E-commerce Omnichannel",
+    category: "conversion",
+    description: "Vitrine de alta conversão para moda e varejo com carrossel hero, rail de produtos e trust badges.",
+    thumbnail: null,
+    tags: ["Varejo", "E-commerce", "Ofertas", "Conversão"],
+    nodesFactory: (uid) => {
+      const s1 = uid(); const c1 = uid();
+      const s2 = uid(); const c2 = uid();
+      return [
+        { id: s1, node_type: "section", block_type: "section", parent_id: null, sort_order: 0 },
+        { id: c1, node_type: "container", block_type: "container", parent_id: s1, sort_order: 0 },
+        { id: uid(), node_type: "composition", block_type: "hero_carousel", parent_id: c1, sort_order: 0, content: { title: "Super Liquidação de Coleção" } },
+        { id: s2, node_type: "section", block_type: "section", parent_id: null, sort_order: 1 },
+        { id: c2, node_type: "container", block_type: "container", parent_id: s2, sort_order: 0 },
+        { id: uid(), node_type: "composition", block_type: "product_rail", parent_id: c2, sort_order: 0, content: { title: "Mais Vendidos da Loja" }, data_bindings: { source: "top_sellers" } },
+      ];
+    },
+  },
+
+  tourism_travel_agency: {
+    id: "tourism_travel_agency",
+    slug: "tourism-travel-agency",
+    name: "Turismo & Agência de Viagens",
+    category: "storytelling",
+    description: "Portal completo de viagens com pacotes, itinerários, cotação instantânea e avaliações de viajantes.",
+    thumbnail: null,
+    tags: ["Turismo", "Viagens", "Pacotes", "Roteiros"],
+    nodesFactory: (uid) => {
+      const s1 = uid(); const c1 = uid();
+      return [
+        { id: s1, node_type: "section", block_type: "section", parent_id: null, sort_order: 0 },
+        { id: c1, node_type: "container", block_type: "container", parent_id: s1, sort_order: 0 },
+        { id: uid(), node_type: "composition", block_type: "hero_carousel", parent_id: c1, sort_order: 0, content: { title: "Descubra o Mundo dos Seus Sonhos" } },
+        { id: uid(), node_type: "composition", block_type: "bento_grid", parent_id: c1, sort_order: 1, content: { title: "Destinos em Alta" } },
+      ];
+    },
+  },
+
+  gastronomy_restaurant: {
+    id: "gastronomy_restaurant",
+    slug: "gastronomy-restaurant",
+    name: "Gastronomia & Restaurantes",
+    category: "conversion",
+    description: "Cardápio digital moderno, pratos do chef, reserva de mesas e pedidos para entrega.",
+    thumbnail: null,
+    tags: ["Gastronomia", "Restaurante", "Cardápio", "Delivery"],
+    nodesFactory: (uid) => {
+      const s1 = uid(); const c1 = uid();
+      return [
+        { id: s1, node_type: "section", block_type: "section", parent_id: null, sort_order: 0 },
+        { id: c1, node_type: "container", block_type: "container", parent_id: s1, sort_order: 0 },
+        { id: uid(), node_type: "composition", block_type: "hero_carousel", parent_id: c1, sort_order: 0, content: { title: "Culinária Autoral & Sabores Inesquecíveis" } },
+        { id: uid(), node_type: "composition", block_type: "bento_grid", parent_id: c1, sort_order: 1, content: { title: "Especialidades da Casa" } },
+      ];
+    },
+  },
+
+  corporate_services: {
+    id: "corporate_services",
+    slug: "corporate-services",
+    name: "Serviços & Consultoria Corporativa",
+    category: "general",
+    description: "Apresentação de planos, agendamento de reuniões, equipe de consultores e FAQ institucional.",
+    thumbnail: null,
+    tags: ["Serviços", "Consultoria", "B2B", "Corporativo"],
+    nodesFactory: (uid) => {
+      const s1 = uid(); const c1 = uid();
+      return [
+        { id: s1, node_type: "section", block_type: "section", parent_id: null, sort_order: 0 },
+        { id: c1, node_type: "container", block_type: "container", parent_id: s1, sort_order: 0 },
+        { id: uid(), node_type: "composition", block_type: "hero_carousel", parent_id: c1, sort_order: 0, content: { title: "Soluções Estratégicas para o seu Negócio" } },
+        { id: uid(), node_type: "composition", block_type: "trust_badges", parent_id: c1, sort_order: 1, content: { title: "Nossos Pilares de Excelência" } },
+      ];
+    },
+  },
+
+  real_estate_luxury: {
+    id: "real_estate_luxury",
+    slug: "real-estate-luxury",
+    name: "Imobiliário & Alto Padrão",
+    category: "fashion",
+    description: "Catálogo refinado de imóveis, busca inteligente por filtros, tour virtual e contato com corretores.",
+    thumbnail: null,
+    tags: ["Imobiliário", "Alto Padrão", "Imóveis", "Casas"],
+    nodesFactory: (uid) => {
+      const s1 = uid(); const c1 = uid();
+      return [
+        { id: s1, node_type: "section", block_type: "section", parent_id: null, sort_order: 0 },
+        { id: c1, node_type: "container", block_type: "container", parent_id: s1, sort_order: 0 },
+        { id: uid(), node_type: "composition", block_type: "hero_carousel", parent_id: c1, sort_order: 0, content: { title: "O Seu Próximo Lar de Luxo" } },
+        { id: uid(), node_type: "composition", block_type: "bento_grid", parent_id: c1, sort_order: 1, content: { title: "Imóveis Selecionados" } },
+      ];
+    },
+  },
+
 };

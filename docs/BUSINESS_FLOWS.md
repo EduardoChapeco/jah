@@ -1229,3 +1229,320 @@ Para evitar poluição visual e garantir uma experiência de compra instantânea
    - O lojista visualiza a prévia organizada em categorias e cards de itens antes de qualquer gravação no banco.
 5. **Criação Atômica Multi-Tenant (`batchCreateCatalogMenu`):**
    - O sistema cria/reutiliza as categorias na tabela `categories` e insere os produtos na tabela `products` do Supabase garantindo isolamento por `store_id` e semântica nativa.
+
+---
+
+## Módulo 25 — Ontologia dos Processos Mestres & Subprocessos Comerciais por Nicho
+
+> **Princípio Fundamental da Continuidade Sistêmica (The Seamless Commercial Backbone):**  
+> Nenhuma ferramenta, tela ou botão da plataforma Wider/Jah pode operar isolada ou como uma "casca desconexa". Cada ação do usuário faz parte de um **Processo Mestre (Master Process)** composto por **Subprocessos sequenciais e auditáveis**. Os dados fluem de ponta a ponta sem qualquer necessidade de redigitação manual.
+
+```mermaid
+graph TD
+  A[Captação / Descoberta Multi-Canal] --> B[Qualificação & Proposta / Cotação]
+  B --> C[Formalização / Contrato / Comanda / Agendamento]
+  C --> D[Execução Operacional / KDS / Emissão / Atendimento]
+  D --> E[Fechamento Financeiro / Split / Caixa / Comissões]
+  E --> F[CRM 360° / Carteira de Clientes / Fidelização / Recompra]
+  F --> A
+```
+
+---
+
+### 25.1 Nicho 1: Turismo, Agências de Viagens & Consultores (TravelAgências Standard)
+
+#### Processo Mestre: The Golden Chain (Captação ➔ Contrato ➔ Emissão ➔ Pós-Viagem)
+
+```
+[1. Lead CRM] ──> [2. Cotação Operadora] ──> [3. Lâmina Studio] ──> [4. Contrato Digital] ──> [5. Viagem / Voucher] ──> [6. Cliente 360°]
+  leads_crm       agency_travel_quotes        travel_proposals           travel_contracts            travel_trips             customers_crm
+```
+
+#### Subprocessos & Contratos de Dados:
+
+1. **Subprocesso 1.1 — Captação & Entrada de Lead:**
+   - **Tabelas Envolvidas:** `public.leads_crm`
+   - **BFF / Server Functions:** `createLead`, `submitContactForm`, `createLeadFromPublicQuote`
+   - **Telas / Rotas:** `/workspace/comercial` (Kanban Comercial), `/turismo` (Vitrine Pública)
+   - **Gatilho de Negócio:** O cliente solicita orçamento no site, envia WhatsApp ou o consultor registra atendimento no balcão.
+   - **Dados Capturados:** `store_id`, `full_name`, `phone`, `email`, `destination`, `pax_adults`, `pax_children`, `travel_start`, `travel_end`, `estimated_value_cents`.
+   - **Invariante:** O lead nasce no estágio `new` com checklist padrão instanciado.
+
+2. **Subprocesso 1.2 — Triagem de Tarifas & Cotação com Operadoras:**
+   - **Tabelas Envolvidas:** `public.agency_travel_quotes`
+   - **BFF / Server Functions:** `listAgencyTravelQuotes`, `createAgencyTravelQuote`, `updateAgencyTravelQuote`
+   - **Telas / Rotas:** `/workspace/turismo/cotacoes` (Central de Cotações)
+   - **Gatilho de Negócio:** O consultor pesquisa nos consolidadores (CVC, ViagensPromo, Decolar, RexturAdvance) e organiza o comparativo de voos e hotéis.
+   - **Conexão:** A partir do Kanban comercial (`/workspace/comercial`), o botão *"Cotação"* já carrega nome, telefone e destino preenchidos via query params.
+
+3. **Subprocesso 1.3 — Montagem e Envio da Lâmina Interativa (TravelOS Studio):**
+   - **Tabelas Envolvidas:** `public.travel_proposals`, `public.travel_proposal_rooms`
+   - **BFF / Server Functions:** `createTravelProposal`, `updateTravelProposalDraft`, `duplicateTravelProposal`
+   - **Telas / Rotas:** `/workspace/turismo/propostas`, `/workspace/turismo/propostas/$id`, `/proposta/$token` (Visualizador Público da Lâmina)
+   - **Gatilho de Negócio:** O consultor gera uma lâmina visual com roteiro dia-a-dia, fotos do hotel, voos com escalas e formas de parcelamento.
+   - **Conexão Automática:** Ao salvar a proposta com `leadId`, o sistema:
+     - Atualiza o lead em `leads_crm` para `status = 'proposal'`.
+     - Marca no checklist: *"Cotação / Proposta montada e enviada"*.
+     - Gera `public_token` único para visualização mobile pelo passageiro.
+
+4. **Subprocesso 1.4 — Aprovação, Formalização & Contrato Digital:**
+   - **Tabelas Envolvidas:** `public.travel_contracts`, `public.travel_contract_signatures`
+   - **BFF / Server Functions:** `createContractFromProposal`, `signTravelContract`
+   - **Telas / Rotas:** `/workspace/turismo/contratos`, `/contrato/$token`
+   - **Gatilho de Negócio:** O passageiro aceita a proposta. O sistema gera automaticamente a minuta de prestação de serviços com cláusulas de cancelamento Embratur.
+   - **Invariante:** O contrato exige assinatura com trilha de auditoria (IP, User-Agent e Hash SHA-256).
+
+5. **Subprocesso 1.5 — Conversão em Viagem, Emissão & Rooming List:**
+   - **Tabelas Envolvidas:** `public.travel_trips`, `public.travel_trip_passengers`
+   - **BFF / Server Functions:** `convertProposalToTrip`, `issueTravelVouchers`
+   - **Telas / Rotas:** `/workspace/turismo/viagens`, `/workspace/turismo/viagens/$id`
+   - **Gatilho de Negócio:** O pagamento da entrada/sinal é confirmado. A proposta é convertida em Viagem Operacional com localizadores aéreos (PNR), vouchers de hotel e apólices de seguro.
+   - **Conexão Automática:** `convertProposalToTrip` atualiza o Lead para `status = 'won'` com `closed_at = now()`.
+
+6. **Subprocesso 1.6 — Pós-Venda, Carteira de Passageiros & CRM 360°:**
+   - **Tabelas Envolvidas:** `public.customers_crm`, `public.customer_documents`
+   - **BFF / Server Functions:** `syncPassengerToCrm`, `uploadCustomerDocument`
+   - **Telas / Rotas:** `/workspace/clientes`, `/workspace/clientes/$id`
+   - **Gatilho de Negócio:** O histórico de viagens, passaportes, preferências de assento e milhagens ficam unificados na Ficha 360° do passageiro para reengajamento no próximo ano.
+
+---
+
+### 25.2 Nicho 2: Gastronomia, Bares & Restaurantes (Food & Beverage Standard)
+
+#### Processo Mestre: O Ciclo Omnichannel de Salão, Balcão & Delivery
+
+```
+[1. Cardápio / Reserva] ──> [2. Abertura Mesa] ──> [3. KDS Cozinha / Bar] ──> [4. Fechamento Split] ──> [5. Caixa / DRE] ──> [6. Fidelização CRM]
+   store_reservations           orders (table)          pdv.cozinha / items          closePdvComanda         cash_registers         customers_crm
+```
+
+#### Subprocessos & Contratos de Dados:
+
+1. **Subprocesso 2.1 — Reserva de Mesa & Gestão da Planta do Salão:**
+   - **Tabelas Envolvidas:** `public.store_reservations`, `public.store_floor_plans`
+   - **BFF / Server Functions:** `listStoreReservations`, `createStoreReservation`, `updateReservationStatus`, `getStoreFloorPlan`
+   - **Telas / Rotas:** `/workspace/reservas`, `/reservas` (Página Pública de Reserva de Mesas)
+   - **Gatilho de Negócio:** O cliente reserva mesa para aniversário ou jantar romântico informando horário, número de pessoas e observações de dieta.
+   - **Invariante:** Mesas na planta respeitam capacidade máxima de assentos.
+
+2. **Subprocesso 2.2 — Acomodação & Abertura de Comanda no PDV:**
+   - **Tabelas Envolvidas:** `public.orders` (`origin_type = 'table'`)
+   - **BFF / Server Functions:** `openTableComanda`, `updateReservationStatus`
+   - **Telas / Rotas:** `/workspace/pdv/comandas`
+   - **Conexão Automática:** Ao tocar em *"Acomodar"* ou *"Comanda PDV"* na reserva, o sistema abre atomicamente a comanda com a identificação da mesa e o nome do cliente, atualizando o status da reserva para `seated`.
+
+3. **Subprocesso 2.3 — Lançamento Mobile pelo Garçom & Disparo KDS:**
+   - **Tabelas Envolvidas:** `public.order_items`, `public.products`
+   - **BFF / Server Functions:** `addItemsToTableComanda`, `getKitchenLiveQueue`
+   - **Telas / Rotas:** `/workspace/pdv/comandas` (Modal Garçom), `/workspace/pdv/cozinha` (KDS)
+   - **Gatilho de Negócio:** O garçom lança bebidas e pratos pelo celular em no máximo 2 toques. O KDS toca bip sonoro imediato no bar e na cozinha.
+
+4. **Subprocesso 2.4 — Fechamento, Split de Pagamento & Baixa de Comanda:**
+   - **Tabelas Envolvidas:** `public.orders`, `public.order_payments`
+   - **BFF / Server Functions:** `closePdvComanda`, `requestTableBill`
+   - **Telas / Rotas:** `/workspace/pdv/comandas`, `/workspace/pdv`
+   - **Gatilho de Negócio:** A mesa pede a conta. O sistema calcula taxa de serviço opcional (10%), permite dividir em até 10 pagadores (Pix, Cartão, Dinheiro) e libera a mesa para status `free` (Verde).
+
+5. **Subprocesso 2.5 — Conciliação de Caixa & Fidelização:**
+   - **Tabelas Envolvidas:** `public.cash_registers`, `public.cash_transactions`, `public.customers_crm`
+   - **BFF / Server Functions:** `closeCashRegisterSession`, `syncCustomerPoints`
+   - **Telas / Rotas:** `/workspace/caixa`, `/workspace/clientes`
+   - **Gatilho de Negócio:** O valor liquidado alimenta a sangria/fechamento cego de caixa e pontua o cliente no programa de fidelidade.
+
+---
+
+### 25.3 Nicho 3: Varejo, E-commerce & Lojas Físicas (Retail Standard)
+
+#### Processo Mestre: Do Catálogo ao Despacho Logístico & Conciliação
+
+```
+[1. Catálogo & SKUs] ──> [2. Checkout Omnichannel] ──> [3. Baixa de Estoque] ──> [4. Despacho / MotoLink] ──> [5. Comissões & Trocas]
+      products                orders / checkout              inventory_ledger             delivery_orders              commissions / rma
+```
+
+#### Subprocessos & Contratos de Dados:
+
+1. **Subprocesso 3.1 — Engenharia de Catálogo & Variações SKU:**
+   - **Tabelas Envolvidas:** `public.products`, `public.product_skus`, `public.categories`
+   - **BFF / Server Functions:** `createProductWithSkus`, `listStoreProducts`
+   - **Telas / Rotas:** `/workspace/catalogo/produtos`, `/workspace/catalogo/categorias`
+   - **Invariante:** Dinheiro é armazenado estritamente em centavos BRL inteiros (`price_cents`).
+
+2. **Subprocesso 3.2 — Checkout Omnichannel (Balcão PDV & Loja Online):**
+   - **Tabelas Envolvidas:** `public.orders`, `public.order_items`
+   - **BFF / Server Functions:** `processPosOrder`, `createOnlineCheckout`
+   - **Telas / Rotas:** `/workspace/pdv`, `/:storeSlug/checkout`
+   - **Gatilho de Negócio:** A venda pode ocorrer presencialmente no PDV com leitor de código de barras ou na vitrine online com cálculo automático de taxa por bairro.
+
+3. **Subprocesso 3.3 — Baixa Atômica de Estoque & RMA / Devoluções:**
+   - **Tabelas Envolvidas:** `public.inventory_ledger`, `public.exchanges_returns`
+   - **BFF / Server Functions:** `atomicStockDecrement`, `processCustomerReturn`
+   - **Telas / Rotas:** `/workspace/estoque`, `/workspace/trocas`
+   - **Invariante:** Transação ACID impede estoque negativo em picos de venda simultânea.
+
+4. **Subprocesso 3.4 — Roteirização & Despacho MotoLink:**
+   - **Tabelas Envolvidas:** `public.delivery_orders`, `public.couriers`, `public.courier_payouts`
+   - **BFF / Server Functions:** `dispatchOrderToCourier`, `calculateDynamicSurgePricing`
+   - **Telas / Rotas:** `/workspace/entregas`, `/workspace/entregadores`
+   - **Gatilho de Negócio:** Pedidos locais despachados geram Link Mágico para o entregador visualizar rota com GPS sem exigir senha de login.
+
+5. **Subprocesso 3.5 — Fechamento de Caixa & Apuração de Comissões de Vendedoras:**
+   - **Tabelas Envolvidas:** `public.cash_registers`, `public.commissions`
+   - **BFF / Server Functions:** `closeCashRegisterSession`, `listSellerCommissions`
+   - **Telas / Rotas:** `/workspace/caixa`, `/workspace/equipe/comissoes`
+   - **Conexão Automática:** Cada venda no PDV vinculada a uma vendedora (`seller_id`) calcula a taxa percentual de comissão e gera o lançamento em `commissions` com status `pending` até a liquidação.
+
+---
+
+### 25.4 Nicho 4: Serviços, Saúde, Clínicas & Cursos (Services & Booking Standard)
+
+#### Processo Mestre: Ciclo de Agendamento, Execução Clínica & Apuração de Profissionais
+
+```
+[1. Pacote de Sessões] ──> [2. Grade / Agenda] ──> [3. Check-in & Prontuário] ──> [4. Baixa no Ledger] ──> [5. Repasse de Comissão]
+   service_packages            booking_appointments       clinical_records               service_pass_ledger        commissions
+```
+
+#### Subprocessos & Contratos de Dados:
+
+1. **Subprocesso 4.1 — Catálogo de Procedimentos & Venda de Pacotes:**
+   - **Tabelas Envolvidas:** `public.booking_services`, `public.service_packages`, `public.customer_service_passes`
+   - **BFF / Server Functions:** `listStoreBookingServices`, `createServicePackage`, `purchaseServicePass`
+   - **Telas / Rotas:** `/workspace/agenda/servicos`, `/workspace/agenda/pacotes`
+   - **Gatilho de Negócio:** O cliente adquire um pacote de 10 sessões de fisioterapia, pilates ou estética com desconto no cartão ou Pix.
+
+2. **Subprocesso 4.2 — Grade de Disponibilidade & Agendamento:**
+   - **Tabelas Envolvidas:** `public.booking_appointments`, `public.booking_resources`
+   - **BFF / Server Functions:** `listDayAppointments`, `redeem_service_pass_credit` (RPC)
+   - **Telas / Rotas:** `/workspace/agenda`, `/workspace/agenda/recursos`
+   - **Invariante:** Prevenção estrita de double-booking através de constraints de sobreposição temporal por profissional e sala.
+
+3. **Subprocesso 4.3 — Check-in, Atendimento & Prontuário Clínico (Anamnese):**
+   - **Tabelas Envolvidas:** `public.clinical_records`
+   - **BFF / Server Functions:** `addClinicalRecord`, `listClinicalRecords`
+   - **Telas / Rotas:** `/workspace/agenda` (Drawer de Evolução)
+   - **Gatilho de Negócio:** O profissional registra a evolução, notas de procedimento ou histórico alérgico diretamente no prontuário digital do cliente.
+
+4. **Subprocesso 4.4 — Conclusão, Baixa no Ledger & Repasse:**
+   - **Tabelas Envolvidas:** `public.service_pass_ledger`, `public.commissions`
+   - **BFF / Server Functions:** `updateAppointmentStatus`
+   - **Conexão Automática:** Ao concluir o atendimento (`status = 'completed'`), o sistema debita a sessão no extrato imutável do passe (`service_pass_ledger`) e lança a comissão do profissional.
+
+---
+
+### 25.5 Nicho 5: Imóveis, Autos & Classificados (Classifieds Standard)
+
+#### Processo Mestre: Anúncio, Captação de Interessados & Fechamento de Negócios
+
+```
+[1. Anúncio com Mídia] ──> [2. Vitrine Geográfica] ──> [3. Lead / Proposta] ──> [4. Negociação CRM] ──> [5. Formalização]
+    classified_items           searchClassifieds           leads_crm                 workspace.comercial        customers_crm
+```
+
+#### Subprocessos & Contratos de Dados:
+
+1. **Subprocesso 5.1 — Publicação de Anúncio com Mídia & Atributos:**
+   - **Tabelas Envolvidas:** `public.classified_items`, `public.classified_media`
+   - **BFF / Server Functions:** `createClassifiedItem`, `uploadClassifiedMedia`
+   - **Telas / Rotas:** `/workspace/classificados`, `/classificados/novo`
+   - **Gatilho de Negócio:** Proprietário ou imobiliária publica casa, apartamento ou veículo com fotos de alta resolução, preço e atributos técnicos (quartos, vagas, km).
+
+2. **Subprocesso 5.2 — Descoberta & Filtros Geográficos:**
+   - **Tabelas Envolvidas:** `public.classified_items`
+   - **BFF / Server Functions:** `searchClassifieds`, `getClassifiedDetail`
+   - **Telas / Rotas:** `/classificados`, `/classificados/$id`
+   - **Gatilho de Negócio:** Usuário busca imóveis na sua cidade por faixa de valor e tipo de negócio (venda ou locação).
+
+3. **Subprocesso 5.3 — Proposta / Lead Conectado ao CRM:**
+   - **Tabelas Envolvidas:** `public.leads_crm`, `public.classified_applications`
+   - **BFF / Server Functions:** `applyToClassifiedJob`, `submitContactForm`
+   - **Conexão Automática:** Se o classificado pertence a um anunciante comercial/loja, a proposta enviada cai imediatamente no Kanban Comercial (`/workspace/comercial`) com a tag `Classificados`, permitindo contato direto via WhatsApp.
+
+---
+
+### 25.6 Nicho 6: Eventos, Festas, Shows & Ingressos (Ticketing Standard)
+
+#### Processo Mestre: Loteamento, Bilheteria Digital, Portaria & Validação Anti-Fraude
+
+```
+[1. Evento & Lotes] ──> [2. Bilheteria Online] ──> [3. E-Ticket Seguro QR] ──> [4. Validação Portaria] ──> [5. Bordero / Repasse]
+      events                  tickets / orders            ticket_signatures            validateTicketEntry          financial_ledger
+```
+
+#### Subprocessos & Contratos de Dados:
+
+1. **Subprocesso 6.1 — Configuração de Lotes & Viradas de Preço:**
+   - **Tabelas Envolvidas:** `public.events`, `public.event_ticket_tiers`
+   - **BFF / Server Functions:** `createEventWithTiers`, `listStoreEvents`
+   - **Telas / Rotas:** `/workspace/eventos`
+   - **Gatilho de Negócio:** Produtor cria evento com Lote Promocional, 1º Lote e Área VIP com limites numéricos e datas de virada automática.
+
+2. **Subprocesso 6.2 — Compra com Trava de Lote:**
+   - **Tabelas Envolvidas:** `public.tickets`, `public.orders`
+   - **BFF / Server Functions:** `purchaseEventTicket`, `reserveTicketHold`
+   - **Telas / Rotas:** `/evento/$slug`, `/evento/$slug/ingressos`
+   - **Invariante:** Trava atômica no banco (Hold de 10 minutos) impede que o mesmo ingresso seja vendido para duas pessoas durante o checkout.
+
+3. **Subprocesso 6.3 — Emissão de E-ticket Seguro com Anti-Screenshot:**
+   - **Tabelas Envolvidas:** `public.tickets`
+   - **Telas / Rotas:** `/meus-ingressos/$token`
+   - **Invariante:** O QR Code regenera token temporal a cada 30 segundos para impedir fraudes com prints estáticos de tela.
+
+4. **Subprocesso 6.4 — Portaria Mobile & Validação de Entrada:**
+   - **BFF / Server Functions:** `validateTicketEntry`
+   - **Telas / Rotas:** `/workspace/eventos/$id/portaria`
+   - **Gatilho de Negócio:** Scanner de portaria lê o QR Code, valida autenticidade em menos de 200ms e marca o ingresso como `checked_in`.
+
+---
+
+### 25.7 Nicho 7: Recrutamento, Vagas Urbanas & Empregos (Job Hub Standard)
+
+#### Processo Mestre: Da Divulgação ao Funil de Contratação & Admissão
+
+```
+[1. Divulgação Vaga] ──> [2. Candidatura Salarial] ──> [3. Funil RH / CRM] ──> [4. Triagem & Entrevista] ──> [5. Admissão na Equipe]
+        jobs                   job_applications                 leads_crm              workspace.comercial          workspace_members
+```
+
+#### Subprocessos & Contratos de Dados:
+
+1. **Subprocesso 7.1 — Publicação da Oportunidade:**
+   - **Tabelas Envolvidas:** `public.jobs`
+   - **BFF / Server Functions:** `createStoreJobPosting`, `listStoreJobs`
+   - **Telas / Rotas:** `/workspace/vagas`, `/vagas` (Portal Público de Empregos)
+   - **Gatilho de Negócio:** A empresa publica vaga com modelo de trabalho (Presencial, Híbrido, Remoto), requisitos e faixa salarial.
+
+2. **Subprocesso 7.2 — Candidatura com Inteligência Salarial:**
+   - **Tabelas Envolvidas:** `public.job_applications`
+   - **BFF / Server Functions:** `submitJobApplication`
+   - **Telas / Rotas:** `/vagas/$id`
+   - **Gatilho de Negócio:** O candidato preenche pretensão salarial, salário anterior e anexa currículo ou perfil profissional.
+
+3. **Subprocesso 7.3 — Sincronização com o Funil Comercial da Empresa:**
+   - **Tabelas Envolvidas:** `public.leads_crm`
+   - **Conexão Automática:** `submitJobApplication` gera automaticamente uma oportunidade no Kanban da empresa com as tags `Candidato`, `RH` e o cargo correspondente.
+
+4. **Subprocesso 7.4 — Admissão & Integração ao Workspace:**
+   - **Tabelas Envolvidas:** `public.workspace_members`, `public.profiles`
+   - **BFF / Server Functions:** `inviteWorkspaceMember`
+   - **Telas / Rotas:** `/workspace/equipe`
+   - **Gatilho de Negócio:** Ao ser aprovado no processo seletivo, o candidato é convidado com perfil de operador (seller, stock, waiter) no workspace da loja.
+
+---
+
+### 25.8 Matriz de Conexão Sistêmica entre Módulos (Zero Loose Ends)
+
+| Módulo Origem | Gatilho de Negócio | Módulo Destino | Dado Transferido | Persistência Real no Banco |
+| :--- | :--- | :--- | :--- | :--- |
+| **Comercial (CRM)** | Lead quer pacote aéreo | **Turismo (Propostas)** | `leadId`, `clientName`, `destination`, `pax` | `travel_proposals.conditions_meta->lead_id` |
+| **Turismo (Propostas)** | Proposta criada no Studio | **Comercial (CRM)** | Atualização para status `proposal` | `leads_crm.status = 'proposal'` + checklist |
+| **Turismo (Viagens)** | Proposta aprovada / paga | **CRM Clientes 360°** | Criação automática de passageiro | `customers_crm` + `customer_documents` |
+| **Gastronomia (Reservas)** | Cliente acomodado na mesa | **PDV Comandas (Salão)** | Abertura imediata de comanda na mesa | `orders` (origin: `table`, identifier: `Mesa XX`) |
+| **Gastronomia (Comandas)** | Garçom lança prato mobile | **KDS Cozinha / Bar** | Fila de preparo com tempo SLA | `order_items` + `orders.status = 'processing'` |
+| **Varejo (PDV)** | Venda fechada com vendedora | **Financeiro (Comissões)** | Cálculo da comissão sobre a venda | `commissions` (status: `pending`) |
+| **Serviços (Agenda)** | Atendimento concluído | **Pacotes (Créditos)** | Baixa de 1 sessão no extrato | `service_pass_ledger` (`session_completed`) |
+| **Recrutamento (Vagas)** | Candidato envia currículo | **Comercial (Funil RH)** | Criação de lead com pretensão salarial | `leads_crm` (tag: `Candidato`, `RH`) |
+| **Classificados (Imóveis)** | Usuário envia proposta | **Comercial (CRM)** | Oportunidade com contato do interessado | `leads_crm` (tag: `Classificados`) |
+| **Logística (Despacho)** | Pedido pronto para entrega | **MotoLink (Entregador)** | Link Mágico com geolocalização | `delivery_orders` + token de despacho |
+
+

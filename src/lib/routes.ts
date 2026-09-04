@@ -406,7 +406,7 @@ export const WORKSPACE_ROUTES: RouteEntry[] = [
     roles: STAFF_ALL,
     phase: 1,
     navGroup: "Geral",
-    navIcon: "Sparkles",
+    navIcon: "Sliders",
   },
   {
     path: "/workspace/onboarding",
@@ -1165,7 +1165,7 @@ export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
     items: [
       { path: "/admin/marketing/cupons", label: "Cupons de Desconto", icon: "Ticket" },
       { path: "/admin/match-time", label: "Ofertas Relâmpago", icon: "Zap" },
-      { path: "/admin/marketing/ofertas-checkout", label: "Ofertas no Checkout", icon: "Sparkles" },
+      { path: "/admin/marketing/ofertas-checkout", label: "Ofertas no Checkout", icon: "Sliders" },
       { path: "/admin/marketing/carrinhos", label: "Carrinhos Abandonados", icon: "ShoppingCart" },
       { path: "/admin/marketing/gift-cards", label: "Gift Cards", icon: "Gift" },
       { path: "/admin/marketing/notificacoes", label: "Notificações Push", icon: "BellRing" },

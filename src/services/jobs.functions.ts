@@ -166,7 +166,7 @@ export const applyToJob = createServerFn({ method: "POST" })
 
     const { data: job } = await supabase
       .from("jobs")
-      .select("id, status, title")
+      .select("id, status, title, store_id")
       .eq("id", data.jobId)
       .maybeSingle();
 
@@ -198,6 +198,28 @@ export const applyToJob = createServerFn({ method: "POST" })
     if (error) {
       console.error("Erro ao registrar candidatura no Supabase:", error);
       throw new Error("Não foi possível enviar sua candidatura. Tente novamente.");
+    }
+
+    // Conexão Sistêmica: Sincroniza candidatura como Oportunidade no Funil Comercial da Loja
+    if (job.store_id) {
+      await supabase
+        .from("leads_crm")
+        .insert({
+          store_id: job.store_id,
+          full_name: data.candidateName.trim(),
+          email: data.candidateEmail.trim().toLowerCase(),
+          phone: data.candidatePhone.trim(),
+          title: `Candidatura: ${job.title}`,
+          destination: `Vaga: ${job.title}`,
+          source: "site",
+          lead_source_detail: "Portal de Vagas / Recrutamento",
+          status: "new",
+          tags: ["Candidato", "RH", job.title],
+          notes: `Candidatura recebida via portal. Pretensão: ${data.salaryExpectationCents ? `R$ ${(data.salaryExpectationCents / 100).toFixed(2)}` : "Não informada"}. Experiência prévia: ${data.previousCompanyName || "Não informada"}. Motivo de saída: ${data.reasonForLeaving || "Não informado"}. Currículo: ${data.resumeUrl || "Não informado"}.`,
+        })
+        .catch((syncErr) => {
+          console.warn("[jobs] Falha não impeditiva ao sincronizar candidato com leads_crm:", syncErr);
+        });
     }
 
     return {

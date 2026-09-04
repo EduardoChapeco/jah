@@ -353,7 +353,7 @@ export const getModularSurfaceFeed = createServerFn({ method: "GET" })
           sectionItems = (sec.config as any).buttons;
         } else {
           sectionItems = [
-            { id: "destaques", label: "Destaques", icon: "Sparkles", route: "/ofertas" },
+            { id: "destaques", label: "Destaques", icon: "Layers", route: "/ofertas" },
             { id: "novidades", label: "Novidades", icon: "Tag", route: "/buscar?sort=newest" },
             { id: "mais-pedidos", label: "Mais Pedidos", icon: "Flame", route: "/buscar?sort=popular" },
             { id: "frete-gratis", label: "Frete Grátis", icon: "Truck", route: "/buscar?free_delivery=true" },

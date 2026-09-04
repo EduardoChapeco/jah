@@ -46,6 +46,28 @@ export interface NicheSemantics {
   suggestedPresets: Array<{ name: string; type: "single" | "multiple"; desc: string }>;
   kpiMetrics?: NicheKpiMetric[];
   operationalTips?: string[];
+  // Identidade de Compartilhamento & QR Code Canônico por Nicho
+  shareTitle?: string;
+  shareSubtitle?: string;
+  qrCardCallout?: string;
+  directLinkLabel?: string;
+  shareMessageTemplate?: (storeName: string, storeUrl: string) => string;
+  qrDownloadFilename?: string;
+  // Identidade de Modificadores / Complementos / Opcionais por Nicho
+  modifierModalSubtitle?: string;
+  modifierNotesPlaceholder?: string;
+  modifierEmptyText?: string;
+  modifierNotesLabel?: string;
+  // Departamentos de Atendimento por Nicho
+  departmentLabels?: Record<string, string>;
+  // Status de Pedidos / Propostas por Nicho
+  orderStatusMap?: Record<
+    string,
+    {
+      label: string;
+      variant: "default" | "secondary" | "destructive" | "outline" | "info" | "success" | "warning";
+    }
+  >;
 }
 
 export const NICHE_SEMANTICS_REGISTRY: Record<string, NicheSemantics> = {
@@ -817,32 +839,9 @@ export const NICHE_SEMANTICS_REGISTRY: Record<string, NicheSemantics> = {
 };
 
 /**
- * Normaliza e retorna o mapa semântico refinado para uma determinada loja.
- * Analisa os campos `segment`, `type`, `category`, `niche` e `name` com suporte bilíngue (PT/EN).
+ * Identifica o nicho bruto a partir do texto combinado do segmento, tipo e nome da loja.
  */
-export function getNicheSemantics(storeData: any): NicheSemantics {
-  const storeName = (storeData?.name || storeData?.stores?.name || "").toLowerCase();
-  const explicitSegment = (
-    storeData?.segment ||
-    storeData?.type ||
-    storeData?.category ||
-    storeData?.niche ||
-    storeData?.stores?.segment ||
-    storeData?.stores?.type ||
-    storeData?.stores?.category ||
-    storeData?.stores?.niche ||
-    storeData?.settings?.segment ||
-    storeData?.settings?.type ||
-    storeData?.settings?.niche ||
-    storeData?.stores?.settings?.segment ||
-    storeData?.stores?.settings?.type ||
-    storeData?.stores?.settings?.niche ||
-    ""
-  ).toLowerCase();
-  const description = (storeData?.description || "").toLowerCase();
-  const combined = `${explicitSegment} ${storeName} ${description}`.trim();
-  const segment = combined || "retail";
-
+function resolveRegistryEntry(segment: string): NicheSemantics {
   // 1. TURISMO, AGÊNCIAS DE VIAGEM, HOTÉIS & ROTEIROS (PT & EN)
 
   if (
@@ -1080,5 +1079,194 @@ export function getNicheSemantics(storeData: any): NicheSemantics {
 
   // 17. PADRÃO: VAREJO & COMÉRCIO GERAL (Moda, Calçados, Presentes, etc.)
   return NICHE_SEMANTICS_REGISTRY.retail;
+}
+
+/**
+ * Enriquece o registro de semântica com fallbacks inteligentes e campos canônicos
+ * de compartilhamento, QR Code, departamentos de atendimento e status de pedido.
+ */
+export function enrichNicheSemantics(base: NicheSemantics): NicheSemantics {
+  const nicheId = base.nicheId;
+
+  const shareTitle = base.shareTitle || (
+    nicheId === "gastronomy" ? "Cardápio Digital & QR Code" :
+    nicheId === "tourism" ? "Roteiros & QR Code Oficial" :
+    nicheId === "services" ? "Catálogo de Serviços & QR Code" :
+    nicheId === "legal" ? "Escritório & QR Code Oficial" :
+    nicheId === "real_estate" ? "Catálogo de Imóveis & QR Code" :
+    nicheId === "jobs" ? "Mural de Vagas & QR Code" :
+    nicheId === "events" ? "Eventos, Ingressos & QR Code" :
+    nicheId === "vehicles" ? "Estoque de Veículos & QR Code" :
+    nicheId === "education" ? "Cursos, Turmas & QR Code" :
+    "Catálogo Digital & QR Code"
+  );
+
+  const shareSubtitle = base.shareSubtitle || (
+    nicheId === "gastronomy"
+      ? "Compartilhe seu link oficial em redes sociais ou imprima o QR Code para mesas e balcão."
+      : "Compartilhe seu link oficial em redes sociais ou imprima o QR Code para balcão e atendimento."
+  );
+
+  const qrCardCallout = base.qrCardCallout || (
+    nicheId === "gastronomy" ? "Escaneie para ver o cardápio e pedir" :
+    nicheId === "tourism" ? "Escaneie para ver nossos pacotes e roteiros" :
+    nicheId === "services" ? "Escaneie para ver serviços e agendar" :
+    nicheId === "legal" ? "Escaneie para consultar serviços jurídicos" :
+    nicheId === "real_estate" ? "Escaneie para ver imóveis disponíveis" :
+    nicheId === "jobs" ? "Escaneie para ver vagas abertas" :
+    nicheId === "events" ? "Escaneie para ver atrações e ingressos" :
+    nicheId === "vehicles" ? "Escaneie para ver veículos disponíveis" :
+    nicheId === "education" ? "Escaneie para ver cursos e turmas" :
+    "Escaneie para ver produtos e novidades"
+  );
+
+  const directLinkLabel = base.directLinkLabel || (
+    nicheId === "gastronomy" ? "Link Direto do Cardápio" :
+    nicheId === "tourism" ? "Link Direto dos Roteiros & Pacotes" :
+    nicheId === "services" ? "Link Direto dos Serviços" :
+    nicheId === "legal" ? "Link do Escritório" :
+    nicheId === "real_estate" ? "Link dos Imóveis" :
+    nicheId === "jobs" ? "Link do Mural de Vagas" :
+    nicheId === "events" ? "Link dos Ingressos" :
+    "Link Direto do Catálogo"
+  );
+
+  const qrDownloadFilename = base.qrDownloadFilename || (
+    nicheId === "gastronomy" ? "cardapio" :
+    nicheId === "tourism" ? "roteiros" :
+    nicheId === "services" ? "servicos" :
+    nicheId === "events" ? "ingressos" :
+    "catalogo"
+  );
+
+  const shareMessageTemplate = base.shareMessageTemplate || ((storeName: string, storeUrl: string) => {
+    if (nicheId === "gastronomy") {
+      return `Olá! Acesse o cardápio oficial de ${storeName} e faça seu pedido direto:\n${storeUrl}`;
+    }
+    if (nicheId === "tourism") {
+      return `Olá! Conheça os roteiros e pacotes exclusivos de ${storeName}:\n${storeUrl}`;
+    }
+    if (nicheId === "services") {
+      return `Olá! Conheça nossos serviços e agende seu horário em ${storeName}:\n${storeUrl}`;
+    }
+    if (nicheId === "events") {
+      return `Olá! Garanta seus ingressos e confira as atrações de ${storeName}:\n${storeUrl}`;
+    }
+    return `Olá! Conheça nosso catálogo oficial de produtos em ${storeName}:\n${storeUrl}`;
+  });
+
+  const departmentLabels = base.departmentLabels || (
+    nicheId === "tourism"
+      ? {
+          geral: "Geral",
+          vendas: "Reservas & Cotações",
+          suporte: "Suporte ao Viajante",
+          financeiro: "Financeiro & Parcelamento",
+          logistica: "Embarque & Frota",
+          operadora: "Operadoras & Cias Aéreas",
+        }
+      : nicheId === "gastronomy"
+      ? {
+          geral: "Geral",
+          vendas: "Vendas & Salão",
+          suporte: "Suporte & SAC",
+          financeiro: "Financeiro & Caixa",
+          cozinha_estoque: "Cozinha & Preparo",
+          logistica: "Despacho & Motoboy",
+        }
+      : nicheId === "services"
+      ? {
+          geral: "Geral",
+          vendas: "Recepção & Agendamento",
+          suporte: "Atendimento & Dúvidas",
+          financeiro: "Financeiro & Pagamentos",
+        }
+      : {
+          geral: "Geral",
+          vendas: "Vendas / Comercial",
+          suporte: "Suporte / SAC",
+          financeiro: "Financeiro / Pix",
+          cozinha_estoque: "Estoque & Expedição",
+          logistica: "Envio & Rastreio",
+        }
+  );
+
+  const modifierModalSubtitle = base.modifierModalSubtitle || (
+    nicheId === "gastronomy" ? "Personalize adicionais e observações da cozinha" :
+    nicheId === "tourism" ? "Personalize opcionais, passeios e preferências do passageiro" :
+    nicheId === "services" ? "Personalize complementos e preferências do atendimento" :
+    nicheId === "retail" ? "Personalize variações, embalagens e detalhes do item" :
+    "Personalize complementos e observações do item"
+  );
+
+  const modifierNotesPlaceholder = base.modifierNotesPlaceholder || (
+    nicheId === "gastronomy" ? "Ex: Ponto da carne, sem cebola, talheres adicionais..." :
+    nicheId === "tourism" ? "Ex: Restrições alimentares no voo, preferências de quarto, assentos..." :
+    nicheId === "services" ? "Ex: Preferência de profissional, orientações ou restrições prévias..." :
+    nicheId === "retail" ? "Ex: Embalar para presente, cor desejada, instruções de personalização..." :
+    "Ex: Instruções especiais, preferências ou detalhes adicionais..."
+  );
+
+  const modifierEmptyText = base.modifierEmptyText || (
+    nicheId === "gastronomy" ? "Este item não possui adicionais cadastrados." :
+    nicheId === "tourism" ? "Este pacote ou roteiro não possui opcionais cadastrados." :
+    nicheId === "services" ? "Este serviço não possui complementos cadastrados." :
+    nicheId === "retail" ? "Este produto não possui complementos ou variações cadastradas." :
+    "Este item não possui opções adicionais cadastradas."
+  );
+
+  const modifierNotesLabel = base.modifierNotesLabel || (
+    nicheId === "gastronomy" ? "Observações da Cozinha (opcional)" :
+    nicheId === "tourism" ? "Observações & Preferências do Viajante" :
+    nicheId === "services" ? "Observações do Atendimento" :
+    nicheId === "retail" ? "Observações do Pedido" :
+    "Observações (opcional)"
+  );
+
+  return {
+    ...base,
+    shareTitle,
+    shareSubtitle,
+    qrCardCallout,
+    directLinkLabel,
+    shareMessageTemplate,
+    qrDownloadFilename,
+    departmentLabels,
+    modifierModalSubtitle,
+    modifierNotesPlaceholder,
+    modifierEmptyText,
+    modifierNotesLabel,
+  };
+}
+
+/**
+ * Normaliza e retorna o mapa semântico refinado para uma determinada loja.
+ * Analisa os campos `segment`, `type`, `category`, `niche` e `name` com suporte bilíngue (PT/EN).
+ */
+export function getNicheSemantics(storeData: any): NicheSemantics {
+  const storeName = (storeData?.name || storeData?.stores?.name || "").toLowerCase();
+  const explicitSegment = (
+    storeData?.segment ||
+    storeData?.type ||
+    storeData?.category ||
+    storeData?.niche ||
+    storeData?.stores?.segment ||
+    storeData?.stores?.type ||
+    storeData?.stores?.category ||
+    storeData?.stores?.niche ||
+    storeData?.settings?.segment ||
+    storeData?.settings?.type ||
+    storeData?.settings?.niche ||
+    storeData?.stores?.settings?.segment ||
+    storeData?.stores?.settings?.type ||
+    storeData?.stores?.settings?.niche ||
+    ""
+  ).toLowerCase();
+  const description = (storeData?.description || "").toLowerCase();
+  const combined = `${explicitSegment} ${storeName} ${description}`.trim();
+  const segment = combined || "retail";
+
+  const rawEntry = resolveRegistryEntry(segment);
+  return enrichNicheSemantics(rawEntry);
 }
 

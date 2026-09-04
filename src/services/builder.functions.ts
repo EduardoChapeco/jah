@@ -100,6 +100,7 @@ async function hydrateBindings(
   let maxEventsLimit = 6;
   let needsClassifieds = false;
   let maxClassifiedsLimit = 6;
+  let needsDestinations = false;
 
   // 1. Map requirements
   nodes.forEach((node) => {
@@ -130,6 +131,8 @@ async function hydrateBindings(
       }
     } else if (bindingSource === "marketing_banners") {
       needsMarketingBanners = true;
+    } else if (bindingSource === "destinations_catalog" || node.block_type === "tourism_destinations_carousel") {
+      needsDestinations = true;
     }
 
     if (node.block_type === "image_hotspots" && Array.isArray(node.content?.hotspots)) {
@@ -169,6 +172,7 @@ async function hydrateBindings(
     events: [] as any[],
     classifieds: [] as any[],
     banners: [] as any[],
+    destinations: [] as any[],
   };
 
   await Promise.all([
@@ -383,6 +387,31 @@ async function hydrateBindings(
         console.error("[hydrateBindings] Banners error:", err);
       }
     })(),
+
+    // 2h. Destinations Catalog
+    (async () => {
+      if (!needsDestinations) return;
+      try {
+        const { data: dests } = await db
+          .from("destinations")
+          .select("id, name, slug, city, state, iata_gateway, cover_image_url, gallery_urls, description, average_rating, highlights")
+          .eq("is_active", true)
+          .limit(12);
+        if (dests && dests.length > 0) {
+          cache.destinations = dests.map((d: any) => ({
+            id: d.id,
+            name: d.name,
+            country: d.state ? `${d.city ? d.city + " · " : ""}${d.state}` : "Brasil",
+            priceFromCents: 0,
+            durationDays: 5,
+            imageUrl: d.cover_image_url || d.gallery_urls?.[0] || undefined,
+            badge: d.iata_gateway || (d.average_rating ? `★ ${Number(d.average_rating).toFixed(1)}` : undefined),
+          }));
+        }
+      } catch (err) {
+        console.error("[hydrateBindings] Destinations error:", err);
+      }
+    })(),
   ]);
 
   // 3. Hydrate the nodes using cached data (O(N) operation without async DB calls)
@@ -410,6 +439,10 @@ async function hydrateBindings(
     } else if (bindingSource === "latest_classifieds") {
       const limit = (bindings.limit as number) || 6;
       transient_data = { classifieds: cache.classifieds.slice(0, limit) };
+    } else if (bindingSource === "destinations_catalog" || node.block_type === "tourism_destinations_carousel") {
+      if (cache.destinations && cache.destinations.length > 0) {
+        transient_data = { destinations: cache.destinations };
+      }
     }
 
     const enrichedNode = { ...node };
@@ -444,20 +477,72 @@ async function hydrateBindings(
 // Documents CRUD
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Contexto de Loja Tolerante & Resiliente (Multi-Tenant & Global Admin)
+// ---------------------------------------------------------------------------
+
+export async function resolveStoreContext(
+  identity: { id: string | null; role?: string; store_id?: string | null; memberships?: Array<{ store_id: string }> },
+  targetStoreId?: string | null,
+  documentId?: string | null
+): Promise<string> {
+  const isGlobalAdmin = identity.role === "platform_admin" || identity.role === "master";
+
+  // 1. Se targetStoreId foi passado explicitamente
+  if (targetStoreId) {
+    if (isGlobalAdmin) return targetStoreId;
+    if (identity.store_id === targetStoreId) return targetStoreId;
+    if (identity.memberships?.some((m) => m.store_id === targetStoreId)) return targetStoreId;
+  }
+
+  // 2. Se documentId foi fornecido, resolve do documento no banco
+  if (documentId) {
+    const db = getServerClient();
+    const { data: doc } = await db
+      .from("experience_documents")
+      .select("store_id")
+      .eq("id", documentId)
+      .maybeSingle();
+
+    if (doc?.store_id) {
+      if (isGlobalAdmin) return doc.store_id;
+      if (identity.store_id === doc.store_id) return doc.store_id;
+      if (identity.memberships?.some((m) => m.store_id === doc.store_id)) return doc.store_id;
+      throw new Error("Acesso negado ao documento desta loja.");
+    }
+  }
+
+  // 3. Fallback para store_id ativo na identidade
+  if (identity.store_id) {
+    return identity.store_id;
+  }
+
+  // 4. Administrador global sem loja fixada: busca a primeira loja cadastrada
+  if (isGlobalAdmin) {
+    const db = getServerClient();
+    const { data: firstStore } = await db.from("stores").select("id").limit(1).maybeSingle();
+    if (firstStore?.id) return firstStore.id;
+  }
+
+  throw new Error("Nenhum contexto de loja válido encontrado para a operação do builder.");
+}
+
+
 export const listExperienceDocuments = createServerFn({ method: "GET" })
-  .validator(z.object({ type: z.string().optional() }).optional())
+  .validator(z.object({ type: z.string().optional(), store_id: z.string().optional() }).optional())
   .handler(async ({ data: input }) => {
     try {
-      await requireAdmin(); // SECURITY FIX
       const { getServerIdentity } = await import("@/lib/server-access");
       const identity = await getServerIdentity();
-      if (!identity.store_id) throw new Error("No store found");
+      if (!identity.id) throw new Error("Não autenticado.");
 
+      const storeId = await resolveStoreContext(identity, input?.store_id);
       const db = getServerClient();
+
       let query = db
         .from("experience_documents")
         .select("*")
-        .eq("store_id", identity.store_id)
+        .eq("store_id", storeId)
         .order("created_at", { ascending: false });
 
       if (input?.type) {
@@ -468,10 +553,10 @@ export const listExperienceDocuments = createServerFn({ method: "GET" })
       if (error) throw error;
 
       return data as ExperienceDocument[];
-    } catch (e) {
+    } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[builder.functions] listExperienceDocuments error:", e);
-      throw new Error("Erro ao listar documentos.");
+      throw new Error("Erro ao listar documentos: " + (e?.message || String(e)));
     }
   });
 
@@ -479,24 +564,27 @@ export const getExperienceDocument = createServerFn({ method: "GET" })
   .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: input }) => {
     try {
-      await requireAdmin(); // SECURITY FIX
       const { getServerIdentity } = await import("@/lib/server-access");
       const identity = await getServerIdentity();
-      if (!identity.store_id) throw new Error("No store found");
+      if (!identity.id) {
+        throw new Error("Não autenticado.");
+      }
 
       const db = getServerClient();
 
-      // 1. Get Document
+      // 1. Busca documento diretamente por ID (permite resolução tolerante cross-tenant para admin/membro)
       const { data: doc, error: docError } = await db
         .from("experience_documents")
         .select("*")
         .eq("id", input.id)
-        .eq("store_id", identity.store_id)
-        .single();
+        .maybeSingle();
 
       if (docError) throw docError;
+      if (!doc) throw new Error("Documento não encontrado.");
 
-      // 2. Get the latest Draft version (or published if no draft)
+      const storeId = await resolveStoreContext(identity, doc.store_id, doc.id);
+
+      // 2. Busca versão rascunho mais recente (ou publicada)
       const { data: versions, error: versionsError } = await db
         .from("experience_versions")
         .select("*")
@@ -506,10 +594,28 @@ export const getExperienceDocument = createServerFn({ method: "GET" })
 
       if (versionsError) throw versionsError;
 
-      const version = versions && versions.length > 0 ? versions[0] : null;
+      let version = versions && versions.length > 0 ? versions[0] : null;
+
+      // Auto-cria versão rascunho inicial se inexistente
+      if (!version) {
+        const { data: newVer, error: createVerError } = await db
+          .from("experience_versions")
+          .insert({
+            document_id: doc.id,
+            version_number: 1,
+            status: "draft",
+          })
+          .select()
+          .single();
+
+        if (!createVerError && newVer) {
+          version = newVer;
+        }
+      }
+
       let nodes: ExperienceNode[] = [];
 
-      // 3. Get Nodes if version exists
+      // 3. Busca nós da versão ativa
       if (version) {
         const { data: nodesData, error: nodesError } = await db
           .from("experience_nodes")
@@ -519,22 +625,18 @@ export const getExperienceDocument = createServerFn({ method: "GET" })
 
         if (nodesError) throw nodesError;
 
-        // 4. Hydrate Data Bindings — shared helper covers store_profile, products, reviews
-        const rawNodes = nodesData as ExperienceNode[];
-        const { getServerIdentity } = await import("@/lib/server-access");
-        const { store_id } = await getServerIdentity();
-        if (!store_id) throw new Error("No store found");
-        nodes = await hydrateBindings(rawNodes, db, store_id);
+        const rawNodes = (nodesData || []) as ExperienceNode[];
+        nodes = await hydrateBindings(rawNodes, db, storeId);
       }
 
       return {
         status: "ok" as const,
         data: { document: doc as ExperienceDocument, version, nodes },
       };
-    } catch (e) {
+    } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[builder.functions] getExperienceDocument error:", e);
-      throw new Error("Erro ao carregar documento.");
+      throw new Error("Erro ao carregar documento: " + (e?.message || String(e)));
     }
   });
 
@@ -2392,33 +2494,35 @@ export const saveBuilderNodes = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
-      await requireAdmin(); // SECURITY FIX
       const { getServerIdentity } = await import("@/lib/server-access");
       const identity = await getServerIdentity();
-      if (!identity.store_id) throw new Error("No store found");
-      const storeId = identity.store_id;
+      if (!identity.id) throw new Error("Não autenticado.");
 
       const db = getServerClient();
 
       // 0. Validate ownership and get version info
-      const { data: versionCheck } = await db
+      const { data: versionCheck, error: vErr } = await db
         .from("experience_versions")
         .select("id, status, document_id, version_number, experience_documents!inner(store_id)")
         .eq("id", input.version_id)
-        .eq("experience_documents.store_id", storeId)
-        .single();
+        .maybeSingle();
 
-      if (!versionCheck) throw new Error("Acesso negado à versão do documento.");
+      if (vErr || !versionCheck) throw new Error("Acesso negado à versão do documento.");
+
+      const docStoreId = (versionCheck as any)?.experience_documents?.store_id;
+      const storeId = await resolveStoreContext(identity, docStoreId, versionCheck.document_id);
 
       let targetVersionId = input.version_id;
+      let isForked = false;
+      let targetVersion: any = versionCheck;
 
       if (versionCheck.status === "published") {
-        // Fork: Create a new draft version
+        // Fork: Cria nova versão rascunho
         const { data: newVersion, error: forkError } = await db
           .from("experience_versions")
           .insert({
             document_id: versionCheck.document_id,
-            version_number: versionCheck.version_number + 1,
+            version_number: (versionCheck.version_number || 1) + 1,
             status: "draft",
           })
           .select()
@@ -2426,9 +2530,10 @@ export const saveBuilderNodes = createServerFn({ method: "POST" })
 
         if (forkError) throw forkError;
         targetVersionId = newVersion.id;
+        targetVersion = newVersion;
+        isForked = true;
       } else {
-        // Save keeps the version as "draft" — does NOT publish.
-        // 1. Delete all current nodes for this draft version (full replace strategy)
+        // Versão já em rascunho: remove nós anteriores para substituição atômica
         const { error: delError } = await db
           .from("experience_nodes")
           .delete()
@@ -2437,12 +2542,24 @@ export const saveBuilderNodes = createServerFn({ method: "POST" })
         if (delError) throw delError;
       }
 
-      // 2. Insert new nodes
-      if (input.nodes.length > 0) {
-        const nodesToInsert = input.nodes.map((node: any) => ({
-          id: node.id,
+      // 2. Mapeamento de nós (com novos UUIDs se for forked para evitar colisão de PK)
+      const idMap = new Map<string, string>();
+      if (isForked) {
+        input.nodes.forEach((node) => {
+          idMap.set(node.id, crypto.randomUUID());
+        });
+      }
+
+      const nodesToInsert = input.nodes.map((node: any) => {
+        const newId = isForked ? idMap.get(node.id)! : node.id;
+        const newParentId = node.parent_id
+          ? (isForked ? idMap.get(node.parent_id) || null : node.parent_id)
+          : null;
+
+        return {
+          id: newId,
           version_id: targetVersionId,
-          parent_id: node.parent_id || null,
+          parent_id: newParentId,
           node_type: node.node_type,
           block_type: node.block_type,
           layout_variant: node.layout_variant || null,
@@ -2454,17 +2571,46 @@ export const saveBuilderNodes = createServerFn({ method: "POST" })
           action_bindings: node.action_bindings || {},
           sort_order: node.sort_order || 0,
           is_hidden: node.is_hidden || false,
-        }));
+        };
+      });
 
-        const { error: insError } = await db.from("experience_nodes").insert(nodesToInsert);
+      // 3. Sanitização e Ordenação Topológica (Pais ANTES de filhos para cumprir FK parent_id)
+      const nodeMap = new Map(nodesToInsert.map((n) => [n.id, n]));
+      nodesToInsert.forEach((n) => {
+        if (n.parent_id && !nodeMap.has(n.parent_id)) {
+          n.parent_id = null; // Evita chave estrangeira órfã
+        }
+      });
 
+      const sortedNodes: typeof nodesToInsert = [];
+      const visited = new Set<string>();
+
+      const visitNode = (n: (typeof nodesToInsert)[0]) => {
+        if (visited.has(n.id)) return;
+        if (n.parent_id && nodeMap.has(n.parent_id)) {
+          visitNode(nodeMap.get(n.parent_id)!);
+        }
+        visited.add(n.id);
+        sortedNodes.push(n);
+      };
+
+      nodesToInsert.forEach((n) => visitNode(n));
+
+      // 4. Inserção no banco
+      if (sortedNodes.length > 0) {
+        const { error: insError } = await db.from("experience_nodes").insert(sortedNodes);
         if (insError) throw insError;
       }
 
-      return { status: "success" as const, version_id: targetVersionId };
+      return {
+        status: "success" as const,
+        version_id: targetVersionId,
+        version: targetVersion,
+        nodes: sortedNodes,
+      };
     } catch (e: unknown) {
       console.error("[builder.functions] saveBuilderNodes error:", e);
-      throw new Error("Erro ao salvar o documento.");
+      throw new Error("Erro ao salvar o documento: " + (e instanceof Error ? e.message : String(e)));
     }
   });
 
@@ -2481,33 +2627,34 @@ export const publishBuilderVersion = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
-      await requireAdmin(); // SECURITY FIX
       const { getServerIdentity } = await import("@/lib/server-access");
       const identity = await getServerIdentity();
-      if (!identity.store_id) throw new Error("No store found");
-      const storeId = identity.store_id;
+      if (!identity.id) throw new Error("Não autenticado.");
 
       const db = getServerClient();
 
-      // 1. Unpublish any previous published versions for the same document and validate ownership
-      const { data: version } = await db
+      // 1. Validação de posse do documento
+      const { data: version, error: vErr } = await db
         .from("experience_versions")
-        .select("document_id, experience_documents!inner(store_id)")
+        .select("id, document_id, version_number, status, experience_documents!inner(store_id)")
         .eq("id", input.version_id)
-        .eq("experience_documents.store_id", storeId)
-        .single();
+        .maybeSingle();
 
-      if (!version) {
+      if (vErr || !version) {
         throw new Error("Acesso negado ou versão não encontrada.");
       }
 
+      const docStoreId = (version as any)?.experience_documents?.store_id;
+      const storeId = await resolveStoreContext(identity, docStoreId, version.document_id);
+
+      // 2. Arquiva versões publicadas anteriores do mesmo documento
       await db
         .from("experience_versions")
         .update({ status: "archived" })
         .eq("document_id", version.document_id)
         .eq("status", "published");
 
-      // 2. Replace nodes
+      // 3. Substitui os nós desta versão com ordenação topológica
       await db.from("experience_nodes").delete().eq("version_id", input.version_id);
 
       if (input.nodes.length > 0) {
@@ -2527,21 +2674,44 @@ export const publishBuilderVersion = createServerFn({ method: "POST" })
           sort_order: node.sort_order || 0,
           is_hidden: node.is_hidden || false,
         }));
-        await db.from("experience_nodes").insert(nodesToInsert);
+
+        const nodeMap = new Map(nodesToInsert.map((n) => [n.id, n]));
+        nodesToInsert.forEach((n) => {
+          if (n.parent_id && !nodeMap.has(n.parent_id)) {
+            n.parent_id = null;
+          }
+        });
+
+        const sortedNodes: typeof nodesToInsert = [];
+        const visited = new Set<string>();
+        const visitNode = (n: (typeof nodesToInsert)[0]) => {
+          if (visited.has(n.id)) return;
+          if (n.parent_id && nodeMap.has(n.parent_id)) {
+            visitNode(nodeMap.get(n.parent_id)!);
+          }
+          visited.add(n.id);
+          sortedNodes.push(n);
+        };
+        nodesToInsert.forEach((n) => visitNode(n));
+
+        const { error: insError } = await db.from("experience_nodes").insert(sortedNodes);
+        if (insError) throw insError;
       }
 
-      // 3. Mark this version as published
-      const { error: pubError } = await db
+      // 4. Marca esta versão como published
+      const { data: updatedVersion, error: pubError } = await db
         .from("experience_versions")
         .update({ status: "published" })
-        .eq("id", input.version_id);
+        .eq("id", input.version_id)
+        .select()
+        .single();
 
       if (pubError) throw pubError;
 
-      return { status: "success" as const };
+      return { status: "success" as const, version: updatedVersion || { ...version, status: "published" } };
     } catch (e: unknown) {
       console.error("[builder.functions] publishBuilderVersion error:", e);
-      throw new Error("Erro ao publicar.");
+      throw new Error("Erro ao publicar versão: " + (e instanceof Error ? e.message : String(e)));
     }
   });
 
@@ -2845,3 +3015,84 @@ export const setActiveStorefrontDocument = createServerFn({ method: "POST" })
       throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao ativar documento.");
     }
   });
+
+export const updateExperienceDocumentSettings = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      document_id: z.string().uuid(),
+      settings: z.object({
+        theme: z
+          .object({
+            primaryColor: z.string().optional(),
+            backgroundColor: z.string().optional(),
+            textColor: z.string().optional(),
+            headingFont: z.string().optional(),
+            bodyFont: z.string().optional(),
+            borderRadius: z.string().optional(),
+            surfaceStyle: z.string().optional(),
+          })
+          .optional(),
+        pages: z
+          .array(
+            z.object({
+              id: z.string(),
+              title: z.string(),
+              slug: z.string(),
+              is_home: z.boolean().default(false),
+              seo_title: z.string().optional(),
+              seo_description: z.string().optional(),
+            })
+          )
+          .optional(),
+      }),
+    })
+  )
+  .handler(async ({ data: input }) => {
+    try {
+      await requireAdmin();
+      const { getServerIdentity } = await import("@/lib/server-access");
+      const identity = await getServerIdentity();
+      if (!identity.store_id) throw new Error("No store found");
+
+      const db = getServerClient();
+
+      // 1. Fetch current settings to merge
+      const { data: currentDoc, error: fetchErr } = await db
+        .from("experience_documents")
+        .select("settings")
+        .eq("id", input.document_id)
+        .eq("store_id", identity.store_id)
+        .single();
+
+      if (fetchErr || !currentDoc) throw new Error("Documento não encontrado.");
+
+      const currentSettings = (currentDoc.settings || {}) as Record<string, any>;
+      const mergedSettings = {
+        ...currentSettings,
+        ...input.settings,
+        theme: {
+          ...(currentSettings.theme || {}),
+          ...(input.settings.theme || {}),
+        },
+      };
+
+      const { data: updatedDoc, error: updateErr } = await db
+        .from("experience_documents")
+        .update({
+          settings: mergedSettings,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", input.document_id)
+        .eq("store_id", identity.store_id)
+        .select("id, settings")
+        .single();
+
+      if (updateErr) throw updateErr;
+
+      return { status: "ok" as const, settings: updatedDoc.settings };
+    } catch (e: unknown) {
+      console.error("[builder.functions] updateExperienceDocumentSettings error:", e);
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao salvar configurações do documento.");
+    }
+  });
+

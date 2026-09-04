@@ -182,17 +182,20 @@ export const builderRegistry: Record<string, BlockManifest> = {
         { name: "interval", label: "Intervalo (segundos)", type: "number" },
         {
           name: "banners",
-          label: "Banners (Array)",
+          label: "Banners (Lista de Slides)",
           type: "array",
           arrayFields: [
-            { name: "image_url", label: "Imagem Desktop (Recomendado 1920x800)", type: "image" },
+            { name: "title", label: "Título Principal", type: "text" },
+            { name: "subtitle", label: "Subtítulo / Descrição", type: "text" },
+            { name: "button_text", label: "Texto do Botão (CTA)", type: "text" },
+            { name: "link", label: "Link de Destino", type: "text" },
+            { name: "image_url", label: "Imagem Desktop (1920x800)", type: "image" },
             {
               name: "mobile_image_url",
-              label: "Imagem Mobile (Recomendado 1080x1350)",
+              label: "Imagem Mobile (1080x1350)",
               type: "image",
             },
-            { name: "link", label: "Link do Banner", type: "text" },
-            { name: "alt_text", label: "Texto Alt", type: "text" },
+            { name: "alt_text", label: "Texto Alternativo (SEO)", type: "text" },
           ],
         },
       ],
@@ -301,9 +304,15 @@ export const builderRegistry: Record<string, BlockManifest> = {
     }),
     inspector: {
       content: [
-        { name: "title", label: "Título", type: "text" },
-        { name: "target_date", label: "Data Alvo (ISO)", type: "text" },
-        { name: "expired_message", label: "Mensagem Expirado", type: "text" },
+        { name: "title", label: "Título de Urgência", type: "text" },
+        { name: "target_date", label: "Data Alvo (ISO)", type: "text", placeholder: "2026-12-31T23:59:59" },
+        { name: "expired_message", label: "Mensagem pós-expiração", type: "text", placeholder: "Oferta Expirada" },
+      ],
+      design: [
+        { name: "backgroundColor", label: "Cor de Fundo da Faixa", type: "color" },
+        { name: "textColor", label: "Cor do Texto e Título", type: "color" },
+        { name: "boxColor", label: "Cor dos Blocos Numéricos", type: "color" },
+        { name: "boxTextColor", label: "Cor dos Dígitos", type: "color" },
       ],
     },
     defaultProps: {
@@ -312,6 +321,13 @@ export const builderRegistry: Record<string, BlockManifest> = {
       content: {
         target_date: new Date(Date.now() + 86400000).toISOString(),
         title: "Oferta Encerra em",
+        expired_message: "Oferta Expirada",
+      },
+      design_tokens: {
+        backgroundColor: "transparent",
+        textColor: "#09090b",
+        boxColor: "#09090b",
+        boxTextColor: "#ffffff",
       },
     },
   },
@@ -1241,7 +1257,7 @@ export const builderRegistry: Record<string, BlockManifest> = {
     name: "Destaque de Ingredientes/Materiais",
     description: "Cards explicativos de ingredientes ativos ou matérias-primas nobres",
     category: "content",
-    icon: "Sparkles",
+    icon: "Layers",
     allowedBuilderProfiles: "all",
     allowedParentTypes: ["container", "section"],
     allowedChildTypes: "none",
@@ -1446,7 +1462,7 @@ export const builderRegistry: Record<string, BlockManifest> = {
     name: "Destaque do Prato do Chef",
     description: "Lâmina especial para o prato estrela com lista de ingredientes e preparo",
     category: "commerce",
-    icon: "Sparkles",
+    icon: "Layers",
     allowedBuilderProfiles: "all",
     allowedParentTypes: ["container", "section"],
     allowedChildTypes: "none",
@@ -1792,32 +1808,6 @@ export const builderRegistry: Record<string, BlockManifest> = {
     },
   },
 
-  tourism_destinations_carousel: {
-    type: "tourism_destinations_carousel",
-    version: "1.0.0",
-    name: "Carrossel de Destinos Populares",
-    description: "Cards visuais de destinos de turismo com preços a partir de",
-    category: "commerce",
-    icon: "Plane",
-    allowedBuilderProfiles: "all",
-    allowedParentTypes: ["container", "section"],
-    allowedChildTypes: "none",
-    contentSchema: z.object({
-      title: z.string().optional(),
-      subtitle: z.string().optional(),
-    }),
-    inspector: {
-      content: [
-        { name: "title", label: "Título", type: "text" },
-        { name: "subtitle", label: "Subtítulo", type: "text" },
-      ],
-    },
-    defaultProps: {
-      node_type: "composition",
-      block_type: "tourism_destinations_carousel",
-      content: { title: "Destinos Populares em Destaque", subtitle: "Pacotes completos com voos e hospedagem." },
-    },
-  },
 
   food_menu_streamlined: {
     type: "food_menu_streamlined",
@@ -1953,76 +1943,6 @@ export const builderRegistry: Record<string, BlockManifest> = {
     },
   },
 
-  // ── Bloco: tourism_quote_hero ──
-  tourism_quote_hero: {
-    type: "tourism_quote_hero",
-    version: "1.0.0",
-    name: "Cotação de Viagem & Pacotes",
-    description: "Banner imersivo de viagens com buscador de pacotes, aéreos e chamada WhatsApp",
-    category: "commerce",
-    icon: "Plane",
-    allowedBuilderProfiles: "all",
-    allowedParentTypes: ["container", "section"],
-    allowedChildTypes: "none",
-    contentSchema: z.object({
-      title: z.string().optional(),
-      subtitle: z.string().optional(),
-      badgeText: z.string().optional(),
-      imageUrl: z.string().optional(),
-      whatsappNumber: z.string().optional(),
-    }),
-    inspector: {
-      content: [
-        { name: "title", label: "Título da Chamada", type: "text" },
-        { name: "subtitle", label: "Subtítulo / Benefícios", type: "textarea" },
-        { name: "badgeText", label: "Badge de Destaque", type: "text" },
-        { name: "imageUrl", label: "Foto do Destino / Hero", type: "image" },
-        { name: "whatsappNumber", label: "WhatsApp para Cotações", type: "text" },
-      ],
-    },
-    defaultProps: {
-      node_type: "composition",
-      block_type: "tourism_quote_hero",
-      content: {
-        title: "Sua Próxima Viagem Inesquecível Começa Aqui",
-        subtitle: "Pacotes completos com aéreo, hospedagem e passeios exclusivos com suporte 24h.",
-        badgeText: "Cotação Personalizada",
-        imageUrl: "",
-      },
-    },
-  },
-
-  // ── Bloco: tourism_services_grid ──
-  tourism_services_grid: {
-    type: "tourism_services_grid",
-    version: "1.0.0",
-    name: "Grade de Serviços Turísticos",
-    description: "Cards com diferenciais de agência (Passagens, Cruzeiros, Resorts, Roteiros)",
-    category: "commerce",
-    icon: "Compass",
-    allowedBuilderProfiles: "all",
-    allowedParentTypes: ["container", "section"],
-    allowedChildTypes: "none",
-    contentSchema: z.object({
-      title: z.string().optional(),
-      subtitle: z.string().optional(),
-    }),
-    inspector: {
-      content: [
-        { name: "title", label: "Título da Seção", type: "text" },
-        { name: "subtitle", label: "Subtítulo", type: "textarea" },
-      ],
-    },
-    defaultProps: {
-      node_type: "composition",
-      block_type: "tourism_services_grid",
-      content: {
-        title: "Tudo Para Sua Viagem Perfeita",
-        subtitle: "Assessoria completa do embarque ao retorno com consultores especializados.",
-      },
-    },
-  },
-
 
 
   // ── Bloco: flash_sale_hero ──
@@ -2039,17 +1959,31 @@ export const builderRegistry: Record<string, BlockManifest> = {
     contentSchema: z.object({
       title: z.string().optional(),
       subtitle: z.string().optional(),
+      badge: z.string().optional(),
       discountBadge: z.string().optional(),
+      discountPercentage: z.string().optional(),
+      couponCode: z.string().optional(),
       buttonText: z.string().optional(),
+      targetLink: z.string().optional(),
       targetDate: z.string().optional(),
+      bgImageUrl: z.string().optional(),
     }),
     inspector: {
       content: [
         { name: "title", label: "Título da Promoção", type: "text" },
         { name: "subtitle", label: "Descrição da Oferta", type: "textarea" },
-        { name: "discountBadge", label: "Badge de Desconto (ex: 40% OFF)", type: "text" },
+        { name: "badge", label: "Badge Superior", type: "text", placeholder: "🔥 Oferta por Tempo Limitado" },
+        { name: "discountPercentage", label: "Desconto em Destaque (ex: 50% OFF)", type: "text" },
+        { name: "couponCode", label: "Código do Cupom de Desconto", type: "text", placeholder: "RELAMPAGO50" },
         { name: "buttonText", label: "Texto do Botão", type: "text" },
+        { name: "targetLink", label: "Link de Destino / Hotpage", type: "text", placeholder: "#produtos ou /campanha" },
         { name: "targetDate", label: "Data Limite (ISO ou YYYY-MM-DD)", type: "text" },
+        { name: "bgImageUrl", label: "Imagem de Fundo (Cover)", type: "image" },
+      ],
+      design: [
+        { name: "backgroundColor", label: "Cor de Fundo da Seção", type: "color" },
+        { name: "textColor", label: "Cor do Texto", type: "color" },
+        { name: "accentColor", label: "Cor de Destaque / Cupom", type: "color" },
       ],
     },
     defaultProps: {
@@ -2058,9 +1992,18 @@ export const builderRegistry: Record<string, BlockManifest> = {
       content: {
         title: "Queima de Estoque Exclusiva",
         subtitle: "Descontos especiais válidos apenas enquanto durarem os estoques promocionais.",
-        discountBadge: "ATÉ 50% OFF",
-        buttonText: "Aproveitar Agora",
+        badge: "🔥 Oferta por Tempo Limitado",
+        discountPercentage: "50% OFF",
+        couponCode: "RELAMPAGO50",
+        buttonText: "Garantir Ofertas com Desconto",
+        targetLink: "#produtos",
         targetDate: "2026-12-31T23:59:59",
+        bgImageUrl: "",
+      },
+      design_tokens: {
+        backgroundColor: "#09090b",
+        textColor: "#ffffff",
+        accentColor: "#f59e0b",
       },
     },
   },
@@ -2134,7 +2077,7 @@ export const builderRegistry: Record<string, BlockManifest> = {
     name: "Banner de Coleção em Destaque",
     description: "Chamada em split com foto grande, texto institucional e botão direto para coleção",
     category: "commerce",
-    icon: "Sparkles",
+    icon: "Layers",
     allowedBuilderProfiles: "all",
     allowedParentTypes: ["container", "section"],
     allowedChildTypes: "none",
@@ -2214,4 +2157,419 @@ export const builderRegistry: Record<string, BlockManifest> = {
     },
   },
 
+  // ── Bloco: tourism_quote_hero ──
+  tourism_quote_hero: {
+    type: "tourism_quote_hero",
+    version: "1.0.0",
+    name: "Cotação de Viagem & Leads (Hero)",
+    description: "Banner de alto impacto com formulário de solicitação de cotação integrado ao CRM e WhatsApp",
+    category: "content",
+    icon: "Plane",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+      badge: z.string().optional(),
+      bgImageUrl: z.string().optional(),
+      whatsappPhone: z.string().optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título Principal", type: "text" },
+        { name: "subtitle", label: "Subtítulo / Proposta de Valor", type: "textarea" },
+        { name: "badge", label: "Etiqueta / Badge", type: "text" },
+        { name: "bgImageUrl", label: "Foto Panorâmica de Fundo", type: "image" },
+        { name: "whatsappPhone", label: "WhatsApp da Agência", type: "text" },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "tourism_quote_hero",
+      content: {
+        title: "Sua Próxima Viagem Inesquecível Começa Aqui",
+        subtitle: "Roteiros exclusivos, cruzeiros, passagens aéreas e pacotes completos com assessoria VIP.",
+        badge: "✈️ Agência Boutique de Turismo",
+        bgImageUrl: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1920&auto=format&fit=crop&q=80",
+        whatsappPhone: "",
+      },
+    },
+  },
+
+  // ── Bloco: tourism_services_grid ──
+  tourism_services_grid: {
+    type: "tourism_services_grid",
+    version: "1.0.0",
+    name: "Especialidades & Serviços de Turismo",
+    description: "Grade de serviços com assessoria completa (Voos, Hotéis, Cruzeiros, Seguro e Suporte 24h)",
+    category: "content",
+    icon: "Suitcase",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+      whatsappPhone: z.string().optional(),
+      services: z.array(z.any()).optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título da Seção", type: "text" },
+        { name: "subtitle", label: "Subtítulo", type: "textarea" },
+        { name: "whatsappPhone", label: "WhatsApp de Atendimento", type: "text" },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "tourism_services_grid",
+      content: {
+        title: "Nossas Especialidades em Turismo",
+        subtitle: "Assessoria completa para que sua única preocupação seja fazer as malas.",
+        services: [
+          { title: "Passagens Aéreas", desc: "Tarifas acordadas e emissão com milhas nas melhores companhias." },
+          { title: "Hotéis & Resorts", desc: "Hospedagens selecionadas a dedo com upgrade e café incluso." },
+          { title: "Cruzeiros Marítimos", desc: "Navios nacionais e internacionais com tudo incluso a bordo." },
+          { title: "Seguro Viagem Global", desc: "Assistência médica completa e cobertura de bagagem 24 horas." },
+        ],
+      },
+    },
+  },
+
+  // ── Bloco: tourism_destinations_carousel ──
+  tourism_destinations_carousel: {
+    type: "tourism_destinations_carousel",
+    version: "1.0.0",
+    name: "Carrossel de Destinos Turísticos",
+    description: "Vitrine dinâmica conectada em tempo real ao banco de destinos turísticos, cidades e pacotes",
+    category: "commerce",
+    icon: "MapPin",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título da Vitrine", type: "text" },
+        { name: "subtitle", label: "Subtítulo", type: "textarea" },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "tourism_destinations_carousel",
+      content: {
+        title: "Destinos Populares em Destaque",
+        subtitle: "Pacotes completos com voos, hospedagem e assessoria personalizada.",
+      },
+    },
+  },
+
+
+  portal_contracts: {
+    type: "portal_contracts",
+    version: "1.0.0",
+    name: "Contratos do Cliente 360",
+    description: "Exibição de contratos ativos, download em PDF e assinatura digital",
+    category: "content",
+    icon: "FileText",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: [],
+    contentSchema: z.object({
+      title: z.string().default("Meus Contratos & Documentos"),
+      subtitle: z.string().default("Gerencie suas minutas jurídicas e termos assinados."),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título Principal", type: "text" },
+        { name: "subtitle", label: "Subtítulo / Descrição", type: "text" },
+      ],
+    },
+    defaultProps: {
+      node_type: "block",
+      block_type: "portal_contracts",
+      content: {
+        title: "Meus Contratos & Documentos",
+        subtitle: "Gerencie suas minutas jurídicas e termos assinados.",
+      },
+      design_tokens: {},
+      layout_rules: {},
+    },
+  },
+
+  portal_carnes_bills: {
+    type: "portal_carnes_bills",
+    version: "1.0.0",
+    name: "Carnê Digital & Parcelas PIX",
+    description: "Gestão de parcelas, faturas e pagamento instantâneo por PIX Copia e Cola",
+    category: "content",
+    icon: "QrCode",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: [],
+    contentSchema: z.object({
+      title: z.string().default("Carnê Digital & Parcelas"),
+      subtitle: z.string().default("Consulte faturas em aberto e pague com PIX sem taxas."),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título Principal", type: "text" },
+        { name: "subtitle", label: "Subtítulo", type: "text" },
+      ],
+    },
+    defaultProps: {
+      node_type: "block",
+      block_type: "portal_carnes_bills",
+      content: {
+        title: "Carnê Digital & Parcelas",
+        subtitle: "Consulte faturas em aberto e pague com PIX sem taxas.",
+      },
+      design_tokens: {},
+      layout_rules: {},
+    },
+  },
+
+  portal_appointments: {
+    type: "portal_appointments",
+    version: "1.0.0",
+    name: "Agendamentos & Linha do Tempo",
+    description: "Acompanhamento de horários, revisões e ordens de serviço",
+    category: "content",
+    icon: "Calendar",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: [],
+    contentSchema: z.object({
+      title: z.string().default("Meus Agendamentos & Serviços"),
+      subtitle: z.string().default("Acompanhe seus horários e serviços marcados."),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título", type: "text" },
+        { name: "subtitle", label: "Subtítulo", type: "text" },
+      ],
+    },
+    defaultProps: {
+      node_type: "block",
+      block_type: "portal_appointments",
+      content: {
+        title: "Meus Agendamentos & Serviços",
+        subtitle: "Acompanhe seus horários e serviços marcados.",
+      },
+      design_tokens: {},
+      layout_rules: {},
+    },
+  },
+
+  portal_orders_rentals: {
+    type: "portal_orders_rentals",
+    version: "1.0.0",
+    name: "Compras, Aluguéis & Devoluções",
+    description: "Histórico de pedidos, produtos locados e solicitações de troca",
+    category: "content",
+    icon: "Package",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: [],
+    contentSchema: z.object({
+      title: z.string().default("Compras, Aluguéis & Devoluções"),
+      subtitle: z.string().default("Histórico detalhado de compras e locações ativas."),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título", type: "text" },
+        { name: "subtitle", label: "Subtítulo", type: "text" },
+      ],
+    },
+    defaultProps: {
+      node_type: "block",
+      block_type: "portal_orders_rentals",
+      content: {
+        title: "Compras, Aluguéis & Devoluções",
+        subtitle: "Histórico detalhado de compras e locações ativas.",
+      },
+      design_tokens: {},
+      layout_rules: {},
+    },
+  },
+
+  careers_hero_banner: {
+    type: "careers_hero_banner",
+    version: "1.0.0",
+    name: "Hero do Portal de Carreiras",
+    description: "Apresentação da cultura, equipe e proposta de valor do colaborador",
+    category: "content",
+    icon: "Briefcase",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: [],
+    contentSchema: z.object({
+      title: z.string().default("Construa o Futuro Junto Conosco"),
+      subtitle: z.string().default("Conheça nossas oportunidades em aberto."),
+      company_name: z.string().optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título Principal", type: "text" },
+        { name: "subtitle", label: "Subtítulo", type: "text" },
+        { name: "company_name", label: "Nome da Empresa", type: "text" },
+      ],
+    },
+    defaultProps: {
+      node_type: "block",
+      block_type: "careers_hero_banner",
+      content: {
+        title: "Construa o Futuro Junto Conosco",
+        subtitle: "Conheça nossas oportunidades em aberto.",
+      },
+      design_tokens: {},
+      layout_rules: {},
+    },
+  },
+
+  careers_job_filters: {
+    type: "careers_job_filters",
+    version: "1.0.0",
+    name: "Filtros de Vagas de Emprego",
+    description: "Filtros rápidos por setor, modalidade e busca textual",
+    category: "content",
+    icon: "Filter",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: [],
+    contentSchema: z.object({}),
+    inspector: { content: [] },
+    defaultProps: {
+      node_type: "block",
+      block_type: "careers_job_filters",
+      content: {},
+      design_tokens: {},
+      layout_rules: {},
+    },
+  },
+
+  careers_job_grid: {
+    type: "careers_job_grid",
+    version: "1.0.0",
+    name: "Grade de Vagas de Emprego",
+    description: "Lista de vagas abertas com badges e modal de candidatura integrado ao RH",
+    category: "content",
+    icon: "Briefcase",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: [],
+    contentSchema: z.object({}),
+    inspector: { content: [] },
+    defaultProps: {
+      node_type: "block",
+      block_type: "careers_job_grid",
+      content: {},
+      design_tokens: {},
+      layout_rules: {},
+    },
+  },
+
+  reputation_score_header: {
+    type: "reputation_score_header",
+    version: "1.0.0",
+    name: "Score de Reputação & Confiança",
+    description: "Nota geral de 0 a 10, índices de resolução e botão de abertura de chamado",
+    category: "content",
+    icon: "ShieldCheck",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: [],
+    contentSchema: z.object({
+      company_name: z.string().default("Nome da Empresa"),
+      reputation_score: z.number().default(9.2),
+    }),
+    inspector: {
+      content: [
+        { name: "company_name", label: "Nome da Empresa", type: "text" },
+      ],
+    },
+    defaultProps: {
+      node_type: "block",
+      block_type: "reputation_score_header",
+      content: {
+        company_name: "Nome da Empresa",
+        reputation_score: 9.2,
+      },
+      design_tokens: {},
+      layout_rules: {},
+    },
+  },
+
+  reputation_badges_strip: {
+    type: "reputation_badges_strip",
+    version: "1.0.0",
+    name: "Faixa de Selos Auditados",
+    description: "Selos de certificação, RA1000 e atendimento humanizado",
+    category: "content",
+    icon: "Award",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: [],
+    contentSchema: z.object({}),
+    inspector: { content: [] },
+    defaultProps: {
+      node_type: "block",
+      block_type: "reputation_badges_strip",
+      content: {},
+      design_tokens: {},
+      layout_rules: {},
+    },
+  },
+
+    office_contract_viewer: {
+    type: "office_contract_viewer",
+    version: "1.0.0",
+    name: "Visualizador & Assinador de Contratos",
+    description: "Contrato digital inteligente com tags dinâmicas e assinatura MP 2.200-2/2001",
+    category: "content",
+    icon: "FileCheck",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: [],
+    contentSchema: z.object({}),
+    inspector: { content: [] },
+    defaultProps: {
+      node_type: "block",
+      block_type: "office_contract_viewer",
+      content: {
+        title: "Contrato de Prestação de Serviços",
+        documentNumber: "CTR-2026-0042",
+        status: "pending",
+      },
+      design_tokens: {},
+      layout_rules: {},
+    },
+  },
+
+  reputation_timeline_feed: {
+    type: "reputation_timeline_feed",
+    version: "1.0.0",
+    name: "Feed Público de Manifestações",
+    description: "Timeline de reclamações auditadas com respostas oficiais e avaliações",
+    category: "content",
+    icon: "MessageSquare",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: [],
+    contentSchema: z.object({}),
+    inspector: { content: [] },
+    defaultProps: {
+      node_type: "block",
+      block_type: "reputation_timeline_feed",
+      content: {},
+      design_tokens: {},
+      layout_rules: {},
+    },
+  },
 };
+
+export const BUILDER_BLOCK_DEFINITIONS = Object.values(builderRegistry);

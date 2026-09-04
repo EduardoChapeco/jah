@@ -8,7 +8,47 @@ import { z } from "zod";
 import { getServerClient } from "@/lib/supabase";
 import { getServerIdentity } from "@/lib/server-access";
 
-// ─── DTOs Canônicos ─────────────────────────────────────────────────────────
+// ─── DTOs Canônicos de Destinos & Hotelaria ─────────────────────────────────
+
+export interface DestinationSectionItem {
+  id?: string;
+  title: string;
+  description?: string;
+  image_url?: string;
+  badge?: string;
+}
+
+export interface DestinationSection {
+  id: string;
+  type: "photo_text" | "title_media_carousel" | "highlights_grid" | "gastronomy_guide" | "travel_tips_cards" | "faq_accordion";
+  title: string;
+  subtitle?: string;
+  content_text?: string;
+  layout_variant?: "left" | "right" | "full";
+  media_urls?: string[];
+  items?: DestinationSectionItem[];
+}
+
+export interface DestinationAttraction {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  image_url?: string;
+  recommended_duration?: string;
+  ticket_required?: boolean;
+}
+
+export interface DestinationReview {
+  id: string;
+  author_name: string;
+  author_avatar_url?: string;
+  author_city?: string;
+  rating: number; // 1 a 5
+  travel_month_year?: string;
+  comment: string;
+  verified: boolean;
+}
 
 export interface DestinationDTO {
   id: string;
@@ -16,19 +56,80 @@ export interface DestinationDTO {
   name: string;
   slug?: string | null;
   country: string;
+  city: string;
+  state: string;
   region?: string | null;
   description?: string | null;
   best_season?: string | null;
   iata_gateway?: string | null;
+  timezone?: string | null;
+  climate_type?: string | null;
   weather_summary?: string | null;
   cover_image_url?: string | null;
-  gallery_urls?: string[];
+  gallery_urls: string[];
+  tags: string[];
+  sections: DestinationSection[];
+  attractions: DestinationAttraction[];
+  reviews: DestinationReview[];
+  average_rating: number;
+  reviews_count: number;
+  highlights: string[];
+  gastronomy_tip?: string | null;
+  travel_tip?: string | null;
+  seo_title?: string | null;
+  seo_description?: string | null;
+  seo_keywords?: string[];
   latitude?: number | null;
   longitude?: number | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
   hotels_count?: number;
+}
+
+export interface HotelRoomCategory {
+  id: string;
+  name: string;
+  description?: string;
+  capacity_adults: number;
+  capacity_children: number;
+  max_guests: number;
+  bedding?: string;
+  size_m2?: number;
+  daily_rate_reference_cents?: number;
+  amenities?: string[];
+  cover_photo_url?: string;
+  photos?: string[];
+}
+
+export interface HotelPolicies {
+  check_in_time?: string;
+  check_out_time?: string;
+  children_policy?: string;
+  pet_friendly?: boolean;
+  pet_policy?: string;
+  cancellation_policy?: string;
+  voltage?: string;
+  accessibility_pcd?: boolean;
+  smoking_policy?: string;
+}
+
+export interface HotelRestaurant {
+  name: string;
+  cuisine: string;
+  regime: string;
+}
+
+export interface HotelStructure {
+  pools_count?: number;
+  beach_setup?: string;
+  kids_club?: boolean;
+  kids_club_details?: string;
+  spa?: boolean;
+  spa_brand?: string;
+  gym?: boolean;
+  sports?: string[];
+  restaurants?: HotelRestaurant[];
 }
 
 export interface HotelBankDTO {
@@ -51,6 +152,12 @@ export interface HotelBankDTO {
   website?: string | null;
   phone?: string | null;
   internal_rating: number;
+  address?: string | null;
+  airport_distance?: string | null;
+  google_maps_url?: string | null;
+  room_categories?: HotelRoomCategory[];
+  policies?: HotelPolicies;
+  structure?: HotelStructure;
   tags?: string[];
   is_active: boolean;
   created_at: string;
@@ -80,7 +187,16 @@ export const listDestinations = createServerFn({ method: "GET" }).handler(async 
 
   return (data || []).map((row: any) => ({
     ...row,
+    city: row.city || row.name || "",
+    state: row.state || row.region || "SC",
     gallery_urls: row.gallery_urls || [],
+    tags: row.tags || [],
+    sections: Array.isArray(row.sections) ? row.sections : [],
+    attractions: Array.isArray(row.attractions) ? row.attractions : [],
+    reviews: Array.isArray(row.reviews) ? row.reviews : [],
+    average_rating: Number(row.average_rating) || 5.0,
+    reviews_count: Number(row.reviews_count) || (Array.isArray(row.reviews) ? row.reviews.length : 0),
+    highlights: row.highlights || [],
     hotels_count: row.hotels_bank?.[0]?.count || 0,
   })) as DestinationDTO[];
 });
@@ -97,7 +213,19 @@ export const getDestinationById = createServerFn({ method: "GET" })
 
     if (error) throw new Error(error.message);
     if (!data) throw new Error("Destino não encontrado.");
-    return { ...data, gallery_urls: data.gallery_urls || [] } as DestinationDTO;
+    return {
+      ...data,
+      city: data.city || data.name || "",
+      state: data.state || data.region || "SC",
+      gallery_urls: data.gallery_urls || [],
+      tags: data.tags || [],
+      sections: Array.isArray(data.sections) ? data.sections : [],
+      attractions: Array.isArray(data.attractions) ? data.attractions : [],
+      reviews: Array.isArray(data.reviews) ? data.reviews : [],
+      average_rating: Number(data.average_rating) || 5.0,
+      reviews_count: Number(data.reviews_count) || (Array.isArray(data.reviews) ? data.reviews.length : 0),
+      highlights: data.highlights || [],
+    } as DestinationDTO;
   });
 
 export const createDestination = createServerFn({ method: "POST" })
@@ -105,13 +233,27 @@ export const createDestination = createServerFn({ method: "POST" })
     z.object({
       name: z.string().min(2, "Nome do destino deve ter pelo menos 2 caracteres."),
       country: z.string().default("Brasil"),
+      city: z.string().optional(),
+      state: z.string().default("SC"),
       region: z.string().optional(),
       description: z.string().optional(),
       best_season: z.string().optional(),
       iata_gateway: z.string().optional(),
+      timezone: z.string().optional(),
+      climate_type: z.string().optional(),
       weather_summary: z.string().optional(),
       cover_image_url: z.string().optional(),
       gallery_urls: z.array(z.string()).optional(),
+      tags: z.array(z.string()).optional(),
+      sections: z.array(z.any()).optional(),
+      attractions: z.array(z.any()).optional(),
+      reviews: z.array(z.any()).optional(),
+      highlights: z.array(z.string()).optional(),
+      gastronomy_tip: z.string().optional(),
+      travel_tip: z.string().optional(),
+      seo_title: z.string().optional(),
+      seo_description: z.string().optional(),
+      seo_keywords: z.array(z.string()).optional(),
     })
   )
   .handler(async ({ data }) => {
@@ -126,6 +268,14 @@ export const createDestination = createServerFn({ method: "POST" })
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)+/g, "");
 
+    const reviews = data.reviews || [];
+    const avgRating = reviews.length > 0 
+      ? Number((reviews.reduce((acc: number, r: any) => acc + (Number(r.rating) || 5), 0) / reviews.length).toFixed(2))
+      : 5.0;
+
+    const city = data.city?.trim() || data.name.trim();
+    const state = data.state?.trim() || data.region?.trim() || "SC";
+
     const { data: inserted, error } = await db
       .from("destinations")
       .insert({
@@ -134,13 +284,29 @@ export const createDestination = createServerFn({ method: "POST" })
         name: data.name.trim(),
         slug,
         country: data.country.trim(),
-        region: data.region?.trim() || null,
+        city,
+        state,
+        region: state,
         description: data.description?.trim() || null,
         best_season: data.best_season?.trim() || null,
         iata_gateway: data.iata_gateway?.trim() || null,
+        timezone: data.timezone?.trim() || "America/Sao_Paulo (UTC-3)",
+        climate_type: data.climate_type?.trim() || "Tropical / Subtropical",
         weather_summary: data.weather_summary?.trim() || null,
         cover_image_url: data.cover_image_url || null,
         gallery_urls: data.gallery_urls || [],
+        tags: data.tags || [],
+        sections: data.sections || [],
+        attractions: data.attractions || [],
+        reviews,
+        average_rating: avgRating,
+        reviews_count: reviews.length,
+        highlights: data.highlights || [],
+        gastronomy_tip: data.gastronomy_tip?.trim() || null,
+        travel_tip: data.travel_tip?.trim() || null,
+        seo_title: data.seo_title?.trim() || null,
+        seo_description: data.seo_description?.trim() || null,
+        seo_keywords: data.seo_keywords || [],
         is_active: true,
       })
       .select()
@@ -156,13 +322,27 @@ export const updateDestination = createServerFn({ method: "POST" })
       id: z.string().uuid(),
       name: z.string().min(2).optional(),
       country: z.string().optional(),
+      city: z.string().optional(),
+      state: z.string().optional(),
       region: z.string().optional(),
       description: z.string().optional(),
       best_season: z.string().optional(),
       iata_gateway: z.string().optional(),
+      timezone: z.string().optional(),
+      climate_type: z.string().optional(),
       weather_summary: z.string().optional(),
       cover_image_url: z.string().optional(),
       gallery_urls: z.array(z.string()).optional(),
+      tags: z.array(z.string()).optional(),
+      sections: z.array(z.any()).optional(),
+      attractions: z.array(z.any()).optional(),
+      reviews: z.array(z.any()).optional(),
+      highlights: z.array(z.string()).optional(),
+      gastronomy_tip: z.string().optional(),
+      travel_tip: z.string().optional(),
+      seo_title: z.string().optional(),
+      seo_description: z.string().optional(),
+      seo_keywords: z.array(z.string()).optional(),
       is_active: z.boolean().optional(),
     })
   )
@@ -171,9 +351,21 @@ export const updateDestination = createServerFn({ method: "POST" })
     const { store_id } = await getServerIdentity();
     const { id, ...updates } = data;
 
+    // Recalcular médias de reviews se atualizados
+    const patchPayload: Record<string, any> = { ...updates };
+    if (updates.reviews) {
+      patchPayload.reviews_count = updates.reviews.length;
+      patchPayload.average_rating = updates.reviews.length > 0
+        ? Number((updates.reviews.reduce((acc: number, r: any) => acc + (Number(r.rating) || 5), 0) / updates.reviews.length).toFixed(2))
+        : 5.0;
+    }
+    if (updates.state && !updates.region) {
+      patchPayload.region = updates.state;
+    }
+
     const { data: updated, error } = await db
       .from("destinations")
-      .update({ ...updates, updated_at: new Date().toISOString() })
+      .update({ ...patchPayload, updated_at: new Date().toISOString() })
       .eq("id", id)
       .eq("store_id", store_id)
       .select()
@@ -239,6 +431,9 @@ export const listHotelsBank = createServerFn({ method: "GET" })
       highlights: Array.isArray(row.highlights) ? row.highlights : [],
       badges: row.badges || [],
       photos: row.photos || [],
+      room_categories: Array.isArray(row.room_categories) ? row.room_categories : [],
+      policies: row.policies && typeof row.policies === "object" ? row.policies : {},
+      structure: row.structure && typeof row.structure === "object" ? row.structure : {},
       tags: row.tags || [],
     })) as HotelBankDTO[];
   });
@@ -264,6 +459,10 @@ export const getHotelById = createServerFn({ method: "GET" })
       highlights: Array.isArray(data.highlights) ? data.highlights : [],
       badges: data.badges || [],
       photos: data.photos || [],
+      room_categories: Array.isArray(data.room_categories) ? data.room_categories : [],
+      policies: data.policies && typeof data.policies === "object" ? data.policies : {},
+      structure: data.structure && typeof data.structure === "object" ? data.structure : {},
+      tags: data.tags || [],
     } as HotelBankDTO;
   });
 
@@ -286,6 +485,12 @@ export const createHotel = createServerFn({ method: "POST" })
       website: z.string().optional().nullable(),
       phone: z.string().optional().nullable(),
       internal_rating: z.number().default(4.8),
+      address: z.string().optional().nullable(),
+      airport_distance: z.string().optional().nullable(),
+      google_maps_url: z.string().optional().nullable(),
+      room_categories: z.array(z.any()).optional(),
+      policies: z.record(z.any()).optional(),
+      structure: z.record(z.any()).optional(),
     })
   )
   .handler(async ({ data }) => {
@@ -314,6 +519,12 @@ export const createHotel = createServerFn({ method: "POST" })
         website: data.website?.trim() || null,
         phone: data.phone?.trim() || null,
         internal_rating: data.internal_rating,
+        address: data.address?.trim() || null,
+        airport_distance: data.airport_distance?.trim() || null,
+        google_maps_url: data.google_maps_url?.trim() || null,
+        room_categories: data.room_categories || [],
+        policies: data.policies || {},
+        structure: data.structure || {},
         is_active: true,
       })
       .select()
@@ -331,16 +542,24 @@ export const updateHotel = createServerFn({ method: "POST" })
       name: z.string().min(2).optional(),
       city: z.string().optional(),
       state: z.string().optional().nullable(),
+      country: z.string().optional(),
       stars: z.number().int().min(1).max(5).optional(),
       regime_options: z.array(z.string()).optional(),
       description: z.string().optional().nullable(),
       bio_bullets: z.array(z.string()).optional(),
+      highlights: z.array(z.any()).optional(),
       badges: z.array(z.string()).optional(),
       photos: z.array(z.string()).optional(),
       cover_photo_url: z.string().optional().nullable(),
       website: z.string().optional().nullable(),
       phone: z.string().optional().nullable(),
       internal_rating: z.number().optional(),
+      address: z.string().optional().nullable(),
+      airport_distance: z.string().optional().nullable(),
+      google_maps_url: z.string().optional().nullable(),
+      room_categories: z.array(z.any()).optional(),
+      policies: z.record(z.any()).optional(),
+      structure: z.record(z.any()).optional(),
       is_active: z.boolean().optional(),
     })
   )
@@ -361,6 +580,39 @@ export const updateHotel = createServerFn({ method: "POST" })
     return updated as HotelBankDTO;
   });
 
+export const duplicateHotel = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string().uuid() }))
+  .handler(async ({ data: { id } }) => {
+    const db = getServerClient();
+    const { store_id, profile_id } = await getServerIdentity();
+    if (!store_id) throw new Error("Nenhuma loja ativa selecionada.");
+
+    // Busca o hotel original
+    const { data: source, error: fetchErr } = await db
+      .from("hotels_bank")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (fetchErr || !source) throw new Error("Hotel original não encontrado para duplicação.");
+
+    const { id: _, created_at: __, updated_at: ___, ...rest } = source;
+    const { data: duplicated, error: insertErr } = await db
+      .from("hotels_bank")
+      .insert({
+        ...rest,
+        name: `${source.name} (Cópia)`,
+        store_id,
+        created_by_profile_id: profile_id,
+        is_active: true,
+      })
+      .select()
+      .single();
+
+    if (insertErr) throw new Error(`Erro ao duplicar hotel: ${insertErr.message}`);
+    return duplicated as HotelBankDTO;
+  });
+
 export const deleteHotel = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: { id } }) => {
@@ -376,3 +628,4 @@ export const deleteHotel = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { success: true };
   });
+

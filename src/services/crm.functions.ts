@@ -732,7 +732,7 @@ export const updateCustomerCrm = createServerFn({ method: "POST" })
 
 
 // ---------------------------------------------------------------------------
-// CRM Leads and Pipeline Handlers
+// CRM Leads and Pipeline Handlers (TravelAgências / Enterprise Standard)
 // ---------------------------------------------------------------------------
 
 const SubmitContactSchema = z.object({
@@ -764,6 +764,85 @@ export const submitContactForm = createServerFn({ method: "POST" })
     }
   });
 
+export const createLeadSchema = z.object({
+  title: z.string().optional().nullable(),
+  fullName: z.string().min(2, "Nome deve ter no mínimo 2 caracteres"),
+  email: z.string().email("E-mail inválido").optional().nullable().or(z.literal("")),
+  phone: z.string().optional().nullable(),
+  destination: z.string().optional().nullable(),
+  interestType: z.string().optional().nullable(),
+  interestPeriod: z.string().optional().nullable(),
+  travelStart: z.string().optional().nullable(),
+  travelEnd: z.string().optional().nullable(),
+  paxAdults: z.number().int().min(1).default(1),
+  paxChildren: z.number().int().min(0).default(0),
+  paxInfants: z.number().int().min(0).default(0),
+  paxAges: z.array(z.number()).default([]),
+  estimatedValueCents: z.number().int().min(0).default(0),
+  source: z.string().default("whatsapp"),
+  leadSourceDetail: z.string().optional().nullable(),
+  status: z.enum(["new", "contacted", "qualified", "proposal", "negotiation", "won", "lost", "converted"]).default("new"),
+  assignedTo: z.string().uuid().optional().nullable(),
+  tags: z.array(z.string()).default([]),
+  checklist: z.array(z.object({
+    id: z.string(),
+    text: z.string(),
+    done: z.boolean(),
+  })).default([]),
+  notes: z.string().optional().nullable(),
+});
+
+export const createLead = createServerFn({ method: "POST" })
+  .validator(createLeadSchema)
+  .handler(async ({ data: input }) => {
+    try {
+      const supabase = getServerClient();
+      const identity = await getServerIdentity();
+      assertStoreAccess(identity, ["owner", "admin", "manager", "seller", "support"]);
+
+      const totalPax = (input.paxAdults || 1) + (input.paxChildren || 0) + (input.paxInfants || 0);
+
+      const payload = {
+        store_id: identity.store_id,
+        full_name: input.fullName.trim(),
+        email: input.email ? input.email.trim() : null,
+        phone: input.phone ? input.phone.trim() : null,
+        title: input.title?.trim() || (input.destination ? `Viagem para ${input.destination}` : `Atendimento ${input.fullName}`),
+        destination: input.destination?.trim() || null,
+        interest_type: input.interestType || null,
+        interest_period: input.interestPeriod?.trim() || null,
+        travel_start: input.travelStart || null,
+        travel_end: input.travelEnd || null,
+        pax_count: totalPax,
+        pax_adults: input.paxAdults,
+        pax_children: input.paxChildren,
+        pax_infants: input.paxInfants,
+        pax_ages: input.paxAges || [],
+        estimated_value_cents: input.estimatedValueCents || 0,
+        source: input.source || "whatsapp",
+        lead_source_detail: input.leadSourceDetail || null,
+        status: input.status,
+        assigned_to: input.assignedTo || identity.id,
+        tags: input.tags || [],
+        checklist: input.checklist || [],
+        notes: input.notes?.trim() || null,
+        last_contacted_at: new Date().toISOString(),
+      };
+
+      const { data, error } = await supabase
+        .from("leads_crm")
+        .insert(payload)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { status: "success" as const, lead: data };
+    } catch (e: unknown) {
+      console.error("[crm] createLead error:", e);
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao cadastrar oportunidade.");
+    }
+  });
+
 export const listLeads = createServerFn({ method: "GET" }).handler(async () => {
   const supabase = getServerClient();
   const identity = await getServerIdentity();
@@ -792,9 +871,19 @@ export const updateLeadStatus = createServerFn({ method: "POST" })
       const identity = await getServerIdentity();
       assertStoreAccess(identity, ["owner", "admin", "manager", "seller"]);
 
+      const updates: Record<string, any> = {
+        status,
+        updated_at: new Date().toISOString(),
+        last_contacted_at: new Date().toISOString(),
+      };
+
+      if (status === "won" || status === "lost" || status === "converted") {
+        updates.closed_at = new Date().toISOString();
+      }
+
       const { error } = await supabase
         .from("leads_crm")
-        .update({ status, updated_at: new Date().toISOString() })
+        .update(updates)
         .eq("id", leadId)
         .eq("store_id", identity.store_id);
 
@@ -810,12 +899,33 @@ export const updateLeadDetails = createServerFn({ method: "POST" })
   .validator(
     z.object({
       leadId: z.string().uuid(),
+      title: z.string().optional().nullable(),
+      fullName: z.string().optional(),
+      email: z.string().optional().nullable(),
+      phone: z.string().optional().nullable(),
+      destination: z.string().optional().nullable(),
+      interestType: z.string().optional().nullable(),
+      interestPeriod: z.string().optional().nullable(),
+      travelStart: z.string().optional().nullable(),
+      travelEnd: z.string().optional().nullable(),
+      paxAdults: z.number().optional(),
+      paxChildren: z.number().optional(),
+      paxInfants: z.number().optional(),
+      paxAges: z.array(z.number()).optional(),
       status: z.enum(["new", "contacted", "qualified", "proposal", "negotiation", "won", "lost", "converted"]).optional(),
       notes: z.string().optional().nullable(),
       estimated_value_cents: z.number().int().min(0).optional().nullable(),
       source: z.string().optional().nullable(),
+      lead_source_detail: z.string().optional().nullable(),
       assigned_to: z.string().uuid().optional().nullable(),
-      follow_up_at: z.string().optional().nullable(), // ISO date
+      follow_up_at: z.string().optional().nullable(),
+      tags: z.array(z.string()).optional(),
+      checklist: z.array(z.object({
+        id: z.string(),
+        text: z.string(),
+        done: z.boolean(),
+      })).optional(),
+      lost_reason: z.string().optional().nullable(),
     }),
   )
   .handler(async ({ data: input }) => {
@@ -825,10 +935,43 @@ export const updateLeadDetails = createServerFn({ method: "POST" })
       assertStoreAccess(identity, ["owner", "admin", "manager", "seller"]);
 
       const { leadId, ...updates } = input;
+      const dbUpdates: Record<string, any> = {
+        updated_at: new Date().toISOString(),
+        last_contacted_at: new Date().toISOString(),
+      };
+
+      if (updates.title !== undefined) dbUpdates.title = updates.title;
+      if (updates.fullName !== undefined) dbUpdates.full_name = updates.fullName;
+      if (updates.email !== undefined) dbUpdates.email = updates.email;
+      if (updates.phone !== undefined) dbUpdates.phone = updates.phone;
+      if (updates.destination !== undefined) dbUpdates.destination = updates.destination;
+      if (updates.interestType !== undefined) dbUpdates.interest_type = updates.interestType;
+      if (updates.interestPeriod !== undefined) dbUpdates.interest_period = updates.interestPeriod;
+      if (updates.travelStart !== undefined) dbUpdates.travel_start = updates.travelStart;
+      if (updates.travelEnd !== undefined) dbUpdates.travel_end = updates.travelEnd;
+      if (updates.paxAdults !== undefined) dbUpdates.pax_adults = updates.paxAdults;
+      if (updates.paxChildren !== undefined) dbUpdates.pax_children = updates.paxChildren;
+      if (updates.paxInfants !== undefined) dbUpdates.pax_infants = updates.paxInfants;
+      if (updates.paxAges !== undefined) dbUpdates.pax_ages = updates.paxAges;
+      if (updates.status !== undefined) {
+        dbUpdates.status = updates.status;
+        if (["won", "lost", "converted"].includes(updates.status)) {
+          dbUpdates.closed_at = new Date().toISOString();
+        }
+      }
+      if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
+      if (updates.estimated_value_cents !== undefined) dbUpdates.estimated_value_cents = updates.estimated_value_cents;
+      if (updates.source !== undefined) dbUpdates.source = updates.source;
+      if (updates.lead_source_detail !== undefined) dbUpdates.lead_source_detail = updates.lead_source_detail;
+      if (updates.assigned_to !== undefined) dbUpdates.assigned_to = updates.assigned_to;
+      if (updates.follow_up_at !== undefined) dbUpdates.follow_up_at = updates.follow_up_at;
+      if (updates.tags !== undefined) dbUpdates.tags = updates.tags;
+      if (updates.checklist !== undefined) dbUpdates.checklist = updates.checklist;
+      if (updates.lost_reason !== undefined) dbUpdates.lost_reason = updates.lost_reason;
 
       const { error } = await supabase
         .from("leads_crm")
-        .update({ ...updates, updated_at: new Date().toISOString() })
+        .update(dbUpdates)
         .eq("id", leadId)
         .eq("store_id", identity.store_id);
 
@@ -837,6 +980,48 @@ export const updateLeadDetails = createServerFn({ method: "POST" })
     } catch (e: unknown) {
       console.error("[crm] updateLeadDetails error:", e);
       throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao atualizar lead.");
+    }
+  });
+
+export const toggleLeadChecklist = createServerFn({ method: "POST" })
+  .validator(z.object({ leadId: z.string().uuid(), itemId: z.string() }))
+  .handler(async ({ data: { leadId, itemId } }) => {
+    try {
+      const supabase = getServerClient();
+      const identity = await getServerIdentity();
+      assertStoreAccess(identity, ["owner", "admin", "manager", "seller"]);
+
+      const { data: lead, error: fetchErr } = await supabase
+        .from("leads_crm")
+        .select("checklist")
+        .eq("id", leadId)
+        .eq("store_id", identity.store_id)
+        .single();
+
+      if (fetchErr || !lead) throw new Error("Lead não encontrado");
+
+      const items: Array<{ id: string; text: string; done: boolean }> = Array.isArray(lead.checklist)
+        ? lead.checklist
+        : [];
+
+      const updated = items.map((item) =>
+        item.id === itemId ? { ...item, done: !item.done } : item
+      );
+
+      const { error: updateErr } = await supabase
+        .from("leads_crm")
+        .update({
+          checklist: updated,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", leadId)
+        .eq("store_id", identity.store_id);
+
+      if (updateErr) throw updateErr;
+      return { status: "success" as const, checklist: updated };
+    } catch (e: unknown) {
+      console.error("[crm] toggleLeadChecklist error:", e);
+      throw new Error((e instanceof Error ? e.message : String(e)) || "Erro ao alterar checklist.");
     }
   });
 
