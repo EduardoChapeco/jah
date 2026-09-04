@@ -1,25 +1,7 @@
 import { createFileRoute, Link, useNavigate, useRouter, redirect, isRedirect } from "@tanstack/react-router";
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
-import {
-  ArrowRight,
-  ArrowLeft,
-  Shield,
-  ShieldAlert,
-  ShieldCheck,
-  Eye,
-  EyeOff,
-  UserPlus,
-  LogIn,
-  Lock,
-  Mail,
-  User,
-  Sparkles,
-  FileCheck,
-  Check,
-  Download,
-  X,
-} from "lucide-react";
+import { ArrowRight, ArrowLeft, Shield, ShieldAlert, ShieldCheck, Eye, EyeOff, UserPlus, LogIn, Lock, Mail, User, Layers, FileCheck, Check, Download, X } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -44,7 +26,7 @@ import { LegalTermsSheet } from "@/components/legal/legal-terms-sheet";
 
 export const Route = createFileRoute("/_store/entrar")({
   head: () => ({
-    meta: [{ title: "Acessar Conta — Wider" }],
+    meta: [{ title: "Acessar Conta — JAH Master OS" }],
   }),
   validateSearch: (search: Record<string, unknown>): { returnUrl?: string; error?: string } => {
     return {
@@ -311,7 +293,7 @@ function StepByStepAuthPage() {
     try {
       const cleanEmail = identifier.includes("@")
         ? identifier.trim().toLowerCase()
-        : `${identifier.replace(/\D/g, "") || "usuario"}@wider.app`;
+        : `${identifier.replace(/\D/g, "") || "usuario"}@jah.os`;
 
       const result = await signUpWithPassword({
         data: {
@@ -328,7 +310,7 @@ function StepByStepAuthPage() {
         return;
       }
 
-      toast.success("Conta criada com sucesso! Bem-vindo(a) ao Wider.");
+      toast.success("Conta criada com sucesso! Bem-vindo(a) ao JAH!");
       await getUserSession().catch(() => null);
       window.location.href = returnUrl || "/";
     } catch (err: any) {
@@ -413,7 +395,7 @@ function StepByStepAuthPage() {
   return (
     <main
       role="main"
-      aria-label="Autenticação Wider"
+      aria-label="Autenticação JAH Master OS"
       className="min-h-screen w-full relative select-none flex flex-col justify-between p-4 sm:p-6 md:p-8 bg-background text-foreground overflow-x-hidden"
     >
       {/* ── 1. Background com Mídia Responsiva (Apenas se cadastrado no Master) ── */}
@@ -438,19 +420,19 @@ function StepByStepAuthPage() {
       <header className="relative z-10 flex items-center justify-between w-full max-w-5xl mx-auto">
         <Link
           to="/"
-          className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-2xl bg-black/50 backdrop-blur-xl border border-white/15 text-white hover:border-white/30 transition-colors"
+          className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl bg-black/50 backdrop-blur-xl border border-white/15 text-white hover:border-white/30 transition-colors min-h-[44px]"
         >
           <span className="bg-primary text-primary-foreground font-black text-xs px-2 py-0.5 rounded-lg tracking-wider uppercase">
-            {brand?.platform_name || "WIDER"}
+            {brand?.platform_name || "JAH"}
           </span>
           <span className="text-xs font-semibold tracking-tight text-white/90 hidden sm:inline">
-            Community Platform
+            Master OS
           </span>
         </Link>
 
         <Link
           to="/"
-          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-black/40 backdrop-blur-xl border border-white/15 text-xs font-semibold text-white/90 hover:text-white hover:border-white/30 transition-all"
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-black/40 backdrop-blur-xl border border-white/15 text-xs font-semibold text-white/90 hover:text-white hover:border-white/30 transition-all min-h-[44px]"
         >
           <ArrowLeft className="size-3.5" />
           <span>Voltar ao Início</span>
@@ -459,15 +441,15 @@ function StepByStepAuthPage() {
 
       {/* ── 3. Card Centralizado: Experiência em Etapas (Step-by-Step) ── */}
       <div className="relative z-10 w-full max-w-md mx-auto my-auto py-6">
-        <div className="bg-card/95 dark:bg-card/90 backdrop-blur-2xl border border-border/60 rounded-3xl p-6 sm:p-8 text-foreground animate-in fade-in zoom-in-95 duration-300">
+        <div className="bg-card/95 dark:bg-card/90 backdrop-blur-2xl border border-border/60 rounded-2xl p-6 sm:p-8 shadow-xs text-foreground animate-in fade-in zoom-in-95 duration-300">
           
           {/* Logo / Glifo Superior */}
           <div className="flex justify-center mb-4">
             {brand?.logo_url ? (
               <img src={brand.logo_url} alt="Logo" className="h-10 w-auto object-contain" />
             ) : (
-              <div className="size-11 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center font-black text-xl">
-                W
+              <div className="size-11 rounded-xl bg-primary text-primary-foreground flex items-center justify-center font-black text-xl">
+                J
               </div>
             )}
           </div>
@@ -1110,7 +1092,7 @@ function StepByStepAuthPage() {
                 <Download className="size-4" />
               </div>
               <div className="min-w-0">
-                <h4 className="text-xs font-bold text-foreground">Instalar Wider App</h4>
+                <h4 className="text-xs font-bold text-foreground">Instalar JAH App</h4>
                 <p className="text-[10px] text-muted-foreground truncate">Rápido, offline e notificações</p>
               </div>
             </div>

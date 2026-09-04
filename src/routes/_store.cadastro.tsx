@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate, useRouter, redirect } from "@tanstack/react-router";
-import { ChevronRight, Eye, EyeOff, ShieldCheck, Sparkles, ArrowRight } from "lucide-react";
+import { ChevronRight, Eye, EyeOff, ShieldCheck, Layers, ArrowRight } from 'lucide-react';
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,7 +23,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/cadastro")({
   head: () => ({
-    meta: [{ title: "Criar Conta — Wider Community Commerce" }],
+    meta: [{ title: "Criar Conta — JAH Master OS" }],
   }),
   validateSearch: (search: Record<string, unknown>): { returnUrl?: string; error?: string } => {
     return {
@@ -77,9 +77,9 @@ function RegisterPage() {
         return;
       }
 
-      toast.success("Conta criada com sucesso! Bem-vindo(a) ao Wider.");
+      toast.success("Conta criada com sucesso! Bem-vindo(a) ao JAH!");
       if (typeof window !== "undefined") {
-        sessionStorage.setItem("wider_just_registered", "true");
+        sessionStorage.setItem("jah_just_registered", "true");
       }
       await new Promise((r) => setTimeout(r, 100));
       await getUserSession().catch(() => null);
@@ -111,11 +111,11 @@ function RegisterPage() {
 
         <div className="relative z-10 flex flex-col h-full justify-between">
           <Link to="/" className="inline-flex items-center gap-2 text-xl font-bold tracking-tight">
-            <span className="bg-primary text-primary-foreground px-2 py-0.5 rounded-lg text-sm font-black">WIDER</span>
+            <span className="bg-primary text-primary-foreground px-2 py-0.5 rounded-lg text-sm font-black">JAH</span>
           </Link>
           <div className="max-w-md">
             <h2 className="text-3xl font-bold tracking-tight leading-tight">
-              Sua plataforma de comunidade.
+              O Sistema Operacional do seu Negócio.
             </h2>
           </div>
         </div>
@@ -281,7 +281,7 @@ function RegisterPage() {
               <Button
                 type="submit"
                 size="lg"
-                className="w-full h-12 rounded-xl font-bold bg-primary text-primary-foreground gap-2 text-sm mt-2"
+                className="w-full h-11 min-h-[44px] rounded-xl font-bold bg-primary text-primary-foreground gap-2 text-sm mt-2"
                 disabled={form.formState.isSubmitting}
               >
                 {form.formState.isSubmitting ? "Criando..." : "Criar Conta"}
