@@ -1,28 +1,6 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import {
-  Store,
-  Save,
-  Loader2,
-  Building2,
-  Phone,
-  Mail,
-  MapPin,
-  Clock,
-  ShieldCheck,
-  CreditCard,
-  FileText,
-  Upload,
-  Image as ImageIcon,
-  Check,
-  ExternalLink,
-  ChevronRight,
-  Sparkles,
-  Plus,
-  Trash2,
-  HelpCircle,
-  ListChecks,
-} from "lucide-react";
+import { Store, Save, Loader2, Building2, Phone, Mail, MapPin, Clock, ShieldCheck, CreditCard, FileText, Upload, Image as ImageIcon, Check, ExternalLink, ChevronRight, Layers, Plus, Trash2, HelpCircle, ListChecks } from 'lucide-react';
 import {
   getStoreSettings,
   saveStoreSettings,
@@ -56,7 +34,7 @@ import { cn } from "@/lib/utils";
 import { getNicheSemantics } from "@/lib/niche-semantics";
 
 export const Route = createFileRoute("/workspace/configuracoes/")({
-  head: () => ({ meta: [{ title: "Configurações da Loja & Perfil Comercial | Workspace Wider" }] }),
+  head: () => ({ meta: [{ title: "Configurações da Loja & Perfil Comercial | Workspace JAH Master OS" }] }),
   loader: async () => {
     try {
       const [settingsRes, hoursRes, policiesRes] = await Promise.all([
@@ -164,6 +142,8 @@ export default function WorkspaceConfiguracoesPage() {
   const [holidayExceptions, setHolidayExceptions] = useState<any[]>(
     store?.settings?.holiday_exceptions || [],
   );
+
+  const semantics = getNicheSemantics({ ...store, segment, name });
   const [emergencyPauseUntil, setEmergencyPauseUntil] = useState<string | null>(
     store?.settings?.emergency_pause_until || null,
   );
@@ -670,21 +650,29 @@ export default function WorkspaceConfiguracoesPage() {
                   variant="outline"
                   size="sm"
                   onClick={() =>
-                    setEnabledModules([
-                      "catalog",
-                      "orders",
-                      "pos",
-                      "delivery",
-                      "stock",
-                      "studio",
-                      "biolink",
-                      "pages",
-                      "classifieds",
-                    ])
+                    setEnabledModules(
+                      semantics.nicheId === "tourism"
+                        ? ["catalog", "orders", "pos", "studio", "biolink", "pages"]
+                        : [
+                            "catalog",
+                            "orders",
+                            "pos",
+                            "delivery",
+                            "stock",
+                            "studio",
+                            "biolink",
+                            "pages",
+                            "classifieds",
+                          ]
+                    )
                   }
                   className="text-xs h-7 rounded-xl"
                 >
-                  Padrão Delivery & Loja
+                  {semantics.nicheId === "tourism"
+                    ? "Padrão Turismo & Viagens"
+                    : semantics.nicheId === "services"
+                    ? "Padrão Serviços"
+                    : "Padrão Comercial & Loja"}
                 </Button>
               </div>
             </div>
@@ -693,32 +681,46 @@ export default function WorkspaceConfiguracoesPage() {
               {[
                 {
                   id: "catalog",
-                  title: "Catálogo / Cardápio Digital",
-                  desc: "Cadastro de produtos, pratos, adicionais, categorias e fotos.",
-                  icon: "🍽️",
+                  title: semantics.nicheId === "gastronomy" ? "Cardápio & Itens" : semantics.catalogTitle || "Catálogo & Itens",
+                  desc: semantics.nicheId === "tourism"
+                    ? "Cadastro de pacotes, roteiros, destinos e passeios."
+                    : semantics.nicheId === "gastronomy"
+                    ? "Cadastro de pratos, bebidas, adicionais e categorias."
+                    : "Cadastro de produtos, variações, categorias e fotos.",
+                  icon: semantics.nicheId === "tourism" ? "✈️" : semantics.nicheId === "gastronomy" ? "🍽️" : "📦",
                 },
                 {
                   id: "orders",
-                  title: "Gestor de Pedidos & KDS",
-                  desc: "Recepção de pedidos em tempo real, telas de cozinha e despacho.",
+                  title: semantics.ordersLabel || "Gestor de Pedidos",
+                  desc: semantics.nicheId === "tourism"
+                    ? "Recepção de cotações, propostas e emissões."
+                    : semantics.nicheId === "gastronomy"
+                    ? "Recepção de pedidos em tempo real, telas de cozinha (KDS) e despacho."
+                    : "Recepção de pedidos, separação e expedição de compras.",
                   icon: "📋",
                 },
                 {
                   id: "delivery",
-                  title: "Frota & Entregadores",
-                  desc: "Gestão de motoboys, despacho automático e taxas por bairro.",
-                  icon: "🛵",
+                  title: semantics.nicheId === "tourism" ? "Embarque & Frota" : "Frota & Entregas",
+                  desc: semantics.nicheId === "tourism"
+                    ? "Gestão de veículos, ônibus, embarques e transfers."
+                    : "Gestão de entregadores, despacho e taxas por bairro.",
+                  icon: semantics.nicheId === "tourism" ? "🚌" : "🛵",
                 },
                 {
                   id: "pos",
-                  title: "Frente de Caixa (PDV)",
-                  desc: "Ponto de venda rápido para balcão, comandas e mesas.",
+                  title: semantics.nicheId === "tourism" ? "Balcão & Vendas Rápidas" : "Frente de Caixa (PDV)",
+                  desc: semantics.nicheId === "gastronomy"
+                    ? "Ponto de venda rápido para balcão, comandas e mesas."
+                    : "Ponto de venda rápido para recebimento e vendas presenciais.",
                   icon: "🏪",
                 },
                 {
                   id: "stock",
-                  title: "Controle de Estoque",
-                  desc: "Movimentações, baixa automática e alerta de insumos mínimos.",
+                  title: semantics.stockLabel || "Controle de Estoque",
+                  desc: semantics.nicheId === "tourism"
+                    ? "Controle de vagas, bloqueios de quartos e assentos."
+                    : "Movimentações, baixa automática e alerta de insumos mínimos.",
                   icon: "📦",
                 },
                 {

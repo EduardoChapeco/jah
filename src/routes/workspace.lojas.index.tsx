@@ -1,23 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
-import {
-  Store,
-  Plus,
-  ArrowRight,
-  ExternalLink,
-  CheckCircle2,
-  Package,
-  Building2,
-  MapPin,
-  ShieldCheck,
-  Search,
-  Settings2,
-  Phone,
-  Sparkles,
-  Layers,
-  ChevronRight,
-  Filter,
-} from "lucide-react";
+import { Store, Plus, ArrowRight, ExternalLink, CheckCircle2, Package, Building2, MapPin, ShieldCheck, Search, Settings2, Phone, Sliders, Layers, ChevronRight, Filter } from 'lucide-react';
 import { PageHeader } from "@/components/commerce/page-header";
 import { getMyStoresList } from "@/services/store.functions";
 import { setTenantContext } from "@/services/identity.functions";
@@ -32,7 +15,7 @@ import {
 } from "@/components/workspace/quick-store-editor-dialog";
 
 export const Route = createFileRoute("/workspace/lojas/")({
-  head: () => ({ meta: [{ title: "Minhas Lojas & Negócios | Workspace Wider" }] }),
+  head: () => ({ meta: [{ title: "Minhas Lojas & Negócios | Workspace JAH Master OS" }] }),
   loader: async () => {
     const stores = await getMyStoresList();
     return { stores };
@@ -54,7 +37,7 @@ export default function WorkspaceLojasPage() {
     setSwitchingId(storeId);
     try {
       if (typeof window !== "undefined") {
-        window.document.cookie = `wider_active_tenant=${storeId}; path=/; max-age=31536000; SameSite=Lax`;
+        window.document.cookie = `jah_active_tenant=${storeId}; path=/; max-age=31536000; SameSite=Lax`; window.document.cookie = `wider_active_tenant=${storeId}; path=/; max-age=31536000; SameSite=Lax`;
       }
       const res = await setTenantContext({ data: { store_id: storeId } }).catch(() => null);
       toast.success(`Contexto alterado para ${res?.storeName || storeName}`);
@@ -118,7 +101,7 @@ export default function WorkspaceLojasPage() {
               {activeStore?.name || "Nenhuma Selecionada"}
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
-              /{activeStore?.slug || "wider"} • {activeStore?.city || "Brasil"}
+              /{activeStore?.slug || "loja"} • {activeStore?.city || "Brasil"}
             </p>
           </div>
         </Card>
@@ -174,7 +157,7 @@ export default function WorkspaceLojasPage() {
           />
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto no-scrollbar">
           <Button
             variant={selectedType === "all" ? "default" : "outline"}
             size="sm"
@@ -212,7 +195,7 @@ export default function WorkspaceLojasPage() {
         </div>
 
         {filteredStores.length === 0 ? (
-          <div className="p-12 text-center bg-card rounded-3xl border-0 space-y-3">
+          <div className="p-12 text-center bg-card rounded-2xl shadow-xs border-0 space-y-3">
             <Store className="size-10 text-muted-foreground mx-auto opacity-40" />
             <p className="text-sm font-semibold text-foreground">Nenhuma loja encontrada</p>
             <p className="text-xs text-muted-foreground">Tente ajustar seus termos de busca ou crie uma nova loja.</p>
@@ -226,7 +209,7 @@ export default function WorkspaceLojasPage() {
               return (
                 <Card
                   key={st.id}
-                  className={`rounded-3xl border transition-all flex flex-col justify-between overflow-hidden bg-card  group ${
+                  className={`rounded-2xl shadow-xs border transition-all flex flex-col justify-between overflow-hidden bg-card  group ${
                     isCurrentActive
                       ? "border-primary/60  ring-2 ring-primary/20"
                       : "border-border hover:border-foreground/20 hover:"
@@ -300,7 +283,7 @@ export default function WorkspaceLojasPage() {
                           </h3>
                         </div>
                         <p className="text-xs text-muted-foreground font-mono">
-                          wider.com.br/{st.slug}
+                          jah.os/{st.slug}
                         </p>
 
                         {st.description && (
@@ -341,7 +324,7 @@ export default function WorkspaceLojasPage() {
                           onClick={() => handleSelectStore(st.id, st.name)}
                           disabled={isCurrentSwitching}
                           variant={isCurrentActive ? "default" : "secondary"}
-                          className={`flex-1 rounded-xl text-xs font-bold h-9 gap-1.5 ${
+                          className={`flex-1 rounded-xl text-xs font-bold h-11 min-h-[44px] gap-1.5 ${
                             isCurrentActive
                               ? "bg-primary text-primary-foreground "
                               : "hover:bg-primary/10 hover:text-primary"
@@ -366,7 +349,7 @@ export default function WorkspaceLojasPage() {
                           asChild
                           variant="outline"
                           size="icon"
-                          className="size-9 rounded-xl shrink-0"
+                          className="size-11 min-w-[44px] min-h-[44px] rounded-xl shrink-0"
                           title="Abrir Vitrine Pública da Loja"
                         >
                           <Link to={`/destaques/${st.slug}` as any} target="_blank">

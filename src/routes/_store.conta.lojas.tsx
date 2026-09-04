@@ -19,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/conta/lojas")({
-  head: () => ({ meta: [{ title: "Minhas Lojas & Negócios | Wider" }] }),
+  head: () => ({ meta: [{ title: "Minhas Lojas & Negócios | JAH Master OS" }] }),
   loader: async () => {
     const stores = await getMyStoresList().catch(() => []);
     return { stores: stores || [] };
@@ -36,7 +36,7 @@ export default function ContaLojasPage() {
     setSwitchingId(storeId);
     try {
       if (typeof window !== "undefined") {
-        window.document.cookie = `wider_active_tenant=${storeId}; path=/; max-age=31536000; SameSite=Lax`;
+        window.document.cookie = `jah_active_tenant=${storeId}; path=/; max-age=31536000; SameSite=Lax`; window.document.cookie = `wider_active_tenant=${storeId}; path=/; max-age=31536000; SameSite=Lax`;
       }
       await setTenantContext({ data: { store_id: storeId } });
       toast.success(`Acessando painel de ${storeName}`);
@@ -78,7 +78,7 @@ export default function ContaLojasPage() {
 
       {/* ── Grid de Lojas / Empty State ── */}
       {stores.length === 0 ? (
-        <Card className="p-12 text-center rounded-3xl border border-dashed border-border/80 bg-card space-y-4 max-w-xl mx-auto my-6">
+        <Card className="p-12 text-center rounded-2xl shadow-xs border border-dashed border-border/80 bg-card space-y-4 max-w-xl mx-auto my-6">
           <div className="size-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
             <Store className="size-8" />
           </div>

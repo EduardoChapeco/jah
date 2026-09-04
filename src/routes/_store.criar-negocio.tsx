@@ -1,37 +1,7 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
-import {
-  Store,
-  ArrowLeft,
-  ArrowRight,
-  Loader2,
-  Check,
-  Sparkles,
-  Clock,
-  Truck,
-  FileText,
-  Trash2,
-  Plus,
-  Users,
-  Mail,
-  Shield,
-  CheckCircle2,
-  Search,
-  CheckCircle,
-  Building2,
-  ChevronRight,
-  UserPlus,
-  Bike,
-  ShieldCheck,
-  Zap,
-  BadgePercent,
-  Star,
-  MapPin,
-  Phone,
-  Eye,
-  Layers,
-} from "lucide-react";
+import { Store, ArrowLeft, ArrowRight, Loader2, Check, Sliders, Clock, Truck, FileText, Trash2, Plus, Users, Mail, Shield, CheckCircle2, Search, CheckCircle, Building2, ChevronRight, UserPlus, Bike, ShieldCheck, Zap, BadgePercent, Star, MapPin, Phone, Eye, Layers } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CurrencyField } from "@/components/ui/currency-field";
@@ -72,7 +42,7 @@ import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_store/criar-negocio")({
-  head: () => ({ meta: [{ title: "Cadastrar Nova Loja / Negócio | Wider" }] }),
+  head: () => ({ meta: [{ title: "Cadastrar Novo Negócio | JAH Master OS" }] }),
   validateSearch: (search: Record<string, unknown>): { segment?: string } => {
     return {
       segment: (search.segment as string) || undefined,
@@ -124,7 +94,7 @@ interface InvitedTeamMember {
 }
 
 function CriarNegocioPage() {
-  const { logisticsInfo } = Route.useLoaderData();
+  const { logisticsInfo, session } = Route.useLoaderData();
   const search = Route.useSearch();
   const initialSegment = search?.segment || "";
   const foundInitial = BUSINESS_SEGMENTS.find((s) => s.id === initialSegment);
@@ -367,12 +337,12 @@ function CriarNegocioPage() {
 
   return (
     <div className="w-full max-w-6xl mx-auto py-2 space-y-6 animate-in fade-in duration-200">
-      {/* ── Top Bar de Retorno / Atalho ao Workspace ── */}
+      {/* ── Top Bar de Retorno / Atalho ao Workspace ou Início ── */}
       <div className="flex items-center justify-between">
         <Button asChild variant="ghost" size="sm" className="rounded-xl text-xs font-semibold gap-1.5 text-muted-foreground hover:text-foreground">
-          <Link to="/workspace">
+          <Link to={session?.memberships && session.memberships.length > 0 ? "/workspace" : "/"}>
             <ArrowLeft className="size-3.5" />
-            <span>Voltar ao Workspace</span>
+            <span>{session?.memberships && session.memberships.length > 0 ? "Voltar ao Workspace" : "Voltar ao Início"}</span>
           </Link>
         </Button>
       </div>
@@ -1138,7 +1108,7 @@ function CriarNegocioPage() {
                       </>
                     ) : (
                       <>
-                        <Sparkles className="size-4" />
+                        <Sliders className="size-4" />
                         <span>Concluir e Abrir Meu Negócio</span>
                       </>
                     )}
@@ -1267,7 +1237,7 @@ function CriarNegocioPage() {
                         </Badge>
                       )}
                       <Badge variant="secondary" className="text-[10px] font-semibold gap-1 bg-muted/60">
-                        <Sparkles className="size-3 text-primary" />
+                        <Sliders className="size-3 text-primary" />
                         <span>{selectedSegment.badge}</span>
                       </Badge>
                     </>
@@ -1311,7 +1281,7 @@ function CriarNegocioPage() {
             {/* Box Informativo / Dica Contextual */}
             <div className="p-4 rounded-2xl bg-muted/30 border border-border/60 space-y-1.5 text-xs text-muted-foreground">
               <p className="font-bold text-foreground flex items-center gap-1.5">
-                <Sparkles className="size-3.5 text-primary" />
+                <Sliders className="size-3.5 text-primary" />
                 <span>Configuração Automática</span>
               </p>
               <p className="text-[11px] leading-relaxed">
