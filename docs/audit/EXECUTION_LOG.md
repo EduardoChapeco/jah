@@ -355,3 +355,30 @@
 3. **Estúdio Criativo Responsivo**:
    - Em `workspace.estudio.index.tsx`, o seletor de proporção de tela adaptado para `grid-cols-3 sm:grid-cols-5 gap-1.5` e formas em `grid-cols-1 sm:grid-cols-2`.
 4. **Compilação e Validação**: Build de produção Vite + Nitro concluído com sucesso.
+
+## Ciclo 79 — Microfase 1 (Autenticação, Identidade & Resolução de Tenant)
+
+- **Data/Hora:** 2026-09-04T20:13:00-03:00
+- **Módulo:** Autenticação, Identidade e Resolução de Tenant JAH Master OS
+- **Commit Base:** `61a76ce`
+- **Commit Final:** `f02439c`
+- **Status:** `MICROFASE COMPROVADA EM RUNTIME E COMMITADA`
+
+### Diagnóstico Forense & Causa Raiz
+1. `src/routes/_store.motorista.$slug.tsx`: Erro sintático TS1005 na linha 16 decorrente de template string malformada (`| JAH Master OS`dade`), introduzida por substituição em lote anterior, quebrando a validação de compilação.
+2. `src/services/auth.functions.ts`: Presença de fallback textual estático `"Membro Wider"` na linha 101 da Server Function `getUserSession`.
+3. `src/lib/tenant.server.ts` e `src/services/identity.functions.ts`: Resolução e persistência de tenant operavam exclusivamente sob o cookie `wider_active_tenant`, sem sincronização canônica com `jah_active_tenant`.
+4. Auditoria estática profunda revelou 346 erros TypeScript em 66 arquivos introduzidos em incrementos rápidos recentes (em especial importações inexistentes de `@/lib/supabase.server` em serviços de viagens e 6 migrações pendentes no banco de dados remoto Supabase).
+
+### Ações Executadas
+1. **Saneamento de Sintaxe & Rebranding em Rota de Mobilidade**:
+   - Em `src/routes/_store.motorista.$slug.tsx`, corrigida a template string do título e normalizado texto do link WhatsApp para referenciar `JAH`.
+2. **Identidade Canônica JAH Master OS**:
+   - Em `src/services/auth.functions.ts`, erradicado o fallback `"Membro Wider"` para `"Membro JAH"` na Server Function `getUserSession`.
+3. **Resolução de Tenant Bilateral e Resiliente**:
+   - Em `src/lib/tenant.server.ts`, busca ativa pelo cookie `jah_active_tenant` com fallback retrocompatível para `wider_active_tenant`.
+   - Em `src/services/identity.functions.ts`, persistência atômica simultânea de ambos os cookies (`jah_active_tenant` e `wider_active_tenant`).
+4. **Validação em Runtime e Testes Unitários**:
+   - 34 suítes e 174 testes unitários aprovados com 100% de sucesso no Vitest.
+   - Sonda HTTP em runtime ativo (`http://localhost:8080/motorista/test-slug` e `/workspace`) retornando HTTP 200 OK.
+   - Verificação direta de persistência na tabela `public.profiles`, `public.stores` e `public.workspace_members` no Supabase remoto via pooler PostgreSQL.
